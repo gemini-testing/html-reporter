@@ -138,9 +138,10 @@ module.exports = (gemini, opts) => {
         return;
     }
 
-    const generateReportPromise = Promise.all(
-            [prepareViewData(gemini, pluginConfig), prepareImages(gemini, pluginConfig)]
-        )
+    const generateReportPromise = Promise.all([
+        prepareViewData(gemini, pluginConfig),
+        prepareImages(gemini, pluginConfig)
+    ])
         .spread(view.createHtml)
         .then((html) => view.save(html, pluginConfig.path))
         .then(() => logPathToHtmlReport(pluginConfig.path))

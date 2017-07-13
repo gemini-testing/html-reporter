@@ -32,7 +32,8 @@ describe('HTML Reporter', () => {
     function initReporter_(opts) {
         opts = _.defaults(opts || {}, {
             enabled: true,
-            path: 'default-path'
+            path: 'default-path',
+            baseHost: ''
         });
         emitter = new QEmitter();
         emitter.config = {
@@ -77,11 +78,11 @@ describe('HTML Reporter', () => {
     afterEach(() => sandbox.restore());
 
     it('should parse config using passed options', () => {
-        initReporter_({path: 'some/path', enabled: false});
+        initReporter_({path: 'some/path', enabled: false, baseHost: 'some-host'});
         emitter.emit(events.END);
 
         return emitter.emitAndWait(events.END_RUNNER).then(() => {
-            assert.calledWith(parseConfig, {path: 'some/path', enabled: false});
+            assert.calledWith(parseConfig, {path: 'some/path', enabled: false, baseHost: 'some-host'});
         });
     });
 
