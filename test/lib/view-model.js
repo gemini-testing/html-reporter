@@ -6,8 +6,10 @@ const ViewModel = require('../../lib/view-model');
 describe('ViewModel', () => {
     const sandbox = sinon.sandbox.create();
 
-    const mkViewModel_ = () =>{
-        const config = {forBrowser: sandbox.stub().returns({})};
+    const mkViewModel_ = (options) =>{
+        options = _.defaults(options || {}, {getAbsoluteUrl: _.noop});
+        const browserConfigStub = {getAbsoluteUrl: options.getAbsoluteUrl};
+        const config = {forBrowser: sandbox.stub().returns(browserConfigStub)};
         return new ViewModel(config);
     };
 
@@ -140,5 +142,17 @@ describe('ViewModel', () => {
 
             assert.match(getModelResult_(model), {error: true});
         });
+    });
+
+    it('should resolve absolute suite url', () => {
+        const model = mkViewModel_({
+            getAbsoluteUrl: sandbox.stub().withArgs('/some/url').returns('http://expected.url')
+        });
+
+        model.addSuccess(stubTest_({suite: {url: '/some/url'}}));
+
+        const suiteUrl = getModelResult_(model).suiteUrl;
+
+        assert.equal(suiteUrl, 'http://expected.url');
     });
 });
