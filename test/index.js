@@ -35,7 +35,8 @@ describe('HTML Reporter', () => {
         emitter = new QEmitter();
         emitter.config = {
             forBrowser: sinon.stub().returns({
-                rootUrl: 'browser/root/url'
+                rootUrl: 'browser/root/url',
+                getAbsoluteUrl: _.noop
             })
         };
         emitter.events = events;
