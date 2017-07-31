@@ -30,10 +30,12 @@ Add plugin to your `gemini` config file:
 ```js
 module.exports = {
     // ...
-    plugins: {
-        'html-reporter': {
-            enabled: true,
-            path: 'my/gemini-reports'
+    system: {
+        plugins: {
+            'html-reporter': {
+                enabled: true,
+                path: 'my/gemini-reports'
+            }
         }
     },
     //...
