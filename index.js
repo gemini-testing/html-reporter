@@ -48,6 +48,8 @@ function prepareViewData(gemini) {
             result.equal ? model.addSuccess(result) : model.addFail(result);
         });
 
+        gemini.on(gemini.events.UPDATE_RESULT, (result) => model.addSuccess(result));
+
         gemini.on(gemini.events.RETRY, model.addRetry.bind(model));
 
         gemini.on(gemini.events.ERROR, model.addError.bind(model));
