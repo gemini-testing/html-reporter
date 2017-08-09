@@ -10,6 +10,7 @@ const chalk = require('chalk');
 const proxyquire = require('proxyquire');
 const utils = require('../utils');
 const view = require('../lib/view');
+const ViewModel = require('../lib/view-model');
 const logger = require('../utils').logger;
 
 describe('HTML Reporter', () => {
@@ -24,7 +25,8 @@ describe('HTML Reporter', () => {
         RETRY: 'retry',
         SKIP_STATE: 'skipState',
         ERROR: 'err',
-        TEST_RESULT: 'testResult'
+        TEST_RESULT: 'testResult',
+        UPDATE_RESULT: 'updateResult'
     };
 
     function initReporter_(opts) {
@@ -127,6 +129,14 @@ describe('HTML Reporter', () => {
             assert.calledOnce(fs.copyAsync);
             assert.calledWith(fs.copyAsync, 'reference/path', 'absolute/reference/path');
         });
+    });
+
+    it('should handle updated references as success result', () => {
+        sandbox.stub(ViewModel.prototype, 'addSuccess');
+        emitter.emit(events.UPDATE_RESULT, mkStubResult_({updated: true}));
+
+        assert.calledOnce(ViewModel.prototype.addSuccess);
+        assert.calledWith(ViewModel.prototype.addSuccess, sinon.match({updated: true}));
     });
 
     describe('when screenshots are not equal', () => {
