@@ -1,6 +1,6 @@
 {
   "name": "html-reporter",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Plugin for gemini which is intended to aggregate the results of tests running into html report",
   "main": "index.js",
   "scripts": {
