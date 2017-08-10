@@ -139,6 +139,21 @@ describe('HTML Reporter', () => {
         assert.calledWith(ViewModel.prototype.addSuccess, sinon.match({updated: true}));
     });
 
+    it('should save updated images', () => {
+        sandbox.stub(utils, 'getReferenceAbsolutePath').returns('absolute/reference/path');
+
+        emitter.emit(events.UPDATE_RESULT, mkStubResult_({
+            imagePath: 'updated/image/path'
+        }));
+
+        emitter.emit(events.END);
+
+        return emitter.emitAndWait(events.END_RUNNER).then(() => {
+            assert.calledOnce(fs.copyAsync);
+            assert.calledWith(fs.copyAsync, 'updated/image/path', 'absolute/reference/path');
+        });
+    });
+
     describe('when screenshots are not equal', () => {
         function emitResult_(options) {
             emitter.emit(events.TEST_RESULT, mkStubResult_(options));
