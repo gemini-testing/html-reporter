@@ -1,6 +1,7 @@
 'use strict';
 
 const path = require('path');
+const _ = require('lodash');
 const chalk = require('chalk');
 const Promise = require('bluebird');
 const fs = Promise.promisifyAll(require('fs-extra'));
@@ -106,6 +107,15 @@ function prepareImages(gemini, reportDir) {
         });
 
         gemini.on(gemini.events.TEST_RESULT, function(testResult) {
+            queue = queue.then(() => handleTestResultEvent_(testResult));
+        });
+
+        gemini.on(gemini.events.UPDATE_RESULT, function(testResult) {
+            testResult = _.extend(testResult, {
+                referencePath: testResult.imagePath,
+                equal: true
+            });
+
             queue = queue.then(() => handleTestResultEvent_(testResult));
         });
 
