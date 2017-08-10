@@ -4,10 +4,10 @@ const path = require('path');
 const _ = require('lodash');
 const fs = require('fs-extra');
 const Promise = require('bluebird');
-const QEmitter = require('qemitter');
 const Handlebars = require('handlebars');
 const chalk = require('chalk');
 const proxyquire = require('proxyquire');
+const AsyncEmitter = require('gemini-core').AsyncEmitter;
 const utils = require('../utils');
 const view = require('../lib/view');
 const ViewModel = require('../lib/view-model');
@@ -34,7 +34,7 @@ describe('HTML Reporter', () => {
             enabled: true,
             path: 'default-path'
         });
-        emitter = new QEmitter();
+        emitter = new AsyncEmitter();
         emitter.config = {
             forBrowser: sinon.stub().returns({
                 rootUrl: 'browser/root/url',

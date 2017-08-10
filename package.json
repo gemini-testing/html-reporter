@@ -46,10 +46,10 @@
     "conventional-changelog-lint": "^1.0.1",
     "eslint": "^3.4.0",
     "eslint-config-gemini-testing": "^2.2.0",
+    "gemini-core": "gemini-testing/gemini-core#feature/emitters",
     "husky": "^0.11.9",
     "mocha": "^3.0.2",
     "proxyquire": "^1.7.11",
-    "qemitter": "^1.0.0",
     "sinon": "^1.17.5",
     "standard-version": "^4.0.0"
   }
