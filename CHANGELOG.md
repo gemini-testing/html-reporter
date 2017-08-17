@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.3.0"></a>
+# [0.3.0](https://github.com/gemini-testing/html-reporter/compare/v0.2.5...v0.3.0) (2017-08-17)
+
+
+### Bug Fixes
+
+* added package-lock.json to gitignore ([3a56c7c](https://github.com/gemini-testing/html-reporter/commit/3a56c7c))
+
+
+### Features
+
+* add "errorsOnly" option to show in report only failed tests ([0097c33](https://github.com/gemini-testing/html-reporter/commit/0097c33))
+
+
+
 <a name="0.2.5"></a>
 ## [0.2.5](https://github.com/gemini-testing/html-reporter/compare/v0.2.4...v0.2.5) (2017-08-10)
 
