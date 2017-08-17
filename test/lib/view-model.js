@@ -6,11 +6,11 @@ const ViewModel = require('../../lib/view-model');
 describe('ViewModel', () => {
     const sandbox = sinon.sandbox.create();
 
-    const mkViewModel_ = (options) =>{
+    const mkViewModel_ = (options) => {
         options = _.defaults(options || {}, {getAbsoluteUrl: _.noop});
         const browserConfigStub = {getAbsoluteUrl: options.getAbsoluteUrl};
         const config = {forBrowser: sandbox.stub().returns(browserConfigStub)};
-        return new ViewModel(config);
+        return new ViewModel(config, {errorsOnly: options.errorsOnly});
     };
 
     const getModelResult_ = (model) => model.getResult().suites[0].children[0].browsers[0].result;
@@ -85,6 +85,14 @@ describe('ViewModel', () => {
         }]);
     });
 
+    it('should not add skipped test to result if "errorsOnly" option is set', () => {
+        const model = mkViewModel_({errorsOnly: true});
+
+        model.addSkipped(stubTest_());
+
+        assert.equal(model.getResult().skips.length, 0);
+    });
+
     it('should add success test to result', () => {
         const model = mkViewModel_();
 
@@ -98,6 +106,14 @@ describe('ViewModel', () => {
             actualPath: 'images/suite/some-state-name/bro1~current.png',
             expectedPath: 'images/suite/some-state-name/bro1~ref.png'
         });
+    });
+
+    it('should not add success test to result if "errorsOnly" option is set', () => {
+        const model = mkViewModel_({errorsOnly: true});
+
+        model.addSuccess(stubTest_());
+
+        assert.isNotOk(model.getResult().suites);
     });
 
     it('should add failed test to result', () => {

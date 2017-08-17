@@ -39,9 +39,9 @@ function makeDirFor(destPath) {
     return fs.mkdirsAsync(path.dirname(destPath));
 }
 
-function prepareViewData(gemini) {
+function prepareViewData(gemini, pluginConfig) {
     return new Promise((resolve) => {
-        var model = new ViewModel(gemini.config);
+        var model = new ViewModel(gemini.config, pluginConfig);
 
         gemini.on(gemini.events.SKIP_STATE, model.addSkipped.bind(model));
 
@@ -69,8 +69,14 @@ function logPathToHtmlReport(reportDir) {
     logger.log(`Your HTML report is here: ${chalk.yellow(reportPath)}`);
 }
 
-function prepareImages(gemini, reportDir) {
+function prepareImages(gemini, pluginConfig) {
+    const reportDir = pluginConfig.path;
+
     function handleTestResultEvent_(testResult) {
+        if (pluginConfig.errorsOnly && testResult.equal) {
+            return Promise.resolve();
+        }
+
         const actions = [
             copyImage(testResult.referencePath, utils.getReferenceAbsolutePath(testResult, reportDir))
         ];
@@ -126,16 +132,18 @@ function prepareImages(gemini, reportDir) {
 }
 
 module.exports = (gemini, opts) => {
-    const config = parseConfig(opts);
+    const pluginConfig = parseConfig(opts);
 
-    if (!config.enabled) {
+    if (!pluginConfig.enabled) {
         return;
     }
 
-    const generateReportPromise = Promise.all([prepareViewData(gemini), prepareImages(gemini, config.path)])
+    const generateReportPromise = Promise.all(
+            [prepareViewData(gemini, pluginConfig), prepareImages(gemini, pluginConfig)]
+        )
         .spread(view.createHtml)
-        .then((html) => view.save(html, config.path))
-        .then(() => logPathToHtmlReport(config.path))
+        .then((html) => view.save(html, pluginConfig.path))
+        .then(() => logPathToHtmlReport(pluginConfig.path))
         .catch(logError);
 
     gemini.on(gemini.events.END_RUNNER, () => generateReportPromise.thenReturn());
