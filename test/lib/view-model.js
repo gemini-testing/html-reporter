@@ -6,11 +6,12 @@ const ViewModel = require('../../lib/view-model');
 describe('ViewModel', () => {
     const sandbox = sinon.sandbox.create();
 
-    const mkViewModel_ = (options) => {
-        options = _.defaults(options || {}, {getAbsoluteUrl: _.noop});
-        const browserConfigStub = {getAbsoluteUrl: options.getAbsoluteUrl};
+    const mkViewModel_ = (toolConfig, pluginConfig) => {
+        toolConfig = _.defaults(toolConfig || {}, {getAbsoluteUrl: _.noop});
+        pluginConfig = _.defaults(pluginConfig || {}, {baseHost: ''});
+        const browserConfigStub = {getAbsoluteUrl: toolConfig.getAbsoluteUrl};
         const config = {forBrowser: sandbox.stub().returns(browserConfigStub)};
-        return new ViewModel(config, {errorsOnly: options.errorsOnly});
+        return new ViewModel(config, pluginConfig);
     };
 
     const getModelResult_ = (model) => model.getResult().suites[0].children[0].browsers[0].result;
@@ -27,6 +28,8 @@ describe('ViewModel', () => {
             }
         });
     };
+
+    afterEach(() => sandbox.restore());
 
     it('should contain "file" in "metaInfo"', () => {
         const model = mkViewModel_();
@@ -86,7 +89,7 @@ describe('ViewModel', () => {
     });
 
     it('should not add skipped test to result if "errorsOnly" option is set', () => {
-        const model = mkViewModel_({errorsOnly: true});
+        const model = mkViewModel_({}, {errorsOnly: true});
 
         model.addSkipped(stubTest_());
 
@@ -109,7 +112,7 @@ describe('ViewModel', () => {
     });
 
     it('should not add success test to result if "errorsOnly" option is set', () => {
-        const model = mkViewModel_({errorsOnly: true});
+        const model = mkViewModel_({}, {errorsOnly: true});
 
         model.addSuccess(stubTest_());
 
@@ -170,5 +173,19 @@ describe('ViewModel', () => {
         const suiteUrl = getModelResult_(model).suiteUrl;
 
         assert.equal(suiteUrl, 'http://expected.url');
+    });
+
+    describe('should add base host to result with', () => {
+        it('empty string if plugin paremeter "baseHost" is not specified', () => {
+            const model = mkViewModel_();
+
+            assert.equal(model.getResult({}).baseHost, '');
+        });
+
+        it('value from plugin parameter "baseHost"', () => {
+            const model = mkViewModel_({}, {baseHost: 'some-host'});
+
+            assert.equal(model.getResult({}).baseHost, 'some-host');
+        });
     });
 });
