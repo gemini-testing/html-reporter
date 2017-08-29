@@ -175,6 +175,19 @@ describe('ViewModel', () => {
         assert.equal(suiteUrl, 'http://expected.url');
     });
 
+    it('should add base host to suite url from plugin parameter "baseHost"', () => {
+        const model = mkViewModel_(
+            {getAbsoluteUrl: sandbox.stub().withArgs('/some/url').returns('http://some.url/bar')},
+            {baseHost: 'https://some-host.com:1234'}
+        );
+
+        model.addSuccess(stubTest_({suite: {url: '/some/url'}}));
+
+        const suiteUrl = getModelResult_(model).suiteUrl;
+
+        assert.equal(suiteUrl, 'https://some-host.com:1234/bar');
+    });
+
     describe('should add base host to result with', () => {
         it('empty string if plugin paremeter "baseHost" is not specified', () => {
             const model = mkViewModel_();

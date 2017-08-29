@@ -39,7 +39,8 @@
     "gemini-configparser": "^0.4.0",
     "handlebars": "^4.0.5",
     "lodash": "^4.17.4",
-    "uglify-js": "^2.7.3"
+    "uglify-js": "^2.7.3",
+    "urijs": "^1.18.12"
   },
   "devDependencies": {
     "chai": "^3.5.0",
