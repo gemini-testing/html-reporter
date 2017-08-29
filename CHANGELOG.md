@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.4.1"></a>
+## [0.4.1](https://github.com/gemini-testing/html-reporter/compare/v0.4.0...v0.4.1) (2017-08-29)
+
+
+### Bug Fixes
+
+* bug with the substitution of the base host through env var ([2b01f9a](https://github.com/gemini-testing/html-reporter/commit/2b01f9a))
+
+
+
 <a name="0.4.0"></a>
 # [0.4.0](https://github.com/gemini-testing/html-reporter/compare/v0.3.0...v0.4.0) (2017-08-27)
 
