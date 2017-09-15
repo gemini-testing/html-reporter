@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.5.0"></a>
+# [0.5.0](https://github.com/gemini-testing/html-reporter/compare/v0.4.1...v0.5.0) (2017-09-15)
+
+
+### Features
+
+* save test results in json ([de7a1ea](https://github.com/gemini-testing/html-reporter/commit/de7a1ea))
+
+
+
 <a name="0.4.1"></a>
 ## [0.4.1](https://github.com/gemini-testing/html-reporter/compare/v0.4.0...v0.4.1) (2017-08-29)
 
