@@ -138,12 +138,19 @@ module.exports = (gemini, opts) => {
         return;
     }
 
-    const generateReportPromise = Promise.all([
-        prepareViewData(gemini, pluginConfig),
-        prepareImages(gemini, pluginConfig)
-    ])
-        .spread(view.createHtml)
-        .then((html) => view.save(html, pluginConfig.path))
+    const generateReportPromise = Promise
+        .all([
+            prepareViewData(gemini, pluginConfig),
+            prepareImages(gemini, pluginConfig)
+        ])
+        .spread((model) => Promise.all([
+            view.createHtml(model),
+            model
+        ]))
+        .spread((html, model) => Promise.all([
+            view.save(html, pluginConfig.path),
+            fs.outputJson(path.join(pluginConfig.path, 'report.json'), model)
+        ]))
         .then(() => logPathToHtmlReport(pluginConfig.path))
         .catch(logError);
 

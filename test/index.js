@@ -71,6 +71,7 @@ describe('HTML Reporter', () => {
         sandbox.stub(logger, 'log');
         sandbox.stub(fs, 'copyAsync').returns(Promise.resolve());
         sandbox.stub(fs, 'mkdirsAsync').returns(Promise.resolve());
+        sandbox.stub(fs, 'outputJson').returns(Promise.resolve());
 
         initReporter_();
     });
@@ -93,6 +94,15 @@ describe('HTML Reporter', () => {
 
         return emitter.emitAndWait(events.END_RUNNER).then(() => {
             assert.calledWith(view.save, 'some-html', 'some/path');
+        });
+    });
+
+    it('should save json report using passed path', () => {
+        initReporter_({path: 'some/path'});
+        emitter.emit(events.END);
+
+        return emitter.emitAndWait(events.END_RUNNER).then(() => {
+            assert.calledWith(fs.outputJson, 'some/path/report.json');
         });
     });
 
