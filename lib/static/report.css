@@ -52,7 +52,9 @@
     display: inline-block;
 }
 
-.report_show-only-diff .image-box__exp-with-act {
+.report_show-only-diff .image-box__exp-with-act,
+.report_show-only-errors .section_status_success,
+.report_show-only-errors .section_status_skip {
     display: none;
 }
 
