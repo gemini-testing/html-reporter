@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.6.0"></a>
+# [0.6.0](https://github.com/gemini-testing/html-reporter/compare/v0.5.0...v0.6.0) (2017-09-18)
+
+
+### Features
+
+* add ShowOnlyErrors button ([f727d1d](https://github.com/gemini-testing/html-reporter/commit/f727d1d))
+* drop support of node below 6.x ([11e5227](https://github.com/gemini-testing/html-reporter/commit/11e5227))
+
+
+
 <a name="0.5.0"></a>
 # [0.5.0](https://github.com/gemini-testing/html-reporter/compare/v0.4.1...v0.5.0) (2017-09-15)
 
