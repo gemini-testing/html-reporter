@@ -131,6 +131,31 @@ function prepareImages(gemini, pluginConfig) {
     });
 }
 
+function prepareEventLog(gemini, pluginConfig) {
+    const reportDir = pluginConfig.path;
+
+    return new Promise((resolve) => {
+        const eventLog = [];
+
+        gemini.on(gemini.events.BEGIN_SUITE, (event) => eventLog.push({name: gemini.events.BEGIN_SUITE, data: event}));
+        gemini.on(gemini.events.BEGIN_STATE, (event) => eventLog.push({name: gemini.events.BEGIN_STATE, data: event}));
+        gemini.on(gemini.events.SKIP_STATE, (event) => eventLog.push({name: gemini.events.SKIP_STATE, data: event}));
+        gemini.on(gemini.events.END_TEST, (event) => {
+            // order is not guaranteed
+            // so we need to rewrite these paths
+            // and to do it in event data copy because rewriting these paths breaks images saving when occurs before it
+            eventLog.push({name: gemini.events.END_TEST, data: Object.assign({}, event, {
+                currentPath: utils.getCurrentAbsolutePath(event, reportDir),
+                diffPath: utils.getDiffAbsolutePath(event, reportDir)
+            })});
+        });
+        gemini.on(gemini.events.END_STATE, (event) => eventLog.push({name: gemini.events.END_STATE, data: event}));
+        gemini.on(gemini.events.END_SUITE, (event) => eventLog.push({name: gemini.events.END_SUITE, data: event}));
+
+        gemini.on(gemini.events.END, () => resolve(eventLog));
+    });
+}
+
 module.exports = (gemini, opts) => {
     const pluginConfig = parseConfig(opts);
 
@@ -141,15 +166,18 @@ module.exports = (gemini, opts) => {
     const generateReportPromise = Promise
         .all([
             prepareViewData(gemini, pluginConfig),
-            prepareImages(gemini, pluginConfig)
+            prepareImages(gemini, pluginConfig),
+            prepareEventLog(gemini, pluginConfig)
         ])
-        .spread((model) => Promise.all([
+        .spread((model, images, events) => Promise.all([
             view.createHtml(model),
-            model
+            model,
+            events
         ]))
-        .spread((html, model) => Promise.all([
+        .spread((html, model, events) => Promise.all([
             view.save(html, pluginConfig.path),
-            fs.outputJson(path.join(pluginConfig.path, 'report.json'), model)
+            fs.outputJson(path.join(pluginConfig.path, 'report.json'), model),
+            fs.outputJson(path.join(pluginConfig.path, 'events.json'), events)
         ]))
         .then(() => logPathToHtmlReport(pluginConfig.path))
         .catch(logError);
