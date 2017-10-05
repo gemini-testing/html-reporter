@@ -52,7 +52,7 @@
     "mocha": "^3.0.2",
     "proxyquire": "^1.7.11",
     "qemitter": "^1.0.0",
-    "sinon": "^1.17.5",
+    "sinon": "^4.0.1",
     "standard-version": "^4.0.0",
     "style-loader": "^0.19.0",
     "webpack": "^3.6.0",
