@@ -5,7 +5,6 @@ const _ = require('lodash');
 const fs = require('fs-extra');
 const Promise = require('bluebird');
 const QEmitter = require('qemitter');
-const Handlebars = require('handlebars');
 const chalk = require('chalk');
 const proxyquire = require('proxyquire');
 const utils = require('../utils');
@@ -67,11 +66,10 @@ describe('HTML Reporter', () => {
             './lib/config': parseConfig
         });
         sandbox.stub(view, 'save');
-        sandbox.stub(view, 'createHtml').returns(Promise.resolve());
         sandbox.stub(logger, 'log');
+
         sandbox.stub(fs, 'copyAsync').returns(Promise.resolve());
         sandbox.stub(fs, 'mkdirsAsync').returns(Promise.resolve());
-        sandbox.stub(fs, 'outputJson').returns(Promise.resolve());
 
         initReporter_();
     });
@@ -88,21 +86,13 @@ describe('HTML Reporter', () => {
     });
 
     it('should save report using passed path', () => {
+        sandbox.stub(ViewModel.prototype, 'getResult').resolves('some-data');
         initReporter_({path: 'some/path'});
-        view.createHtml.returns(Promise.resolve('some-html'));
+
         emitter.emit(events.END);
 
         return emitter.emitAndWait(events.END_RUNNER).then(() => {
-            assert.calledWith(view.save, 'some-html', 'some/path');
-        });
-    });
-
-    it('should save json report using passed path', () => {
-        initReporter_({path: 'some/path'});
-        emitter.emit(events.END);
-
-        return emitter.emitAndWait(events.END_RUNNER).then(() => {
-            assert.calledWith(fs.outputJson, 'some/path/report.json');
+            assert.calledWith(view.save, 'some-data', 'some/path');
         });
     });
 
@@ -114,16 +104,6 @@ describe('HTML Reporter', () => {
             const reportPath = `file://${path.resolve('some/path/index.html')}`;
             assert.calledWith(logger.log, `Your HTML report is here: ${chalk.yellow(reportPath)}`);
         });
-    });
-
-    it('should escape special chars in urls', () => {
-        const data = {
-            actualPath: 'images/fake/long+path/fakeName/fakeId~current.png'
-        };
-
-        const render = Handlebars.compile('{{image "actual"}}');
-
-        assert.equal(render(data), '<img data-src="images/fake/long%2Bpath/fakeName/fakeId~current.png">');
     });
 
     it('should save only reference when screenshots are equal', () => {
