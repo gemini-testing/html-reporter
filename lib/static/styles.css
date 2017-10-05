@@ -212,7 +212,8 @@
     background-image: url('data:image/svg+xml;utf8,<svg width="20" height="20" viewBox="0 0 70 70" xmlns="http://www.w3.org/2000/svg"><path fill="#cecece" d="m0 0h35c0 11.67 0 23.33 0 35-11.67 0-23.33 0-35 0v-35"/><g fill="#fff"><path d="m35 0h35v35c-11.67 0-23.33 0-35 0 0-11.67 0-23.33 0-35"/><path d="m0 35c11.67 0 23.33 0 35 0 0 11.67 0 23.33 0 35h-35v-35"/></g><path fill="#cecece" d="m35 35c11.67 0 23.33 0 35 0v35h-35c0-11.67 0-23.33 0-35"/></svg>');
 }
 
-.collapsed {
+.collapsed,
+.invisible {
     display: none;
 }
 
@@ -285,4 +286,87 @@ a:active {
     padding: 2px 5px;
     border: 1px solid #ccc;
     border-radius: 2px;
+}
+
+.overlay {
+    background: rgba(0, 0, 0, 0.3);
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    position: fixed;
+    z-index: 1;
+}
+
+.preloader {
+    width: 70px;
+    height: 20px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-left: -35px;
+    margin-top: -10px;
+}
+
+.preloader > div {
+    background-color: #f7c709;
+    opacity: 0.7;
+    width: 15px;
+    height: 15px;
+    border-radius: 100%;
+    margin: 2px;
+    -webkit-animation-fill-mode: both;
+        animation-fill-mode: both;
+    display: inline-block;
+}
+
+.preloader > div:nth-child(1) {
+    -webkit-animation: scale 0.75s -0.24s infinite cubic-bezier(0.2, 0.68, 0.18, 1.08);
+            animation: scale 0.75s -0.24s infinite cubic-bezier(0.2, 0.68, 0.18, 1.08);
+}
+
+.preloader > div:nth-child(2) {
+    -webkit-animation: scale 0.75s -0.12s infinite cubic-bezier(0.2, 0.68, 0.18, 1.08);
+            animation: scale 0.75s -0.12s infinite cubic-bezier(0.2, 0.68, 0.18, 1.08);
+}
+
+.preloader > div:nth-child(3) {
+    -webkit-animation: scale 0.75s 0s infinite cubic-bezier(0.2, 0.68, 0.18, 1.08);
+            animation: scale 0.75s 0s infinite cubic-bezier(0.2, 0.68, 0.18, 1.08);
+}
+
+@-webkit-keyframes scale {
+    0% {
+        -webkit-transform: scale(1);
+                transform: scale(1);
+        opacity: 1;
+    }
+    45% {
+        -webkit-transform: scale(0.1);
+                transform: scale(0.1);
+        opacity: 0.7;
+    }
+    80% {
+        -webkit-transform: scale(1);
+                transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes scale {
+    0% {
+        -webkit-transform: scale(1);
+                transform: scale(1);
+        opacity: 1;
+    }
+    45% {
+        -webkit-transform: scale(0.1);
+                transform: scale(0.1);
+        opacity: 0.7;
+    }
+    80% {
+        -webkit-transform: scale(1);
+                transform: scale(1);
+        opacity: 1;
+    }
 }
