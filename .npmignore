@@ -1,3 +1,4 @@
 .*
 test
-/lib/static/report.js
+/lib/static/js/
+/lib/static/report.css
