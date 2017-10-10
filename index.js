@@ -143,14 +143,7 @@ module.exports = (gemini, opts) => {
             prepareViewData(gemini, pluginConfig),
             prepareImages(gemini, pluginConfig)
         ])
-        .spread((model) => Promise.all([
-            view.createHtml(model),
-            model
-        ]))
-        .spread((html, model) => Promise.all([
-            view.save(html, pluginConfig.path),
-            fs.outputJson(path.join(pluginConfig.path, 'report.json'), model)
-        ]))
+        .spread((model) => view.save(model, pluginConfig.path))
         .then(() => logPathToHtmlReport(pluginConfig.path))
         .catch(logError);
 
