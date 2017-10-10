@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.7.0"></a>
+# [0.7.0](https://github.com/gemini-testing/html-reporter/compare/v0.6.0...v0.7.0) (2017-10-10)
+
+
+### Features
+
+* generate html at runtime instead on the server side ([eb9aa19](https://github.com/gemini-testing/html-reporter/commit/eb9aa19))
+* use webpack and plugins instead browserify and uglify-js ([8ea0d5b](https://github.com/gemini-testing/html-reporter/commit/8ea0d5b))
+
+
+
 <a name="0.6.0"></a>
 # [0.6.0](https://github.com/gemini-testing/html-reporter/compare/v0.5.0...v0.6.0) (2017-09-18)
 
