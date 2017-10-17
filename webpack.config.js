@@ -10,7 +10,7 @@ const staticPath = path.resolve(__dirname, 'lib', 'static');
 
 module.exports = {
     entry: {
-        bundle: ['./hbs-precompiled', './js/app', './styles.css']
+        bundle: ['./hbs-precompiled', './hbs/helpers', './js/app', './styles.css']
     },
     context: staticPath,
     output: {
@@ -30,7 +30,7 @@ module.exports = {
                 })
             },
             {
-                test: path.join(staticPath, 'js'),
+                test: [path.join(staticPath, 'js'), path.join(staticPath, 'hbs')],
                 use: {
                     loader: 'babel-loader',
                     options: {
@@ -44,7 +44,6 @@ module.exports = {
         new HandlebarsPrecompiler({
             precompileOpts: {preventIndent: true},
             templatesPath: path.join(staticPath, 'hbs', 'templates'),
-            helpersPath: path.join(staticPath, 'hbs', 'helpers.js'),
             outputFile: path.join(staticPath, 'hbs-precompiled.js')
         }),
         new webpack.optimize.UglifyJsPlugin({
