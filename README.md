@@ -19,7 +19,9 @@ Plugin has following configuration:
 * **path** (optional) `String` - path to directory for saving html report file; by
 default html report will be saved into `gemini-report/index.html` inside current work
 directory.
-* **errorsOnly** (optional) `Boolean` - report with only failed tests; by default `false`
+* **defaultView** (optional) `String` - default view mode. Available values are:
+  * `all` - show all tests. Default value.
+  * `failed` - show only failed tests.
 * **baseHost** (optional) - `String` - it changes original host for view in the browser; by default original host does not change
 
 Also there is ability to override plugin parameters by CLI options or environment variables
@@ -44,7 +46,7 @@ module.exports = {
             'html-reporter': {
                 enabled: true,
                 path: 'my/gemini-reports',
-                errorsOnly: false,
+                defaultView: 'all',
                 baseHost: 'test.com'
             }
         }

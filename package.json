@@ -9,6 +9,7 @@
     "test-unit": "mocha test",
     "precommit": "npm run lint",
     "prepublish": "webpack",
+    "start": "webpack --watch",
     "commitmsg": "conventional-changelog-lint -e",
     "release": "standard-version"
   },

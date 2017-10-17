@@ -181,35 +181,4 @@ describe('HTML Reporter', () => {
                 });
         });
     });
-
-    describe('"errorsOnly" option is set', function() {
-        it('should not save reference if screenshots are equal', () => {
-            initReporter_({path: 'some/path', errorsOnly: true});
-
-            emitter.emit(events.TEST_RESULT, mkStubResult_({equal: true}));
-
-            emitter.emit(events.END);
-
-            return emitter.emitAndWait(events.END_RUNNER).then(() => {
-                assert.notCalled(fs.copyAsync);
-            });
-        });
-
-        it('should save reference if screenshots are not equal', () => {
-            sandbox.stub(utils, 'getReferenceAbsolutePath').returns('absolute/reference/path');
-
-            initReporter_({path: 'some/path', errorsOnly: true});
-
-            emitter.emit(events.TEST_RESULT, mkStubResult_({
-                referencePath: 'reference/path',
-                equal: false
-            }));
-
-            emitter.emit(events.END);
-
-            return emitter.emitAndWait(events.END_RUNNER).then(() => {
-                assert.calledWith(fs.copyAsync, 'reference/path', 'absolute/reference/path');
-            });
-        });
-    });
 });
