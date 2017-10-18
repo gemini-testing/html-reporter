@@ -24,6 +24,13 @@ directory.
 
 Also there is ability to override plugin parameters by CLI options or environment variables
 (see [configparser](https://github.com/gemini-testing/configparser)).
+Use `html_reporter_` prefix for the environment variables and `--html-reporter-` for the cli options.
+
+For example you can override `path` option like so:
+```bash
+$ html_reporter_path=custom/dir gemini test
+$ gemini test --html-reporter-path custom/dir
+```
 
 ### Usage
 
