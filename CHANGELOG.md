@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.7.1"></a>
+## [0.7.1](https://github.com/gemini-testing/html-reporter/compare/v0.7.0...v0.7.1) (2017-10-18)
+
+
+### Bug Fixes
+
+* **store:** show errors with any nesting of suites ([4937829](https://github.com/gemini-testing/html-reporter/commit/4937829))
+* use 'hasFails' and 'hasRetries' in helpers from utils ([9b0045e](https://github.com/gemini-testing/html-reporter/commit/9b0045e))
+* **webpack:** run babel loader on handlebars helper ([43da30e](https://github.com/gemini-testing/html-reporter/commit/43da30e))
+
+
+
 <a name="0.7.0"></a>
 # [0.7.0](https://github.com/gemini-testing/html-reporter/compare/v0.6.0...v0.7.0) (2017-10-10)
 
