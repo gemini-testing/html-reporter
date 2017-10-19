@@ -5,24 +5,10 @@ All notable changes to this project will be documented in this file. See [standa
 <a name="1.0.0"></a>
 # [1.0.0](https://github.com/gemini-testing/html-reporter/compare/v0.5.0...v1.0.0) (2017-10-19)
 
-
-### Bug Fixes
-
-* **store:** show errors with any nesting of suites ([4937829](https://github.com/gemini-testing/html-reporter/commit/4937829))
-* use 'hasFails' and 'hasRetries' in helpers from utils ([9b0045e](https://github.com/gemini-testing/html-reporter/commit/9b0045e))
-* **webpack:** run babel loader on handlebars helper ([43da30e](https://github.com/gemini-testing/html-reporter/commit/43da30e))
-
-
 ### Features
 
-* add ShowOnlyErrors button ([f727d1d](https://github.com/gemini-testing/html-reporter/commit/f727d1d))
-* drop support of node below 6.x ([11e5227](https://github.com/gemini-testing/html-reporter/commit/11e5227))
-* generate html at runtime instead on the server side ([eb9aa19](https://github.com/gemini-testing/html-reporter/commit/eb9aa19))
 * Implement view mode switcher ([6237582](https://github.com/gemini-testing/html-reporter/commit/6237582))
-* use --html-reporter- as a prefix for the cli options ([f267228](https://github.com/gemini-testing/html-reporter/commit/f267228))
-* use webpack and plugins instead browserify and uglify-js ([8ea0d5b](https://github.com/gemini-testing/html-reporter/commit/8ea0d5b))
-
-
+* Remove "errorsOnly" option
 
 <a name="0.7.1"></a>
 ## [0.7.1](https://github.com/gemini-testing/html-reporter/compare/v0.7.0...v0.7.1) (2017-10-18)
