@@ -73,10 +73,6 @@ function prepareImages(gemini, pluginConfig) {
     const reportDir = pluginConfig.path;
 
     function handleTestResultEvent_(testResult) {
-        if (pluginConfig.errorsOnly && testResult.equal) {
-            return Promise.resolve();
-        }
-
         const actions = [
             copyImage(testResult.referencePath, utils.getReferenceAbsolutePath(testResult, reportDir))
         ];

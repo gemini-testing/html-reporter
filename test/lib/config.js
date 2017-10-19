@@ -22,4 +22,22 @@ describe('config', () => {
             assert.equal(parseConfig({}).path, 'env/report/path');
         });
     });
+
+    describe('default view settings', () => {
+        it('should show all suites by default', () => {
+            assert.equal(parseConfig({}).defaultView, 'all');
+        });
+
+        it('should set from configuration file', () => {
+            const config = parseConfig({defaultView: 'some-view'});
+
+            assert.equal(config.defaultView, 'some-view');
+        });
+
+        it('should set from environment variable', () => {
+            process.env['html_reporter_default_view'] = 'env/some-view';
+
+            assert.equal(parseConfig({}).defaultView, 'env/some-view');
+        });
+    });
 });

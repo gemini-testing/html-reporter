@@ -88,14 +88,6 @@ describe('ViewModel', () => {
         }]);
     });
 
-    it('should not add skipped test to result if "errorsOnly" option is set', () => {
-        const model = mkViewModel_({}, {errorsOnly: true});
-
-        model.addSkipped(stubTest_());
-
-        assert.equal(model.getResult().skips.length, 0);
-    });
-
     it('should add success test to result', () => {
         const model = mkViewModel_();
 
@@ -109,14 +101,6 @@ describe('ViewModel', () => {
             actualPath: 'images/suite/some-state-name/bro1~current.png',
             expectedPath: 'images/suite/some-state-name/bro1~ref.png'
         });
-    });
-
-    it('should not add success test to result if "errorsOnly" option is set', () => {
-        const model = mkViewModel_({}, {errorsOnly: true});
-
-        model.addSuccess(stubTest_());
-
-        assert.isNotOk(model.getResult().suites);
     });
 
     it('should add failed test to result', () => {
@@ -192,13 +176,13 @@ describe('ViewModel', () => {
         it('empty string if plugin paremeter "baseHost" is not specified', () => {
             const model = mkViewModel_();
 
-            assert.equal(model.getResult({}).baseHost, '');
+            assert.equal(model.getResult({}).config.baseHost, '');
         });
 
         it('value from plugin parameter "baseHost"', () => {
             const model = mkViewModel_({}, {baseHost: 'some-host'});
 
-            assert.equal(model.getResult({}).baseHost, 'some-host');
+            assert.equal(model.getResult({}).config.baseHost, 'some-host');
         });
     });
 });
