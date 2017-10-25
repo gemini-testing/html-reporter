@@ -3,14 +3,12 @@
 const path = require('path');
 const webpack = require('webpack');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
-const HandlebarsPrecompiler = require('webpack-handlebars-precompiler');
-const WebpackCleanPlugin = require('webpack-clean');
 
 const staticPath = path.resolve(__dirname, 'lib', 'static');
 
 module.exports = {
     entry: {
-        bundle: ['./hbs-precompiled', './hbs/helpers', './js/app', './styles.css']
+        bundle: ['./js/app', './styles.css']
     },
     context: staticPath,
     output: {
@@ -30,22 +28,17 @@ module.exports = {
                 })
             },
             {
-                test: [path.join(staticPath, 'js'), path.join(staticPath, 'hbs')],
+                test: [path.join(staticPath, 'js')],
                 use: {
                     loader: 'babel-loader',
                     options: {
-                        presets: ['env']
+                        presets: ['env', 'react']
                     }
                 }
             }
         ]
     },
     plugins: [
-        new HandlebarsPrecompiler({
-            precompileOpts: {preventIndent: true},
-            templatesPath: path.join(staticPath, 'hbs', 'templates'),
-            outputFile: path.join(staticPath, 'hbs-precompiled.js')
-        }),
         new webpack.optimize.UglifyJsPlugin({
             uglifyOptions: {
                 compress: {
@@ -55,11 +48,6 @@ module.exports = {
                 }
             }
         }),
-        new webpack.ProvidePlugin({
-            '_': 'lodash',
-            Handlebars: 'handlebars/runtime'
-        }),
-        new ExtractTextPlugin('[name].min.css'),
-        new WebpackCleanPlugin('hbs-precompiled.js', staticPath)
+        new ExtractTextPlugin('[name].min.css')
     ]
 };
