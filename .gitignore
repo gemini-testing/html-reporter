@@ -1,3 +1,4 @@
 node_modules
 *.log
 /lib/static/*.min.*
+/lib/static/data.js

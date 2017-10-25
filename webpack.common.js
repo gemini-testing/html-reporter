@@ -1,14 +1,13 @@
 'use strict';
 
 const path = require('path');
-const webpack = require('webpack');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 const staticPath = path.resolve(__dirname, 'lib', 'static');
 
 module.exports = {
     entry: {
-        bundle: ['./js/app', './styles.css']
+        bundle: ['./index.js', './styles.css']
     },
     context: staticPath,
     output: {
@@ -28,26 +27,17 @@ module.exports = {
                 })
             },
             {
-                test: [path.join(staticPath, 'js')],
+                test: /\.js$/,
                 use: {
                     loader: 'babel-loader',
                     options: {
-                        presets: ['env', 'react']
+                        presets: ['env', 'react', 'stage-0']
                     }
                 }
             }
         ]
     },
     plugins: [
-        new webpack.optimize.UglifyJsPlugin({
-            uglifyOptions: {
-                compress: {
-                    warnings: false,
-                    'drop_console': true,
-                    unsafe: true
-                }
-            }
-        }),
         new ExtractTextPlugin('[name].min.css')
     ]
 };
