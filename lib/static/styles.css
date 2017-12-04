@@ -168,6 +168,10 @@
     transform: rotate(-90deg);
 }
 
+.meta-info__item-key {
+    font-weight: bold;
+}
+
 .reason {
     background: #f6f5f3;
     border: 1px solid #ccc;
@@ -274,6 +278,7 @@ a:active {
     margin: 5px 0;
     background: #f6f5f3;
     padding: 5px;
+    font-family: monospace;
 }
 
 .meta-info_collapsed .meta-info__content {
