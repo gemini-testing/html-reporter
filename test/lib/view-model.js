@@ -38,9 +38,9 @@ describe('ViewModel', () => {
             suite: {file: '/path/file.js'}
         }));
 
-        const metaInfo = JSON.parse(getModelResult_(model).metaInfo);
+        const metaInfo = getModelResult_(model).metaInfo;
 
-        assert.equal(metaInfo.file, '/path/file.js');
+        assert.match(metaInfo, '/path/file.js');
     });
 
     it('should contain "url" in "metaInfo"', () => {
@@ -50,9 +50,9 @@ describe('ViewModel', () => {
             suite: {fullUrl: '/test/url'}
         }));
 
-        const metaInfo = JSON.parse(getModelResult_(model).metaInfo);
+        const metaInfo = getModelResult_(model).metaInfo;
 
-        assert.equal(metaInfo.url, '/test/url');
+        assert.match(metaInfo, '/test/url');
     });
 
     it('should extend passed statistic', () => {
