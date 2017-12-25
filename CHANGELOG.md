@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="1.2.0"></a>
+# [1.2.0](https://github.com/gemini-testing/html-reporter/compare/v1.1.0...v1.2.0) (2017-12-25)
+
+
+### Features
+
+* replace handlebars with react+redux implementation ([1e0ceee](https://github.com/gemini-testing/html-reporter/commit/1e0ceee))
+
+
+
 <a name="1.1.0"></a>
 # [1.1.0](https://github.com/gemini-testing/html-reporter/compare/v1.0.0...v1.1.0) (2017-12-04)
 
