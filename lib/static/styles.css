@@ -22,6 +22,7 @@
 }
 
 .button {
+    margin-left: 3px;
     background: #fff;
     border: 1px solid #ccc;
     border-radius: 2px;
@@ -181,6 +182,7 @@
 
 .state-button {
     position: relative;
+    margin-right: 2px;
     height: 22px;
     display: inline-block;
     box-shadow: 0 0 1px #000;
@@ -288,6 +290,7 @@ a:active {
 .text-input {
     outline: 0;
     line-height: 14px;
+    margin-left: 3px;
     padding: 2px 5px;
     border: 1px solid #ccc;
     border-radius: 2px;
