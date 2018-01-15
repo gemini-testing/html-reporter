@@ -2,4 +2,7 @@ node_modules
 *.log
 /lib/static/*.min.*
 /lib/static/data.js
+/lib/static/gui.html
+/lib/static/index.html
+
 .idea
