@@ -93,6 +93,10 @@
     color: black;
 }
 
+.section__title_skipped:before {
+    content: none;
+}
+
 .section_status_success > .section__title {
     color: #038035;
 }
@@ -101,18 +105,16 @@
     color: #c00;
 }
 
-.section_status_skip > .section__title,
-.section_status_skip > .section__title:hover {
+.section_status_skip > .section__title {
     color: #ccc;
-    cursor: default;
-}
-
-.section_status_skip > .section__title::before {
-    content: none;
 }
 
 .section__title:hover {
     color: #2d3e50;
+}
+
+.section__title_skipped:hover {
+    color: #ccc;
 }
 
 .section__body {
