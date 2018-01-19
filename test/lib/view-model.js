@@ -40,7 +40,7 @@ describe('ViewModel', () => {
 
         const metaInfo = getModelResult_(model).metaInfo;
 
-        assert.match(metaInfo, '/path/file.js');
+        assert.equal(metaInfo.file, '/path/file.js');
     });
 
     it('should contain "url" in "metaInfo"', () => {
@@ -52,7 +52,7 @@ describe('ViewModel', () => {
 
         const metaInfo = getModelResult_(model).metaInfo;
 
-        assert.match(metaInfo, '/test/url');
+        assert.equal(metaInfo.url, '/test/url');
     });
 
     it('should extend passed statistic', () => {
