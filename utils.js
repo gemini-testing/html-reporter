@@ -1,7 +1,10 @@
 'use strict';
 
+const chalk = require('chalk');
 const _ = require('lodash');
 const path = require('path');
+const Promise = require('bluebird');
+const fs = Promise.promisifyAll(require('fs-extra'));
 
 const getReferencePath = (testResult) => createPath('ref', testResult);
 const getCurrentPath = (testResult) => createPath('current', testResult);
@@ -34,13 +37,52 @@ function createPath(kind, result) {
     const retrySuffix = _.isUndefined(result.attempt) ? '' : `_${result.attempt}`;
     const components = [].concat(
         'images',
-        result.suite.path,
-        result.state.name,
+        result.imageDir,
         `${result.browserId}~${kind}${retrySuffix}.png`
     );
+
     const pathToImage = path.join.apply(null, components);
 
     return pathToImage;
+}
+
+function copyImage(srcPath, destPath) {
+    return makeDirFor(destPath)
+        .then(() => fs.copySync(srcPath, destPath));
+}
+
+function copyImageAsync(srcPath, destPath) {
+    return makeDirFor(destPath)
+        .then(() => fs.copy(srcPath, destPath));
+}
+
+/**
+ * @param {TestStateResult} result
+ * @param {String} destPath
+ * @returns {Promise}
+ */
+function saveDiff(result, destPath) {
+    return makeDirFor(destPath)
+        .then(() => result.saveDiffTo(destPath));
+}
+
+/**
+ * @param {String} destPath
+ */
+function makeDirFor(destPath) {
+    return fs.mkdirsAsync(path.dirname(destPath));
+}
+
+const logger = _.pick(console, ['log', 'warn', 'error']);
+
+function logPathToHtmlReport(reportBuilder) {
+    const reportPath = `file://${reportBuilder.reportPath}`;
+
+    logger.log(`Your HTML report is here: ${chalk.yellow(reportPath)}`);
+}
+
+function logError(e) {
+    logger.error(e.stack);
 }
 
 module.exports = {
@@ -52,5 +94,12 @@ module.exports = {
     getCurrentAbsolutePath,
     getDiffAbsolutePath,
 
-    logger: _.pick(console, ['log', 'warn', 'error'])
+    copyImage,
+    copyImageAsync,
+    saveDiff,
+    makeDirFor,
+
+    logger,
+    logPathToHtmlReport,
+    logError
 };

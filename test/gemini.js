@@ -1,22 +1,18 @@
 'use strict';
 
-const path = require('path');
 const _ = require('lodash');
 const fs = require('fs-extra');
-const Promise = require('bluebird');
 const QEmitter = require('qemitter');
-const chalk = require('chalk');
 const proxyquire = require('proxyquire');
 const utils = require('../utils');
-const view = require('../lib/view');
-const ViewModel = require('../lib/view-model');
-const logger = require('../utils').logger;
+const ReportBuilder = require('../lib/report-builder-factory/report-builder');
+const {logger} = utils;
 
-describe('HTML Reporter', () => {
+describe('Gemini Reporter', () => {
     const sandbox = sinon.sandbox.create();
     const parseConfig = sinon.spy(require('../lib/config'));
-    let emitter;
-    let HtmlReporter;
+    let gemini;
+    let GeminiReporter;
 
     const events = {
         END_RUNNER: 'endRunner',
@@ -34,16 +30,16 @@ describe('HTML Reporter', () => {
             path: 'default-path',
             baseHost: ''
         });
-        emitter = new QEmitter();
-        emitter.config = {
+        gemini = new QEmitter();
+        gemini.config = {
             forBrowser: sinon.stub().returns({
                 rootUrl: 'browser/root/url',
                 getAbsoluteUrl: _.noop
             })
         };
-        emitter.events = events;
+        gemini.events = events;
 
-        HtmlReporter(emitter, opts);
+        GeminiReporter(gemini, opts);
     }
 
     function mkStubResult_(options) {
@@ -62,94 +58,96 @@ describe('HTML Reporter', () => {
     }
 
     beforeEach(() => {
-        HtmlReporter = proxyquire('../index.js', {
+        GeminiReporter = proxyquire('../gemini.js', {
             './lib/config': parseConfig
         });
-        sandbox.stub(view, 'save');
+        sandbox.stub(ReportBuilder.prototype, 'save').resolves({});
+        sandbox.spy(ReportBuilder.prototype, 'setStats');
         sandbox.stub(logger, 'log');
 
-        sandbox.stub(fs, 'copyAsync').returns(Promise.resolve());
-        sandbox.stub(fs, 'mkdirsAsync').returns(Promise.resolve());
-
-        initReporter_();
+        sandbox.stub(fs, 'mkdirsAsync').resolves();
+        sandbox.stub(fs, 'writeFileAsync').resolves();
+        sandbox.stub(fs, 'copyAsync').resolves();
+        sandbox.stub(utils, 'copyImageAsync');
+        sandbox.stub(ReportBuilder.prototype, 'addSuccess');
     });
 
     afterEach(() => sandbox.restore());
 
     it('should parse config using passed options', () => {
         initReporter_({path: 'some/path', enabled: false, baseHost: 'some-host'});
-        emitter.emit(events.END);
 
-        return emitter.emitAndWait(events.END_RUNNER).then(() => {
-            assert.calledWith(parseConfig, {path: 'some/path', enabled: false, baseHost: 'some-host'});
-        });
+        assert.calledWith(parseConfig, {path: 'some/path', enabled: false, baseHost: 'some-host'});
     });
 
-    it('should save report using passed path', () => {
-        sandbox.stub(ViewModel.prototype, 'getResult').resolves('some-data');
-        initReporter_({path: 'some/path'});
+    it('should save statistic passed from gemini', () => {
+        initReporter_();
 
-        emitter.emit(events.END);
+        gemini.emit(events.END, {some: 'stat'});
 
-        return emitter.emitAndWait(events.END_RUNNER).then(() => {
-            assert.calledWith(view.save, 'some-data', 'some/path');
+        assert.calledOnceWith(ReportBuilder.prototype.setStats, {some: 'stat'});
+    });
+
+    it('should save report', () => {
+        initReporter_();
+
+        gemini.emit(events.END);
+
+        return gemini.emitAndWait(events.END_RUNNER).then(() => {
+            assert.calledOnce(ReportBuilder.prototype.save);
         });
     });
 
     it('should log correct path to html report', () => {
-        initReporter_({path: 'some/path'});
-        emitter.emit(events.END);
+        initReporter_();
+        ReportBuilder.prototype.save.resolves({reportPath: 'some/path'});
+        gemini.emit(events.END);
 
-        return emitter.emitAndWait(events.END_RUNNER).then(() => {
-            const reportPath = `file://${path.resolve('some/path/index.html')}`;
-            assert.calledWith(logger.log, `Your HTML report is here: ${chalk.yellow(reportPath)}`);
+        return gemini.emitAndWait(events.END_RUNNER).then(() => {
+            assert.calledWithMatch(logger.log, 'some/path');
         });
     });
 
     it('should save only reference when screenshots are equal', () => {
         sandbox.stub(utils, 'getReferenceAbsolutePath').returns('absolute/reference/path');
 
-        emitter.emit(events.TEST_RESULT, mkStubResult_({
+        gemini.emit(events.TEST_RESULT, mkStubResult_({
             referencePath: 'reference/path',
             equal: true
         }));
 
-        emitter.emit(events.END);
+        gemini.emit(events.END);
 
-        return emitter.emitAndWait(events.END_RUNNER).then(() => {
-            assert.calledOnce(fs.copyAsync);
-            assert.calledWith(fs.copyAsync, 'reference/path', 'absolute/reference/path');
+        return gemini.emitAndWait(events.END_RUNNER).then(() => {
+            assert.calledOnceWith(utils.copyImageAsync, 'reference/path', 'absolute/reference/path');
         });
     });
 
     it('should handle updated references as success result', () => {
-        sandbox.stub(ViewModel.prototype, 'addSuccess');
-        emitter.emit(events.UPDATE_RESULT, mkStubResult_({updated: true}));
+        gemini.emit(events.UPDATE_RESULT, mkStubResult_({updated: true}));
 
-        assert.calledOnce(ViewModel.prototype.addSuccess);
-        assert.calledWith(ViewModel.prototype.addSuccess, sinon.match({updated: true}));
+        assert.calledOnceWith(ReportBuilder.prototype.addSuccess, sinon.match({updated: true}));
     });
 
     it('should save updated images', () => {
         sandbox.stub(utils, 'getReferenceAbsolutePath').returns('absolute/reference/path');
 
-        emitter.emit(events.UPDATE_RESULT, mkStubResult_({
+        gemini.emit(events.UPDATE_RESULT, mkStubResult_({
             imagePath: 'updated/image/path'
         }));
 
-        emitter.emit(events.END);
+        gemini.emit(events.END);
 
-        return emitter.emitAndWait(events.END_RUNNER).then(() => {
-            assert.calledOnce(fs.copyAsync);
-            assert.calledWith(fs.copyAsync, 'updated/image/path', 'absolute/reference/path');
+        return gemini.emitAndWait(events.END_RUNNER).then(() => {
+            assert.calledOnceWith(utils.copyImageAsync, 'updated/image/path', 'absolute/reference/path');
         });
     });
 
     describe('when screenshots are not equal', () => {
         function emitResult_(options) {
-            emitter.emit(events.TEST_RESULT, mkStubResult_(options));
-            emitter.emit(events.END);
-            return emitter.emitAndWait(events.END_RUNNER);
+            gemini.emit(events.TEST_RESULT, mkStubResult_(options));
+            gemini.emit(events.END);
+            return gemini.emitAndWait(events.END_RUNNER);
         }
 
         it('should save current image', () => {
@@ -157,7 +155,7 @@ describe('HTML Reporter', () => {
 
             return emitResult_({currentPath: 'current/path'})
                 .then(() => {
-                    assert.calledWith(fs.copyAsync, 'current/path', '/absolute/report/current/path');
+                    assert.calledWith(utils.copyImageAsync, 'current/path', '/absolute/report/current/path');
                 });
         });
 
@@ -166,11 +164,12 @@ describe('HTML Reporter', () => {
 
             return emitResult_({referencePath: 'reference/path'})
                 .then(() => {
-                    assert.calledWith(fs.copyAsync, 'reference/path', '/absolute/report/reference/path');
+                    assert.calledWith(utils.copyImageAsync, 'reference/path', '/absolute/report/reference/path');
                 });
         });
 
         it('should save diff image', () => {
+            initReporter_();
             const saveDiffTo = sandbox.stub();
 
             sandbox.stub(utils, 'getDiffAbsolutePath').returns('/absolute/report/diff/path');
