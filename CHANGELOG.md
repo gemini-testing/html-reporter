@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="1.3.2"></a>
+## [1.3.2](https://github.com/gemini-testing/html-reporter/compare/v1.3.0...v1.3.2) (2018-01-22)
+
+
+### Bug Fixes
+
+* Meta-info view ([df3f031](https://github.com/gemini-testing/html-reporter/commit/df3f031))
+
+
+
 <a name="1.3.0"></a>
 # [1.3.0](https://github.com/gemini-testing/html-reporter/compare/v1.2.0...v1.3.0) (2018-01-22)
 
