@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="1.3.0"></a>
+# [1.3.0](https://github.com/gemini-testing/html-reporter/compare/v1.2.0...v1.3.0) (2018-01-22)
+
+
+### Bug Fixes
+
+* change metaInfo in data.js from html-string to object ([2ea8301](https://github.com/gemini-testing/html-reporter/commit/2ea8301))
+
+
+### Features
+
+* suites colored in grey if all children are skipped ([b8f784b](https://github.com/gemini-testing/html-reporter/commit/b8f784b))
+
+
+
 <a name="1.2.0"></a>
 # [1.2.0](https://github.com/gemini-testing/html-reporter/compare/v1.1.0...v1.2.0) (2017-12-25)
 
