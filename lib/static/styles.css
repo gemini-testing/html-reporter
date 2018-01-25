@@ -51,6 +51,7 @@
 
 .image-box__exp-with-act {
     display: inline-block;
+    max-width: 100%;
 }
 
 .report_show-only-diff .image-box__exp-with-act,
@@ -63,6 +64,8 @@
     padding:  0 5px;
     display: inline-block;
     vertical-align: top;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .section__title {
@@ -73,6 +76,10 @@
     -webkit-user-select: none;
     -ms-user-select: none;
     user-select: none;
+}
+
+.image-box__screenshot {
+    width: 100%;
 }
 
 .section__title_skipped {
