@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.0.0"></a>
+# [2.0.0](https://github.com/gemini-testing/html-reporter/compare/v1.1.0...v2.0.0) (2018-01-28)
+
+
+### Bug Fixes
+
+* change metaInfo in data.js from html-string to object ([2ea8301](https://github.com/gemini-testing/html-reporter/commit/2ea8301))
+* Meta-info view ([df3f031](https://github.com/gemini-testing/html-reporter/commit/df3f031))
+* retry images do not change ([885bf8a](https://github.com/gemini-testing/html-reporter/commit/885bf8a))
+
+
+### Features
+
+* adapt screenshots width to window width ([dc0ac44](https://github.com/gemini-testing/html-reporter/commit/dc0ac44))
+* add hermione html reporter ([ee21f76](https://github.com/gemini-testing/html-reporter/commit/ee21f76))
+* replace handlebars with react+redux implementation ([1e0ceee](https://github.com/gemini-testing/html-reporter/commit/1e0ceee))
+* suites colored in grey if all children are skipped ([b8f784b](https://github.com/gemini-testing/html-reporter/commit/b8f784b))
+
+
+
 <a name="1.3.3"></a>
 ## [1.3.3](https://github.com/gemini-testing/html-reporter/compare/v1.3.2...v1.3.3) (2018-01-23)
 
