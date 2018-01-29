@@ -79,7 +79,7 @@
 }
 
 .image-box__screenshot {
-    width: 100%;
+    max-width: 100%;
 }
 
 .section__title_skipped {
