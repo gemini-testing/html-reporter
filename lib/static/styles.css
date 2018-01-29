@@ -64,7 +64,6 @@
     padding:  0 5px;
     display: inline-block;
     vertical-align: top;
-    width: 100%;
     box-sizing: border-box;
 }
 
@@ -79,7 +78,7 @@
 }
 
 .image-box__screenshot {
-    width: 100%;
+    max-width: 100%;
 }
 
 .section__title_skipped {
