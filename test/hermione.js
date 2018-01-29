@@ -64,6 +64,8 @@ describe('Hermione Reporter', () => {
         sandbox.stub(ReportBuilder.prototype, 'addRetry');
         sandbox.stub(ReportBuilder.prototype, 'save').resolves({});
 
+        sandbox.spy(ReportBuilder.prototype, 'setStats');
+
         initReporter_();
     });
 
@@ -105,6 +107,13 @@ describe('Hermione Reporter', () => {
         hermione.emit(events.RETRY, mkStubResult_({title: 'some-title'}));
 
         assert.calledOnceWith(ReportBuilder.prototype.addRetry, sinon.match({title: 'some-title'}));
+    });
+
+    it('should save statistic', () => {
+        initReporter_();
+
+        return hermione.emitAndWait(events.RUNNER_END, {some: 'stat'})
+            .then(() => assert.calledOnceWith(ReportBuilder.prototype.setStats, {some: 'stat'}));
     });
 
     it('should save report', () => {

@@ -55,7 +55,7 @@ function prepareData(hermione, pluginConfig) {
 
         hermione.on(hermione.events.RETRY, (result) => reportBuilder.addRetry(result));
 
-        hermione.on(hermione.events.RUNNER_END, () => resolve(reportBuilder));
+        hermione.on(hermione.events.RUNNER_END, (stats) => resolve(reportBuilder.setStats(stats)));
     });
 }
 
