@@ -10,7 +10,7 @@ const staticPath = path.resolve(__dirname, 'lib', 'static');
 module.exports = {
     entry: {
         report: ['./index.js', './styles.css'],
-        gui: ['./gui.js', './styles.css']
+        gui: ['./gui.js', './styles.css', './gui.css']
     },
     context: staticPath,
     output: {
@@ -31,25 +31,21 @@ module.exports = {
             },
             {
                 test: /\.js$/,
-                use: {
-                    loader: 'babel-loader',
-                    options: {
-                        presets: ['env', 'react', 'stage-0']
-                    }
-                }
+                use: 'babel-loader',
+                exclude: /node_modules/
             }
         ]
     },
     plugins: [
         new ExtractTextPlugin('[name].min.css'),
         new HtmlWebpackPlugin({
-            title: 'Gemini report',
+            title: 'HTML report',
             filename: 'index.html',
             template: 'template.html',
             chunks: ['report']
         }),
         new HtmlWebpackPlugin({
-            title: 'Gemini gui',
+            title: 'Gui report',
             filename: 'gui.html',
             template: 'template.html',
             chunks: ['gui']
