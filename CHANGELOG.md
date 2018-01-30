@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.0.1"></a>
+## [2.0.1](https://github.com/gemini-testing/html-reporter/compare/v2.0.0...v2.0.1) (2018-01-30)
+
+
+### Bug Fixes
+
+* max width of screenshot ([#35](https://github.com/gemini-testing/html-reporter/issues/35)) ([045c0ba](https://github.com/gemini-testing/html-reporter/commit/045c0ba))
+
+
+
 <a name="2.0.0"></a>
 # [2.0.0](https://github.com/gemini-testing/html-reporter/compare/v1.1.0...v2.0.0) (2018-01-28)
 
