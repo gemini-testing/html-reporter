@@ -55,7 +55,7 @@ describe('Hermione Reporter', () => {
 
         sandbox.stub(fs, 'mkdirsAsync').returns(Promise.resolve());
         sandbox.stub(fs, 'writeFileAsync').returns(Promise.resolve());
-        sandbox.stub(utils, 'copyImage');
+        sandbox.stub(utils, 'copyImageAsync');
         sandbox.stub(utils, 'getCurrentAbsolutePath');
 
         sandbox.stub(ReportBuilder.prototype, 'addSkipped');
@@ -131,7 +131,7 @@ describe('Hermione Reporter', () => {
         hermione.emit(events.RETRY, {err: {currentImagePath: 'image/path'}});
 
         return hermione.emitAndWait(events.RUNNER_END).then(() => {
-            assert.calledOnceWith(utils.copyImage, 'image/path', '/absolute/path');
+            assert.calledOnceWith(utils.copyImageAsync, 'image/path', '/absolute/path');
         });
     });
 

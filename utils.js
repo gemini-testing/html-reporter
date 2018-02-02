@@ -46,11 +46,6 @@ function createPath(kind, result) {
     return pathToImage;
 }
 
-function copyImage(srcPath, destPath) {
-    return makeDirFor(destPath)
-        .then(() => fs.copySync(srcPath, destPath));
-}
-
 function copyImageAsync(srcPath, destPath) {
     return makeDirFor(destPath)
         .then(() => fs.copy(srcPath, destPath));
@@ -94,7 +89,6 @@ module.exports = {
     getCurrentAbsolutePath,
     getDiffAbsolutePath,
 
-    copyImage,
     copyImageAsync,
     saveDiff,
     makeDirFor,
