@@ -61,15 +61,17 @@ describe('Gemini Reporter', () => {
         GeminiReporter = proxyquire('../gemini.js', {
             './lib/config': parseConfig
         });
-        sandbox.stub(ReportBuilder.prototype, 'save').resolves({});
-        sandbox.spy(ReportBuilder.prototype, 'setStats');
         sandbox.stub(logger, 'log');
 
         sandbox.stub(fs, 'mkdirsAsync').resolves();
         sandbox.stub(fs, 'writeFileAsync').resolves();
         sandbox.stub(fs, 'copyAsync').resolves();
         sandbox.stub(utils, 'copyImageAsync');
+
         sandbox.stub(ReportBuilder.prototype, 'addSuccess');
+        sandbox.stub(ReportBuilder.prototype, 'save').resolves({});
+
+        sandbox.spy(ReportBuilder.prototype, 'setStats');
     });
 
     afterEach(() => sandbox.restore());
@@ -80,7 +82,7 @@ describe('Gemini Reporter', () => {
         assert.calledWith(parseConfig, {path: 'some/path', enabled: false, baseHost: 'some-host'});
     });
 
-    it('should save statistic passed from gemini', () => {
+    it('should save statistic', () => {
         initReporter_();
 
         gemini.emit(events.END, {some: 'stat'});
