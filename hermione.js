@@ -64,7 +64,7 @@ function prepareImages(hermione, pluginConfig) {
         const src = testResult.currentPath;
 
         return src
-            ? utils.copyImage(src, utils.getCurrentAbsolutePath(testResult, pluginConfig.path))
+            ? utils.copyImageAsync(src, utils.getCurrentAbsolutePath(testResult, pluginConfig.path))
             : saveScreenshot(testResult.screenshot, utils.getCurrentAbsolutePath(testResult, pluginConfig.path));
     }
 
