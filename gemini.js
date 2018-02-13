@@ -4,6 +4,7 @@ const _ = require('lodash');
 const Promise = require('bluebird');
 
 const utils = require('./utils');
+const {saveTestImages} = require('./lib/reporter-helpers');
 const ReportBuilderFactory = require('./lib/report-builder-factory');
 const parseConfig = require('./lib/config');
 
@@ -54,30 +55,6 @@ function prepareImages(gemini, pluginConfig) {
         return src && utils.copyImageAsync(src, utils.getCurrentAbsolutePath(result, pluginConfig.path));
     }
 
-    function handleTestResultEvent(testResult) {
-        const actions = [
-            utils.copyImageAsync(
-                testResult.referencePath,
-                utils.getReferenceAbsolutePath(testResult, pluginConfig.path)
-            )
-        ];
-
-        if (!testResult.equal) {
-            actions.push(
-                utils.copyImageAsync(
-                    testResult.currentPath,
-                    utils.getCurrentAbsolutePath(testResult, pluginConfig.path)
-                ),
-                utils.saveDiff(
-                    testResult,
-                    utils.getDiffAbsolutePath(testResult, pluginConfig.path)
-                )
-            );
-        }
-
-        return Promise.all(actions);
-    }
-
     return new Promise((resolve, reject) => {
         let queue = Promise.resolve();
 
@@ -90,13 +67,13 @@ function prepareImages(gemini, pluginConfig) {
 
             queue = queue.then(() => {
                 return wrapped.isEqual()
-                    ? handleTestResultEvent(wrapped)
+                    ? saveTestImages(wrapped, pluginConfig)
                     : handleErrorEvent(wrapped);
             });
         });
 
         gemini.on(gemini.events.TEST_RESULT, (testResult) => {
-            queue = queue.then(() => handleTestResultEvent(reportBuilder.format(testResult)));
+            queue = queue.then(() => saveTestImages(reportBuilder.format(testResult), pluginConfig));
         });
 
         gemini.on(gemini.events.UPDATE_RESULT, (testResult) => {
@@ -105,7 +82,7 @@ function prepareImages(gemini, pluginConfig) {
                 equal: true
             });
 
-            queue = queue.then(() => handleTestResultEvent(reportBuilder.format(testResult)));
+            queue = queue.then(() => saveTestImages(reportBuilder.format(testResult), pluginConfig));
         });
 
         gemini.on(gemini.events.END, () => queue.then(resolve, reject));
