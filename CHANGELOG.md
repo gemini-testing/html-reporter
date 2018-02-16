@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.1.0"></a>
+# [2.1.0](https://github.com/gemini-testing/html-reporter/compare/v2.0.3...v2.1.0) (2018-02-16)
+
+
+### Bug Fixes
+
+* parse cli ([1949147](https://github.com/gemini-testing/html-reporter/commit/1949147))
+
+
+### Features
+
+* save diff from hermione assert view ([#42](https://github.com/gemini-testing/html-reporter/issues/42)) ([f4e1c92](https://github.com/gemini-testing/html-reporter/commit/f4e1c92))
+
+
+
 <a name="2.0.4"></a>
 ## [2.0.4](https://github.com/gemini-testing/html-reporter/compare/v2.0.3...v2.0.4) (2018-02-06)
 
