@@ -74,7 +74,7 @@ function prepareImages(gemini, pluginConfig) {
 
             queue = queue.then(() => {
                 return wrapped.hasDiff()
-                    ? saveTestImages(wrapped)
+                    ? saveTestImages(wrapped, reportPath)
                     : handleErrorEvent(wrapped);
             });
         });
