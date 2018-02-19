@@ -67,6 +67,22 @@ describe('ReportBuilder', () => {
         assert.equal(metaInfo.url, '/test/url');
     });
 
+    it('should contain "name" for each suite', () => {
+        const reportBuilder = mkReportBuilder_();
+
+        reportBuilder.addSuccess(stubTest_({
+            state: {name: 'some-state'},
+            suite: {path: ['root-suite']}
+        }));
+
+        const result = reportBuilder.getResult();
+        const suiteResult = result.suites[0];
+        const stateResult = suiteResult.children[0];
+
+        assert.propertyVal(suiteResult, 'name', 'root-suite');
+        assert.propertyVal(stateResult, 'name', 'some-state');
+    });
+
     it('should set passed statistic', () => {
         const reportBuilder = mkReportBuilder_();
 
