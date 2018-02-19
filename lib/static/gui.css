@@ -29,7 +29,9 @@
 }
 
 .section_status_fail > .section__title,
-.section_status_fail > .section__title::before {
+.section_status_fail > .section__title::before,
+.section_status_error > .section__title,
+.section_status_error > .section__title::before {
     color: #c00;
 }
 
