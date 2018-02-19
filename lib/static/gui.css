@@ -1,0 +1,45 @@
+@keyframes blink {
+    from { opacity: 1;}
+    to {opacity: 0.3;}
+}
+
+.section__title:before {
+    display: inline-block;
+    margin-right: 6px;
+    vertical-align: middle;
+    content: '\25cf';
+    color: #ccc;
+}
+
+.section_status_queued > .section__title::before {
+    color: #e7d700;
+}
+
+.section_status_running > .section__title::before {
+    -webkit-animation: blink 0.5s linear 0s infinite alternate;
+       -moz-animation: blink 0.5s linear 0s infinite alternate;
+         -o-animation: blink 0.5s linear 0s infinite alternate;
+            animation: blink 0.5s linear 0s infinite alternate;
+    color: #e7d700;
+}
+
+.section_status_success > .section__title,
+.section_status_success > .section__title::before {
+    color: #038035;
+}
+
+.section_status_fail > .section__title,
+.section_status_fail > .section__title::before {
+    color: #c00;
+}
+
+.section_status_skipped > .section__title,
+.section_status_skipped > .section__title::before {
+    color: #ccc;
+}
+
+.controls__item {
+    padding: 5px;
+    display: inline-block;
+    vertical-align: top;
+}

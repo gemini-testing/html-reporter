@@ -2,12 +2,15 @@
 
 const path = require('path');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const HtmlWebpackIncludeAssetsPlugin = require('html-webpack-include-assets-plugin');
 
 const staticPath = path.resolve(__dirname, 'lib', 'static');
 
 module.exports = {
     entry: {
-        bundle: ['./index.js', './styles.css']
+        report: ['./index.js', './styles.css'],
+        gui: ['./gui.js', './styles.css', './gui.css']
     },
     context: staticPath,
     output: {
@@ -28,16 +31,29 @@ module.exports = {
             },
             {
                 test: /\.js$/,
-                use: {
-                    loader: 'babel-loader',
-                    options: {
-                        presets: ['env', 'react', 'stage-0']
-                    }
-                }
+                use: 'babel-loader',
+                exclude: /node_modules/
             }
         ]
     },
     plugins: [
-        new ExtractTextPlugin('[name].min.css')
+        new ExtractTextPlugin('[name].min.css'),
+        new HtmlWebpackPlugin({
+            title: 'HTML report',
+            filename: 'index.html',
+            template: 'template.html',
+            chunks: ['report']
+        }),
+        new HtmlWebpackPlugin({
+            title: 'Gui report',
+            filename: 'gui.html',
+            template: 'template.html',
+            chunks: ['gui']
+        }),
+        new HtmlWebpackIncludeAssetsPlugin({
+            files: ['index.html'],
+            assets: ['data.js'],
+            append: false
+        })
     ]
 };

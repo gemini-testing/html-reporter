@@ -184,8 +184,8 @@ describe('ReportBuilder', () => {
             return reportBuilder.save('some-data', 'some/report/dir')
                 .then(() => {
                     assert.calledWithMatch(fs.copyAsync, 'index.html', 'some/report/dir/index.html');
-                    assert.calledWithMatch(fs.copyAsync, 'bundle.min.js', 'some/report/dir/bundle.min.js');
-                    assert.calledWithMatch(fs.copyAsync, 'bundle.min.css', 'some/report/dir/bundle.min.css');
+                    assert.calledWithMatch(fs.copyAsync, 'report.min.js', 'some/report/dir/report.min.js');
+                    assert.calledWithMatch(fs.copyAsync, 'report.min.css', 'some/report/dir/report.min.css');
                 });
         });
 
