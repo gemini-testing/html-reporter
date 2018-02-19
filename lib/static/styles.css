@@ -183,9 +183,13 @@
 
 .reason {
     background: #f6f5f3;
-    border: 1px solid #ccc;
     padding: 5px;
-    font: 12px Consolas, Monaco, monospace;
+    margin-bottom: 5px;
+    font: 13px Consolas, Helvetica, monospace;
+}
+
+.reason__item-key {
+    font-weight: bold;
 }
 
 .state-button {
