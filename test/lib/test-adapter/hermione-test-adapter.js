@@ -63,4 +63,12 @@ describe('hermione test adapter', () => {
 
         assert.deepEqual(hermioneTestAdapter.imageDir, 'some-id');
     });
+
+    it('should return description', () => {
+        const testResult = {description: 'some-description'};
+
+        const hermioneTestAdapter = new HermioneTestResultAdapter(testResult);
+
+        assert.deepEqual(hermioneTestAdapter.description, 'some-description');
+    });
 });
