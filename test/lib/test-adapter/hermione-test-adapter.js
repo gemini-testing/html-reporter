@@ -16,12 +16,16 @@ describe('hermione test adapter', () => {
         assert.equal(hermioneTestAdapter.attempt, 4);
     });
 
-    it('should return test error', () => {
-        const testResult = {err: {message: 'some-message', stack: 'some-stack', stateName: 'some-test'}};
+    it('should return test error with "message", "stack" and "stateName"', () => {
+        const testResult = {
+            err: {
+                message: 'some-message', stack: 'some-stack', stateName: 'some-test', foo: 'bar'
+            }
+        };
 
         const hermioneTestAdapter = new HermioneTestResultAdapter(testResult);
 
-        assert.deepEqual(JSON.parse(hermioneTestAdapter.error), {
+        assert.deepEqual(hermioneTestAdapter.error, {
             message: 'some-message',
             stack: 'some-stack',
             stateName: 'some-test'

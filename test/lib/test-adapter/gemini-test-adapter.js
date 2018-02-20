@@ -7,30 +7,12 @@ describe('gemini test adapter', () => {
 
     afterEach(() => sandbox.restore());
 
-    describe('error', () => {
-        it('should return test error stack', () => {
-            const testResult = {stack: 'some-stack'};
+    it('should return test error with "message" and "stack"', () => {
+        const testResult = {message: 'some-message', stack: 'some-stack', foo: 'bar'};
 
-            const geminiTestAdapter = new GeminiTestResultAdapter(testResult);
+        const geminiTestAdapter = new GeminiTestResultAdapter(testResult);
 
-            assert.deepEqual(geminiTestAdapter.error, 'some-stack');
-        });
-
-        it('should return test error message', () => {
-            const testResult = {message: 'some-message'};
-
-            const geminiTestAdapter = new GeminiTestResultAdapter(testResult);
-
-            assert.deepEqual(geminiTestAdapter.error, 'some-message');
-        });
-
-        it('should return test error value', () => {
-            const testResult = {some: 'err'};
-
-            const geminiTestAdapter = new GeminiTestResultAdapter(testResult);
-
-            assert.deepEqual(geminiTestAdapter.error, {some: 'err'});
-        });
+        assert.deepEqual(geminiTestAdapter.error, {message: 'some-message', stack: 'some-stack'});
     });
 
     describe('isEqual', () => {
