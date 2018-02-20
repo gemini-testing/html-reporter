@@ -183,32 +183,4 @@ describe('Hermione Reporter', () => {
             assert.calledWith(utils.saveDiff, sinon.match.instanceOf(HermioneTestAdapter), '/absolute/report');
         });
     });
-
-    describe('screenshotOnReject', () => {
-        const eventsMap = {retry: events.RETRY, fail: events.TEST_FAIL};
-
-        _.forEach(eventsMap, (value, key) => {
-            it(`should save screenshot from error if error does not contain image in case of ${key}`, () => {
-                utils.getCurrentAbsolutePath.returns('/absolute/path');
-
-                initReporter_();
-
-                hermione.emit(value, {err: {screenshot: 'some-buffer'}});
-                const buffer = new Buffer('some-buffer', 'base64');
-
-                return hermione.emitAndWait(events.RUNNER_END).then(() => {
-                    assert.calledOnceWith(fs.writeFileAsync, '/absolute/path', buffer, 'base64');
-                });
-            });
-
-            it(`should warn if error does not contain screenshot in case of ${key}`, () => {
-                initReporter_();
-                hermione.emit(value, mkStubResult_());
-
-                return hermione.emitAndWait(events.RUNNER_END).then(() => {
-                    assert.calledOnceWith(utils.logger.warn, 'Cannot save screenshot on reject');
-                });
-            });
-        });
-    });
 });

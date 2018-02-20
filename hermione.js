@@ -41,13 +41,8 @@ function saveScreenshot(imageData, destPath) {
         .then(() => fs.writeFileAsync(destPath, new Buffer(imageData, 'base64'), 'base64'));
 }
 
-function prepareData(hermione, pluginConfig) {
+function prepareData(hermione) {
     return new Promise((resolve) => {
-        hermione.config.getBrowserIds().forEach((id) => {
-            const browserConfig = hermione.config.forBrowser(id);
-            browserConfig.screenshotOnReject = pluginConfig.screenshotOnReject;
-        });
-
         hermione.on(hermione.events.TEST_PENDING, (testResult) => reportBuilder.addSkipped(testResult));
 
         hermione.on(hermione.events.TEST_PASS, (testResult) => reportBuilder.addSuccess(testResult));
