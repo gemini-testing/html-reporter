@@ -10,7 +10,8 @@
     "prepublish": "NODE_ENV=production webpack --config=webpack.prod.js",
     "start": "webpack-dev-server --config=webpack.dev.js --progress --colors",
     "commitmsg": "conventional-changelog-lint -e",
-    "release": "standard-version"
+    "release": "standard-version",
+    "watch": "webpack --progress -d --config=webpack.dev.js --watch"
   },
   "repository": {
     "type": "git",
