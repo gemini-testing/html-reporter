@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.2.0"></a>
+# [2.2.0](https://github.com/gemini-testing/html-reporter/compare/v2.1.0...v2.2.0) (2018-02-20)
+
+
+### Bug Fixes
+
+* **state-error:** do not escape control characters ([af798d6](https://github.com/gemini-testing/html-reporter/commit/af798d6))
+* empty title for hermione test ([4fdcc76](https://github.com/gemini-testing/html-reporter/commit/4fdcc76))
+
+
+### Features
+
+* add base gui logic ([8542bd7](https://github.com/gemini-testing/html-reporter/commit/8542bd7))
+* remove screenshotOnReject option (can be set from hermione) ([aff3d84](https://github.com/gemini-testing/html-reporter/commit/aff3d84))
+
+
+
 <a name="2.1.0"></a>
 # [2.1.0](https://github.com/gemini-testing/html-reporter/compare/v2.0.3...v2.1.0) (2018-02-16)
 
