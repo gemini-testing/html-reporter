@@ -15,17 +15,17 @@ describe('gemini test adapter', () => {
         assert.deepEqual(geminiTestAdapter.error, {message: 'some-message', stack: 'some-stack'});
     });
 
-    describe('isEqual', () => {
-        it('should return "true" if test result has own property equal', () => {
+    describe('hasDiff', () => {
+        it('should return "true" if test result has image comparison result', () => {
             const geminiTestAdapter = new GeminiTestResultAdapter({equal: true});
 
-            assert.isTrue(geminiTestAdapter.isEqual());
+            assert.isTrue(geminiTestAdapter.hasDiff());
         });
 
-        it('should return `false` if test result does not have own property equal', () => {
+        it('should return "false" if test result does not have image comparison result', () => {
             const geminiTestAdapter = new GeminiTestResultAdapter({});
 
-            assert.isFalse(geminiTestAdapter.isEqual());
+            assert.isFalse(geminiTestAdapter.hasDiff());
         });
     });
 

@@ -160,7 +160,7 @@ describe('ReportBuilder', () => {
         it('should add fail to result if test result has not equal images', () => {
             const reportBuilder = mkReportBuilder_();
 
-            reportBuilder.addRetry(stubTest_({isEqual: () => true}));
+            reportBuilder.addRetry(stubTest_({hasDiff: () => true}));
 
             assert.match(getReportBuilderResult_(reportBuilder), {fail: true});
         });
@@ -168,7 +168,7 @@ describe('ReportBuilder', () => {
         it('should add error to result if test result has no image', () => {
             const reportBuilder = mkReportBuilder_();
 
-            reportBuilder.addRetry(stubTest_({isEqual: () => false}));
+            reportBuilder.addRetry(stubTest_({hasDiff: () => false}));
 
             assert.match(getReportBuilderResult_(reportBuilder), {error: true});
         });

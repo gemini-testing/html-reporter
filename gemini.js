@@ -73,7 +73,7 @@ function prepareImages(gemini, pluginConfig) {
             const wrapped = reportBuilder.format(testResult);
 
             queue = queue.then(() => {
-                return wrapped.isEqual()
+                return wrapped.hasDiff()
                     ? saveTestImages(wrapped, reportPath)
                     : handleErrorEvent(wrapped);
             });
