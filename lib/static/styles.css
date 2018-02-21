@@ -136,7 +136,8 @@
     color: #038035;
 }
 
-.section_status_fail > .section__title {
+.section_status_fail > .section__title,
+.section_status_error > .section__title {
     color: #c00;
 }
 
