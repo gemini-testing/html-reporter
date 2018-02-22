@@ -41,3 +41,8 @@
     display: inline-block;
     vertical-align: top;
 }
+
+.button_type_suite-controls {
+    border: 1px solid #fff;
+    margin-top: 5px;
+}
