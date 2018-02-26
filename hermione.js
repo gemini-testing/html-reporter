@@ -3,7 +3,7 @@
 const Promise = require('bluebird');
 const fs = require('fs-extra');
 
-const utils = require('./utils');
+const utils = require('./lib/server-utils');
 const {saveTestImages} = require('./lib/reporter-helpers');
 const ReportBuilderFactory = require('./lib/report-builder-factory');
 const parseConfig = require('./lib/config');

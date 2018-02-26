@@ -4,7 +4,7 @@ const _ = require('lodash');
 const fs = require('fs-extra');
 const QEmitter = require('qemitter');
 const proxyquire = require('proxyquire');
-const utils = require('../utils');
+const utils = require('../lib/server-utils');
 const ReportBuilder = require('../lib/report-builder-factory/report-builder');
 const {logger} = utils;
 

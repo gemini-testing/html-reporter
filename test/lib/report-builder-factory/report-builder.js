@@ -2,8 +2,9 @@
 
 const fs = require('fs-extra');
 const _ = require('lodash');
-const {logger} = require('../../../utils');
+const {logger} = require('../../../lib/server-utils');
 const ReportBuilder = require('../../../lib/report-builder-factory/report-builder');
+const {SUCCESS, FAIL, ERROR, SKIPPED} = require('../../../lib/constants/test-statuses');
 
 describe('ReportBuilder', () => {
     const sandbox = sinon.sandbox.create();
@@ -107,6 +108,7 @@ describe('ReportBuilder', () => {
             browser: 'bro1',
             comment: 'some skip comment'
         }]);
+        assert.equal(getReportBuilderResult_(reportBuilder).status, SKIPPED);
     });
 
     it('should add success test to result', () => {
@@ -118,9 +120,9 @@ describe('ReportBuilder', () => {
         }));
 
         assert.match(getReportBuilderResult_(reportBuilder), {
-            success: true,
-            actualPath: 'images/some-image-dir/bro1~current.png',
-            expectedPath: 'images/some-image-dir/bro1~ref.png'
+            actualPath: 'images/some-image-dir/bro1~current_0.png',
+            expectedPath: 'images/some-image-dir/bro1~ref_0.png',
+            status: SUCCESS
         });
     });
 
@@ -133,9 +135,9 @@ describe('ReportBuilder', () => {
         }));
 
         assert.match(getReportBuilderResult_(reportBuilder), {
-            fail: true,
-            actualPath: 'images/some-image-dir/bro1~current.png',
-            expectedPath: 'images/some-image-dir/bro1~ref.png'
+            actualPath: 'images/some-image-dir/bro1~current_0.png',
+            expectedPath: 'images/some-image-dir/bro1~ref_0.png',
+            status: FAIL
         });
     });
 
@@ -145,8 +147,8 @@ describe('ReportBuilder', () => {
         reportBuilder.addError(stubTest_({error: 'some-stack-trace'}));
 
         assert.match(getReportBuilderResult_(reportBuilder), {
-            error: true,
-            reason: 'some-stack-trace'
+            reason: 'some-stack-trace',
+            status: ERROR
         });
     });
 
@@ -157,20 +159,20 @@ describe('ReportBuilder', () => {
     });
 
     describe('addRetry', () => {
-        it('should add fail to result if test result has not equal images', () => {
+        it('should add "fail" status to result if test result has not equal images', () => {
             const reportBuilder = mkReportBuilder_();
 
             reportBuilder.addRetry(stubTest_({hasDiff: () => true}));
 
-            assert.match(getReportBuilderResult_(reportBuilder), {fail: true});
+            assert.match(getReportBuilderResult_(reportBuilder), {status: FAIL});
         });
 
-        it('should add error to result if test result has no image', () => {
+        it('should add "error" status to result if test result has no image', () => {
             const reportBuilder = mkReportBuilder_();
 
             reportBuilder.addRetry(stubTest_({hasDiff: () => false}));
 
-            assert.match(getReportBuilderResult_(reportBuilder), {error: true});
+            assert.match(getReportBuilderResult_(reportBuilder), {status: ERROR});
         });
     });
 
