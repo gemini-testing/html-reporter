@@ -15,7 +15,9 @@ module.exports = {
     context: staticPath,
     output: {
         path: staticPath,
-        filename: '[name].min.js'
+        filename: '[name].min.js',
+        hotUpdateChunkFilename: '../../hot/hot-update.js',
+        hotUpdateMainFilename: '../../hot/hot-update.json'
     },
     module: {
         rules: [
