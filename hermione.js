@@ -1,7 +1,7 @@
 'use strict';
 
 const Promise = require('bluebird');
-const fs = require('fs-extra');
+const fs = Promise.promisifyAll(require('fs-extra'));
 
 const utils = require('./lib/server-utils');
 const {saveTestImages} = require('./lib/reporter-helpers');

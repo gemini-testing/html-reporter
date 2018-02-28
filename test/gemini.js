@@ -3,14 +3,14 @@
 const {EventEmitter} = require('events');
 const _ = require('lodash');
 const fs = require('fs-extra');
-const QEmitter = require('qemitter');
 const proxyquire = require('proxyquire');
 const utils = require('../lib/server-utils');
 const ReportBuilder = require('../lib/report-builder-factory/report-builder');
+const {stubTool} = require('./utils');
 const {logger} = utils;
 
 describe('Gemini Reporter', () => {
-    const sandbox = sinon.sandbox.create();
+    const sandbox = sinon.createSandbox();
     let parseConfig;
     let gemini;
     let GeminiReporter;
@@ -28,6 +28,14 @@ describe('Gemini Reporter', () => {
         UPDATE_RESULT: 'updateResult'
     };
 
+    function mkGemini_() {
+        return stubTool({
+            forBrowser: sandbox.stub().returns({
+                getAbsoluteUrl: () => {}
+            })
+        }, events);
+    }
+
     function initReporter_(opts, command = 'foo') {
         opts = _.defaults(opts || {}, {
             enabled: true,
@@ -36,24 +44,12 @@ describe('Gemini Reporter', () => {
         });
         parseConfig.returns(opts);
 
-        GeminiReporter(mkGemini_(), opts);
+        gemini = mkGemini_();
+        GeminiReporter(gemini, opts);
 
         const commander = mkCommander_(command);
-        gemini.emit(events.CLI, commander);
+        gemini.emit(gemini.events.CLI, commander);
         commander.emit(`command:${command}`);
-    }
-
-    function mkGemini_() {
-        gemini = new QEmitter();
-        gemini.config = {
-            forBrowser: sinon.stub().returns({
-                rootUrl: 'browser/root/url',
-                getAbsoluteUrl: _.noop
-            })
-        };
-        gemini.events = events;
-
-        return gemini;
     }
 
     function mkCommander_(commands = ['default-command']) {
@@ -115,7 +111,7 @@ describe('Gemini Reporter', () => {
             parseConfig.withArgs(opts).returns(opts);
             GeminiReporter(gemini, opts);
 
-            gemini.emit(events.CLI, commander);
+            gemini.emit(gemini.events.CLI, commander);
 
             assert.calledOnceWith(geminiGui, commander, gemini, opts);
         });
@@ -125,7 +121,7 @@ describe('Gemini Reporter', () => {
             GeminiReporter(gemini, {enabled: true});
             const commander = mkCommander_('gui');
 
-            gemini.emit(events.CLI, commander);
+            gemini.emit(gemini.events.CLI, commander);
             commander.emit('command:gui');
 
             assert.notCalled(ReportBuilder.create);
@@ -136,7 +132,7 @@ describe('Gemini Reporter', () => {
         it('should save statistic', () => {
             initReporter_();
 
-            gemini.emit(events.END, {some: 'stat'});
+            gemini.emit(gemini.events.END, {some: 'stat'});
 
             assert.calledOnceWith(ReportBuilder.prototype.setStats, {some: 'stat'});
         });
@@ -144,9 +140,9 @@ describe('Gemini Reporter', () => {
         it('should save report', () => {
             initReporter_();
 
-            gemini.emit(events.END);
+            gemini.emit(gemini.events.END);
 
-            return gemini.emitAndWait(events.END_RUNNER).then(() => {
+            return gemini.emitAndWait(gemini.events.END_RUNNER).then(() => {
                 assert.calledOnce(ReportBuilder.prototype.save);
             });
         });
@@ -154,9 +150,9 @@ describe('Gemini Reporter', () => {
         it('should log correct path to html report', () => {
             initReporter_();
             ReportBuilder.prototype.save.resolves({reportPath: 'some/path'});
-            gemini.emit(events.END);
+            gemini.emit(gemini.events.END);
 
-            return gemini.emitAndWait(events.END_RUNNER).then(() => {
+            return gemini.emitAndWait(gemini.events.END_RUNNER).then(() => {
                 assert.calledWithMatch(logger.log, 'some/path');
             });
         });
@@ -164,20 +160,20 @@ describe('Gemini Reporter', () => {
         it('should save only reference when screenshots are equal', () => {
             sandbox.stub(utils, 'getReferenceAbsolutePath').returns('absolute/reference/path');
 
-            gemini.emit(events.TEST_RESULT, mkStubResult_({
+            gemini.emit(gemini.events.TEST_RESULT, mkStubResult_({
                 referencePath: 'reference/path',
                 equal: true
             }));
 
-            gemini.emit(events.END);
+            gemini.emit(gemini.events.END);
 
-            return gemini.emitAndWait(events.END_RUNNER).then(() => {
+            return gemini.emitAndWait(gemini.events.END_RUNNER).then(() => {
                 assert.calledOnceWith(utils.copyImageAsync, 'reference/path', 'absolute/reference/path');
             });
         });
 
         it('should handle updated references as success result', () => {
-            gemini.emit(events.UPDATE_RESULT, mkStubResult_({updated: true}));
+            gemini.emit(gemini.events.UPDATE_RESULT, mkStubResult_({updated: true}));
 
             assert.calledOnceWith(ReportBuilder.prototype.addSuccess, sinon.match({updated: true}));
         });
@@ -185,22 +181,22 @@ describe('Gemini Reporter', () => {
         it('should save updated images', () => {
             sandbox.stub(utils, 'getReferenceAbsolutePath').returns('absolute/reference/path');
 
-            gemini.emit(events.UPDATE_RESULT, mkStubResult_({
+            gemini.emit(gemini.events.UPDATE_RESULT, mkStubResult_({
                 imagePath: 'updated/image/path'
             }));
 
-            gemini.emit(events.END);
+            gemini.emit(gemini.events.END);
 
-            return gemini.emitAndWait(events.END_RUNNER).then(() => {
+            return gemini.emitAndWait(gemini.events.END_RUNNER).then(() => {
                 assert.calledOnceWith(utils.copyImageAsync, 'updated/image/path', 'absolute/reference/path');
             });
         });
 
         describe('when screenshots are not equal', () => {
             function emitResult_(options) {
-                gemini.emit(events.TEST_RESULT, mkStubResult_(options));
-                gemini.emit(events.END);
-                return gemini.emitAndWait(events.END_RUNNER);
+                gemini.emit(gemini.events.TEST_RESULT, mkStubResult_(options));
+                gemini.emit(gemini.events.END);
+                return gemini.emitAndWait(gemini.events.END_RUNNER);
             }
 
             it('should save current image', () => {
