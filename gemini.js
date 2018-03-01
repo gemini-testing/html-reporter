@@ -3,7 +3,7 @@
 const _ = require('lodash');
 const Promise = require('bluebird');
 
-const utils = require('./utils');
+const utils = require('./lib/server-utils');
 const {saveTestImages} = require('./lib/reporter-helpers');
 const ReportBuilderFactory = require('./lib/report-builder-factory');
 const parseConfig = require('./lib/config');
