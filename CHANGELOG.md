@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.5.0"></a>
+# [2.5.0](https://github.com/gemini-testing/html-reporter/compare/v2.4.0...v2.5.0) (2018-03-01)
+
+
+### Bug Fixes
+
+* do not generate html report for gui ([75edce6](https://github.com/gemini-testing/html-reporter/commit/75edce6))
+* webpack watcher ([dc6a044](https://github.com/gemini-testing/html-reporter/commit/dc6a044))
+
+
+### Features
+
+* add accept images for gui ([c2db9f4](https://github.com/gemini-testing/html-reporter/commit/c2db9f4))
+
+
+
 <a name="2.4.0"></a>
 # [2.4.0](https://github.com/gemini-testing/html-reporter/compare/v2.3.0...v2.4.0) (2018-02-27)
 
