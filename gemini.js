@@ -9,6 +9,7 @@ const ReportBuilderFactory = require('./lib/report-builder-factory');
 const parseConfig = require('./lib/config');
 const gui = require('./lib/gui');
 
+const GUI_COMMAND = 'gui';
 let reportBuilder;
 
 module.exports = (gemini, opts) => {
@@ -20,9 +21,17 @@ module.exports = (gemini, opts) => {
 
     gemini.on(gemini.events.CLI, (commander) => {
         gui(commander, gemini, pluginConfig);
-    });
 
-    // TODO: do not generate report on "gemini gui" command
+        commander.commands
+            .map((cmd) => cmd.name())
+            .filter((cmdName) => cmdName !== GUI_COMMAND)
+            .forEach((cmd) => {
+                commander.on(`command:${cmd}`, () => initHtmlReporter(gemini, pluginConfig));
+            });
+    });
+};
+
+function initHtmlReporter(gemini, pluginConfig) {
     reportBuilder = ReportBuilderFactory.create('gemini', gemini.config, pluginConfig);
     const generateReportPromise = Promise
         .all([
@@ -34,7 +43,7 @@ module.exports = (gemini, opts) => {
         .catch(utils.logError);
 
     gemini.on(gemini.events.END_RUNNER, () => generateReportPromise);
-};
+}
 
 function prepareData(gemini) {
     return new Promise((resolve) => {
