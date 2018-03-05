@@ -73,7 +73,7 @@ function prepareImages(hermione, pluginConfig) {
     function failHandler(testResult) {
         const wrapped = reportBuilder.format(testResult);
 
-        return wrapped.hasDiff ? saveTestImages(wrapped, pluginConfig) : handleErrorEvent(wrapped);
+        return wrapped.hasDiff ? saveTestImages(wrapped, pluginConfig.path) : handleErrorEvent(wrapped);
     }
 
     return new Promise((resolve, reject) => {
