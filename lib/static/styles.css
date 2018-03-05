@@ -111,6 +111,10 @@
     user-select: text;
 }
 
+.section__title:before {
+    height: 18px;
+}
+
 .section__title:before,
 .toggle-open__switcher:before {
     display: inline-block;
@@ -164,7 +168,7 @@
     vertical-align: top;
     padding: 0 3px;
     border: none;
-    opacity: 0.5;
+    opacity: 0.15;
     cursor: pointer;
 }
 
