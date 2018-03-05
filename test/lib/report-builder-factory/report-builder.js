@@ -4,7 +4,7 @@ const fs = require('fs-extra');
 const _ = require('lodash');
 const {logger} = require('../../../lib/server-utils');
 const ReportBuilder = require('../../../lib/report-builder-factory/report-builder');
-const {SUCCESS, FAIL, ERROR, SKIPPED} = require('../../../lib/constants/test-statuses');
+const {SUCCESS, FAIL, ERROR, SKIPPED, IDLE} = require('../../../lib/constants/test-statuses');
 
 describe('ReportBuilder', () => {
     const sandbox = sinon.sandbox.create();
@@ -120,9 +120,9 @@ describe('ReportBuilder', () => {
         }));
 
         assert.match(getReportBuilderResult_(reportBuilder), {
+            status: SUCCESS,
             actualPath: 'images/some-image-dir/bro1~current_0.png',
-            expectedPath: 'images/some-image-dir/bro1~ref_0.png',
-            status: SUCCESS
+            expectedPath: 'images/some-image-dir/bro1~ref_0.png'
         });
     });
 
@@ -135,9 +135,9 @@ describe('ReportBuilder', () => {
         }));
 
         assert.match(getReportBuilderResult_(reportBuilder), {
+            status: FAIL,
             actualPath: 'images/some-image-dir/bro1~current_0.png',
-            expectedPath: 'images/some-image-dir/bro1~ref_0.png',
-            status: FAIL
+            expectedPath: 'images/some-image-dir/bro1~ref_0.png'
         });
     });
 
@@ -147,8 +147,8 @@ describe('ReportBuilder', () => {
         reportBuilder.addError(stubTest_({error: 'some-stack-trace'}));
 
         assert.match(getReportBuilderResult_(reportBuilder), {
-            reason: 'some-stack-trace',
-            status: ERROR
+            status: ERROR,
+            reason: 'some-stack-trace'
         });
     });
 
@@ -156,6 +156,59 @@ describe('ReportBuilder', () => {
         const reportBuilder = mkReportBuilder_({}, {baseHost: 'some-host'});
 
         assert.equal(reportBuilder.getResult().config.baseHost, 'some-host');
+    });
+
+    describe('suite statuses', () => {
+        const getSuiteResult_ = (reportBuilder) => reportBuilder.getResult().suites[0].children[0];
+
+        it('should set status for suite if suite status does not exist', () => {
+            const reportBuilder = mkReportBuilder_();
+
+            reportBuilder.addSuccess(stubTest_({browserId: 'bro'}));
+
+            const suiteResult = getSuiteResult_(reportBuilder);
+            assert.equal(suiteResult.status, SUCCESS);
+        });
+
+        it('should rewrite suite status if new status has "failed" type', () => {
+            const reportBuilder = mkReportBuilder_();
+
+            reportBuilder.addSuccess(stubTest_({browserId: 'bro'}));
+            reportBuilder.addError(stubTest_({browserId: 'another-bro'}));
+
+            const suiteResult = getSuiteResult_(reportBuilder);
+            assert.equal(suiteResult.status, ERROR);
+        });
+
+        it('should rewrite suite status if new status has "forced" type', () => {
+            const reportBuilder = mkReportBuilder_();
+
+            reportBuilder.addFail(stubTest_({browserId: 'bro'}));
+            reportBuilder.addIdle(stubTest_({browserId: 'another-bro'}));
+
+            const suiteResult = getSuiteResult_(reportBuilder);
+            assert.equal(suiteResult.status, IDLE);
+        });
+
+        it('should rewrite suite status if new status has "final" result', () => {
+            const reportBuilder = mkReportBuilder_();
+
+            reportBuilder.addIdle(stubTest_({browserId: 'another-bro'}));
+            reportBuilder.addSuccess(stubTest_({browserId: 'bro'}));
+
+            const suiteResult = getSuiteResult_(reportBuilder);
+            assert.equal(suiteResult.status, SUCCESS);
+        });
+
+        it('should not rewrite suite status to "success" if it has failed state', () => {
+            const reportBuilder = mkReportBuilder_();
+
+            reportBuilder.addFail(stubTest_({browserId: 'bro'}));
+            reportBuilder.addSuccess(stubTest_({browserId: 'another-bro'}));
+
+            const suiteResult = getSuiteResult_(reportBuilder);
+            assert.equal(suiteResult.status, FAIL);
+        });
     });
 
     describe('addRetry', () => {
