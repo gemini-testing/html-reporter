@@ -141,9 +141,9 @@ describe('Hermione Reporter', () => {
     });
 
     it('should save image from error', () => {
-        utils.getCurrentAbsolutePath.returns('/absolute/report');
+        utils.getCurrentAbsolutePath.callsFake((test, path) => `${path}/report`);
 
-        initReporter_();
+        initReporter_({path: '/absolute'});
         hermione.emit(events.RETRY, {err: {currentImagePath: 'current/path'}});
 
         return hermione.emitAndWait(events.RUNNER_END).then(() => {
@@ -152,9 +152,9 @@ describe('Hermione Reporter', () => {
     });
 
     it('should save reference image from fail', () => {
-        utils.getReferenceAbsolutePath.returns('/absolute/report');
+        utils.getReferenceAbsolutePath.callsFake((test, path) => `${path}/report`);
 
-        initReporter_();
+        initReporter_({path: '/absolute'});
         hermione.emit(events.TEST_FAIL, mkStubResult_({err: {refImagePath: 'reference/path'}, diff: true}));
 
         return hermione.emitAndWait(events.RUNNER_END).then(() => {
@@ -163,9 +163,9 @@ describe('Hermione Reporter', () => {
     });
 
     it('should save current image from fail', () => {
-        utils.getCurrentAbsolutePath.returns('/absolute/report');
+        utils.getCurrentAbsolutePath.callsFake((test, path) => `${path}/report`);
 
-        initReporter_();
+        initReporter_({path: '/absolute'});
         hermione.emit(events.TEST_FAIL, mkStubResult_({err: {currentImagePath: 'current/path'}, diff: true}));
 
         return hermione.emitAndWait(events.RUNNER_END).then(() => {
@@ -174,9 +174,9 @@ describe('Hermione Reporter', () => {
     });
 
     it('should save current diff image from fail', () => {
-        utils.getDiffAbsolutePath.returns('/absolute/report');
+        utils.getDiffAbsolutePath.callsFake((test, path) => `${path}/report`);
 
-        initReporter_();
+        initReporter_({path: '/absolute'});
         hermione.emit(events.TEST_FAIL, mkStubResult_({diff: true}));
 
         return hermione.emitAndWait(events.RUNNER_END).then(() => {
