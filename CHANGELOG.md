@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.6.0"></a>
+# [2.6.0](https://github.com/gemini-testing/html-reporter/compare/v2.5.0...v2.6.0) (2018-03-06)
+
+
+### Bug Fixes
+
+* click on icon opens/closes suite ([0cb3bed](https://github.com/gemini-testing/html-reporter/commit/0cb3bed))
+* **gui:** wrong dot colors ([0064762](https://github.com/gemini-testing/html-reporter/commit/0064762))
+* hermione when failed ([a56e6a8](https://github.com/gemini-testing/html-reporter/commit/a56e6a8))
+
+
+### Features
+
+* reuse data ([48dc3ce](https://github.com/gemini-testing/html-reporter/commit/48dc3ce))
+
+
+
 <a name="2.5.0"></a>
 # [2.5.0](https://github.com/gemini-testing/html-reporter/compare/v2.4.0...v2.5.0) (2018-03-01)
 
