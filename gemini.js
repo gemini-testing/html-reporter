@@ -9,6 +9,8 @@ const ReportBuilderFactory = require('./lib/report-builder-factory');
 const parseConfig = require('./lib/config');
 const gui = require('./lib/gui');
 
+Promise.promisifyAll(require('fs-extra'));
+
 const GUI_COMMAND = 'gui';
 let reportBuilder;
 

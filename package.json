@@ -50,6 +50,7 @@
     "urijs": "^1.18.12"
   },
   "devDependencies": {
+    "app-module-path": "^2.2.0",
     "axios": "^0.17.1",
     "babel-core": "^6.26.0",
     "babel-eslint": "^8.0.1",
@@ -60,6 +61,7 @@
     "babel-preset-react": "^6.24.1",
     "babel-preset-stage-0": "^6.24.1",
     "chai": "^3.5.0",
+    "chai-as-promised": "^7.1.1",
     "classnames": "^2.2.5",
     "conventional-changelog-lint": "^1.0.1",
     "css-loader": "^0.28.7",
