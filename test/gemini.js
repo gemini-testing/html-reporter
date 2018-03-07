@@ -19,6 +19,7 @@ describe('Gemini Reporter', () => {
 
     const events = {
         CLI: 'cli',
+        INIT: 'init',
         END_RUNNER: 'endRunner',
         END: 'end',
         RETRY: 'retry',
@@ -36,7 +37,7 @@ describe('Gemini Reporter', () => {
         }, events);
     }
 
-    function initReporter_(opts, command = 'foo') {
+    function initReporter_(opts) {
         opts = _.defaults(opts || {}, {
             enabled: true,
             path: 'default-path',
@@ -46,10 +47,21 @@ describe('Gemini Reporter', () => {
 
         gemini = mkGemini_();
         GeminiReporter(gemini, opts);
+    }
+
+    function initApiReporter_(opts) {
+        initReporter_(opts);
+        return gemini.emitAndWait(gemini.events.INIT);
+    }
+
+    function initCliReporter_(opts, {command = 'foo'} = {}) {
+        initReporter_(opts);
 
         const commander = mkCommander_(command);
         gemini.emit(gemini.events.CLI, commander);
         commander.emit(`command:${command}`);
+
+        return gemini.emitAndWait(gemini.events.INIT);
     }
 
     function mkCommander_(commands = ['default-command']) {
@@ -97,9 +109,10 @@ describe('Gemini Reporter', () => {
     afterEach(() => sandbox.restore());
 
     it('should parse config using passed options', () => {
-        initReporter_({path: 'some/path', enabled: false, baseHost: 'some-host'});
-
-        assert.calledWith(parseConfig, {path: 'some/path', enabled: false, baseHost: 'some-host'});
+        return initCliReporter_({path: 'some/path', enabled: false, baseHost: 'some-host'})
+            .then(() => {
+                assert.calledWith(parseConfig, {path: 'some/path', enabled: false, baseHost: 'some-host'});
+            });
     });
 
     describe('gui', () => {
@@ -116,80 +129,99 @@ describe('Gemini Reporter', () => {
             assert.calledOnceWith(geminiGui, commander, gemini, opts);
         });
 
+        it('should not register gui command if gemini called via API', () => {
+            return initApiReporter_().then(() => assert.notCalled(geminiGui));
+        });
+
         it('should not init html reporter on running gui command', () => {
-            gemini = mkGemini_();
-            GeminiReporter(gemini, {enabled: true});
-            const commander = mkCommander_('gui');
-
-            gemini.emit(gemini.events.CLI, commander);
-            commander.emit('command:gui');
-
-            assert.notCalled(ReportBuilder.create);
+            return initCliReporter_({}, {command: 'gui'})
+                .then(() => {
+                    assert.notCalled(ReportBuilder.create);
+                });
         });
     });
 
     describe('html-reporter', () => {
+        it('should init html-reporter if gemini called via API', () => {
+            return initApiReporter_().then(() => {
+                assert.calledOnce(ReportBuilder.create);
+            });
+        });
+
         it('should save statistic', () => {
-            initReporter_();
+            return initCliReporter_()
+                .then(() => {
+                    gemini.emit(gemini.events.END, {some: 'stat'});
 
-            gemini.emit(gemini.events.END, {some: 'stat'});
-
-            assert.calledOnceWith(ReportBuilder.prototype.setStats, {some: 'stat'});
+                    assert.calledOnceWith(ReportBuilder.prototype.setStats, {some: 'stat'});
+                });
         });
 
         it('should save report', () => {
-            initReporter_();
+            return initCliReporter_()
+                .then(() => {
+                    gemini.emit(gemini.events.END);
 
-            gemini.emit(gemini.events.END);
-
-            return gemini.emitAndWait(gemini.events.END_RUNNER).then(() => {
-                assert.calledOnce(ReportBuilder.prototype.save);
-            });
+                    return gemini.emitAndWait(gemini.events.END_RUNNER).then(() => {
+                        assert.calledOnce(ReportBuilder.prototype.save);
+                    });
+                });
         });
 
         it('should log correct path to html report', () => {
-            initReporter_();
-            ReportBuilder.prototype.save.resolves({reportPath: 'some/path'});
-            gemini.emit(gemini.events.END);
+            return initCliReporter_()
+                .then(() => {
+                    ReportBuilder.prototype.save.resolves({reportPath: 'some/path'});
+                    gemini.emit(gemini.events.END);
 
-            return gemini.emitAndWait(gemini.events.END_RUNNER).then(() => {
-                assert.calledWithMatch(logger.log, 'some/path');
-            });
+                    return gemini.emitAndWait(gemini.events.END_RUNNER).then(() => {
+                        assert.calledWithMatch(logger.log, 'some/path');
+                    });
+                });
         });
 
         it('should save only reference when screenshots are equal', () => {
             sandbox.stub(utils, 'getReferenceAbsolutePath').returns('absolute/reference/path');
 
-            gemini.emit(gemini.events.TEST_RESULT, mkStubResult_({
-                referencePath: 'reference/path',
-                equal: true
-            }));
+            return initCliReporter_()
+                .then(() => {
+                    gemini.emit(gemini.events.TEST_RESULT, mkStubResult_({
+                        referencePath: 'reference/path',
+                        equal: true
+                    }));
 
-            gemini.emit(gemini.events.END);
+                    gemini.emit(gemini.events.END);
 
-            return gemini.emitAndWait(gemini.events.END_RUNNER).then(() => {
-                assert.calledOnceWith(utils.copyImageAsync, 'reference/path', 'absolute/reference/path');
-            });
+                    return gemini.emitAndWait(gemini.events.END_RUNNER).then(() => {
+                        assert.calledOnceWith(utils.copyImageAsync, 'reference/path', 'absolute/reference/path');
+                    });
+                });
         });
 
         it('should handle updated references as success result', () => {
-            gemini.emit(gemini.events.UPDATE_RESULT, mkStubResult_({updated: true}));
+            return initCliReporter_()
+                .then(() => {
+                    gemini.emit(gemini.events.UPDATE_RESULT, mkStubResult_({updated: true}));
 
-            assert.calledOnceWith(ReportBuilder.prototype.addSuccess, sinon.match({updated: true}));
+                    assert.calledOnceWith(ReportBuilder.prototype.addSuccess, sinon.match({updated: true}));
+                });
         });
 
         it('should save updated images', () => {
-            sandbox.stub(utils, 'getReferenceAbsolutePath').returns('absolute/reference/path');
+            return initCliReporter_()
+                .then(() => {
+                    sandbox.stub(utils, 'getReferenceAbsolutePath').returns('absolute/reference/path');
 
-            gemini.emit(gemini.events.UPDATE_RESULT, mkStubResult_({
-                imagePath: 'updated/image/path'
-            }));
+                    gemini.emit(gemini.events.UPDATE_RESULT, mkStubResult_({
+                        imagePath: 'updated/image/path'
+                    }));
 
-            gemini.emit(gemini.events.END);
+                    gemini.emit(gemini.events.END);
 
-            return gemini.emitAndWait(gemini.events.END_RUNNER).then(() => {
-                assert.calledOnceWith(utils.copyImageAsync, 'updated/image/path', 'absolute/reference/path');
-            });
+                    return gemini.emitAndWait(gemini.events.END_RUNNER).then(() => {
+                        assert.calledOnceWith(utils.copyImageAsync, 'updated/image/path', 'absolute/reference/path');
+                    });
+                });
         });
 
         describe('when screenshots are not equal', () => {
@@ -200,32 +232,40 @@ describe('Gemini Reporter', () => {
             }
 
             it('should save current image', () => {
-                sandbox.stub(utils, 'getCurrentAbsolutePath').returns('/absolute/report/current/path');
-
-                return emitResult_({currentPath: 'current/path'})
+                return initCliReporter_()
                     .then(() => {
-                        assert.calledWith(utils.copyImageAsync, 'current/path', '/absolute/report/current/path');
+                        sandbox.stub(utils, 'getCurrentAbsolutePath').returns('/absolute/report/current/path');
+
+                        return emitResult_({currentPath: 'current/path'})
+                            .then(() => {
+                                assert.calledWith(utils.copyImageAsync, 'current/path', '/absolute/report/current/path');
+                            });
                     });
             });
 
             it('should save reference image', () => {
-                sandbox.stub(utils, 'getReferenceAbsolutePath').returns('/absolute/report/reference/path');
-
-                return emitResult_({referencePath: 'reference/path'})
+                return initCliReporter_()
                     .then(() => {
-                        assert.calledWith(utils.copyImageAsync, 'reference/path', '/absolute/report/reference/path');
+                        sandbox.stub(utils, 'getReferenceAbsolutePath').returns('/absolute/report/reference/path');
+
+                        return emitResult_({referencePath: 'reference/path'})
+                            .then(() => {
+                                assert.calledWith(utils.copyImageAsync, 'reference/path', '/absolute/report/reference/path');
+                            });
                     });
             });
 
             it('should save diff image', () => {
-                initReporter_();
-                const saveDiffTo = sandbox.stub();
-
-                sandbox.stub(utils, 'getDiffAbsolutePath').returns('/absolute/report/diff/path');
-
-                return emitResult_({saveDiffTo})
+                return initCliReporter_()
                     .then(() => {
-                        assert.calledWith(saveDiffTo, '/absolute/report/diff/path');
+                        const saveDiffTo = sandbox.stub();
+
+                        sandbox.stub(utils, 'getDiffAbsolutePath').returns('/absolute/report/diff/path');
+
+                        return emitResult_({saveDiffTo})
+                            .then(() => {
+                                assert.calledWith(saveDiffTo, '/absolute/report/diff/path');
+                            });
                     });
             });
         });
