@@ -116,12 +116,12 @@ describe('ReportBuilder', () => {
 
         reportBuilder.addSuccess(stubTest_({
             browserId: 'bro1',
-            imageDir: 'some-image-dir'
+            imageDir: 'some-image-dir',
+            imagePath: 'some/path'
         }));
 
         assert.match(getReportBuilderResult_(reportBuilder), {
             status: SUCCESS,
-            actualPath: 'images/some-image-dir/bro1~current_0.png',
             expectedPath: 'images/some-image-dir/bro1~ref_0.png'
         });
     });
