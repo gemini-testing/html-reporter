@@ -21,15 +21,16 @@ module.exports = (gemini, opts) => {
         return;
     }
 
+    let runHtmlReporter = initHtmlReporter;
+
     gemini.on(gemini.events.CLI, (commander) => {
         gui(commander, gemini, pluginConfig);
 
-        commander.commands
-            .map((cmd) => cmd.name())
-            .filter((cmdName) => cmdName !== GUI_COMMAND)
-            .forEach((cmd) => {
-                commander.on(`command:${cmd}`, () => initHtmlReporter(gemini, pluginConfig));
-            });
+        commander.on(`command:${GUI_COMMAND}`, () => runHtmlReporter = _.noop);
+    });
+
+    gemini.on(gemini.events.INIT, () => {
+        runHtmlReporter(gemini, pluginConfig);
     });
 };
 
