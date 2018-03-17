@@ -69,12 +69,11 @@
     background: #c9c9c9;
 }
 
-.image-box__exp-with-act {
-    display: inline-block;
-    max-width: 100%;
+.image-box__container_scale {
+    display: flex;
+    flex-flow: row wrap;
 }
 
-.report_show-only-diff .image-box__exp-with-act,
 .report_show-only-errors .section_status_success,
 .report_show-only-errors .section_status_skipped {
     display: none;
@@ -82,9 +81,16 @@
 
 .image-box__image {
     padding:  0 5px;
-    display: inline-block;
+    display: block;
     vertical-align: top;
+    flex-basis: 33.333%;
+    flex-grow: 1;
     box-sizing: border-box;
+}
+
+.image-box__screenshot {
+    max-width: 100%;
+    height: auto;
 }
 
 .section__title {
@@ -95,10 +101,6 @@
     -webkit-user-select: none;
     -ms-user-select: none;
     user-select: none;
-}
-
-.image-box__screenshot {
-    max-width: 100%;
 }
 
 .section__title_skipped {
