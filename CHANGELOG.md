@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.7.0"></a>
+# [2.7.0](https://github.com/gemini-testing/html-reporter/compare/v2.6.3...v2.7.0) (2018-03-19)
+
+
+### Features
+
+* add ability to fit images in one row ([67adcb4](https://github.com/gemini-testing/html-reporter/commit/67adcb4))
+
+
+
 <a name="2.6.3"></a>
 ## [2.6.3](https://github.com/gemini-testing/html-reporter/compare/v2.6.2...v2.6.3) (2018-03-13)
 
