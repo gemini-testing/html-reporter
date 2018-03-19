@@ -8,7 +8,7 @@ describe('hermione test adapter', () => {
     afterEach(() => sandbox.restore());
 
     it('should return suite attempt', () => {
-        const testResult = {retriesLeft: 1};
+        const testResult = {retriesLeft: 0};
         const config = {retry: 5};
 
         const hermioneTestAdapter = new HermioneTestResultAdapter(testResult, config);

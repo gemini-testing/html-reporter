@@ -1,54 +1,23 @@
 'use strict';
 
-const _ = require('lodash');
 const Promise = require('bluebird');
-
+const PluginAdapter = require('./lib/plugin-adapter');
 const utils = require('./lib/server-utils');
 const {saveTestImages} = require('./lib/reporter-helpers');
-const ReportBuilderFactory = require('./lib/report-builder-factory');
-const parseConfig = require('./lib/config');
-const gui = require('./lib/gui');
-
-Promise.promisifyAll(require('fs-extra'));
-
-const GUI_COMMAND = 'gui';
-let reportBuilder;
 
 module.exports = (gemini, opts) => {
-    const pluginConfig = parseConfig(opts);
+    const plugin = PluginAdapter.create(gemini, opts, 'gemini');
 
-    if (!pluginConfig.enabled) {
+    if (!plugin.isEnabled()) {
         return;
     }
 
-    let runHtmlReporter = initHtmlReporter;
-
-    gemini.on(gemini.events.CLI, (commander) => {
-        gui(commander, gemini, pluginConfig);
-
-        commander.on(`command:${GUI_COMMAND}`, () => runHtmlReporter = _.noop);
-    });
-
-    gemini.on(gemini.events.INIT, () => {
-        runHtmlReporter(gemini, pluginConfig);
-    });
+    plugin
+        .extendCliByGuiCommand()
+        .init(prepareData, prepareImages);
 };
 
-function initHtmlReporter(gemini, pluginConfig) {
-    reportBuilder = ReportBuilderFactory.create('gemini', gemini.config, pluginConfig);
-    const generateReportPromise = Promise
-        .all([
-            prepareData(gemini),
-            prepareImages(gemini, pluginConfig)
-        ])
-        .spread((reportBuilder) => reportBuilder.save())
-        .then(utils.logPathToHtmlReport)
-        .catch(utils.logError);
-
-    gemini.on(gemini.events.END_RUNNER, () => generateReportPromise);
-}
-
-function prepareData(gemini) {
+function prepareData(gemini, reportBuilder) {
     return new Promise((resolve) => {
         gemini.on(gemini.events.SKIP_STATE, (result) => reportBuilder.addSkipped(result));
 
@@ -66,7 +35,7 @@ function prepareData(gemini) {
     });
 }
 
-function prepareImages(gemini, pluginConfig) {
+function prepareImages(gemini, pluginConfig, reportBuilder) {
     const {path: reportPath} = pluginConfig;
     function handleErrorEvent(result) {
         var src = result.imagePath || result.currentPath;
@@ -96,7 +65,7 @@ function prepareImages(gemini, pluginConfig) {
         });
 
         gemini.on(gemini.events.UPDATE_RESULT, (testResult) => {
-            testResult = _.extend(testResult, {
+            testResult = Object.assign(testResult, {
                 referencePath: testResult.imagePath,
                 equal: true
             });

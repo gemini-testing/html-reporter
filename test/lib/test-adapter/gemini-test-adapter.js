@@ -16,16 +16,22 @@ describe('gemini test adapter', () => {
     });
 
     describe('hasDiff', () => {
-        it('should return "true" if test result has image comparison result', () => {
+        it('should return "false" if test passed successfully', () => {
             const geminiTestAdapter = new GeminiTestResultAdapter({equal: true});
+
+            assert.isFalse(geminiTestAdapter.hasDiff());
+        });
+
+        it('should return "true" if test failed', () => {
+            const geminiTestAdapter = new GeminiTestResultAdapter({equal: false});
 
             assert.isTrue(geminiTestAdapter.hasDiff());
         });
 
-        it('should return "false" if test result does not have image comparison result', () => {
+        it('should return "true" if test errored (does not have image comparison result)', () => {
             const geminiTestAdapter = new GeminiTestResultAdapter({});
 
-            assert.isFalse(geminiTestAdapter.hasDiff());
+            assert.isTrue(geminiTestAdapter.hasDiff());
         });
     });
 
@@ -47,7 +53,7 @@ describe('gemini test adapter', () => {
         assert.deepEqual(geminiTestAdapter.imageDir, 'some-path/some-name');
     });
 
-    ['equal', 'state', 'attempt', 'referencePath', 'currentPath', 'imagePath'].forEach((field) => {
+    ['state', 'attempt', 'referencePath', 'currentPath', 'imagePath'].forEach((field) => {
         it(`should return ${field} from test result`, () => {
             const geminiTestAdapter = new GeminiTestResultAdapter({[field]: 'some-value'});
 

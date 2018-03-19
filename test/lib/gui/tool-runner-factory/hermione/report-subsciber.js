@@ -1,21 +1,21 @@
 'use strict';
 
 const {EventEmitter} = require('events');
-const reportSubscriber = require('lib/gui/tool-runner-factory/gemini/report-subscriber');
+const reportSubscriber = require('lib/gui/tool-runner-factory/hermione/report-subscriber');
 const ReportBuilder = require('lib/report-builder-factory/report-builder');
 const clientEvents = require('lib/gui/constants/client-events');
 const {stubTool, stubConfig} = require('test/utils');
 
-describe('lib/gui/tool-runner-factory/gemini/report-subscriber', () => {
+describe('lib/gui/tool-runner-factory/hermione/report-subscriber', () => {
     const sandbox = sinon.createSandbox();
     let reportBuilder;
     let client;
 
     const events = {
-        END_RUNNER: 'endRunner'
+        RUNNER_END: 'runnerEnd'
     };
 
-    const mkGemini_ = () => stubTool(stubConfig(), events);
+    const mkHermione_ = () => stubTool(stubConfig(), events);
 
     beforeEach(() => {
         reportBuilder = sinon.createStubInstance(ReportBuilder);
@@ -28,22 +28,22 @@ describe('lib/gui/tool-runner-factory/gemini/report-subscriber', () => {
 
     afterEach(() => sandbox.restore());
 
-    describe('END_RUNNER', () => {
+    describe('RUNNER_END', () => {
         it('should save report', () => {
-            const gemini = mkGemini_();
+            const hermione = mkHermione_();
 
-            reportSubscriber(gemini, reportBuilder, client);
+            reportSubscriber(hermione, reportBuilder, client);
 
-            return gemini.emitAndWait(gemini.events.END_RUNNER)
+            return hermione.emitAndWait(hermione.events.RUNNER_END)
                 .then(() => assert.calledOnce(reportBuilder.save));
         });
 
         it('should emit "END" event for client', () => {
-            const gemini = mkGemini_();
+            const hermione = mkHermione_();
 
-            reportSubscriber(gemini, reportBuilder, client);
+            reportSubscriber(hermione, reportBuilder, client);
 
-            return gemini.emitAndWait(gemini.events.END_RUNNER)
+            return hermione.emitAndWait(hermione.events.RUNNER_END)
                 .then(() => assert.calledOnceWith(client.emit, clientEvents.END));
         });
     });
