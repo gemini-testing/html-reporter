@@ -16,7 +16,7 @@ describe('lib/gui/tool-runner-factory/gemini/index', () => {
     let gemini;
 
     const mkGemini_ = () => stubTool(stubConfig());
-    const mkGeminiCliOpts_ = (cliOpts = {}) => ({program: cliOpts});
+    const mkCliOpts_ = (globalCliOpts = {}, guiCliOpts = {}) => ({program: globalCliOpts, options: guiCliOpts});
     const mkPluginConfig_ = (config = {}) => {
         const pluginConfig = _.defaults(config, {path: 'default-path'});
         return {pluginConfig};
@@ -42,7 +42,7 @@ describe('lib/gui/tool-runner-factory/gemini/index', () => {
         gemini = opts.gemini;
         gemini.readTests.resolves(mkSuiteCollection_());
 
-        const configs = _.defaults(opts.configs, mkGeminiCliOpts_(), mkPluginConfig_());
+        const configs = _.defaults(opts.configs, mkCliOpts_(), mkPluginConfig_());
 
         return GeminiGuiReporter.create(opts.paths, gemini, configs);
     };
