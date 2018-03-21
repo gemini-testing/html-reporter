@@ -209,6 +209,22 @@ describe('ReportBuilder', () => {
             const suiteResult = getSuiteResult_(reportBuilder);
             assert.equal(suiteResult.status, FAIL);
         });
+
+        [
+            {status: 'failed', hasDiff: true},
+            {status: 'errored', hasDiff: false}
+        ].forEach(({status, hasDiff}) => {
+            it(`should rewrite suite status to "success" if it ${status} on first attempt`, () => {
+                const reportBuilder = mkReportBuilder_();
+                const test = stubTest_({browserId: 'bro', hasDiff: () => hasDiff});
+
+                reportBuilder.addRetry(test);
+                reportBuilder.addSuccess(test);
+
+                const suiteResult = getSuiteResult_(reportBuilder);
+                assert.equal(suiteResult.status, SUCCESS);
+            });
+        });
     });
 
     describe('addRetry', () => {
