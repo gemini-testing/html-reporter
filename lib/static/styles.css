@@ -81,7 +81,7 @@
 
 .image-box__image {
     padding:  0 5px;
-    display: block;
+    display: inline-block;
     vertical-align: top;
     flex-basis: 33.333%;
     flex-grow: 1;
