@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.7.1"></a>
+## [2.7.1](https://github.com/gemini-testing/html-reporter/compare/v2.7.0...v2.7.1) (2018-03-21)
+
+
+### Bug Fixes
+
+* accept errored tests ([9a11125](https://github.com/gemini-testing/html-reporter/commit/9a11125))
+* gui option 'auto-run' ([90bbddd](https://github.com/gemini-testing/html-reporter/commit/90bbddd))
+* inline diff images in one row ([3967fe2](https://github.com/gemini-testing/html-reporter/commit/3967fe2))
+* retry failed button ([01db91e](https://github.com/gemini-testing/html-reporter/commit/01db91e))
+* status of retried test should not change root status ([297c717](https://github.com/gemini-testing/html-reporter/commit/297c717))
+
+
+
 <a name="2.7.0"></a>
 # [2.7.0](https://github.com/gemini-testing/html-reporter/compare/v2.6.3...v2.7.0) (2018-03-19)
 
