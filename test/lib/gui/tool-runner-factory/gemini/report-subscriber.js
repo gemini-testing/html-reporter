@@ -9,7 +9,7 @@ describe('lib/gui/tool-runner-factory/gemini/report-subscriber', () => {
     let reportBuilder;
 
     const events = {
-        END: 'end'
+        END_RUNNER: 'endRunner'
     };
 
     const mkGemini_ = () => stubTool(stubConfig(), events);
@@ -25,8 +25,7 @@ describe('lib/gui/tool-runner-factory/gemini/report-subscriber', () => {
         const gemini = mkGemini_();
         reportSubscriber(gemini, reportBuilder);
 
-        gemini.emit(gemini.events.END);
-
-        assert.calledOnce(reportBuilder.save);
+        return gemini.emitAndWait(gemini.events.END_RUNNER)
+            .then(() => assert.calledOnce(reportBuilder.save));
     });
 });
