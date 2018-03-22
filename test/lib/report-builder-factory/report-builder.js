@@ -121,7 +121,6 @@ describe('ReportBuilder', () => {
 
         assert.match(getReportBuilderResult_(reportBuilder), {
             status: SUCCESS,
-            actualPath: 'images/some-image-dir/bro1~current_0.png',
             expectedPath: 'images/some-image-dir/bro1~ref_0.png'
         });
     });

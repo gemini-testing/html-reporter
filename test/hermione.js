@@ -2,21 +2,19 @@
 
 const _ = require('lodash');
 const fs = require('fs-extra');
-const Promise = require('bluebird');
-const QEmitter = require('qemitter');
-const proxyquire = require('proxyquire');
-const utils = require('../lib/server-utils');
-const ReportBuilder = require('../lib/report-builder-factory/report-builder');
-const logger = utils.logger;
+const HermioneReporter = require('../hermione');
+const PluginAdapter = require('lib/plugin-adapter');
+const ReportBuilder = require('lib/report-builder-factory/report-builder');
 const HermioneTestAdapter = require('../lib/test-adapter/hermione-test-adapter');
+const utils = require('../lib/server-utils');
+const {stubTool} = require('./utils');
 
-describe('Hermione Reporter', () => {
-    const sandbox = sinon.sandbox.create();
-    const parseConfig = sinon.spy(require('../lib/config'));
+describe('lib/hermione', () => {
+    const sandbox = sinon.createSandbox();
     let hermione;
-    let HermioneReporter;
 
     const events = {
+        INIT: 'init',
         TEST_PENDING: 'testPending',
         TEST_PASS: 'testPass',
         TEST_FAIL: 'testFail',
@@ -24,23 +22,26 @@ describe('Hermione Reporter', () => {
         RUNNER_END: 'runnerEnd'
     };
 
-    function initReporter_(opts, config) {
-        opts = _.defaults(opts, {
-            enabled: true,
-            path: 'default-path',
-            baseHost: ''
-        });
-        hermione = new QEmitter();
-        hermione.config = _.defaults(config, {
+    function mkHermione_() {
+        return stubTool({
             forBrowser: sinon.stub().returns({
                 rootUrl: 'browser/root/url',
                 getAbsoluteUrl: _.noop
             }),
             getBrowserIds: () => ['bro1']
+        }, events);
+    }
+
+    function initReporter_(opts) {
+        opts = _.defaults(opts, {
+            enabled: true,
+            path: 'default-path',
+            baseHost: ''
         });
-        hermione.events = events;
 
         HermioneReporter(hermione, opts);
+
+        return hermione.emitAndWait(hermione.events.INIT);
     }
 
     function mkStubResult_(options = {}) {
@@ -48,139 +49,146 @@ describe('Hermione Reporter', () => {
     }
 
     beforeEach(() => {
-        HermioneReporter = proxyquire('../hermione.js', {
-            './lib/config': parseConfig
-        });
-        sandbox.stub(logger, 'log');
-        sandbox.stub(logger, 'warn');
+        hermione = mkHermione_();
 
-        sandbox.stub(fs, 'mkdirsAsync').returns(Promise.resolve());
-        sandbox.stub(fs, 'writeFileAsync').returns(Promise.resolve());
+        sandbox.spy(PluginAdapter.prototype, 'extendCliByGuiCommand');
+        sandbox.spy(PluginAdapter.prototype, 'init');
+
+        sandbox.stub(fs, 'mkdirsAsync').resolves();
+        sandbox.stub(fs, 'writeFileAsync').resolves();
+        sandbox.stub(fs, 'copyAsync').resolves();
+
         sandbox.stub(utils, 'copyImageAsync');
         sandbox.stub(utils, 'getCurrentAbsolutePath');
         sandbox.stub(utils, 'getReferenceAbsolutePath');
         sandbox.stub(utils, 'saveDiff');
         sandbox.stub(utils, 'getDiffAbsolutePath');
+        sandbox.stub(utils, 'logPathToHtmlReport');
+        sandbox.stub(utils.logger, 'log');
+        sandbox.stub(utils.logger, 'warn');
 
+        sandbox.spy(ReportBuilder.prototype, 'setStats');
         sandbox.stub(ReportBuilder.prototype, 'addSkipped');
         sandbox.stub(ReportBuilder.prototype, 'addSuccess');
         sandbox.stub(ReportBuilder.prototype, 'addError');
         sandbox.stub(ReportBuilder.prototype, 'addFail');
         sandbox.stub(ReportBuilder.prototype, 'addRetry');
-        sandbox.stub(ReportBuilder.prototype, 'save').resolves({});
-
-        sandbox.spy(ReportBuilder.prototype, 'setStats');
+        sandbox.stub(ReportBuilder.prototype, 'save');
     });
 
     afterEach(() => sandbox.restore());
 
-    it('should parse config using passed options', () => {
-        initReporter_({path: 'some/path', enabled: false, baseHost: 'some-host'});
+    it('should do nothing if plugin is disabled', () => {
+        return initReporter_({enabled: false}).then(() => {
+            assert.notCalled(PluginAdapter.prototype.extendCliByGuiCommand);
+        });
+    });
 
-        assert.calledWith(parseConfig, {path: 'some/path', enabled: false, baseHost: 'some-host'});
+    it('should extend cli', () => {
+        return initReporter_().then(() => assert.calledOnce(PluginAdapter.prototype.extendCliByGuiCommand));
+    });
+
+    it('should init plugin', () => {
+        return initReporter_().then(() => assert.calledOnce(PluginAdapter.prototype.init));
     });
 
     it('should add skipped test to result', () => {
-        initReporter_();
+        return initReporter_()
+            .then(() => {
+                hermione.emit(events.TEST_PENDING, {title: 'some-title'});
 
-        hermione.emit(events.TEST_PENDING, {title: 'some-title'});
-
-        assert.calledOnceWith(ReportBuilder.prototype.addSkipped, {title: 'some-title'});
+                assert.calledOnceWith(ReportBuilder.prototype.addSkipped, {title: 'some-title'});
+            });
     });
 
     it('should add passed test to result', () => {
-        initReporter_();
+        return initReporter_()
+            .then(() => {
+                hermione.emit(events.TEST_PASS, {title: 'some-title'});
 
-        hermione.emit(events.TEST_PASS, {title: 'some-title'});
-
-        assert.calledOnceWith(ReportBuilder.prototype.addSuccess, {title: 'some-title'});
+                assert.calledOnceWith(ReportBuilder.prototype.addSuccess, {title: 'some-title'});
+            });
     });
 
     ['TEST_FAIL', 'RETRY'].forEach((event) => {
         describe('should add', () => {
             it(`errored test to result on ${event} event`, () => {
-                initReporter_();
+                return initReporter_()
+                    .then(() => {
+                        hermione.emit(events[event], mkStubResult_({title: 'some-title'}));
 
-                hermione.emit(events[event], mkStubResult_({title: 'some-title'}));
-
-                assert.calledOnceWith(ReportBuilder.prototype.addError, sinon.match({title: 'some-title'}));
+                        assert.calledOnceWith(
+                            ReportBuilder.prototype.addError, sinon.match({title: 'some-title'})
+                        );
+                    });
             });
 
             it('failed test to result on ${event} event', () => {
-                initReporter_();
+                return initReporter_()
+                    .then(() => {
+                        hermione.emit(events[event], mkStubResult_({title: 'some-title', diff: true}));
 
-                hermione.emit(events[event], mkStubResult_({title: 'some-title', diff: true}));
-
-                assert.calledOnceWith(ReportBuilder.prototype.addFail, sinon.match({title: 'some-title'}));
+                        assert.calledOnceWith(
+                            ReportBuilder.prototype.addFail, sinon.match({title: 'some-title'})
+                        );
+                    });
             });
         });
     });
 
     it('should save statistic', () => {
-        initReporter_();
-
-        return hermione.emitAndWait(events.RUNNER_END, {some: 'stat'})
+        return initReporter_()
+            .then(() => hermione.emitAndWait(hermione.events.RUNNER_END, {some: 'stat'}))
             .then(() => assert.calledOnceWith(ReportBuilder.prototype.setStats, {some: 'stat'}));
-    });
-
-    it('should save report', () => {
-        initReporter_();
-
-        return hermione.emitAndWait(events.RUNNER_END).then(() => {
-            assert.calledOnce(ReportBuilder.prototype.save);
-        });
-    });
-
-    it('should log correct path to html report', () => {
-        ReportBuilder.prototype.save.resolves({reportPath: 'some/path'});
-        initReporter_({path: 'some/path'});
-
-        return hermione.emitAndWait(events.RUNNER_END).then(() => {
-            assert.calledWithMatch(logger.log, 'some/path');
-        });
     });
 
     it('should save image from error', () => {
         utils.getCurrentAbsolutePath.callsFake((test, path) => `${path}/report`);
 
-        initReporter_({path: '/absolute'});
-        hermione.emit(events.RETRY, {err: {currentImagePath: 'current/path'}});
-
-        return hermione.emitAndWait(events.RUNNER_END).then(() => {
-            assert.calledOnceWith(utils.copyImageAsync, 'current/path', '/absolute/report');
-        });
+        return initReporter_({path: '/absolute'})
+            .then(() => {
+                hermione.emit(events.RETRY, {err: {currentImagePath: 'current/path'}});
+                return hermione.emitAndWait(events.RUNNER_END);
+            })
+            .then(() => assert.calledOnceWith(utils.copyImageAsync, 'current/path', '/absolute/report'));
     });
 
     it('should save reference image from fail', () => {
         utils.getReferenceAbsolutePath.callsFake((test, path) => `${path}/report`);
 
-        initReporter_({path: '/absolute'});
-        hermione.emit(events.TEST_FAIL, mkStubResult_({err: {refImagePath: 'reference/path'}, diff: true}));
-
-        return hermione.emitAndWait(events.RUNNER_END).then(() => {
-            assert.calledWith(utils.copyImageAsync, 'reference/path', '/absolute/report');
-        });
+        return initReporter_({path: '/absolute'})
+            .then(() => {
+                hermione.emit(
+                    events.TEST_FAIL, mkStubResult_({err: {refImagePath: 'reference/path'}, diff: true})
+                );
+                return hermione.emitAndWait(events.RUNNER_END);
+            })
+            .then(() => assert.calledWith(utils.copyImageAsync, 'reference/path', '/absolute/report'));
     });
 
     it('should save current image from fail', () => {
         utils.getCurrentAbsolutePath.callsFake((test, path) => `${path}/report`);
 
-        initReporter_({path: '/absolute'});
-        hermione.emit(events.TEST_FAIL, mkStubResult_({err: {currentImagePath: 'current/path'}, diff: true}));
-
-        return hermione.emitAndWait(events.RUNNER_END).then(() => {
-            assert.calledWith(utils.copyImageAsync, 'current/path', '/absolute/report');
-        });
+        return initReporter_({path: '/absolute'})
+            .then(() => {
+                hermione.emit(
+                    events.TEST_FAIL, mkStubResult_({err: {currentImagePath: 'current/path'}, diff: true})
+                );
+                return hermione.emitAndWait(events.RUNNER_END);
+            })
+            .then(() => assert.calledWith(utils.copyImageAsync, 'current/path', '/absolute/report'));
     });
 
     it('should save current diff image from fail', () => {
         utils.getDiffAbsolutePath.callsFake((test, path) => `${path}/report`);
 
-        initReporter_({path: '/absolute'});
-        hermione.emit(events.TEST_FAIL, mkStubResult_({diff: true}));
-
-        return hermione.emitAndWait(events.RUNNER_END).then(() => {
-            assert.calledWith(utils.saveDiff, sinon.match.instanceOf(HermioneTestAdapter), '/absolute/report');
-        });
+        return initReporter_({path: '/absolute'})
+            .then(() => {
+                hermione.emit(events.TEST_FAIL, mkStubResult_({diff: true}));
+                return hermione.emitAndWait(events.RUNNER_END);
+            })
+            .then(() => assert.calledWith(
+                utils.saveDiff, sinon.match.instanceOf(HermioneTestAdapter), '/absolute/report'
+            ));
     });
 });
