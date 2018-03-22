@@ -2,10 +2,10 @@
 
 const QEmitter = require('qemitter');
 
-exports.stubConfig = () => {
+exports.stubConfig = (browserConfigs = {}) => {
     return {
-        getBrowserIds: sinon.stub().returns([]),
-        forBrowser: sinon.stub()
+        getBrowserIds: sinon.stub().named('getBrowserIds').returns(Object.keys(browserConfigs)),
+        forBrowser: sinon.stub().named('forBrowser').callsFake((bro) => browserConfigs[bro])
     };
 };
 
