@@ -113,9 +113,19 @@ describe('lib/gui/tool-runner-factory/base-tool-runner', () => {
         });
 
         describe(`reuse ${name} data`, () => {
+            it('should not try load data for reuse if suites are empty', () => {
+                const gui = initGuiReporter({configs: mkPluginConfig_({path: 'report_path'})});
+
+                return gui.initialize()
+                    .then(() => assert.notCalled(serverUtils.require));
+            });
+
             it('should try to load data for reuse', () => {
                 const gui = initGuiReporter({configs: mkPluginConfig_({path: 'report_path'})});
                 const reusePath = path.resolve(process.cwd(), 'report_path/data');
+
+                const suites = [mkSuiteTree_()];
+                reportBuilder.getResult.returns({suites});
 
                 return gui.initialize()
                     .then(() => assert.calledOnceWith(serverUtils.require, reusePath));
@@ -123,6 +133,10 @@ describe('lib/gui/tool-runner-factory/base-tool-runner', () => {
 
             it('should not fail if data for reuse does not exist', () => {
                 const gui = initGuiReporter();
+
+                const suites = [mkSuiteTree_()];
+                reportBuilder.getResult.returns({suites});
+
                 serverUtils.require.throws(new Error('Cannot find module'));
 
                 return assert.isFulfilled(gui.initialize());
@@ -131,6 +145,9 @@ describe('lib/gui/tool-runner-factory/base-tool-runner', () => {
             it('should log a warning that there is no data for reuse', () => {
                 const gui = initGuiReporter();
                 serverUtils.require.throws(new Error('Cannot find module'));
+
+                const suites = [mkSuiteTree_()];
+                reportBuilder.getResult.returns({suites});
 
                 return gui.initialize()
                     .then(() => assert.calledWithMatch(serverUtils.logger.warn, 'Nothing to reuse'));
