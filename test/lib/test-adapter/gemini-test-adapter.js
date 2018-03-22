@@ -22,14 +22,14 @@ describe('gemini test adapter', () => {
             assert.isFalse(geminiTestAdapter.hasDiff());
         });
 
-        it('should return "true" if test failed', () => {
-            const geminiTestAdapter = new GeminiTestResultAdapter({equal: false});
+        it('should return "false" if test errored (does not have image comparison result)', () => {
+            const geminiTestAdapter = new GeminiTestResultAdapter({});
 
-            assert.isTrue(geminiTestAdapter.hasDiff());
+            assert.isFalse(geminiTestAdapter.hasDiff());
         });
 
-        it('should return "true" if test errored (does not have image comparison result)', () => {
-            const geminiTestAdapter = new GeminiTestResultAdapter({});
+        it('should return "true" if test failed', () => {
+            const geminiTestAdapter = new GeminiTestResultAdapter({equal: false});
 
             assert.isTrue(geminiTestAdapter.hasDiff());
         });
