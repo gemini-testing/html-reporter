@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.8.1"></a>
+## [2.8.1](https://github.com/gemini-testing/html-reporter/compare/v2.8.0...v2.8.1) (2018-03-22)
+
+
+### Bug Fixes
+
+* **gemini-test-adapter:** method hasDiff should return false for error ([ed0cc7b](https://github.com/gemini-testing/html-reporter/commit/ed0cc7b))
+* **gui:** using grep with reuse ([4e3c66d](https://github.com/gemini-testing/html-reporter/commit/4e3c66d))
+
+
+
 <a name="2.8.0"></a>
 # [2.8.0](https://github.com/gemini-testing/html-reporter/compare/v2.7.1...v2.8.0) (2018-03-22)
 
