@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.8.2"></a>
+## [2.8.2](https://github.com/gemini-testing/html-reporter/compare/v2.8.1...v2.8.2) (2018-03-23)
+
+
+### Bug Fixes
+
+* **hermione-gui:** run only passed tests ([558646e](https://github.com/gemini-testing/html-reporter/commit/558646e))
+
+
+
 <a name="2.8.1"></a>
 ## [2.8.1](https://github.com/gemini-testing/html-reporter/compare/v2.8.0...v2.8.1) (2018-03-22)
 
