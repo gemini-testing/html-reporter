@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.8.3"></a>
+## [2.8.3](https://github.com/gemini-testing/html-reporter/compare/v2.8.2...v2.8.3) (2018-03-26)
+
+
+### Bug Fixes
+
+* take set option from global options ([#76](https://github.com/gemini-testing/html-reporter/issues/76)) ([4819de5](https://github.com/gemini-testing/html-reporter/commit/4819de5))
+
+
+
 <a name="2.8.2"></a>
 ## [2.8.2](https://github.com/gemini-testing/html-reporter/compare/v2.8.1...v2.8.2) (2018-03-23)
 
