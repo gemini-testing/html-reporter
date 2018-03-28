@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.9.0"></a>
+# [2.9.0](https://github.com/gemini-testing/html-reporter/compare/v2.8.3...v2.9.0) (2018-03-28)
+
+
+### Features
+
+* **gui:** add retry button for each suite ([7e5ed65](https://github.com/gemini-testing/html-reporter/commit/7e5ed65))
+
+
+
 <a name="2.8.3"></a>
 ## [2.8.3](https://github.com/gemini-testing/html-reporter/compare/v2.8.2...v2.8.3) (2018-03-26)
 
