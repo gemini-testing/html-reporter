@@ -11,6 +11,14 @@
     color: #ccc;
 }
 
+.section__icon_retry {
+    box-sizing: border-box;
+}
+
+.section__icon_retry:before {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAARpJREFUeNrsVlENhDAM5RxMwiRMwiQgAQlIqIOTMAmTgIRJ4BxMAjeSLml2wIWWa+6DlzSQwF7bt3Zr191QwoO5zpP3F9pPYIqNxVKxZcNysdAEJMaIxKs9kdyQ764JaipmpVlGJIPG2dEWzBik4zpNTAKDsmdO5kESNdkie7ZiV3l77RZLuLeqcJit03A2EEeAGdNCsRedAZvSVmcT9iqtbBA6rf097skL6BhIEFmYcWhOtw8uID/ARe0EhG/BzKc9yRfyHIR1Uzk8KdhdyTOJkgtLLo0OayYRFTYlH0hxSS+WirnhjFffYkeSW83DyGC2QfsUrO1ozi70uNAzMo3Sdgzag8DR6NN/GX0iR161Ye/vx9sbYrwFGADWhWsDyfXvAQAAAABJRU5ErkJggg==');
+}
+
 .section_status_success > .section__title:before {
     color: #038035;
 }
