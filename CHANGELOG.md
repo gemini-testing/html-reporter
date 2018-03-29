@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.9.1"></a>
+## [2.9.1](https://github.com/gemini-testing/html-reporter/compare/v2.9.0...v2.9.1) (2018-03-29)
+
+
+### Bug Fixes
+
+* remove 'no tests' message ([8541f6b](https://github.com/gemini-testing/html-reporter/commit/8541f6b))
+* retry button retries multiple times ([63f2555](https://github.com/gemini-testing/html-reporter/commit/63f2555))
+
+
+
 <a name="2.9.0"></a>
 # [2.9.0](https://github.com/gemini-testing/html-reporter/compare/v2.8.3...v2.9.0) (2018-03-28)
 
