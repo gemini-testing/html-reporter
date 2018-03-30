@@ -35,6 +35,7 @@
     padding: 5px;
     outline: 0;
     box-sizing: content-box;
+    transition: border-color 200ms, background-color 200ms;
 }
 
 .button:hover {
@@ -43,10 +44,6 @@
 
 .button:disabled {
     background: #ccc;
-}
-
-.button:hover:enabled {
-    border-color: #555;
 }
 
 .button.pressed,
@@ -61,6 +58,53 @@
 
 .button_type_action {
     background: #ffde5a;
+}
+
+.control-group {
+    display: inline-block;
+    margin-right: 4px;
+    white-space: nowrap;
+}
+
+.control-group__item {
+    position: relative;
+    margin: 0;
+    border-radius: 0;
+}
+
+.control-group__item:first-child {
+    border-radius: 2px 0 0 2px;
+}
+
+.control-group__item:last-child {
+    border-radius: 0 2px 2px 0;
+}
+
+.control-group__item:not(:last-child) {
+    border-right: 0;
+}
+
+.control-group__item:not(:last-child):after {
+    content: "";
+    border-right: 1px solid transparent;
+    position: absolute;
+    z-index: 1;
+    top: -1px;
+    right: -1px;
+    bottom: -1px;
+    transition: border-color 200ms;
+}
+
+.control-group__item:first-child:after {
+    border-radius: 2px 0 0 2px;
+}
+
+.control-group__item:last-child:after {
+    border-radius: 0 2px 2px 0;
+}
+
+.control-group__item:hover:after {
+    border-color: #555;
 }
 
 .image-box {
