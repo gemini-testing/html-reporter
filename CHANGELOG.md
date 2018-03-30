@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.9.2"></a>
+## [2.9.2](https://github.com/gemini-testing/html-reporter/compare/v2.9.1...v2.9.2) (2018-03-30)
+
+
+### Bug Fixes
+
+* do not re-render all suites on suite change ([96cc769](https://github.com/gemini-testing/html-reporter/commit/96cc769))
+
+
+
 <a name="2.9.1"></a>
 ## [2.9.1](https://github.com/gemini-testing/html-reporter/compare/v2.9.0...v2.9.1) (2018-03-29)
 
