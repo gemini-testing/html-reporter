@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.9.3"></a>
+## [2.9.3](https://github.com/gemini-testing/html-reporter/compare/v2.9.2...v2.9.3) (2018-04-01)
+
+
+### Bug Fixes
+
+* **gui:** collapse suite after image accept ([38e42ff](https://github.com/gemini-testing/html-reporter/commit/38e42ff))
+
+
+
 <a name="2.9.2"></a>
 ## [2.9.2](https://github.com/gemini-testing/html-reporter/compare/v2.9.1...v2.9.2) (2018-03-30)
 
