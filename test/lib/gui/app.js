@@ -25,6 +25,7 @@ describe('lib/gui/app', () => {
     const mkToolRunner_ = (tool = {}) => {
         return {
             run: sandbox.stub().named('run').resolves(),
+            finalize: sandbox.stub().named('finalize'),
             config: tool.config
         };
     };
@@ -90,6 +91,16 @@ describe('lib/gui/app', () => {
                     assert.equal(tool.config.forBrowser('bro1').retry, 1);
                     assert.equal(tool.config.forBrowser('bro2').retry, 2);
                 });
+        });
+    });
+
+    describe('finalize', () => {
+        it('should properly complete tool working', () => {
+            const app = mkApp_({tool});
+
+            app.finalize();
+
+            assert.calledOnce(toolRunner.finalize);
         });
     });
 });

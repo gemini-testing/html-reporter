@@ -29,7 +29,7 @@ describe('lib/gui/server', () => {
     beforeEach(() => {
         sandbox.stub(App, 'create').returns(App.prototype);
         sandbox.stub(App.prototype, 'initialize').resolves();
-        sandbox.stub(App.prototype, 'close');
+        sandbox.stub(App.prototype, 'finalize');
 
         server = proxyquire('lib/gui/server', {
             express: () => mkExpressApp_(),
@@ -39,14 +39,14 @@ describe('lib/gui/server', () => {
 
     afterEach(() => sandbox.restore());
 
-    it('should save data file on exit', () => {
+    it('should properly complete app working', () => {
         sandbox.stub(process, 'kill');
 
         return startServer()
             .then(() => {
                 process.emit('SIGTERM');
 
-                assert.calledOnce(App.prototype.close);
+                assert.calledOnce(App.prototype.finalize);
             });
     });
 });
