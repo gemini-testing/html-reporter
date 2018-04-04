@@ -112,6 +112,16 @@ describe('lib/gui/tool-runner-factory/base-tool-runner', () => {
             });
         });
 
+        describe(`finalize ${name}`, () => {
+            it('should save data file', () => {
+                const gui = initGuiReporter();
+
+                gui.finalize();
+
+                assert.calledOnce(reportBuilder.saveDataFileSync);
+            });
+        });
+
         describe(`reuse ${name} data`, () => {
             it('should not try load data for reuse if suites are empty', () => {
                 const gui = initGuiReporter({configs: mkPluginConfig_({path: 'report_path'})});
