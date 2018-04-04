@@ -34,7 +34,7 @@ describe('lib/gui/app', () => {
             bro1: {id: 'bro1', retry: 1},
             bro2: {id: 'bro2', retry: 2}
         };
-        tool = stubTool(stubConfig(browserConfigs));
+        tool = stubTool(stubConfig({browsers: browserConfigs}));
         toolRunner = mkToolRunner_(tool);
 
         sandbox.stub(ToolRunnerFactory, 'create').returns(toolRunner);
