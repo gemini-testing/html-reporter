@@ -11,7 +11,7 @@ describe('ReportBuilder', () => {
 
     const mkReportBuilder_ = ({toolConfig, pluginConfig} = {}) => {
         toolConfig = _.defaults(toolConfig || {}, {getAbsoluteUrl: _.noop});
-        pluginConfig = _.defaults(pluginConfig || {}, {baseHost: ''});
+        pluginConfig = _.defaults(pluginConfig || {}, {baseHost: '', path: ''});
 
         const browserConfigStub = {getAbsoluteUrl: toolConfig.getAbsoluteUrl};
         const config = {forBrowser: sandbox.stub().returns(browserConfigStub)};
@@ -37,8 +37,9 @@ describe('ReportBuilder', () => {
     };
 
     beforeEach(() => {
-        sandbox.stub(fs, 'mkdirsAsync').resolves();
         sandbox.stub(fs, 'copyAsync').resolves();
+        sandbox.stub(fs, 'mkdirsAsync').resolves();
+        sandbox.stub(fs, 'mkdirsSync');
         sandbox.stub(fs, 'writeFileAsync').resolves();
         sandbox.stub(fs, 'writeFileSync');
     });
@@ -246,6 +247,13 @@ describe('ReportBuilder', () => {
     });
 
     describe('saveDataFileAsync', () => {
+        it('should create report directory asynchronously', () => {
+            const reportBuilder = mkReportBuilder_({pluginConfig: {path: 'some/report/dir'}});
+
+            return reportBuilder.saveDataFileAsync()
+                .then(() => assert.calledOnceWith(fs.mkdirsAsync, 'some/report/dir'));
+        });
+
         it('should save data file with tests result asynchronously', () => {
             sandbox.stub(ReportBuilder.prototype, 'getResult').returns({test1: 'some-data'});
             const expectedData = 'var data = {"test1":"some-data"};\n'
@@ -256,9 +264,24 @@ describe('ReportBuilder', () => {
             return reportBuilder.saveDataFileAsync()
                 .then(() => assert.calledWith(fs.writeFileAsync, 'some/report/dir/data.js', expectedData, 'utf8'));
         });
+
+        it('should create report directory before save data file', () => {
+            const reportBuilder = mkReportBuilder_();
+
+            return reportBuilder.saveDataFileAsync()
+                .then(() => assert.callOrder(fs.mkdirsAsync, fs.writeFileAsync));
+        });
     });
 
     describe('saveDataFileSync', () => {
+        it('should create report directory synchronously', () => {
+            const reportBuilder = mkReportBuilder_({pluginConfig: {path: 'some/report/dir'}});
+
+            reportBuilder.saveDataFileSync();
+
+            assert.calledOnceWith(fs.mkdirsSync, 'some/report/dir');
+        });
+
         it('should save data file with tests result synchronously', () => {
             sandbox.stub(ReportBuilder.prototype, 'getResult').returns({test1: 'some-data'});
             const expectedData = 'var data = {"test1":"some-data"};\n'
@@ -270,19 +293,27 @@ describe('ReportBuilder', () => {
 
             assert.calledOnceWith(fs.writeFileSync, 'some/report/dir/data.js', expectedData, 'utf8');
         });
+
+        it('should create report directory before save data file', () => {
+            const reportBuilder = mkReportBuilder_();
+
+            reportBuilder.saveDataFileSync();
+
+            assert.callOrder(fs.mkdirsSync, fs.writeFileSync);
+        });
     });
 
     describe('save', () => {
         beforeEach(() => {
-            sandbox.stub(ReportBuilder.prototype, 'saveDataFileAsync').resolves();
             sandbox.stub(logger, 'warn');
         });
 
-        it('should create report directory', () => {
+        it('should save data file', () => {
             const reportBuilder = mkReportBuilder_({pluginConfig: {path: 'some/report/dir'}});
+            sandbox.stub(reportBuilder, 'saveDataFileAsync').resolves();
 
             return reportBuilder.save()
-                .then(() => assert.calledOnceWith(fs.mkdirsAsync, 'some/report/dir'));
+                .then(() => assert.calledOnce(reportBuilder.saveDataFileAsync));
         });
 
         it('should copy static files to report directory', () => {
@@ -297,8 +328,8 @@ describe('ReportBuilder', () => {
         });
 
         it('should log an error', () => {
-            fs.mkdirsAsync.returns(Promise.reject('some-error'));
             const reportBuilder = mkReportBuilder_();
+            sandbox.stub(reportBuilder, 'saveDataFileAsync').rejects(new Error('some-error'));
 
             return reportBuilder.save().then(() => assert.calledWith(logger.warn, 'some-error'));
         });
