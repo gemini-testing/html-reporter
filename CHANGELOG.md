@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.10.1"></a>
+## [2.10.1](https://github.com/gemini-testing/html-reporter/compare/v2.10.0...v2.10.1) (2018-04-04)
+
+
+### Bug Fixes
+
+* create report directory before save data on exit ([a5475e6](https://github.com/gemini-testing/html-reporter/commit/a5475e6))
+
+
+
 <a name="2.10.0"></a>
 # [2.10.0](https://github.com/gemini-testing/html-reporter/compare/v2.9.3...v2.10.0) (2018-04-04)
 
