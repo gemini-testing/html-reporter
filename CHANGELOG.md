@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.11.0"></a>
+# [2.11.0](https://github.com/gemini-testing/html-reporter/compare/v2.10.1...v2.11.0) (2018-04-04)
+
+
+### Features
+
+* add "scaleImages" option ([e5371aa](https://github.com/gemini-testing/html-reporter/commit/e5371aa))
+
+
+
 <a name="2.10.1"></a>
 ## [2.10.1](https://github.com/gemini-testing/html-reporter/compare/v2.10.0...v2.10.1) (2018-04-04)
 
