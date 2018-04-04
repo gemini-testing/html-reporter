@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.10.0"></a>
+# [2.10.0](https://github.com/gemini-testing/html-reporter/compare/v2.9.3...v2.10.0) (2018-04-04)
+
+
+### Bug Fixes
+
+* **hack:** do not close connection on event source error ([376b88a](https://github.com/gemini-testing/html-reporter/commit/376b88a))
+
+
+### Features
+
+* save data file on process exit ([bb36c00](https://github.com/gemini-testing/html-reporter/commit/bb36c00))
+
+
+
 <a name="2.9.3"></a>
 ## [2.9.3](https://github.com/gemini-testing/html-reporter/compare/v2.9.2...v2.9.3) (2018-04-01)
 
