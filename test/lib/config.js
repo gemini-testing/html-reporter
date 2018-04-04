@@ -3,13 +3,49 @@
 const parseConfig = require('../../lib/config');
 
 describe('config', () => {
-    afterEach(() => delete process.env['html_reporter_path']);
-
-    it('should be enabled by default', () => {
-        assert.equal(parseConfig({}).enabled, true);
+    beforeEach(function() {
+        this.oldArgv = process.argv;
     });
 
-    describe('html report path', () => {
+    afterEach(function() {
+        process.argv = this.oldArgv;
+
+        delete process.env['html_reporter_enabled'];
+        delete process.env['html_reporter_path'];
+        delete process.env['html_reporter_default_view'];
+        delete process.env['html_reporter_base_host'];
+        delete process.env['html_reporter_scale_images'];
+    });
+
+    describe('"enabled" option', () => {
+        it('should be true by default', () => {
+            assert.isTrue(parseConfig({}).enabled);
+        });
+
+        it('should set from configuration file', () => {
+            const config = parseConfig({enabled: false});
+
+            assert.isFalse(config.enabled);
+        });
+
+        it('should set from environment variable', () => {
+            process.env['html_reporter_enabled'] = 'false';
+
+            assert.isFalse(parseConfig({}).enabled);
+        });
+
+        it('should set from cli', () => {
+            process.argv = process.argv.concat('--html-reporter-enabled', 'false');
+
+            assert.isFalse(parseConfig({}).enabled);
+        });
+    });
+
+    describe('"path" option', () => {
+        it('should be "html-report" by default', () => {
+            assert.equal(parseConfig({}).path, 'html-report');
+        });
+
         it('should set from configuration file', () => {
             const config = parseConfig({path: 'some/report/path'});
 
@@ -21,9 +57,15 @@ describe('config', () => {
 
             assert.equal(parseConfig({}).path, 'env/report/path');
         });
+
+        it('should set from cli', () => {
+            process.argv = process.argv.concat('--html-reporter-path', 'cli/report/path');
+
+            assert.equal(parseConfig({}).path, 'cli/report/path');
+        });
     });
 
-    describe('default view settings', () => {
+    describe('"defaultView" option', () => {
         it('should show all suites by default', () => {
             assert.equal(parseConfig({}).defaultView, 'all');
         });
@@ -38,6 +80,60 @@ describe('config', () => {
             process.env['html_reporter_default_view'] = 'env/some-view';
 
             assert.equal(parseConfig({}).defaultView, 'env/some-view');
+        });
+
+        it('should set from cli', () => {
+            process.argv = process.argv.concat('--html-reporter-default-view', 'cli/some-view');
+
+            assert.equal(parseConfig({}).defaultView, 'cli/some-view');
+        });
+    });
+
+    describe('"baseHost" option', () => {
+        it('should be empty by default', () => {
+            assert.equal(parseConfig({}).baseHost, '');
+        });
+
+        it('should set from configuration file', () => {
+            const config = parseConfig({baseHost: 'some-host'});
+
+            assert.equal(config.baseHost, 'some-host');
+        });
+
+        it('should set from environment variable', () => {
+            process.env['html_reporter_base_host'] = 'env/some-host';
+
+            assert.equal(parseConfig({}).baseHost, 'env/some-host');
+        });
+
+        it('should set from cli', () => {
+            process.argv = process.argv.concat('--html-reporter-base-host', 'cli/some-host');
+
+            assert.equal(parseConfig({}).baseHost, 'cli/some-host');
+        });
+    });
+
+    describe('"scaleImages" option', () => {
+        it('should be false by default', () => {
+            assert.isFalse(parseConfig({}).scaleImages);
+        });
+
+        it('should set from configuration file', () => {
+            const config = parseConfig({scaleImages: true});
+
+            assert.isTrue(config.scaleImages);
+        });
+
+        it('should set from environment variable', () => {
+            process.env['html_reporter_scale_images'] = 'true';
+
+            assert.isTrue(parseConfig({}).scaleImages);
+        });
+
+        it('should set from cli', () => {
+            process.argv = process.argv.concat('--html-reporter-scale-images', 'true');
+
+            assert.isTrue(parseConfig({}).scaleImages);
         });
     });
 });
