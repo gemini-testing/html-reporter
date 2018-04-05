@@ -1,6 +1,7 @@
 'use strict';
 
 const HermioneTestResultAdapter = require('../../../lib/test-adapter/hermione-test-adapter');
+const {stubConfig} = require('../../utils');
 
 describe('hermione test adapter', () => {
     const sandbox = sinon.sandbox.create();
@@ -8,8 +9,10 @@ describe('hermione test adapter', () => {
     afterEach(() => sandbox.restore());
 
     it('should return suite attempt', () => {
-        const testResult = {retriesLeft: 0};
-        const config = {retry: 5};
+        const testResult = {retriesLeft: 0, browserId: 'bro'};
+        const config = stubConfig({
+            bro: {retry: 5}
+        });
 
         const hermioneTestAdapter = new HermioneTestResultAdapter(testResult, config);
 
