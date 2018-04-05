@@ -217,10 +217,11 @@ describe('ReportBuilder', () => {
         ].forEach(({status, hasDiff}) => {
             it(`should rewrite suite status to "success" if it ${status} on first attempt`, () => {
                 const reportBuilder = mkReportBuilder_();
-                const test = stubTest_({browserId: 'bro', hasDiff: () => hasDiff});
+                const test1 = stubTest_({browserId: 'bro', hasDiff: () => hasDiff});
+                const test2 = stubTest_({browserId: 'bro', hasDiff: () => hasDiff});
 
-                reportBuilder.addRetry(test);
-                reportBuilder.addSuccess(test);
+                reportBuilder.addRetry(test1);
+                reportBuilder.addSuccess(test2);
 
                 const suiteResult = getSuiteResult_(reportBuilder);
                 assert.equal(suiteResult.status, SUCCESS);
