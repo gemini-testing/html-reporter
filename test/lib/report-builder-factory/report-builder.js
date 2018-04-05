@@ -246,6 +246,17 @@ describe('ReportBuilder', () => {
         });
     });
 
+    describe('addIdle', () => {
+        it('should extend test result with expectedPath value', () => {
+            const reportBuilder = mkReportBuilder_();
+
+            reportBuilder.addIdle(stubTest_(), 'some/url');
+
+            const result = getReportBuilderResult_(reportBuilder);
+            assert.propertyVal(result, 'expectedPath', 'some/url');
+        });
+    });
+
     describe('saveDataFileAsync', () => {
         it('should create report directory asynchronously', () => {
             const reportBuilder = mkReportBuilder_({pluginConfig: {path: 'some/report/dir'}});
