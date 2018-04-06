@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.12.1"></a>
+## [2.12.1](https://github.com/gemini-testing/html-reporter/compare/v2.12.0...v2.12.1) (2018-04-06)
+
+
+### Bug Fixes
+
+* **gui:** accept all should not save errored tests ([811ec68](https://github.com/gemini-testing/html-reporter/commit/811ec68))
+* **gui:** do not run all tests on restart successful suite ([1470355](https://github.com/gemini-testing/html-reporter/commit/1470355))
+
+
+
 <a name="2.12.0"></a>
 # [2.12.0](https://github.com/gemini-testing/html-reporter/compare/v2.11.0...v2.12.0) (2018-04-06)
 
