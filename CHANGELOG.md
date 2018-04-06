@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.12.0"></a>
+# [2.12.0](https://github.com/gemini-testing/html-reporter/compare/v2.11.0...v2.12.0) (2018-04-06)
+
+
+### Bug Fixes
+
+* expand retries does nothing ([e89d3fb](https://github.com/gemini-testing/html-reporter/commit/e89d3fb))
+* rerender only accepted images ([2793704](https://github.com/gemini-testing/html-reporter/commit/2793704))
+* **gui:** accept and retry one test ([462ba2b](https://github.com/gemini-testing/html-reporter/commit/462ba2b))
+* **gui:** do not disable accept for all retries ([7ba44ce](https://github.com/gemini-testing/html-reporter/commit/7ba44ce))
+
+
+### Features
+
+* **gui:** show reference image for suites without reuse ([abc5e72](https://github.com/gemini-testing/html-reporter/commit/abc5e72))
+
+
+
 <a name="2.11.0"></a>
 # [2.11.0](https://github.com/gemini-testing/html-reporter/compare/v2.10.1...v2.11.0) (2018-04-04)
 
