@@ -1,5 +1,7 @@
 # html-reporter
 
+[![Windows Build Status](https://ci.appveyor.com/api/projects/status/github/gemini/html-reporter/branch/master?svg=true)](https://ci.appveyor.com/project/gemini/html-reporter/branch/master)
+
 Plugin for [gemini](https://github.com/gemini-testing/gemini) and [hermione](https://github.com/gemini-testing/hermione) which is intended to aggregate the results of tests running into html report.
 
 You can read more about gemini plugins [here](https://github.com/gemini-testing/gemini/blob/master/doc/plugins.md) and about hermione plugins [here](https://github.com/gemini-testing/hermione#plugins).
