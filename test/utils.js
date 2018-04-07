@@ -2,6 +2,7 @@
 
 const _ = require('lodash');
 const QEmitter = require('qemitter');
+const path = require('path');
 
 exports.stubConfig = (config = {}) => {
     const browsers = config.browsers || {};
@@ -24,3 +25,5 @@ exports.stubTool = (config, events = {}, errors = {}) => {
 
     return tool;
 };
+
+exports.osPath = unixPath => path.join.apply(null, unixPath.split('/'));

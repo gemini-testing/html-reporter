@@ -1,5 +1,6 @@
 'use strict';
 
+const {osPath} = require('../../utils');
 const GeminiTestResultAdapter = require('../../../lib/test-adapter/gemini-test-adapter');
 
 describe('gemini test adapter', () => {
@@ -50,7 +51,7 @@ describe('gemini test adapter', () => {
 
         const geminiTestAdapter = new GeminiTestResultAdapter(testResult);
 
-        assert.deepEqual(geminiTestAdapter.imageDir, 'some-path/some-name');
+        assert.deepEqual(geminiTestAdapter.imageDir, osPath('some-path/some-name'));
     });
 
     it('should return image path', () => {

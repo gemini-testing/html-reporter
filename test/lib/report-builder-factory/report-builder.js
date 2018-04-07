@@ -7,6 +7,7 @@ const proxyquire = require('proxyquire');
 const {SUCCESS, FAIL, ERROR, SKIPPED, IDLE, UPDATED} = require('../../../lib/constants/test-statuses');
 const {getCommonErrors} = require('../../../lib/constants/errors');
 const {NO_REF_IMAGE_ERROR} = getCommonErrors();
+const {osPath} = require('../../utils');
 
 describe('ReportBuilder', () => {
     const sandbox = sinon.sandbox.create();
@@ -450,7 +451,7 @@ describe('ReportBuilder', () => {
             const reportBuilder = mkReportBuilder_({pluginConfig: {path: 'some/report/dir'}});
 
             return reportBuilder.saveDataFileAsync()
-                .then(() => assert.calledWith(fs.writeFileAsync, 'some/report/dir/data.js', expectedData, 'utf8'));
+                .then(() => assert.calledWith(fs.writeFileAsync, osPath('some/report/dir/data.js'), expectedData, 'utf8'));
         });
 
         it('should create report directory before save data file', () => {
@@ -479,7 +480,7 @@ describe('ReportBuilder', () => {
 
             reportBuilder.saveDataFileSync();
 
-            assert.calledOnceWith(fs.writeFileSync, 'some/report/dir/data.js', expectedData, 'utf8');
+            assert.calledOnceWith(fs.writeFileSync, osPath('some/report/dir/data.js'), expectedData, 'utf8');
         });
 
         it('should create report directory before save data file', () => {
@@ -509,9 +510,9 @@ describe('ReportBuilder', () => {
 
             return reportBuilder.save()
                 .then(() => {
-                    assert.calledWithMatch(fs.copyAsync, 'index.html', 'some/report/dir/index.html');
-                    assert.calledWithMatch(fs.copyAsync, 'report.min.js', 'some/report/dir/report.min.js');
-                    assert.calledWithMatch(fs.copyAsync, 'report.min.css', 'some/report/dir/report.min.css');
+                    assert.calledWithMatch(fs.copyAsync, 'index.html', osPath('some/report/dir/index.html'));
+                    assert.calledWithMatch(fs.copyAsync, 'report.min.js', osPath('some/report/dir/report.min.js'));
+                    assert.calledWithMatch(fs.copyAsync, 'report.min.css', osPath('some/report/dir/report.min.css'));
                 });
         });
 
