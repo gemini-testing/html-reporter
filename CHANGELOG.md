@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.12.3"></a>
+## [2.12.3](https://github.com/gemini-testing/html-reporter/compare/v2.12.2...v2.12.3) (2018-04-11)
+
+
+### Bug Fixes
+
+* missed 'file' property in accepted result ([e2b65c7](https://github.com/gemini-testing/html-reporter/commit/e2b65c7))
+* save correct screen name for hermione test on fail ([5c235b0](https://github.com/gemini-testing/html-reporter/commit/5c235b0))
+
+
+
 <a name="2.12.2"></a>
 ## [2.12.2](https://github.com/gemini-testing/html-reporter/compare/v2.12.1...v2.12.2) (2018-04-07)
 
