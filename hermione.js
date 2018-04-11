@@ -32,8 +32,11 @@ function prepareData(hermione, reportBuilder) {
 
     function failHandler(testResult) {
         const wrapped = reportBuilder.format(testResult);
+        const {assertViewState} = wrapped;
 
-        return wrapped.hasDiff() ? reportBuilder.addFail(testResult) : reportBuilder.addError(testResult);
+        return wrapped.hasDiff()
+            ? reportBuilder.addFail(testResult, {assertViewState})
+            : reportBuilder.addError(testResult, {assertViewState});
     }
 }
 

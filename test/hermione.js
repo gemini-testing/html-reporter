@@ -45,7 +45,12 @@ describe('lib/hermione', () => {
     }
 
     function mkStubResult_(options = {}) {
-        return _.defaultsDeep(options, {err: {type: options.diff && 'ImageDiffError'}});
+        return _.defaultsDeep(options, {
+            err: {
+                type: options.diff && 'ImageDiffError',
+                stateName: options.stateName
+            }
+        });
     }
 
     beforeEach(() => {
@@ -115,10 +120,14 @@ describe('lib/hermione', () => {
             it(`errored test to result on ${event} event`, () => {
                 return initReporter_()
                     .then(() => {
-                        hermione.emit(events[event], mkStubResult_({title: 'some-title'}));
+                        const testResult = mkStubResult_({title: 'some-title', stateName: 'state-name'});
+
+                        hermione.emit(events[event], testResult);
 
                         assert.calledOnceWith(
-                            ReportBuilder.prototype.addError, sinon.match({title: 'some-title'})
+                            ReportBuilder.prototype.addError,
+                            sinon.match({title: 'some-title'}),
+                            {assertViewState: 'state-name'}
                         );
                     });
             });
@@ -126,10 +135,14 @@ describe('lib/hermione', () => {
             it('failed test to result on ${event} event', () => {
                 return initReporter_()
                     .then(() => {
-                        hermione.emit(events[event], mkStubResult_({title: 'some-title', diff: true}));
+                        const testResult = mkStubResult_({title: 'some-title', diff: true, stateName: 'state-name'});
+
+                        hermione.emit(events[event], testResult);
 
                         assert.calledOnceWith(
-                            ReportBuilder.prototype.addFail, sinon.match({title: 'some-title'})
+                            ReportBuilder.prototype.addFail,
+                            sinon.match({title: 'some-title'}),
+                            {assertViewState: 'state-name'}
                         );
                     });
             });
