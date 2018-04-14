@@ -1,3 +1,6 @@
+body {
+    margin: 0;
+}
 .report {
     font: 14px Helvetica Neue, Arial, sans-serif;
 }
@@ -486,4 +489,17 @@ a:active {
                 transform: scale(1);
         opacity: 1;
     }
+}
+
+.control-buttons {
+    background: #f6f5f3;
+    border-bottom: 1px solid #ccc;
+    position: sticky;
+    padding: 5px;
+    top: 0;
+    z-index: 1;
+}
+
+.sections {
+    margin: 20px 0 0 10px;
 }
