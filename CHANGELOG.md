@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.13.0"></a>
+# [2.13.0](https://github.com/gemini-testing/html-reporter/compare/v2.12.3...v2.13.0) (2018-04-16)
+
+
+### Bug Fixes
+
+* **gui:** disable control buttons on retry test and suite ([293f223](https://github.com/gemini-testing/html-reporter/commit/293f223))
+* cursor pointer for buttons ([efb1482](https://github.com/gemini-testing/html-reporter/commit/efb1482))
+* set actual path to image for update-reference handler ([6c17994](https://github.com/gemini-testing/html-reporter/commit/6c17994))
+* **gui:** expand failed suites on test running ([19affb0](https://github.com/gemini-testing/html-reporter/commit/19affb0))
+
+
+### Features
+
+* blinking Run button while test running ([5c656d5](https://github.com/gemini-testing/html-reporter/commit/5c656d5))
+
+
+
 <a name="2.12.3"></a>
 ## [2.12.3](https://github.com/gemini-testing/html-reporter/compare/v2.12.2...v2.12.3) (2018-04-11)
 
