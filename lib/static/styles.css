@@ -45,6 +45,7 @@
 
 .button:disabled {
     background: #ccc;
+    cursor: default;
 }
 
 .button.pressed,
@@ -57,7 +58,7 @@
     border-color: #cebe7d;
 }
 
-.button_type_action {
+.button.button_type_action {
     background: #ffde5a;
 }
 
