@@ -38,8 +38,6 @@
 
 .section_status_running > .section__title::before {
     -webkit-animation: blink 0.5s linear 0s infinite alternate;
-       -moz-animation: blink 0.5s linear 0s infinite alternate;
-         -o-animation: blink 0.5s linear 0s infinite alternate;
             animation: blink 0.5s linear 0s infinite alternate;
     color: #e7d700;
 }
@@ -62,6 +60,10 @@
 .button_type_suite-controls {
     border: 1px solid #fff;
     margin-top: 5px;
+}
+.button_type_action:disabled {
+    -webkit-animation: blink 0.5s linear 0s infinite alternate;
+            animation: blink 0.5s linear 0s infinite alternate;
 }
 
 .section_collapsed .section__title:before {
