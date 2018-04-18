@@ -60,4 +60,40 @@ describe('gemini test adapter', () => {
             assert.equal(geminiTestAdapter[field], 'some-value');
         });
     });
+
+    describe('prepareTestResult()', () => {
+        it('should return correct "name" field', () => {
+            const testResult = {
+                suite: {path: []},
+                state: {name: 'state-name'}
+            };
+
+            const result = (new GeminiTestResultAdapter(testResult)).prepareTestResult();
+
+            assert.propertyVal(result, 'name', 'state-name');
+        });
+
+        it('should return correct "suitePath" field', () => {
+            const testResult = {
+                suite: {path: ['some-path']},
+                state: {name: 'state-name'}
+            };
+
+            const result = (new GeminiTestResultAdapter(testResult)).prepareTestResult();
+
+            assert.deepEqual(result.suitePath, ['some-path', 'state-name']);
+        });
+
+        it('should return "browserId" field as is', () => {
+            const testResult = {
+                suite: {path: []},
+                state: {},
+                browserId: 'bro'
+            };
+
+            const result = (new GeminiTestResultAdapter(testResult)).prepareTestResult();
+
+            assert.propertyVal(result, 'browserId', 'bro');
+        });
+    });
 });
