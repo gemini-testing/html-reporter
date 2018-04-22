@@ -77,4 +77,40 @@ describe('hermione test adapter', () => {
 
         assert.deepEqual(hermioneTestAdapter.description, 'some-description');
     });
+
+    describe('prepareTestResult()', () => {
+        it('should return correct "name" field', () => {
+            const testResult = {
+                root: true,
+                title: 'some-title'
+            };
+
+            const result = (new HermioneTestResultAdapter(testResult)).prepareTestResult();
+
+            assert.propertyVal(result, 'name', 'some-title');
+        });
+
+        it('should return correct "suitePath" field', () => {
+            const parentSuite = {parent: {root: true}, title: 'root-title'};
+            const testResult = {
+                parent: parentSuite,
+                title: 'some-title'
+            };
+
+            const result = (new HermioneTestResultAdapter(testResult)).prepareTestResult();
+
+            assert.deepEqual(result.suitePath, ['root-title', 'some-title']);
+        });
+
+        it('should return "browserId" field as is', () => {
+            const testResult = {
+                root: true,
+                browserId: 'bro'
+            };
+
+            const result = (new HermioneTestResultAdapter(testResult)).prepareTestResult();
+
+            assert.propertyVal(result, 'browserId', 'bro');
+        });
+    });
 });
