@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.15.0"></a>
+# [2.15.0](https://github.com/gemini-testing/html-reporter/compare/v2.14.0...v2.15.0) (2018-04-22)
+
+
+### Bug Fixes
+
+* **hermione gui:** mark browser section as running on test run ([97951e0](https://github.com/gemini-testing/html-reporter/commit/97951e0))
+
+
+### Features
+
+* update suite tree once on Accept all ([4c10f37](https://github.com/gemini-testing/html-reporter/commit/4c10f37))
+
+
+
 <a name="2.14.0"></a>
 # [2.14.0](https://github.com/gemini-testing/html-reporter/compare/v2.13.0...v2.14.0) (2018-04-17)
 
