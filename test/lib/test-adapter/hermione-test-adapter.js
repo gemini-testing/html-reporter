@@ -17,7 +17,7 @@ describe('hermione test adapter', () => {
             }
         });
 
-        const hermioneTestAdapter = new HermioneTestResultAdapter(testResult, config);
+        const hermioneTestAdapter = new HermioneTestResultAdapter(testResult, {config});
 
         assert.equal(hermioneTestAdapter.attempt, 4);
     });
@@ -54,8 +54,28 @@ describe('hermione test adapter', () => {
         assert.deepEqual(hermioneTestAdapter.referencePath, 'some-ref-path');
     });
 
+    it('should return reference path for assert view result', () => {
+        const err = new Error();
+        err.refImagePath = 'some-ref-path';
+        const testResult = {assertViewResults: [err]};
+
+        const hermioneTestAdapter = new HermioneTestResultAdapter(testResult);
+
+        assert.deepEqual(hermioneTestAdapter.referencePath, 'some-ref-path');
+    });
+
     it('should return current path', () => {
         const testResult = {err: {currentImagePath: 'some-current-path'}};
+
+        const hermioneTestAdapter = new HermioneTestResultAdapter(testResult);
+
+        assert.deepEqual(hermioneTestAdapter.currentPath, 'some-current-path');
+    });
+
+    it('should return current path for assert view result', () => {
+        const err = new Error();
+        err.currentImagePath = 'some-current-path';
+        const testResult = {assertViewResults: [err]};
 
         const hermioneTestAdapter = new HermioneTestResultAdapter(testResult);
 

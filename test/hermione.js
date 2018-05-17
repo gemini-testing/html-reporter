@@ -22,6 +22,8 @@ describe('lib/hermione', () => {
         RUNNER_END: 'runnerEnd'
     };
 
+    class ImageDiffError extends Error {}
+
     function mkHermione_() {
         return stubTool({
             forBrowser: sinon.stub().returns({
@@ -29,7 +31,7 @@ describe('lib/hermione', () => {
                 getAbsoluteUrl: _.noop
             }),
             getBrowserIds: () => ['bro1']
-        }, events);
+        }, events, {ImageDiffError});
     }
 
     function initReporter_(opts) {
@@ -132,12 +134,44 @@ describe('lib/hermione', () => {
                     });
             });
 
-            it('failed test to result on ${event} event', () => {
+            it(`errored assert view to result on ${event} event`, () => {
+                return initReporter_()
+                    .then(() => {
+                        const err = new Error();
+                        err.stateName = 'state-name';
+
+                        hermione.emit(events[event], {title: 'some-title', assertViewResults: [err]});
+
+                        assert.calledOnceWith(
+                            ReportBuilder.prototype.addError,
+                            sinon.match({title: 'some-title'}),
+                            {assertViewState: 'state-name'}
+                        );
+                    });
+            });
+
+            it(`failed test to result on ${event} event`, () => {
                 return initReporter_()
                     .then(() => {
                         const testResult = mkStubResult_({title: 'some-title', diff: true, stateName: 'state-name'});
 
                         hermione.emit(events[event], testResult);
+
+                        assert.calledOnceWith(
+                            ReportBuilder.prototype.addFail,
+                            sinon.match({title: 'some-title'}),
+                            {assertViewState: 'state-name'}
+                        );
+                    });
+            });
+
+            it(`failed test to result on ${event} event`, () => {
+                return initReporter_()
+                    .then(() => {
+                        const err = new ImageDiffError();
+                        err.stateName = 'state-name';
+
+                        hermione.emit(events[event], {title: 'some-title', assertViewResults: [err]});
 
                         assert.calledOnceWith(
                             ReportBuilder.prototype.addFail,
@@ -166,6 +200,19 @@ describe('lib/hermione', () => {
             .then(() => assert.calledOnceWith(utils.copyImageAsync, 'current/path', '/absolute/report'));
     });
 
+    it('should save image from assert view error', () => {
+        utils.getCurrentAbsolutePath.callsFake((test, path) => `${path}/report`);
+
+        return initReporter_({path: '/absolute'})
+            .then(() => {
+                const err = new Error();
+                err.currentImagePath = 'current/path';
+                hermione.emit(events.RETRY, {assertViewResults: [err]});
+                return hermione.emitAndWait(events.RUNNER_END);
+            })
+            .then(() => assert.calledOnceWith(utils.copyImageAsync, 'current/path', '/absolute/report'));
+    });
+
     it('should save reference image from fail', () => {
         utils.getReferenceAbsolutePath.callsFake((test, path) => `${path}/report`);
 
@@ -174,6 +221,19 @@ describe('lib/hermione', () => {
                 hermione.emit(
                     events.TEST_FAIL, mkStubResult_({err: {refImagePath: 'reference/path'}, diff: true})
                 );
+                return hermione.emitAndWait(events.RUNNER_END);
+            })
+            .then(() => assert.calledWith(utils.copyImageAsync, 'reference/path', '/absolute/report'));
+    });
+
+    it('should save reference image from assert view fail', () => {
+        utils.getReferenceAbsolutePath.callsFake((test, path) => `${path}/report`);
+
+        return initReporter_({path: '/absolute'})
+            .then(() => {
+                const err = new ImageDiffError();
+                err.refImagePath = 'reference/path';
+                hermione.emit(events.TEST_FAIL, {assertViewResults: [err]});
                 return hermione.emitAndWait(events.RUNNER_END);
             })
             .then(() => assert.calledWith(utils.copyImageAsync, 'reference/path', '/absolute/report'));
@@ -192,12 +252,39 @@ describe('lib/hermione', () => {
             .then(() => assert.calledWith(utils.copyImageAsync, 'current/path', '/absolute/report'));
     });
 
+    it('should save current image from assert view fail', () => {
+        utils.getCurrentAbsolutePath.callsFake((test, path) => `${path}/report`);
+
+        return initReporter_({path: '/absolute'})
+            .then(() => {
+                const err = new ImageDiffError();
+                err.currentImagePath = 'current/path';
+                hermione.emit(events.TEST_FAIL, {assertViewResults: [err]});
+                return hermione.emitAndWait(events.RUNNER_END);
+            })
+            .then(() => assert.calledWith(utils.copyImageAsync, 'current/path', '/absolute/report'));
+    });
+
     it('should save current diff image from fail', () => {
         utils.getDiffAbsolutePath.callsFake((test, path) => `${path}/report`);
 
         return initReporter_({path: '/absolute'})
             .then(() => {
                 hermione.emit(events.TEST_FAIL, mkStubResult_({diff: true}));
+                return hermione.emitAndWait(events.RUNNER_END);
+            })
+            .then(() => assert.calledWith(
+                utils.saveDiff, sinon.match.instanceOf(HermioneTestAdapter), '/absolute/report'
+            ));
+    });
+
+    it('should save current diff image from assert view fail', () => {
+        utils.getDiffAbsolutePath.callsFake((test, path) => `${path}/report`);
+
+        return initReporter_({path: '/absolute'})
+            .then(() => {
+                const err = new ImageDiffError();
+                hermione.emit(events.TEST_FAIL, {assertViewResults: [err]});
                 return hermione.emitAndWait(events.RUNNER_END);
             })
             .then(() => assert.calledWith(
