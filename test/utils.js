@@ -13,11 +13,12 @@ exports.stubConfig = (config = {}) => {
     return Object.assign(_.omit(config, 'browsers'), browserConfigs);
 };
 
-exports.stubTool = (config, events = {}) => {
+exports.stubTool = (config, events = {}, errors = {}) => {
     const tool = new QEmitter();
 
     tool.config = config || exports.stubConfig();
     tool.events = events;
+    tool.errors = errors;
 
     tool.readTests = sinon.stub();
 

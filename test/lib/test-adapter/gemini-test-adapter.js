@@ -10,7 +10,7 @@ describe('gemini test adapter', () => {
     it('should return test error with "message" and "stack"', () => {
         const testResult = {message: 'some-message', stack: 'some-stack', foo: 'bar'};
 
-        const geminiTestAdapter = new GeminiTestResultAdapter(testResult);
+        const geminiTestAdapter = new GeminiTestResultAdapter(testResult, {});
 
         assert.deepEqual(geminiTestAdapter.error, {message: 'some-message', stack: 'some-stack'});
     });
