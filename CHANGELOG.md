@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.16.0"></a>
+# [2.16.0](https://github.com/gemini-testing/html-reporter/compare/v2.15.0...v2.16.0) (2018-05-17)
+
+
+### Features
+
+* **hermione:** show the first 'assertView' command result ([873c002](https://github.com/gemini-testing/html-reporter/commit/873c002))
+
+
+
 <a name="2.15.0"></a>
 # [2.15.0](https://github.com/gemini-testing/html-reporter/compare/v2.14.0...v2.15.0) (2018-04-22)
 
