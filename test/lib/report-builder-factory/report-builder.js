@@ -70,6 +70,18 @@ describe('ReportBuilder', () => {
         assert.equal(metaInfo.url, '/test/url');
     });
 
+    it('should contain values from meta in meta info', () => {
+        const reportBuilder = mkReportBuilder_();
+
+        reportBuilder.addSuccess(stubTest_({
+            meta: {some: 'value'}
+        }));
+
+        const metaInfo = getReportBuilderResult_(reportBuilder).metaInfo;
+
+        assert.match(metaInfo, {some: 'value'});
+    });
+
     it('should contain "name" for each suite', () => {
         const reportBuilder = mkReportBuilder_();
 
