@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.17.0"></a>
+# [2.17.0](https://github.com/gemini-testing/html-reporter/compare/v2.16.0...v2.17.0) (2018-05-29)
+
+
+### Features
+
+* enable retry button for passed tests ([#115](https://github.com/gemini-testing/html-reporter/issues/115)) ([b11661c](https://github.com/gemini-testing/html-reporter/commit/b11661c))
+* show all meta info from test in report ([#114](https://github.com/gemini-testing/html-reporter/issues/114)) ([894b954](https://github.com/gemini-testing/html-reporter/commit/894b954))
+
+
+
 <a name="2.16.0"></a>
 # [2.16.0](https://github.com/gemini-testing/html-reporter/compare/v2.15.0...v2.16.0) (2018-05-17)
 
