@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.17.1"></a>
+## [2.17.1](https://github.com/gemini-testing/html-reporter/compare/v2.17.0...v2.17.1) (2018-05-31)
+
+
+### Bug Fixes
+
+* do not fail in gui actions ([#117](https://github.com/gemini-testing/html-reporter/issues/117)) ([6dca9f8](https://github.com/gemini-testing/html-reporter/commit/6dca9f8))
+
+
+
 <a name="2.17.0"></a>
 # [2.17.0](https://github.com/gemini-testing/html-reporter/compare/v2.16.0...v2.17.0) (2018-05-29)
 
