@@ -11,6 +11,7 @@ exports.mkStore = (state) => {
     return mockStore(initialState);
 };
 
-exports.mkConnectedComponent = (Component, store) => {
+exports.mkConnectedComponent = (Component, {initialState} = {}) => {
+    const store = exports.mkStore(initialState);
     return mount(<Provider store={store}>{Component}</Provider>);
 };
