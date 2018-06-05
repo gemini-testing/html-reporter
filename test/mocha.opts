@@ -1,3 +1,6 @@
+--require babel-register
+--require raf/polyfill
+--require jsdom-global/register
 --require ./test/setup
 --require ./test/assert-ext
 -t 0
