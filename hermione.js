@@ -58,6 +58,10 @@ function prepareImages(hermione, pluginConfig, reportBuilder) {
     return new Promise((resolve, reject) => {
         let queue = Promise.resolve();
 
+        hermione.on(hermione.events.TEST_PASS, (testResult) => {
+            queue = queue.then(() => saveTestImages(reportBuilder.format(testResult), pluginConfig.path));
+        });
+
         hermione.on(hermione.events.RETRY, (testResult) => {
             queue = queue.then(() => failHandler(testResult));
         });
