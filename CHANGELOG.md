@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.18.0"></a>
+# [2.18.0](https://github.com/gemini-testing/html-reporter/compare/v2.17.1...v2.18.0) (2018-06-08)
+
+
+### Bug Fixes
+
+* **hermione:** show assertView image for passed tests ([41e6b68](https://github.com/gemini-testing/html-reporter/commit/41e6b68))
+
+
+### Features
+
+* add infrastructure for test react components ([bb6b3d0](https://github.com/gemini-testing/html-reporter/commit/bb6b3d0))
+
+
+
 <a name="2.17.1"></a>
 ## [2.17.1](https://github.com/gemini-testing/html-reporter/compare/v2.17.0...v2.17.1) (2018-05-31)
 
