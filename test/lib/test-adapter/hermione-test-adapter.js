@@ -6,6 +6,13 @@ const {stubConfig} = require('../../utils');
 describe('hermione test adapter', () => {
     const sandbox = sinon.sandbox.create();
 
+    const mkHermioneTestResultAdapter = (testResult, toolOpts) => {
+        const tool = Object.assign({
+            errors: {}
+        }, toolOpts);
+        return new HermioneTestResultAdapter(testResult, tool);
+    };
+
     afterEach(() => sandbox.restore());
 
     it('should return suite attempt', () => {
@@ -17,7 +24,7 @@ describe('hermione test adapter', () => {
             }
         });
 
-        const hermioneTestAdapter = new HermioneTestResultAdapter(testResult, {config});
+        const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {config});
 
         assert.equal(hermioneTestAdapter.attempt, 4);
     });
@@ -29,7 +36,7 @@ describe('hermione test adapter', () => {
             }
         };
 
-        const hermioneTestAdapter = new HermioneTestResultAdapter(testResult);
+        const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
 
         assert.deepEqual(hermioneTestAdapter.error, {
             message: 'some-message',
@@ -41,7 +48,7 @@ describe('hermione test adapter', () => {
     it('should return test state', () => {
         const testResult = {title: 'some-test'};
 
-        const hermioneTestAdapter = new HermioneTestResultAdapter(testResult);
+        const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
 
         assert.deepEqual(hermioneTestAdapter.state, {name: 'some-test'});
     });
@@ -49,7 +56,7 @@ describe('hermione test adapter', () => {
     it('should return reference path', () => {
         const testResult = {err: {refImagePath: 'some-ref-path'}};
 
-        const hermioneTestAdapter = new HermioneTestResultAdapter(testResult);
+        const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
 
         assert.deepEqual(hermioneTestAdapter.referencePath, 'some-ref-path');
     });
@@ -59,7 +66,7 @@ describe('hermione test adapter', () => {
         err.refImagePath = 'some-ref-path';
         const testResult = {assertViewResults: [err]};
 
-        const hermioneTestAdapter = new HermioneTestResultAdapter(testResult);
+        const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
 
         assert.deepEqual(hermioneTestAdapter.referencePath, 'some-ref-path');
     });
@@ -67,7 +74,7 @@ describe('hermione test adapter', () => {
     it('should return current path', () => {
         const testResult = {err: {currentImagePath: 'some-current-path'}};
 
-        const hermioneTestAdapter = new HermioneTestResultAdapter(testResult);
+        const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
 
         assert.deepEqual(hermioneTestAdapter.currentPath, 'some-current-path');
     });
@@ -77,15 +84,43 @@ describe('hermione test adapter', () => {
         err.currentImagePath = 'some-current-path';
         const testResult = {assertViewResults: [err]};
 
-        const hermioneTestAdapter = new HermioneTestResultAdapter(testResult);
+        const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
 
         assert.deepEqual(hermioneTestAdapter.currentPath, 'some-current-path');
+    });
+
+    it('should return assert view results', () => {
+        const testResult = {assertViewResults: [1]};
+
+        const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+
+        assert.deepEqual(hermioneTestAdapter.assertViewResults, [1]);
+    });
+
+    describe('hasDiff()', () => {
+        class ImageDiffError extends Error {}
+
+        it('should return true if test has image diff errors', () => {
+            const testResult = {assertViewResults: [new ImageDiffError()]};
+
+            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {errors: {ImageDiffError}});
+
+            assert.isTrue(hermioneTestAdapter.hasDiff());
+        });
+
+        it('should return false if test has not image diff errors', () => {
+            const testResult = {assertViewResults: [new Error()]};
+
+            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {errors: {ImageDiffError}});
+
+            assert.isFalse(hermioneTestAdapter.hasDiff());
+        });
     });
 
     it('should return image dir', () => {
         const testResult = {id: () => 'some-id'};
 
-        const hermioneTestAdapter = new HermioneTestResultAdapter(testResult);
+        const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
 
         assert.deepEqual(hermioneTestAdapter.imageDir, 'some-id');
     });
@@ -93,7 +128,7 @@ describe('hermione test adapter', () => {
     it('should return description', () => {
         const testResult = {description: 'some-description'};
 
-        const hermioneTestAdapter = new HermioneTestResultAdapter(testResult);
+        const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
 
         assert.deepEqual(hermioneTestAdapter.description, 'some-description');
     });
@@ -105,7 +140,7 @@ describe('hermione test adapter', () => {
                 title: 'some-title'
             };
 
-            const result = (new HermioneTestResultAdapter(testResult)).prepareTestResult();
+            const result = mkHermioneTestResultAdapter(testResult).prepareTestResult();
 
             assert.propertyVal(result, 'name', 'some-title');
         });
@@ -117,7 +152,7 @@ describe('hermione test adapter', () => {
                 title: 'some-title'
             };
 
-            const result = (new HermioneTestResultAdapter(testResult)).prepareTestResult();
+            const result = mkHermioneTestResultAdapter(testResult).prepareTestResult();
 
             assert.deepEqual(result.suitePath, ['root-title', 'some-title']);
         });
@@ -128,7 +163,7 @@ describe('hermione test adapter', () => {
                 browserId: 'bro'
             };
 
-            const result = (new HermioneTestResultAdapter(testResult)).prepareTestResult();
+            const result = mkHermioneTestResultAdapter(testResult).prepareTestResult();
 
             assert.propertyVal(result, 'browserId', 'bro');
         });
