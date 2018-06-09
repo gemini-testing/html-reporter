@@ -217,16 +217,17 @@ describe('lib/hermione', () => {
     });
 
     it('should save image from assert view error', () => {
-        utils.getCurrentAbsolutePath.callsFake((test, path) => `${path}/report`);
+        utils.getCurrentAbsolutePath.callsFake((test, path, stateName) => `${path}/report/${stateName}`);
 
         return initReporter_({path: '/absolute'})
             .then(() => {
                 const err = new Error();
+                err.stateName = 'plain';
                 err.currentImagePath = 'current/path';
                 hermione.emit(events.RETRY, {assertViewResults: [err]});
                 return hermione.emitAndWait(events.RUNNER_END);
             })
-            .then(() => assert.calledOnceWith(utils.copyImageAsync, 'current/path', '/absolute/report'));
+            .then(() => assert.calledOnceWith(utils.copyImageAsync, 'current/path', '/absolute/report/plain'));
     });
 
     it('should save reference image from assert view fail', () => {

@@ -42,10 +42,11 @@ function prepareData(hermione, reportBuilder) {
 
 function prepareImages(hermione, pluginConfig, reportBuilder) {
     function handleErrorEvent(testResult) {
+        const {assertViewState} = testResult;
         const src = testResult.currentPath;
 
         return src
-            ? utils.copyImageAsync(src, utils.getCurrentAbsolutePath(testResult, pluginConfig.path))
+            ? utils.copyImageAsync(src, utils.getCurrentAbsolutePath(testResult, pluginConfig.path, assertViewState))
             : saveBase64Screenshot(testResult, pluginConfig.path);
     }
 
