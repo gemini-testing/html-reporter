@@ -15,3 +15,10 @@ exports.mkConnectedComponent = (Component, {initialState} = {}) => {
     const store = exports.mkStore(initialState);
     return mount(<Provider store={store}>{Component}</Provider>);
 };
+
+exports.mkTestResult_ = (result) => {
+    return _.defaults(result, {
+        suiteUrl: '',
+        metaInfo: {}
+    });
+};

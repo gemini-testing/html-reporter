@@ -110,7 +110,7 @@
 }
 
 .image-box {
-    padding: 5px;
+    padding: 5px 10px;
     border: 1px solid #ccc;
     background: #c9c9c9;
 }
@@ -126,12 +126,16 @@
 }
 
 .image-box__image {
-    padding:  0 5px;
+    padding: 5px 5px 5px 0;
     display: inline-block;
     vertical-align: top;
     flex-basis: 33.333%;
     flex-grow: 1;
     box-sizing: border-box;
+}
+
+.image-box__image:last-child {
+    padding-right: 0;
 }
 
 .image-box__screenshot {
@@ -344,6 +348,10 @@ a:active {
     padding: 5px;
 }
 
+.cswitcher {
+    padding-left: 0;
+}
+
 .cswitcher:before {
     content: 'Background:';
     padding-right: 4px;
@@ -359,7 +367,7 @@ a:active {
 }
 
 .toggle-open {
-    margin: 5px;
+    margin: 5px 5px 5px 0;
 }
 
 .toggle-open__switcher {

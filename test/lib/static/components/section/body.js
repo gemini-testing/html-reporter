@@ -1,7 +1,6 @@
 import React from 'react';
-import _ from 'lodash';
 import proxyquire from 'proxyquire';
-import {mkConnectedComponent} from '../utils';
+import {mkConnectedComponent, mkTestResult_} from '../utils';
 
 describe('<Body />', () => {
     const sandbox = sinon.sandbox.create();
@@ -9,13 +8,6 @@ describe('<Body />', () => {
     let Body;
     let actionsStub;
     let utilsStub;
-
-    const mkTestResult_ = (result) => {
-        return _.defaults(result, {
-            suiteUrl: '',
-            metaInfo: {}
-        });
-    };
 
     beforeEach(() => {
         actionsStub = {
@@ -25,64 +17,43 @@ describe('<Body />', () => {
 
         utilsStub = {isAcceptable: sandbox.stub()};
 
-        Body = proxyquire('lib/static/components/section/body', {
-            '../../modules/actions': actionsStub,
+        const State = proxyquire('lib/static/components/state', {
             '../../modules/utils': utilsStub
+        });
+
+        Body = proxyquire('lib/static/components/section/body', {
+            '../../../modules/actions': actionsStub,
+            '../../state': State
         }).default;
     });
 
     afterEach(() => sandbox.restore());
 
-    it('should render accept and retry button if "gui" is running', () => {
+    it('should render retry button if "gui" is running', () => {
         const bodyComponent = <Body result={mkTestResult_()} />;
         const component = mkConnectedComponent(bodyComponent, {initialState: {gui: true}});
 
-        assert.lengthOf(component.find('.button_type_suite-controls'), 2);
-        assert.match(component.find('.button_type_suite-controls').debug(), '✔ Accept');
-        assert.match(component.find('.button_type_suite-controls').debug(), '↻ Retry');
+        assert.equal(component.find('.button_type_suite-controls').first().text(), '↻ Retry');
     });
 
-    it('should not render accept and retry button if "gui" is not running', () => {
+    it('should not render retry button if "gui" is not running', () => {
         const bodyComponent = <Body result={mkTestResult_()} />;
         const component = mkConnectedComponent(bodyComponent, {initialState: {gui: false}});
 
         assert.lengthOf(component.find('.button_type_suite-controls'), 0);
     });
 
-    describe('"Accept" button', () => {
-        it('should be disabled if test result is not acceptable', () => {
-            const testResult = mkTestResult_({status: 'idle'});
-            utilsStub.isAcceptable.withArgs(testResult).returns(false);
+    it('should call "acceptTest" action on Accept button click', () => {
+        const retries = [];
+        const testResult = mkTestResult_({name: 'bro'});
+        utilsStub.isAcceptable.withArgs(testResult).returns(true);
 
-            const component = mkConnectedComponent(<Body result={testResult} />);
+        const bodyComponent = <Body result={testResult} suite={{name: 'some-suite'}} retries={retries}/>;
+        const component = mkConnectedComponent(bodyComponent);
 
-            assert.isTrue(component.find('[label="✔ Accept"]').prop('isDisabled'));
-        });
+        component.find('[label="✔ Accept"]').simulate('click');
 
-        it('should be enabled if test result is acceptable', () => {
-            const testResult = mkTestResult_();
-            utilsStub.isAcceptable.withArgs(testResult).returns(true);
-
-            const component = mkConnectedComponent(<Body result={testResult} />);
-
-            assert.isFalse(component.find('[label="✔ Accept"]').prop('isDisabled'));
-        });
-
-        it('should call "acceptTest" action on click', () => {
-            const retries = [];
-            const testResult = mkTestResult_({name: 'bro'});
-            utilsStub.isAcceptable.withArgs(testResult).returns(true);
-
-            const bodyComponent = <Body
-                result={testResult}
-                suite={'some-suite'} retries={retries}
-            />;
-            const component = mkConnectedComponent(bodyComponent);
-
-            component.find('[label="✔ Accept"]').simulate('click');
-
-            assert.calledOnceWith(actionsStub.acceptTest, 'some-suite', 'bro', retries.length);
-        });
+        assert.calledOnceWith(actionsStub.acceptTest, {name: 'some-suite'}, 'bro', retries.length);
     });
 
     describe('"Retry" button', () => {
@@ -105,13 +76,13 @@ describe('<Body />', () => {
         it('should call action "retryTest" on "handler" prop calling', () => {
             const bodyComponent = <Body
                 result={mkTestResult_({name: 'bro'})}
-                suite={'some-suite'}
+                suite={{name: 'some-suite'}}
             />;
             const component = mkConnectedComponent(bodyComponent, {initialState: {running: false}});
 
             component.find('[label="↻ Retry"]').simulate('click');
 
-            assert.calledOnceWith(actionsStub.retryTest, 'some-suite', 'bro');
+            assert.calledOnceWith(actionsStub.retryTest, {name: 'some-suite'}, 'bro');
         });
     });
 });
