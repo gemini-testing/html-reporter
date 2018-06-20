@@ -53,7 +53,13 @@ describe('gemini test adapter', () => {
         assert.deepEqual(geminiTestAdapter.imageDir, 'some-path/some-name');
     });
 
-    ['state', 'attempt', 'referencePath', 'currentPath', 'imagePath'].forEach((field) => {
+    it('should return image path', () => {
+        const geminiTestAdapter = new GeminiTestResultAdapter({imagePath: 'some-value'});
+
+        assert.equal(geminiTestAdapter.getImagePath(), 'some-value');
+    });
+
+    ['state', 'attempt', 'referencePath', 'currentPath'].forEach((field) => {
         it(`should return ${field} from test result`, () => {
             const geminiTestAdapter = new GeminiTestResultAdapter({[field]: 'some-value'});
 

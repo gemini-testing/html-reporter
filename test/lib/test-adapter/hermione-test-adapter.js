@@ -1,15 +1,23 @@
 'use strict';
 
+const _ = require('lodash');
 const HermioneTestResultAdapter = require('../../../lib/test-adapter/hermione-test-adapter');
-const {stubConfig} = require('../../utils');
+const {stubTool, stubConfig} = require('../../utils');
 
 describe('hermione test adapter', () => {
     const sandbox = sinon.sandbox.create();
 
-    const mkHermioneTestResultAdapter = (testResult, toolOpts) => {
-        const tool = Object.assign({
-            errors: {}
-        }, toolOpts);
+    class ImageDiffError extends Error {}
+    class NoRefImageError extends Error {}
+
+    const mkHermioneTestResultAdapter = (testResult, toolOpts = {}) => {
+        const config = _.defaults(toolOpts.config, {
+            browsers: {
+                bro: {}
+            }
+        });
+        const tool = stubTool(stubConfig(config), {}, {ImageDiffError, NoRefImageError});
+
         return new HermioneTestResultAdapter(testResult, tool);
     };
 
@@ -17,12 +25,12 @@ describe('hermione test adapter', () => {
 
     it('should return suite attempt', () => {
         const testResult = {retriesLeft: 0, browserId: 'bro'};
-        const config = stubConfig({
+        const config = {
             retry: 0,
             browsers: {
                 bro: {retry: 5}
             }
-        });
+        };
 
         const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {config});
 
@@ -53,42 +61,6 @@ describe('hermione test adapter', () => {
         assert.deepEqual(hermioneTestAdapter.state, {name: 'some-test'});
     });
 
-    it('should return reference path', () => {
-        const testResult = {err: {refImagePath: 'some-ref-path'}};
-
-        const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
-
-        assert.deepEqual(hermioneTestAdapter.referencePath, 'some-ref-path');
-    });
-
-    it('should return reference path for assert view result', () => {
-        const err = new Error();
-        err.refImagePath = 'some-ref-path';
-        const testResult = {assertViewResults: [err]};
-
-        const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
-
-        assert.deepEqual(hermioneTestAdapter.referencePath, 'some-ref-path');
-    });
-
-    it('should return current path', () => {
-        const testResult = {err: {currentImagePath: 'some-current-path'}};
-
-        const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
-
-        assert.deepEqual(hermioneTestAdapter.currentPath, 'some-current-path');
-    });
-
-    it('should return current path for assert view result', () => {
-        const err = new Error();
-        err.currentImagePath = 'some-current-path';
-        const testResult = {assertViewResults: [err]};
-
-        const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
-
-        assert.deepEqual(hermioneTestAdapter.currentPath, 'some-current-path');
-    });
-
     it('should return assert view results', () => {
         const testResult = {assertViewResults: [1]};
 
@@ -98,8 +70,6 @@ describe('hermione test adapter', () => {
     });
 
     describe('hasDiff()', () => {
-        class ImageDiffError extends Error {}
-
         it('should return true if test has image diff errors', () => {
             const testResult = {assertViewResults: [new ImageDiffError()]};
 

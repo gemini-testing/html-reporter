@@ -2,7 +2,6 @@
 
 const Promise = require('bluebird');
 const PluginAdapter = require('./lib/plugin-adapter');
-const utils = require('./lib/server-utils');
 const {saveTestImages, saveBase64Screenshot} = require('./lib/reporter-helpers');
 
 module.exports = (hermione, opts) => {
@@ -31,36 +30,33 @@ function prepareData(hermione, reportBuilder) {
     });
 
     function failHandler(testResult) {
-        const wrapped = reportBuilder.format(testResult);
-        const {assertViewState} = wrapped;
+        const formattedResult = reportBuilder.format(testResult);
 
-        return wrapped.hasDiff()
-            ? reportBuilder.addFail(testResult, {assertViewState})
-            : reportBuilder.addError(testResult, {assertViewState});
+        return formattedResult.hasDiff()
+            ? reportBuilder.addFail(testResult)
+            : reportBuilder.addError(testResult);
     }
 }
 
 function prepareImages(hermione, pluginConfig, reportBuilder) {
-    function handleErrorEvent(testResult) {
-        const {assertViewState} = testResult;
-        const src = testResult.currentPath;
-
-        return src
-            ? utils.copyImageAsync(src, utils.getCurrentAbsolutePath(testResult, pluginConfig.path, assertViewState))
-            : saveBase64Screenshot(testResult, pluginConfig.path);
-    }
+    const {path: reportPath} = pluginConfig;
 
     function failHandler(testResult) {
-        const wrapped = reportBuilder.format(testResult);
+        const formattedResult = reportBuilder.format(testResult);
+        const actions = [saveTestImages(formattedResult, reportPath)];
 
-        return wrapped.hasDiff() ? saveTestImages(wrapped, pluginConfig.path) : handleErrorEvent(wrapped);
+        if (formattedResult.screenshot) {
+            actions.push(saveBase64Screenshot(formattedResult, reportPath));
+        }
+
+        return Promise.all(actions);
     }
 
     return new Promise((resolve, reject) => {
         let queue = Promise.resolve();
 
         hermione.on(hermione.events.TEST_PASS, (testResult) => {
-            queue = queue.then(() => saveTestImages(reportBuilder.format(testResult), pluginConfig.path));
+            queue = queue.then(() => saveTestImages(reportBuilder.format(testResult), reportPath));
         });
 
         hermione.on(hermione.events.RETRY, (testResult) => {
