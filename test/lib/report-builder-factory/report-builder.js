@@ -4,7 +4,7 @@ const fs = require('fs-extra');
 const _ = require('lodash');
 const {logger} = require('../../../lib/server-utils');
 const ReportBuilder = require('../../../lib/report-builder-factory/report-builder');
-const {SUCCESS, FAIL, ERROR, SKIPPED, IDLE} = require('../../../lib/constants/test-statuses');
+const {SUCCESS, FAIL, ERROR, SKIPPED, IDLE, UPDATED} = require('../../../lib/constants/test-statuses');
 
 describe('ReportBuilder', () => {
     const sandbox = sinon.sandbox.create();
@@ -22,6 +22,8 @@ describe('ReportBuilder', () => {
     const getReportBuilderResult_ = (reportBuilder) => reportBuilder.getResult().suites[0].children[0].browsers[0].result;
 
     const stubTest_ = (opts = {}) => {
+        const {imagesInfo = []} = opts;
+
         return _.defaultsDeep(opts, {
             state: {name: 'name-default'},
             suite: {
@@ -31,7 +33,8 @@ describe('ReportBuilder', () => {
                 getUrl: () => opts.suite.url || ''
             },
             imageDir: '',
-            getImagesInfo: () => []
+            imagesInfo,
+            getImagesInfo: () => imagesInfo
         });
     };
 
@@ -264,6 +267,65 @@ describe('ReportBuilder', () => {
 
             const result = getReportBuilderResult_(reportBuilder);
             assert.propertyVal(result, 'status', IDLE);
+        });
+    });
+
+    describe('addUpdated', () => {
+        it('should add "idle" status to result', () => {
+            const reportBuilder = mkReportBuilder_();
+
+            reportBuilder.addUpdated(stubTest_());
+
+            const result = getReportBuilderResult_(reportBuilder);
+            assert.propertyVal(result, 'status', UPDATED);
+        });
+
+        it('should update test image for current state name', () => {
+            const reportBuilder = mkReportBuilder_();
+
+            const failedTest = stubTest_({
+                imagesInfo: [
+                    {stateName: 'plain1', status: FAIL},
+                    {stateName: 'plain2', status: FAIL}
+                ]
+            });
+            const updatedTest = stubTest_({
+                imagesInfo: [
+                    {stateName: 'plain1', status: UPDATED}
+                ]
+            });
+
+            reportBuilder.addFail(failedTest);
+            reportBuilder.addUpdated(updatedTest);
+
+            const {imagesInfo} = getReportBuilderResult_(reportBuilder);
+
+            assert.match(imagesInfo[0], {stateName: 'plain1', status: UPDATED});
+            assert.match(imagesInfo[1], {stateName: 'plain2', status: FAIL});
+        });
+
+        it('should update last test image if state name was not passed', () => {
+            const reportBuilder = mkReportBuilder_();
+
+            const failedTest = stubTest_({
+                imagesInfo: [
+                    {stateName: 'plain1', status: FAIL},
+                    {stateName: 'plain2', status: FAIL}
+                ]
+            });
+            const updatedTest = stubTest_({
+                imagesInfo: [
+                    {status: UPDATED}
+                ]
+            });
+
+            reportBuilder.addFail(failedTest);
+            reportBuilder.addUpdated(updatedTest);
+
+            const {imagesInfo} = getReportBuilderResult_(reportBuilder);
+
+            assert.match(imagesInfo[0], {status: FAIL});
+            assert.match(imagesInfo[1], {status: UPDATED});
         });
     });
 
