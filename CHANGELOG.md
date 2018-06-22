@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.19.0"></a>
+# [2.19.0](https://github.com/gemini-testing/html-reporter/compare/v2.18.1...v2.19.0) (2018-06-22)
+
+
+### Features
+
+* **hermione:** show all assertView images ([9f88f90](https://github.com/gemini-testing/html-reporter/commit/9f88f90))
+
+
+
 <a name="2.18.1"></a>
 ## [2.18.1](https://github.com/gemini-testing/html-reporter/compare/v2.18.0...v2.18.1) (2018-06-09)
 
