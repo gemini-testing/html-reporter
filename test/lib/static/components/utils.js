@@ -19,6 +19,7 @@ exports.mkConnectedComponent = (Component, {initialState} = {}) => {
 exports.mkTestResult_ = (result) => {
     return _.defaults(result, {
         suiteUrl: '',
-        metaInfo: {}
+        metaInfo: {},
+        imagesInfo: []
     });
 };

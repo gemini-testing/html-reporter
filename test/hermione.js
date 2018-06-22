@@ -22,6 +22,7 @@ describe('lib/hermione', () => {
     };
 
     class ImageDiffError extends Error {}
+    class NoRefImageError extends Error {}
 
     function mkHermione_() {
         return stubTool({
@@ -30,7 +31,7 @@ describe('lib/hermione', () => {
                 getAbsoluteUrl: _.noop
             }),
             getBrowserIds: () => ['bro1']
-        }, events, {ImageDiffError});
+        }, events, {ImageDiffError, NoRefImageError});
     }
 
     function initReporter_(opts) {
@@ -127,8 +128,7 @@ describe('lib/hermione', () => {
 
                         assert.calledOnceWith(
                             ReportBuilder.prototype.addError,
-                            sinon.match({title: 'some-title'}),
-                            {assertViewState: 'state-name'}
+                            sinon.match({title: 'some-title'})
                         );
                     });
             });
@@ -143,8 +143,7 @@ describe('lib/hermione', () => {
 
                         assert.calledOnceWith(
                             ReportBuilder.prototype.addError,
-                            sinon.match({title: 'some-title'}),
-                            {assertViewState: 'state-name'}
+                            sinon.match({title: 'some-title'})
                         );
                     });
             });
@@ -163,8 +162,7 @@ describe('lib/hermione', () => {
 
                         assert.calledOnceWith(
                             ReportBuilder.prototype.addFail,
-                            sinon.match({title: 'some-title'}),
-                            {assertViewState: 'state-name'}
+                            sinon.match({title: 'some-title'})
                         );
                     });
             });
@@ -179,8 +177,7 @@ describe('lib/hermione', () => {
 
                         assert.calledOnceWith(
                             ReportBuilder.prototype.addFail,
-                            sinon.match({title: 'some-title'}),
-                            {assertViewState: 'state-name'}
+                            sinon.match({title: 'some-title'})
                         );
                     });
             });
@@ -205,26 +202,16 @@ describe('lib/hermione', () => {
             .then(() => assert.calledOnceWith(utils.copyImageAsync, 'ref/path', '/absolute/report/plain'));
     });
 
-    it('should save image from error', () => {
-        utils.getCurrentAbsolutePath.callsFake((test, path) => `${path}/report`);
-
-        return initReporter_({path: '/absolute'})
-            .then(() => {
-                hermione.emit(events.RETRY, {err: {currentImagePath: 'current/path'}});
-                return hermione.emitAndWait(events.RUNNER_END);
-            })
-            .then(() => assert.calledOnceWith(utils.copyImageAsync, 'current/path', '/absolute/report'));
-    });
-
     it('should save image from assert view error', () => {
         utils.getCurrentAbsolutePath.callsFake((test, path, stateName) => `${path}/report/${stateName}`);
 
         return initReporter_({path: '/absolute'})
             .then(() => {
-                const err = new Error();
+                const err = new NoRefImageError();
                 err.stateName = 'plain';
                 err.currentImagePath = 'current/path';
                 hermione.emit(events.RETRY, {assertViewResults: [err]});
+
                 return hermione.emitAndWait(events.RUNNER_END);
             })
             .then(() => assert.calledOnceWith(utils.copyImageAsync, 'current/path', '/absolute/report/plain'));
@@ -236,24 +223,12 @@ describe('lib/hermione', () => {
         return initReporter_({path: '/absolute'})
             .then(() => {
                 const err = new ImageDiffError();
+                err.stateName = 'some-name';
                 err.refImagePath = 'reference/path';
                 hermione.emit(events.TEST_FAIL, {assertViewResults: [err]});
                 return hermione.emitAndWait(events.RUNNER_END);
             })
             .then(() => assert.calledWith(utils.copyImageAsync, 'reference/path', '/absolute/report'));
-    });
-
-    it('should save current image from fail', () => {
-        utils.getCurrentAbsolutePath.callsFake((test, path) => `${path}/report`);
-
-        return initReporter_({path: '/absolute'})
-            .then(() => {
-                hermione.emit(
-                    events.TEST_FAIL, mkStubResult_({err: {currentImagePath: 'current/path'}, diff: true})
-                );
-                return hermione.emitAndWait(events.RUNNER_END);
-            })
-            .then(() => assert.calledWith(utils.copyImageAsync, 'current/path', '/absolute/report'));
     });
 
     it('should save current image from assert view fail', () => {
@@ -262,6 +237,7 @@ describe('lib/hermione', () => {
         return initReporter_({path: '/absolute'})
             .then(() => {
                 const err = new ImageDiffError();
+                err.stateName = 'some-name';
                 err.currentImagePath = 'current/path';
                 hermione.emit(events.TEST_FAIL, {assertViewResults: [err]});
                 return hermione.emitAndWait(events.RUNNER_END);
@@ -275,6 +251,7 @@ describe('lib/hermione', () => {
         return initReporter_({path: '/absolute'})
             .then(() => {
                 const err = new ImageDiffError();
+                err.stateName = 'some-name';
                 err.saveDiffTo = sinon.stub();
                 hermione.emit(events.TEST_FAIL, {assertViewResults: [err]});
                 return hermione.emitAndWait(events.RUNNER_END);

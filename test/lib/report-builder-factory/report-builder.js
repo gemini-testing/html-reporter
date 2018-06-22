@@ -21,9 +21,7 @@ describe('ReportBuilder', () => {
 
     const getReportBuilderResult_ = (reportBuilder) => reportBuilder.getResult().suites[0].children[0].browsers[0].result;
 
-    const stubTest_ = (opts) => {
-        opts = opts || {};
-
+    const stubTest_ = (opts = {}) => {
         return _.defaultsDeep(opts, {
             state: {name: 'name-default'},
             suite: {
@@ -32,7 +30,8 @@ describe('ReportBuilder', () => {
                 file: 'default/path/file.js',
                 getUrl: () => opts.suite.url || ''
             },
-            imageDir: ''
+            imageDir: '',
+            getImagesInfo: () => []
         });
     };
 
@@ -129,13 +128,12 @@ describe('ReportBuilder', () => {
         const reportBuilder = mkReportBuilder_();
 
         reportBuilder.addSuccess(stubTest_({
-            browserId: 'bro1',
-            imageDir: 'some-image-dir'
+            browserId: 'bro1'
         }));
 
         assert.match(getReportBuilderResult_(reportBuilder), {
             status: SUCCESS,
-            expectedPath: 'images/some-image-dir/bro1~ref_0.png'
+            name: 'bro1'
         });
     });
 
@@ -149,8 +147,7 @@ describe('ReportBuilder', () => {
 
         assert.match(getReportBuilderResult_(reportBuilder), {
             status: FAIL,
-            actualPath: 'images/some-image-dir/bro1~current_0.png',
-            expectedPath: 'images/some-image-dir/bro1~ref_0.png'
+            name: 'bro1'
         });
     });
 
@@ -260,13 +257,13 @@ describe('ReportBuilder', () => {
     });
 
     describe('addIdle', () => {
-        it('should extend test result with expectedPath value', () => {
+        it('should add "idle" status to result', () => {
             const reportBuilder = mkReportBuilder_();
 
             reportBuilder.addIdle(stubTest_(), 'some/url');
 
             const result = getReportBuilderResult_(reportBuilder);
-            assert.propertyVal(result, 'expectedPath', 'some/url');
+            assert.propertyVal(result, 'status', IDLE);
         });
     });
 

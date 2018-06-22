@@ -37,8 +37,9 @@ function prepareData(gemini, reportBuilder) {
 
 function prepareImages(gemini, pluginConfig, reportBuilder) {
     const {path: reportPath} = pluginConfig;
+
     function handleErrorEvent(result) {
-        var src = result.imagePath || result.currentPath;
+        var src = result.getImagePath() || result.currentPath;
 
         return src && utils.copyImageAsync(src, utils.getCurrentAbsolutePath(result, reportPath));
     }
@@ -51,12 +52,12 @@ function prepareImages(gemini, pluginConfig, reportBuilder) {
         });
 
         gemini.on(gemini.events.RETRY, (testResult) => {
-            const wrapped = reportBuilder.format(testResult);
+            const formattedResult = reportBuilder.format(testResult);
 
             queue = queue.then(() => {
-                return wrapped.hasDiff()
-                    ? saveTestImages(wrapped, reportPath)
-                    : handleErrorEvent(wrapped);
+                return formattedResult.hasDiff()
+                    ? saveTestImages(formattedResult, reportPath)
+                    : handleErrorEvent(formattedResult);
             });
         });
 

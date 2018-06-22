@@ -1,6 +1,7 @@
 import React from 'react';
 import proxyquire from 'proxyquire';
 import {mkConnectedComponent, mkTestResult_} from '../utils';
+import {ERROR} from 'lib/constants/test-statuses';
 
 describe('<Body />', () => {
     const sandbox = sinon.sandbox.create();
@@ -45,8 +46,9 @@ describe('<Body />', () => {
 
     it('should call "acceptTest" action on Accept button click', () => {
         const retries = [];
-        const testResult = mkTestResult_({name: 'bro'});
-        utilsStub.isAcceptable.withArgs(testResult).returns(true);
+        const imagesInfo = [{status: ERROR, actualPath: 'some/path', reason: {}, image: true}];
+        const testResult = mkTestResult_({name: 'bro', imagesInfo});
+        utilsStub.isAcceptable.withArgs(imagesInfo[0]).returns(true);
 
         const bodyComponent = <Body result={testResult} suite={{name: 'some-suite'}} retries={retries}/>;
         const component = mkConnectedComponent(bodyComponent);
@@ -54,6 +56,18 @@ describe('<Body />', () => {
         component.find('[label="✔ Accept"]').simulate('click');
 
         assert.calledOnceWith(actionsStub.acceptTest, {name: 'some-suite'}, 'bro', retries.length);
+    });
+
+    it('should render state for each state image', () => {
+        const imagesInfo = [
+            {stateName: 'plain1', status: ERROR, actualPath: 'some/path', reason: {}},
+            {stateName: 'plain2', status: ERROR, actualPath: 'some/path', reason: {}}
+        ];
+        const testResult = mkTestResult_({name: 'bro', imagesInfo});
+
+        const component = mkConnectedComponent(<Body result={testResult} suite={{name: 'some-suite'}}/>);
+
+        assert.lengthOf(component.find('.tab'), 2);
     });
 
     describe('"Retry" button', () => {
