@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.19.2"></a>
+## [2.19.2](https://github.com/gemini-testing/html-reporter/compare/v2.19.1...v2.19.2) (2018-06-26)
+
+
+### Bug Fixes
+
+* **gui:** remove custom "Promise.done" method ([ef7c1fc](https://github.com/gemini-testing/html-reporter/commit/ef7c1fc))
+
+
+
 <a name="2.19.1"></a>
 ## [2.19.1](https://github.com/gemini-testing/html-reporter/compare/v2.19.0...v2.19.1) (2018-06-24)
 
