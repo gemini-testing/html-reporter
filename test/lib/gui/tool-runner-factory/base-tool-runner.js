@@ -32,6 +32,8 @@ describe('lib/gui/tool-runner-factory/base-tool-runner', () => {
         };
     };
 
+    const mkHermioneTestCollection_ = () => ({eachTest: sandbox.stub()});
+
     const initGuiReporter = (opts = {}) => {
         opts = _.defaults(opts, {
             paths: [],
@@ -96,16 +98,16 @@ describe('lib/gui/tool-runner-factory/base-tool-runner', () => {
     [
         {
             name: 'gemini',
-            suiteCollection: mkGeminiSuiteCollection_()
+            collection: mkGeminiSuiteCollection_()
         },
         {
             name: 'hermione',
-            suiteCollection: []
+            collection: mkHermioneTestCollection_()
         }
-    ].forEach(({name, suiteCollection}) => {
+    ].forEach(({name, collection}) => {
         beforeEach(() => {
             tool = mkTool_();
-            tool.readTests.resolves(suiteCollection);
+            tool.readTests.resolves(collection);
 
             ToolGuiReporter = proxyquire(`lib/gui/tool-runner-factory/${name}`, {
                 './report-subscriber': sandbox.stub()

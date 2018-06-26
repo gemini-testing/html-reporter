@@ -138,4 +138,24 @@ describe('hermione test adapter', () => {
             assert.propertyVal(result, 'browserId', 'bro');
         });
     });
+
+    describe('getImagesInfo()', () => {
+        const mkTestResult_ = (result) => _.defaults(result, {id: () => 'some-id'});
+
+        it('should not reinit "imagesInfo"', () => {
+            const testResult = mkTestResult_({imagesInfo: [1, 2]});
+
+            mkHermioneTestResultAdapter(testResult).getImagesInfo();
+
+            assert.deepEqual(testResult.imagesInfo, [1, 2]);
+        });
+
+        it('should reinit "imagesInfo" if it was empty', () => {
+            const testResult = mkTestResult_({assertViewResults: [1], imagesInfo: []});
+
+            mkHermioneTestResultAdapter(testResult).getImagesInfo();
+
+            assert.lengthOf(testResult.imagesInfo, 1);
+        });
+    });
 });
