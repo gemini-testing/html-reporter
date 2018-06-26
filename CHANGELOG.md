@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.20.0"></a>
+# [2.20.0](https://github.com/gemini-testing/html-reporter/compare/v2.19.2...v2.20.0) (2018-06-26)
+
+
+### Features
+
+* **hermione-gui:** ability to retry only failed tests ([ce3f915](https://github.com/gemini-testing/html-reporter/commit/ce3f915))
+
+
+
 <a name="2.19.2"></a>
 ## [2.19.2](https://github.com/gemini-testing/html-reporter/compare/v2.19.1...v2.19.2) (2018-06-26)
 
