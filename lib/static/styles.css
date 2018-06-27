@@ -134,10 +134,6 @@
     box-sizing: border-box;
 }
 
-.image-box__image:last-child {
-    padding-right: 0;
-}
-
 .image-box__screenshot {
     max-width: 100%;
     height: auto;
