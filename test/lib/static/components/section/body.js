@@ -70,6 +70,22 @@ describe('<Body />', () => {
         assert.lengthOf(component.find('.tab'), 2);
     });
 
+    it('should render state even if state images does not exist and test does not pass', () => {
+        const testResult = mkTestResult_();
+
+        const component = mkConnectedComponent(<Body result={testResult} suite={{name: 'some-suite'}} />);
+
+        assert.lengthOf(component.find('.tab'), 1);
+    });
+
+    it('should not render state if state images does not exist and test passed succesfully', () => {
+        const testResult = mkTestResult_({status: 'success'});
+
+        const component = mkConnectedComponent(<Body result={testResult} suite={{name: 'some-suite'}} />);
+
+        assert.lengthOf(component.find('.tab'), 0);
+    });
+
     describe('"Retry" button', () => {
         it('should be disabled while tests running', () => {
             const testResult = mkTestResult_();
