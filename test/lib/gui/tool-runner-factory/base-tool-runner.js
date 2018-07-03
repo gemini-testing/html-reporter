@@ -114,6 +114,31 @@ describe('lib/gui/tool-runner-factory/base-tool-runner', () => {
             });
         });
 
+        describe(`initialize ${name}`, () => {
+            it('should pass paths to "readTests" method', () => {
+                const gui = initGuiReporter({paths: ['foo', 'bar']});
+
+                return gui.initialize()
+                    .then(() => assert.calledOnceWith(tool.readTests, ['foo', 'bar']));
+            });
+
+            it('should pass "grep", "sets" and "browsers" options to "readTests" method', () => {
+                const grep = 'foo';
+                const set = 'bar';
+                const browser = 'yabro';
+                const gui = initGuiReporter({
+                    configs: {
+                        program: {name: () => 'tool', grep, set, browser}
+                    }
+                });
+
+                return gui.initialize()
+                    .then(() => {
+                        assert.calledOnceWith(tool.readTests, sinon.match.any, {grep, sets: set, browsers: browser});
+                    });
+            });
+        });
+
         describe(`finalize ${name}`, () => {
             it('should save data file', () => {
                 const gui = initGuiReporter();
