@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.20.1"></a>
+## [2.20.1](https://github.com/gemini-testing/html-reporter/compare/v2.20.0...v2.20.1) (2018-07-04)
+
+
+### Bug Fixes
+
+* display error state if state images does not exist ([1240276](https://github.com/gemini-testing/html-reporter/commit/1240276))
+* **hermione gui:** pass grep to readTests ([13251ab](https://github.com/gemini-testing/html-reporter/commit/13251ab))
+* **scaleImages:** diff images can be higher than actual and expected ([51bf7e0](https://github.com/gemini-testing/html-reporter/commit/51bf7e0))
+
+
+
 <a name="2.20.0"></a>
 # [2.20.0](https://github.com/gemini-testing/html-reporter/compare/v2.19.2...v2.20.0) (2018-06-26)
 
