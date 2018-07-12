@@ -3,11 +3,12 @@
 const fs = require('fs-extra');
 const _ = require('lodash');
 const {logger} = require('../../../lib/server-utils');
-const ReportBuilder = require('../../../lib/report-builder-factory/report-builder');
+const proxyquire = require('proxyquire');
 const {SUCCESS, FAIL, ERROR, SKIPPED, IDLE, UPDATED} = require('../../../lib/constants/test-statuses');
 
 describe('ReportBuilder', () => {
     const sandbox = sinon.sandbox.create();
+    let hasImage, ReportBuilder;
 
     const mkReportBuilder_ = ({toolConfig, pluginConfig} = {}) => {
         toolConfig = _.defaults(toolConfig || {}, {getAbsoluteUrl: _.noop});
@@ -44,6 +45,13 @@ describe('ReportBuilder', () => {
         sandbox.stub(fs, 'mkdirsSync');
         sandbox.stub(fs, 'writeFileAsync').resolves();
         sandbox.stub(fs, 'writeFileSync');
+
+        hasImage = sandbox.stub().returns(true);
+        ReportBuilder = proxyquire('../../../lib/report-builder-factory/report-builder', {
+            '../server-utils': {
+                hasImage
+            }
+        });
     });
 
     afterEach(() => sandbox.restore());
@@ -163,6 +171,19 @@ describe('ReportBuilder', () => {
             status: ERROR,
             reason: 'some-stack-trace'
         });
+    });
+
+    it('should get correct test attempt while checking for image exists', () => {
+        const reportBuilder = mkReportBuilder_();
+        const testResult = stubTest_();
+
+        reportBuilder.addError(testResult);
+        const firstCallAttempt = hasImage.firstCall.args[0].attempt;
+        reportBuilder.addError(testResult);
+        const secondCallAttempt = hasImage.secondCall.args[0].attempt;
+
+        assert.equal(firstCallAttempt, 0);
+        assert.equal(secondCallAttempt, 1);
     });
 
     it('should add base host to result with value from plugin parameter "baseHost"', () => {
