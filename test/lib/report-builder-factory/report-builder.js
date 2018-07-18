@@ -260,6 +260,28 @@ describe('ReportBuilder', () => {
                 assert.equal(suiteResult.status, SUCCESS);
             });
         });
+
+        describe('should not rewrite suite status to "success" if image comparison is successful, but test', () => {
+            [
+                {status: 'failed', methodName: 'addFail'},
+                {status: 'errored', methodName: 'addError'}
+            ].forEach(({status, methodName}) => {
+                it(`${status}`, () => {
+                    const reportBuilder = mkReportBuilder_();
+
+                    const test = stubTest_({
+                        imagesInfo: [{stateName: 'plain', status: SUCCESS}]
+                    });
+
+                    reportBuilder.addIdle(test);
+                    reportBuilder[methodName](test);
+
+                    const suiteResult = getSuiteResult_(reportBuilder);
+
+                    assert.equal(suiteResult.status, FAIL);
+                });
+            });
+        });
     });
 
     describe('addRetry', () => {
