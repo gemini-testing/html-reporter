@@ -1,7 +1,7 @@
 import React from 'react';
 import proxyquire from 'proxyquire';
 import {mkConnectedComponent, mkTestResult_} from '../utils';
-import {ERROR} from 'lib/constants/test-statuses';
+import {SUCCESS, FAIL, ERROR} from 'lib/constants/test-statuses';
 
 describe('<Body />', () => {
     const sandbox = sinon.sandbox.create();
@@ -70,20 +70,61 @@ describe('<Body />', () => {
         assert.lengthOf(component.find('.tab'), 2);
     });
 
-    it('should render state even if state images does not exist and test does not pass', () => {
-        const testResult = mkTestResult_();
-
-        const component = mkConnectedComponent(<Body result={testResult} suite={{name: 'some-suite'}} />);
-
-        assert.lengthOf(component.find('.tab'), 1);
-    });
-
     it('should not render state if state images does not exist and test passed succesfully', () => {
-        const testResult = mkTestResult_({status: 'success'});
+        const testResult = mkTestResult_({status: SUCCESS});
 
         const component = mkConnectedComponent(<Body result={testResult} suite={{name: 'some-suite'}} />);
 
         assert.lengthOf(component.find('.tab'), 0);
+    });
+
+    it('should render additional tab if test errored without screenshot', () => {
+        const imagesInfo = [{stateName: 'plain1', status: SUCCESS, expectedPath: 'some/path'}];
+        const testResult = mkTestResult_({status: ERROR, multipleTabs: true, reason: {}, imagesInfo});
+
+        const component = mkConnectedComponent(<Body result={testResult} suite={{name: 'some-suite'}} />);
+
+        assert.lengthOf(component.find('.tab'), 2);
+    });
+
+    describe('errored additional tab', () => {
+        it('should render if test errored without screenshot and tool can use multi tabs', () => {
+            const imagesInfo = [{stateName: 'plain1', status: SUCCESS, expectedPath: 'some/path'}];
+            const testResult = mkTestResult_({status: ERROR, multipleTabs: true, reason: {}, imagesInfo});
+
+            const component = mkConnectedComponent(<Body result={testResult} suite={{name: 'some-suite'}} />);
+
+            assert.lengthOf(component.find('.tab'), 2);
+        });
+
+        it('should not render if tool does not use multi tabs', () => {
+            const imagesInfo = [{stateName: 'plain1', status: SUCCESS, expectedPath: 'some/path'}];
+            const testResult = mkTestResult_({status: ERROR, multipleTabs: false, reason: {}, screenshot: 'some-screen', imagesInfo});
+
+            const component = mkConnectedComponent(<Body result={testResult} suite={{name: 'some-suite'}} />);
+
+            assert.lengthOf(component.find('.tab'), 1);
+        });
+
+        it('should not render if test errored with screenshot', () => {
+            const imagesInfo = [{stateName: 'plain1', status: SUCCESS, expectedPath: 'some/path'}];
+            const testResult = mkTestResult_({status: ERROR, multipleTabs: true, reason: {}, screenshot: 'some-screen', imagesInfo});
+
+            const component = mkConnectedComponent(<Body result={testResult} suite={{name: 'some-suite'}} />);
+
+            assert.lengthOf(component.find('.tab'), 1);
+        });
+
+        [SUCCESS, FAIL].forEach((status) => {
+            it(`should not render if test ${status}ed`, () => {
+                const imagesInfo = [{stateName: 'plain1', status: SUCCESS, expectedPath: 'some/path'}];
+                const testResult = mkTestResult_({status, multipleTabs: true, reason: {}, imagesInfo});
+
+                const component = mkConnectedComponent(<Body result={testResult} suite={{name: 'some-suite'}} />);
+
+                assert.lengthOf(component.find('.tab'), 1);
+            });
+        });
     });
 
     describe('"Retry" button', () => {
