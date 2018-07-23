@@ -263,10 +263,10 @@ describe('ReportBuilder', () => {
 
         describe('should not rewrite suite status to "success" if image comparison is successful, but test', () => {
             [
-                {status: 'failed', methodName: 'addFail'},
-                {status: 'errored', methodName: 'addError'}
+                {status: FAIL, methodName: 'addFail'},
+                {status: ERROR, methodName: 'addError'}
             ].forEach(({status, methodName}) => {
-                it(`${status}`, () => {
+                it(`${status}ed`, () => {
                     const reportBuilder = mkReportBuilder_();
 
                     const test = stubTest_({
@@ -278,7 +278,7 @@ describe('ReportBuilder', () => {
 
                     const suiteResult = getSuiteResult_(reportBuilder);
 
-                    assert.equal(suiteResult.status, FAIL);
+                    assert.equal(suiteResult.status, status);
                 });
             });
         });
