@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.20.6"></a>
+## [2.20.6](https://github.com/gemini-testing/html-reporter/compare/v2.20.5...v2.20.6) (2018-08-01)
+
+
+### Bug Fixes
+
+* ability to accept image on no reference image error ([f4c5890](https://github.com/gemini-testing/html-reporter/commit/f4c5890))
+
+
+
 <a name="2.20.5"></a>
 ## [2.20.5](https://github.com/gemini-testing/html-reporter/compare/v2.20.4...v2.20.5) (2018-07-23)
 
