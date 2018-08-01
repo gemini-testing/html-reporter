@@ -5,6 +5,8 @@ const _ = require('lodash');
 const {logger} = require('../../../lib/server-utils');
 const proxyquire = require('proxyquire');
 const {SUCCESS, FAIL, ERROR, SKIPPED, IDLE, UPDATED} = require('../../../lib/constants/test-statuses');
+const {getCommonErrors} = require('../../../lib/constants/errors');
+const {NO_REF_IMAGE_ERROR} = getCommonErrors();
 
 describe('ReportBuilder', () => {
     const sandbox = sinon.sandbox.create();
@@ -258,6 +260,43 @@ describe('ReportBuilder', () => {
 
                 const suiteResult = getSuiteResult_(reportBuilder);
                 assert.equal(suiteResult.status, SUCCESS);
+            });
+        });
+
+        describe('should rewrite suite status to "fail" if test failed with no reference image error', () => {
+            it('and test does not exist in tests tree', () => {
+                const reportBuilder = mkReportBuilder_();
+                const test = stubTest_({
+                    status: ERROR,
+                    imagesInfo: [{
+                        stateName: 'plain', status: ERROR,
+                        reason: {stack: `${NO_REF_IMAGE_ERROR}: ...`}
+                    }]
+                });
+
+                reportBuilder.addError(test);
+
+                const suiteResult = getSuiteResult_(reportBuilder);
+
+                assert.equal(suiteResult.status, FAIL);
+            });
+
+            it('and test exists in tests tree', () => {
+                const reportBuilder = mkReportBuilder_();
+                const test = stubTest_({
+                    status: ERROR,
+                    imagesInfo: [{
+                        stateName: 'plain', status: ERROR,
+                        reason: {stack: `${NO_REF_IMAGE_ERROR}: ...`}
+                    }]
+                });
+
+                reportBuilder.addIdle(test);
+                reportBuilder.addError(test);
+
+                const suiteResult = getSuiteResult_(reportBuilder);
+
+                assert.equal(suiteResult.status, FAIL);
             });
         });
 
