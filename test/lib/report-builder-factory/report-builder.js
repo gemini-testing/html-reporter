@@ -2,7 +2,8 @@
 
 const fs = require('fs-extra');
 const _ = require('lodash');
-const {logger} = require('../../../lib/server-utils');
+const serverUtils = require('../../../lib/server-utils');
+const {logger} = serverUtils;
 const proxyquire = require('proxyquire');
 const {SUCCESS, FAIL, ERROR, SKIPPED, IDLE, UPDATED} = require('../../../lib/constants/test-statuses');
 const {getCommonErrors} = require('../../../lib/constants/errors');
@@ -47,6 +48,7 @@ describe('ReportBuilder', () => {
         sandbox.stub(fs, 'mkdirsSync');
         sandbox.stub(fs, 'writeFileAsync').resolves();
         sandbox.stub(fs, 'writeFileSync');
+        sandbox.stub(serverUtils, 'prepareCommonJSData');
 
         hasImage = sandbox.stub().returns(true);
         ReportBuilder = proxyquire('../../../lib/report-builder-factory/report-builder', {
@@ -421,13 +423,12 @@ describe('ReportBuilder', () => {
 
         it('should save data file with tests result asynchronously', () => {
             sandbox.stub(ReportBuilder.prototype, 'getResult').returns({test1: 'some-data'});
-            const expectedData = 'var data = {"test1":"some-data"};\n'
-                + 'try { module.exports = data; } catch(e) {}';
+            serverUtils.prepareCommonJSData.returns('some data');
 
             const reportBuilder = mkReportBuilder_({pluginConfig: {path: 'some/report/dir'}});
 
             return reportBuilder.saveDataFileAsync()
-                .then(() => assert.calledWith(fs.writeFileAsync, 'some/report/dir/data.js', expectedData, 'utf8'));
+                .then(() => assert.calledWith(fs.writeFileAsync, 'some/report/dir/data.js', 'some data', 'utf8'));
         });
 
         it('should create report directory before save data file', () => {
@@ -449,14 +450,13 @@ describe('ReportBuilder', () => {
 
         it('should save data file with tests result synchronously', () => {
             sandbox.stub(ReportBuilder.prototype, 'getResult').returns({test1: 'some-data'});
-            const expectedData = 'var data = {"test1":"some-data"};\n'
-                + 'try { module.exports = data; } catch(e) {}';
+            serverUtils.prepareCommonJSData.returns('some data');
 
             const reportBuilder = mkReportBuilder_({pluginConfig: {path: 'some/report/dir'}});
 
             reportBuilder.saveDataFileSync();
 
-            assert.calledOnceWith(fs.writeFileSync, 'some/report/dir/data.js', expectedData, 'utf8');
+            assert.calledOnceWith(fs.writeFileSync, 'some/report/dir/data.js', 'some data', 'utf8');
         });
 
         it('should create report directory before save data file', () => {

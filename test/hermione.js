@@ -58,7 +58,7 @@ describe('lib/hermione', () => {
     beforeEach(() => {
         hermione = mkHermione_();
 
-        sandbox.spy(PluginAdapter.prototype, 'extendCliByGuiCommand');
+        sandbox.spy(PluginAdapter.prototype, 'addCliCommands');
         sandbox.spy(PluginAdapter.prototype, 'init');
 
         sandbox.stub(fs, 'mkdirsAsync').resolves();
@@ -87,12 +87,13 @@ describe('lib/hermione', () => {
 
     it('should do nothing if plugin is disabled', () => {
         return initReporter_({enabled: false}).then(() => {
-            assert.notCalled(PluginAdapter.prototype.extendCliByGuiCommand);
+            assert.notCalled(PluginAdapter.prototype.addCliCommands);
         });
     });
 
-    it('should extend cli', () => {
-        return initReporter_().then(() => assert.calledOnce(PluginAdapter.prototype.extendCliByGuiCommand));
+    it('should add cli commands', () => {
+        return initReporter_()
+            .then(() => assert.calledOnce(PluginAdapter.prototype.addCliCommands));
     });
 
     it('should init plugin', () => {

@@ -76,4 +76,27 @@ describe('server-utils', () => {
             });
         });
     });
+
+    describe('prepareCommonJSData', () => {
+        const sandbox = sinon.sandbox.create();
+
+        afterEach(() => sandbox.restore());
+
+        it('should wrap passed data with commonjs wrapper', () => {
+            const result = utils.prepareCommonJSData({some: 'data'});
+
+            const expectedData = 'var data = {"some":"data"};\n'
+                + 'try { module.exports = data; } catch(e) {}';
+
+            assert.equal(result, expectedData);
+        });
+
+        it('should stringify passed data', () => {
+            sandbox.stub(JSON, 'stringify');
+
+            utils.prepareCommonJSData({some: 'data'});
+
+            assert.calledOnceWith(JSON.stringify, {some: 'data'});
+        });
+    });
 });

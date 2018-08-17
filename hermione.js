@@ -12,7 +12,7 @@ module.exports = (hermione, opts) => {
     }
 
     plugin
-        .extendCliByGuiCommand()
+        .addCliCommands()
         .init(prepareData, prepareImages);
 };
 
