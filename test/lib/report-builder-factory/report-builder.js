@@ -353,7 +353,7 @@ describe('ReportBuilder', () => {
     });
 
     describe('addUpdated', () => {
-        it('should add "idle" status to result', () => {
+        it('should add "updated" status to result', () => {
             const reportBuilder = mkReportBuilder_();
 
             reportBuilder.addUpdated(stubTest_());
@@ -384,6 +384,29 @@ describe('ReportBuilder', () => {
 
             assert.match(imagesInfo[0], {stateName: 'plain1', status: UPDATED});
             assert.match(imagesInfo[1], {stateName: 'plain2', status: FAIL});
+        });
+
+        it('should not rewrite status to "updated" if test has failed states', () => {
+            const reportBuilder = mkReportBuilder_();
+
+            const failedTest = stubTest_({
+                imagesInfo: [
+                    {stateName: 'plain1', status: FAIL},
+                    {stateName: 'plain2', status: FAIL}
+                ]
+            });
+            const updatedTest = stubTest_({
+                imagesInfo: [
+                    {stateName: 'plain1', status: UPDATED}
+                ]
+            });
+
+            reportBuilder.addFail(failedTest);
+            reportBuilder.addUpdated(updatedTest);
+
+            const {status} = getReportBuilderResult_(reportBuilder);
+
+            assert.equal(status, FAIL);
         });
 
         it('should update last test image if state name was not passed', () => {
