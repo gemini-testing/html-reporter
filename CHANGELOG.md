@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.21.0"></a>
+# [2.21.0](https://github.com/gemini-testing/html-reporter/compare/v2.20.8...v2.21.0) (2018-09-04)
+
+
+### Features
+
+* add merge-reports command ([b8ba30b](https://github.com/gemini-testing/html-reporter/commit/b8ba30b))
+
+
+
 <a name="2.20.8"></a>
 ## [2.20.8](https://github.com/gemini-testing/html-reporter/compare/v2.20.7...v2.20.8) (2018-08-28)
 
