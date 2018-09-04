@@ -13,7 +13,7 @@ module.exports = (gemini, opts) => {
     }
 
     plugin
-        .extendCliByGuiCommand()
+        .addCliCommands()
         .init(prepareData, prepareImages);
 };
 

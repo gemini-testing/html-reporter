@@ -9,11 +9,10 @@ const {stubTool, stubConfig} = require('../utils');
 
 describe('lib/plugin-adapter', () => {
     const sandbox = sinon.createSandbox();
+    const cliCommands = {};
     let parseConfig;
     let tool;
-    let toolName;
     let toolReporter;
-    let gui;
     let commander;
     let prepareData;
     let prepareImages;
@@ -31,22 +30,22 @@ describe('lib/plugin-adapter', () => {
         return stubTool(stubConfig(), Object.assign(events, {RUNNER_END: 'runnerEnd'}));
     }
 
-    function initReporter_(opts = {}) {
+    function initReporter_(opts = {}, toolName) {
         opts = _.defaults(opts, {enabled: true});
         parseConfig.returns(opts);
 
         return toolReporter.create(tool, opts, toolName)
-            .extendCliByGuiCommand()
+            .addCliCommands()
             .init(prepareData, prepareImages);
     }
 
-    function initApiReporter_(opts) {
-        initReporter_(opts);
+    function initApiReporter_(opts, toolName) {
+        initReporter_(opts, toolName);
         return tool.emitAndWait(tool.events.INIT);
     }
 
-    function initCliReporter_(opts, {command = 'foo'} = {}) {
-        initReporter_(opts);
+    function initCliReporter_(opts, {command = 'foo'} = {}, toolName) {
+        initReporter_(opts, toolName);
 
         const commander = mkCommander_(command);
         tool.emit(tool.events.CLI, commander);
@@ -76,23 +75,24 @@ describe('lib/plugin-adapter', () => {
 
     [
         {
-            name: 'gemini',
+            toolName: 'gemini',
             initTool: mkGemini_
         },
         {
-            name: 'hermione',
+            toolName: 'hermione',
             initTool: mkHermione_
         }
-    ].forEach(({name, initTool}) => {
-        describe(`${name}`, () => {
+    ].forEach(({toolName, initTool}) => {
+        describe(`${toolName}`, () => {
             beforeEach(() => {
                 tool = initTool();
-                toolName = name;
                 parseConfig = sandbox.stub().returns({enabled: true});
-                gui = sandbox.stub();
+                cliCommands.gui = sandbox.stub();
+                cliCommands['merge-reports'] = sandbox.stub();
                 toolReporter = proxyquire('lib/plugin-adapter', {
                     './config': parseConfig,
-                    './gui': gui
+                    './cli-commands/gui': cliCommands.gui,
+                    './cli-commands/merge-reports': cliCommands['merge-reports']
                 });
             });
 
@@ -121,26 +121,31 @@ describe('lib/plugin-adapter', () => {
                 });
             });
 
-            describe('gui', () => {
-                it('should register gui command on "CLI" event', () => {
-                    const opts = {enabled: true};
-                    const commander = mkCommander_('gui');
+            [
+                'gui',
+                'merge-reports'
+            ].forEach((commandName) => {
+                describe(`${commandName} command`, () => {
+                    it('should register command on "CLI" event', () => {
+                        const opts = {enabled: true};
+                        const commander = mkCommander_(commandName);
 
-                    parseConfig.withArgs(opts).returns(opts);
-                    const plugin = toolReporter.create(tool, opts, toolName);
+                        parseConfig.withArgs(opts).returns(opts);
+                        const plugin = toolReporter.create(tool, opts, toolName);
 
-                    plugin.extendCliByGuiCommand();
-                    tool.emit(tool.events.CLI, commander);
+                        plugin.addCliCommands();
+                        tool.emit(tool.events.CLI, commander);
 
-                    assert.calledOnceWith(gui, commander, tool, opts);
-                });
+                        assert.calledOnceWith(cliCommands[commandName], commander, opts, tool);
+                    });
 
-                it(`should not register gui command if ${toolName} called via API`, () => {
-                    return initApiReporter_().then(() => assert.notCalled(gui));
-                });
+                    it(`should not register command if ${toolName} called via API`, () => {
+                        return initApiReporter_({}, toolName).then(() => assert.notCalled(cliCommands[commandName]));
+                    });
 
-                it('should not init html-reporter on running gui command', () => {
-                    return initCliReporter_({}, {command: 'gui'}).then(() => assert.notCalled(ReportBuilder.create));
+                    it('should not init html-reporter on running command', () => {
+                        return initCliReporter_({}, {command: commandName}, toolName).then(() => assert.notCalled(ReportBuilder.create));
+                    });
                 });
             });
 
@@ -158,11 +163,11 @@ describe('lib/plugin-adapter', () => {
                 });
 
                 it(`should init html-reporter if ${toolName} called via API`, () => {
-                    return initApiReporter_().then(() => assert.calledOnce(ReportBuilder.create));
+                    return initApiReporter_({}, toolName).then(() => assert.calledOnce(ReportBuilder.create));
                 });
 
                 it('should prepare data', () => {
-                    return initCliReporter_()
+                    return initCliReporter_({}, {}, toolName)
                         .then(() => assert.calledOnceWith(prepareData, tool, reportBuilder));
                 });
 
@@ -170,12 +175,12 @@ describe('lib/plugin-adapter', () => {
                     const config = {enabled: true};
                     parseConfig.returns(config);
 
-                    return initCliReporter_()
+                    return initCliReporter_({}, {}, toolName)
                         .then(() => assert.calledOnceWith(prepareImages, tool, config, reportBuilder));
                 });
 
                 it('should save report', () => {
-                    return initCliReporter_()
+                    return initCliReporter_({}, {}, toolName)
                         .then(() => {
                             tool.emit(tool.events.END);
 
@@ -186,7 +191,7 @@ describe('lib/plugin-adapter', () => {
                 });
 
                 it('should log correct path to html report', () => {
-                    return initCliReporter_()
+                    return initCliReporter_({}, {}, toolName)
                         .then(() => {
                             ReportBuilder.prototype.save.resolves({reportPath: 'some/path'});
                             tool.emit(tool.events.END);
