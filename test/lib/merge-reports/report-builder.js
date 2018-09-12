@@ -19,6 +19,7 @@ describe('lib/merge-reports/report-builder', () => {
         sandbox.stub(serverUtils.logger, 'warn');
         sandbox.stub(fs, 'moveAsync');
         sandbox.stub(fs, 'writeFile');
+        sandbox.stub(fs, 'readdirAsync').resolves([]);
 
         sandbox.stub(DataTree, 'create').returns(Object.create(DataTree.prototype));
         sandbox.stub(DataTree.prototype, 'mergeWith').resolves();
@@ -26,24 +27,26 @@ describe('lib/merge-reports/report-builder', () => {
 
     afterEach(() => sandbox.restore());
 
-    it('should move "images" folder from first source report to destination report', async () => {
-        const srcFilePath = path.resolve('src-report/path-1', 'images');
-        const destFilePath = path.resolve('dest-report/path', 'images');
+    it('should move contents of first source report to destination report', async () => {
+        fs.readdirAsync.resolves(['file-path']);
+
+        const srcFilePath = path.resolve('src-report/path-1', 'file-path');
+        const destFilePath = path.resolve('dest-report/path', 'file-path');
 
         await buildReport_(['src-report/path-1', 'src-report/path-2'], 'dest-report/path');
 
-        assert.calledWith(fs.moveAsync, srcFilePath, destFilePath);
+        assert.calledWith(fs.moveAsync, srcFilePath, destFilePath, {overwrite: true});
     });
 
-    ['index.html', 'report.min.js', 'report.min.css'].forEach((fileName) => {
-        it(`should move "${fileName}" file from first source report to destination report`, async () => {
-            const srcFilePath = path.resolve('src-report/path-1', fileName);
-            const destFilePath = path.resolve('dest-report/path', fileName);
+    it('should not move "data.js" file from first source report to destinatino report', async () => {
+        fs.readdirAsync.resolves(['file-path', 'data.js']);
 
-            await buildReport_(['src-report/path-1', 'src-report/path-2'], 'dest-report/path');
+        const srcDataPath = path.resolve('src-report/path-1', 'data.js');
+        const destPath = path.resolve('dest-report/path');
 
-            assert.calledWith(fs.moveAsync, srcFilePath, destFilePath);
-        });
+        await buildReport_(['src-report/path-1', 'src-report/path-2'], 'dest-report/path');
+
+        assert.neverCalledWith(fs.moveAsync, srcDataPath, destPath);
     });
 
     it('should not fail if data file does not find in source report path', async () => {
