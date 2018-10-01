@@ -299,6 +299,7 @@
 
 .cswitcher__item, .tab-switcher__button {
     width: 22px;
+    padding: 0;
 }
 
 .cswitcher__item_selected.cswitcher__item::before {
