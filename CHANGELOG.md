@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.22.0"></a>
+# [2.22.0](https://github.com/gemini-testing/html-reporter/compare/v2.21.3...v2.22.0) (2018-10-10)
+
+
+### Bug Fixes
+
+* reset native paddings from retry-buttons ([18dea98](https://github.com/gemini-testing/html-reporter/commit/18dea98))
+
+
+### Features
+
+* Sticky "Accept" button ([e40fbb2](https://github.com/gemini-testing/html-reporter/commit/e40fbb2))
+
+
+
 <a name="2.21.3"></a>
 ## [2.21.3](https://github.com/gemini-testing/html-reporter/compare/v2.21.2...v2.21.3) (2018-09-18)
 
