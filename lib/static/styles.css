@@ -353,6 +353,16 @@ a:active {
     display: block;
 }
 
+.tab__item .button_type_suite-controls {
+    position: sticky;
+    top: 0;
+    border-color: #bbb;
+}
+
+.tab__item .button_type_suite-controls:hover {
+    border-color: #555;
+}
+
 .tab-switcher, .cswitcher {
     display: inline-block;
     vertical-align: top;
