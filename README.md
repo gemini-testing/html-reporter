@@ -23,6 +23,7 @@ directory.
   * `failed` - show only failed tests.
 * **baseHost** (optional) - `String` - it changes original host for view in the browser; by default original host does not change
 * **scaleImages** (optional) – `Boolean` – fit images into page width; `false` by default
+* **lazyLoadOffset** (optional) - `Number` - allows you to specify how far above and below the viewport you want to begin loading images. Lazy loading would be disabled if you specify 0. `800` by default.
 
 Also there is ability to override plugin parameters by CLI options or environment variables
 (see [configparser](https://github.com/gemini-testing/configparser)).

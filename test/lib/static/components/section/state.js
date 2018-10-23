@@ -98,4 +98,35 @@ describe('<State/>', () => {
             assert.isTrue(imageContainer.hasClass('image-box__container_scale'));
         });
     });
+
+    describe('lazyLoad', () => {
+        it('should load images lazy if lazy load offset is specified', () => {
+            const stateComponent = mkConnectedComponent(
+                <State state={mkTestResult_({status: 'success'})} acceptHandler={() => {}} />,
+                {initialState: {view: {lazyLoadOffset: 800}}}
+            );
+            const lazyLoadContainer = stateComponent.find('.LazyLoad');
+
+            assert.lengthOf(lazyLoadContainer, 1);
+        });
+
+        it('should not load images lazy if lazy load offset is 0', () => {
+            const stateComponent = mkConnectedComponent(
+                <State state={mkTestResult_({status: 'success'})} acceptHandler={() => {}} />,
+                {initialState: {view: {lazyLoadOffset: 0}}}
+            );
+            const lazyLoadContainer = stateComponent.find('.LazyLoad');
+
+            assert.lengthOf(lazyLoadContainer, 0);
+        });
+
+        it('should not load images lazy of lazy load offset is not specified', () => {
+            const stateComponent = mkConnectedComponent(
+                <State state={mkTestResult_({status: 'success'})} acceptHandler={() => {}} />
+            );
+            const lazyLoadContainer = stateComponent.find('.LazyLoad');
+
+            assert.lengthOf(lazyLoadContainer, 0);
+        });
+    });
 });
