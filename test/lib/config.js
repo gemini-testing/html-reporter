@@ -1,6 +1,7 @@
 'use strict';
 
 const parseConfig = require('../../lib/config');
+const {config: configDefaults} = require('../../lib/constants/defaults');
 
 describe('config', () => {
     beforeEach(function() {
@@ -15,6 +16,7 @@ describe('config', () => {
         delete process.env['html_reporter_default_view'];
         delete process.env['html_reporter_base_host'];
         delete process.env['html_reporter_scale_images'];
+        delete process.env['html_reporter_lazy_load_offset'];
     });
 
     describe('"enabled" option', () => {
@@ -134,6 +136,36 @@ describe('config', () => {
             process.argv = process.argv.concat('--html-reporter-scale-images', 'true');
 
             assert.isTrue(parseConfig({}).scaleImages);
+        });
+    });
+
+    describe('"lazyLoadOffset" option', () => {
+        it('should has default value', () => {
+            assert.equal(parseConfig({}).lazyLoadOffset, configDefaults.lazyLoadOffset);
+        });
+
+        it('should set from configuration file', () => {
+            const config = parseConfig({
+                lazyLoadOffset: 700
+            });
+
+            assert.equal(config.lazyLoadOffset, 700);
+        });
+
+        it('should set from environment variable', () => {
+            process.env['html_reporter_lazy_load_offset'] = 600;
+
+            assert.equal(parseConfig({}).lazyLoadOffset, 600);
+        });
+
+        it('should set from cli', () => {
+            process.argv = process.argv.concat('--html-reporter-lazy-load-offset', 500);
+
+            assert.equal(parseConfig({}).lazyLoadOffset, 500);
+        });
+
+        it('should validate if passed value is number', () => {
+            assert.throws(() => parseConfig({lazyLoadOffset: 'some-value'}), /option must be number, but got string/);
         });
     });
 });

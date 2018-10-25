@@ -20,6 +20,7 @@ exports.mkTestResult_ = (result) => {
     return _.defaults(result, {
         suiteUrl: '',
         metaInfo: {},
-        imagesInfo: []
+        imagesInfo: [],
+        expectedPath: ''
     });
 };
