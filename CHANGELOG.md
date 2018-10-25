@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.23.0"></a>
+# [2.23.0](https://github.com/gemini-testing/html-reporter/compare/v2.22.0...v2.23.0) (2018-10-25)
+
+
+### Features
+
+* add ability to configure lazy loading ([#147](https://github.com/gemini-testing/html-reporter/issues/147)) ([ada7628](https://github.com/gemini-testing/html-reporter/commit/ada7628))
+
+
+
 <a name="2.22.0"></a>
 # [2.22.0](https://github.com/gemini-testing/html-reporter/compare/v2.21.3...v2.22.0) (2018-10-10)
 
