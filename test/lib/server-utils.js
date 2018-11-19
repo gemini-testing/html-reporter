@@ -99,4 +99,18 @@ describe('server-utils', () => {
             assert.calledOnceWith(JSON.stringify, {some: 'data'});
         });
     });
+
+    describe('normalizeToPosixPath', () => {
+        it('should normalize a windows style path', () => {
+            const path = '\\\\windows\\style\\path.js';
+            const result = utils.normalizeToPosixPath(path);
+            assert.equal(result, '//windows/style/path.js');
+        });
+
+        it('should not change a posix path', () => {
+            const path = '//windows/style/path.js';
+            const result = utils.normalizeToPosixPath(path);
+            assert.equal(result, '//windows/style/path.js');
+        });
+    });
 });
