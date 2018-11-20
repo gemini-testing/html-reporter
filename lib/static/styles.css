@@ -132,6 +132,7 @@
     flex-basis: 33.333%;
     flex-grow: 1;
     box-sizing: border-box;
+    max-width: 100%;
 }
 
 .image-box__screenshot {
@@ -467,6 +468,14 @@ a:active {
     display: inline-block;
     font-size: 16px;
     vertical-align: middle;
+}
+
+.image-box__placeholder {
+    position: relative;
+    display: table-cell;
+    max-width: 100%;
+    height: 0;
+    background: #fff;
 }
 
 @-webkit-keyframes scale {

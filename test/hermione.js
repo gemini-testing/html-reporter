@@ -213,7 +213,7 @@ describe('lib/hermione', () => {
 
         return initReporter_({path: '/absolute'})
             .then(() => {
-                const testData = {assertViewResults: [{refImagePath: 'ref/path', stateName: 'plain'}]};
+                const testData = {assertViewResults: [{refImg: {path: 'ref/path'}, stateName: 'plain'}]};
                 hermione.emit(events.TEST_PASS, testData);
                 return hermione.emitAndWait(events.RUNNER_END);
             })
@@ -227,7 +227,7 @@ describe('lib/hermione', () => {
             .then(() => {
                 const err = new NoRefImageError();
                 err.stateName = 'plain';
-                err.currentImagePath = 'current/path';
+                err.currImg = {path: 'current/path'};
                 hermione.emit(events.RETRY, {assertViewResults: [err]});
 
                 return hermione.emitAndWait(events.RUNNER_END);
@@ -242,7 +242,7 @@ describe('lib/hermione', () => {
             .then(() => {
                 const err = new ImageDiffError();
                 err.stateName = 'some-name';
-                err.refImagePath = 'reference/path';
+                err.refImg = {path: 'reference/path'};
                 hermione.emit(events.TEST_FAIL, {assertViewResults: [err]});
                 return hermione.emitAndWait(events.RUNNER_END);
             })
@@ -256,7 +256,7 @@ describe('lib/hermione', () => {
             .then(() => {
                 const err = new ImageDiffError();
                 err.stateName = 'some-name';
-                err.currentImagePath = 'current/path';
+                err.currImg = {path: 'current/path'};
                 hermione.emit(events.TEST_FAIL, {assertViewResults: [err]});
                 return hermione.emitAndWait(events.RUNNER_END);
             })

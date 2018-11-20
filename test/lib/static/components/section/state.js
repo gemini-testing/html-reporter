@@ -1,6 +1,6 @@
 import React from 'react';
 import proxyquire from 'proxyquire';
-import {mkConnectedComponent, mkTestResult_} from '../utils';
+import {mkConnectedComponent, mkTestResult_, mkImg_} from '../utils';
 
 describe('<State/>', () => {
     const sandbox = sinon.sandbox.create();
@@ -15,6 +15,8 @@ describe('<State/>', () => {
             '../../modules/utils': utilsStub
         }).default;
     });
+
+    afterEach(() => sandbox.restore());
 
     it('should render accept button if "gui" is running', () => {
         const stateComponent = mkConnectedComponent(
@@ -100,33 +102,63 @@ describe('<State/>', () => {
     });
 
     describe('lazyLoad', () => {
-        it('should load images lazy if lazy load offset is specified', () => {
+        it('should load images lazy if "lazyLoadOffset" is specified', () => {
             const stateComponent = mkConnectedComponent(
                 <State state={mkTestResult_({status: 'success'})} acceptHandler={() => {}} />,
                 {initialState: {view: {lazyLoadOffset: 800}}}
             );
-            const lazyLoadContainer = stateComponent.find('.LazyLoad');
+            const lazyLoadContainer = stateComponent.find('LazyLoad');
 
             assert.lengthOf(lazyLoadContainer, 1);
         });
 
-        it('should not load images lazy if lazy load offset is 0', () => {
-            const stateComponent = mkConnectedComponent(
-                <State state={mkTestResult_({status: 'success'})} acceptHandler={() => {}} />,
-                {initialState: {view: {lazyLoadOffset: 0}}}
-            );
-            const lazyLoadContainer = stateComponent.find('.LazyLoad');
+        describe('should not load images lazy if passed image does not contain "size" and "lazyLoadOffset" is', () => {
+            it('set to 0', () => {
+                const testResult = mkTestResult_({status: 'success', expectedImg: {path: 'some/path'}});
 
-            assert.lengthOf(lazyLoadContainer, 0);
+                const stateComponent = mkConnectedComponent(
+                    <State state={testResult} acceptHandler={() => {}} />,
+                    {initialState: {view: {lazyLoadOffset: 0}}}
+                );
+                const lazyLoadContainer = stateComponent.find('LazyLoad');
+
+                assert.lengthOf(lazyLoadContainer, 0);
+            });
+
+            it('not specified', () => {
+                const testResult = mkTestResult_({status: 'success', expectedImg: {path: 'some/path'}});
+
+                const stateComponent = mkConnectedComponent(
+                    <State state={testResult} acceptHandler={() => {}} />
+                );
+                const lazyLoadContainer = stateComponent.find('LazyLoad');
+
+                assert.lengthOf(lazyLoadContainer, 0);
+            });
         });
 
-        it('should not load images lazy of lazy load offset is not specified', () => {
-            const stateComponent = mkConnectedComponent(
-                <State state={mkTestResult_({status: 'success'})} acceptHandler={() => {}} />
-            );
-            const lazyLoadContainer = stateComponent.find('.LazyLoad');
+        describe('should render placeholder with', () => {
+            it('"width" prop equal to passed image width', () => {
+                const expectedImg = mkImg_({size: {width: 200}});
+                const testResult = mkTestResult_({status: 'success', expectedImg});
 
-            assert.lengthOf(lazyLoadContainer, 0);
+                const stateComponent = mkConnectedComponent(
+                    <State state={testResult} acceptHandler={() => {}} />
+                );
+
+                assert.equal(stateComponent.find('Placeholder').prop('width'), 200);
+            });
+
+            it('"paddingTop" prop calculated depending on width and height of the image', () => {
+                const expectedImg = mkImg_({size: {width: 200, height: 100}});
+                const testResult = mkTestResult_({status: 'success', expectedImg});
+
+                const stateComponent = mkConnectedComponent(
+                    <State state={testResult} acceptHandler={() => {}} />
+                );
+
+                assert.equal(stateComponent.find('Placeholder').prop('paddingTop'), '50.00%');
+            });
         });
     });
 });

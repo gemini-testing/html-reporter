@@ -1,6 +1,6 @@
 import React from 'react';
 import proxyquire from 'proxyquire';
-import {mkConnectedComponent, mkTestResult_} from '../utils';
+import {mkConnectedComponent, mkTestResult_, mkImg_} from '../utils';
 import {SUCCESS, FAIL, ERROR} from 'lib/constants/test-statuses';
 
 describe('<Body />', () => {
@@ -46,7 +46,7 @@ describe('<Body />', () => {
 
     it('should call "acceptTest" action on Accept button click', () => {
         const retries = [];
-        const imagesInfo = [{status: ERROR, actualPath: 'some/path', reason: {}, image: true}];
+        const imagesInfo = [{status: ERROR, actualImg: mkImg_(), reason: {}, image: true}];
         const testResult = mkTestResult_({name: 'bro', imagesInfo});
         utilsStub.isAcceptable.withArgs(imagesInfo[0]).returns(true);
 
@@ -60,8 +60,8 @@ describe('<Body />', () => {
 
     it('should render state for each state image', () => {
         const imagesInfo = [
-            {stateName: 'plain1', status: ERROR, actualPath: 'some/path', reason: {}},
-            {stateName: 'plain2', status: ERROR, actualPath: 'some/path', reason: {}}
+            {stateName: 'plain1', status: ERROR, actualImg: mkImg_(), reason: {}},
+            {stateName: 'plain2', status: ERROR, actualImg: mkImg_(), reason: {}}
         ];
         const testResult = mkTestResult_({name: 'bro', imagesInfo});
 
@@ -79,7 +79,7 @@ describe('<Body />', () => {
     });
 
     it('should render additional tab if test errored without screenshot', () => {
-        const imagesInfo = [{stateName: 'plain1', status: SUCCESS, expectedPath: 'some/path'}];
+        const imagesInfo = [{stateName: 'plain1', status: SUCCESS, expectedImg: mkImg_()}];
         const testResult = mkTestResult_({status: ERROR, multipleTabs: true, reason: {}, imagesInfo});
 
         const component = mkConnectedComponent(<Body result={testResult} suite={{name: 'some-suite'}} />);
@@ -89,7 +89,7 @@ describe('<Body />', () => {
 
     describe('errored additional tab', () => {
         it('should render if test errored without screenshot and tool can use multi tabs', () => {
-            const imagesInfo = [{stateName: 'plain1', status: SUCCESS, expectedPath: 'some/path'}];
+            const imagesInfo = [{stateName: 'plain1', status: SUCCESS, expectedImg: mkImg_()}];
             const testResult = mkTestResult_({status: ERROR, multipleTabs: true, reason: {}, imagesInfo});
 
             const component = mkConnectedComponent(<Body result={testResult} suite={{name: 'some-suite'}} />);
@@ -98,7 +98,7 @@ describe('<Body />', () => {
         });
 
         it('should not render if tool does not use multi tabs', () => {
-            const imagesInfo = [{stateName: 'plain1', status: SUCCESS, expectedPath: 'some/path'}];
+            const imagesInfo = [{stateName: 'plain1', status: SUCCESS, expectedImg: mkImg_()}];
             const testResult = mkTestResult_({status: ERROR, multipleTabs: false, reason: {}, screenshot: 'some-screen', imagesInfo});
 
             const component = mkConnectedComponent(<Body result={testResult} suite={{name: 'some-suite'}} />);
@@ -107,7 +107,7 @@ describe('<Body />', () => {
         });
 
         it('should not render if test errored with screenshot', () => {
-            const imagesInfo = [{stateName: 'plain1', status: SUCCESS, expectedPath: 'some/path'}];
+            const imagesInfo = [{stateName: 'plain1', status: SUCCESS, expectedImg: mkImg_()}];
             const testResult = mkTestResult_({status: ERROR, multipleTabs: true, reason: {}, screenshot: 'some-screen', imagesInfo});
 
             const component = mkConnectedComponent(<Body result={testResult} suite={{name: 'some-suite'}} />);
@@ -117,7 +117,7 @@ describe('<Body />', () => {
 
         [SUCCESS, FAIL].forEach((status) => {
             it(`should not render if test ${status}ed`, () => {
-                const imagesInfo = [{stateName: 'plain1', status: SUCCESS, expectedPath: 'some/path'}];
+                const imagesInfo = [{stateName: 'plain1', status: SUCCESS, expectedImg: mkImg_()}];
                 const testResult = mkTestResult_({status, multipleTabs: true, reason: {}, imagesInfo});
 
                 const component = mkConnectedComponent(<Body result={testResult} suite={{name: 'some-suite'}} />);
