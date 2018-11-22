@@ -120,6 +120,14 @@ describe('ReportBuilder', () => {
         assert.match(reportBuilder.getResult(), {foo: 'bar'});
     });
 
+    it('should set passed extra items', () => {
+        const reportBuilder = mkReportBuilder_();
+
+        reportBuilder.setExtraItems({some: 'item'});
+
+        assert.deepEqual(reportBuilder.getResult().extraItems, {some: 'item'});
+    });
+
     it('should add skipped test to result', () => {
         const reportBuilder = mkReportBuilder_();
 

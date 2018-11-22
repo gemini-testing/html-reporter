@@ -5,6 +5,7 @@ const _ = require('lodash');
 const proxyquire = require('proxyquire');
 const {logger} = require('lib/server-utils');
 const ReportBuilder = require('lib/report-builder-factory/report-builder');
+const PluginApi = require('lib/plugin-api');
 const {stubTool, stubConfig} = require('../utils');
 
 describe('lib/plugin-adapter', () => {
@@ -137,6 +138,14 @@ describe('lib/plugin-adapter', () => {
                         tool.emit(tool.events.CLI, commander);
 
                         assert.calledOnceWith(cliCommands[commandName], commander, opts, tool);
+                    });
+
+                    it('should add api', () => {
+                        const opts = {enabled: true};
+                        const plugin = toolReporter.create(tool, opts, toolName);
+
+                        assert.deepEqual(plugin.addApi(), plugin);
+                        assert.instanceOf(tool.htmlReporter, PluginApi);
                     });
 
                     it(`should not register command if ${toolName} called via API`, () => {

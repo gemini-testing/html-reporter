@@ -12,6 +12,7 @@ module.exports = (hermione, opts) => {
     }
 
     plugin
+        .addApi()
         .addCliCommands()
         .init(prepareData, prepareImages);
 };
@@ -26,7 +27,11 @@ function prepareData(hermione, reportBuilder) {
 
         hermione.on(hermione.events.RETRY, failHandler);
 
-        hermione.on(hermione.events.RUNNER_END, (stats) => resolve(reportBuilder.setStats(stats)));
+        hermione.on(hermione.events.RUNNER_END, (stats) => resolve(
+            reportBuilder
+                .setStats(stats)
+                .setExtraItems(hermione.htmlReporter.extraItems)
+        ));
     });
 
     function failHandler(testResult) {

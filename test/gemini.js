@@ -61,6 +61,7 @@ describe('lib/gemini', () => {
     beforeEach(() => {
         gemini = mkGemini_();
 
+        sandbox.spy(PluginAdapter.prototype, 'addApi');
         sandbox.spy(PluginAdapter.prototype, 'addCliCommands');
         sandbox.spy(PluginAdapter.prototype, 'init');
 
@@ -74,6 +75,7 @@ describe('lib/gemini', () => {
 
         sandbox.spy(ReportBuilder.prototype, 'setStats');
         sandbox.stub(ReportBuilder.prototype, 'addSuccess');
+        sandbox.stub(ReportBuilder.prototype, 'setExtraItems');
         sandbox.stub(ReportBuilder.prototype, 'save');
     });
 
@@ -85,6 +87,11 @@ describe('lib/gemini', () => {
         });
     });
 
+    it('should add api', () => {
+        return initReporter_()
+            .then(() => assert.calledOnce(PluginAdapter.prototype.addApi));
+    });
+
     it('should add cli commands', () => {
         return initReporter_()
             .then(() => assert.calledOnce(PluginAdapter.prototype.addCliCommands));
@@ -92,6 +99,16 @@ describe('lib/gemini', () => {
 
     it('should init plugin', () => {
         return initReporter_().then(() => assert.calledOnce(PluginAdapter.prototype.init));
+    });
+
+    it('should set extra items', () => {
+        return initReporter_()
+            .then(() => {
+                gemini.htmlReporter.addExtraItem('some', 'item');
+                gemini.emit(gemini.events.END);
+
+                assert.calledOnceWith(ReportBuilder.prototype.setExtraItems, {some: 'item'});
+            });
     });
 
     it('should save statistic', () => {

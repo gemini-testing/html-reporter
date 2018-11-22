@@ -23,6 +23,7 @@ describe('lib/gui/tool-runner-factory/hermione/report-subscriber', () => {
         reportBuilder = sinon.createStubInstance(ReportBuilder);
         sandbox.stub(ReportBuilder, 'create').returns(reportBuilder);
         reportBuilder.save.resolves();
+        reportBuilder.setExtraItems.returns(reportBuilder);
 
         client = new EventEmitter();
         sandbox.spy(client, 'emit');

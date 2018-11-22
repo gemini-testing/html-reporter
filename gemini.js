@@ -13,6 +13,7 @@ module.exports = (gemini, opts) => {
     }
 
     plugin
+        .addApi()
         .addCliCommands()
         .init(prepareData, prepareImages);
 };
@@ -31,7 +32,11 @@ function prepareData(gemini, reportBuilder) {
 
         gemini.on(gemini.events.ERROR, (result) => reportBuilder.addError(result));
 
-        gemini.on(gemini.events.END, (stats) => resolve(reportBuilder.setStats(stats)));
+        gemini.on(gemini.events.END, (stats) => resolve(
+            reportBuilder
+                .setStats(stats)
+                .setExtraItems(gemini.htmlReporter.extraItems)
+        ));
     });
 }
 
