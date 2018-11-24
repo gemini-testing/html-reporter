@@ -12,6 +12,9 @@ module.exports = {
         report: ['./index.js', './styles.css'],
         gui: ['./gui.js', './styles.css', './gui.css']
     },
+    resolve:{
+      extensions:[ '.ts','.tsx','.js','.jsx']
+    },
     context: staticPath,
     output: {
         path: staticPath,
