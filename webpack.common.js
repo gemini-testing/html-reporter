@@ -36,7 +36,10 @@ module.exports = {
             },
             {
                 test: /\.(j|t)s(x)?$/,
-                use: 'awesome-typescript-loader',
+                use: [
+                    'awesome-typescript-loader',
+                    'tslint-loader'
+                ],
                 exclude: /node_modules/
             }
         ]
