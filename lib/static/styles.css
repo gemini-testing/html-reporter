@@ -105,10 +105,6 @@
     border-radius: 0 2px 2px 0;
 }
 
-.control-group__item:hover:after {
-    border-color: #555;
-}
-
 .image-box {
     padding: 5px 10px;
     border: 1px solid #ccc;
@@ -405,15 +401,6 @@ a:active {
 
 .toggle-open_collapsed .toggle-open__content {
     display: none;
-}
-
-.text-input {
-    outline: 0;
-    line-height: 14px;
-    margin-left: 3px;
-    padding: 3px 5px;
-    border: 1px solid #ccc;
-    border-radius: 2px;
 }
 
 .overlay {
