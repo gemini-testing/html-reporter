@@ -3,7 +3,7 @@
   "version": "2.23.0",
   "description": "Plugin for gemini and hermione which is intended to aggregate the results of tests running into html report",
   "scripts": {
-    "lint": "tslint ./lib/**/*",
+    "lint": "tslint --config ./tslint.json  ./lib/**/*",
     "test": "npm run lint && npm run test-unit",
     "test-unit": "mocha test",
     "precommit": "npm run lint",
@@ -48,7 +48,9 @@
     "signal-exit": "^3.0.2",
     "temp": "^0.8.3",
     "tslint": "^5.11.0",
+    "tslint-config-prettier": "^1.16.0",
     "tslint-loader": "^3.5.4",
+    "tslint-react": "^3.6.0",
     "typescript": "^3.1.6",
     "urijs": "^1.18.12"
   },

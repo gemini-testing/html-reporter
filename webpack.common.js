@@ -10,8 +10,8 @@ const staticPath = path.resolve(__dirname, 'lib', 'static');
 module.exports = {
     context: staticPath,
     entry: {
-        report: ['./index.tsx', './styles.css'],
-        gui: ['./gui.tsx', './styles.css', './gui.css']
+        report: ['./index.js', './styles.css'],
+        gui: ['./gui.js', './styles.css', './gui.css']
     },
     resolve:{
       extensions:[ '.ts','.tsx','.js','.jsx']
@@ -40,7 +40,7 @@ module.exports = {
                 test: /\.(js|ts)x?$/,
                 exclude: /node_modules/,
                 use: [
-                    // 'tslint-loader',
+                    'tslint-loader',
                     'awesome-typescript-loader'
                 ],
             }
