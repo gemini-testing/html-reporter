@@ -1,7 +1,7 @@
 {
     "linterOptions": {
       "exclude": [
-        "node_moduels",
+        "node_modules",
         "**/*.html",
         "**/*.css",
         "**/*.opts",
@@ -25,7 +25,8 @@
       "import-spacing": true,
       "indent": [
         true,
-        "spaces"
+        "spaces",
+        4
       ],
       "interface-over-type-literal": true,
       "label-position": true,

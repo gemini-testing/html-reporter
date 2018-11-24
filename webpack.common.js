@@ -8,14 +8,14 @@ const HtmlWebpackIncludeAssetsPlugin = require('html-webpack-include-assets-plug
 const staticPath = path.resolve(__dirname, 'lib', 'static');
 
 module.exports = {
+    context: staticPath,
     entry: {
-        report: ['./index.js', './styles.css'],
-        gui: ['./gui.js', './styles.css', './gui.css']
+        report: ['./index.tsx', './styles.css'],
+        gui: ['./gui.tsx', './styles.css', './gui.css']
     },
     resolve:{
       extensions:[ '.ts','.tsx','.js','.jsx']
     },
-    context: staticPath,
     output: {
         path: staticPath,
         filename: '[name].min.js',
@@ -28,24 +28,28 @@ module.exports = {
                 test: /\.css$/,
                 loader: ExtractTextPlugin.extract({
                     fallback: 'style-loader',
-                    use: [{
-                        loader: 'css-loader',
-                        options: {minimize: true}
-                    }]
+                    use: [
+                        {
+                            loader: 'css-loader',
+                            options: {minimize: true}
+                        }
+                    ]
                 })
             },
             {
-                test: /\.(j|t)s(x)?$/,
+                test: /\.(js|ts)x?$/,
+                exclude: /node_modules/,
                 use: [
-                    'awesome-typescript-loader',
-                    'tslint-loader'
+                    // 'tslint-loader',
+                    'awesome-typescript-loader'
                 ],
-                exclude: /node_modules/
             }
         ]
     },
     plugins: [
-        new ExtractTextPlugin('[name].min.css'),
+        new ExtractTextPlugin({
+            filename: '[name].min.css'
+        }),
         new HtmlWebpackPlugin({
             title: 'HTML report',
             filename: 'index.html',
