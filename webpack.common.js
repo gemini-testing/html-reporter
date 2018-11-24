@@ -32,8 +32,8 @@ module.exports = {
                 })
             },
             {
-                test: /\.js$/,
-                use: 'babel-loader',
+                test: /\.(j|t)s(x)?$/,
+                use: 'awesome-typescript-loader',
                 exclude: /node_modules/
             }
         ]
