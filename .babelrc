@@ -1,7 +1,0 @@
-{
-    "presets": ["env", "react", "stage-0"],
-    "plugins": [
-        ["transform-runtime", {"polyfill": false}],
-        ["babel-plugin-transform-builtin-extend", {"globals": ["Error", "Array"]}]
-    ]
-}
