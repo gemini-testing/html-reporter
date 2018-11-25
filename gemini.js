@@ -39,7 +39,7 @@ function prepareImages(gemini, pluginConfig, reportBuilder) {
     const {path: reportPath} = pluginConfig;
 
     function handleErrorEvent(result) {
-        var src = result.getImagePath() || result.currentPath;
+        const src = result.getImagePath() || result.currentPath;
 
         return src && utils.copyImageAsync(src, utils.getCurrentAbsolutePath(result, reportPath));
     }

@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "resolveJsonModule": true,
     "baseUrl": ".",
     "outDir": "build/dist",
     "module": "esnext",
@@ -24,6 +25,8 @@
     "scripts",
     "acceptance-tests",
     "webpack",
-    "src/setupTests.ts"
+  ],
+  "include": [
+    "./**/*",
   ]
 }
