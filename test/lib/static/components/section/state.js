@@ -12,7 +12,13 @@ describe('<State/>', () => {
         utilsStub = {isAcceptable: sandbox.stub()};
 
         State = proxyquire('lib/static/components/state', {
-            '../../modules/utils': utilsStub
+            '../../modules/utils': utilsStub,
+            '../lazy-load': {
+                '@global': true,
+                default: function LazyLoad() {
+                    return <div/>;
+                }
+            }
         }).default;
     });
 
@@ -105,7 +111,7 @@ describe('<State/>', () => {
                 <State state={mkTestResult_({status: 'success'})} acceptHandler={() => {}} />,
                 {initialState: {view: {lazyLoadOffset: 800}}}
             );
-            const lazyLoadContainer = stateComponent.find('.LazyLoad');
+            const lazyLoadContainer = stateComponent.find('LazyLoad');
 
             assert.lengthOf(lazyLoadContainer, 1);
         });
@@ -115,7 +121,7 @@ describe('<State/>', () => {
                 <State state={mkTestResult_({status: 'success'})} acceptHandler={() => {}} />,
                 {initialState: {view: {lazyLoadOffset: 0}}}
             );
-            const lazyLoadContainer = stateComponent.find('.LazyLoad');
+            const lazyLoadContainer = stateComponent.find('LazyLoad');
 
             assert.lengthOf(lazyLoadContainer, 0);
         });
@@ -124,7 +130,7 @@ describe('<State/>', () => {
             const stateComponent = mkConnectedComponent(
                 <State state={mkTestResult_({status: 'success'})} acceptHandler={() => {}} />
             );
-            const lazyLoadContainer = stateComponent.find('.LazyLoad');
+            const lazyLoadContainer = stateComponent.find('LazyLoad');
 
             assert.lengthOf(lazyLoadContainer, 0);
         });
