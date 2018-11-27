@@ -25,9 +25,9 @@
     "build",
     "scripts",
     "acceptance-tests",
-    "webpack",
+    "webpack"
   ],
   "include": [
-    "./**/*",
+    "./**/*"
   ]
 }
