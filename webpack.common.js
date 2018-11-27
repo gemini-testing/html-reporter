@@ -14,7 +14,7 @@ module.exports = {
         gui: ['./gui.js', './styles.css', './gui.css']
     },
     resolve: {
-      extensions: ['.ts', '.tsx', '.js', '.jsx']
+        extensions: ['.ts', '.tsx', '.js', '.jsx']
     },
     output: {
         path: staticPath,
@@ -42,7 +42,7 @@ module.exports = {
                 use: [
                     'tslint-loader',
                     'awesome-typescript-loader'
-                ],
+                ]
             }
         ]
     },

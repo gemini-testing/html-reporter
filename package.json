@@ -11,6 +11,7 @@
     "start": "webpack-dev-server --config=webpack.dev.js --progress --colors --hot --inline",
     "commitmsg": "conventional-changelog-lint -e",
     "release": "standard-version",
+    "build": "NODE_ENV=production webpack --config=webpack.prod.js",
     "watch": "webpack --progress -d --config=webpack.dev.js --watch"
   },
   "repository": {
