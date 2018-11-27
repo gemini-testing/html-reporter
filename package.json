@@ -11,6 +11,7 @@
     "start": "webpack-dev-server --config=webpack.dev.js --progress --colors --hot --inline",
     "commitmsg": "conventional-changelog-lint -e",
     "release": "standard-version",
+    "build": "NODE_ENV=production webpack --config=webpack.prod.js",
     "watch": "webpack --progress -d --config=webpack.dev.js --watch"
   },
   "repository": {
@@ -107,7 +108,7 @@
     "react-dom": "^16.0.0",
     "react-lazy-load": "^3.0.13",
     "react-redux": "^5.0.6",
-    "redux": "^3.7.2",
+    "redux": "^4.0.0",
     "redux-logger": "^3.0.6",
     "redux-mock-store": "^1.5.1",
     "redux-thunk": "^2.2.0",
