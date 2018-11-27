@@ -196,6 +196,16 @@ describe('ReportBuilder', () => {
         assert.equal(reportBuilder.getResult().config.baseHost, 'some-host');
     });
 
+    it('should sort suites by name', () => {
+        const reportBuilder = mkReportBuilder_();
+        reportBuilder.addSuccess(stubTest_({state: {name: 'some-state'}}));
+        reportBuilder.addSuccess(stubTest_({state: {name: 'other-state'}}));
+
+        const names = _.map(reportBuilder.getResult().suites[0].children, 'name');
+
+        assert.sameOrderedMembers(names, ['other-state', 'some-state']);
+    });
+
     describe('suite statuses', () => {
         const getSuiteResult_ = (reportBuilder) => reportBuilder.getResult().suites[0].children[0];
 
