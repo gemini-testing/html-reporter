@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.24.0"></a>
+# [2.24.0](https://github.com/gemini-testing/html-reporter/compare/v2.23.0...v2.24.0) (2018-11-27)
+
+
+### Bug Fixes
+
+* не падать, а перезаписывать файл ([4eae6f5](https://github.com/gemini-testing/html-reporter/commit/4eae6f5))
+
+
+### Features
+
+* sort suites in report by name ([#161](https://github.com/gemini-testing/html-reporter/issues/161)) ([8aad41a](https://github.com/gemini-testing/html-reporter/commit/8aad41a))
+
+
+
 <a name="2.23.0"></a>
 # [2.23.0](https://github.com/gemini-testing/html-reporter/compare/v2.22.0...v2.23.0) (2018-10-25)
 
