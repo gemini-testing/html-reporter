@@ -7,7 +7,7 @@ import ControlButtons from './controls/gui-controls';
 import SkippedList from './skipped-list';
 import Suites from './suites';
 
-class Gui extends Component {
+class Gui extends Component<any> {
     componentDidMount() {
         this.props.gui && this.props.initial();
     }
@@ -23,4 +23,4 @@ class Gui extends Component {
     }
 }
 
-export default connect(({gui}) => ({gui}), {initial})(Gui);
+export default connect(({gui}: any) => ({gui}), {initial})(Gui);
