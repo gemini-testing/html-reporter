@@ -19,7 +19,7 @@ module.exports = class SuiteAdapter {
         protected _suite: any,
         protected _config: any
     ) {
-        console.log(_suite, _config);
+        // console.log(_suite, _config);
     }
 
     protected _wrapSkipComment(skipComment: string) {
