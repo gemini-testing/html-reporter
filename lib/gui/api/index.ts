@@ -2,7 +2,7 @@
 const ApiFacade = require('./facade');
 
 module.exports = class Api {
-    _gui: any
+    private _gui: any
     static create(tool: any) {
         return new Api(tool);
     }
