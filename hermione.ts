@@ -1,10 +1,10 @@
 'use strict';
 
-const Promise = require('bluebird');
+const Bluebird = require('bluebird');
 const PluginAdapter = require('./lib/plugin-adapter');
 const {saveTestImages, saveBase64Screenshot} = require('./lib/reporter-helpers');
 
-module.exports = (hermione, opts) => {
+module.exports = (hermione: any, opts: any) => {
     const plugin = PluginAdapter.create(hermione, opts, 'hermione');
 
     if (!plugin.isEnabled()) {
@@ -16,20 +16,20 @@ module.exports = (hermione, opts) => {
         .init(prepareData, prepareImages);
 };
 
-function prepareData(hermione, reportBuilder) {
-    return new Promise((resolve) => {
-        hermione.on(hermione.events.TEST_PENDING, (testResult) => reportBuilder.addSkipped(testResult));
+function prepareData(hermione: any, reportBuilder: any) {
+    return new Bluebird((resolve: any) => {
+        hermione.on(hermione.events.TEST_PENDING, (testResult: any) => reportBuilder.addSkipped(testResult));
 
-        hermione.on(hermione.events.TEST_PASS, (testResult) => reportBuilder.addSuccess(testResult));
+        hermione.on(hermione.events.TEST_PASS, (testResult: any) => reportBuilder.addSuccess(testResult));
 
         hermione.on(hermione.events.TEST_FAIL, failHandler);
 
         hermione.on(hermione.events.RETRY, failHandler);
 
-        hermione.on(hermione.events.RUNNER_END, (stats) => resolve(reportBuilder.setStats(stats)));
+        hermione.on(hermione.events.RUNNER_END, (stats: any) => resolve(reportBuilder.setStats(stats)));
     });
 
-    function failHandler(testResult) {
+    function failHandler(testResult: any) {
         const formattedResult = reportBuilder.format(testResult);
 
         return formattedResult.hasDiff()
@@ -38,10 +38,10 @@ function prepareData(hermione, reportBuilder) {
     }
 }
 
-function prepareImages(hermione, pluginConfig, reportBuilder) {
+function prepareImages(hermione: any, pluginConfig: any, reportBuilder: any) {
     const {path: reportPath} = pluginConfig;
 
-    function failHandler(testResult) {
+    function failHandler(testResult: any) {
         const formattedResult = reportBuilder.format(testResult);
         const actions = [saveTestImages(formattedResult, reportPath)];
 
@@ -49,21 +49,21 @@ function prepareImages(hermione, pluginConfig, reportBuilder) {
             actions.push(saveBase64Screenshot(formattedResult, reportPath));
         }
 
-        return Promise.all(actions);
+        return Bluebird.all(actions);
     }
 
-    return new Promise((resolve, reject) => {
-        let queue = Promise.resolve();
+    return new Bluebird((resolve: any, reject: any) => {
+        let queue = Bluebird.resolve();
 
-        hermione.on(hermione.events.TEST_PASS, (testResult) => {
+        hermione.on(hermione.events.TEST_PASS, (testResult: any) => {
             queue = queue.then(() => saveTestImages(reportBuilder.format(testResult), reportPath));
         });
 
-        hermione.on(hermione.events.RETRY, (testResult) => {
+        hermione.on(hermione.events.RETRY, (testResult: any) => {
             queue = queue.then(() => failHandler(testResult));
         });
 
-        hermione.on(hermione.events.TEST_FAIL, (testResult) => {
+        hermione.on(hermione.events.TEST_FAIL, (testResult: any) => {
             queue = queue.then(() => failHandler(testResult));
         });
 

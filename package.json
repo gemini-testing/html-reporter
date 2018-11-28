@@ -1,9 +1,9 @@
 {
-  "name": "html-reporter",
-  "version": "2.23.0",
+  "name": "harry-reporter",
+  "version": "1.0.0",
   "description": "Plugin for gemini and hermione which is intended to aggregate the results of tests running into html report",
   "scripts": {
-    "lint": "tslint ./lib/**/*.ts ./test/**/*.ts -e \"node_modules/**\"",
+    "lint": "tslint -c tslint.json ./**/*.ts ./**/*.tsx -e \"node_modules\"",
     "test": "npm run lint && npm run test-unit",
     "test-unit": "mocha test",
     "precommit": "npm run test",
@@ -16,10 +16,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/gemini-testing/html-reporter.git"
+    "url": "git+https://github.com/SukachevAlex/html-reporter.git"
   },
   "bugs": {
-    "url": "https://github.com/gemini-testing/html-reporter/issues"
+    "url": "https://github.com/SukachevAlex/html-reporter/issues"
   },
   "engines": {
     "node": ">= 6"
@@ -30,7 +30,7 @@
     "plugin",
     "html-reporter"
   ],
-  "homepage": "https://github.com/gemini-testing/html-reporter#readme",
+  "homepage": "https://github.com/SukachevAlex/html-reporter#readme",
   "license": "MIT",
   "dependencies": {
     "@types/enzyme-adapter-react-16": "^1.0.3",
