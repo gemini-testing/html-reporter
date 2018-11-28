@@ -10,8 +10,8 @@ const staticPath = path.resolve(__dirname, 'lib', 'static');
 module.exports = {
     context: staticPath,
     entry: {
-        report: ['./index.js', './styles.css'],
-        gui: ['./gui.js', './styles.css', './gui.css']
+        report: ['./index.tsx', './styles.css'],
+        gui: ['./gui.tsx', './styles.css', './gui.css']
     },
     resolve: {
         extensions: ['.ts', '.tsx', '.js', '.jsx']
