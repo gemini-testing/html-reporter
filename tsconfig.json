@@ -1,10 +1,33 @@
 {
   "compilerOptions": {
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "outDir": "build/dist",
+    "module": "esnext",
     "target": "es5",
-    "module": "commonjs",
+    "lib": ["es6", "dom"],
+    "sourceMap": true,
     "allowJs": true,
-    "jsx": "react"
+    "jsx": "react",
+    "moduleResolution": "node",
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noImplicitAny": true,
+    "importHelpers": true,
+    "strictNullChecks": true,
+    "allowSyntheticDefaultImports": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "noUnusedLocals": true
   },
-  "exclude": ["node_modules"],
-  "include": ["./**/*"]
+  "exclude": [
+    "node_modules",
+    "build",
+    "scripts",
+    "acceptance-tests",
+    "webpack"
+  ],
+  "include": [
+    "./**/*"
+  ]
 }

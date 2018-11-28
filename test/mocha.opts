@@ -1,4 +1,4 @@
---require babel-register
+--compilers ts:ts-node/register,tsx:ts-node/register,js:babel-register
 --require raf/polyfill
 --require jsdom-global/register
 --require ./test/setup
