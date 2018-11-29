@@ -38,7 +38,10 @@ describe('ReportBuilder', () => {
             },
             imageDir: '',
             imagesInfo,
-            getImagesInfo: () => imagesInfo
+            getImagesInfo: () => imagesInfo,
+            getRefImg: () => ({}),
+            getCurrImg: () => ({}),
+            getErrImg: () => ({})
         });
     };
 

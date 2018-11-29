@@ -1,6 +1,8 @@
 'use strict';
 
-const GeminiTestResultAdapter = require('../../../lib/test-adapter/gemini-test-adapter');
+const proxyquire = require('proxyquire');
+const GeminiTestResultAdapter = require('lib/test-adapter/gemini-test-adapter');
+const {IDLE} = require('lib/constants/test-statuses');
 
 describe('gemini test adapter', () => {
     const sandbox = sinon.sandbox.create();
@@ -35,6 +37,57 @@ describe('gemini test adapter', () => {
         });
     });
 
+    describe('getImagesInfo', () => {
+        describe('should set "imagesInfo" field', () => {
+            it('for "idle" status', () => {
+                const geminiTestAdapter = new GeminiTestResultAdapter({refImg: 'image-data'});
+
+                geminiTestAdapter.getImagesInfo(IDLE);
+
+                assert.deepEqual(geminiTestAdapter.imagesInfo, [{status: IDLE, expectedImg: 'image-data'}]);
+            });
+
+            describe('for not "idle" status', () => {
+                let StubGeminiTestResultAdapter;
+                let serverUtilsStub;
+
+                beforeEach(() => {
+                    serverUtilsStub = {getImagesFor: sandbox.stub()};
+
+                    StubGeminiTestResultAdapter = proxyquire('lib/test-adapter/gemini-test-adapter', {
+                        '../server-utils': serverUtilsStub
+                    });
+                });
+
+                it('with empty "reason"', () => {
+                    const geminiTestAdapter = new StubGeminiTestResultAdapter({});
+                    serverUtilsStub.getImagesFor
+                        .withArgs('some-status', geminiTestAdapter)
+                        .returns({expectedImg: 'image-data'});
+
+                    geminiTestAdapter.getImagesInfo('some-status');
+
+                    assert.deepEqual(geminiTestAdapter.imagesInfo, [
+                        {status: 'some-status', reason: null, expectedImg: 'image-data'}
+                    ]);
+                });
+
+                it('with "reason"', () => {
+                    const geminiTestAdapter = new StubGeminiTestResultAdapter({message: 'msg', stack: 'stck'});
+                    serverUtilsStub.getImagesFor
+                        .withArgs('some-status', geminiTestAdapter)
+                        .returns({expectedImg: 'image-data'});
+
+                    geminiTestAdapter.getImagesInfo('some-status');
+
+                    assert.deepEqual(geminiTestAdapter.imagesInfo, [
+                        {status: 'some-status', reason: {message: 'msg', stack: 'stck'}, expectedImg: 'image-data'}
+                    ]);
+                });
+            });
+        });
+    });
+
     it('should save diff with passed args', () => {
         const saveDiffTo = sandbox.stub();
         const testResult = {saveDiffTo};
@@ -53,17 +106,25 @@ describe('gemini test adapter', () => {
         assert.deepEqual(geminiTestAdapter.imageDir, 'some-path/some-name');
     });
 
-    it('should return image path', () => {
-        const geminiTestAdapter = new GeminiTestResultAdapter({imagePath: 'some-value'});
-
-        assert.equal(geminiTestAdapter.getImagePath(), 'some-value');
-    });
-
-    ['state', 'attempt', 'referencePath', 'currentPath'].forEach((field) => {
+    ['state', 'attempt'].forEach((field) => {
         it(`should return ${field} from test result`, () => {
             const geminiTestAdapter = new GeminiTestResultAdapter({[field]: 'some-value'});
 
             assert.equal(geminiTestAdapter[field], 'some-value');
+        });
+    });
+
+    [
+        {field: 'refImg', method: 'getRefImg'},
+        {field: 'currImg', method: 'getCurrImg'},
+        {field: 'img', method: 'getErrImg'}
+    ].forEach(({field, method}) => {
+        describe(`${method}`, () => {
+            it(`should return ${field} from test result`, () => {
+                const geminiTestAdapter = new GeminiTestResultAdapter({[field]: 'some-value'});
+
+                assert.equal(geminiTestAdapter[method](), 'some-value');
+            });
         });
     });
 

@@ -103,6 +103,33 @@ describe('hermione test adapter', () => {
         assert.deepEqual(hermioneTestAdapter.description, 'some-description');
     });
 
+    [
+        {field: 'refImg', method: 'getRefImg'},
+        {field: 'currImg', method: 'getCurrImg'}
+    ].forEach(({field, method}) => {
+        describe(`${method}`, () => {
+            it(`should return ${field} from test result`, () => {
+                const testResult = {assertViewResults: [
+                    {[field]: 'some-value', stateName: 'plain'}
+                ]};
+
+                const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+
+                assert.equal(hermioneTestAdapter[method]('plain'), 'some-value');
+            });
+        });
+    });
+
+    describe('getErrImg', () => {
+        it('should return error screenshot from test result', () => {
+            const testResult = {err: {screenshot: 'some-value'}};
+
+            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+
+            assert.equal(hermioneTestAdapter.getErrImg(), 'some-value');
+        });
+    });
+
     describe('prepareTestResult()', () => {
         it('should return correct "name" field', () => {
             const testResult = {

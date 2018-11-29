@@ -16,11 +16,18 @@ exports.mkConnectedComponent = (Component, {initialState} = {}) => {
     return mount(<Provider store={store}>{Component}</Provider>);
 };
 
+exports.mkImg_ = (opts = {}) => {
+    return _.defaultsDeep(opts, {
+        path: 'default/path',
+        size: {width: 100500, height: 500100}
+    });
+};
+
 exports.mkTestResult_ = (result) => {
     return _.defaults(result, {
         suiteUrl: '',
         metaInfo: {},
         imagesInfo: [],
-        expectedPath: ''
+        expectedImg: exports.mkImg_()
     });
 };

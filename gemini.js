@@ -44,7 +44,7 @@ function prepareImages(gemini, pluginConfig, reportBuilder) {
     const {path: reportPath} = pluginConfig;
 
     function handleErrorEvent(result) {
-        var src = result.getImagePath() || result.currentPath;
+        const src = result.getCurrImg().path || result.getErrImg().path;
 
         return src && utils.copyImageAsync(src, utils.getCurrentAbsolutePath(result, reportPath));
     }
@@ -71,11 +71,6 @@ function prepareImages(gemini, pluginConfig, reportBuilder) {
         });
 
         gemini.on(gemini.events.UPDATE_RESULT, (testResult) => {
-            testResult = Object.assign(testResult, {
-                referencePath: testResult.imagePath,
-                equal: true
-            });
-
             queue = queue.then(() => saveTestImages(reportBuilder.format(testResult), reportPath));
         });
 
