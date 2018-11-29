@@ -2,19 +2,19 @@
 
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
-import PropTypes from 'prop-types';
 import SummaryKey from './item';
 
-class Summary extends Component {
-    static propTypes = {
-        stats: PropTypes.shape({
-            total: PropTypes.number.isRequired,
-            passed: PropTypes.number.isRequired,
-            failed: PropTypes.number.isRequired,
-            skipped: PropTypes.number.isRequired,
-            retries: PropTypes.number.isRequired
-        })
+interface ISummaryProps {
+    stats: {
+        total: number,
+        passed: number,
+        failed: number,
+        skipped: number,
+        retries: number
     }
+}
+
+class Summary extends Component<ISummaryProps> {
 
     render() {
         const {total, passed, failed, skipped, retries} = this.props.stats;
@@ -31,4 +31,6 @@ class Summary extends Component {
     }
 }
 
-export default connect((state) => ({stats: state.stats}))(Summary);
+export default connect<ISummaryProps>((state: ISummaryProps) => ({
+            stats: state.stats
+        }))(Summary);
