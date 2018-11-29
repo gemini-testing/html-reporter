@@ -410,7 +410,7 @@ a:active {
 .text-input {
     outline: 0;
     line-height: 14px;
-    margin-left: 3px;
+    margin: 0 5px 0 5px;
     padding: 3px 5px;
     border: 1px solid #ccc;
     border-radius: 2px;
@@ -461,6 +461,12 @@ a:active {
 .preloader > div:nth-child(3) {
     -webkit-animation: scale 0.75s 0s infinite cubic-bezier(0.2, 0.68, 0.18, 1.08);
             animation: scale 0.75s 0s infinite cubic-bezier(0.2, 0.68, 0.18, 1.08);
+}
+
+.menubar-container {
+    display: inline-block;
+    font-size: 16px;
+    vertical-align: middle;
 }
 
 @-webkit-keyframes scale {

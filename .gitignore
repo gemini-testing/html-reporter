@@ -2,6 +2,9 @@ node_modules
 hot
 *.log
 /lib/static/*.min.*
+/lib/static/*.eot
+/lib/static/*.ttf
+/lib/static/*.svg
 /lib/static/data.js
 /lib/static/gui.html
 /lib/static/index.html

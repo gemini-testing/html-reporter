@@ -3,5 +3,6 @@
 --require jsdom-global/register
 --require ./test/setup
 --require ./test/assert-ext
+--require ignore-styles
 -t 0
 --recursive

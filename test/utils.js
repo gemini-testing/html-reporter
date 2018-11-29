@@ -21,6 +21,7 @@ function stubTool(config = stubConfig(), events = {}, errors = {}) {
     tool.errors = errors;
 
     tool.readTests = sinon.stub();
+    tool.htmlReporter = sinon.stub();
 
     return tool;
 }

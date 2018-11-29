@@ -75,6 +75,15 @@ describe('lib/gui/tool-runner-factory/base-tool-runner', () => {
             });
         });
 
+        describe('create', () => {
+            it('should set extra items', () => {
+                tool = {htmlReporter: {extraItems: {some: 'item'}}};
+                initGuiReporter();
+
+                assert.calledWith(reportBuilder.setExtraItems, {some: 'item'});
+            });
+        });
+
         describe(`initialize ${name}`, () => {
             it('should pass paths to "readTests" method', () => {
                 const gui = initGuiReporter({paths: ['foo', 'bar']});

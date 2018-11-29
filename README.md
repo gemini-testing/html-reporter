@@ -111,3 +111,18 @@ Run [eslint](http://eslint.org) codestyle verification
 ```bash
 npm run lint
 ```
+
+## Api
+
+Html-reporter adds to your tool object with api:
+
+### addExtraItem
+
+Adds item to html report as link:
+
+```js
+@param {String} text of link
+@param {String} url of link
+
+tool.htmlReporter.addExtraItem(linkText, linkUrl)
+```
