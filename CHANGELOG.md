@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.0.0"></a>
+# [3.0.0](https://github.com/gemini-testing/html-reporter/compare/v2.25.0...v3.0.0) (2018-11-29)
+
+
+### Features
+
+* set image sizes to screenshot component ([bd6e6fe](https://github.com/gemini-testing/html-reporter/commit/bd6e6fe))
+
+
+### BREAKING CHANGES
+
+* changed format of data emitted on test execution events in gemini and hermione
+
+
+
 <a name="2.25.0"></a>
 # [2.25.0](https://github.com/gemini-testing/html-reporter/compare/v2.24.0...v2.25.0) (2018-11-29)
 
