@@ -53,7 +53,7 @@ export default class HermioneSuiteAdapter extends SuiteAdapter {
             ? url.parse(baseUrl).path as string
             : '';
     }
-};
+}
 
 function getSkipComment(suite: ISuite): string | undefined {
     return suite.skipReason || suite.parent && getSkipComment(suite.parent);

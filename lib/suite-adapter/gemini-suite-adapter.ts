@@ -16,11 +16,14 @@ export default class GeminiSuiteAdapter extends SuiteAdapter {
     }
 
     getUrl(opts: IOptions = {}) {
-        // @ts-ignore
-        const browserConfig = this._config.forBrowser(opts.browserId);
-        const url = browserConfig.getAbsoluteUrl(this._suite.url as string);
+        if (this._config.forBrowser) {
+            const browserConfig = this._config.forBrowser(opts.browserId || '');
+            const url = browserConfig.getAbsoluteUrl(this._suite.url as string);
 
-        return this._configureUrl(url, opts.baseHost || '');
+            return this._configureUrl(url, opts.baseHost || '');
+        }
+
+        return '';
     }
 
     get fullUrl() {
@@ -38,4 +41,4 @@ export default class GeminiSuiteAdapter extends SuiteAdapter {
     get fullName() {
         return this._suite.fullName;
     }
-};
+}

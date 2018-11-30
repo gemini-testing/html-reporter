@@ -31,4 +31,4 @@ export class SuiteAdapter {
             ? url
             : Uri(baseHost).resource(url).href();
     }
-};
+}
