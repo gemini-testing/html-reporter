@@ -6,7 +6,7 @@ import path from 'path';
 import url from 'url';
 
 import {SuiteAdapter} from './suite-adapter';
-import {ISuite} from '../../typings/suite-adapter';
+import {ISuite} from 'typings/suite-adapter';
 
 import {getHermioneUtils} from '../plugin-utils';
 const {getSuitePath} = getHermioneUtils();
@@ -14,6 +14,10 @@ const {getSuitePath} = getHermioneUtils();
 import {IOptions} from 'typings/options';
 
 export default class HermioneSuiteAdapter extends SuiteAdapter {
+    static create(suite: ISuite = {}, config = {}): HermioneSuiteAdapter {
+        return new this(suite, config);
+    }
+
     constructor(
         protected _suite: ISuite,
         protected _config: IOptions = {}

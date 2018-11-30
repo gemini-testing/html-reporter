@@ -1,9 +1,13 @@
 import {SuiteAdapter} from './suite-adapter';
 
-import {ISuite} from '../../typings/suite-adapter';
-import {IOptions} from '../../typings/options';
+import {ISuite} from 'typings/suite-adapter';
+import {IOptions} from 'typings/options';
 
 export default class GeminiSuiteAdapter extends SuiteAdapter {
+    static create(suite: ISuite = {}, config = {}): GeminiSuiteAdapter {
+        return new this(suite, config);
+    }
+
     constructor(
         protected _suite: ISuite,
         protected _config: IOptions = {}
