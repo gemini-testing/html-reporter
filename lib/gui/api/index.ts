@@ -2,18 +2,18 @@
 const ApiFacade = require('./facade');
 import {Application} from 'express';
 
-export interface Tool {
-    gui: { [key: string]: any }
+export interface ITool {
+    gui: { [key: string]: any };
 }
 
 module.exports = class Api {
-    private _gui: { [key: string]: any }
+    private _gui: { [key: string]: any };
 
-    static create(tool: Tool) {
+    static create(tool: ITool) {
         return new Api(tool);
     }
 
-    constructor(tool: Tool) {
+    constructor(tool: ITool) {
         this._gui = tool.gui = ApiFacade.create();
     }
 
