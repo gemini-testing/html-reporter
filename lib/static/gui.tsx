@@ -3,8 +3,8 @@
 import React from 'react';
 import {render} from 'react-dom';
 import {Provider} from 'react-redux';
-import store from './modules/store';
 import Gui from './components/gui';
+import store from './modules/store';
 
 const rootEl = document.querySelector<HTMLDivElement>('#app');
 render(

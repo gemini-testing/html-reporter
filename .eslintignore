@@ -1,5 +1,0 @@
-**/.*
-node_modules
-hot
-/lib/static/*.min.js
-/lib/static/data.js
