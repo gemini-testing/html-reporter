@@ -1,12 +1,12 @@
 import {ITestResult, ITestTool} from 'typings/test-adapter';
-import { SuiteAdapter } from 'lib/suite-adapter/suite-adapter';
+import {SuiteAdapter} from 'lib/suite-adapter/suite-adapter';
 import GeminiSuiteAdapter from 'lib/suite-adapter/gemini-suite-adapter';
 import HermioneSuiteAdapter from 'lib/suite-adapter/hermione-suite-adapter';
 
-module.exports = class TestAdapter {
+export default class TestAdapter {
     protected _suite: SuiteAdapter | HermioneSuiteAdapter | GeminiSuiteAdapter;
 
-    static create(testResult: ITestResult = {}, tool: ITestTool) {
+    static create(testResult: ITestResult = {}, tool: ITestTool): TestAdapter {
         return new this(testResult, tool);
     }
 
@@ -34,4 +34,4 @@ module.exports = class TestAdapter {
     set imagesInfo(imagesInfo) {
         this._testResult.imagesInfo = imagesInfo;
     }
-};
+}
