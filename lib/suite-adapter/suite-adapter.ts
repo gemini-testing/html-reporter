@@ -1,9 +1,8 @@
-'use strict';
-
 import _ from 'lodash';
 import Uri from 'urijs';
 
 import {ISuite} from 'typings/suite-adapter';
+import {IOptions} from 'typings/options';
 
 function wrapLinkByTag(text: string): string {
     return text.replace(/https?:\/\/[^\s]*/g, (url: string) =>
@@ -12,13 +11,13 @@ function wrapLinkByTag(text: string): string {
 }
 
 export class SuiteAdapter {
-    static create(suite: ISuite = {}, config = {}): SuiteAdapter {
+    static create(suite: ISuite, config = {}): SuiteAdapter {
         return new this(suite, config);
     }
 
     constructor(
         protected _suite: ISuite,
-        protected _config: any
+        protected _config: IOptions
     ) {
     }
 

@@ -6,7 +6,7 @@ import HermioneSuiteAdapter from 'lib/suite-adapter/hermione-suite-adapter';
 export default class TestAdapter {
     protected _suite: SuiteAdapter | HermioneSuiteAdapter | GeminiSuiteAdapter;
 
-    static create(testResult: ITestResult = {}, tool: ITestTool): TestAdapter {
+    static create(testResult: ITestResult = {}, tool: ITestTool = {}): TestAdapter {
         return new this(testResult, tool);
     }
 

@@ -1,5 +1,3 @@
-'use strict';
-
 import _ from 'lodash';
 
 import path from 'path';
@@ -14,7 +12,7 @@ const {getSuitePath} = getHermioneUtils();
 import {IOptions} from 'typings/options';
 
 export default class HermioneSuiteAdapter extends SuiteAdapter {
-    static create(suite: ISuite = {}, config = {}): HermioneSuiteAdapter {
+    static create(suite: ISuite, config = {}): HermioneSuiteAdapter {
         return new this(suite, config);
     }
 

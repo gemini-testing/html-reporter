@@ -1,7 +1,7 @@
 'use strict';
 
 const _ = require('lodash');
-const HermioneTestResultAdapter = require('../../../lib/test-adapter/hermione-test-adapter');
+const HermioneTestResultAdapter = require('lib/test-adapter/hermione-test-adapter');
 const {stubTool, stubConfig} = require('../../utils');
 
 describe('hermione test adapter', () => {
@@ -32,7 +32,9 @@ describe('hermione test adapter', () => {
             }
         };
 
+        console.log('-----');
         const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {config});
+        console.log(hermioneTestAdapter.attempt);
 
         assert.equal(hermioneTestAdapter.attempt, 4);
     });

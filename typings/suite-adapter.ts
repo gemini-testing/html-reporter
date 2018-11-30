@@ -10,13 +10,13 @@ export interface ISuite {
     tests?: ISuite[];
     fullUrl?: string;
     parent?: ISuite;
+    path?: string[];
     title?: string;
     sync?: boolean;
     async?: number;
     root?: boolean;
     type?: string;
     body?: string;
-    path?: string;
     file?: string;
     url?: string;
     ctx?: string;

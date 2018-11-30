@@ -1,11 +1,9 @@
-'use strict';
-
 const _ = require('lodash');
 import TestAdapter from './test-adapter';
 import HermioneSuiteAdapter from '../suite-adapter/hermione-suite-adapter';
 
 import {getHermioneUtils} from '../plugin-utils';
-const getSuitePath = getHermioneUtils();
+const {getSuitePath} = getHermioneUtils();
 
 import {getPathsFor} from '../server-utils';
 import { ITestResult, ITestTool } from 'typings/test-adapter';
@@ -15,26 +13,26 @@ const {SUCCESS, FAIL, ERROR} = require('../constants/test-statuses');
 module.exports = class HermioneTestResultAdapter extends TestAdapter {
     protected _errors: any;
 
-    static create(testResult: ITestResult = {}, tool: ITestTool): HermioneTestResultAdapter {
+    static create(testResult: ITestResult, tool: ITestTool): HermioneTestResultAdapter {
         return new this(testResult, tool);
     }
 
     constructor(
-        protected _testResult: ITestResult,
-        protected _tool: ITestTool
+        protected _testResult: ITestResult = {},
+        protected _tool: ITestTool = {}
     ) {
-        super(_testResult, _testResult);
+        super(_testResult, _tool);
 
         this._errors = this._tool.errors;
         this._suite = HermioneSuiteAdapter.create(this._testResult);
     }
 
     hasDiff() {
-        return this.assertViewResults.some((result: any) => this.isImageDiffError(result));
+        return this.assertViewResults && this.assertViewResults.some((result: any) => this.isImageDiffError(result));
     }
 
     get assertViewResults() {
-        return this._testResult.assertViewResults || [];
+        return this._testResult.assertViewResults;
     }
 
     isImageDiffError(assertResult: any) {
@@ -50,7 +48,7 @@ module.exports = class HermioneTestResultAdapter extends TestAdapter {
             return this.imagesInfo;
         }
 
-        this.imagesInfo = this.assertViewResults.map((assertResult) => {
+        this.imagesInfo = this.assertViewResults && this.assertViewResults.map((assertResult) => {
             let status;
             let reason;
 
@@ -79,7 +77,7 @@ module.exports = class HermioneTestResultAdapter extends TestAdapter {
                 getPathsFor(ERROR, this)
             );
 
-            this.imagesInfo.push(errorImage);
+            this.imagesInfo && this.imagesInfo.push(errorImage);
         }
 
         return this.imagesInfo;
@@ -102,17 +100,14 @@ module.exports = class HermioneTestResultAdapter extends TestAdapter {
         return {name: this._testResult.title};
     }
 
-    get attempt() {
-        let {attempt} = this._testResult;
-        if (!attempt && typeof attempt !== 'number') attempt = -1;
-
-        if (attempt >= 0) {
-            return attempt;
+     get attempt() {
+        if (this._testResult.attempt as number >= 0) {
+            return this._testResult.attempt;
         }
 
         const {retry} = this._tool.config.forBrowser(this._testResult.browserId);
-        return this._testResult.retriesLeft && this._testResult.retriesLeft >= 0
-            ? retry - this._testResult.retriesLeft - 1
+        return this._testResult.retriesLeft as number >= 0
+            ? retry - (this._testResult.retriesLeft as number) - 1
             : retry;
     }
 
