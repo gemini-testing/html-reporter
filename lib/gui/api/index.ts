@@ -9,7 +9,6 @@ export interface Tool {
 module.exports = class Api {
     private _gui: { [key: string]: any }
 
-
     static create(tool: Tool) {
         return new Api(tool);
     }
