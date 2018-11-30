@@ -3,7 +3,7 @@
 import _ from 'lodash';
 import Uri from 'urijs';
 
-import {ISuite} from 'typings/suite-adapter';
+import {ISuite} from '../../typings/suite-adapter';
 
 function wrapLinkByTag(text: string): string {
     return text.replace(/https?:\/\/[^\s]*/g, (url: string) =>

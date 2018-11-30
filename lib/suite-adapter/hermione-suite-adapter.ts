@@ -6,7 +6,7 @@ import path from 'path';
 import url from 'url';
 
 import {SuiteAdapter} from './suite-adapter';
-import {ISuite} from 'typings/suite-adapter';
+import {ISuite} from '../../typings/suite-adapter';
 
 import {getHermioneUtils} from '../plugin-utils';
 const {getSuitePath} = getHermioneUtils();
