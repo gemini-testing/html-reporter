@@ -1,4 +1,5 @@
 export interface ISuite {
+    acceptTestAttempt?: number;
     imagesInfo?: string[];
     skipComment?: string;
     skipReason?: string;
@@ -15,6 +16,8 @@ export interface ISuite {
     sync?: boolean;
     async?: number;
     root?: boolean;
+    browsers?: any;
+    children?: any;
     type?: string;
     body?: string;
     file?: string;
