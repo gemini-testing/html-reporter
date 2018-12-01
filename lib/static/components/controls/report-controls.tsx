@@ -7,7 +7,7 @@ import CommonControls from './common-controls';
 class ControlButtons extends Component {
     render() {
         return (
-            <div className="control-buttons">
+            <div className='control-buttons'>
                 <CommonControls/>
             </div>
         );

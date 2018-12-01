@@ -4,7 +4,7 @@ import React, {Component} from 'react';
 import classNames from 'classnames';
 import {Button} from 'semantic-ui-react';
 
-interface PropTypes {
+interface IControlButton {
     label: string;
     handler: () => any;
     isActive?: boolean;
@@ -14,15 +14,13 @@ interface PropTypes {
     isControlGroup?: boolean;
 }
 
-export default class ControlButton extends Component<PropTypes> {
+export default class ControlButton extends Component<IControlButton> {
 
     render() {
-        const {label, handler, isActive, isAction, isSuiteControl, isControlGroup, isDisabled = false} = this.props;
+        const {label, handler, isSuiteControl, isControlGroup, isDisabled = false} = this.props;
         const className = classNames(
             'button',
             {'button_type_suite-controls': isSuiteControl},
-            {'button_checked': isActive},
-            {'button_type_action': isAction},
             {'control-group__item': isControlGroup}
         );
 

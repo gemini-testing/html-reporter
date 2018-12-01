@@ -7,7 +7,7 @@ import {Select} from 'semantic-ui-react';
 interface IViewSelect {
     view: any;
     actions: any;
-    options: Array<any>;
+    options: any;
 
 }
 
@@ -22,7 +22,7 @@ class ViewSelect extends Component<IViewSelect> {
         const {view, options} = this.props;
 
         return (
-            <Select className="select_type_view" value={view.viewMode} onChange={this._onChange} options={options}>
+            <Select className='select_type_view' value={view.viewMode} onChange={this._onChange} options={options}>
             </Select>
         );
     }

@@ -6,12 +6,12 @@ import ControlButton from './button';
 import ViewSelect from './view-select';
 import BaseHostInput from './base-host';
 
-interface propsInterface {
-    view: any; //todo write type
-    actions: any; ////todo write type
+interface IControlButtons {
+    view: any;
+    actions: any;
 }
 
-class ControlButtons extends Component<propsInterface> {
+class ControlButtons extends Component<IControlButtons> {
     render() {
         const {view, actions} = this.props;
 
@@ -21,49 +21,49 @@ class ControlButtons extends Component<propsInterface> {
                     {value: 'all', text: 'Show all'},
                     {value: 'failed', text: 'Show only failed'}
                 ]}/>
-                <div className="control-group">
+                <div className='control-group'>
                     <ControlButton
-                        label="Expand all"
+                        label='Expand all'
                         isControlGroup={true}
                         isActive={view.expand === 'all'}
                         handler={actions.expandAll}
                     />
                     <ControlButton
-                        label="Collapse all"
+                        label='Collapse all'
                         isControlGroup={true}
                         isActive={view.expand === 'none'}
                         handler={actions.collapseAll}
                     />
                     <ControlButton
-                        label="Expand errors"
+                        label='Expand errors'
                         isControlGroup={true}
                         isActive={view.expand === 'errors'}
                         handler={actions.expandErrors}
                     />
                     <ControlButton
-                        label="Expand retries"
+                        label='Expand retries'
                         isControlGroup={true}
                         isActive={view.expand === 'retries'}
                         handler={actions.expandRetries}
                     />
                 </div>
                 <ControlButton
-                    label="Show skipped"
+                    label='Show skipped'
                     isActive={view.showSkipped}
                     handler={actions.toggleSkipped}
                 />
                 <ControlButton
-                    label="Show only diff"
+                    label='Show only diff'
                     isActive={view.showOnlyDiff}
                     handler={actions.toggleOnlyDiff}
                 />
                 <ControlButton
-                    label="Scale images"
+                    label='Scale images'
                     isActive={view.scaleImages}
                     handler={actions.toggleScaleImages}
                 />
                 <ControlButton
-                    label="Lazy image load"
+                    label='Lazy image load'
                     isActive={Boolean(view.lazyLoadOffset)}
                     handler={actions.toggleLazyLoad}
                 />

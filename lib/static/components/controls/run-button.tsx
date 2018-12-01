@@ -18,6 +18,6 @@ export default class RunButton extends Component<IRunButton> {
     render() {
         const {handler, isDisabled} = this.props;
 
-        return (<ControlButton label="Run" isAction={true} handler={handler} isDisabled={isDisabled} />);
+        return (<ControlButton label='Run' isAction={true} handler={handler} isDisabled={isDisabled} />);
     }
 }

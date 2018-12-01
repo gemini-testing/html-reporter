@@ -7,12 +7,12 @@ import {connect} from 'react-redux';
 import * as actions from '../../modules/actions';
 import {Input} from 'semantic-ui-react';
 
-interface propTypesInterface {
+interface IBaseHostInput {
     baseHost: string;
     actions: any;
 }
 
-class BaseHostInput extends Component<propTypesInterface> {
+class BaseHostInput extends Component<IBaseHostInput> {
 
     constructor(props: any) {
         super(props);
@@ -22,10 +22,10 @@ class BaseHostInput extends Component<propTypesInterface> {
     render() {
         return (
             <Input
-                className="text-input"
-                size="medium"
+                className='text-input'
+                size='medium'
                 value={this.props.baseHost}
-                placeholder="change original host for view in browser"
+                placeholder='change original host for view in browser'
                 onChange={this._onChange}
             />
         );
@@ -36,13 +36,7 @@ class BaseHostInput extends Component<propTypesInterface> {
     }
 }
 
-interface myState {
-    view: {
-        baseHost: string
-    }
-}
-
 export default connect(
-    (state: myState) => ({baseHost: state.view.baseHost}),
+    (state: any) => ({baseHost: state.view.baseHost}),
     (dispatch) => ({actions: bindActionCreators(actions, dispatch)})
 )(BaseHostInput);

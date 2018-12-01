@@ -18,8 +18,6 @@ interface IControllButtonsProps {
 }
 
 class ControlButtons extends Component<IControllButtonsProps> {
-    
-
     _runFailedTests = () => {
         const {actions, failed} = this.props;
 
@@ -36,19 +34,19 @@ class ControlButtons extends Component<IControllButtonsProps> {
         const {actions, suiteIds, failed, running, autoRun} = this.props;
 
         return (
-            <div className="control-buttons">
+            <div className='control-buttons'>
                 <RunButton
                     autoRun={autoRun}
                     isDisabled={!suiteIds.all.length || running}
                     handler={actions.runAllTests}
                 />
                 <ControlButton
-                    label="Retry failed tests"
+                    label='Retry failed tests'
                     isDisabled={running || !failed.length}
                     handler={this._runFailedTests}
                 />
                 <ControlButton
-                    label="Accept all"
+                    label='Accept all'
                     isDisabled={running || !failed.length}
                     handler={this._acceptAll}
                 />
