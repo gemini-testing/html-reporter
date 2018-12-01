@@ -1,15 +1,14 @@
-'use strict';
-
 import url from 'url';
 import actionNames from './action-names';
 import defaultState from './default-state';
 import {assign, merge, filter, map, clone, cloneDeep, reduce} from 'lodash';
 import {isSuiteFailed, setStatusToAll, findNode, setStatusForBranch} from './utils';
+import { ISuite } from 'typings/suite-adapter';
 
 const compiledData = window.data || defaultState;
 const localStorage = window.localStorage;
 
-function getInitialState(compiledData) {
+function getInitialState(compiledData: any) {
     const {skips, suites, config, total, updated, passed,
         failed, skipped, warned, retries, gui = false} = compiledData;
     const formattedSuites = formatSuitesData(suites);
@@ -28,7 +27,7 @@ function getInitialState(compiledData) {
     }, formattedSuites);
 }
 
-export default function reducer(state = getInitialState(compiledData), action) {
+export default function reducer(state = getInitialState(compiledData), action: any) {
     switch (action.type) {
         case actionNames.VIEW_INITIAL: {
             const {gui, autoRun, suites, skips, config: {scaleImages, lazyLoadOffset}} = action.payload;
@@ -64,7 +63,7 @@ export default function reducer(state = getInitialState(compiledData), action) {
             const test = findNode(suites, suitePath);
             if (test) {
                 test.status = status;
-                test.browsers.forEach((b) => {
+                test.browsers.forEach((b: {name: string, result: {status: string}}) => {
                     if (b.name === browserId) {
                         b.result.status = status;
                     }
@@ -124,10 +123,10 @@ export default function reducer(state = getInitialState(compiledData), action) {
     }
 }
 
-function addTestResult(state, action) {
+function addTestResult(state: any, action: any) {
     const suites = clone(state.suites);
 
-    [].concat(action.payload).forEach((suite) => {
+    [].concat(action.payload).forEach((suite: ISuite) => {
         const {suitePath, browserResult, browserId} = suite;
         const test = findNode(suites, suitePath);
 
@@ -135,7 +134,7 @@ function addTestResult(state, action) {
             return;
         }
 
-        test.browsers.forEach((b) => {
+        test.browsers.forEach((b: {name: string}) => {
             if (b.name === browserId) {
                 Object.assign(b, browserResult);
             }
@@ -150,14 +149,14 @@ function addTestResult(state, action) {
     return assign({}, state, {suiteIds, suites});
 }
 
-function _mutateStateView(state, mutation) {
+function _mutateStateView(state: any, mutation: any) {
     const newView = clone(state.view);
     assign(newView, mutation);
 
     return assign(clone(state), {view: newView});
 }
 
-function _loadBaseHost(configuredHost, storage) {
+function _loadBaseHost(configuredHost: any, storage: any) {
     if (!storage) {
         return configuredHost;
     }
@@ -169,7 +168,7 @@ function _loadBaseHost(configuredHost, storage) {
     return {baseHost, parsedHost};
 }
 
-function _parseHost(baseHost) {
+function _parseHost(baseHost: string) {
     const parsedHost = url.parse(baseHost, false, true);
     return {
         host: parsedHost.slashes ? parsedHost.host : baseHost,
@@ -192,22 +191,22 @@ function formatSuitesData(suites = []) {
     };
 }
 
-function getFailedSuiteIds(suites) {
+function getFailedSuiteIds(suites: ISuite[]) {
     return getSuiteIds(filter(suites, isSuiteFailed));
 }
 
-function getSuiteIds(suites = []) {
+function getSuiteIds(suites: ISuite[] = []) {
     return map(suites, getSuiteId);
 }
 
-function getSuiteId(suite) {
-    return suite.suitePath[0];
+function getSuiteId(suite: ISuite) {
+    return (suite.suitePath as string)[0];
 }
 
 /*
  *  To re-render suite we need to change object reference because of shallow data comparing
  */
-function forceUpdateSuiteData(suites, test) {
+function forceUpdateSuiteData(suites: ISuite[], test: any) {
     const id = getSuiteId(test);
     suites[id] = cloneDeep(suites[id]);
 }

@@ -3,8 +3,10 @@ export interface ISuite {
     imagesInfo?: string[];
     skipComment?: string;
     skipReason?: string;
+    browserResult?: any;
     browserId?: string;
     timedOut?: boolean;
+    suitePath?: string;
     fullName?: string;
     pending?: boolean;
     attempt?: number;
