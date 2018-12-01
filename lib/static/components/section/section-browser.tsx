@@ -2,22 +2,25 @@
 
 import React, {Fragment} from 'react';
 import {connect} from 'react-redux';
-import PropTypes from 'prop-types';
-import SectionBase from './section-base';
-import BrowserTitle from './title/browser';
+import {Base, IBaseProps} from './section-base';
+import SectionBrowserTitle from './title/browser';
 import BrowserSkippedTitle from './title/browser-skipped';
 import Body from './body';
 import {isFailStatus, isErroredStatus, isSkippedStatus} from '../../../common-utils';
 
-export class SectionBrowser extends SectionBase {
-    static propTypes = {
-        browser: PropTypes.shape({
-            name: PropTypes.string.isRequired,
-            result: PropTypes.object.isRequired,
-            retries: PropTypes.array
-        }),
-        suite: PropTypes.object,
-        ...SectionBase.propTypes
+interface ISectionBrowserProps extends IBaseProps {
+    browser: {
+        name: string,
+        result: any,
+        retries: any[]
+    };
+    suite?: {};
+}
+
+export class SectionBrowser extends Base<ISectionBrowserProps>{
+
+    constructor(props: ISectionBrowserProps) {
+        super(props);
     }
 
     render() {
@@ -31,7 +34,7 @@ export class SectionBrowser extends SectionBase {
             ? <BrowserSkippedTitle result={result}/>
             : (
                 <Fragment>
-                    <BrowserTitle name={name} result={result} handler={this._toggleState}/>
+                    <SectionBrowserTitle name={name} result={result} handler={this._toggleState}/>
                     {body}
                 </Fragment>
             );
@@ -43,7 +46,7 @@ export class SectionBrowser extends SectionBase {
         );
     }
 
-    _getStateFromProps() {
+    protected _getStateFromProps() {
         const {expand, browser} = this.props;
         const {result: {status}, retries = []} = browser;
         const failed = isErroredStatus(status) || isFailStatus(status);
@@ -54,6 +57,6 @@ export class SectionBrowser extends SectionBase {
     }
 }
 
-export default connect(
-    ({view: {expand}}) => ({expand})
+export default connect<{}, {}, ISectionBrowserProps>(
+    ({view: {expand}}: any) => ({expand})
 )(SectionBrowser);

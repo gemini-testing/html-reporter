@@ -6,7 +6,7 @@ import {suiteBegin, testBegin, testResult, testsEnd} from '../modules/actions';
 const clientEvents = require('../../gui/constants/client-events');
 
 interface ISuitesProps extends React.Props<any> {
-    suiteIds?: string[];
+    suiteIds?: [string];
     gui?: boolean;
     actions?: any;
 }
