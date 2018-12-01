@@ -32,9 +32,7 @@ describe('hermione test adapter', () => {
             }
         };
 
-        console.log('-----');
         const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {config});
-        console.log(hermioneTestAdapter.attempt);
 
         assert.equal(hermioneTestAdapter.attempt, 4);
     });
