@@ -3,7 +3,7 @@ const runGui = require('../gui');
 const Api = require('../gui/api');
 const {GUI} = require('./');
 
-interface IpluginConfig {
+interface IPluginConfig {
     enabled: boolean;
     path: string;
     defaultView: string;
@@ -12,14 +12,14 @@ interface IpluginConfig {
     lazyLoadOffset: number;
 }
 
-interface Itool {
+interface ITool {
     [key: string]: any;
 }
-interface Iprogram {
+interface IProgram {
     [key: string]: any;
 }
 
-module.exports = (program: Iprogram, pluginConfig: IpluginConfig, tool: Itool) => {
+module.exports = (program: IProgram, pluginConfig: IPluginConfig, tool: ITool) => {
     // must be executed here because it adds `gui` field in `gemini` and `hermione tool`,
     // which is available to other plugins and is an API for interacting with the current plugin
     const guiApi = Api.create(tool);

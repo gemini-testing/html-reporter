@@ -7,7 +7,7 @@ interface IPath {
     path: string;
 }
 
-module.exports = (program: Iprogram, {path}: IPath) => {
+module.exports = (program: IProgram, {path}: IPath) => {
     program
         .command(`${commandName} [paths...]`)
         .allowUnknownOption()
