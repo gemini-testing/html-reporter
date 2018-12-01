@@ -1,8 +1,8 @@
-'use strict';
+import _ from 'lodash';
+import Uri from 'urijs';
 
-// @ts-ignore
-const _ = require('lodash');
-const Uri = require('urijs');
+import {ISuite} from 'typings/suite-adapter';
+import {IOptions} from 'typings/options';
 
 function wrapLinkByTag(text: string): string {
     return text.replace(/https?:\/\/[^\s]*/g, (url: string) =>
@@ -10,25 +10,24 @@ function wrapLinkByTag(text: string): string {
     );
 }
 
-module.exports = class SuiteAdapter {
-    static create(suite = {}, config = {}) {
+export class SuiteAdapter {
+    static create(suite: ISuite, config = {}): SuiteAdapter {
         return new this(suite, config);
     }
 
     constructor(
-        protected _suite: any,
-        protected _config: any
+        protected _suite: ISuite,
+        protected _config: IOptions
     ) {
-        // console.log(_suite, _config);
     }
 
-    protected _wrapSkipComment(skipComment: string) {
+    protected _wrapSkipComment(skipComment?: string): string {
         return skipComment ? wrapLinkByTag(skipComment) : 'Unknown reason';
     }
 
-    protected _configureUrl(url: string, baseHost: string) {
+    protected _configureUrl(url: string, baseHost: string): string {
         return _.isEmpty(baseHost)
             ? url
             : Uri(baseHost).resource(url).href();
     }
-};
+}

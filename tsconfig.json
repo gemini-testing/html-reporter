@@ -1,11 +1,16 @@
 {
   "compilerOptions": {
     "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "pretty": true,
+    "typeRoots": ["./typings", "./node_modules/@types"],
     "baseUrl": ".",
     "outDir": "build/dist",
-    "module": "esnext",
+    "module": "commonjs",
     "target": "es5",
     "lib": ["es6", "dom"],
+    "esModuleInterop": true,
     "sourceMap": true,
     "allowJs": true,
     "jsx": "react",
@@ -22,11 +27,8 @@
   },
   "exclude": [
     "node_modules",
-    "build",
-    "scripts",
-    "acceptance-tests",
     "webpack",
-    "./index.js",
+    "test"
   ],
   "include": [
     "./**/*.ts",

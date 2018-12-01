@@ -1,34 +1,45 @@
-'use strict';
-
 const _ = require('lodash');
-const TestAdapter = require('./test-adapter');
-const HermioneSuiteAdapter = require('../suite-adapter/hermione-suite-adapter');
-const {getSuitePath} = require('../plugin-utils').getHermioneUtils();
-const {getPathsFor} = require('../server-utils');
+import TestAdapter from './test-adapter';
+import HermioneSuiteAdapter from '../suite-adapter/hermione-suite-adapter';
+
+import {getHermioneUtils} from '../plugin-utils';
+const {getSuitePath} = getHermioneUtils();
+
+import {getPathsFor} from '../server-utils';
+import { ITestResult, ITestTool } from 'typings/test-adapter';
+
 const {SUCCESS, FAIL, ERROR} = require('../constants/test-statuses');
 
 module.exports = class HermioneTestResultAdapter extends TestAdapter {
-    constructor(testResult, tool) {
-        super(testResult);
-        this._tool = tool;
-        this._errors = this._tool.errors;
+    protected _errors: any;
 
+    static create(testResult: ITestResult, tool: ITestTool): HermioneTestResultAdapter {
+        return new this(testResult, tool);
+    }
+
+    constructor(
+        protected _testResult: ITestResult = {},
+        protected _tool: ITestTool = {}
+    ) {
+        super(_testResult, _tool);
+
+        this._errors = this._tool.errors;
         this._suite = HermioneSuiteAdapter.create(this._testResult);
     }
 
     hasDiff() {
-        return this.assertViewResults.some((result) => this.isImageDiffError(result));
+        return this.assertViewResults && this.assertViewResults.some((result: any) => this.isImageDiffError(result));
     }
 
     get assertViewResults() {
-        return this._testResult.assertViewResults || [];
+        return this._testResult.assertViewResults;
     }
 
-    isImageDiffError(assertResult) {
+    isImageDiffError(assertResult: any) {
         return assertResult instanceof this._errors.ImageDiffError;
     }
 
-    isNoRefImageError(assertResult) {
+    isNoRefImageError(assertResult: any) {
         return assertResult instanceof this._errors.NoRefImageError;
     }
 
@@ -37,8 +48,9 @@ module.exports = class HermioneTestResultAdapter extends TestAdapter {
             return this.imagesInfo;
         }
 
-        this.imagesInfo = this.assertViewResults.map((assertResult) => {
-            let status, reason;
+        this.imagesInfo = this.assertViewResults && this.assertViewResults.map((assertResult) => {
+            let status;
+            let reason;
 
             if (!(assertResult instanceof Error)) {
                 status = SUCCESS;
@@ -65,7 +77,7 @@ module.exports = class HermioneTestResultAdapter extends TestAdapter {
                 getPathsFor(ERROR, this)
             );
 
-            this.imagesInfo.push(errorImage);
+            this.imagesInfo && this.imagesInfo.push(errorImage);
         }
 
         return this.imagesInfo;
@@ -73,7 +85,7 @@ module.exports = class HermioneTestResultAdapter extends TestAdapter {
 
     // hack which should be removed when html-reporter is able to show all assert view fails for one test
     get _firstAssertViewFail() {
-        return _.find(this._testResult.assertViewResults, (result) => result instanceof Error);
+        return _.find(this._testResult.assertViewResults, (result: Error | any) => result instanceof Error);
     }
 
     get error() {
@@ -81,21 +93,21 @@ module.exports = class HermioneTestResultAdapter extends TestAdapter {
     }
 
     get imageDir() {
-        return this._testResult.id();
+        return this._testResult.id && this._testResult.id();
     }
 
     get state() {
         return {name: this._testResult.title};
     }
 
-    get attempt() {
-        if (this._testResult.attempt >= 0) {
+     get attempt() {
+        if (this._testResult.attempt as number >= 0) {
             return this._testResult.attempt;
         }
 
         const {retry} = this._tool.config.forBrowser(this._testResult.browserId);
-        return this._testResult.retriesLeft >= 0
-            ? retry - this._testResult.retriesLeft - 1
+        return this._testResult.retriesLeft as number >= 0
+            ? retry - (this._testResult.retriesLeft as number) - 1
             : retry;
     }
 
@@ -122,13 +134,14 @@ module.exports = class HermioneTestResultAdapter extends TestAdapter {
         return this._testResult.meta;
     }
 
-    getImagePath(stateName) {
+    getImagePath(stateName: string) {
         return (_.find(this.imagesInfo, {stateName}) || {}).imagePath;
     }
 
     prepareTestResult() {
         const {title: name, browserId} = this._testResult;
-        const suitePath = getSuitePath(this._testResult);
+        // TODO: create typings for that func, and delete "as"
+        const suitePath = (getSuitePath as any)(this._testResult);
 
         return {name, suitePath, browserId};
     }

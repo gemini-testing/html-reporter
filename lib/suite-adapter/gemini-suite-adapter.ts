@@ -1,18 +1,33 @@
-'use strict';
+import {SuiteAdapter} from './suite-adapter';
 
-// @ts-ignore
-const SuiteAdapter = require('./suite-adapter');
+import {ISuite} from 'typings/suite-adapter';
+import {IOptions} from 'typings/options';
 
-module.exports = class GeminiSuiteAdapter extends SuiteAdapter {
+export default class GeminiSuiteAdapter extends SuiteAdapter {
+    static create(suite: ISuite, config = {}): GeminiSuiteAdapter {
+        return new this(suite, config);
+    }
+
+    constructor(
+        protected _suite: ISuite,
+        protected _config: IOptions = {}
+    ) {
+        super(_suite, _config);
+    }
+
     get skipComment() {
         return this._wrapSkipComment(this._suite.skipComment);
     }
 
-    getUrl(opts: any = {}) {
-        const browserConfig = this._config.forBrowser(opts.browserId);
-        const url = browserConfig.getAbsoluteUrl(this._suite.url);
+    getUrl(opts: IOptions = {}) {
+        if (this._config.forBrowser) {
+            const browserConfig = this._config.forBrowser(opts.browserId || '');
+            const url = browserConfig.getAbsoluteUrl(this._suite.url as string);
 
-        return super._configureUrl(url, opts.baseHost);
+            return this._configureUrl(url, opts.baseHost || '');
+        }
+
+        return '';
     }
 
     get fullUrl() {
@@ -30,4 +45,4 @@ module.exports = class GeminiSuiteAdapter extends SuiteAdapter {
     get fullName() {
         return this._suite.fullName;
     }
-};
+}
