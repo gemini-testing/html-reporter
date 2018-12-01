@@ -1,5 +1,3 @@
-'use strict';
-
 import React, {Component} from 'react';
 import classNames from 'classnames';
 import {connect} from 'react-redux';
@@ -7,8 +5,8 @@ import {connect} from 'react-redux';
 const Parser = require('html-react-parser');
 
 interface ISkippedListProps extends React.Props<any> {
-    showSkipped: boolean,
-    skips: []
+    showSkipped: boolean;
+    skips: [];
 }
 
 class SkippedList extends Component<ISkippedListProps> {

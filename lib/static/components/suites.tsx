@@ -1,16 +1,14 @@
-'use strict';
-
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
 import SectionCommon from './section/section-common';
 import {bindActionCreators} from 'redux';
-import clientEvents from '../../gui/constants/client-events';
 import {suiteBegin, testBegin, testResult, testsEnd} from '../modules/actions';
+const clientEvents = require('../../gui/constants/client-events');
 
 interface ISuitesProps extends React.Props<any> {
-    suiteIds: Array<string>,
-    gui: boolean,
-    actions: any
+    suiteIds?: string[];
+    gui?: boolean;
+    actions?: any;
 }
 
 class Suites extends Component<ISuitesProps> {
@@ -48,8 +46,8 @@ class Suites extends Component<ISuitesProps> {
         const {suiteIds} = this.props;
 
         return (
-            <div className="sections">
-                {suiteIds.map((suiteId) => {
+            <div className='sections'>
+                {suiteIds && suiteIds.map((suiteId) => {
                     return <SectionCommon key={suiteId} suiteId={suiteId} />;
                 })}
             </div>

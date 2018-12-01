@@ -1,5 +1,3 @@
-'use strict';
-
 import React, {Component, Fragment} from 'react';
 import {connect} from 'react-redux';
 import {initial} from '../modules/actions';
@@ -7,7 +5,12 @@ import ControlButtons from './controls/gui-controls';
 import SkippedList from './skipped-list';
 import Suites from './suites';
 
-class Gui extends Component<any> {
+interface IGuiProps extends React.Props<any> {
+    gui?: any;
+    initial?: any;
+}
+
+class Gui extends Component<IGuiProps> {
     componentDidMount() {
         this.props.gui && this.props.initial();
     }
