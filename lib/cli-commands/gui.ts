@@ -4,19 +4,19 @@ const Api = require('../gui/api');
 const {GUI} = require('./');
 
 interface IpluginConfig {
-    enabled: boolean,
-    path: string,
-    defaultView: string,
-    baseHost: string,
-    scaleImages: boolean,
-    lazyLoadOffset: number
+    enabled: boolean;
+    path: string;
+    defaultView: string;
+    baseHost: string;
+    scaleImages: boolean;
+    lazyLoadOffset: number;
 }
 
 interface Itool {
-    [key: string]: any
+    [key: string]: any;
 }
 interface Iprogram {
-    [key: string]: any
+    [key: string]: any;
 }
 
 module.exports = (program: Iprogram, pluginConfig: IpluginConfig, tool: Itool) => {

@@ -4,7 +4,7 @@ const {logError} = require('../server-utils');
 const {MERGE_REPORTS: commandName} = require('./');
 
 interface IPath {
-    path: string
+    path: string;
 }
 
 module.exports = (program: Iprogram, {path}: IPath) => {
