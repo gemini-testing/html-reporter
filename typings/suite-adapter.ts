@@ -13,6 +13,7 @@ export interface ISuite {
     tests?: ISuite[];
     fullUrl?: string;
     parent?: ISuite;
+    status?: string;
     path?: string[];
     title?: string;
     sync?: boolean;
