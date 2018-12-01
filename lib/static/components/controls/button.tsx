@@ -1,20 +1,20 @@
 'use strict';
 
 import React, {Component} from 'react';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {Button} from 'semantic-ui-react';
 
-export default class ControlButton extends Component {
-    static propTypes = {
-        label: PropTypes.string.isRequired,
-        handler: PropTypes.func.isRequired,
-        isActive: PropTypes.bool,
-        isAction: PropTypes.bool,
-        isDisabled: PropTypes.bool,
-        isSuiteControl: PropTypes.bool,
-        isControlGroup: PropTypes.bool
-    }
+interface PropTypes {
+    label: string;
+    handler: () => any;
+    isActive?: boolean;
+    isAction?: boolean;
+    isDisabled?: boolean;
+    isSuiteControl?: boolean;
+    isControlGroup?: boolean;
+}
+
+export default class ControlButton extends Component<PropTypes> {
 
     render() {
         const {label, handler, isActive, isAction, isSuiteControl, isControlGroup, isDisabled = false} = this.props;

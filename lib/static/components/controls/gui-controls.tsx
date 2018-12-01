@@ -4,19 +4,21 @@ import React, {Component} from 'react';
 import {bindActionCreators} from 'redux';
 import {connect} from 'react-redux';
 import {pick, values} from 'lodash';
-import PropTypes from 'prop-types';
 import * as actions from '../../modules/actions';
 import CommonControls from './common-controls';
 import ControlButton from './button';
 import RunButton from './run-button';
 
-class ControlButtons extends Component {
-    static propTypes = {
-        suiteIds: PropTypes.object,
-        running: PropTypes.bool,
-        autoRun: PropTypes.bool,
-        failed: PropTypes.array
-    }
+interface IControllButtonsProps {
+    suiteIds?: any;
+    running?: boolean;
+    autoRun?: any;
+    failed?: any;
+    actions?: any;
+}
+
+class ControlButtons extends Component<IControllButtonsProps> {
+    
 
     _runFailedTests = () => {
         const {actions, failed} = this.props;
@@ -56,8 +58,8 @@ class ControlButtons extends Component {
     }
 }
 
-export default connect(
-    (state) => ({
+export default connect<{}, {}, IControllButtonsProps>(
+    (state: any) => ({
         suiteIds: state.suiteIds,
         running: state.running,
         autoRun: state.autoRun,

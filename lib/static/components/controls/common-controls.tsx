@@ -1,4 +1,3 @@
-'use strict';
 import React, {Component, Fragment} from 'react';
 import {bindActionCreators} from 'redux';
 import {connect} from 'react-redux';
@@ -7,7 +6,12 @@ import ControlButton from './button';
 import ViewSelect from './view-select';
 import BaseHostInput from './base-host';
 
-class ControlButtons extends Component {
+interface propsInterface {
+    view: any; //todo write type
+    actions: any; ////todo write type
+}
+
+class ControlButtons extends Component<propsInterface> {
     render() {
         const {view, actions} = this.props;
 
@@ -70,6 +74,6 @@ class ControlButtons extends Component {
 }
 
 export default connect(
-    (state) => ({view: state.view}),
+    (state: any) => ({view: state.view}),
     (dispatch) => ({actions: bindActionCreators(actions, dispatch)})
 )(ControlButtons);

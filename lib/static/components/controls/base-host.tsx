@@ -1,19 +1,20 @@
 'use strict';
 
-import React, {Component} from 'react';
-import PropTypes from 'prop-types';
+import {Component} from 'react';
+import * as React from 'react';
 import {bindActionCreators} from 'redux';
 import {connect} from 'react-redux';
 import * as actions from '../../modules/actions';
 import {Input} from 'semantic-ui-react';
 
-class BaseHostInput extends Component {
-    static propTypes = {
-        baseHost: PropTypes.string.isRequired,
-        actions: PropTypes.object.isRequired
-    }
+interface propTypesInterface {
+    baseHost: string;
+    actions: any;
+}
 
-    constructor(props) {
+class BaseHostInput extends Component<propTypesInterface> {
+
+    constructor(props: any) {
         super(props);
         this._onChange = this._onChange.bind(this);
     }
@@ -22,7 +23,7 @@ class BaseHostInput extends Component {
         return (
             <Input
                 className="text-input"
-                size="40"
+                size="medium"
                 value={this.props.baseHost}
                 placeholder="change original host for view in browser"
                 onChange={this._onChange}
@@ -30,12 +31,18 @@ class BaseHostInput extends Component {
         );
     }
 
-    _onChange(event) {
+    _onChange(event: any) {
         this.props.actions.updateBaseHost(event.target.value);
     }
 }
 
+interface myState {
+    view: {
+        baseHost: string
+    }
+}
+
 export default connect(
-    (state) => ({baseHost: state.view.baseHost}),
+    (state: myState) => ({baseHost: state.view.baseHost}),
     (dispatch) => ({actions: bindActionCreators(actions, dispatch)})
 )(BaseHostInput);

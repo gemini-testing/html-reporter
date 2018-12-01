@@ -1,4 +1,3 @@
-'use strict';
 import React, {Component} from 'react';
 import {bindActionCreators} from 'redux';
 import {connect} from 'react-redux';
@@ -16,6 +15,6 @@ class ControlButtons extends Component {
 }
 
 export default connect(
-    (state) => ({view: state.view}),
+    (state: any) => ({view: state.view}),
     (dispatch) => ({actions: bindActionCreators(actions, dispatch)})
 )(ControlButtons);

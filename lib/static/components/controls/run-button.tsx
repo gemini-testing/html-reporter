@@ -1,17 +1,15 @@
-'use strict';
-
 import React, {Component} from 'react';
-import PropTypes from 'prop-types';
 import ControlButton from './button';
 
-export default class RunButton extends Component {
-    static propTypes = {
-        handler: PropTypes.func.isRequired,
-        autoRun: PropTypes.bool.isRequired,
-        isDisabled: PropTypes.bool
-    }
+interface IRunButton {
+    handler: any;
+    autoRun: any;
+    isDisabled?: any;
+}
 
-    componentWillReceiveProps({autoRun}) {
+export default class RunButton extends Component<IRunButton> {
+
+    componentWillReceiveProps({autoRun}: any) {
         if (this.props.autoRun !== autoRun && autoRun) {
             this.props.handler();
         }
