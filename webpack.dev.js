@@ -3,10 +3,10 @@
 const webpack = require('webpack');
 const merge = require('webpack-merge');
 
-const commonConfig = require('./webpack.common');
+const browser = require('./webpack.common');
 
 module.exports = merge(
-    commonConfig,
+    browser,
     {
         mode: 'development',
         devtool: 'eval-source-map',

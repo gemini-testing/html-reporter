@@ -1,5 +1,6 @@
 'use strict';
 
+// @ts-ignore
 const SuiteAdapter = require('./suite-adapter');
 
 module.exports = class GeminiSuiteAdapter extends SuiteAdapter {
@@ -7,7 +8,7 @@ module.exports = class GeminiSuiteAdapter extends SuiteAdapter {
         return this._wrapSkipComment(this._suite.skipComment);
     }
 
-    getUrl(opts = {}) {
+    getUrl(opts: any = {}) {
         const browserConfig = this._config.forBrowser(opts.browserId);
         const url = browserConfig.getAbsoluteUrl(this._suite.url);
 

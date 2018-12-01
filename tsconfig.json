@@ -25,9 +25,11 @@
     "build",
     "scripts",
     "acceptance-tests",
-    "webpack"
+    "webpack",
+    "./index.js",
   ],
   "include": [
-    "./**/*"
+    "./**/*.ts",
+    "./**/*.tsx"
   ]
 }

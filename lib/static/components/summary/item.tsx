@@ -1,15 +1,14 @@
 'use strict';
 
 import React, {Component, Fragment} from 'react';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
-export default class SummaryItem extends Component {
-    static propTypes = {
-        label: PropTypes.string.isRequired,
-        value: PropTypes.number.isRequired,
-        isFailed: PropTypes.bool
-    }
+interface ISummaryItemProps {
+    label: string;
+    value: number;
+    isFailed?: boolean;
+}
+export default class SummaryItem extends Component<ISummaryItemProps> {
 
     render() {
         const {label, value, isFailed = false} = this.props;
@@ -26,7 +25,7 @@ export default class SummaryItem extends Component {
         return (
             <Fragment>
                 <dt className={className}>{label}</dt>
-                <dd className="summary__value">{value}</dd>
+                <dd className='summary__value'>{value}</dd>
             </Fragment>
         );
     }

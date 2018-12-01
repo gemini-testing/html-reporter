@@ -1,8 +1,10 @@
 'use strict';
 
+// @ts-ignore
 const _ = require('lodash');
 const path = require('path');
 const url = require('url');
+// @ts-ignore
 const SuiteAdapter = require('./suite-adapter');
 const {getSuitePath} = require('../plugin-utils').getHermioneUtils();
 
@@ -25,7 +27,7 @@ module.exports = class HermioneSuiteAdapter extends SuiteAdapter {
         return path.relative(process.cwd(), this._suite.file);
     }
 
-    getUrl(opts = {}) {
+    getUrl(opts: any = {}) {
         const url = _.get(this, '_suite.meta.url', '');
 
         return super._configureUrl(url, opts.baseHost);
@@ -40,6 +42,6 @@ module.exports = class HermioneSuiteAdapter extends SuiteAdapter {
     }
 };
 
-function getSkipComment(suite) {
+function getSkipComment(suite: any): any {
     return suite.skipReason || suite.parent && getSkipComment(suite.parent);
 }
