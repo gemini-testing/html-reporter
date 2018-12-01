@@ -1,38 +1,37 @@
-'use strict';
-
 import React, {Component} from 'react';
-import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import SectionCommon from './section/section-common';
 import {bindActionCreators} from 'redux';
-import clientEvents from '../../gui/constants/client-events';
 import {suiteBegin, testBegin, testResult, testsEnd} from '../modules/actions';
+const clientEvents = require('../../gui/constants/client-events');
 
-class Suites extends Component {
-    static propTypes = {
-        suiteIds: PropTypes.arrayOf(PropTypes.string),
-        gui: PropTypes.bool
-    }
+interface ISuitesProps extends React.Props<any> {
+    suiteIds?: string[];
+    gui?: boolean;
+    actions?: any;
+}
+
+class Suites extends Component<ISuitesProps> {
 
     componentDidMount() {
         this.props.gui && this._subscribeToEvents();
     }
 
     _subscribeToEvents() {
-        const {actions} = this.props;
-        const eventSource = new EventSource('/events');
-        eventSource.addEventListener(clientEvents.BEGIN_SUITE, (e) => {
+        const {actions}: any = this.props;
+        const eventSource: EventSource = new EventSource('/events');
+        eventSource.addEventListener(clientEvents.BEGIN_SUITE, (e: any) => {
             const data = JSON.parse(e.data);
             actions.suiteBegin(data);
         });
 
-        eventSource.addEventListener(clientEvents.BEGIN_STATE, (e) => {
+        eventSource.addEventListener(clientEvents.BEGIN_STATE, (e: any) => {
             const data = JSON.parse(e.data);
             actions.testBegin(data);
         });
 
         [clientEvents.TEST_RESULT, clientEvents.ERROR].forEach((eventName) => {
-            eventSource.addEventListener(eventName, (e) => {
+            eventSource.addEventListener(eventName, (e: any) => {
                 const data = JSON.parse(e.data);
                 actions.testResult(data);
             });
@@ -47,8 +46,8 @@ class Suites extends Component {
         const {suiteIds} = this.props;
 
         return (
-            <div className="sections">
-                {suiteIds.map((suiteId) => {
+            <div className='sections'>
+                {suiteIds && suiteIds.map((suiteId) => {
                     return <SectionCommon key={suiteId} suiteId={suiteId} />;
                 })}
             </div>
@@ -59,7 +58,7 @@ class Suites extends Component {
 const actions = {testBegin, suiteBegin, testResult, testsEnd};
 
 export default connect(
-    (state) => ({
+    (state: any) => ({
         suiteIds: state.suiteIds[state.view.viewMode],
         gui: state.gui
     }),

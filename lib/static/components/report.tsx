@@ -1,5 +1,3 @@
-'use strict';
-
 import React, {Component, Fragment} from 'react';
 import Summary from './summary/index';
 import ControlButtons from './controls/report-controls';

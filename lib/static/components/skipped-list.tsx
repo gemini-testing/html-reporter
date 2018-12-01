@@ -1,16 +1,15 @@
-'use strict';
-
 import React, {Component} from 'react';
-import PropTypes from 'prop-types';
-import Parser from 'html-react-parser';
 import classNames from 'classnames';
 import {connect} from 'react-redux';
 
-class SkippedList extends Component {
-    static propTypes = {
-        showSkipped: PropTypes.bool.isRequired,
-        skips: PropTypes.array.isRequired
-    }
+const Parser = require('html-react-parser');
+
+interface ISkippedListProps extends React.Props<any> {
+    showSkipped: boolean;
+    skips: [];
+}
+
+class SkippedList extends Component<ISkippedListProps> {
 
     render() {
         const {showSkipped, skips} = this.props;
@@ -24,9 +23,9 @@ class SkippedList extends Component {
         return (<div className={className}>{skipsTmpl}</div>);
     }
 
-    _drawSkips(skips) {
+    _drawSkips(skips: []) {
         return skips.map((skip, index) => {
-            const {browser, comment, suite} = skip;
+            const {browser, comment, suite}: any = skip;
             return (
                 <div key={index}>
                     {suite} > {browser}
@@ -39,7 +38,7 @@ class SkippedList extends Component {
 }
 
 export default connect(
-    (state) => ({
+    (state: any) => ({
         showSkipped: state.view.showSkipped,
         skips: state.skips
     })
