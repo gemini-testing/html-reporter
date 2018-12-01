@@ -4,20 +4,20 @@ import React, {Component} from 'react';
 import {bindActionCreators} from 'redux';
 import {connect} from 'react-redux';
 import {pick, values} from 'lodash';
-import PropTypes from 'prop-types';
 import * as actions from '../../modules/actions';
 import CommonControls from './common-controls';
 import ControlButton from './button';
 import RunButton from './run-button';
 
-class ControlButtons extends Component {
-    static propTypes = {
-        suiteIds: PropTypes.object,
-        running: PropTypes.bool,
-        autoRun: PropTypes.bool,
-        failed: PropTypes.array
-    }
+interface IControllButtonsProps {
+    suiteIds?: any;
+    running?: boolean;
+    autoRun?: any;
+    failed?: any;
+    actions?: any;
+}
 
+class ControlButtons extends Component<IControllButtonsProps> {
     _runFailedTests = () => {
         const {actions, failed} = this.props;
 
@@ -34,19 +34,19 @@ class ControlButtons extends Component {
         const {actions, suiteIds, failed, running, autoRun} = this.props;
 
         return (
-            <div className="control-buttons">
+            <div className='control-buttons'>
                 <RunButton
                     autoRun={autoRun}
                     isDisabled={!suiteIds.all.length || running}
                     handler={actions.runAllTests}
                 />
                 <ControlButton
-                    label="Retry failed tests"
+                    label='Retry failed tests'
                     isDisabled={running || !failed.length}
                     handler={this._runFailedTests}
                 />
                 <ControlButton
-                    label="Accept all"
+                    label='Accept all'
                     isDisabled={running || !failed.length}
                     handler={this._acceptAll}
                 />
@@ -56,8 +56,8 @@ class ControlButtons extends Component {
     }
 }
 
-export default connect(
-    (state) => ({
+export default connect<{}, {}, IControllButtonsProps>(
+    (state: any) => ({
         suiteIds: state.suiteIds,
         running: state.running,
         autoRun: state.autoRun,
