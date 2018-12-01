@@ -2,20 +2,20 @@
 
 const runGui = require('../gui');
 const Api = require('../gui/api');
-const {GUI: commandName} = require('./');
+const { GUI: commandName } = require('./');
 interface IpluginConfig {
     enabled: boolean,
     path: string,
     defaultView: string,
-    baseHost: string, 
+    baseHost: string,
     scaleImages: boolean,
     lazyLoadOffset: number
 }
 
-interface Itool{
-     [key: string]: any
+interface Itool {
+    [key: string]: any
 }
-interface Iprogram{
+interface Iprogram {
     [key: string]: any
 }
 
@@ -32,7 +32,7 @@ module.exports = (program: Iprogram, pluginConfig: IpluginConfig, tool: Itool) =
         .option('--hostname <hostname>', 'Hostname to launch server on', 'localhost')
         .option('-a, --auto-run', 'auto run immediately')
         .option('-O, --no-open', 'not to open a browser window after starting the server')
-        .action((paths: string, options: {[key: string]: any}) => {
-            runGui({paths, tool, guiApi, configs: {options, program, pluginConfig}});
+        .action((paths: string, options: { [key: string]: any }) => {
+            runGui({ paths, tool, guiApi, configs: { options, program, pluginConfig } });
         });
 };
