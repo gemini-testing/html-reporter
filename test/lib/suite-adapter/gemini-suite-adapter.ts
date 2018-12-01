@@ -1,6 +1,7 @@
-'use strict';
+import sinon from 'sinon';
+import {assert} from 'chai';
 
-const GeminiSuiteAdapter = require('../../../lib/suite-adapter/gemini-suite-adapter');
+import GeminiSuiteAdapter from 'lib/suite-adapter/gemini-suite-adapter';
 
 describe('gemini suite adapter', () => {
     const sandbox = sinon.sandbox.create();

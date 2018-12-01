@@ -1,6 +1,8 @@
 'use strict';
 
-const HermioneSuiteAdapter = require('../../../lib/suite-adapter/hermione-suite-adapter');
+import {assert} from 'chai';
+
+import HermioneSuiteAdapter from 'lib/suite-adapter/hermione-suite-adapter';
 
 describe('hermione suite adapter', () => {
     it('should return suite skip reason', () => {
