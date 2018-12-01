@@ -7,15 +7,26 @@ const HtmlWebpackIncludeAssetsPlugin = require('html-webpack-include-assets-plug
 
 const staticPath = path.resolve(__dirname, 'lib', 'static');
 
+const SCRIPT_LOADER = {
+    test: /\.(js|ts)x?$/,
+    exclude: /node_modules/,
+    use: [
+        'tslint-loader',
+        'awesome-typescript-loader'
+    ]
+};
+
+const resolve = {
+    extensions: ['.ts', '.tsx', '.js', '.jsx']
+};
+
 module.exports = {
     context: staticPath,
     entry: {
         report: ['./index.tsx', './styles.css'],
-        gui: ['./gui.tsx', './styles.css', './gui.css']
+        gui: ['./gui.tsx', './styles.css', './gui.css'],
     },
-    resolve: {
-        extensions: ['.ts', '.tsx', '.js', '.jsx']
-    },
+    resolve,
     output: {
         path: staticPath,
         filename: '[name].min.js',
@@ -36,14 +47,7 @@ module.exports = {
                     ]
                 })
             },
-            {
-                test: /\.(js|ts)x?$/,
-                exclude: /node_modules/,
-                use: [
-                    'tslint-loader',
-                    'awesome-typescript-loader'
-                ]
-            }
+            SCRIPT_LOADER
         ]
     },
     plugins: [
