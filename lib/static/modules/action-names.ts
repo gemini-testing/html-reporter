@@ -1,5 +1,3 @@
-'use strict';
-
 export default {
     RUN_ALL_TESTS: 'RUN_ALL_TESTS',
     RUN_FAILED_TESTS: 'RUN_FAILED_TESTS',

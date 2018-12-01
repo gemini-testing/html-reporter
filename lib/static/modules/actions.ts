@@ -5,7 +5,7 @@ import {assign, filter, flatMap, set, cloneDeep, compact} from 'lodash';
 import actionNames from './action-names';
 const {QUEUED, UPDATED} = require('lib/constants/test-statuses');
 import {isSuiteFailed, isAcceptable} from './utils';
-import { ISuite } from 'typings/suite-adapter';
+import {ISuite} from 'typings/suite-adapter';
 
 type DispatchType = (action: any) => any;
 
