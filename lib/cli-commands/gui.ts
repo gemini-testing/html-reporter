@@ -1,8 +1,8 @@
 'use strict';
-
 const runGui = require('../gui');
 const Api = require('../gui/api');
-const { GUI: commandName } = require('./');
+const {GUI} = require('./');
+
 interface IpluginConfig {
     enabled: boolean,
     path: string,
@@ -25,7 +25,7 @@ module.exports = (program: Iprogram, pluginConfig: IpluginConfig, tool: Itool) =
     const guiApi = Api.create(tool);
 
     program
-        .command(`${commandName} [paths...]`)
+        .command(`${GUI}  [paths...]`)
         .allowUnknownOption()
         .description('update the changed screenshots or gather them if they does not exist')
         .option('-p, --port <port>', 'Port to launch server on', 8000)
