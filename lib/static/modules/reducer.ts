@@ -192,6 +192,7 @@ function formatSuitesData(suites = []) {
 }
 
 function getFailedSuiteIds(suites: ISuite[]) {
+    // @ts-ignore
     return getSuiteIds(filter(suites, isSuiteFailed));
 }
 

@@ -1,4 +1,4 @@
-const defaults = require('lib/constants/defaults');
+const defaults = require('../../constants/defaults');
 
 export default Object.assign(defaults, {
     gui: true,
