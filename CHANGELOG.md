@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.0.2"></a>
+## [3.0.2](https://github.com/gemini-testing/html-reporter/compare/v3.0.1...v3.0.2) (2018-12-02)
+
+
+### Bug Fixes
+
+* getting diff image size ([7df019b](https://github.com/gemini-testing/html-reporter/commit/7df019b))
+
+
+
 <a name="3.0.1"></a>
 ## [3.0.1](https://github.com/gemini-testing/html-reporter/compare/v3.0.0...v3.0.1) (2018-12-02)
 
