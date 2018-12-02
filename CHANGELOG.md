@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.0.1"></a>
+## [3.0.1](https://github.com/gemini-testing/html-reporter/compare/v3.0.0...v3.0.1) (2018-12-02)
+
+
+### Bug Fixes
+
+* **reporter-helpers:** do not fail if screenshot in base64 is empty ([03e044d](https://github.com/gemini-testing/html-reporter/commit/03e044d))
+
+
+
 <a name="3.0.0"></a>
 # [3.0.0](https://github.com/gemini-testing/html-reporter/compare/v2.25.0...v3.0.0) (2018-11-29)
 
