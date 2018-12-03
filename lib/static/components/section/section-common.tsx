@@ -39,12 +39,7 @@ export class SectionCommon extends Base<ISectionCommonProps>{
         if (!suite)
             return null;
 
-        const {
-            name,
-            browsers = [],
-            children = [],
-            status
-        } = suite;
+        const {name, browsers = [], children = [], status} = suite;
 
         if (this.state.collapsed) {
             return (
@@ -75,15 +70,9 @@ export class SectionCommon extends Base<ISectionCommonProps>{
 
     protected _getStateFromProps() {
         const {suite, expand} = this.props;
-        let fail = false;
-
-        if (suite){
-            const {result} = suite;
-            fail = result && hasFails(result);
-        }
 
         return {
-            failed: fail,
+            failed: hasFails(suite),
             retried: hasRetries(suite),
             skipped: allSkipped(suite),
             expand
