@@ -1,9 +1,13 @@
 import { ISuite } from './suite-adapter';
 
+// @ts-ignore
 const TestAdapter = require('../lib/test-adapter/test-adapter');
+// @ts-ignore
 const HermioneTestAdapter = require('../lib/test-adapter/hermione-test-adapter');
+// @ts-ignore
 const GeminiTestAdapter = require('../lib/test-adapter/gemini-test-adapter');
 
+// @ts-ignore
 export type TestAdapterType = TestAdapter | HermioneTestAdapter | GeminiTestAdapter;
 
 export interface ITestResult {
