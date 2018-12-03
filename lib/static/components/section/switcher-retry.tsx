@@ -1,7 +1,5 @@
-'use strict';
-
 import React, {Component, ComponentState} from 'react';
-import {cn} from '@bem-react/classname';
+import { Pagination } from 'semantic-ui-react';
 
 interface ISwitcherRetryProps extends React.Props<any>{
     retries?: any[];
@@ -31,17 +29,12 @@ export default class SwitcherRetry extends Component<ISwitcherRetryProps, ISwitc
             return null;
         }
 
-        const buttonsTmpl = [];
-        for (let i = 0; i <= retries.length; i++) {
-            const stateButton = cn('state-button');
-            buttonsTmpl.push(
-                <button key={i} className={stateButton('tab-switcher__button',
-                    { 'tab-switcher__button_active': i === this.state.retry})}
-                        onClick={() => this._onChange(i)}>{i + 1}</button>
-            );
-        }
-
-        return (<div className='tab-switcher'>{buttonsTmpl}</div>);
+        return (
+            <Pagination 
+                defaultActivePage={1}
+                totalPages={retries.length}
+                onPageChange={(event, data: any) => data && this._onChange(data.activePage - 1)} />
+        );
     }
 
     private _onChange(index: number) {
