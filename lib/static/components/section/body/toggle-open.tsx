@@ -17,20 +17,18 @@ export default class ToggleOpen extends Component<IToggleOpenChildProps, IToggle
     constructor(props: IToggleOpenChildProps){
         super(props);
 
-        this.state = {
-            isCollapsed: true
-        };
-        this.toggleHandler.bind(this);
+        this.state = {isCollapsed: true};
+
+        // binding
+        this.toggleHandler = this.toggleHandler.bind(this);
     }
 
     render() {
         const {title, content} = this.props;
-        const toggle = cn(
-            'toggle-open'
-        );
+        const toggle = cn('toggle-open');
 
         return (
-            <div className={toggle(null, {collapsed: this.state.isCollapsed})}>
+            <div className={toggle({collapsed: this.state.isCollapsed})}>
                 <div onClick={this.toggleHandler} className='toggle-open__switcher'>{title}</div>
                 <div className='toggle-open__content'>{content}</div>
             </div>
@@ -39,8 +37,8 @@ export default class ToggleOpen extends Component<IToggleOpenChildProps, IToggle
 
     toggleHandler(event: React.MouseEvent<HTMLDivElement>) {
         event.preventDefault();
-        this.setState({
-            isCollapsed: !this.state.isCollapsed
-        });
+        this.setState((state: IToggleOpenChildState) => ({
+            isCollapsed: !state.isCollapsed
+        }));
     }
 }
