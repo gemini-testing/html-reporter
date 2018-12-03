@@ -30,4 +30,8 @@ export interface ISuite {
         url: string;
     };
     fullTitle?(): string;
+    getUrl?(config: {
+        browserId: string;
+        baseHost: string;
+    }): string;
 }

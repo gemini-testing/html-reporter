@@ -1,4 +1,5 @@
-'use strict';
+import { ITestTool } from 'typings/test-adapter';
+import { IPluginConfig } from 'typings/pluginConfig';
 
 const ReportBuilder = require('./report-builder');
 const adapters = {
@@ -7,7 +8,7 @@ const adapters = {
 };
 
 module.exports = {
-    create: (toolName, tool, pluginConfig) => {
+    create: (toolName: string, tool: ITestTool, pluginConfig: IPluginConfig) => {
         return ReportBuilder.create(tool, pluginConfig, adapters[toolName]);
     }
 };

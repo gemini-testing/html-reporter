@@ -1,8 +1,12 @@
-'use strict';
+import path from 'path';
+import Promise from 'bluebird';
+import _ from 'lodash';
 
-const path = require('path');
-const Promise = require('bluebird');
-const _ = require('lodash');
+import { ITestTool, ITestResult } from 'typings/test-adapter';
+import { ISuite } from 'typings/suite-adapter';
+import { IPluginConfig } from 'typings/pluginConfig';
+import { TestAdapterType } from 'typings/test-adapter';
+
 const fs = require('fs-extra');
 const {IDLE, RUNNING, SUCCESS, FAIL, ERROR, SKIPPED, UPDATED} = require('../constants/test-statuses');
 const {logger, getPathsFor, hasImage, prepareCommonJSData} = require('../server-utils');
@@ -10,28 +14,43 @@ const {setStatusForBranch, hasFails, hasNoRefImageErrors} = require('../static/m
 
 const NO_STATE = 'NO_STATE';
 
+interface ISkip {
+    suite: ISuite;
+    browser: string;
+    comment: string;
+}
+
 module.exports = class ReportBuilder {
-    static create(tool, pluginConfig, TestAdapter) {
+    protected _tree: {
+        name?: string;
+        children?: ISuite;
+    };
+
+    protected _skips: ISkip[];
+    protected _stats: any;
+
+    static create(tool: ITestTool, pluginConfig: IPluginConfig, TestAdapter: TestAdapterType) {
         return new ReportBuilder(tool, pluginConfig, TestAdapter);
     }
 
-    constructor(tool, pluginConfig, TestAdapter) {
+    constructor(
+        protected _tool: ITestTool,
+        protected _pluginConfig: IPluginConfig,
+        protected _TestAdapter: TestAdapterType
+    ) {
         this._tree = {name: 'root'};
         this._skips = [];
-        this._tool = tool;
-        this._pluginConfig = pluginConfig;
-        this._TestAdapter = TestAdapter;
     }
 
-    format(result) {
+    format(result: ITestResult) {
         return this._TestAdapter.create(result, this._tool);
     }
 
-    addIdle(result) {
+    addIdle(result: ITestResult) {
         return this._addTestResult(this.format(result), {status: IDLE});
     }
 
-    addSkipped(result) {
+    addSkipped(result: ITestResult) {
         const formattedResult = this.format(result);
         const {
             suite: {
@@ -49,11 +68,11 @@ module.exports = class ReportBuilder {
         });
     }
 
-    addSuccess(result) {
+    addSuccess(result: ITestResult) {
         return this._addSuccessResult(this.format(result), SUCCESS);
     }
 
-    addUpdated(result) {
+    addUpdated(result: ITestResult) {
         const formattedResult = this.format(result);
 
         formattedResult.imagesInfo = (result.imagesInfo || []).map((imageInfo) => {
@@ -64,30 +83,30 @@ module.exports = class ReportBuilder {
         return this._addSuccessResult(formattedResult, UPDATED);
     }
 
-    _addSuccessResult(formattedResult, status) {
+    _addSuccessResult(formattedResult: ITestResult, status: string) {
         return this._addTestResult(formattedResult, {status});
     }
 
-    addFail(result) {
+    addFail(result: ITestResult) {
         return this._addFailResult(this.format(result));
     }
 
-    _addFailResult(formattedResult) {
+    _addFailResult(formattedResult: ITestResult) {
         return this._addTestResult(formattedResult, {status: FAIL});
     }
 
-    addError(result) {
+    addError(result: ITestResult) {
         return this._addErrorResult(this.format(result));
     }
 
-    _addErrorResult(formattedResult) {
+    _addErrorResult(formattedResult: ITestResult) {
         return this._addTestResult(formattedResult, {
             status: ERROR,
             reason: formattedResult.error
         });
     }
 
-    addRetry(result) {
+    addRetry(result: ITestResult) {
         const formattedResult = this.format(result);
 
         if (formattedResult.hasDiff()) {
@@ -97,16 +116,17 @@ module.exports = class ReportBuilder {
         }
     }
 
-    setStats(stats) {
+    setStats(stats: any) {
         this._stats = stats;
 
         return this;
     }
 
-    _createTestResult(result, props) {
-        const {browserId, suite, sessionId, description, imagesInfo, screenshot, multipleTabs} = result;
+    _createTestResult(result: ITestResult, props: any) {
+        const {browserId = '', suite = {}, sessionId, description, imagesInfo, screenshot, multipleTabs} = result;
+
         const {baseHost} = this._pluginConfig;
-        const suiteUrl = suite.getUrl({browserId, baseHost});
+        const suiteUrl = suite.getUrl && suite.getUrl({browserId, baseHost});
         const metaInfo = _.merge(result.meta, {url: suite.fullUrl, file: suite.file, sessionId});
 
         return Object.assign({
@@ -115,10 +135,12 @@ module.exports = class ReportBuilder {
         }, props);
     }
 
-    _addTestResult(formattedResult, props) {
+    _addTestResult(formattedResult: ITestResult, props: any) {
         const testResult = this._createTestResult(formattedResult, _.extend(props, {attempt: 0}));
-        const {suite, browserId} = formattedResult;
-        const suitePath = suite.path.concat(formattedResult.state ? formattedResult.state.name : NO_STATE);
+        const {suite = {}, browserId} = formattedResult;
+
+        const suitePath = suite.path && suite.path.concat(formattedResult.state ? formattedResult.state.name : NO_STATE);
+        // @ts-ignore
         const node = findOrCreate(this._tree, suitePath, testResult.status);
         node.browsers = Array.isArray(node.browsers) ? node.browsers : [];
         const existing = _.findIndex(node.browsers, {name: browserId});
@@ -143,6 +165,7 @@ module.exports = class ReportBuilder {
 
         const statuses = [SKIPPED, RUNNING, IDLE];
 
+        // @ts-ignore
         if (!statuses.includes(previousResult.status)) {
             testResult.attempt = testResult.status === UPDATED
                 ? formattedResult.attempt
@@ -176,7 +199,7 @@ module.exports = class ReportBuilder {
         return this.saveDataFileAsync()
             .then(() => this._copyToReportDir(['index.html', 'report.min.js', 'report.min.css']))
             .then(() => this)
-            .catch((e) => logger.warn(e.message || e));
+            .catch((e: Error) => logger.warn(e.message || e));
     }
 
     saveDataFileAsync() {
@@ -189,7 +212,7 @@ module.exports = class ReportBuilder {
         this._saveDataFile(fs.writeFileSync);
     }
 
-    _saveDataFile(saveFn) {
+    _saveDataFile(saveFn: (path: string, result: ITestResult, encode: string) => string): string {
         return saveFn(
             path.join(this._pluginConfig.path, 'data.js'),
             prepareCommonJSData(this.getResult()),
@@ -201,6 +224,7 @@ module.exports = class ReportBuilder {
         const {defaultView, baseHost, scaleImages, lazyLoadOffset} = this._pluginConfig;
 
         return _.extend({
+            // @ts-ignore
             skips: _.uniq(this._skips, JSON.stringify),
             suites: this._tree.children,
             config: {defaultView, baseHost, scaleImages, lazyLoadOffset}
@@ -211,7 +235,7 @@ module.exports = class ReportBuilder {
         return this._tree.children;
     }
 
-    _copyToReportDir(files) {
+    _copyToReportDir(files: string[]) {
         return Promise.map(files, (fileName) => {
             const from = path.resolve(__dirname, '../static', fileName);
             const to = path.join(this._pluginConfig.path, fileName);
@@ -225,7 +249,7 @@ module.exports = class ReportBuilder {
     }
 };
 
-function findOrCreate(node, statePath) {
+function findOrCreate(node: any, statePath: string[]): any {
     if (statePath.length === 0) {
         return node;
     }
@@ -239,7 +263,7 @@ function findOrCreate(node, statePath) {
         return node;
     }
 
-    let child = _.find(node.children, {name: pathPart});
+    let child: any = _.find(node.children, {name: pathPart});
 
     if (!child) {
         child = {
@@ -252,8 +276,8 @@ function findOrCreate(node, statePath) {
     return findOrCreate(child, statePath);
 }
 
-function extendTestWithImagePaths(test, formattedResult, oldImagesInfo = []) {
-    const newImagesInfo = formattedResult.getImagesInfo(test.status);
+function extendTestWithImagePaths(test: ITestResult, formattedResult: ITestResult, oldImagesInfo: any[] = []) {
+    const newImagesInfo = formattedResult.getImagesInfo && formattedResult.getImagesInfo(test.status || '');
 
     if (test.status !== UPDATED) {
         return _.set(test, 'imagesInfo', newImagesInfo);
@@ -261,11 +285,11 @@ function extendTestWithImagePaths(test, formattedResult, oldImagesInfo = []) {
 
     if (oldImagesInfo.length) {
         test.imagesInfo = oldImagesInfo;
-        newImagesInfo.forEach((imageInfo) => {
+        newImagesInfo.forEach((imageInfo: any) => {
             const {stateName} = imageInfo;
             const index = _.findIndex(test.imagesInfo, {stateName});
 
-            test.imagesInfo[index >= 0 ? index : _.findLastIndex(test.imagesInfo)] = imageInfo;
+            test.imagesInfo ? test.imagesInfo[index >= 0 ? index : _.findLastIndex(test.imagesInfo)] = imageInfo : null;
         });
     }
 
