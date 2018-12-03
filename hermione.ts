@@ -1,4 +1,4 @@
-import Promise from 'Promise';
+import Promise from 'bluebird';
 const PluginAdapter = require('./lib/plugin-adapter');
 import {saveTestImages, saveBase64Screenshot} from './lib/reporter-helpers';
 
