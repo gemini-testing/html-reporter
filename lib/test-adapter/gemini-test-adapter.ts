@@ -54,7 +54,7 @@ module.exports = class GeminiTestResultAdapter extends TestAdapter {
     }
 
     get attempt() {
-        return Number(this._testResult.attempt);
+        return this._testResult.attempt as number;
     }
 
     // for correct determine image paths in gui
