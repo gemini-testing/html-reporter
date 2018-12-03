@@ -15,9 +15,9 @@ interface IState{
         status: string;
         image?: boolean;
         reason: any;
-        expectedPath?: string;
-        actualPath?: string;
-        diffPath?: string;
+        expectedPath: string;
+        actualPath: string;
+        diffPath: string;
         stateName: string;
     };
     acceptHandler: (a: any) => any;
