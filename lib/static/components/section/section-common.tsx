@@ -20,6 +20,7 @@ interface IChild{
     browsers: IBrowser[];
     children: any[];
     status?: string;
+    result?: any;
 }
 
 interface ISectionCommonProps extends IBaseProps{
@@ -74,9 +75,15 @@ export class SectionCommon extends Base<ISectionCommonProps>{
 
     protected _getStateFromProps() {
         const {suite, expand} = this.props;
+        let fail = false;
+
+        if (suite){
+            const {result} = suite;
+            fail = hasFails(result);
+        }
 
         return {
-            failed: hasFails(suite),
+            failed: fail,
             retried: hasRetries(suite),
             skipped: allSkipped(suite),
             expand
