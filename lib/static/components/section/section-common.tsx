@@ -79,7 +79,7 @@ export class SectionCommon extends Base<ISectionCommonProps>{
 
         if (suite){
             const {result} = suite;
-            fail = hasFails(result);
+            fail = result && hasFails(result);
         }
 
         return {

@@ -17,7 +17,7 @@ export function hasNoRefImageErrors({imagesInfo = []}) {
     return Boolean(imagesInfo.filter((v) => get(v, 'reason.stack', '').startsWith(NO_REF_IMAGE_ERROR)).length);
 }
 
-export function hasFails(node: {result: any}) {
+export function hasFails(node: any) {
     const {result} = node;
     const isFailed = result && hasFailedImages(result);
 
