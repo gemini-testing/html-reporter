@@ -1,22 +1,28 @@
-'use strict';
-
-const path = require('path');
-const _ = require('lodash');
-const Promise = require('bluebird');
+import path from 'path';
+import _ from 'lodash';
+// @ts-ignore
+import Promise from 'bluebird';
 const fs = Promise.promisifyAll(require('fs-extra'));
-const chalk = require('chalk');
+import chalk from 'chalk';
 const DataTree = require('./data-tree');
 const serverUtils = require('../server-utils');
 
+import {IData} from 'typings/data';
+
+interface IFromTo {
+    from: string;
+    to: string;
+}
+
 module.exports = class ReportBuilder {
-    static create(srcPaths, destPath) {
+    static create(srcPaths: string[], destPath: string) {
         return new this(srcPaths, destPath);
     }
 
-    constructor(srcPaths, destPath) {
-        this.srcPaths = srcPaths;
-        this.destPath = destPath;
-    }
+    constructor(
+        public srcPaths: string[],
+        public destPath: string
+    ) {}
 
     async build() {
         await moveContentToReportDir({from: this.srcPaths[0], to: this.destPath});
@@ -45,7 +51,7 @@ module.exports = class ReportBuilder {
             .value();
     }
 
-    async _copyToReportDir(files, {from, to}) {
+    async _copyToReportDir(files: string[], {from, to}: IFromTo) {
         await Promise.map(files, async (dataName) => {
             const srcDataPath = path.resolve(from, dataName);
             const destDataPath = path.resolve(to, dataName);
@@ -54,7 +60,7 @@ module.exports = class ReportBuilder {
         });
     }
 
-    async _saveDataFile(data) {
+    async _saveDataFile(data: IData) {
         const formattedData = serverUtils.prepareCommonJSData(data);
         const destDataPath = path.resolve(this.destPath, 'data.js');
 
@@ -62,10 +68,10 @@ module.exports = class ReportBuilder {
     }
 };
 
-async function moveContentToReportDir({from, to}) {
+async function moveContentToReportDir({from, to}: IFromTo) {
     const files = await fs.readdirAsync(path.resolve(from));
 
-    await Promise.map(files, async (fileName) => {
+    await Promise.map(files, async (fileName: string) => {
         if (fileName === 'data.js') {
             return;
         }
