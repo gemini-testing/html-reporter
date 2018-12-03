@@ -12,8 +12,8 @@ module.exports = class HermioneTestResultAdapter extends TestAdapter {
     protected imageInfo: any;
 
     constructor(
-        protected _testResult: ITestResult,
-        protected _tool: ITestTool
+        protected _testResult: ITestResult = {},
+        protected _tool: ITestTool = {}
     ) {
         super(_testResult, _tool);
         this._errors = this._tool.errors;

@@ -9,8 +9,8 @@ module.exports = class TestAdapter {
     }
 
     constructor(
-        protected _testResult: ITestResult,
-        protected _tool: ITestTool
+        protected _testResult: ITestResult = {},
+        protected _tool: ITestTool = {}
     ) {}
 
     get suite() {

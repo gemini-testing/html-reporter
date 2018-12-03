@@ -10,7 +10,7 @@ const {IDLE} = require('../constants/test-statuses');
 
 module.exports = class GeminiTestResultAdapter extends TestAdapter {
     constructor(
-        protected _testResult: ITestResult,
+        protected _testResult: ITestResult = {},
         protected _tool: ITestTool = {}
     ) {
         super(_testResult);
