@@ -1,9 +1,17 @@
+export interface IBrowser {
+    retries?: any;
+    result?: any;
+    name: any;
+}
+
 export interface ISuite {
     imagesInfo?: string[];
+    browsers?: IBrowser[];
     skipComment?: string;
     skipReason?: string;
     browserId?: string;
     timedOut?: boolean;
+    suitePath?: string;
     fullName?: string;
     pending?: boolean;
     attempt?: number;
@@ -14,6 +22,7 @@ export interface ISuite {
     title?: string;
     sync?: boolean;
     async?: number;
+    children?: any;
     root?: boolean;
     type?: string;
     body?: string;
