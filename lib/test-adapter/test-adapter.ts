@@ -1,12 +1,10 @@
-import {ITestResult, ITestTool} from 'typings/test-adapter';
-import {SuiteAdapter} from 'lib/suite-adapter/suite-adapter';
-import GeminiSuiteAdapter from 'lib/suite-adapter/gemini-suite-adapter';
-import HermioneSuiteAdapter from 'lib/suite-adapter/hermione-suite-adapter';
+import {ISuite} from 'typings/suite-adapter';
+import { ITestResult, ITestTool } from 'typings/test-adapter';
 
-export default class TestAdapter {
-    protected _suite: SuiteAdapter | HermioneSuiteAdapter | GeminiSuiteAdapter;
+module.exports = class TestAdapter {
+    protected _suite: ISuite;
 
-    static create(testResult: ITestResult = {}, tool: ITestTool = {}): TestAdapter {
+    static create(testResult: ITestResult = {}, tool: ITestTool) {
         return new this(testResult, tool);
     }
 
@@ -19,12 +17,12 @@ export default class TestAdapter {
         return this._suite;
     }
 
-    get sessionId() {
+    get sessionId(): string {
         return this._testResult.sessionId || 'unknown session id';
     }
 
-    get browserId() {
-        return this._testResult.browserId;
+    get browserId(): string {
+        return this._testResult.browserId as string;
     }
 
     get imagesInfo() {
@@ -34,4 +32,4 @@ export default class TestAdapter {
     set imagesInfo(imagesInfo) {
         this._testResult.imagesInfo = imagesInfo;
     }
-}
+};

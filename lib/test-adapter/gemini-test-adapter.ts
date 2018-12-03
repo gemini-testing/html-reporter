@@ -1,30 +1,25 @@
 import _ from 'lodash';
 import path from 'path';
-
 import GeminiSuiteAdapter from '../suite-adapter/gemini-suite-adapter';
-import {getPathsFor} from '../server-utils';
+import { ITestResult, ITestTool } from 'typings/test-adapter';
+import { ISuite } from 'typings/suite-adapter';
 
+const TestAdapter = require('./test-adapter');
+const {getPathsFor} = require('../server-utils');
 const {IDLE} = require('../constants/test-statuses');
 
-import TestAdapter from './test-adapter';
-import { ITestResult, ITestTool } from 'typings/test-adapter';
-
 module.exports = class GeminiTestResultAdapter extends TestAdapter {
-    static create(testResult: ITestResult, tool: ITestTool): GeminiTestResultAdapter {
-        return new this(testResult, tool);
-    }
-
     constructor(
-        protected _testResult: ITestResult = {},
+        protected _testResult: ITestResult,
         protected _tool: ITestTool = {}
     ) {
-        super(_testResult, _tool);
+        super(_testResult);
 
-        this._suite = GeminiSuiteAdapter.create(this._testResult.suite || {}, _tool.config);
+        this._suite = GeminiSuiteAdapter.create(this._testResult.suite as ISuite, _tool.config);
     }
 
-    saveDiffTo(...args: any[]) {
-        return typeof this._testResult.saveDiffTo !== 'undefined' && this._testResult.saveDiffTo(...args);
+    saveDiffTo(...args: string[]) {
+        return this._testResult.saveDiffTo && this._testResult.saveDiffTo(...args);
     }
 
     hasDiff() {
@@ -36,7 +31,7 @@ module.exports = class GeminiTestResultAdapter extends TestAdapter {
 
         this.imagesInfo = status === IDLE
             ? [{status, expectedPath: this._testResult.referencePath}]
-            : (new Array()).concat(_.extend({status, reason}, getPathsFor(status, this)));
+            : [].concat(_.extend({status, reason}, getPathsFor(status, this)));
 
         return this.imagesInfo;
     }
@@ -46,12 +41,10 @@ module.exports = class GeminiTestResultAdapter extends TestAdapter {
     }
 
     get imageDir() {
-        const {suite, state} = this._testResult;
-
-        const components: string[] = (new Array<string>()).concat(
-                suite && suite.path || [],
-                state && state.name || []
-            );
+        const components = (new Array<string>()).concat(
+            this._testResult.suite && this._testResult.suite.path || [],
+            this._testResult.state && this._testResult.state.name || []
+        );
 
         return path.join.apply(null, components);
     }
@@ -60,12 +53,12 @@ module.exports = class GeminiTestResultAdapter extends TestAdapter {
         return this._testResult.state;
     }
 
-    get attempt(): number | undefined {
-        return this._testResult.attempt;
+    get attempt() {
+        return Number(this._testResult.attempt);
     }
 
     // for correct determine image paths in gui
-    set attempt(attemptNum: number | undefined) {
+    set attempt(attemptNum: number) {
         this._testResult.attempt = attemptNum;
     }
 
@@ -84,7 +77,6 @@ module.exports = class GeminiTestResultAdapter extends TestAdapter {
     prepareTestResult() {
         // @ts-ignore
         const {state: {name}, suite, browserId} = this._testResult;
-
         // @ts-ignore
         const suitePath = suite.path.concat(name);
 
