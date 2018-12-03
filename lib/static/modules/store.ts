@@ -1,5 +1,3 @@
-'use strict';
-
 import {createStore, applyMiddleware, compose} from 'redux';
 import thunk from 'redux-thunk';
 import logger from 'redux-logger';
@@ -8,6 +6,7 @@ import reducer from './reducer';
 const middlewares = [thunk];
 
 if (process.env.NODE_ENV !== 'production') {
+    // @ts-ignore
     middlewares.push(logger);
 }
 
