@@ -2,19 +2,18 @@
 
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
-import PropTypes from 'prop-types';
-import LazyLoad from 'react-lazy-load';
+const LazyLoad = require('react-lazy-load');
 
-class Screenshot extends Component {
-    static propTypes = {
-        noCache: PropTypes.bool,
-        imagePath: PropTypes.string.isRequired,
-        lazyLoadOffset: PropTypes.number
-    }
+interface IScreenshot{
+    noCache?: boolean;
+    imagePath: string;
+    lazyLoadOffset: number;
+}
+class Screenshot extends Component<IScreenshot> {
 
     static defaultProps = {
         noCache: false
-    }
+    };
 
     render() {
         const {noCache, imagePath, lazyLoadOffset} = this.props;
@@ -23,15 +22,15 @@ class Screenshot extends Component {
             ? addTimestamp(encodeUri(imagePath))
             : encodeUri(imagePath);
 
-        const elem = <img src={url} className="image-box__screenshot" />;
+        const elem = <img src={url} className='image-box__screenshot' />;
 
         return lazyLoadOffset ? <LazyLoad offsetVertical={lazyLoadOffset}>{elem}</LazyLoad> : elem;
     }
 }
 
-export default connect(({view: {lazyLoadOffset}}) => ({lazyLoadOffset}))(Screenshot);
+export default connect(({view: {lazyLoadOffset}}: any) => ({lazyLoadOffset}))(Screenshot);
 
-function encodeUri(imagePath) {
+function encodeUri(imagePath: string) {
     return imagePath
         .split('/')
         .map((item) => encodeURIComponent(item))
@@ -39,6 +38,6 @@ function encodeUri(imagePath) {
 }
 
 // for prevent image caching
-function addTimestamp(imagePath) {
+function addTimestamp(imagePath: string) {
     return `${imagePath}?t=${Date.now()}`;
 }
