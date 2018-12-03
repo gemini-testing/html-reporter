@@ -9,6 +9,10 @@ const {getPathsFor} = require('../server-utils');
 const {IDLE} = require('../constants/test-statuses');
 
 module.exports = class GeminiTestResultAdapter extends TestAdapter {
+    static create(testResult: ITestResult = {}, tool: ITestTool = {}): GeminiTestResultAdapter {
+        return new this(testResult, tool);
+    }
+
     constructor(
         protected _testResult: ITestResult = {},
         protected _tool: ITestTool = {}

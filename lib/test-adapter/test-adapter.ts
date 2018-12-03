@@ -4,7 +4,7 @@ import { ITestResult, ITestTool } from 'typings/test-adapter';
 module.exports = class TestAdapter {
     protected _suite: ISuite;
 
-    static create(testResult: ITestResult = {}, tool: ITestTool) {
+    static create(testResult: ITestResult = {}, tool: ITestTool = {}): TestAdapter {
         return new this(testResult, tool);
     }
 

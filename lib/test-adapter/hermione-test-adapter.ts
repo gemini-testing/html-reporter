@@ -11,6 +11,10 @@ module.exports = class HermioneTestResultAdapter extends TestAdapter {
     protected _errors: any;
     protected imageInfo: any;
 
+    static create(testResult: ITestResult = {}, tool: ITestTool = {}): HermioneTestResultAdapter {
+        return new this(testResult, tool);
+    }
+
     constructor(
         protected _testResult: ITestResult = {},
         protected _tool: ITestTool = {}
