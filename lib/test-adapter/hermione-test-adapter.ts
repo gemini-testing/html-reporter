@@ -1,19 +1,17 @@
-const _ = require('lodash');
-import TestAdapter from './test-adapter';
+import _ from 'lodash';
 import HermioneSuiteAdapter from '../suite-adapter/hermione-suite-adapter';
-
-import {getHermioneUtils} from '../plugin-utils';
-const {getSuitePath} = getHermioneUtils();
-
-import {getPathsFor} from '../server-utils';
 import { ITestResult, ITestTool } from 'typings/test-adapter';
 
+const TestAdapter = require('./test-adapter');
+const {getSuitePath} = require('../plugin-utils').getHermioneUtils();
+const {getPathsFor} = require('../server-utils');
 const {SUCCESS, FAIL, ERROR} = require('../constants/test-statuses');
 
 module.exports = class HermioneTestResultAdapter extends TestAdapter {
     protected _errors: any;
+    protected imageInfo: any;
 
-    static create(testResult: ITestResult, tool: ITestTool): HermioneTestResultAdapter {
+    static create(testResult: ITestResult = {}, tool: ITestTool = {}): HermioneTestResultAdapter {
         return new this(testResult, tool);
     }
 
@@ -22,17 +20,17 @@ module.exports = class HermioneTestResultAdapter extends TestAdapter {
         protected _tool: ITestTool = {}
     ) {
         super(_testResult, _tool);
-
         this._errors = this._tool.errors;
+
         this._suite = HermioneSuiteAdapter.create(this._testResult);
     }
 
     hasDiff() {
-        return this.assertViewResults && this.assertViewResults.some((result: any) => this.isImageDiffError(result));
+        return this.assertViewResults.some((result: any) => this.isImageDiffError(result));
     }
 
     get assertViewResults() {
-        return this._testResult.assertViewResults;
+        return this._testResult.assertViewResults || [];
     }
 
     isImageDiffError(assertResult: any) {
@@ -48,7 +46,7 @@ module.exports = class HermioneTestResultAdapter extends TestAdapter {
             return this.imagesInfo;
         }
 
-        this.imagesInfo = this.assertViewResults && this.assertViewResults.map((assertResult) => {
+        this.imagesInfo = this.assertViewResults.map((assertResult: any) => {
             let status;
             let reason;
 
@@ -77,7 +75,7 @@ module.exports = class HermioneTestResultAdapter extends TestAdapter {
                 getPathsFor(ERROR, this)
             );
 
-            this.imagesInfo && this.imagesInfo.push(errorImage);
+            this.imagesInfo.push(errorImage);
         }
 
         return this.imagesInfo;
@@ -85,7 +83,7 @@ module.exports = class HermioneTestResultAdapter extends TestAdapter {
 
     // hack which should be removed when html-reporter is able to show all assert view fails for one test
     get _firstAssertViewFail() {
-        return _.find(this._testResult.assertViewResults, (result: Error | any) => result instanceof Error);
+        return _.find(this._testResult.assertViewResults, (result) => result instanceof Error);
     }
 
     get error() {
@@ -100,7 +98,7 @@ module.exports = class HermioneTestResultAdapter extends TestAdapter {
         return {name: this._testResult.title};
     }
 
-     get attempt() {
+    get attempt() {
         if (this._testResult.attempt as number >= 0) {
             return this._testResult.attempt;
         }
@@ -135,13 +133,13 @@ module.exports = class HermioneTestResultAdapter extends TestAdapter {
     }
 
     getImagePath(stateName: string) {
+        // @ts-ignore
         return (_.find(this.imagesInfo, {stateName}) || {}).imagePath;
     }
 
     prepareTestResult() {
         const {title: name, browserId} = this._testResult;
-        // TODO: create typings for that func, and delete "as"
-        const suitePath = (getSuitePath as any)(this._testResult);
+        const suitePath = getSuitePath(this._testResult);
 
         return {name, suitePath, browserId};
     }
