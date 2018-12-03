@@ -10,3 +10,5 @@ hot
 
 .idea
 .vscode
+
+package-lock.json
