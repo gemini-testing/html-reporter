@@ -5,10 +5,12 @@ export interface IBrowser {
 }
 
 export interface ISuite {
+    acceptTestAttempt?: number;
     imagesInfo?: string[];
     browsers?: IBrowser[];
     skipComment?: string;
     skipReason?: string;
+    browserResult?: any;
     browserId?: string;
     timedOut?: boolean;
     suitePath?: string;
@@ -18,12 +20,15 @@ export interface ISuite {
     tests?: ISuite[];
     fullUrl?: string;
     parent?: ISuite;
+    status?: string;
     path?: string[];
     title?: string;
     sync?: boolean;
     async?: number;
     children?: any;
     root?: boolean;
+    browsers?: any;
+    children?: any;
     type?: string;
     body?: string;
     file?: string;

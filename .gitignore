@@ -3,10 +3,12 @@ node_modules
 hot
 *.log
 /lib/static/*.min.*
-/lib/static/data.js
+# /lib/static/data.js
 /lib/static/gui.html
 /lib/static/index.html
 /index.js
 
 .idea
 .vscode
+
+package-lock.json

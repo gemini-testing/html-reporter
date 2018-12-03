@@ -1,13 +1,14 @@
-'use strict';
-
 import axios from 'axios';
 import {assign, filter, flatMap, set, cloneDeep, compact} from 'lodash';
 import actionNames from './action-names';
-import {QUEUED, UPDATED} from '../../constants/test-statuses';
+const {QUEUED, UPDATED} = require('../../constants/test-statuses');
 import {isSuiteFailed, isAcceptable} from './utils';
+import {ISuite} from 'typings/suite-adapter';
+
+type DispatchType = (action: any) => any;
 
 export const initial = () => {
-    return async (dispatch) => {
+    return async (dispatch: DispatchType) => {
         try {
             const appState = await axios.get('/init');
             dispatch({
@@ -20,8 +21,8 @@ export const initial = () => {
     };
 };
 
-const runTests = ({tests = [], action = {}} = {}) => {
-    return async (dispatch) => {
+const runTests = ({tests = [], action = {}}: {tests?: any[], action?: any} = {}) => {
+    return async (dispatch: DispatchType) => {
         try {
             await axios.post('/run', tests);
             dispatch(action);
@@ -38,26 +39,26 @@ export const runAllTests = () => {
     }});
 };
 
-export const runFailedTests = (fails, actionName = actionNames.RUN_FAILED_TESTS) => {
-    fails = filterFailedBrowsers([].concat(fails));
+export const runFailedTests = (fails: any, actionName: string = actionNames.RUN_FAILED_TESTS) => {
+    fails = filterFailedBrowsers((new Array()).concat(fails));
 
     return runTests({tests: fails, action: {type: actionName}});
 };
 
-export const retrySuite = (suite) => {
+export const retrySuite = (suite: ISuite) => {
     return runTests({tests: [suite], action: {type: actionNames.RETRY_SUITE}});
 };
 
-export const retryTest = (suite, browserId = null) => {
+export const retryTest = (suite: ISuite, browserId: string | null = null) => {
     return runFailedTests(assign({browserId}, suite), actionNames.RETRY_TEST);
 };
 
-export const acceptAll = (fails) => {
+export const acceptAll = (fails: any) => {
     fails = filterAcceptableBrowsers([].concat(fails));
 
     const formattedFails = flatMap([].concat(fails), formatTests);
 
-    return async (dispatch) => {
+    return async (dispatch: DispatchType) => {
         try {
             const {data: updatedData} = await axios.post('/update-reference', compact(formattedFails));
             dispatch({type: actionNames.UPDATE_RESULT, payload: updatedData});
@@ -67,13 +68,13 @@ export const acceptAll = (fails) => {
     };
 };
 
-export const acceptTest = (suite, browserId, attempt, stateName) => {
+export const acceptTest = (suite: ISuite, browserId: string, attempt: number, stateName: string) => {
     return acceptAll(assign({browserId, stateName}, suite, {acceptTestAttempt: attempt}));
 };
 
-export const suiteBegin = (suite) => ({type: actionNames.SUITE_BEGIN, payload: suite});
-export const testBegin = (test) => ({type: actionNames.TEST_BEGIN, payload: test});
-export const testResult = (result) => ({type: actionNames.TEST_RESULT, payload: result});
+export const suiteBegin = (suite: ISuite) => ({type: actionNames.SUITE_BEGIN, payload: suite});
+export const testBegin = (test: any) => ({type: actionNames.TEST_BEGIN, payload: test});
+export const testResult = (result: string) => ({type: actionNames.TEST_RESULT, payload: result});
 export const testsEnd = () => ({type: actionNames.TESTS_END});
 export const runFailed = () => ({type: actionNames.RUN_FAILED_TESTS});
 export const expandAll = () => ({type: actionNames.VIEW_EXPAND_ALL});
@@ -84,12 +85,12 @@ export const toggleSkipped = () => ({type: actionNames.VIEW_TOGGLE_SKIPPED});
 export const toggleOnlyDiff = () => ({type: actionNames.VIEW_TOGGLE_ONLY_DIFF});
 export const toggleScaleImages = () => ({type: actionNames.VIEW_TOGGLE_SCALE_IMAGES});
 export const toggleLazyLoad = () => ({type: actionNames.VIEW_TOGGLE_LAZY_LOAD_IMAGES});
-export const updateBaseHost = (host) => {
+export const updateBaseHost = (host: string) => {
     window.localStorage.setItem('_gemini-replace-host', host);
     return {type: actionNames.VIEW_UPDATE_BASE_HOST, host};
 };
 
-export function changeViewMode(mode) {
+export function changeViewMode(mode: string) {
     switch (mode) {
         case 'failed':
             return {type: actionNames.VIEW_SHOW_FAILED};
@@ -98,7 +99,7 @@ export function changeViewMode(mode) {
     }
 }
 
-function formatTests(test) {
+function formatTests(test: any): any {
     if (test.children) {
         return flatMap(test.children, formatTests);
     }
@@ -108,7 +109,7 @@ function formatTests(test) {
     }
 
     const {suitePath, name, acceptTestAttempt} = test;
-    const prepareImages = (images, filterCond) => {
+    const prepareImages = (images: any[], filterCond: any) => {
         return filter(images, filterCond)
             .filter(isAcceptable)
             .map(({actualPath, stateName}) => ({status: UPDATED, actualPath, stateName}));
@@ -137,8 +138,8 @@ function formatTests(test) {
     });
 }
 
-function filterBrowsers(suites = [], filterFn) {
-    const modifySuite = (suite) => {
+function filterBrowsers(suites: ISuite[] = [], filterFn: (browserResult: any) => any) {
+    const modifySuite = (suite: ISuite): any => {
         if (suite.children) {
             return flatMap(suite.children, modifySuite);
         }
@@ -148,7 +149,7 @@ function filterBrowsers(suites = [], filterFn) {
                 return false;
             }
 
-            const browserResult = getBrowserResultByAttempt(bro, suite.acceptTestAttempt);
+            const browserResult = getBrowserResultByAttempt(bro, suite.acceptTestAttempt as number);
 
             return filterFn(browserResult);
         }));
@@ -157,7 +158,7 @@ function filterBrowsers(suites = [], filterFn) {
     return flatMap(cloneDeep(suites), modifySuite);
 }
 
-function filterFailedBrowsers(suites = []) {
+function filterFailedBrowsers(suites: any[] = []) {
     return filterBrowsers(suites, isSuiteFailed);
 }
 
@@ -165,7 +166,7 @@ function filterAcceptableBrowsers(suites = []) {
     return filterBrowsers(suites, isAcceptable);
 }
 
-function getBrowserResultByAttempt(browser, attempt) {
+function getBrowserResultByAttempt(browser: any, attempt: number) {
     return attempt >= 0
         ? browser.retries.concat(browser.result)[attempt]
         : browser.result;

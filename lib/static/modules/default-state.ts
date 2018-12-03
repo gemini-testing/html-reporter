@@ -1,5 +1,3 @@
-'use strict';
-
 const defaults = require('../../constants/defaults');
 
 export default Object.assign(defaults, {

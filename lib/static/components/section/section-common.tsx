@@ -2,27 +2,43 @@
 
 import React from 'react';
 import {connect} from 'react-redux';
-import PropTypes from 'prop-types';
 import {uniqueId} from 'lodash';
-import SectionBase from './section-base';
+import {Base, IBaseProps} from './section-base';
 import SectionBrowser from './section-browser';
 import {allSkipped, hasFails, hasRetries} from '../../modules/utils';
 import Title from './title/simple';
 
-export class SectionCommon extends SectionBase {
-    static propTypes = {
-        suiteId: PropTypes.string,
-        suite: PropTypes.shape({
-            name: PropTypes.string,
-            suitePath: PropTypes.array,
-            browsers: PropTypes.array,
-            children: PropTypes.array
-        }),
-        ...SectionBase.propTypes
+interface IBrowser{
+    name: string;
+    result: any;
+    retries: any[];
+}
+
+interface IChild{
+    name: string;
+    suitePath: any[];
+    browsers: IBrowser[];
+    children: any[];
+    status?: string;
+    result?: any;
+}
+
+interface ISectionCommonProps extends IBaseProps{
+    suiteId?: string;
+    suite?: IChild;
+}
+
+export class SectionCommon extends Base<ISectionCommonProps>{
+    constructor(props: ISectionCommonProps) {
+        super(props);
     }
 
-    render() {
+    render()  {
         const {suite, expand} = this.props;
+
+        if (!suite)
+            return null;
+
         const {
             name,
             browsers = [],
@@ -38,18 +54,18 @@ export class SectionCommon extends SectionBase {
             );
         }
 
-        const childrenTmpl = children.map((child) => {
+        const childrenTmpl = children.map((child: IChild) => {
             const key = uniqueId(`${suite.suitePath}-${suite.name}`);
             return <SectionCommon key={key} suite={child} expand={expand}/>;
         });
-        const browserTmpl = browsers.map((browser) => {
+        const browserTmpl = browsers.map((browser: IBrowser) => {
             return <SectionBrowser key={browser.name} browser={browser} suite={suite}/>;
         });
 
         return (
             <div className={this._resolveSectionStatus(status)}>
                 <Title name={name} suite={suite} handler={this._toggleState}/>
-                <div className="section__body section__body_guided">
+                <div className='section__body section__body_guided'>
                     {browserTmpl}
                     {childrenTmpl}
                 </div>
@@ -57,11 +73,17 @@ export class SectionCommon extends SectionBase {
         );
     }
 
-    _getStateFromProps() {
+    protected _getStateFromProps() {
         const {suite, expand} = this.props;
+        let fail = false;
+
+        if (suite){
+            const {result} = suite;
+            fail = hasFails(result);
+        }
 
         return {
-            failed: hasFails(suite),
+            failed: fail,
             retried: hasRetries(suite),
             skipped: allSkipped(suite),
             expand
@@ -69,8 +91,8 @@ export class SectionCommon extends SectionBase {
     }
 }
 
-export default connect(
-    ({view: {expand, viewMode}, suites}, ownProps) => {
+export default connect<{}, {}, ISectionCommonProps>(
+    ({view: {expand, viewMode}, suites}: any, ownProps: any) => {
         return {
             expand,
             viewMode,
