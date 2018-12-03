@@ -1,6 +1,6 @@
 const ReportBuilder = require('./report-builder');
 
-module.exports = async (srcPaths: string[], {destination: destPath}: any) => {
+module.exports = async (srcPaths: string[], {destination: destPath}: {destination: string}) => {
     validateOpts(srcPaths, destPath);
 
     const reportBuilder = ReportBuilder.create(srcPaths, destPath);

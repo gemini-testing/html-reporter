@@ -1,8 +1,10 @@
 import _ from 'lodash';
 import { INode } from 'typings/node';
+import { IField } from 'typings/data';
+import { IBrowser } from 'typings/suite-adapter';
 const {SUCCESS, FAIL, ERROR, SKIPPED} = require('../constants/test-statuses');
 
-function getDataFrom(node: INode, {fieldName, fromFields}: any) {
+function getDataFrom(node: INode, {fieldName = '', fromFields}: IField) {
     if (!fromFields) {
         return [].concat(_.get(node, fieldName, []));
     }
@@ -11,7 +13,7 @@ function getDataFrom(node: INode, {fieldName, fromFields}: any) {
 
     return _.isEmpty(result) && _.isEmpty(retries)
         ? walk(node, (n: INode) => getDataFrom(n, {fieldName, fromFields}), _.flatMap)
-        : [].concat(_.get(result, fieldName, []), _.flatMap(retries, fieldName));
+        : (new Array<any>()).concat(_.get(result, fieldName, []), _.flatMap(retries, fieldName));
 }
 
 function getImagePaths(node: INode, fromFields: any) {
@@ -33,7 +35,7 @@ function getStatNameForStatus(status: string) {
     return statusToStat[status];
 }
 
-function walk(node: INode, cb: any, fn: (...args: any) => any): any[] {
+function walk(node: INode, cb: any, fn: (browsers: IBrowser[], cb: any) => any): any[] {
     return node.browsers && fn(node.browsers, cb) || node.children && fn(node.children, cb) || [];
 }
 

@@ -4,7 +4,7 @@ import _ from 'lodash';
 import Promise from 'bluebird';
 const fs = Promise.promisifyAll(require('fs-extra'));
 
-import {IData} from 'typings/data';
+import {IData, ISkip, IRetry, IField} from 'typings/data';
 import { ISuite, IBrowser } from 'typings/suite-adapter';
 import { ITestResult } from 'typings/test-adapter';
 import { INode } from 'typings/node';
@@ -26,9 +26,9 @@ module.exports = class DataTree {
         protected _destPath: string
     ) {}
 
-    async mergeWith(dataCollection: any) {
+    async mergeWith(dataCollection: IData[]) {
         // make it serially in order to perform correct merge/permutation of images and datas
-        await Promise.each(_.toPairs(dataCollection), async ([path, data]: any) => {
+        await Promise.each(_.toPairs(dataCollection), async ([path, data]: any[]) => {
             this._srcPath = path;
             this._mergeSkips(data.skips);
 
@@ -38,7 +38,7 @@ module.exports = class DataTree {
         return this._data;
     }
 
-    _mergeSkips(srcSkips: any[]) {
+    _mergeSkips(srcSkips: ISkip[]) {
         srcSkips.forEach((skip) => {
             if (!_.find(this._data.skips, {suite: skip.suite, browser: skip.browser})) {
                 this._data.skips.push(skip);
@@ -67,7 +67,7 @@ module.exports = class DataTree {
     }
 
     async _mergeBrowserResult(suite: ISuite) {
-        await Promise.map(suite.browsers || [], async (bro) => {
+        await Promise.map(suite.browsers || [], async (bro: IBrowser) => {
             const existentBro = this._findBrowserResult(suite.suitePath || '', bro.name);
 
             if (!existentBro) {
@@ -110,11 +110,11 @@ module.exports = class DataTree {
         this._data[statName] -= 1;
     }
 
-    async _addTestRetries(existentBro: IBrowser, retries: any) {
+    async _addTestRetries(existentBro: IBrowser, retries: IRetry[]) {
         await Promise.mapSeries(retries, (retry) => this._addTestRetry(existentBro, retry));
     }
 
-    async _addTestRetry(existentBro: IBrowser, retry: any) {
+    async _addTestRetry(existentBro: IBrowser, retry: IRetry) {
         const newAttempt = existentBro.retries.length;
 
         // @ts-ignore
@@ -153,7 +153,7 @@ module.exports = class DataTree {
         this._data.retries += testRetryStatuses.length;
     }
 
-    async _moveImages(node: INode, {newAttempt, fromFields}: any) {
+    async _moveImages(node: INode, {newAttempt, fromFields}: IField) {
         await Promise.map(getImagePaths(node, fromFields), async (imgPath: string) => {
             const srcImgPath = path.resolve(this._srcPath, imgPath);
             const destImgPath = path.resolve(
@@ -165,7 +165,7 @@ module.exports = class DataTree {
         });
     }
 
-    _changeFieldsWithAttempt(testResult: ITestResult, {newAttempt}: any) {
+    _changeFieldsWithAttempt(testResult: ITestResult, {newAttempt}: IField) {
         const imagesInfo = testResult.imagesInfo && testResult.imagesInfo.map((imageInfo) => {
             return _.mapValues(imageInfo, (val, key) => {
                 // @ts-ignore

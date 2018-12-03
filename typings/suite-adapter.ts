@@ -7,7 +7,6 @@ export interface IBrowser {
 export interface ISuite {
     acceptTestAttempt?: number;
     imagesInfo?: string[];
-    browsers?: IBrowser[];
     skipComment?: string;
     skipReason?: string;
     browserResult?: any;
@@ -25,7 +24,6 @@ export interface ISuite {
     title?: string;
     sync?: boolean;
     async?: number;
-    children?: any;
     root?: boolean;
     browsers?: any;
     children?: any;
