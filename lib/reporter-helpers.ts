@@ -19,7 +19,7 @@ function saveAssertViewImages(testResult: TestAdapterType, reportPath: string) {
 
         if (testResult.isImageDiffError && testResult.isImageDiffError(assertResult)) {
             actions.push(
-                exports.saveTestCurrentImage(testResult, reportPath, stateName),
+                saveTestCurrentImage(testResult, reportPath, stateName),
                 utils.saveDiff(
                     assertResult,
                     utils.getDiffAbsolutePath(testResult, reportPath, stateName)
@@ -32,14 +32,14 @@ function saveAssertViewImages(testResult: TestAdapterType, reportPath: string) {
         }
 
         if (testResult.isNoRefImageError(assertResult)) {
-            actions.push(exports.saveTestCurrentImage(testResult, reportPath, stateName));
+            actions.push(saveTestCurrentImage(testResult, reportPath, stateName));
         }
 
         return Promise.all(actions);
     });
 }
 
-exports.saveTestImages = (testResult: TestAdapterType, reportPath: string) => {
+export function saveTestImages(testResult: TestAdapterType, reportPath: string = '') {
     if (testResult.assertViewResults) {
         return saveAssertViewImages(testResult, reportPath);
     }
@@ -53,7 +53,7 @@ exports.saveTestImages = (testResult: TestAdapterType, reportPath: string) => {
 
     if (testResult.hasDiff()) {
         actions.push(
-            exports.saveTestCurrentImage(testResult, reportPath),
+            saveTestCurrentImage(testResult, reportPath),
             utils.saveDiff(
                 testResult,
                 utils.getDiffAbsolutePath(testResult, reportPath)
@@ -62,9 +62,9 @@ exports.saveTestImages = (testResult: TestAdapterType, reportPath: string) => {
     }
 
     return Promise.all(actions);
-};
+}
 
-exports.saveTestCurrentImage = (testResult: TestAdapterType, reportPath: string, stateName: string) => {
+export function saveTestCurrentImage(testResult: TestAdapterType, reportPath: string, stateName?: string) {
     let src;
 
     if (stateName) {
@@ -77,9 +77,9 @@ exports.saveTestCurrentImage = (testResult: TestAdapterType, reportPath: string,
     return src
         ? utils.copyImageAsync(src, utils.getCurrentAbsolutePath(testResult, reportPath, stateName))
         : Promise.resolve();
-};
+}
 
-exports.updateReferenceImage = (testResult: TestAdapterType, reportPath: string, stateName: string) => {
+export function updateReferenceImage(testResult: TestAdapterType, reportPath: string, stateName: string) {
     const src = testResult.actualPath
         ? path.resolve(reportPath, testResult.actualPath)
         : utils.getCurrentAbsolutePath(testResult, reportPath, stateName);
@@ -88,9 +88,9 @@ exports.updateReferenceImage = (testResult: TestAdapterType, reportPath: string,
         utils.copyImageAsync(src, testResult.getImagePath(stateName)),
         utils.copyImageAsync(src, utils.getReferenceAbsolutePath(testResult, reportPath, stateName))
     ]);
-};
+}
 
-exports.saveBase64Screenshot = (testResult: TestAdapterType, reportPath: string) => {
+export function saveBase64Screenshot(testResult: TestAdapterType, reportPath: string = '') {
     if (!testResult.screenshot) {
         utils.logger.warn('Cannot save screenshot on reject');
 
@@ -102,4 +102,4 @@ exports.saveBase64Screenshot = (testResult: TestAdapterType, reportPath: string)
     return utils.makeDirFor(destPath)
         // @ts-ignore
         .then(() => fs.writeFileAsync(destPath, new Buffer(testResult.screenshot, 'base64'), 'base64'));
-};
+}

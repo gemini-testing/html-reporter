@@ -4,6 +4,4 @@ const getSuitePath = (suite: ISuite): string[] => {
     return suite.root ? [] : (new Array<string>()).concat(getSuitePath(suite.parent || {})).concat(suite.title || []);
 };
 
-const getHermioneUtils = () => ({getSuitePath});
-
-module.exports = {getHermioneUtils};
+export const getHermioneUtils = () => ({getSuitePath});

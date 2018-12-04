@@ -1,4 +1,4 @@
-import { SuiteType } from './suite-adapter';
+import { ISuite } from './suite-adapter';
 
 // @ts-ignore
 const TestAdapter = require('../lib/test-adapter/test-adapter');
@@ -27,7 +27,7 @@ export interface ITestResult {
     equal?: boolean;
     image?: string;
     title?: string;
-    suite?: SuiteType;
+    suite?: ISuite;
     error?: string;
     status?: string;
     err?: Error;

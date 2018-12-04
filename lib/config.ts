@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import configParser from 'gemini-configparser';
+const configParser = require('gemini-configparser');
 
 const root = configParser.root;
 const section = configParser.section;
