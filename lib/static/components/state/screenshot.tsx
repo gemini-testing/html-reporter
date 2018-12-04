@@ -23,7 +23,7 @@ class Screenshot extends Component<IScreenshot> {
             : encodeUri(imagePath);
 
         const elem = <img src={url} className='image-box__screenshot' />;
-        return lazyLoadOffset ? (<LazyLoad height={lazyLoadOffset}>{elem}</LazyLoad>) : elem;
+        return lazyLoadOffset ? (<LazyLoad offset={lazyLoadOffset}>{elem}</LazyLoad>) : elem;
 
     }
 }
