@@ -3,8 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var tslib_1 = require("tslib");
 var react_1 = tslib_1.__importStar(require("react"));
 var react_redux_1 = require("react-redux");
-var prop_types_1 = tslib_1.__importDefault(require("prop-types"));
-var react_lazy_load_1 = tslib_1.__importDefault(require("react-lazy-load"));
+var react_lazyload_1 = tslib_1.__importDefault(require("react-lazyload"));
 var Screenshot = /** @class */ (function (_super) {
     tslib_1.__extends(Screenshot, _super);
     function Screenshot() {
@@ -15,13 +14,8 @@ var Screenshot = /** @class */ (function (_super) {
         var url = noCache
             ? addTimestamp(encodeUri(imagePath))
             : encodeUri(imagePath);
-        var elem = react_1.default.createElement("img", { src: url, className: "image-box__screenshot" });
-        return lazyLoadOffset ? react_1.default.createElement(react_lazy_load_1.default, { offsetVertical: lazyLoadOffset }, elem) : elem;
-    };
-    Screenshot.propTypes = {
-        noCache: prop_types_1.default.bool,
-        imagePath: prop_types_1.default.string.isRequired,
-        lazyLoadOffset: prop_types_1.default.number
+        var elem = react_1.default.createElement("img", { src: url, className: 'image-box__screenshot' });
+        return lazyLoadOffset ? (react_1.default.createElement(react_lazyload_1.default, { offset: lazyLoadOffset }, elem)) : elem;
     };
     Screenshot.defaultProps = {
         noCache: false
