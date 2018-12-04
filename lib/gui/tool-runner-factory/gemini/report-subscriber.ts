@@ -8,8 +8,9 @@ interface  IGeminiOnType {
     suite: any;
     browserId: ISuite;
 }
+import { TestAdapterType} from 'typings/test-adapter';
 
-module.exports = (gemini: any, reportBuilder: any, client: any, reportPath: string) => {
+module.exports = (gemini: any, reportBuilder: TestAdapterType, client: any, reportPath: string) => {
 
     gemini.on(gemini.events.BEGIN_SUITE, ({suite, browserId}: IGeminiOnType) => {
         const {name, path: suitePath} = suite;
