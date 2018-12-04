@@ -1,8 +1,14 @@
+import {SuiteAdapter} from 'lib/suite-adapter/suite-adapter';
+import GeminiSuiteAdapter from 'lib/suite-adapter/gemini-suite-adapter';
+import HermioneSuiteAdapter from 'lib/suite-adapter/hermione-suite-adapter';
+
 export interface IBrowser {
     retries?: any;
     result?: any;
     name: any;
 }
+
+export type SuiteType = SuiteAdapter | HermioneSuiteAdapter | GeminiSuiteAdapter;
 
 export interface ISuite {
     acceptTestAttempt?: number;
