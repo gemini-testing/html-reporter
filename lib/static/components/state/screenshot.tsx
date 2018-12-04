@@ -2,12 +2,12 @@
 
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
-const LazyLoad = require('react-lazy-load');
+import LazyLoad from 'react-lazyload';
 
 interface IScreenshot{
     noCache?: boolean;
     imagePath: string;
-    lazyLoadOffset: number;
+    lazyLoadOffset?: number;
 }
 class Screenshot extends Component<IScreenshot> {
 
@@ -23,8 +23,8 @@ class Screenshot extends Component<IScreenshot> {
             : encodeUri(imagePath);
 
         const elem = <img src={url} className='image-box__screenshot' />;
+        return lazyLoadOffset ? (<LazyLoad height={lazyLoadOffset}>{elem}</LazyLoad>) : elem;
 
-        return lazyLoadOffset ? <LazyLoad offsetVertical={lazyLoadOffset}>{elem}</LazyLoad> : elem;
     }
 }
 
