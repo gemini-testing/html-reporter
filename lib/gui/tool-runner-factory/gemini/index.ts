@@ -1,4 +1,5 @@
 import { ISuite } from 'typings/suite-adapter';
+import { ITestResult } from 'typings/test-adapter';
 
 const path = require('path');
 const _ = require('lodash');
@@ -8,7 +9,7 @@ const subscribeOnToolEvents = require('./report-subscriber');
 const {formatTests} = require('../utils');
 
 module.exports = class GeminiRunner extends BaseToolRunner {
-    constructor(paths: string, tool: { [key: string]: any }, configs: { [key: string]: any }) {
+    constructor(paths: string[], tool: { [key: string]: any }, configs: { [key: string]: any }) {
         super(paths, tool, configs);
 
         this._collectionStates = null;
@@ -55,7 +56,7 @@ module.exports = class GeminiRunner extends BaseToolRunner {
         const currentState = _.find(this._collectionStates, searchBy);
         const imagePath = this._tool.getScreenshotPath(currentState.suite, test.state.name, test.browserId);
         const {metaInfo: {sessionId, url: fullUrl}, attempt, actualPath} = test;
-        const imagesInfo = test.imagesInfo.map((imageInfo: any[]) => _.set(imageInfo, 'imagePath', imagePath));
+        const imagesInfo = test.imagesInfo.map((imageInfo: ITestResult) => _.set(imageInfo, 'imagePath', imagePath));
 
         const testResult = {
             suite: _.pick(currentState.suite, ['file', 'name', 'path', 'url']),
@@ -67,7 +68,7 @@ module.exports = class GeminiRunner extends BaseToolRunner {
     }
 };
 
-function getAllStates(suites: [any]) {
+function getAllStates(suites: any[]) {
     return suites.reduce((acc, suite) => {
         suite.states.forEach((state: any) => {
             state.browsers.forEach((browserId: string) => {
