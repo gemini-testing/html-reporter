@@ -1,7 +1,5 @@
-'use strict';
-
-const _ = require('lodash');
-const configParser = require('gemini-configparser');
+import _ from 'lodash';
+import configParser from 'gemini-configparser';
 
 const root = configParser.root;
 const section = configParser.section;
@@ -12,16 +10,16 @@ const CLI_PREFIX = '--html-reporter-';
 
 const {config: configDefaults} = require('./constants/defaults');
 
-const assertType = (name, validationFn, type) => {
-    return (v) => {
+const assertType = (name: string, validationFn: (v: any) => any, type: string) => {
+    return (v: any) => {
         if (!validationFn(v)) {
             throw new Error(`"${name}" option must be ${type}, but got ${typeof v}`);
         }
     };
 };
-const assertString = (name) => assertType(name, _.isString, 'string');
-const assertBoolean = (name) => assertType(name, _.isBoolean, 'boolean');
-const assertNumber = (name) => assertType(name, _.isNumber, 'number');
+const assertString = (name: any) => assertType(name, _.isString, 'string');
+const assertBoolean = (name: any) => assertType(name, _.isBoolean, 'boolean');
+const assertNumber = (name: any) => assertType(name, _.isNumber, 'number');
 
 const getParser = () => {
     return root(section({
@@ -57,7 +55,7 @@ const getParser = () => {
     }), {envPrefix: ENV_PREFIX, cliPrefix: CLI_PREFIX});
 };
 
-module.exports = (options) => {
+module.exports = (options: any) => {
     const env = process.env;
     const argv = process.argv;
 
