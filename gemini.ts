@@ -1,11 +1,11 @@
-'use strict';
-
-const Promise = require('bluebird');
+import Promise from 'bluebird';
+import { TestAdapterType, ITestResult } from 'typings/test-adapter';
+import { IPluginConfig } from 'typings/pluginConfig';
 const PluginAdapter = require('./lib/plugin-adapter');
 const utils = require('./lib/server-utils');
 const {saveTestImages} = require('./lib/reporter-helpers');
 
-module.exports = (gemini, opts) => {
+module.exports = (gemini: any, opts: any) => {
     const plugin = PluginAdapter.create(gemini, opts, 'gemini');
 
     if (!plugin.isEnabled()) {
@@ -17,29 +17,29 @@ module.exports = (gemini, opts) => {
         .init(prepareData, prepareImages);
 };
 
-function prepareData(gemini, reportBuilder) {
+function prepareData(gemini: any, reportBuilder: TestAdapterType) {
     return new Promise((resolve) => {
-        gemini.on(gemini.events.SKIP_STATE, (result) => reportBuilder.addSkipped(result));
+        gemini.on(gemini.events.SKIP_STATE, (result: ITestResult) => reportBuilder.addSkipped(result));
 
-        gemini.on(gemini.events.TEST_RESULT, (result) => {
+        gemini.on(gemini.events.TEST_RESULT, (result: ITestResult) => {
             return result.equal ? reportBuilder.addSuccess(result) : reportBuilder.addFail(result);
         });
 
-        gemini.on(gemini.events.UPDATE_RESULT, (result) => reportBuilder.addSuccess(result));
+        gemini.on(gemini.events.UPDATE_RESULT, (result: ITestResult) => reportBuilder.addSuccess(result));
 
-        gemini.on(gemini.events.RETRY, (result) => reportBuilder.addRetry(result));
+        gemini.on(gemini.events.RETRY, (result: ITestResult) => reportBuilder.addRetry(result));
 
-        gemini.on(gemini.events.ERROR, (result) => reportBuilder.addError(result));
+        gemini.on(gemini.events.ERROR, (result: ITestResult) => reportBuilder.addError(result));
 
-        gemini.on(gemini.events.END, (stats) => resolve(reportBuilder.setStats(stats)));
+        gemini.on(gemini.events.END, (stats: any) => resolve(reportBuilder.setStats(stats)));
     });
 }
 
-function prepareImages(gemini, pluginConfig, reportBuilder) {
+function prepareImages(gemini: any, pluginConfig: IPluginConfig, reportBuilder: TestAdapterType) {
     const {path: reportPath} = pluginConfig;
 
-    function handleErrorEvent(result) {
-        const src = result.getImagePath() || result.currentPath;
+    function handleErrorEvent(result: ITestResult) {
+        const src = (result.getImagePath && result.getImagePath()) || result.currentPath;
 
         return src && utils.copyImageAsync(src, utils.getCurrentAbsolutePath(result, reportPath));
     }
@@ -47,11 +47,11 @@ function prepareImages(gemini, pluginConfig, reportBuilder) {
     return new Promise((resolve, reject) => {
         let queue = Promise.resolve();
 
-        gemini.on(gemini.events.ERROR, (testResult) => {
+        gemini.on(gemini.events.ERROR, (testResult: ITestResult) => {
             queue = queue.then(() => handleErrorEvent(reportBuilder.format(testResult)));
         });
 
-        gemini.on(gemini.events.RETRY, (testResult) => {
+        gemini.on(gemini.events.RETRY, (testResult: ITestResult) => {
             const formattedResult = reportBuilder.format(testResult);
 
             queue = queue.then(() => {
@@ -61,11 +61,11 @@ function prepareImages(gemini, pluginConfig, reportBuilder) {
             });
         });
 
-        gemini.on(gemini.events.TEST_RESULT, (testResult) => {
+        gemini.on(gemini.events.TEST_RESULT, (testResult: ITestResult) => {
             queue = queue.then(() => saveTestImages(reportBuilder.format(testResult), reportPath));
         });
 
-        gemini.on(gemini.events.UPDATE_RESULT, (testResult) => {
+        gemini.on(gemini.events.UPDATE_RESULT, (testResult: ITestResult) => {
             testResult = Object.assign(testResult, {
                 referencePath: testResult.imagePath,
                 equal: true
@@ -74,6 +74,7 @@ function prepareImages(gemini, pluginConfig, reportBuilder) {
             queue = queue.then(() => saveTestImages(reportBuilder.format(testResult), reportPath));
         });
 
+        // @ts-ignore
         gemini.on(gemini.events.END, () => queue.then(resolve, reject));
     });
 }

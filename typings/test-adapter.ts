@@ -38,6 +38,7 @@ export interface ITestResult {
         url: string;
     };
     id?(): string;
+    getImagePath?(): any;
     saveDiffTo?(...args: any[]): any;
     getImagesInfo?(status: string): any;
 }
