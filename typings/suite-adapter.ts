@@ -1,3 +1,9 @@
+export interface IBrowser {
+    retries?: any;
+    result?: any;
+    name: any;
+}
+
 export interface ISuite {
     acceptTestAttempt?: number;
     imagesInfo?: string[];

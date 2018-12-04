@@ -1,0 +1,1 @@
+{"version":3,"file":"client-events.js","sourceRoot":"","sources":["../../../../../lib/gui/constants/client-events.ts"],"names":[],"mappings":"AAAA,YAAY,CAAC;AAEb,MAAM,CAAC,OAAO,GAAG;IACb,WAAW,EAAE,YAAY;IACzB,WAAW,EAAE,YAAY;IACzB,WAAW,EAAE,YAAY;IACzB,KAAK,EAAE,OAAO;IACd,KAAK,EAAE,KAAK;IACZ,GAAG,EAAE,KAAK;CACb,CAAC"}
