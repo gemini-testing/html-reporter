@@ -2,7 +2,6 @@
 
 import React, {Component, Fragment} from 'react';
 import {connect} from 'react-redux';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import StateError from './state-error';
 import StateSuccess from './state-success';
@@ -11,21 +10,22 @@ import ControlButton from '../controls/button';
 import {isAcceptable} from '../../modules/utils';
 import {isSuccessStatus, isFailStatus, isErroredStatus, isUpdatedStatus, isIdleStatus} from '../../../common-utils';
 
-class State extends Component {
-    static propTypes = {
-        state: PropTypes.shape({
-            status: PropTypes.string,
-            image: PropTypes.bool,
-            reason: PropTypes.object,
-            expectedPath: PropTypes.string,
-            actualPath: PropTypes.string,
-            diffPath: PropTypes.string
-        }),
-        acceptHandler: PropTypes.func,
+interface IState{
+    state: {
+        status: string;
+        image?: boolean;
+        reason: any;
+        expectedPath: string;
+        actualPath: string;
+        diffPath: string;
+        stateName: string;
+    };
+    acceptHandler: (a: any) => any;
+    gui?: boolean;
+    scaleImages?: boolean;
+}
 
-        gui: PropTypes.bool,
-        scaleImages: PropTypes.bool
-    }
+class State extends Component<IState> {
 
     _getAcceptButton() {
         if (!this.props.gui) {
@@ -38,7 +38,7 @@ class State extends Component {
 
         return (
             <ControlButton
-                label="✔ Accept"
+                label='✔ Accept'
                 isSuiteControl={true}
                 isDisabled={isAcceptDisabled}
                 handler={acceptFn}
@@ -46,7 +46,7 @@ class State extends Component {
         );
     }
 
-    _getStateTitle(stateName, status) {
+    _getStateTitle(stateName: string, status: string) {
         return stateName
             ? (<div className={`state-title state-title_${status}`}>{stateName}</div>)
             : null;
@@ -83,4 +83,4 @@ class State extends Component {
     }
 }
 
-export default connect(({gui, view: {scaleImages}}) => ({gui, scaleImages}))(State);
+export default connect(({gui, view: {scaleImages}}: {gui: boolean, view: IState}) => ({gui, scaleImages}))(State);

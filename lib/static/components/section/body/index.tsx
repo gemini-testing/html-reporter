@@ -7,7 +7,7 @@ import {bindActionCreators, Dispatch} from 'redux';
 import SwitcherStyle from '../switcher-style';
 import SwitcherRetry from '../switcher-retry';
 import ControlButton from '../../controls/button';
-import State from '../../state';
+import State from '../../state/index';
 import MetaInfo from './meta-info';
 import Description from './description';
 import {isSuccessStatus, isErroredStatus} from '../../../../common-utils';

@@ -2,16 +2,15 @@
 
 import React, {Component, Fragment} from 'react';
 import {connect} from 'react-redux';
-import PropTypes from 'prop-types';
 import Screenshot from './screenshot';
 
-class StateFail extends Component {
-    static propTypes = {
-        expected: PropTypes.string.isRequired,
-        actual: PropTypes.string.isRequired,
-        diff: PropTypes.string.isRequired,
-        showOnlyDiff: PropTypes.bool.isRequired
-    }
+interface IStateFail{
+    expected: string;
+    actual: string;
+    diff: string;
+    showOnlyDiff: boolean;
+}
+class StateFail extends Component<IStateFail> {
 
     render() {
         const {expected, actual, diff} = this.props;
@@ -24,7 +23,7 @@ class StateFail extends Component {
         );
     }
 
-    _drawExpectedAndActual(expected, actual) {
+    _drawExpectedAndActual(expected: string, actual: string) {
         if (this.props.showOnlyDiff) {
             return null;
         }
@@ -37,14 +36,14 @@ class StateFail extends Component {
         );
     }
 
-    _drawImageBox(label, path) {
+    _drawImageBox(label: string, path: string) {
         return (
-            <div className="image-box__image">
-                <div className="image-box__title">{label}</div>
+            <div className='image-box__image'>
+                <div className='image-box__title'>{label}</div>
                 <Screenshot imagePath={path}/>
             </div>
         );
     }
 }
 
-export default connect(({view: {showOnlyDiff}}) => ({showOnlyDiff}))(StateFail);
+export default connect(({view: {showOnlyDiff}}: {view: IStateFail}) => ({showOnlyDiff}))(StateFail);
