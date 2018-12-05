@@ -1,7 +1,8 @@
-'use strict';
-
-const _ = require('lodash');
-const Promise = require('bluebird');
+import _ from 'lodash';
+import Promise from 'bluebird';
+import { ITestTool, TestAdapterType } from 'typings/test-adapter';
+import { IOptions } from 'typings/options';
+import { IOptions as IOptionsHermione } from 'typings/hermione';
 const parseConfig = require('./config');
 const ReportBuilderFactory = require('./report-builder-factory');
 const utils = require('./server-utils');
@@ -9,14 +10,29 @@ const cliCommands = require('./cli-commands');
 
 Promise.promisifyAll(require('fs-extra'));
 
+type PrepareDataType = (
+    hermione: ITestTool,
+    reporterBuilder: TestAdapterType
+) => Promise<any>;
+
+type PrepareImagesType = (
+    hermione: ITestTool,
+    pluginConfig: IOptionsHermione,
+    reporterBuilder: TestAdapterType
+) => Promise<any>;
+
 module.exports = class PluginAdapter {
-    static create(tool, opts, toolName) {
+    protected _config: IOptions;
+
+    static create(tool: ITestTool, opts: IOptions, toolName: string) {
         return new this(tool, opts, toolName);
     }
 
-    constructor(tool, opts, toolName) {
-        this._tool = tool;
-        this._toolName = toolName;
+    constructor(
+        protected _tool: ITestTool,
+        opts: IOptions,
+        protected _toolName: string
+    ) {
         this._config = parseConfig(opts);
     }
 
@@ -25,8 +41,8 @@ module.exports = class PluginAdapter {
     }
 
     addCliCommands() {
-        _.values(cliCommands).forEach((command) => {
-            this._tool.on(this._tool.events.CLI, (commander) => {
+        _.values(cliCommands).forEach((command: string) => {
+            this._tool.on(this._tool.events.CLI, (commander: any) => {
                 require(`./cli-commands/${command}`)(commander, this._config, this._tool);
                 commander.prependListener(`command:${command}`, () => this._run = _.noop);
             });
@@ -35,13 +51,19 @@ module.exports = class PluginAdapter {
         return this;
     }
 
-    init(prepareData, prepareImages) {
+    init(
+        prepareData: PrepareDataType,
+        prepareImages: PrepareImagesType
+    ) {
         this._tool.on(this._tool.events.INIT, () => this._run(prepareData, prepareImages));
 
         return this;
     }
 
-    _run(prepareData, prepareImages) {
+    _run(
+        prepareData: PrepareDataType,
+        prepareImages: PrepareImagesType
+    ) {
         const reportBuilder = ReportBuilderFactory.create(this._toolName, this._tool, this._config);
         const generateReport = Promise
             .all([
