@@ -63,14 +63,13 @@ Add plugin to your `hermione` config file:
 ```js
 module.exports = {
     // ...
-    system: {
-        plugins: {
-            'html-reporter/hermione': {
-                enabled: true,
-                path: 'my/hermione-reports',
-                defaultView: 'all',
-                baseHost: 'test.com'
-            }
+    
+    plugins: {
+        'html-reporter/hermione': {
+            enabled: true,
+            path: 'my/hermione-reports',
+            defaultView: 'all',
+            baseHost: 'test.com'
         }
     },
     //...
