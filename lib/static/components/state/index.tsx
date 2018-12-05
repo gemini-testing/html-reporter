@@ -60,7 +60,7 @@ class State extends Component<IState> {
         if (isErroredStatus(status)) {
             elem = <StateError image={Boolean(image)} actual={actualPath} reason={reason}/>;
         } else if (isSuccessStatus(status) || isUpdatedStatus(status) || (isIdleStatus(status) && expectedPath)) {
-             elem = <StateSuccess status={status} expected={expectedPath} />;
+            elem = <StateSuccess status={status} expected={expectedPath} />;
         } else if (isFailStatus(status)) {
             elem = reason
                 ? <StateError image={Boolean(image)} actual={actualPath} reason={reason}/>
