@@ -22,7 +22,7 @@ type PrepareImagesType = (
 ) => Promise<any>;
 
 module.exports = class PluginAdapter {
-    protected _config: any;
+    protected _config: IOptions;
 
     static create(tool: ITestTool, opts: IOptions, toolName: string) {
         return new this(tool, opts, toolName);
