@@ -20,9 +20,10 @@ class SectionTitle extends Component<ISectionTitleProp> {
     constructor(props: ISectionTitleProp){
         super(props);
 
-        this.onSuiteRetry.bind(this);
-        this._drawCopyButton.bind(this);
-        this._drawRetryButton.bind(this);
+        // binding
+        this.onSuiteRetry = this.onSuiteRetry.bind(this);
+        this._drawCopyButton = this._drawCopyButton.bind(this);
+        this._drawRetryButton = this._drawRetryButton.bind(this);
     }
 
     onSuiteRetry(e: React.MouseEvent<HTMLButtonElement>) {

@@ -19,7 +19,7 @@ export default class SwitcherRetry extends Component<ISwitcherRetryProps, ISwitc
     constructor(props: ISwitcherRetryProps, state: ISwitcherRetryStates) {
         super(props, state);
         this.state = {retry: !this.props.retries ? 0 : this.props.retries.length};
-        this._onChange.bind(this);
+        this._onChange = this._onChange.bind(this);
     }
 
     render() {
@@ -30,7 +30,7 @@ export default class SwitcherRetry extends Component<ISwitcherRetryProps, ISwitc
         }
 
         return (
-            <Pagination 
+            <Pagination
                 defaultActivePage={1}
                 totalPages={retries.length}
                 onPageChange={(event, data: any) => data && this._onChange(data.activePage - 1)} />
