@@ -45,9 +45,11 @@ class SectionTitle extends Component<ISectionTitleProp> {
 
    private _drawCopyButton() {
         return (
-            <CopyToClipboard className='button section__icon section__icon_copy-to-clipboard'
+            <CopyToClipboard
+                className='button section__icon section__icon_copy-to-clipboard'
                 text={this.props.suite.suitePath.join(' ')}
-                             onCopy={(e: React.MouseEvent<HTMLButtonElement>) => e.stopPropagation()}>
+                onClick={(e: React.MouseEvent<HTMLButtonElement>) => e.stopPropagation()}
+            >
                 <button></button>
             </CopyToClipboard>
         );
