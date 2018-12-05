@@ -7,7 +7,7 @@ build
 # /lib/static/data.js
 /lib/static/gui.html
 /lib/static/index.html
-/index.js
+/index.ts
 .idea
 .vscode
 
