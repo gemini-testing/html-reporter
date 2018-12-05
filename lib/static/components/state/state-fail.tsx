@@ -46,4 +46,4 @@ class StateFail extends Component<IStateFail> {
     }
 }
 
-export default connect(({view: {showOnlyDiff}}: any) => ({showOnlyDiff}))(StateFail);
+export default connect(({view: {showOnlyDiff}}: {view: IStateFail}) => ({showOnlyDiff}))(StateFail);

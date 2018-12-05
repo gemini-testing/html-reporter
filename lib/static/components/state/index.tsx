@@ -83,4 +83,4 @@ class State extends Component<IState> {
     }
 }
 
-export default connect(({gui, view: {scaleImages}}: any) => ({gui, scaleImages}))(State);
+export default connect(({gui, view: {scaleImages}}: {gui: boolean, view: IState}) => ({gui, scaleImages}))(State);

@@ -28,7 +28,7 @@ class Screenshot extends Component<IScreenshot> {
     }
 }
 
-export default connect(({view: {lazyLoadOffset}}: any) => ({lazyLoadOffset}))(Screenshot);
+export default connect(({view: {lazyLoadOffset}}: {view: IScreenshot}) => ({lazyLoadOffset}))(Screenshot);
 
 function encodeUri(imagePath: string) {
     return imagePath
