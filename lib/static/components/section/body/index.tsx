@@ -41,10 +41,10 @@ class Body extends Component<IBodyProps, IBodyStates> {
             color: 1,
             retry: this.props.retries.length
         };
-        this.onSwitcherStyleChange.bind(this);
-        this.onSwitcherRetryChange.bind(this);
-        this.onTestRetry.bind(this);
-        this.onTestAccept.bind(this);
+        this.onSwitcherStyleChange = this.onSwitcherStyleChange.bind(this);
+        this.onSwitcherRetryChange = this.onSwitcherRetryChange.bind(this);
+        this.onTestRetry = this.onTestRetry.bind(this);
+        this.onTestAccept = this.onTestAccept.bind(this);
     }
 
     onSwitcherStyleChange = (index: number) => {
