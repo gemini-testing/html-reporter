@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.1.0"></a>
+# [3.1.0](https://github.com/gemini-testing/html-reporter/compare/v3.0.2...v3.1.0) (2018-12-17)
+
+
+### Features
+
+* display skipped test with retries ([481dfae](https://github.com/gemini-testing/html-reporter/commit/481dfae))
+
+
+
 <a name="3.0.2"></a>
 ## [3.0.2](https://github.com/gemini-testing/html-reporter/compare/v3.0.1...v3.0.2) (2018-12-02)
 
