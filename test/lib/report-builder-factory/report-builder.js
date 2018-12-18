@@ -1,5 +1,6 @@
 'use strict';
 
+const path = require('path');
 const fs = require('fs-extra');
 const _ = require('lodash');
 const serverUtils = require('../../../lib/server-utils');
@@ -472,7 +473,7 @@ describe('ReportBuilder', () => {
             const reportBuilder = mkReportBuilder_({pluginConfig: {path: 'some/report/dir'}});
 
             return reportBuilder.saveDataFileAsync()
-                .then(() => assert.calledWith(fs.writeFileAsync, 'some/report/dir/data.js', 'some data', 'utf8'));
+                .then(() => assert.calledWith(fs.writeFileAsync, path.join('some', 'report', 'dir', 'data.js'), 'some data', 'utf8'));
         });
 
         it('should create report directory before save data file', () => {
@@ -500,7 +501,7 @@ describe('ReportBuilder', () => {
 
             reportBuilder.saveDataFileSync();
 
-            assert.calledOnceWith(fs.writeFileSync, 'some/report/dir/data.js', 'some data', 'utf8');
+            assert.calledOnceWith(fs.writeFileSync, path.join('some', 'report', 'dir', 'data.js'), 'some data', 'utf8');
         });
 
         it('should create report directory before save data file', () => {
@@ -530,9 +531,9 @@ describe('ReportBuilder', () => {
 
             return reportBuilder.save()
                 .then(() => {
-                    assert.calledWithMatch(fs.copyAsync, 'index.html', 'some/report/dir/index.html');
-                    assert.calledWithMatch(fs.copyAsync, 'report.min.js', 'some/report/dir/report.min.js');
-                    assert.calledWithMatch(fs.copyAsync, 'report.min.css', 'some/report/dir/report.min.css');
+                    assert.calledWithMatch(fs.copyAsync, 'index.html', path.join('some', 'report', 'dir', 'index.html'));
+                    assert.calledWithMatch(fs.copyAsync, 'report.min.js', path.join('some', 'report', 'dir', 'report.min.js'));
+                    assert.calledWithMatch(fs.copyAsync, 'report.min.css', path.join('some', 'report', 'dir', 'report.min.css'));
                 });
         });
 

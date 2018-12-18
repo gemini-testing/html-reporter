@@ -1,5 +1,6 @@
 'use strict';
 
+const path = require('path');
 const proxyquire = require('proxyquire');
 const GeminiTestResultAdapter = require('lib/test-adapter/gemini-test-adapter');
 const {IDLE} = require('lib/constants/test-statuses');
@@ -103,7 +104,7 @@ describe('gemini test adapter', () => {
 
         const geminiTestAdapter = new GeminiTestResultAdapter(testResult);
 
-        assert.deepEqual(geminiTestAdapter.imageDir, 'some-path/some-name');
+        assert.deepEqual(geminiTestAdapter.imageDir, path.join('some-path', 'some-name'));
     });
 
     ['state', 'attempt'].forEach((field) => {

@@ -1,5 +1,6 @@
 'use strict';
 
+const path = require('path');
 const utils = require('../../lib/server-utils');
 
 describe('server-utils', () => {
@@ -18,7 +19,7 @@ describe('server-utils', () => {
 
                 const resultPath = utils[`get${testData.name}Path`](test);
 
-                assert.equal(resultPath, `images/some/dir/bro~${testData.prefix}_2.png`);
+                assert.equal(resultPath, path.join('images', 'some', 'dir', `bro~${testData.prefix}_2.png`));
             });
 
             it('should add default attempt if it does not exist from test', () => {
@@ -29,7 +30,7 @@ describe('server-utils', () => {
 
                 const resultPath = utils[`get${testData.name}Path`](test);
 
-                assert.equal(resultPath, `images/some/dir/bro~${testData.prefix}_0.png`);
+                assert.equal(resultPath, path.join('images', 'some', 'dir', `bro~${testData.prefix}_0.png`));
             });
 
             it('should add state name to the path if it was passed', () => {
@@ -40,7 +41,7 @@ describe('server-utils', () => {
 
                 const resultPath = utils[`get${testData.name}Path`](test, 'plain');
 
-                assert.equal(resultPath, `images/some/dir/plain/bro~${testData.prefix}_0.png`);
+                assert.equal(resultPath, path.join('images', 'some', 'dir', `plain/bro~${testData.prefix}_0.png`));
             });
         });
 
@@ -61,7 +62,7 @@ describe('server-utils', () => {
 
                 const resultPath = utils[`get${testData.name}AbsolutePath`](test, 'reportPath');
 
-                assert.equal(resultPath, `/root/reportPath/images/some/dir/bro~${testData.prefix}_0.png`);
+                assert.equal(resultPath, path.join('/root', 'reportPath', 'images', 'some', 'dir', `bro~${testData.prefix}_0.png`));
             });
 
             it('should add state name to the path if it was passed', () => {
@@ -72,7 +73,7 @@ describe('server-utils', () => {
 
                 const resultPath = utils[`get${testData.name}AbsolutePath`](test, 'reportPath', 'plain');
 
-                assert.equal(resultPath, `/root/reportPath/images/some/dir/plain/bro~${testData.prefix}_0.png`);
+                assert.equal(resultPath, path.join('/root', 'reportPath', 'images', 'some', 'dir', 'plain', `bro~${testData.prefix}_0.png`));
             });
         });
     });
