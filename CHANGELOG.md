@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.1.1"></a>
+## [3.1.1](https://github.com/gemini-testing/html-reporter/compare/v3.1.0...v3.1.1) (2018-12-24)
+
+
+### Bug Fixes
+
+* **build:** make package.json scripts crossplatform ([ac7b82f](https://github.com/gemini-testing/html-reporter/commit/ac7b82f))
+* unable to disable lazy image load ([2a911e7](https://github.com/gemini-testing/html-reporter/commit/2a911e7))
+
+
+
 <a name="3.1.0"></a>
 # [3.1.0](https://github.com/gemini-testing/html-reporter/compare/v3.0.2...v3.1.0) (2018-12-17)
 
