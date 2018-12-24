@@ -112,21 +112,10 @@ describe('<State/>', () => {
             assert.lengthOf(lazyLoadContainer, 1);
         });
 
-        describe('should not load images lazy if passed image does not contain "size" and "lazyLoadOffset" is', () => {
-            it('set to 0', () => {
-                const testResult = mkTestResult_({status: 'success', expectedImg: {path: 'some/path'}});
-
-                const stateComponent = mkConnectedComponent(
-                    <State state={testResult} acceptHandler={() => {}} />,
-                    {initialState: {view: {lazyLoadOffset: 0}}}
-                );
-                const lazyLoadContainer = stateComponent.find('LazyLoad');
-
-                assert.lengthOf(lazyLoadContainer, 0);
-            });
-
-            it('not specified', () => {
-                const testResult = mkTestResult_({status: 'success', expectedImg: {path: 'some/path'}});
+        describe('should not load images lazy', () => {
+            it('if passed image contain "size" but "lazyLoadOffset" does not set', () => {
+                const expectedImg = mkImg_({size: {width: 200, height: 100}});
+                const testResult = mkTestResult_({status: 'success', expectedImg});
 
                 const stateComponent = mkConnectedComponent(
                     <State state={testResult} acceptHandler={() => {}} />
@@ -134,6 +123,31 @@ describe('<State/>', () => {
                 const lazyLoadContainer = stateComponent.find('LazyLoad');
 
                 assert.lengthOf(lazyLoadContainer, 0);
+            });
+
+            describe('if passed image does not contain "size" and "lazyLoadOffset" is', () => {
+                it('set to 0', () => {
+                    const testResult = mkTestResult_({status: 'success', expectedImg: {path: 'some/path'}});
+
+                    const stateComponent = mkConnectedComponent(
+                        <State state={testResult} acceptHandler={() => {}} />,
+                        {initialState: {view: {lazyLoadOffset: 0}}}
+                    );
+                    const lazyLoadContainer = stateComponent.find('LazyLoad');
+
+                    assert.lengthOf(lazyLoadContainer, 0);
+                });
+
+                it('not specified', () => {
+                    const testResult = mkTestResult_({status: 'success', expectedImg: {path: 'some/path'}});
+
+                    const stateComponent = mkConnectedComponent(
+                        <State state={testResult} acceptHandler={() => {}} />
+                    );
+                    const lazyLoadContainer = stateComponent.find('LazyLoad');
+
+                    assert.lengthOf(lazyLoadContainer, 0);
+                });
             });
         });
 
@@ -143,7 +157,8 @@ describe('<State/>', () => {
                 const testResult = mkTestResult_({status: 'success', expectedImg});
 
                 const stateComponent = mkConnectedComponent(
-                    <State state={testResult} acceptHandler={() => {}} />
+                    <State state={testResult} acceptHandler={() => {}} />,
+                    {initialState: {view: {lazyLoadOffset: 10}}}
                 );
 
                 assert.equal(stateComponent.find('Placeholder').prop('width'), 200);
@@ -154,7 +169,8 @@ describe('<State/>', () => {
                 const testResult = mkTestResult_({status: 'success', expectedImg});
 
                 const stateComponent = mkConnectedComponent(
-                    <State state={testResult} acceptHandler={() => {}} />
+                    <State state={testResult} acceptHandler={() => {}} />,
+                    {initialState: {view: {lazyLoadOffset: 10}}}
                 );
 
                 assert.equal(stateComponent.find('Placeholder').prop('paddingTop'), '50.00%');
