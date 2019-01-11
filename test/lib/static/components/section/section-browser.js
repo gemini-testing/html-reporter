@@ -9,7 +9,7 @@ const skipStatus = 'skipped';
 
 const browserRetries = [
     mkTestResult_({
-        reason: {
+        error: {
             message: 'messageStub',
             stack: 'stackStub'
         },
@@ -17,16 +17,16 @@ const browserRetries = [
     })
 ];
 
-function mkSectionBrowserComponent({name, retries = [], reason = null, status = '', initialState}) {
+function mkSectionBrowserComponent({name, retries = [], skipReason = null, status = '', initialState}) {
     const browser = mkBrowserResult({
         name,
         result: mkTestResult_({
-            reason,
+            skipReason,
             status,
             imagesInfo: [
                 {
                     status,
-                    reason: {
+                    error: {
                         message: 'messageStub',
                         stack: 'stackStub'
                     },
@@ -69,7 +69,7 @@ describe('<SectionBrowser/>', () => {
     it('should show reason for skipped test', () => {
         const component = mkSectionBrowserComponent({
             name: browserName,
-            reason: skipReason,
+            skipReason,
             status: skipStatus
         });
 
@@ -105,7 +105,7 @@ describe('<SectionBrowser/>', () => {
     it('should show reason for skipped test with retries', () => {
         const component = mkSectionBrowserComponent({
             name: browserName,
-            reason: skipReason,
+            skipReason,
             retries: browserRetries,
             status: skipStatus
         });
@@ -124,7 +124,7 @@ describe('<SectionBrowser/>', () => {
     it('should show attempts for skipped test with retries', () => {
         const component = mkSectionBrowserComponent({
             name: browserName,
-            reason: skipReason,
+            skipReason,
             retries: browserRetries,
             status: skipStatus,
             initialState: {view: {expand: 'all'}}

@@ -185,7 +185,7 @@ describe('ReportBuilder', () => {
 
         assert.match(getReportBuilderResult_(reportBuilder), {
             status: ERROR,
-            reason: 'some-stack-trace'
+            error: 'some-stack-trace'
         });
     });
 
@@ -294,7 +294,7 @@ describe('ReportBuilder', () => {
                     status: ERROR,
                     imagesInfo: [{
                         stateName: 'plain', status: ERROR,
-                        reason: {stack: `${NO_REF_IMAGE_ERROR}: ...`}
+                        error: {stack: `${NO_REF_IMAGE_ERROR}: ...`}
                     }]
                 });
 
@@ -311,7 +311,7 @@ describe('ReportBuilder', () => {
                     status: ERROR,
                     imagesInfo: [{
                         stateName: 'plain', status: ERROR,
-                        reason: {stack: `${NO_REF_IMAGE_ERROR}: ...`}
+                        error: {stack: `${NO_REF_IMAGE_ERROR}: ...`}
                     }]
                 });
 
