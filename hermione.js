@@ -72,6 +72,10 @@ function prepareImages(hermione, pluginConfig, reportBuilder) {
             queue = queue.then(() => failHandler(testResult));
         });
 
+        hermione.on(hermione.events.TEST_PENDING, (testResult) => {
+            queue = queue.then(() => failHandler(testResult));
+        });
+
         hermione.on(hermione.events.RUNNER_END, () => queue.then(resolve, reject));
     });
 }
