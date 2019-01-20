@@ -164,4 +164,19 @@ describe('gemini test adapter', () => {
             assert.propertyVal(result, 'browserId', 'bro');
         });
     });
+
+    describe('getDiffBounds', () => {
+        it('should return diff bounds', () => {
+            const testResult = {
+                suite: {path: []},
+                state: {},
+                browserId: 'bro',
+                diffBounds: {left: 0, top: 0, right: 10, bottom: 10}
+            };
+
+            const result = new GeminiTestResultAdapter(testResult);
+
+            assert.deepEqual(result.getDiffBounds(), {left: 0, top: 0, right: 10, bottom: 10});
+        });
+    });
 });

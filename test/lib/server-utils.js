@@ -3,8 +3,21 @@
 const path = require('path');
 const fs = require('fs-extra');
 const utils = require('../../lib/server-utils');
+const {FAIL} = require('../../lib/constants/test-statuses');
 
 describe('server-utils', () => {
+    const mkTestStub = (test = {}) => {
+        return Object.assign({
+            imageDir: 'some/dir',
+            browserId: 'bro',
+            attempt: 2,
+            getDiffBounds: () => ({}),
+            getRefImg: () => ({}),
+            getCurrImg: () => ({}),
+            getErrImg: () => ({})
+        }, test);
+    };
+
     [
         {name: 'Reference', prefix: 'ref'},
         {name: 'Current', prefix: 'current'},
@@ -121,6 +134,18 @@ describe('server-utils', () => {
                     assert.calledWithMatch(fs.mkdirsAsync, '/to');
                     assert.calledWithMatch(fs.copyAsync, fromPath, toPath);
                 });
+        });
+    });
+
+    describe('getImagesFor', () => {
+        it('should return diff with diff bounds', () => {
+            const test = mkTestStub({
+                getDiffBounds: () => ({left: 0, top: 0, right: 10, bottom: 10})
+            });
+
+            const images = utils.getImagesFor(FAIL, test);
+
+            assert.match(images.diffImg, {diffBounds: {left: 0, top: 0, right: 10, bottom: 10}});
         });
     });
 });

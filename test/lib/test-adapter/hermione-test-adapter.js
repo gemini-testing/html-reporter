@@ -185,4 +185,14 @@ describe('hermione test adapter', () => {
             assert.lengthOf(testResult.imagesInfo, 1);
         });
     });
+
+    describe('getDiffBounds', () => {
+        it('should return diff bounds', () => {
+            const testResult = {assertViewResults: [{stateName: 'plain', diffBounds: {left: 0, top: 0, right: 10, bottom: 10}}]};
+
+            const result = mkHermioneTestResultAdapter(testResult);
+
+            assert.deepEqual(result.getDiffBounds('plain'), {left: 0, top: 0, right: 10, bottom: 10});
+        });
+    });
 });

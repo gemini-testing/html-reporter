@@ -530,3 +530,15 @@ a:active {
 .control-filters {
     margin:5px 0;
 }
+
+div.clickEffect {
+    position: fixed;
+    box-sizing: border-box;
+    border-radius: 50%;
+    z-index: 99999;
+    background-color: #FF00FF;
+}
+
+.clickable {
+    display: inline-block;
+}
