@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.2.0"></a>
+# [3.2.0](https://github.com/gemini-testing/html-reporter/compare/v3.1.2...v3.2.0) (2019-01-21)
+
+
+### Bug Fixes
+
+* correct display executed test but failed and skipped ([1977708](https://github.com/gemini-testing/html-reporter/commit/1977708))
+* rename property "reason" to "error" and "skipReason" ([05cd649](https://github.com/gemini-testing/html-reporter/commit/05cd649))
+* save images for last retry in skipped test ([3024df8](https://github.com/gemini-testing/html-reporter/commit/3024df8))
+* screenshot jump on lazy load ([1ec26e8](https://github.com/gemini-testing/html-reporter/commit/1ec26e8))
+
+
+### Features
+
+* add filter by test name in report ([933e01f](https://github.com/gemini-testing/html-reporter/commit/933e01f))
+
+
+
 <a name="3.1.2"></a>
 ## [3.1.2](https://github.com/gemini-testing/html-reporter/compare/v3.1.1...v3.1.2) (2018-12-25)
 
