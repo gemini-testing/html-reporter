@@ -261,14 +261,14 @@
     font-weight: bold;
 }
 
-.reason {
+.error {
     background: #f6f5f3;
     padding: 5px;
     margin-bottom: 5px;
     font: 13px Consolas, Helvetica, monospace;
 }
 
-.reason__item-key {
+.error__item-key {
     font-weight: bold;
 }
 
