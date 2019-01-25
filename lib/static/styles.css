@@ -139,6 +139,16 @@
     max-width: 100%;
 }
 
+.image-box__screenshot_auto-size {
+    height: auto;
+}
+
+.image-box__screenshot_fixed-size {
+    display: table-cell;
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
 .section__title {
     font-weight: bold;
     cursor: pointer;
