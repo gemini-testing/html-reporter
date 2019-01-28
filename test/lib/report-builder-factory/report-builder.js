@@ -230,60 +230,199 @@ describe('ReportBuilder', () => {
             assert.equal(suiteResult.status, SUCCESS);
         });
 
-        it('should rewrite suite status if new status has "failed" type', () => {
-            const reportBuilder = mkReportBuilder_();
+        describe('for one browser', () => {
+            describe('should rewrite status to "skipped" if', () => {
+                it('first attempt was "idle"', () => {
+                    const reportBuilder = mkReportBuilder_();
+                    const test = stubTest_({browserId: 'bro'});
 
-            reportBuilder.addSuccess(stubTest_({browserId: 'bro'}));
-            reportBuilder.addError(stubTest_({browserId: 'another-bro'}));
+                    reportBuilder.addIdle(test);
+                    reportBuilder.addSkipped(test);
 
-            const suiteResult = getSuiteResult_(reportBuilder);
-            assert.equal(suiteResult.status, ERROR);
+                    const suiteResult = getSuiteResult_(reportBuilder);
+                    assert.equal(suiteResult.status, SKIPPED);
+                });
+
+                it('first attempt was "error"', () => {
+                    const reportBuilder = mkReportBuilder_();
+                    const test = stubTest_({browserId: 'bro', hasDiff: () => false});
+
+                    reportBuilder.addRetry(test);
+                    reportBuilder.addSkipped(test);
+
+                    const suiteResult = getSuiteResult_(reportBuilder);
+                    assert.equal(suiteResult.status, SKIPPED);
+                });
+
+                it('first attempt was "fail"', () => {
+                    const reportBuilder = mkReportBuilder_();
+                    const test = stubTest_({browserId: 'bro', hasDiff: () => true});
+
+                    reportBuilder.addRetry(test);
+                    reportBuilder.addSkipped(test);
+
+                    const suiteResult = getSuiteResult_(reportBuilder);
+                    assert.equal(suiteResult.status, SKIPPED);
+                });
+
+                it('first attempt was "updated"', () => {
+                    const reportBuilder = mkReportBuilder_();
+                    const test = stubTest_({browserId: 'bro', hasDiff: () => true});
+
+                    reportBuilder.addUpdated(test);
+                    reportBuilder.addSkipped(test);
+
+                    const suiteResult = getSuiteResult_(reportBuilder);
+                    assert.equal(suiteResult.status, SKIPPED);
+                });
+
+                it('first attempt was "success"', () => {
+                    const reportBuilder = mkReportBuilder_();
+                    const test = stubTest_({browserId: 'bro', hasDiff: () => true});
+
+                    reportBuilder.addSuccess(test);
+                    reportBuilder.addSkipped(test);
+
+                    const suiteResult = getSuiteResult_(reportBuilder);
+                    assert.equal(suiteResult.status, SKIPPED);
+                });
+            });
+
+            describe('should rewrite status to "success" if', () => {
+                it('first attempt was "idle"', () => {
+                    const reportBuilder = mkReportBuilder_();
+                    const test = stubTest_({browserId: 'bro'});
+
+                    reportBuilder.addIdle(test);
+                    reportBuilder.addSuccess(test);
+
+                    const suiteResult = getSuiteResult_(reportBuilder);
+                    assert.equal(suiteResult.status, SUCCESS);
+                });
+
+                it('first attempt was "error"', () => {
+                    const reportBuilder = mkReportBuilder_();
+                    const test = stubTest_({browserId: 'bro', hasDiff: () => false});
+
+                    reportBuilder.addRetry(test);
+                    reportBuilder.addSuccess(test);
+
+                    const suiteResult = getSuiteResult_(reportBuilder);
+                    assert.equal(suiteResult.status, SUCCESS);
+                });
+
+                it('first attempt was "fail"', () => {
+                    const reportBuilder = mkReportBuilder_();
+                    const test = stubTest_({browserId: 'bro', hasDiff: () => true});
+
+                    reportBuilder.addRetry(test);
+                    reportBuilder.addSuccess(test);
+
+                    const suiteResult = getSuiteResult_(reportBuilder);
+                    assert.equal(suiteResult.status, SUCCESS);
+                });
+            });
         });
 
-        it('should rewrite suite status if new status has "forced" type', () => {
-            const reportBuilder = mkReportBuilder_();
-
-            reportBuilder.addFail(stubTest_({browserId: 'bro'}));
-            reportBuilder.addIdle(stubTest_({browserId: 'another-bro'}));
-
-            const suiteResult = getSuiteResult_(reportBuilder);
-            assert.equal(suiteResult.status, IDLE);
-        });
-
-        it('should rewrite suite status if new status has "final" result', () => {
-            const reportBuilder = mkReportBuilder_();
-
-            reportBuilder.addIdle(stubTest_({browserId: 'another-bro'}));
-            reportBuilder.addSuccess(stubTest_({browserId: 'bro'}));
-
-            const suiteResult = getSuiteResult_(reportBuilder);
-            assert.equal(suiteResult.status, SUCCESS);
-        });
-
-        it('should not rewrite suite status to "success" if it has failed state', () => {
-            const reportBuilder = mkReportBuilder_();
-
-            reportBuilder.addFail(stubTest_({browserId: 'bro'}));
-            reportBuilder.addSuccess(stubTest_({browserId: 'another-bro'}));
-
-            const suiteResult = getSuiteResult_(reportBuilder);
-            assert.equal(suiteResult.status, FAIL);
-        });
-
-        [
-            {status: 'failed', hasDiff: true},
-            {status: 'errored', hasDiff: false}
-        ].forEach(({status, hasDiff}) => {
-            it(`should rewrite suite status to "success" if it ${status} on first attempt`, () => {
+        describe('for several browsers', () => {
+            it('should rewrite suite status if new status has "forced" type', () => {
                 const reportBuilder = mkReportBuilder_();
-                const test1 = stubTest_({browserId: 'bro', hasDiff: () => hasDiff});
-                const test2 = stubTest_({browserId: 'bro', hasDiff: () => hasDiff});
 
-                reportBuilder.addRetry(test1);
-                reportBuilder.addSuccess(test2);
+                reportBuilder.addFail(stubTest_({browserId: 'bro'}));
+                reportBuilder.addIdle(stubTest_({browserId: 'another-bro'}));
+
+                const suiteResult = getSuiteResult_(reportBuilder);
+                assert.equal(suiteResult.status, IDLE);
+            });
+
+            it('should determine "error" if first test has "error"', () => {
+                const reportBuilder = mkReportBuilder_();
+
+                reportBuilder.addError(stubTest_({browserId: 'bro1'}));
+                reportBuilder.addFail(stubTest_({browserId: 'bro2'}));
+                reportBuilder.addUpdated(stubTest_({browserId: 'bro3'}));
+                reportBuilder.addSuccess(stubTest_({browserId: 'bro4'}));
+                reportBuilder.addSkipped(stubTest_({browserId: 'bro5'}));
+
+                const suiteResult = getSuiteResult_(reportBuilder);
+                assert.equal(suiteResult.status, ERROR);
+            });
+
+            it('should determine "error" if last test has "error"', () => {
+                const reportBuilder = mkReportBuilder_();
+
+                reportBuilder.addSkipped(stubTest_({browserId: 'bro5'}));
+                reportBuilder.addSuccess(stubTest_({browserId: 'bro4'}));
+                reportBuilder.addUpdated(stubTest_({browserId: 'bro3'}));
+                reportBuilder.addFail(stubTest_({browserId: 'bro2'}));
+                reportBuilder.addError(stubTest_({browserId: 'bro1'}));
+
+                const suiteResult = getSuiteResult_(reportBuilder);
+                assert.equal(suiteResult.status, ERROR);
+            });
+
+            it('should determine "fail" if first test has "fail"', () => {
+                const reportBuilder = mkReportBuilder_();
+
+                reportBuilder.addFail(stubTest_({browserId: 'bro1'}));
+                reportBuilder.addUpdated(stubTest_({browserId: 'bro2'}));
+                reportBuilder.addSuccess(stubTest_({browserId: 'bro3'}));
+                reportBuilder.addSkipped(stubTest_({browserId: 'bro4'}));
+
+                const suiteResult = getSuiteResult_(reportBuilder);
+                assert.equal(suiteResult.status, FAIL);
+            });
+
+            it('should determine "fail" if last test has "fail"', () => {
+                const reportBuilder = mkReportBuilder_();
+
+                reportBuilder.addSkipped(stubTest_({browserId: 'bro4'}));
+                reportBuilder.addSuccess(stubTest_({browserId: 'bro3'}));
+                reportBuilder.addUpdated(stubTest_({browserId: 'bro2'}));
+                reportBuilder.addFail(stubTest_({browserId: 'bro1'}));
+
+                const suiteResult = getSuiteResult_(reportBuilder);
+                assert.equal(suiteResult.status, FAIL);
+            });
+
+            it('should determine "success" if first test has "success"', () => {
+                const reportBuilder = mkReportBuilder_();
+
+                reportBuilder.addSuccess(stubTest_({browserId: 'bro1'}));
+                reportBuilder.addSkipped(stubTest_({browserId: 'bro2'}));
 
                 const suiteResult = getSuiteResult_(reportBuilder);
                 assert.equal(suiteResult.status, SUCCESS);
+            });
+
+            it('should determine "success" if last test has "success"', () => {
+                const reportBuilder = mkReportBuilder_();
+
+                reportBuilder.addSkipped(stubTest_({browserId: 'bro2'}));
+                reportBuilder.addSuccess(stubTest_({browserId: 'bro1'}));
+
+                const suiteResult = getSuiteResult_(reportBuilder);
+                assert.equal(suiteResult.status, SUCCESS);
+            });
+        });
+
+        describe('for retried browsers', () => {
+            [
+                {status: 'failed', hasDiff: true},
+                {status: 'errored', hasDiff: false}
+            ].forEach(({status, hasDiff}) => {
+                it(`should rewrite suite status to "success" if it has ${status}, then skipped test`, () => {
+                    const reportBuilder = mkReportBuilder_();
+                    const test1 = stubTest_({browserId: 'bro', hasDiff: () => hasDiff});
+                    const test2 = stubTest_({browserId: 'bro', hasDiff: () => hasDiff});
+
+                    reportBuilder.addSuccess(stubTest_({browserId: 'another-bro'}));
+                    reportBuilder.addRetry(test1);
+                    reportBuilder.addSkipped(test2);
+
+                    const suiteResult = getSuiteResult_(reportBuilder);
+                    assert.equal(suiteResult.status, SUCCESS);
+                });
             });
         });
 
