@@ -31,3 +31,10 @@ exports.mkTestResult_ = (result) => {
         expectedImg: exports.mkImg_()
     });
 };
+
+exports.mkSuite_ = (suite) => {
+    return _.defaults(suite, {
+        name: 'default-suite',
+        suitePath: ['default-suite']
+    });
+};
