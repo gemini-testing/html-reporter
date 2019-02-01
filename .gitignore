@@ -6,6 +6,7 @@ hot
 /lib/static/*.ttf
 /lib/static/*.svg
 /lib/static/data.js
+/lib/static/images
 /lib/static/gui.html
 /lib/static/index.html
 
