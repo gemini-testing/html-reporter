@@ -13,7 +13,7 @@ describe('<ControlButtons />', () => {
         actionsStub = {
             runAllTests: sandbox.stub().returns({type: 'some-type'}),
             runFailedTests: sandbox.stub().returns({type: 'some-type'}),
-            acceptAll: sandbox.stub().returns({type: 'some-type'})
+            acceptOpened: sandbox.stub().returns({type: 'some-type'})
         };
 
         ControlButtons = proxyquire('lib/static/components/controls/gui-controls', {
@@ -69,7 +69,7 @@ describe('<ControlButtons />', () => {
 
     [
         {name: 'Retry failed tests', handler: 'runFailedTests'},
-        {name: 'Accept all', handler: 'acceptAll'}
+        {name: 'Accept opened', handler: 'acceptOpened'}
     ].forEach((button) => {
         describe(`"${button.name}" button`, () => {
             it('should be disabled if no failed suites to run', () => {
