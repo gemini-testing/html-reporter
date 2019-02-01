@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.3.0"></a>
+# [3.3.0](https://github.com/gemini-testing/html-reporter/compare/v3.2.4...v3.3.0) (2019-02-01)
+
+
+### Bug Fixes
+
+* use "backgroundImage" instead "background-image" ([e66d140](https://github.com/gemini-testing/html-reporter/commit/e66d140))
+
+
+### Features
+
+* **gui:** accept only opened tests ([fc86507](https://github.com/gemini-testing/html-reporter/commit/fc86507))
+
+
+
 <a name="3.2.4"></a>
 ## [3.2.4](https://github.com/gemini-testing/html-reporter/compare/v3.2.3...v3.2.4) (2019-01-31)
 
