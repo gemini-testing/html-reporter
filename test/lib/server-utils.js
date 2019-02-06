@@ -1,6 +1,7 @@
 'use strict';
 
 const path = require('path');
+const fs = require('fs-extra');
 const utils = require('../../lib/server-utils');
 
 describe('server-utils', () => {
@@ -98,6 +99,28 @@ describe('server-utils', () => {
             utils.prepareCommonJSData({some: 'data'});
 
             assert.calledOnceWith(JSON.stringify, {some: 'data'});
+        });
+    });
+
+    describe('copyImageAsync', () => {
+        const sandbox = sinon.sandbox.create();
+
+        beforeEach(() => {
+            sandbox.stub(fs, 'copyAsync').resolves();
+            sandbox.stub(fs, 'mkdirsAsync').resolves();
+        });
+
+        afterEach(() => sandbox.restore());
+
+        it('should create directory and copy image', () => {
+            const fromPath = '/from/image.png',
+                toPath = '/to/image.png';
+
+            return utils.copyImageAsync(fromPath, toPath)
+                .then(() => {
+                    assert.calledWithMatch(fs.mkdirsAsync, '/to');
+                    assert.calledWithMatch(fs.copyAsync, fromPath, toPath);
+                });
         });
     });
 });
