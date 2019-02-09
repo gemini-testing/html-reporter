@@ -531,14 +531,10 @@ a:active {
     margin:5px 0;
 }
 
-div.clickEffect {
+.diff-circle {
     position: fixed;
     box-sizing: border-box;
     border-radius: 50%;
-    z-index: 99999;
+    z-index: 1;
     background-color: #FF00FF;
-}
-
-.clickable {
-    display: inline-block;
 }
