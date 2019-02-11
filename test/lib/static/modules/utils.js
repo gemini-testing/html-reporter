@@ -93,24 +93,6 @@ describe('static/modules/utils', () => {
         });
     });
 
-    describe('filterBrowsers', () => {
-        const suite = mkSuite({
-            children: [
-                mkState({
-                    browsers: [
-                        mkBrowserResult({name: 'first-bro'}),
-                        mkBrowserResult({name: 'second-bro'})
-                    ]
-                })
-            ]
-        });
-
-        it('should return suites for matching browsers', () => {
-            assert.lengthOf(utils.filterBrowsers(suite, ['first-bro']).children, 1);
-            assert.equal(utils.filterBrowsers(suite, ['first-bro']).children[0].browsers[0].name, 'first-bro');
-        });
-    });
-
     describe('getStats', () => {
         const inputStats = {
             all: {
