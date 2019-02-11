@@ -37,7 +37,7 @@ describe('hermione test adapter', () => {
         assert.equal(hermioneTestAdapter.attempt, 4);
     });
 
-    it('should return test error with "message", "stack" and "stateName"', () => {
+    it('should return test errors with "message", "stack" and "stateName"', () => {
         const testResult = {
             err: {
                 message: 'some-message', stack: 'some-stack', stateName: 'some-test', foo: 'bar'
@@ -46,11 +46,41 @@ describe('hermione test adapter', () => {
 
         const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
 
-        assert.deepEqual(hermioneTestAdapter.error, {
+        assert.deepEqual(hermioneTestAdapter.error, [{
             message: 'some-message',
             stack: 'some-stack',
             stateName: 'some-test'
-        });
+        }]);
+    });
+
+    it('should return test errors without screenshot from MultipleError', () => {
+        const testResult = {
+            err: {
+                message: 'some-message MultipleError',
+                stack: 'some-stack MultipleError',
+                errors: [{
+                    message: 'some-message with screenshot',
+                    stack: 'some-stack with screenshot',
+                    screenshot: {}
+                }, {
+                    name: 'AssertViewError',
+                    message: 'some-message assert view',
+                    stack: 'some-stack assert view'
+                }, {
+                    message: 'some-message',
+                    stack: 'some-stack',
+                    stateName: 'some-test'
+                }]
+            }
+        };
+
+        const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+
+        assert.deepEqual(hermioneTestAdapter.error, [{
+            message: 'some-message',
+            stack: 'some-stack',
+            stateName: 'some-test'
+        }]);
     });
 
     it('should return test state', () => {
@@ -183,6 +213,51 @@ describe('hermione test adapter', () => {
             mkHermioneTestResultAdapter(testResult).getImagesInfo();
 
             assert.lengthOf(testResult.imagesInfo, 1);
+        });
+
+        it('should add error with screenshot from MultipleError', () => {
+            const testResult = mkTestResult_({
+                browserId: 'somebrowser',
+                err: {
+                    message: 'some-message MultipleError',
+                    stack: 'some-stack MultipleError',
+                    errors: [{
+                        message: 'some-message with screenshot',
+                        stack: 'some-stack with screenshot',
+                        screenshot: {
+                            size: {
+                                width: '123',
+                                height: '321'
+                            }
+                        }
+                    }, {
+                        name: 'AssertViewError',
+                        message: 'some-message assert view',
+                        stack: 'some-stack assert view'
+                    }, {
+                        message: 'some-message',
+                        stack: 'some-stack',
+                        stateName: 'some-test'
+                    }]
+                }
+            });
+
+            mkHermioneTestResultAdapter(testResult).getImagesInfo();
+
+            assert.deepEqual(testResult.imagesInfo, [{
+                actualImg: {
+                    path: 'images/some-id/somebrowser~current_0.png',
+                    size: {
+                        width: '123',
+                        height: '321'
+                    }
+                },
+                error: {
+                    message: 'some-message with screenshot',
+                    stack: 'some-stack with screenshot'
+                },
+                status: 'error'
+            }]);
         });
     });
 });

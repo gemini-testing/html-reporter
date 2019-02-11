@@ -363,6 +363,10 @@ a:active {
     display: block;
 }
 
+.error-tab__item {
+    display: block;
+}
+
 .tab__item .button_type_suite-controls {
     position: sticky;
     top: 0;
