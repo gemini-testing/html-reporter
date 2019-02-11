@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.4.2"></a>
+## [3.4.2](https://github.com/gemini-testing/html-reporter/compare/v3.4.1...v3.4.2) (2019-02-11)
+
+
+### Bug Fixes
+
+* filter browsers on render ([3fa7c11](https://github.com/gemini-testing/html-reporter/commit/3fa7c11))
+
+
+
 <a name="3.4.1"></a>
 ## [3.4.1](https://github.com/gemini-testing/html-reporter/compare/v3.4.0...v3.4.1) (2019-02-06)
 
