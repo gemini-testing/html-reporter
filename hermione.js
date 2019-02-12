@@ -61,21 +61,21 @@ function prepareImages(hermione, pluginConfig, reportBuilder) {
         let queue = Promise.resolve();
 
         hermione.on(hermione.events.TEST_PASS, (testResult) => {
-            queue = queue.then(() => saveTestImages(reportBuilder.format(testResult), reportPath));
+            queue = queue.then(() => saveTestImages(reportBuilder.format(testResult), reportPath)).catch(reject);
         });
 
         hermione.on(hermione.events.RETRY, (testResult) => {
-            queue = queue.then(() => failHandler(testResult));
+            queue = queue.then(() => failHandler(testResult)).catch(reject);
         });
 
         hermione.on(hermione.events.TEST_FAIL, (testResult) => {
-            queue = queue.then(() => failHandler(testResult));
+            queue = queue.then(() => failHandler(testResult)).catch(reject);
         });
 
         hermione.on(hermione.events.TEST_PENDING, (testResult) => {
-            queue = queue.then(() => failHandler(testResult));
+            queue = queue.then(() => failHandler(testResult)).catch(reject);
         });
 
-        hermione.on(hermione.events.RUNNER_END, () => queue.then(resolve, reject));
+        hermione.on(hermione.events.RUNNER_END, () => queue.then(resolve));
     });
 }
