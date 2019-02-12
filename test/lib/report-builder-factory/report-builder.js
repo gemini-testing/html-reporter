@@ -47,10 +47,10 @@ describe('ReportBuilder', () => {
     };
 
     beforeEach(() => {
-        sandbox.stub(fs, 'copyAsync').resolves();
-        sandbox.stub(fs, 'mkdirsAsync').resolves();
+        sandbox.stub(fs, 'copy').resolves();
+        sandbox.stub(fs, 'mkdirs').resolves();
         sandbox.stub(fs, 'mkdirsSync');
-        sandbox.stub(fs, 'writeFileAsync').resolves();
+        sandbox.stub(fs, 'writeFile').resolves();
         sandbox.stub(fs, 'writeFileSync');
         sandbox.stub(serverUtils, 'prepareCommonJSData');
 
@@ -602,7 +602,7 @@ describe('ReportBuilder', () => {
             const reportBuilder = mkReportBuilder_({pluginConfig: {path: 'some/report/dir'}});
 
             return reportBuilder.saveDataFileAsync()
-                .then(() => assert.calledOnceWith(fs.mkdirsAsync, 'some/report/dir'));
+                .then(() => assert.calledOnceWith(fs.mkdirs, 'some/report/dir'));
         });
 
         it('should save data file with tests result asynchronously', () => {
@@ -612,14 +612,14 @@ describe('ReportBuilder', () => {
             const reportBuilder = mkReportBuilder_({pluginConfig: {path: 'some/report/dir'}});
 
             return reportBuilder.saveDataFileAsync()
-                .then(() => assert.calledWith(fs.writeFileAsync, path.join('some', 'report', 'dir', 'data.js'), 'some data', 'utf8'));
+                .then(() => assert.calledWith(fs.writeFile, path.join('some', 'report', 'dir', 'data.js'), 'some data', 'utf8'));
         });
 
         it('should create report directory before save data file', () => {
             const reportBuilder = mkReportBuilder_();
 
             return reportBuilder.saveDataFileAsync()
-                .then(() => assert.callOrder(fs.mkdirsAsync, fs.writeFileAsync));
+                .then(() => assert.callOrder(fs.mkdirs, fs.writeFile));
         });
     });
 
@@ -670,9 +670,9 @@ describe('ReportBuilder', () => {
 
             return reportBuilder.save()
                 .then(() => {
-                    assert.calledWithMatch(fs.copyAsync, 'index.html', path.join('some', 'report', 'dir', 'index.html'));
-                    assert.calledWithMatch(fs.copyAsync, 'report.min.js', path.join('some', 'report', 'dir', 'report.min.js'));
-                    assert.calledWithMatch(fs.copyAsync, 'report.min.css', path.join('some', 'report', 'dir', 'report.min.css'));
+                    assert.calledWithMatch(fs.copy, 'index.html', path.join('some', 'report', 'dir', 'index.html'));
+                    assert.calledWithMatch(fs.copy, 'report.min.js', path.join('some', 'report', 'dir', 'report.min.js'));
+                    assert.calledWithMatch(fs.copy, 'report.min.css', path.join('some', 'report', 'dir', 'report.min.css'));
                 });
         });
 

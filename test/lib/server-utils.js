@@ -106,8 +106,8 @@ describe('server-utils', () => {
         const sandbox = sinon.sandbox.create();
 
         beforeEach(() => {
-            sandbox.stub(fs, 'copyAsync').resolves();
-            sandbox.stub(fs, 'mkdirsAsync').resolves();
+            sandbox.stub(fs, 'copy').resolves();
+            sandbox.stub(fs, 'mkdirs').resolves();
         });
 
         afterEach(() => sandbox.restore());
@@ -118,8 +118,8 @@ describe('server-utils', () => {
 
             return utils.copyImageAsync(fromPath, toPath)
                 .then(() => {
-                    assert.calledWithMatch(fs.mkdirsAsync, '/to');
-                    assert.calledWithMatch(fs.copyAsync, fromPath, toPath);
+                    assert.calledWithMatch(fs.mkdirs, '/to');
+                    assert.calledWithMatch(fs.copy, fromPath, toPath);
                 });
         });
     });

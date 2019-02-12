@@ -74,9 +74,9 @@ describe('lib/gemini', () => {
         sandbox.spy(PluginAdapter.prototype, 'addCliCommands');
         sandbox.spy(PluginAdapter.prototype, 'init');
 
-        sandbox.stub(fs, 'mkdirsAsync').resolves();
-        sandbox.stub(fs, 'writeFileAsync').resolves();
-        sandbox.stub(fs, 'copyAsync').resolves();
+        sandbox.stub(fs, 'mkdirs').resolves();
+        sandbox.stub(fs, 'writeFile').resolves();
+        sandbox.stub(fs, 'copy').resolves();
 
         sandbox.stub(utils, 'copyImageAsync');
         sandbox.stub(utils, 'logPathToHtmlReport');
