@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.5.0"></a>
+# [3.5.0](https://github.com/gemini-testing/html-reporter/compare/v3.4.3...v3.5.0) (2019-02-12)
+
+
+### Features
+
+* update fs-extra package ([483414d](https://github.com/gemini-testing/html-reporter/commit/483414d))
+
+
+
 <a name="3.4.3"></a>
 ## [3.4.3](https://github.com/gemini-testing/html-reporter/compare/v3.4.2...v3.4.3) (2019-02-12)
 
