@@ -1,6 +1,5 @@
 'use strict';
 
-const _ = require('lodash');
 const path = require('path');
 const fs = require('fs-extra');
 const DataTree = require('lib/merge-reports/data-tree');
@@ -14,10 +13,6 @@ describe('lib/merge-reports/data-tree', () => {
         return DataTree.create(initialData, destPath);
     };
 
-    const mkData_ = (data = {}) => {
-        return _.defaults(data, {suites: [], skips: []});
-    };
-
     beforeEach(() => {
         sandbox.stub(fs, 'moveAsync');
     });
@@ -27,8 +22,8 @@ describe('lib/merge-reports/data-tree', () => {
     describe('merge "skips" data', () => {
         it('should add skip info that does not exist in tree', async () => {
             const skipInfo = {suite: 'some-suite', browser: 'yabro'};
-            const initialData = mkData_();
-            const dataCollection = {'src-report/path': mkData_({skips: [skipInfo]})};
+            const initialData = {};
+            const dataCollection = {'src-report/path': {skips: [skipInfo]}};
 
             const {skips} = await mkDataTree_(initialData).mergeWith(dataCollection);
 
@@ -39,8 +34,8 @@ describe('lib/merge-reports/data-tree', () => {
             const skipInfo1 = {suite: 'some-suite', browser: 'yabro'};
             const skipInfo2 = {suite: 'some-suite', browser: 'foobro'};
 
-            const initialData = mkData_({skips: [skipInfo1]});
-            const dataCollection = {'src-report/path': mkData_({skips: [skipInfo2]})};
+            const initialData = {skips: [skipInfo1]};
+            const dataCollection = {'src-report/path': {skips: [skipInfo2]}};
 
             const {skips} = await mkDataTree_(initialData).mergeWith(dataCollection);
 
@@ -51,8 +46,8 @@ describe('lib/merge-reports/data-tree', () => {
             const skipInfo1 = {suite: 'some-suite', browser: 'yabro'};
             const skipInfo2 = {suite: 'some-suite', browser: 'yabro'};
 
-            const initialData = mkData_({skips: [skipInfo1]});
-            const dataCollection = {'src-report/path': mkData_({skips: [skipInfo2]})};
+            const initialData = {skips: [skipInfo1]};
+            const dataCollection = {'src-report/path': {skips: [skipInfo2]}};
 
             const {skips} = await mkDataTree_(initialData).mergeWith(dataCollection);
 
@@ -65,8 +60,8 @@ describe('lib/merge-reports/data-tree', () => {
             const srcDataSuites1 = mkSuiteTree({suite: mkSuite({suitePath: ['suite1']})});
             const srcDataSuites2 = mkSuiteTree({suite: mkSuite({suitePath: ['suite2']})});
 
-            const initialData = mkData_({suites: [srcDataSuites1]});
-            const dataCollection = {'src-report/path': mkData_({suites: [srcDataSuites2]})};
+            const initialData = {suites: [srcDataSuites1]};
+            const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
             const {suites} = await mkDataTree_(initialData).mergeWith(dataCollection);
 
@@ -83,8 +78,8 @@ describe('lib/merge-reports/data-tree', () => {
                 state: mkState({suitePath: ['suite', 'state2']})
             });
 
-            const initialData = mkData_({suites: [srcDataSuites1]});
-            const dataCollection = {'src-report/path': mkData_({suites: [srcDataSuites2]})};
+            const initialData = {suites: [srcDataSuites1]};
+            const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
             const {suites} = await mkDataTree_(initialData).mergeWith(dataCollection);
 
@@ -103,8 +98,8 @@ describe('lib/merge-reports/data-tree', () => {
                 browsers: [mkBrowserResult(mkTestResult({name: 'yabro'}))]
             });
 
-            const initialData = mkData_({suites: [srcDataSuites1]});
-            const dataCollection = {'src-report/path': mkData_({suites: [srcDataSuites2]})};
+            const initialData = {suites: [srcDataSuites1]};
+            const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
             const {suites} = await mkDataTree_(initialData).mergeWith(dataCollection);
 
@@ -128,8 +123,8 @@ describe('lib/merge-reports/data-tree', () => {
                     })]
                 });
 
-                const initialData = mkData_({suites: [srcDataSuites1]});
-                const dataCollection = {'src-report/path': mkData_({suites: [srcDataSuites2]})};
+                const initialData = {suites: [srcDataSuites1]};
+                const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
                 const {suites} = await mkDataTree_(initialData).mergeWith(dataCollection);
 
@@ -158,8 +153,8 @@ describe('lib/merge-reports/data-tree', () => {
                     })]
                 });
 
-                const initialData = mkData_({suites: [srcDataSuites1]});
-                const dataCollection = {'src-report/path': mkData_({suites: [srcDataSuites2]})};
+                const initialData = {suites: [srcDataSuites1]};
+                const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
                 const {suites} = await mkDataTree_(initialData).mergeWith(dataCollection);
 
@@ -184,8 +179,8 @@ describe('lib/merge-reports/data-tree', () => {
                     })]
                 });
 
-                const initialData = mkData_({suites: [srcDataSuites1]});
-                const dataCollection = {'src-report/path': mkData_({suites: [srcDataSuites2]})};
+                const initialData = {suites: [srcDataSuites1]};
+                const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
                 const {suites} = await mkDataTree_(initialData).mergeWith(dataCollection);
 
@@ -215,8 +210,8 @@ describe('lib/merge-reports/data-tree', () => {
                         })]
                     });
 
-                    const initialData = mkData_({suites: [srcDataSuites1], total: 1, [statName]: 1});
-                    const dataCollection = {'src-report/path': mkData_({suites: [srcDataSuites2]})};
+                    const initialData = {suites: [srcDataSuites1], total: 1, [statName]: 1};
+                    const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
                     const result = await mkDataTree_(initialData).mergeWith(dataCollection);
 
@@ -233,8 +228,8 @@ describe('lib/merge-reports/data-tree', () => {
                         })]
                     });
 
-                    const initialData = mkData_({suites: [srcDataSuites1], total: 1, [statName]: 1, retries: 0});
-                    const dataCollection = {'src-report/path': mkData_({suites: [srcDataSuites2]})};
+                    const initialData = {suites: [srcDataSuites1], total: 1, [statName]: 1, retries: 0};
+                    const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
                     const result = await mkDataTree_(initialData).mergeWith(dataCollection);
 
@@ -265,8 +260,8 @@ describe('lib/merge-reports/data-tree', () => {
                         })]
                     });
 
-                    const initialData = mkData_({suites: [srcDataSuites1], total: 1, [statName]: 1});
-                    const dataCollection = {'src-report/path': mkData_({suites: [srcDataSuites2]})};
+                    const initialData = {suites: [srcDataSuites1], total: 1, [statName]: 1};
+                    const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
                     const result = await mkDataTree_(initialData).mergeWith(dataCollection);
 
@@ -287,8 +282,8 @@ describe('lib/merge-reports/data-tree', () => {
                         })]
                     });
 
-                    const initialData = mkData_({suites: [srcDataSuites1], total: 1, [statName]: 1, retries: 0});
-                    const dataCollection = {'src-report/path': mkData_({suites: [srcDataSuites2]})};
+                    const initialData = {suites: [srcDataSuites1], total: 1, [statName]: 1, retries: 0};
+                    const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
                     const result = await mkDataTree_(initialData).mergeWith(dataCollection);
 
@@ -320,8 +315,8 @@ describe('lib/merge-reports/data-tree', () => {
                         })]
                     });
 
-                    const initialData = mkData_({suites: [srcDataSuites1], total: 1, [statName]: 1});
-                    const dataCollection = {'src-report/path': mkData_({suites: [srcDataSuites2]})};
+                    const initialData = {suites: [srcDataSuites1], total: 1, [statName]: 1};
+                    const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
                     const result = await mkDataTree_(initialData).mergeWith(dataCollection);
 
@@ -343,8 +338,8 @@ describe('lib/merge-reports/data-tree', () => {
                         })]
                     });
 
-                    const initialData = mkData_({suites: [srcDataSuites1], total: 1, [statName]: 1, retries: 0});
-                    const dataCollection = {'src-report/path': mkData_({suites: [srcDataSuites2]})};
+                    const initialData = {suites: [srcDataSuites1], total: 1, [statName]: 1, retries: 0};
+                    const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
                     const result = await mkDataTree_(initialData).mergeWith(dataCollection);
 
@@ -376,8 +371,8 @@ describe('lib/merge-reports/data-tree', () => {
                 });
 
                 it('should change current status', async () => {
-                    const initialData = mkData_({suites: [srcDataSuites1], total: 1, skipped: 1, failed: 0});
-                    const dataCollection = {'src-report/path': mkData_({suites: [srcDataSuites2]})};
+                    const initialData = {suites: [srcDataSuites1], total: 1, skipped: 1, failed: 0};
+                    const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
                     const result = await mkDataTree_(initialData).mergeWith(dataCollection);
 
@@ -387,8 +382,8 @@ describe('lib/merge-reports/data-tree', () => {
                 });
 
                 it('should increment "retries" by current result and retries from source report', async () => {
-                    const initialData = mkData_({suites: [srcDataSuites1], total: 1, retries: 0});
-                    const dataCollection = {'src-report/path': mkData_({suites: [srcDataSuites2]})};
+                    const initialData = {suites: [srcDataSuites1], total: 1, retries: 0};
+                    const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
                     const result = await mkDataTree_(initialData).mergeWith(dataCollection);
 
@@ -415,8 +410,8 @@ describe('lib/merge-reports/data-tree', () => {
                 });
 
                 it('should change current status', async () => {
-                    const initialData = mkData_({suites: [srcDataSuites1], total: 1, passed: 1, failed: 0});
-                    const dataCollection = {'src-report/path': mkData_({suites: [srcDataSuites2]})};
+                    const initialData = {suites: [srcDataSuites1], total: 1, passed: 1, failed: 0};
+                    const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
                     const result = await mkDataTree_(initialData).mergeWith(dataCollection);
 
@@ -426,8 +421,8 @@ describe('lib/merge-reports/data-tree', () => {
                 });
 
                 it('should increment "retries" by current result and retries from source report', async () => {
-                    const initialData = mkData_({suites: [srcDataSuites1], total: 1, retries: 0});
-                    const dataCollection = {'src-report/path': mkData_({suites: [srcDataSuites2]})};
+                    const initialData = {suites: [srcDataSuites1], total: 1, retries: 0};
+                    const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
                     const result = await mkDataTree_(initialData).mergeWith(dataCollection);
 
@@ -451,8 +446,8 @@ describe('lib/merge-reports/data-tree', () => {
                         })]
                     });
 
-                    const initialData = mkData_({suites: [srcDataSuites1], total: 1, passed: 1, retries: 0});
-                    const dataCollection = {'src-report/path': mkData_({suites: [srcDataSuites2]})};
+                    const initialData = {suites: [srcDataSuites1], total: 1, passed: 1, retries: 0};
+                    const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
                     const result = await mkDataTree_(initialData).mergeWith(dataCollection);
 
@@ -474,8 +469,8 @@ describe('lib/merge-reports/data-tree', () => {
                 })]
             });
 
-            const initialData = mkData_({suites: [srcDataSuites1]});
-            const dataCollection = {'src-report/path': mkData_({suites: [srcDataSuites2]})};
+            const initialData = {suites: [srcDataSuites1]};
+            const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
             await mkDataTree_(initialData, 'dest-report/path').mergeWith(dataCollection);
 
@@ -501,8 +496,8 @@ describe('lib/merge-reports/data-tree', () => {
                     })]
                 });
 
-                const initialData = mkData_({suites: [srcDataSuites1]});
-                const dataCollection = {'src-report/path': mkData_({suites: [srcDataSuites2]})};
+                const initialData = {suites: [srcDataSuites1]};
+                const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
                 await mkDataTree_(initialData, 'dest-report/path').mergeWith(dataCollection);
 
@@ -528,8 +523,8 @@ describe('lib/merge-reports/data-tree', () => {
                 })]
             });
 
-            const initialData = mkData_({suites: [srcDataSuites1]});
-            const dataCollection = {'src-report/path': mkData_({suites: [srcDataSuites2]})};
+            const initialData = {suites: [srcDataSuites1]};
+            const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
             await mkDataTree_(initialData, 'dest-report/path').mergeWith(dataCollection);
 
@@ -557,8 +552,8 @@ describe('lib/merge-reports/data-tree', () => {
                 })]
             });
 
-            const initialData = mkData_({suites: [srcDataSuites1]});
-            const dataCollection = {'src-report/path': mkData_({suites: [srcDataSuites2]})};
+            const initialData = {suites: [srcDataSuites1]};
+            const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
             await mkDataTree_(initialData, 'dest-report/path').mergeWith(dataCollection);
 
@@ -587,8 +582,8 @@ describe('lib/merge-reports/data-tree', () => {
                 })]
             });
 
-            const initialData = mkData_({suites: [srcDataSuites1]});
-            const dataCollection = {'src-report/path': mkData_({suites: [srcDataSuites2]})};
+            const initialData = {suites: [srcDataSuites1]};
+            const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
             await mkDataTree_(initialData, 'dest-report/path').mergeWith(dataCollection);
 
@@ -619,8 +614,8 @@ describe('lib/merge-reports/data-tree', () => {
                     })]
                 });
 
-                const initialData = mkData_({suites: [srcDataSuites1]});
-                const dataCollection = {'src-report/path': mkData_({suites: [srcDataSuites2]})};
+                const initialData = {suites: [srcDataSuites1]};
+                const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
                 await mkDataTree_(initialData, 'dest-report/path').mergeWith(dataCollection);
 
@@ -645,8 +640,8 @@ describe('lib/merge-reports/data-tree', () => {
                     })]
                 });
 
-                const initialData = mkData_({suites: [srcDataSuites1]});
-                const dataCollection = {'src-report/path': mkData_({suites: [srcDataSuites2]})};
+                const initialData = {suites: [srcDataSuites1]};
+                const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
                 await mkDataTree_(initialData, 'dest-report/path').mergeWith(dataCollection);
 
@@ -672,8 +667,8 @@ describe('lib/merge-reports/data-tree', () => {
                     })]
                 });
 
-                const initialData = mkData_({suites: [srcDataSuites1]});
-                const dataCollection = {'src-report/path': mkData_({suites: [srcDataSuites2]})};
+                const initialData = {suites: [srcDataSuites1]};
+                const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
                 await mkDataTree_(initialData, 'dest-report/path').mergeWith(dataCollection);
 
@@ -703,8 +698,8 @@ describe('lib/merge-reports/data-tree', () => {
                     })]
                 });
 
-                const initialData = mkData_({suites: [srcDataSuites1]});
-                const dataCollection = {'src-report/path': mkData_({suites: [srcDataSuites2]})};
+                const initialData = {suites: [srcDataSuites1]};
+                const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
                 await mkDataTree_(initialData, 'dest-report/path').mergeWith(dataCollection);
 
@@ -731,8 +726,8 @@ describe('lib/merge-reports/data-tree', () => {
                     })]
                 });
 
-                const initialData = mkData_({suites: [srcDataSuites1]});
-                const dataCollection = {'src-report/path': mkData_({suites: [srcDataSuites2]})};
+                const initialData = {suites: [srcDataSuites1]};
+                const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
                 await mkDataTree_(initialData, 'dest-report/path').mergeWith(dataCollection);
 
@@ -762,8 +757,8 @@ describe('lib/merge-reports/data-tree', () => {
                     })]
                 });
 
-                const initialData = mkData_({suites: [srcDataSuites1]});
-                const dataCollection = {'src-report/path': mkData_({suites: [srcDataSuites2]})};
+                const initialData = {suites: [srcDataSuites1]};
+                const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
                 await mkDataTree_(initialData, 'dest-report/path').mergeWith(dataCollection);
 
@@ -791,8 +786,8 @@ describe('lib/merge-reports/data-tree', () => {
                 })]
             });
 
-            const initialData = mkData_({suites: [srcDataSuites1]});
-            const dataCollection = {'src-report/path': mkData_({suites: [srcDataSuites2]})};
+            const initialData = {suites: [srcDataSuites1]};
+            const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
             const {suites} = await mkDataTree_(initialData).mergeWith(dataCollection);
 
@@ -816,8 +811,8 @@ describe('lib/merge-reports/data-tree', () => {
                 })]
             });
 
-            const initialData = mkData_({suites: [srcDataSuites1]});
-            const dataCollection = {'src-report/path': mkData_({suites: [srcDataSuites2]})};
+            const initialData = {suites: [srcDataSuites1]};
+            const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
             const {suites} = await mkDataTree_(initialData).mergeWith(dataCollection);
 
