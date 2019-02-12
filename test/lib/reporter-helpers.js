@@ -11,7 +11,7 @@ describe('reporter-helpers', () => {
         sandbox.stub(utils, 'getCurrentAbsolutePath');
         sandbox.stub(utils.logger, 'warn');
         sandbox.stub(utils, 'makeDirFor').resolves();
-        sandbox.stub(fs, 'writeFileAsync').resolves();
+        sandbox.stub(fs, 'writeFile').resolves();
     });
 
     afterEach(() => sandbox.restore());
@@ -24,7 +24,7 @@ describe('reporter-helpers', () => {
                 };
 
                 return saveBase64Screenshot(test)
-                    .then(() => assert.notCalled(fs.writeFileAsync));
+                    .then(() => assert.notCalled(fs.writeFile));
             });
 
             it('should warn about it', () => {
@@ -55,7 +55,7 @@ describe('reporter-helpers', () => {
             utils.getCurrentAbsolutePath.withArgs(test, 'report/path').returns('dest/path');
 
             return saveBase64Screenshot(test, 'report/path')
-                .then(() => assert.calledOnceWith(fs.writeFileAsync, 'dest/path', bufData, 'base64'));
+                .then(() => assert.calledOnceWith(fs.writeFile, 'dest/path', bufData, 'base64'));
         });
     });
 });

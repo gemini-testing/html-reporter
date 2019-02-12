@@ -19,7 +19,7 @@ describe('lib/merge-reports/data-tree', () => {
     };
 
     beforeEach(() => {
-        sandbox.stub(fs, 'moveAsync');
+        sandbox.stub(fs, 'move');
     });
 
     afterEach(() => sandbox.restore());
@@ -480,7 +480,7 @@ describe('lib/merge-reports/data-tree', () => {
             await mkDataTree_(initialData, 'dest-report/path').mergeWith(dataCollection);
 
             assert.neverCalledWith(
-                fs.moveAsync,
+                fs.move,
                 path.resolve('src-report/path', 'screens/yabro/stateName.png'),
                 path.resolve('dest-report/path', 'screens/yabro/stateName.png'),
             );
@@ -508,7 +508,7 @@ describe('lib/merge-reports/data-tree', () => {
 
                 imgPaths.forEach((imgPath) => {
                     assert.calledWith(
-                        fs.moveAsync,
+                        fs.move,
                         path.resolve('src-report/path', imgPath),
                         path.resolve('dest-report/path', imgPath)
                     );
@@ -535,7 +535,7 @@ describe('lib/merge-reports/data-tree', () => {
 
             [0, 1].forEach((attempt) => {
                 assert.calledWith(
-                    fs.moveAsync,
+                    fs.move,
                     path.resolve('src-report/path', `images/yabro~current_${attempt}.png`),
                     path.resolve('dest-report/path', `images/yabro~current_${attempt}.png`)
                 );
@@ -564,7 +564,7 @@ describe('lib/merge-reports/data-tree', () => {
 
             [0, 1].forEach((attempt) => {
                 assert.calledWith(
-                    fs.moveAsync,
+                    fs.move,
                     path.resolve('src-report/path', `images/yabro~current_${attempt}.png`),
                     path.resolve('dest-report/path', `images/yabro~current_${attempt}.png`)
                 );
@@ -594,7 +594,7 @@ describe('lib/merge-reports/data-tree', () => {
 
             [0, 1].forEach((attempt) => {
                 assert.calledWith(
-                    fs.moveAsync,
+                    fs.move,
                     path.resolve('src-report/path', `images/yabro~current_${attempt}.png`),
                     path.resolve('dest-report/path', `images/yabro~current_${attempt}.png`)
                 );
@@ -625,7 +625,7 @@ describe('lib/merge-reports/data-tree', () => {
                 await mkDataTree_(initialData, 'dest-report/path').mergeWith(dataCollection);
 
                 assert.calledOnceWith(
-                    fs.moveAsync,
+                    fs.move,
                     path.resolve('src-report/path', 'images/yabro~current_0.png'),
                     path.resolve('dest-report/path', 'images/yabro~current_1.png')
                 );
@@ -651,7 +651,7 @@ describe('lib/merge-reports/data-tree', () => {
                 await mkDataTree_(initialData, 'dest-report/path').mergeWith(dataCollection);
 
                 assert.calledWith(
-                    fs.moveAsync,
+                    fs.move,
                     path.resolve('src-report/path', `images/yabro~current_0.png`),
                     path.resolve('dest-report/path', `images/yabro~current_1.png`)
                 );
@@ -679,7 +679,7 @@ describe('lib/merge-reports/data-tree', () => {
 
                 [0, 1].forEach((attempt) => {
                     assert.calledWith(
-                        fs.moveAsync,
+                        fs.move,
                         path.resolve('src-report/path', `images/yabro~current_${attempt}.png`),
                         path.resolve('dest-report/path', `images/yabro~current_${attempt + 1}.png`)
                     );
@@ -709,7 +709,7 @@ describe('lib/merge-reports/data-tree', () => {
                 await mkDataTree_(initialData, 'dest-report/path').mergeWith(dataCollection);
 
                 assert.calledWith(
-                    fs.moveAsync,
+                    fs.move,
                     path.resolve('src-report/path', `images/yabro~current_0.png`),
                     path.resolve('dest-report/path', `images/yabro~current_1.png`)
                 );
@@ -738,7 +738,7 @@ describe('lib/merge-reports/data-tree', () => {
 
                 [0, 1].forEach((attempt) => {
                     assert.calledWith(
-                        fs.moveAsync,
+                        fs.move,
                         path.resolve('src-report/path', `images/yabro~current_${attempt}.png`),
                         path.resolve('dest-report/path', `images/yabro~current_${attempt + 2}.png`)
                     );
@@ -768,7 +768,7 @@ describe('lib/merge-reports/data-tree', () => {
                 await mkDataTree_(initialData, 'dest-report/path').mergeWith(dataCollection);
 
                 assert.calledWith(
-                    fs.moveAsync,
+                    fs.move,
                     path.resolve('src-report/path', 'images/yabro~current_0.png'),
                     path.resolve('dest-report/path', 'images/yabro~current_1.png')
                 );
