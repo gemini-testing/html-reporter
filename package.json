@@ -1,6 +1,6 @@
 {
   "name": "html-reporter",
-  "version": "3.5.0",
+  "version": "3.5.1",
   "description": "Plugin for gemini and hermione which is intended to aggregate the results of tests running into html report",
   "scripts": {
     "lint": "eslint .",

@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.5.1"></a>
+## [3.5.1](https://github.com/gemini-testing/html-reporter/compare/v3.5.0...v3.5.1) (2019-02-15)
+
+
+### Bug Fixes
+
+* catch unhandled reject in prepareImages ([63ef2e5](https://github.com/gemini-testing/html-reporter/commit/63ef2e5))
+
+
+
 <a name="3.5.0"></a>
 # [3.5.0](https://github.com/gemini-testing/html-reporter/compare/v3.4.3...v3.5.0) (2019-02-12)
 
