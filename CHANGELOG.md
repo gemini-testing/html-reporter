@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.6.0"></a>
+# [3.6.0](https://github.com/gemini-testing/html-reporter/compare/v3.5.1...v3.6.0) (2019-02-17)
+
+
+### Features
+
+* add circles to diff by click ([#182](https://github.com/gemini-testing/html-reporter/issues/182)) ([ca6702a](https://github.com/gemini-testing/html-reporter/commit/ca6702a))
+
+
+
 <a name="3.5.1"></a>
 ## [3.5.1](https://github.com/gemini-testing/html-reporter/compare/v3.5.0...v3.5.1) (2019-02-15)
 
