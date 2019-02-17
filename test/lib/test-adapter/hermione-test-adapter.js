@@ -184,5 +184,16 @@ describe('hermione test adapter', () => {
 
             assert.lengthOf(testResult.imagesInfo, 1);
         });
+
+        it('should return diffBounds', () => {
+            const testResult = mkTestResult_({
+                assertViewResults: [{diffBounds: {left: 0, top: 0, right: 1, bottom: 1}}],
+                imagesInfo: []
+            });
+
+            const [{diffBounds}] = mkHermioneTestResultAdapter(testResult).getImagesInfo();
+
+            assert.deepEqual(diffBounds, {left: 0, top: 0, right: 1, bottom: 1});
+        });
     });
 });

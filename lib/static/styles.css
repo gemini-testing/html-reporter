@@ -530,3 +530,11 @@ a:active {
 .control-filters {
     margin:5px 0;
 }
+
+.diff-circle {
+    position: fixed;
+    border-radius: 50%;
+    z-index: 1;
+    opacity: 0.3;
+    background-color: #FF00FF;
+}

@@ -69,12 +69,16 @@ describe('gemini test adapter', () => {
                     geminiTestAdapter.getImagesInfo('some-status');
 
                     assert.deepEqual(geminiTestAdapter.imagesInfo, [
-                        {status: 'some-status', error: null, expectedImg: 'image-data'}
+                        {status: 'some-status', error: null, expectedImg: 'image-data', diffBounds: undefined}
                     ]);
                 });
 
                 it('with "error"', () => {
-                    const geminiTestAdapter = new StubGeminiTestResultAdapter({message: 'msg', stack: 'stck'});
+                    const geminiTestAdapter = new StubGeminiTestResultAdapter({
+                        message: 'msg',
+                        stack: 'stack',
+                        diffBounds: {left: 0, top: 0, right: 1, bottom: 1}
+                    });
                     serverUtilsStub.getImagesFor
                         .withArgs('some-status', geminiTestAdapter)
                         .returns({expectedImg: 'image-data'});
@@ -82,7 +86,12 @@ describe('gemini test adapter', () => {
                     geminiTestAdapter.getImagesInfo('some-status');
 
                     assert.deepEqual(geminiTestAdapter.imagesInfo, [
-                        {status: 'some-status', error: {message: 'msg', stack: 'stck'}, expectedImg: 'image-data'}
+                        {
+                            status: 'some-status',
+                            error: {message: 'msg', stack: 'stack'},
+                            expectedImg: 'image-data',
+                            diffBounds: {left: 0, top: 0, right: 1, bottom: 1}
+                        }
                     ]);
                 });
             });
