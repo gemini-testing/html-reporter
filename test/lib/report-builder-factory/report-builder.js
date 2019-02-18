@@ -321,6 +321,18 @@ describe('ReportBuilder', () => {
                     const suiteResult = getSuiteResult_(reportBuilder);
                     assert.equal(suiteResult.status, SUCCESS);
                 });
+
+                it('update test', () => {
+                    const reportBuilder = mkReportBuilder_();
+                    const test = stubTest_({browserId: 'bro', hasDiff: () => true});
+
+                    reportBuilder.addRetry(test);
+                    reportBuilder.addFail(test);
+                    reportBuilder.addUpdated(test);
+
+                    const suiteResult = getSuiteResult_(reportBuilder);
+                    assert.equal(suiteResult.status, SUCCESS);
+                });
             });
         });
 
@@ -400,6 +412,17 @@ describe('ReportBuilder', () => {
 
                 reportBuilder.addSkipped(stubTest_({browserId: 'bro2'}));
                 reportBuilder.addSuccess(stubTest_({browserId: 'bro1'}));
+
+                const suiteResult = getSuiteResult_(reportBuilder);
+                assert.equal(suiteResult.status, SUCCESS);
+            });
+
+            it('should determine "success" if update failed test', () => {
+                const reportBuilder = mkReportBuilder_();
+
+                reportBuilder.addSkipped(stubTest_({browserId: 'bro1'}));
+                reportBuilder.addError(stubTest_({browserId: 'bro2'}));
+                reportBuilder.addUpdated(stubTest_({browserId: 'bro2'}));
 
                 const suiteResult = getSuiteResult_(reportBuilder);
                 assert.equal(suiteResult.status, SUCCESS);
