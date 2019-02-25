@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.6.1"></a>
+## [3.6.1](https://github.com/gemini-testing/html-reporter/compare/v3.6.0...v3.6.1) (2019-02-25)
+
+
+### Bug Fixes
+
+* set success status for branch on accept image in "gui" mode ([b8af140](https://github.com/gemini-testing/html-reporter/commit/b8af140))
+
+
+
 <a name="3.6.0"></a>
 # [3.6.0](https://github.com/gemini-testing/html-reporter/compare/v3.5.1...v3.6.0) (2019-02-17)
 
