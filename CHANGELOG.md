@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.6.3"></a>
+## [3.6.3](https://github.com/gemini-testing/html-reporter/compare/v3.6.2...v3.6.3) (2019-02-28)
+
+
+### Bug Fixes
+
+* **merge-reports:** do not fail in case of intersecting suite and state names ([13d2e5a](https://github.com/gemini-testing/html-reporter/commit/13d2e5a))
+
+
+
 <a name="3.6.2"></a>
 ## [3.6.2](https://github.com/gemini-testing/html-reporter/compare/v3.6.1...v3.6.2) (2019-02-27)
 
