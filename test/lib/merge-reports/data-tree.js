@@ -106,6 +106,80 @@ describe('lib/merge-reports/data-tree', () => {
             assert.deepEqual(suites[0].children[0].browsers[0], srcDataSuites2.children[0].browsers[0]);
         });
 
+        it('should add data to state from suite with the same name', async () => {
+            const srcDataSuites1 = mkSuite({
+                suitePath: ['suite'],
+                children: [mkState({
+                    suitePath: ['suite', 'state'],
+                    browsers: [mkBrowserResult()]
+                })]
+            });
+            const srcDataSuites2 = mkSuite({
+                suitePath: ['suite'],
+                children: [mkSuite({
+                    suitePath: ['suite', 'state'],
+                    children: [mkState({
+                        suitePath: ['suite', 'state', 'state'],
+                        browsers: [mkBrowserResult()]
+                    })]
+                })]
+            });
+            const expected = mkSuite({
+                suitePath: ['suite'],
+                children: [mkState({
+                    suitePath: ['suite', 'state'],
+                    browsers: [mkBrowserResult()],
+                    children: [mkState({
+                        suitePath: ['suite', 'state', 'state'],
+                        browsers: [mkBrowserResult()]
+                    })]
+                })]
+            });
+
+            const initialData = {suites: [srcDataSuites1]};
+            const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
+            const {suites} = await mkDataTree_(initialData).mergeWith(dataCollection);
+
+            assert.deepEqual(suites[0], expected);
+        });
+
+        it('should add data to suite from state with the same name', async () => {
+            const srcDataSuites1 = mkSuite({
+                suitePath: ['suite'],
+                children: [mkSuite({
+                    suitePath: ['suite', 'state'],
+                    children: [mkState({
+                        suitePath: ['suite', 'state', 'state'],
+                        browsers: [mkBrowserResult()]
+                    })]
+                })]
+            });
+            const srcDataSuites2 = mkSuite({
+                suitePath: ['suite'],
+                children: [mkState({
+                    suitePath: ['suite', 'state'],
+                    browsers: [mkBrowserResult()]
+                })]
+            });
+            const expected = mkSuite({
+                suitePath: ['suite'],
+                children: [mkState({
+                    suitePath: ['suite', 'state'],
+                    browsers: [mkBrowserResult()],
+                    children: [mkState({
+                        suitePath: ['suite', 'state', 'state'],
+                        browsers: [mkBrowserResult()]
+                    })]
+                })]
+            });
+
+            const initialData = {suites: [srcDataSuites1]};
+            const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
+            const {suites} = await mkDataTree_(initialData).mergeWith(dataCollection);
+
+            assert.deepEqual(suites[0], expected);
+        });
+
         describe('from existent browser with correct modified "attempt" field', () => {
             it('should merge browser results if there are no successful tests', async () => {
                 const srcDataSuites1 = mkSuiteTree({
