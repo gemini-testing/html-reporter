@@ -473,10 +473,22 @@ a:active {
             animation: scale 0.75s 0s infinite cubic-bezier(0.2, 0.68, 0.18, 1.08);
 }
 
-.menubar-container {
-    display: inline-block;
-    font-size: 16px;
+.dropdown {
+    font-size: 18px;
     vertical-align: middle;
+}
+
+.ui.simple.dropdown .menu > .item {
+    padding: 0 !important;
+}
+
+.menu-item__link {
+    display: inline-block;
+    padding: 12px;
+}
+
+.menu-item__link:hover {
+    text-decoration: none;
 }
 
 .image-box__placeholder {
