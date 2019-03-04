@@ -474,8 +474,33 @@ a:active {
 }
 
 .dropdown {
-    font-size: 18px;
     vertical-align: middle;
+}
+
+.icon {
+    display: inline-block;
+    position: relative;
+    cursor: pointer;
+    border-style: solid;
+    border-color: #000;
+}
+
+.icon:before {
+    content: "";
+    width: 100%;
+    position: absolute;
+    background: #000;
+}
+
+.icon_size_m {
+    width: 18px;
+    height: 10px;
+    border-width: 2px 0;
+}
+
+.icon_size_m:before {
+    top: 4px;
+    height: 2px;
 }
 
 .ui.simple.dropdown .menu > .item {
