@@ -15,6 +15,7 @@ describe('<Body />', () => {
             acceptTest: sandbox.stub().returns({type: 'some-type'}),
             retryTest: sandbox.stub().returns({type: 'some-type'}),
             toggleTestResult: sandbox.stub().returns({type: 'some-type'}),
+            toggleStateResult: sandbox.stub().returns({type: 'some-type'}),
             changeTestRetry: sandbox.stub().returns({type: 'some-type'})
         };
 
@@ -48,13 +49,13 @@ describe('<Body />', () => {
 
     it('should call "acceptTest" action on Accept button click', () => {
         const retries = [];
-        const imagesInfo = [{stateName: 'plain', status: ERROR, actualImg: mkImg_(), error: {}, image: true}];
+        const imagesInfo = [{stateName: 'plain', status: ERROR, actualImg: mkImg_(), error: {}, image: true, opened: true}];
         const testResult = mkTestResult_({name: 'bro', imagesInfo});
         const suite = mkSuite_({name: 'some-suite'});
         utilsStub.isAcceptable.withArgs(imagesInfo[0]).returns(true);
 
         const bodyComponent = <Body result={testResult} suite={suite} retries={retries}/>;
-        const component = mkConnectedComponent(bodyComponent);
+        const component = mkConnectedComponent(bodyComponent, {initialState: {view: {expand: 'all'}}});
 
         component.find('[label="✔ Accept"]').simulate('click');
 
@@ -110,6 +111,22 @@ describe('<Body />', () => {
             assert.calledTwice(actionsStub.toggleTestResult);
             assert.calledWith(actionsStub.toggleTestResult.secondCall, {browserId: 'bro', suitePath: ['some-suite'], opened: false});
         });
+    });
+
+    it('should call "toggleStateResult" action on click to state', () => {
+        const imagesInfo = [{stateName: 'plain', status: SUCCESS, opened: false}];
+        const testResult = mkTestResult_({name: 'bro', imagesInfo});
+        const suite = mkSuite_({name: 'some-suite', suitePath: ['some-suite']});
+
+        const bodyComponent = <Body result={testResult} suite={suite} retries={[]} />;
+        const component = mkConnectedComponent(bodyComponent, {initialState: {view: {expand: 'errors'}}});
+
+        component.find('.state-title').simulate('click');
+
+        assert.calledWith(
+            actionsStub.toggleStateResult,
+            {stateName: 'plain', browserId: 'bro', suitePath: ['some-suite'], retryIndex: 0, opened: true}
+        );
     });
 
     describe('should call "changeTestRetry" action on', () => {

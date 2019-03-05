@@ -3,7 +3,8 @@
     to {opacity: 0.3;}
 }
 
-.section__title:before {
+.section__title:before,
+.state-title:before {
     display: inline-block;
     margin-right: 6px;
     vertical-align: middle;
@@ -19,16 +20,20 @@
     background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAARpJREFUeNrsVlENhDAM5RxMwiRMwiQgAQlIqIOTMAmTgIRJ4BxMAjeSLml2wIWWa+6DlzSQwF7bt3Zr191QwoO5zpP3F9pPYIqNxVKxZcNysdAEJMaIxKs9kdyQ764JaipmpVlGJIPG2dEWzBik4zpNTAKDsmdO5kESNdkie7ZiV3l77RZLuLeqcJit03A2EEeAGdNCsRedAZvSVmcT9iqtbBA6rf097skL6BhIEFmYcWhOtw8uID/ARe0EhG/BzKc9yRfyHIR1Uzk8KdhdyTOJkgtLLo0OayYRFTYlH0hxSS+WirnhjFffYkeSW83DyGC2QfsUrO1ozi70uNAzMo3Sdgzag8DR6NN/GX0iR161Ye/vx9sbYrwFGADWhWsDyfXvAQAAAABJRU5ErkJggg==');
 }
 
-.section_status_success > .section__title:before {
+.section_status_success > .section__title:before,
+.state-title_success:before {
     color: #038035;
 }
 
 .section_status_fail > .section__title:before,
-.section_status_error > .section__title:before {
+.section_status_error > .section__title:before,
+.state-title_fail:before,
+.state-title_error:before {
     color: #c00;
 }
 
-.section_status_skipped > .section__title:before {
+.section_status_skipped > .section__title:before,
+.state-title_skipped:before {
     color: #ccc;
 }
 
@@ -43,7 +48,8 @@
 }
 
 .section_status_updated > .section__title,
-.section_status_updated > .section__title::before {
+.section_status_updated > .section__title::before,
+.state-title_updated:before {
     color: #038035;
 }
 
