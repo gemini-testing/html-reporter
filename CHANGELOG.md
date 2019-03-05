@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.6.4"></a>
+## [3.6.4](https://github.com/gemini-testing/html-reporter/compare/v3.6.3...v3.6.4) (2019-03-05)
+
+
+### Bug Fixes
+
+* sessionID should not duplicated in retries meta info ([a0437a7](https://github.com/gemini-testing/html-reporter/commit/a0437a7))
+* **css:** maximize menubar item click area ([02aeb79](https://github.com/gemini-testing/html-reporter/commit/02aeb79))
+
+
+
 <a name="3.6.3"></a>
 ## [3.6.3](https://github.com/gemini-testing/html-reporter/compare/v3.6.2...v3.6.3) (2019-02-28)
 
