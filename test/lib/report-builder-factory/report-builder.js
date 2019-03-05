@@ -25,6 +25,7 @@ describe('ReportBuilder', () => {
     };
 
     const getReportBuilderResult_ = (reportBuilder) => reportBuilder.getResult().suites[0].children[0].browsers[0].result;
+    const getReportBuilderRetries_ = (reportBuilder) => reportBuilder.getResult().suites[0].children[0].browsers[0].retries;
 
     const stubTest_ = (opts = {}) => {
         const {imagesInfo = []} = opts;
@@ -98,6 +99,25 @@ describe('ReportBuilder', () => {
         const metaInfo = getReportBuilderResult_(reportBuilder).metaInfo;
 
         assert.match(metaInfo, {some: 'value'});
+    });
+
+    it('should do not duplicate sessionId from meta in meta info', () => {
+        const reportBuilder = mkReportBuilder_();
+
+        const test = stubTest_({
+            meta: {sessionId: 'sessionId-retry'},
+            hasDiff: () => false
+        });
+        reportBuilder.addRetry(test);
+
+        test.meta.sessionId = 'sessionId-fail';
+        reportBuilder.addFail(test);
+
+        const result = getReportBuilderResult_(reportBuilder);
+        const retry = getReportBuilderRetries_(reportBuilder)[0];
+
+        assert.equal(retry.metaInfo.sessionId, 'sessionId-retry');
+        assert.equal(result.metaInfo.sessionId, 'sessionId-fail');
     });
 
     it('should contain "name" for each suite', () => {
