@@ -473,10 +473,47 @@ a:active {
             animation: scale 0.75s 0s infinite cubic-bezier(0.2, 0.68, 0.18, 1.08);
 }
 
-.menubar-container {
-    display: inline-block;
-    font-size: 16px;
+.dropdown {
     vertical-align: middle;
+}
+
+.icon {
+    display: inline-block;
+    position: relative;
+    cursor: pointer;
+    border-style: solid;
+    border-color: #000;
+}
+
+.icon:before {
+    content: "";
+    width: 100%;
+    position: absolute;
+    background: #000;
+}
+
+.icon_size_m {
+    width: 18px;
+    height: 10px;
+    border-width: 2px 0;
+}
+
+.icon_size_m:before {
+    top: 4px;
+    height: 2px;
+}
+
+.ui.simple.dropdown .menu > .item {
+    padding: 0 !important;
+}
+
+.menu-item__link {
+    display: inline-block;
+    padding: 12px;
+}
+
+.menu-item__link:hover {
+    text-decoration: none;
 }
 
 .image-box__placeholder {
