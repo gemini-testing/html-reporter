@@ -281,6 +281,10 @@
     font-weight: bold;
 }
 
+.error__item {
+    white-space: pre-wrap;
+}
+
 .state-button {
     position: relative;
     margin-right: 2px;
