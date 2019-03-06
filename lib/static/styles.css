@@ -492,13 +492,13 @@ a:active {
     background: #000;
 }
 
-.icon_size_m {
+.icon.bar {
     width: 18px;
     height: 10px;
     border-width: 2px 0;
 }
 
-.icon_size_m:before {
+.icon.bar:before {
     top: 4px;
     height: 2px;
 }
