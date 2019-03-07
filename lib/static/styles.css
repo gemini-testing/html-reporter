@@ -169,11 +169,13 @@
     user-select: text;
 }
 
-.section__title:before {
+.section__title:before,
+.state-title:before {
     height: 18px;
 }
 
 .section__title:before,
+.state-title:before,
 .toggle-open__switcher:before {
     display: inline-block;
     margin-right: 2px;
@@ -182,7 +184,8 @@
     color: black;
 }
 
-.section .section__title:hover {
+.section .section__title:hover,
+.state-title:hover {
     color: #2d3e50;
 }
 
@@ -258,6 +261,7 @@
 }
 
 .section_collapsed .section__title:before,
+.state-title_collapsed:before,
 .toggle-open_collapsed .toggle-open__switcher:before {
     -webkit-transform: rotate(-90deg);
     -moz-transform: rotate(-90deg);
@@ -299,6 +303,12 @@
 
 .state-title {
     font-weight: bold;
+    cursor: pointer;
+
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 .state-title_success,
