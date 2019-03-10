@@ -9,11 +9,19 @@ describe('<State/>', () => {
     let State;
     let utilsStub;
 
+    const mkToggleHandler = (testResult) => {
+        return sandbox.stub().callsFake(({opened}) => {
+            testResult.opened = opened;
+        });
+    };
+
     const mkStateComponent = (stateProps = {}, initialState = {}) => {
+        const state = stateProps.state || mkTestResult_();
+
         stateProps = defaults(stateProps, {
-            state: mkTestResult_(),
+            state,
             acceptHandler: () => {},
-            toggleHandler: () => {}
+            toggleHandler: mkToggleHandler(state)
         });
 
         initialState = defaultsDeep(initialState, {
@@ -84,18 +92,14 @@ describe('<State/>', () => {
 
     describe('scaleImages', () => {
         it('should not scale images by default', () => {
-            const testResult = mkTestResult_();
-
-            const stateComponent = mkStateComponent({state: testResult});
+            const stateComponent = mkStateComponent();
             const imageContainer = stateComponent.find('.image-box__container');
 
             assert.isFalse(imageContainer.hasClass('image-box__container_scale'));
         });
 
         it('should scale images if "scaleImages" option is enabled', () => {
-            const testResult = mkTestResult_();
-
-            const stateComponent = mkStateComponent({state: testResult}, {view: {scaleImages: true}});
+            const stateComponent = mkStateComponent({}, {view: {scaleImages: true}});
             const imageContainer = stateComponent.find('.image-box__container');
 
             assert.isTrue(imageContainer.hasClass('image-box__container_scale'));
@@ -170,22 +174,16 @@ describe('<State/>', () => {
                 const testResult = mkTestResult_({
                     status: 'fail', stateName: 'plain', actualImg: mkImg_(), diffImg: mkImg_()
                 });
-                const toggleHandler = sandbox.stub().callsFake(({opened}) => {
-                    testResult.opened = opened;
-                });
 
-                const stateComponent = mkStateComponent({state: testResult, toggleHandler}, {view: {expand}});
+                const stateComponent = mkStateComponent({state: testResult}, {view: {expand}});
 
                 assert.lengthOf(stateComponent.find('.image-box__container'), 1);
             });
 
             it(`"${expand}" expanded and test errored`, () => {
                 const testResult = mkTestResult_({status: 'error', stateName: 'plain'});
-                const toggleHandler = sandbox.stub().callsFake(({opened}) => {
-                    testResult.opened = opened;
-                });
 
-                const stateComponent = mkStateComponent({state: testResult, toggleHandler, error: {}}, {view: {expand}});
+                const stateComponent = mkStateComponent({state: testResult, error: {}}, {view: {expand}});
 
                 assert.lengthOf(stateComponent.find('.image-box__container'), 1);
             });
@@ -193,11 +191,8 @@ describe('<State/>', () => {
 
         it('"all" expanded and test success', () => {
             const testResult = mkTestResult_({status: 'success', stateName: 'plain'});
-            const toggleHandler = sandbox.stub().callsFake(({opened}) => {
-                testResult.opened = opened;
-            });
 
-            const stateComponent = mkStateComponent({state: testResult, toggleHandler}, {view: {expand: 'all'}});
+            const stateComponent = mkStateComponent({state: testResult}, {view: {expand: 'all'}});
 
             assert.lengthOf(stateComponent.find('.image-box__container'), 1);
         });
@@ -205,7 +200,7 @@ describe('<State/>', () => {
         it('stateName is not specified', () => {
             const testResult = mkTestResult_({status: 'success'});
 
-            const stateComponent = mkStateComponent({state: testResult}, {view: {expand: 'errors'}});
+            const stateComponent = mkStateComponent({state: testResult}, {view: {expand: 'all'}});
 
             assert.lengthOf(stateComponent.find('.image-box__container'), 1);
         });
@@ -215,38 +210,51 @@ describe('<State/>', () => {
         ['errors', 'retries'].forEach((expand) => {
             it(`"${expand}" expanded and test success`, () => {
                 const testResult = mkTestResult_({status: 'success', stateName: 'plain'});
-                const toggleHandler = sandbox.stub().callsFake(({opened}) => {
-                    testResult.opened = opened;
-                });
 
-                const stateComponent = mkStateComponent({state: testResult, toggleHandler}, {view: {expand}});
+                const stateComponent = mkStateComponent({state: testResult}, {view: {expand}});
 
                 assert.lengthOf(stateComponent.find('.image-box__container'), 0);
             });
 
             it(`"${expand}" expanded and test updated`, () => {
                 const testResult = mkTestResult_({status: 'updated', stateName: 'plain'});
-                const toggleHandler = sandbox.stub().callsFake(({opened}) => {
-                    testResult.opened = opened;
-                });
 
-                const stateComponent = mkStateComponent({state: testResult, toggleHandler}, {view: {expand}});
+                const stateComponent = mkStateComponent({state: testResult}, {view: {expand}});
 
                 assert.lengthOf(stateComponent.find('.image-box__container'), 0);
             });
         });
     });
 
-    it('should open closed state by click on it', () => {
-        const testResult = mkTestResult_({status: 'success', stateName: 'plain'});
-        const toggleHandler = sandbox.stub().callsFake(({opened}) => {
-            testResult.opened = opened;
+    describe('"toggleHandler" handler', () => {
+        it('should not call handler if state already has "opened" prop', () => {
+            const testResult = mkTestResult_({opened: true});
+            const toggleHandler = mkToggleHandler(testResult);
+
+            mkStateComponent({state: testResult, toggleHandler});
+
+            assert.notCalled(toggleHandler);
         });
 
-        const stateComponent = mkStateComponent({state: testResult, toggleHandler}, {view: {expand: 'errors'}});
+        it('should call handler on mount if state does not have "opened" prop', () => {
+            const testResult = mkTestResult_({stateName: 'plain'});
+            const toggleHandler = mkToggleHandler(testResult);
 
-        stateComponent.find('.state-title').simulate('click');
+            mkStateComponent({state: testResult, toggleHandler});
 
-        assert.lengthOf(stateComponent.find('.image-box__container'), 1);
+            assert.calledOnceWith(toggleHandler, {stateName: 'plain', opened: true});
+        });
+
+        it('should call handler on click in state name', () => {
+            const testResult = mkTestResult_({stateName: 'plain'});
+            const toggleHandler = mkToggleHandler(testResult);
+
+            const stateComponent = mkStateComponent({state: testResult, toggleHandler});
+            stateComponent.find('.state-title').simulate('click');
+
+            assert.calledTwice(toggleHandler);
+            assert.calledWith(toggleHandler.firstCall, {stateName: 'plain', opened: true});
+            assert.calledWith(toggleHandler.secondCall, {stateName: 'plain', opened: false});
+        });
     });
 });
