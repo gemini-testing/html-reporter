@@ -38,6 +38,7 @@
     "express": "^4.16.2",
     "fs-extra": "^7.0.1",
     "gemini-configparser": "^1.0.0",
+    "immutability-helper": "^3.0.0",
     "json-stringify-safe": "^5.0.1",
     "lodash": "^4.17.4",
     "opener": "^1.4.3",
