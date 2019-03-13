@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.7.0"></a>
+# [3.7.0](https://github.com/gemini-testing/html-reporter/compare/v3.6.4...v3.7.0) (2019-03-13)
+
+
+### Bug Fixes
+
+* use valid options for dropdown api ([81fe352](https://github.com/gemini-testing/html-reporter/commit/81fe352))
+
+
+### Features
+
+* ability to open/close states ([6ec14df](https://github.com/gemini-testing/html-reporter/commit/6ec14df))
+* add diff clusters ([#205](https://github.com/gemini-testing/html-reporter/issues/205)) ([4b606d7](https://github.com/gemini-testing/html-reporter/commit/4b606d7))
+* pre-formatted text in error message ([a22a7a6](https://github.com/gemini-testing/html-reporter/commit/a22a7a6))
+
+
+
 <a name="3.6.4"></a>
 ## [3.6.4](https://github.com/gemini-testing/html-reporter/compare/v3.6.3...v3.6.4) (2019-03-05)
 
