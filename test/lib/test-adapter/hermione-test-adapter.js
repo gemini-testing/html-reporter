@@ -185,15 +185,15 @@ describe('hermione test adapter', () => {
             assert.lengthOf(testResult.imagesInfo, 1);
         });
 
-        it('should return diffBounds', () => {
+        it('should return diffClusters', () => {
             const testResult = mkTestResult_({
-                assertViewResults: [{diffBounds: {left: 0, top: 0, right: 1, bottom: 1}}],
+                assertViewResults: [{diffClusters: [{left: 0, top: 0, right: 1, bottom: 1}]}],
                 imagesInfo: []
             });
 
-            const [{diffBounds}] = mkHermioneTestResultAdapter(testResult).getImagesInfo();
+            const [{diffClusters}] = mkHermioneTestResultAdapter(testResult).getImagesInfo();
 
-            assert.deepEqual(diffBounds, {left: 0, top: 0, right: 1, bottom: 1});
+            assert.deepEqual(diffClusters, [{left: 0, top: 0, right: 1, bottom: 1}]);
         });
     });
 });
