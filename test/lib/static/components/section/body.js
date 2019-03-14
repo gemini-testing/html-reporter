@@ -91,6 +91,14 @@ describe('<Body />', () => {
         assert.lengthOf(component.find('.tab'), 2);
     });
 
+    it('should render tab with error item if test errored without images', () => {
+        const testResult = mkTestResult_({status: ERROR, error: {foo: 'bar'}, imagesInfo: []});
+
+        const component = mkConnectedComponent(<Body result={testResult} suite={mkSuite_()} />);
+
+        assert.lengthOf(component.find('.error__item'), 1);
+    });
+
     describe('should call "toggleTestResult" action on', () => {
         it('mount', () => {
             const testResult = mkTestResult_({name: 'bro'});
