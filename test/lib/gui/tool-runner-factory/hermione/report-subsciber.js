@@ -5,6 +5,8 @@ const reportSubscriber = require('lib/gui/tool-runner-factory/hermione/report-su
 const ReportBuilder = require('lib/report-builder-factory/report-builder');
 const clientEvents = require('lib/gui/constants/client-events');
 const {RUNNING} = require('lib/constants/test-statuses');
+const utils = require('lib/gui/tool-runner-factory/utils');
+const reporterHelper = require('lib/reporter-helpers');
 const {stubTool, stubConfig} = require('test/utils');
 
 describe('lib/gui/tool-runner-factory/hermione/report-subscriber', () => {
@@ -14,7 +16,8 @@ describe('lib/gui/tool-runner-factory/hermione/report-subscriber', () => {
 
     const events = {
         RUNNER_END: 'runnerEnd',
-        TEST_BEGIN: 'testBegin'
+        TEST_BEGIN: 'testBegin',
+        TEST_PENDING: 'pendingTest'
     };
 
     const mkHermione_ = () => stubTool(stubConfig(), events);
@@ -24,6 +27,8 @@ describe('lib/gui/tool-runner-factory/hermione/report-subscriber', () => {
         sandbox.stub(ReportBuilder, 'create').returns(reportBuilder);
         reportBuilder.save.resolves();
         reportBuilder.setExtraItems.returns(reportBuilder);
+
+        sandbox.stub(reporterHelper, 'saveTestImages').resolves();
 
         client = new EventEmitter();
         sandbox.spy(client, 'emit');
@@ -69,6 +74,34 @@ describe('lib/gui/tool-runner-factory/hermione/report-subscriber', () => {
                 suitePath: ['root-title', 'suite-title'],
                 status: RUNNING
             });
+        });
+    });
+
+    describe('TEST_RESULT', () => {
+        const mkTestAdapterStub_ = () => ({prepareTestResult: () => {}});
+
+        beforeEach(() => {
+            reportBuilder.format.returns(mkTestAdapterStub_());
+            sandbox.stub(utils, 'findTestResult');
+        });
+
+        it('should add skipped test result to report', () => {
+            const hermione = mkHermione_();
+
+            reportSubscriber(hermione, reportBuilder, client);
+            hermione.emit(hermione.events.TEST_PENDING, {foo: 'bar'});
+
+            assert.calledOnceWith(reportBuilder.addSkipped, {foo: 'bar'});
+        });
+
+        it('should emit "TEST_RESULT" for client with test data', async () => {
+            const hermione = mkHermione_();
+            utils.findTestResult.returns({name: 'foo'});
+
+            reportSubscriber(hermione, reportBuilder, client);
+            await hermione.emitAndWait(hermione.events.TEST_PENDING, {});
+
+            assert.calledOnceWith(client.emit, clientEvents.TEST_RESULT, {name: 'foo'});
         });
     });
 });
