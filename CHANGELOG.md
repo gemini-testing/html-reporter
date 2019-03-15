@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="3.7.1"></a>
+## [3.7.1](https://github.com/gemini-testing/html-reporter/compare/v3.7.0...v3.7.1) (2019-03-15)
+
+
+### Bug Fixes
+
+* show error info in tab which failed without any images ([1b16863](https://github.com/gemini-testing/html-reporter/commit/1b16863))
+* **gui:** handle test skipping in runtime ([db0f120](https://github.com/gemini-testing/html-reporter/commit/db0f120))
+
+
+
 <a name="3.7.0"></a>
 # [3.7.0](https://github.com/gemini-testing/html-reporter/compare/v3.6.4...v3.7.0) (2019-03-13)
 
