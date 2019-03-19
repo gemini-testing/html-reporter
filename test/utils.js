@@ -63,6 +63,21 @@ function mkTestResult(result) {
     });
 }
 
+function mkImg(result = {}) {
+    return _.defaults(result, {
+        path: 'default/path',
+        size: {width: 100500, height: 500100}
+    });
+}
+
+function mkImagesInfo(result) {
+    return _.defaultsDeep(result, {
+        expectedImg: mkImg(),
+        actualImg: mkImg(),
+        diffClusters: [{left: 0, top: 0, right: 10, bottom: 10}]
+    });
+}
+
 function mkSuiteTree({suite = mkSuite(), state = mkState(), browsers = [mkBrowserResult()]} = {}) {
     suite.children.push(state);
     state.browsers = browsers;
@@ -77,5 +92,6 @@ module.exports = {
     mkState,
     mkBrowserResult,
     mkTestResult,
+    mkImagesInfo,
     mkSuiteTree
 };

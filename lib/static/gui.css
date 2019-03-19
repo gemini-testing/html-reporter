@@ -74,3 +74,7 @@
 .section_collapsed .section__title:before {
     transform: none;
 }
+
+.ui.modal > .content {
+    width: auto !important;
+}
