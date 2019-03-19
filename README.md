@@ -24,6 +24,10 @@ directory.
 * **baseHost** (optional) - `String` - it changes original host for view in the browser; by default original host does not change
 * **scaleImages** (optional) – `Boolean` – fit images into page width; `false` by default
 * **lazyLoadOffset** (optional) - `Number` - allows you to specify how far above and below the viewport you want to begin loading images. Lazy loading would be disabled if you specify 0. `800` by default.
+* **errorPatterns** (optional) - `Array` - error message patterns for 'Group by error' mode. 
+Array element must be `Object` ({'*name*': `String`, '*pattern*': `String`}) or `String` (interpret as *name* and *pattern*).
+Test will be associated with group if test error matches on group error pattern. 
+New group will be created if test cannot be associated with existing groups.
 
 Also there is ability to override plugin parameters by CLI options or environment variables
 (see [configparser](https://github.com/gemini-testing/configparser)).
@@ -48,7 +52,14 @@ module.exports = {
                 enabled: true,
                 path: 'my/gemini-reports',
                 defaultView: 'all',
-                baseHost: 'test.com'
+                baseHost: 'test.com',
+                errorPatterns: [
+                    'Parameter .* must be a string',
+                    {
+                        name: 'Cannot read property of undefined',
+                        pattern: 'Cannot read property .* of undefined'
+                    }
+                ]
             }
         }
     },
@@ -69,7 +80,14 @@ module.exports = {
             enabled: true,
             path: 'my/hermione-reports',
             defaultView: 'all',
-            baseHost: 'test.com'
+            baseHost: 'test.com',
+            errorPatterns: [
+                'Parameter .* must be a string',
+                {
+                    name: 'Cannot read property of undefined',
+                    pattern: 'Cannot read property .* of undefined'
+                }
+            ]
         }
     },
     //...

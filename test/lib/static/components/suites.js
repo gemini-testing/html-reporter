@@ -4,6 +4,7 @@ import proxyquire from 'proxyquire';
 import {defaultsDeep} from 'lodash';
 
 import {mkConnectedComponent} from './utils';
+import {mkState} from '../../../utils';
 import {config} from 'lib/constants/defaults';
 import clientEvents from 'lib/constants/client-events';
 
@@ -19,6 +20,9 @@ describe('<Suites/>', () => {
         initialState = defaultsDeep(initialState, {
             gui: false,
             suiteIds: {all: ['suite1']},
+            suites: {'suite1': mkState({
+                suitePath: ['suite1']
+            })},
             view: {viewMode: 'all', filteredBrowsers: [], lazyLoadOffset: config.lazyLoadOffset}
         });
 
