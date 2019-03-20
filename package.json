@@ -40,7 +40,7 @@
     "gemini-configparser": "^1.0.0",
     "json-stringify-safe": "^5.0.1",
     "lodash": "^4.17.4",
-    "looks-same": "^7.1.0",
+    "looks-same": "^7.1.1",
     "opener": "^1.4.3",
     "react-markdown": "^3.2.0",
     "resolve": "^1.5.0",
