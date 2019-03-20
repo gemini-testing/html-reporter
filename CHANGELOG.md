@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.0.0"></a>
+# [4.0.0](https://github.com/gemini-testing/html-reporter/compare/v3.7.1...v4.0.0) (2019-03-20)
+
+
+### Bug Fixes
+
+* update looks-same to 7.1.1 ([fbb5ecb](https://github.com/gemini-testing/html-reporter/commit/fbb5ecb))
+
+
+### Features
+
+* ability to find same diffs ([a6be359](https://github.com/gemini-testing/html-reporter/commit/a6be359))
+* use node version >= 8 ([e4a52ca](https://github.com/gemini-testing/html-reporter/commit/e4a52ca))
+
+
+### BREAKING CHANGES
+
+* drop node versions previous to 8
+
+
+
 <a name="3.7.1"></a>
 ## [3.7.1](https://github.com/gemini-testing/html-reporter/compare/v3.7.0...v3.7.1) (2019-03-15)
 
