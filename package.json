@@ -21,7 +21,7 @@
     "url": "https://github.com/gemini-testing/html-reporter/issues"
   },
   "engines": {
-    "node": ">= 6"
+    "node": ">= 8"
   },
   "keywords": [
     "gemini",
