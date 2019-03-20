@@ -1,6 +1,8 @@
 import React from 'react';
 import proxyquire from 'proxyquire';
+import {defaults} from 'lodash';
 import {mkConnectedComponent, mkTestResult_, mkSuite_, mkImg_} from '../utils';
+import {mkBrowserResult} from '../../../../utils';
 import {SUCCESS, FAIL, ERROR} from 'lib/constants/test-statuses';
 
 describe('<Body />', () => {
@@ -10,13 +12,32 @@ describe('<Body />', () => {
     let actionsStub;
     let utilsStub;
 
+    const mkBodyComponent = (bodyProps = {}, initialState = {}) => {
+        const browser = bodyProps.browser || mkBrowserResult();
+
+        bodyProps = defaults(bodyProps, {
+            result: mkTestResult_(),
+            retries: [],
+            suite: mkSuite_(),
+            browser
+        });
+
+        actionsStub.changeTestRetry.callsFake(({retryIndex}) => {
+            browser.retryIndex = retryIndex;
+            return {type: 'some-type'};
+        });
+
+        return mkConnectedComponent(<Body {...bodyProps} />, {initialState});
+    };
+
     beforeEach(() => {
         actionsStub = {
             acceptTest: sandbox.stub().returns({type: 'some-type'}),
             retryTest: sandbox.stub().returns({type: 'some-type'}),
             toggleTestResult: sandbox.stub().returns({type: 'some-type'}),
             toggleStateResult: sandbox.stub().returns({type: 'some-type'}),
-            changeTestRetry: sandbox.stub().returns({type: 'some-type'})
+            changeTestRetry: sandbox.stub().returns({type: 'some-type'}),
+            findSameDiffs: sandbox.stub().returns({type: 'some-type'})
         };
 
         utilsStub = {isAcceptable: sandbox.stub()};
@@ -34,32 +55,15 @@ describe('<Body />', () => {
     afterEach(() => sandbox.restore());
 
     it('should render retry button if "gui" is running', () => {
-        const bodyComponent = <Body result={mkTestResult_()} suite={mkSuite_()} />;
-        const component = mkConnectedComponent(bodyComponent, {initialState: {gui: true}});
+        const component = mkBodyComponent({}, {gui: true});
 
         assert.equal(component.find('.button_type_suite-controls').first().text(), '↻ Retry');
     });
 
     it('should not render retry button if "gui" is not running', () => {
-        const bodyComponent = <Body result={mkTestResult_()} suite={mkSuite_()} />;
-        const component = mkConnectedComponent(bodyComponent, {initialState: {gui: false}});
+        const component = mkBodyComponent({}, {gui: false});
 
         assert.lengthOf(component.find('.button_type_suite-controls'), 0);
-    });
-
-    it('should call "acceptTest" action on Accept button click', () => {
-        const retries = [];
-        const imagesInfo = [{stateName: 'plain', status: ERROR, actualImg: mkImg_(), error: {}, image: true, opened: true}];
-        const testResult = mkTestResult_({name: 'bro', imagesInfo});
-        const suite = mkSuite_({name: 'some-suite'});
-        utilsStub.isAcceptable.withArgs(imagesInfo[0]).returns(true);
-
-        const bodyComponent = <Body result={testResult} suite={suite} retries={retries}/>;
-        const component = mkConnectedComponent(bodyComponent, {initialState: {view: {expand: 'all'}}});
-
-        component.find('[label="✔ Accept"]').simulate('click');
-
-        assert.calledOnceWith(actionsStub.acceptTest, suite, 'bro', 'plain');
     });
 
     it('should render state for each state image', () => {
@@ -69,7 +73,7 @@ describe('<Body />', () => {
         ];
         const testResult = mkTestResult_({name: 'bro', imagesInfo});
 
-        const component = mkConnectedComponent(<Body result={testResult} suite={mkSuite_()}/>);
+        const component = mkBodyComponent({result: testResult});
 
         assert.lengthOf(component.find('.tab'), 2);
     });
@@ -77,7 +81,7 @@ describe('<Body />', () => {
     it('should not render state if state images does not exist and test passed successfully', () => {
         const testResult = mkTestResult_({status: SUCCESS});
 
-        const component = mkConnectedComponent(<Body result={testResult} suite={mkSuite_()} />);
+        const component = mkBodyComponent({result: testResult});
 
         assert.lengthOf(component.find('.tab'), 0);
     });
@@ -86,7 +90,7 @@ describe('<Body />', () => {
         const imagesInfo = [{stateName: 'plain1', status: SUCCESS, expectedImg: mkImg_()}];
         const testResult = mkTestResult_({status: ERROR, multipleTabs: true, error: {}, imagesInfo});
 
-        const component = mkConnectedComponent(<Body result={testResult} suite={mkSuite_()} />);
+        const component = mkBodyComponent({result: testResult});
 
         assert.lengthOf(component.find('.tab'), 2);
     });
@@ -94,68 +98,110 @@ describe('<Body />', () => {
     it('should render tab with error item if test errored without images', () => {
         const testResult = mkTestResult_({status: ERROR, error: {foo: 'bar'}, imagesInfo: []});
 
-        const component = mkConnectedComponent(<Body result={testResult} suite={mkSuite_()} />);
+        const component = mkBodyComponent({result: testResult});
 
         assert.lengthOf(component.find('.error__item'), 1);
     });
 
-    describe('should call "toggleTestResult" action on', () => {
-        it('mount', () => {
+    describe('"acceptTest" action', () => {
+        it('should call on "Accept" button click', () => {
+            const imagesInfo = [{stateName: 'plain', status: ERROR, actualImg: mkImg_(), error: {}, image: true, opened: true}];
+            const testResult = mkTestResult_({name: 'bro', imagesInfo});
+            const suite = mkSuite_({name: 'some-suite'});
+            utilsStub.isAcceptable.withArgs(imagesInfo[0]).returns(true);
+
+            const component = mkBodyComponent({result: testResult, suite}, {view: {expand: 'all'}});
+            component.find('[label="✔ Accept"]').simulate('click');
+
+            assert.calledOnceWith(actionsStub.acceptTest, suite, 'bro', 'plain');
+        });
+    });
+
+    describe('"findSameDiffs" action', () => {
+        it('should call on "Find same diffs" button click', () => {
+            const imagesInfo = [{stateName: 'plain', status: FAIL, actualImg: mkImg_(), error: {}, image: true, opened: true}];
+            const testResult = mkTestResult_({name: 'bro', imagesInfo});
+            const browser = mkBrowserResult();
+            const suite = mkSuite_({name: 'some-suite', suitePath: ['some-suite']});
+            const initialState = {view: {expand: 'all'}, suiteIds: {failed: ['some-suite']}, suites: {[suite.name]: suite}};
+
+            const component = mkBodyComponent({result: testResult, browser, suite}, initialState);
+            component.find('[label="🔍 Find same diffs"]').simulate('click');
+
+            assert.calledOnceWith(actionsStub.findSameDiffs, {
+                suitePath: suite.suitePath, browser, stateName: 'plain', fails: [suite]
+            });
+        });
+    });
+
+    describe('"toggleTestResult" action', () => {
+        it('should call on mount', () => {
             const testResult = mkTestResult_({name: 'bro'});
             const suite = mkSuite_({suitePath: ['some-suite']});
 
-            mkConnectedComponent(<Body result={testResult} suite={suite} />);
+            mkBodyComponent({result: testResult, suite});
 
-            assert.calledOnceWith(actionsStub.toggleTestResult, {browserId: 'bro', suitePath: ['some-suite'], opened: true});
+            assert.calledOnceWith(actionsStub.toggleTestResult, {
+                browserId: 'bro', suitePath: ['some-suite'], opened: true
+            });
         });
 
-        it('unmount', () => {
+        it('should call on unmount', () => {
             const testResult = mkTestResult_({name: 'bro'});
             const suite = mkSuite_({suitePath: ['some-suite']});
-            const component = mkConnectedComponent(<Body result={testResult} suite={suite} />);
 
+            const component = mkBodyComponent({result: testResult, suite});
             component.unmount();
 
             assert.calledTwice(actionsStub.toggleTestResult);
-            assert.calledWith(actionsStub.toggleTestResult.secondCall, {browserId: 'bro', suitePath: ['some-suite'], opened: false});
+            assert.calledWith(actionsStub.toggleTestResult.secondCall, {
+                browserId: 'bro', suitePath: ['some-suite'], opened: false
+            });
         });
     });
 
-    it('should call "toggleStateResult" action on click to state', () => {
-        const imagesInfo = [{stateName: 'plain', status: SUCCESS, opened: false}];
-        const testResult = mkTestResult_({name: 'bro', imagesInfo});
-        const suite = mkSuite_({name: 'some-suite', suitePath: ['some-suite']});
+    describe('"toggleStateResult" action', () => {
+        it('should call on click to state', () => {
+            const imagesInfo = [{stateName: 'plain', status: SUCCESS, opened: false, expectedImg: mkImg_()}];
+            const testResult = mkTestResult_({name: 'bro', imagesInfo});
+            const suite = mkSuite_({name: 'some-suite', suitePath: ['some-suite']});
 
-        const bodyComponent = <Body result={testResult} suite={suite} retries={[]} />;
-        const component = mkConnectedComponent(bodyComponent, {initialState: {view: {expand: 'errors'}}});
+            const component = mkBodyComponent({result: testResult, suite}, {view: {expand: 'errors'}});
+            component.find('.state-title').simulate('click');
 
-        component.find('.state-title').simulate('click');
-
-        assert.calledWith(
-            actionsStub.toggleStateResult,
-            {stateName: 'plain', browserId: 'bro', suitePath: ['some-suite'], retryIndex: 0, opened: true}
-        );
+            assert.calledWith(
+                actionsStub.toggleStateResult,
+                {stateName: 'plain', browserId: 'bro', suitePath: ['some-suite'], retryIndex: 0, opened: true}
+            );
+        });
     });
 
-    describe('should call "changeTestRetry" action on', () => {
-        it('mount', () => {
+    describe('"changeTestRetry" action', () => {
+        it('should call on mount', () => {
             const testResult = mkTestResult_({name: 'bro'});
             const suite = mkSuite_({suitePath: ['some-suite']});
 
-            mkConnectedComponent(<Body result={testResult} suite={suite} retries={[mkTestResult_()]} />);
+            mkBodyComponent({result: testResult, suite, retries: [mkTestResult_()]});
 
             assert.calledOnceWith(actionsStub.changeTestRetry, {browserId: 'bro', suitePath: ['some-suite'], retryIndex: 1});
         });
 
-        it('click in switcher retry button', () => {
+        it('should call action on click in switcher retry button', () => {
             const testResult = mkTestResult_({name: 'bro'});
             const suite = mkSuite_({suitePath: ['some-suite']});
-            const component = mkConnectedComponent(<Body result={testResult} suite={suite} retries={[mkTestResult_()]} />);
 
+            const component = mkBodyComponent({result: testResult, retries: [mkTestResult_()], suite});
             component.find('.tab-switcher__button:first-child').simulate('click');
 
             assert.calledTwice(actionsStub.changeTestRetry);
-            assert.calledWith(actionsStub.changeTestRetry.secondCall, {browserId: 'bro', suitePath: ['some-suite'], retryIndex: 0});
+            assert.calledWith(
+                actionsStub.changeTestRetry.firstCall,
+                {browserId: 'bro', suitePath: ['some-suite'], retryIndex: 1}
+            );
+            assert.calledWith(
+                actionsStub.changeTestRetry.secondCall,
+                {browserId: 'bro', suitePath: ['some-suite'], retryIndex: 0}
+            );
         });
     });
 
@@ -164,7 +210,7 @@ describe('<Body />', () => {
             const imagesInfo = [{stateName: 'plain1', status: SUCCESS, expectedImg: mkImg_()}];
             const testResult = mkTestResult_({status: ERROR, multipleTabs: true, error: {}, imagesInfo});
 
-            const component = mkConnectedComponent(<Body result={testResult} suite={mkSuite_()} />);
+            const component = mkBodyComponent({result: testResult});
 
             assert.lengthOf(component.find('.tab'), 2);
         });
@@ -173,7 +219,7 @@ describe('<Body />', () => {
             const imagesInfo = [{stateName: 'plain1', status: SUCCESS, expectedImg: mkImg_()}];
             const testResult = mkTestResult_({status: ERROR, multipleTabs: false, error: {}, screenshot: 'some-screen', imagesInfo});
 
-            const component = mkConnectedComponent(<Body result={testResult} suite={mkSuite_()} />);
+            const component = mkBodyComponent({result: testResult});
 
             assert.lengthOf(component.find('.tab'), 1);
         });
@@ -182,7 +228,7 @@ describe('<Body />', () => {
             const imagesInfo = [{stateName: 'plain1', status: SUCCESS, expectedImg: mkImg_()}];
             const testResult = mkTestResult_({status: ERROR, multipleTabs: true, error: {}, screenshot: 'some-screen', imagesInfo});
 
-            const component = mkConnectedComponent(<Body result={testResult} suite={mkSuite_()} />);
+            const component = mkBodyComponent({result: testResult});
 
             assert.lengthOf(component.find('.tab'), 1);
         });
@@ -192,7 +238,7 @@ describe('<Body />', () => {
                 const imagesInfo = [{stateName: 'plain1', status: SUCCESS, expectedImg: mkImg_()}];
                 const testResult = mkTestResult_({status, multipleTabs: true, error: {}, imagesInfo});
 
-                const component = mkConnectedComponent(<Body result={testResult} suite={mkSuite_()} />);
+                const component = mkBodyComponent({result: testResult});
 
                 assert.lengthOf(component.find('.tab'), 1);
             });
@@ -201,29 +247,22 @@ describe('<Body />', () => {
 
     describe('"Retry" button', () => {
         it('should be disabled while tests running', () => {
-            const testResult = mkTestResult_();
-
-            const component = mkConnectedComponent(<Body result={testResult} suite={mkSuite_()} />, {initialState: {running: true}});
+            const component = mkBodyComponent({}, {running: true});
 
             assert.isTrue(component.find('[label="↻ Retry"]').prop('isDisabled'));
         });
 
         it('should be enabled if tests are not started yet', () => {
-            const testResult = mkTestResult_();
-
-            const component = mkConnectedComponent(<Body result={testResult} suite={mkSuite_()} />, {initialState: {running: false}});
+            const component = mkBodyComponent({}, {running: false});
 
             assert.isFalse(component.find('[label="↻ Retry"]').prop('isDisabled'));
         });
 
         it('should call action "retryTest" on "handler" prop calling', () => {
+            const testResult = mkTestResult_({name: 'bro'});
             const suite = mkSuite_();
-            const bodyComponent = <Body
-                result={mkTestResult_({name: 'bro'})}
-                suite={suite}
-            />;
-            const component = mkConnectedComponent(bodyComponent, {initialState: {running: false}});
 
+            const component = mkBodyComponent({result: testResult, suite}, {running: false});
             component.find('[label="↻ Retry"]').simulate('click');
 
             assert.calledOnceWith(actionsStub.retryTest, suite, 'bro');

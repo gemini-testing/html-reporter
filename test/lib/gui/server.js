@@ -36,6 +36,7 @@ describe('lib/gui/server', () => {
     beforeEach(() => {
         sandbox.stub(App, 'create').returns(Object.create(App.prototype));
         sandbox.stub(App.prototype, 'initialize').resolves();
+        sandbox.stub(App.prototype, 'findEqualDiffs').resolves();
         sandbox.stub(App.prototype, 'finalize');
 
         expressStub = mkExpressApp_();

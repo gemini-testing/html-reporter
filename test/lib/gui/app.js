@@ -1,22 +1,26 @@
 'use strict';
 
+const path = require('path');
 const _ = require('lodash');
+const proxyquire = require('proxyquire');
 const Promise = require('bluebird');
 
-const App = require('lib/gui/app');
 const ToolRunnerFactory = require('lib/gui/tool-runner-factory');
-const {stubTool, stubConfig} = require('../../utils');
+const {stubTool, stubConfig, mkImagesInfo} = require('../../utils');
 
 describe('lib/gui/app', () => {
     const sandbox = sinon.createSandbox().usingPromise(Promise);
+
+    let App;
     let tool;
     let toolRunner;
+    let looksSame;
 
     const mkApp_ = (opts = {}) => {
-        opts = _.defaults(opts, {
+        opts = _.defaultsDeep(opts, {
             paths: 'paths',
             tool: stubTool(),
-            configs: {program: {name: () => 'tool'}}
+            configs: {program: {name: () => 'tool'}, pluginConfig: {path: 'default-path'}}
         });
 
         return new App(opts.paths, opts.tool, opts.configs);
@@ -37,6 +41,11 @@ describe('lib/gui/app', () => {
         };
         tool = stubTool(stubConfig({browsers: browserConfigs}));
         toolRunner = mkToolRunner_(tool);
+        looksSame = sandbox.stub().named('looksSame').yields(null, {equal: true});
+
+        App = proxyquire('lib/gui/app', {
+            'looks-same': looksSame
+        });
 
         sandbox.stub(ToolRunnerFactory, 'create').returns(toolRunner);
     });
@@ -91,6 +100,95 @@ describe('lib/gui/app', () => {
                     assert.equal(tool.config.forBrowser('bro1').retry, 1);
                     assert.equal(tool.config.forBrowser('bro2').retry, 2);
                 });
+        });
+    });
+
+    describe('findEqualDiffs', () => {
+        let pluginConfig;
+        let compareOpts;
+
+        beforeEach(() => {
+            tool = stubTool(stubConfig({tolerance: 100500, antialiasingTolerance: 500100}));
+            toolRunner = mkToolRunner_(tool);
+            ToolRunnerFactory.create.returns(toolRunner);
+
+            pluginConfig = {path: 'report-path'};
+            compareOpts = {tolerance: 100500, antialiasingTolerance: 500100, stopOnFirstFail: true, shouldCluster: false};
+
+            sandbox.stub(path, 'resolve');
+        });
+
+        it('should stop comparison on first diff in reference images', async () => {
+            const refImagesInfo = mkImagesInfo({expectedImg: {path: 'ref-path-1'}});
+            const compareWithImagesInfo = [mkImagesInfo({expectedImg: {path: 'ref-path-2'}})];
+
+            path.resolve
+                .withArgs(process.cwd(), pluginConfig.path, 'ref-path-1').returns('/ref-path-1')
+                .withArgs(process.cwd(), pluginConfig.path, 'ref-path-2').returns('/ref-path-2');
+
+            looksSame.withArgs(
+                {source: '/ref-path-1', boundingBox: refImagesInfo.diffClusters[0]},
+                {source: '/ref-path-2', boundingBox: compareWithImagesInfo[0].diffClusters[0]},
+                compareOpts
+            ).yields(null, {equal: false});
+
+            const result = await mkApp_({tool, configs: {pluginConfig}})
+                .findEqualDiffs({refImagesInfo, compareWithImagesInfo});
+
+            assert.calledOnce(looksSame);
+            assert.isEmpty(result);
+        });
+
+        it('should stop comparison on diff in actual images', async () => {
+            const refImagesInfo = mkImagesInfo({actualImg: {path: 'act-path-1'}});
+            const compareWithImagesInfo = [mkImagesInfo({actualImg: {path: 'act-path-2'}})];
+
+            path.resolve
+                .withArgs(process.cwd(), pluginConfig.path, 'act-path-1').returns('/act-path-1')
+                .withArgs(process.cwd(), pluginConfig.path, 'act-path-2').returns('/act-path-2');
+
+            looksSame.onFirstCall().yields(null, {equal: true});
+            looksSame.withArgs(
+                {source: '/act-path-1', boundingBox: refImagesInfo.diffClusters[0]},
+                {source: '/act-path-2', boundingBox: compareWithImagesInfo[0].diffClusters[0]},
+                compareOpts
+            ).yields(null, {equal: false});
+
+            const result = await mkApp_({tool, configs: {pluginConfig}})
+                .findEqualDiffs({refImagesInfo, compareWithImagesInfo});
+
+            assert.calledTwice(looksSame);
+            assert.isEmpty(result);
+        });
+
+        it('should compare each diff cluster', async () => {
+            const refImagesInfo = mkImagesInfo({diffClusters: [
+                {left: 0, top: 0, right: 5, bottom: 5},
+                {left: 10, top: 10, right: 15, bottom: 15}
+            ]});
+            const compareWithImagesInfo = [mkImagesInfo({diffClusters: [
+                {left: 0, top: 0, right: 5, bottom: 5},
+                {left: 10, top: 10, right: 15, bottom: 15}
+            ]})];
+
+            looksSame.yields(null, {equal: true});
+
+            await mkApp_({tool, configs: {pluginConfig}})
+                .findEqualDiffs({refImagesInfo, compareWithImagesInfo});
+
+            assert.equal(looksSame.callCount, 4);
+        });
+
+        it('should return all found equal diffs', async () => {
+            const refImagesInfo = mkImagesInfo();
+            const compareWithImagesInfo = [mkImagesInfo(), mkImagesInfo()];
+
+            looksSame.yields(null, {equal: true});
+
+            const result = await mkApp_({tool, configs: {pluginConfig}})
+                .findEqualDiffs({refImagesInfo, compareWithImagesInfo});
+
+            assert.deepEqual(result, compareWithImagesInfo);
         });
     });
 
