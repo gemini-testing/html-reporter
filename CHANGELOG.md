@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.1.0"></a>
+# [4.1.0](https://github.com/gemini-testing/html-reporter/compare/v4.0.0...v4.1.0) (2019-03-20)
+
+
+### Features
+
+* add lazy suites render ([d95dc16](https://github.com/gemini-testing/html-reporter/commit/d95dc16))
+
+
+
 <a name="4.0.0"></a>
 # [4.0.0](https://github.com/gemini-testing/html-reporter/compare/v3.7.1...v4.0.0) (2019-03-20)
 
