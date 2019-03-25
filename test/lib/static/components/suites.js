@@ -1,10 +1,11 @@
 import React, {Component} from 'react';
-import LazilyRender from 'react-lazily-render';
+import LazilyRender from '@gemini-testing/react-lazily-render';
 import proxyquire from 'proxyquire';
 import {defaultsDeep} from 'lodash';
 
 import {mkConnectedComponent} from './utils';
 import {config} from 'lib/constants/defaults';
+import clientEvents from 'lib/constants/client-events';
 
 describe('<Suites/>', () => {
     let Suites;
@@ -43,6 +44,13 @@ describe('<Suites/>', () => {
         const lazyRendererProps = suitesComponent.find(LazilyRender).props();
 
         assert.equal(lazyRendererProps.offset, 100);
+    });
+
+    it('should pass to Lazy-renderer component event name to update suite', () => {
+        const suitesComponent = mkSuitesComponent();
+        const lazyRendererProps = suitesComponent.find(LazilyRender).props();
+
+        assert.equal(lazyRendererProps.eventToUpdate, clientEvents.VIEW_CHANGED);
     });
 
     it('should not wrap suite with Lazy-renderer component if lazyLoadOffset was disabled', () => {
