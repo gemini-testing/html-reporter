@@ -14,7 +14,7 @@ describe('lib/gui/tool-runner-factory/base-tool-runner', () => {
     let tool;
 
     const mkTool_ = () => stubTool(stubConfig());
-    const mkToolCliOpts_ = (globalCliOpts = {name: () => 'tool'}, guiCliOpts = {}) => {
+    const mkToolCliOpts_ = (guiCliOpts = {}, globalCliOpts = {name: () => 'tool'}) => {
         return {program: globalCliOpts, options: guiCliOpts};
     };
     const mkPluginConfig_ = (config = {}) => {
@@ -34,13 +34,13 @@ describe('lib/gui/tool-runner-factory/base-tool-runner', () => {
 
     const mkHermioneTestCollection_ = () => ({eachTest: sandbox.stub()});
 
-    const initGuiReporter = (opts = {}) => {
+    const initGuiReporter = (opts = {}, guiCliOpts = {}) => {
         opts = _.defaults(opts, {
             paths: [],
             configs: {}
         });
 
-        const configs = _.defaults(opts.configs, mkToolCliOpts_(), mkPluginConfig_());
+        const configs = _.defaults(opts.configs, mkToolCliOpts_(guiCliOpts), mkPluginConfig_());
 
         return ToolGuiReporter.create(opts.paths, tool, configs);
     };
@@ -121,14 +121,14 @@ describe('lib/gui/tool-runner-factory/base-tool-runner', () => {
 
         describe(`reuse ${name} data`, () => {
             it('should not try load data for reuse if suites are empty', () => {
-                const gui = initGuiReporter({configs: mkPluginConfig_({path: 'report_path'})});
+                const gui = initGuiReporter({configs: mkPluginConfig_({path: 'report_path'})}, {reuse: true});
 
                 return gui.initialize()
                     .then(() => assert.notCalled(serverUtils.require));
             });
 
             it('should try to load data for reuse', () => {
-                const gui = initGuiReporter({configs: mkPluginConfig_({path: 'report_path'})});
+                const gui = initGuiReporter({configs: mkPluginConfig_({path: 'report_path'})}, {reuse: true});
                 const reusePath = path.resolve(process.cwd(), 'report_path/data');
 
                 const suites = [mkSuiteTree()];
@@ -139,7 +139,7 @@ describe('lib/gui/tool-runner-factory/base-tool-runner', () => {
             });
 
             it('should not fail if data for reuse does not exist', () => {
-                const gui = initGuiReporter();
+                const gui = initGuiReporter({}, {reuse: true});
 
                 const suites = [mkSuiteTree()];
                 reportBuilder.getResult.returns({suites});
@@ -150,7 +150,7 @@ describe('lib/gui/tool-runner-factory/base-tool-runner', () => {
             });
 
             it('should log a warning that there is no data for reuse', () => {
-                const gui = initGuiReporter();
+                const gui = initGuiReporter({}, {reuse: true});
                 serverUtils.require.throws(new Error('Cannot find module'));
 
                 const suites = [mkSuiteTree()];
@@ -160,9 +160,19 @@ describe('lib/gui/tool-runner-factory/base-tool-runner', () => {
                     .then(() => assert.calledWithMatch(serverUtils.logger.warn, 'Nothing to reuse'));
             });
 
-            describe('should not apply reuse data if', () => {
-                it('it does not exist', () => {
+            describe('should not apply reuse data', () => {
+                it('by default', () => {
                     const gui = initGuiReporter();
+
+                    const suites = [mkSuiteTree()];
+                    reportBuilder.getResult.returns({suites});
+
+                    return gui.initialize()
+                        .then(() => assert.notCalled(serverUtils.require));
+                });
+
+                it('if it does not exist', () => {
+                    const gui = initGuiReporter({}, {reuse: true});
                     serverUtils.require.throws(new Error('Cannot find module'));
 
                     const suites = [mkSuiteTree()];
@@ -172,8 +182,8 @@ describe('lib/gui/tool-runner-factory/base-tool-runner', () => {
                         .then(() => assert.deepEqual(gui.tree.suites, suites));
                 });
 
-                it('it is empty', () => {
-                    const gui = initGuiReporter();
+                it('if it is empty', () => {
+                    const gui = initGuiReporter({}, {reuse: true});
 
                     const suites = [mkSuiteTree()];
                     reportBuilder.getResult.returns({suites});
@@ -184,7 +194,7 @@ describe('lib/gui/tool-runner-factory/base-tool-runner', () => {
             });
 
             it('should apply reuse data only for the matched browser', () => {
-                const gui = initGuiReporter();
+                const gui = initGuiReporter({}, {reuse: true});
 
                 const reuseYaBro = mkBrowserResult({
                     name: 'yabro',
@@ -209,7 +219,7 @@ describe('lib/gui/tool-runner-factory/base-tool-runner', () => {
             });
 
             it('should apply reuse data for tree with nested suites', () => {
-                const gui = initGuiReporter();
+                const gui = initGuiReporter({}, {reuse: true});
 
                 const reuseYaBro = mkBrowserResult({
                     name: 'yabro',
@@ -245,7 +255,7 @@ describe('lib/gui/tool-runner-factory/base-tool-runner', () => {
             });
 
             it('should change "status" for each level of the tree if data is reused', () => {
-                const gui = initGuiReporter();
+                const gui = initGuiReporter({}, {reuse: true});
 
                 const reuseSuites = [mkSuiteTree({
                     suite: mkSuite({status: 'fail'}),
@@ -272,7 +282,7 @@ describe('lib/gui/tool-runner-factory/base-tool-runner', () => {
             });
 
             it('should not change "status" for any level of the tree if data is not reused', () => {
-                const gui = initGuiReporter();
+                const gui = initGuiReporter({}, {reuse: true});
 
                 const reuseSuites = [mkSuiteTree({
                     suite: mkSuite({status: 'fail'}),
