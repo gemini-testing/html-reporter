@@ -120,7 +120,7 @@ describe('lib/gui/app', () => {
 
         it('should stop comparison on first diff in reference images', async () => {
             const refImagesInfo = mkImagesInfo({expectedImg: {path: 'ref-path-1'}});
-            const compareWithImagesInfo = [mkImagesInfo({expectedImg: {path: 'ref-path-2'}})];
+            const comparedImagesInfo = [mkImagesInfo({expectedImg: {path: 'ref-path-2'}})];
 
             path.resolve
                 .withArgs(process.cwd(), pluginConfig.path, 'ref-path-1').returns('/ref-path-1')
@@ -128,12 +128,12 @@ describe('lib/gui/app', () => {
 
             looksSame.withArgs(
                 {source: '/ref-path-1', boundingBox: refImagesInfo.diffClusters[0]},
-                {source: '/ref-path-2', boundingBox: compareWithImagesInfo[0].diffClusters[0]},
+                {source: '/ref-path-2', boundingBox: comparedImagesInfo[0].diffClusters[0]},
                 compareOpts
             ).yields(null, {equal: false});
 
             const result = await mkApp_({tool, configs: {pluginConfig}})
-                .findEqualDiffs({refImagesInfo, compareWithImagesInfo});
+                .findEqualDiffs([refImagesInfo].concat(comparedImagesInfo));
 
             assert.calledOnce(looksSame);
             assert.isEmpty(result);
@@ -141,7 +141,7 @@ describe('lib/gui/app', () => {
 
         it('should stop comparison on diff in actual images', async () => {
             const refImagesInfo = mkImagesInfo({actualImg: {path: 'act-path-1'}});
-            const compareWithImagesInfo = [mkImagesInfo({actualImg: {path: 'act-path-2'}})];
+            const comparedImagesInfo = [mkImagesInfo({actualImg: {path: 'act-path-2'}})];
 
             path.resolve
                 .withArgs(process.cwd(), pluginConfig.path, 'act-path-1').returns('/act-path-1')
@@ -150,12 +150,12 @@ describe('lib/gui/app', () => {
             looksSame.onFirstCall().yields(null, {equal: true});
             looksSame.withArgs(
                 {source: '/act-path-1', boundingBox: refImagesInfo.diffClusters[0]},
-                {source: '/act-path-2', boundingBox: compareWithImagesInfo[0].diffClusters[0]},
+                {source: '/act-path-2', boundingBox: comparedImagesInfo[0].diffClusters[0]},
                 compareOpts
             ).yields(null, {equal: false});
 
             const result = await mkApp_({tool, configs: {pluginConfig}})
-                .findEqualDiffs({refImagesInfo, compareWithImagesInfo});
+                .findEqualDiffs([refImagesInfo].concat(comparedImagesInfo));
 
             assert.calledTwice(looksSame);
             assert.isEmpty(result);
@@ -166,7 +166,7 @@ describe('lib/gui/app', () => {
                 {left: 0, top: 0, right: 5, bottom: 5},
                 {left: 10, top: 10, right: 15, bottom: 15}
             ]});
-            const compareWithImagesInfo = [mkImagesInfo({diffClusters: [
+            const comparedImagesInfo = [mkImagesInfo({diffClusters: [
                 {left: 0, top: 0, right: 5, bottom: 5},
                 {left: 10, top: 10, right: 15, bottom: 15}
             ]})];
@@ -174,21 +174,21 @@ describe('lib/gui/app', () => {
             looksSame.yields(null, {equal: true});
 
             await mkApp_({tool, configs: {pluginConfig}})
-                .findEqualDiffs({refImagesInfo, compareWithImagesInfo});
+                .findEqualDiffs([refImagesInfo].concat(comparedImagesInfo));
 
             assert.equal(looksSame.callCount, 4);
         });
 
         it('should return all found equal diffs', async () => {
             const refImagesInfo = mkImagesInfo();
-            const compareWithImagesInfo = [mkImagesInfo(), mkImagesInfo()];
+            const comparedImagesInfo = [mkImagesInfo(), mkImagesInfo()];
 
             looksSame.yields(null, {equal: true});
 
             const result = await mkApp_({tool, configs: {pluginConfig}})
-                .findEqualDiffs({refImagesInfo, compareWithImagesInfo});
+                .findEqualDiffs([refImagesInfo].concat(comparedImagesInfo));
 
-            assert.deepEqual(result, compareWithImagesInfo);
+            assert.deepEqual(result, comparedImagesInfo);
         });
     });
 
