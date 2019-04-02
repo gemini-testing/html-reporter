@@ -1,9 +1,19 @@
 'use strict';
 
 const utils = require('../../../../lib/static/modules/utils');
-const {FAIL, ERROR, SUCCESS} = require('../../../../lib/constants/test-statuses');
-const {NO_REF_IMAGE_ERROR} = require('../../../../lib/constants/errors').getCommonErrors();
-const {mkSuite, mkState, mkBrowserResult} = require('../../../utils');
+const {
+    FAIL,
+    ERROR,
+    SUCCESS
+} = require('../../../../lib/constants/test-statuses');
+const {
+    NO_REF_IMAGE_ERROR
+} = require('../../../../lib/constants/errors').getCommonErrors();
+const {
+    mkSuite,
+    mkState,
+    mkBrowserResult
+} = require('../../../utils');
 
 describe('static/modules/utils', () => {
     describe('isAcceptable', () => {
@@ -34,62 +44,97 @@ describe('static/modules/utils', () => {
         });
     });
 
-    describe('shouldSuiteBeShownByName', () => {
-        const suite = mkSuite({
-            suitePath: ['Some suite'],
-            children: [
-                mkState({
-                    suitePath: ['Some suite', 'test one']
-                })
-            ]
+    describe('shouldSuiteBeShown', () => {
+        describe('testNameFilter', () => {
+            const suite = mkSuite({
+                suitePath: ['Some suite'],
+                children: [
+                    mkState({
+                        suitePath: ['Some suite', 'test one']
+                    })
+                ]
+            });
+
+            it('should be true if top-level title matches', () => {
+                assert.isTrue(utils.shouldSuiteBeShown({suite, testNameFilter: 'Some suite'}));
+            });
+
+            it('should be true if bottom-level title matches', () => {
+                assert.isTrue(utils.shouldSuiteBeShown({suite, testNameFilter: 'test one'}));
+            });
+
+            it('should be false if no matches found', () => {
+                assert.isFalse(utils.shouldSuiteBeShown({suite, testNameFilter: 'test two'}));
+            });
+
+            it('should be true if full title matches', () => {
+                assert.isTrue(
+                    utils.shouldSuiteBeShown({suite, testNameFilter: 'Some suite test one'})
+                );
+            });
+
+            it('should be false if only part of only top-level title matches', () => {
+                assert.isFalse(
+                    utils.shouldSuiteBeShown({suite, testNameFilter: 'Some suite test two'})
+                );
+            });
+
+            it('should be false if only part of only bottom-level title matches', () => {
+                assert.isFalse(
+                    utils.shouldSuiteBeShown({suite, testNameFilter: 'Another suite test one'})
+                );
+            });
         });
 
-        it('should be true if top-level title matches', () => {
-            assert.isTrue(utils.shouldSuiteBeShownByName(suite, 'Some suite'));
+        describe('errorGroupTests', () => {
+            const suite = mkSuite({
+                suitePath: ['Some suite'],
+                children: [
+                    mkState({
+                        suitePath: ['Some suite', 'test one']
+                    })
+                ]
+            });
+
+            it('should be false if top-level title matches', () => {
+                assert.isFalse(utils.shouldSuiteBeShown({suite, errorGroupTests: {'Some suite': []}}));
+            });
+
+            it('should be false if bottom-level title matches', () => {
+                assert.isFalse(utils.shouldSuiteBeShown({suite, errorGroupTests: {'test one': []}}));
+            });
+
+            it('should be false if no matches found', () => {
+                assert.isFalse(utils.shouldSuiteBeShown({suite, errorGroupTests: {'Some suite test two': []}}));
+            });
+
+            it('should be true if full title matches', () => {
+                assert.isTrue(
+                    utils.shouldSuiteBeShown({suite, errorGroupTests: {'Some suite test one': []}})
+                );
+            });
         });
 
-        it('should be true if bottom-level title matches', () => {
-            assert.isTrue(utils.shouldSuiteBeShownByName(suite, 'test one'));
-        });
+        describe('filteredBrowsers', () => {
+            const suite = mkSuite({
+                children: [
+                    mkState({
+                        browsers: [mkBrowserResult({name: 'first-bro'})]
+                    })
+                ]
+            });
 
-        it('should be false if no matches found', () => {
-            assert.isFalse(utils.shouldSuiteBeShownByName(suite, 'test two'));
-        });
+            it('should be true if browser id is equal', () => {
+                assert.isTrue(utils.shouldSuiteBeShown({suite, filteredBrowsers: ['first-bro']}));
+            });
 
-        it('should be true if full title matches', () => {
-            assert.isTrue(utils.shouldSuiteBeShownByName(suite, 'Some suite test one'));
-        });
+            it('should be false if browser id is not a strict match', () => {
+                assert.isFalse(utils.shouldSuiteBeShown({suite, filteredBrowsers: ['first']}));
+            });
 
-        it('should be false if only part of only top-level title matches', () => {
-            assert.isFalse(utils.shouldSuiteBeShownByName(suite, 'Some suite test two'));
-        });
-
-        it('should be false if only part of only bottom-level title matches', () => {
-            assert.isFalse(utils.shouldSuiteBeShownByName(suite, 'Another suite test one'));
-        });
-    });
-
-    describe('shouldSuiteBeShownByBrowser', () => {
-        const suite = mkSuite({
-            children: [
-                mkState({
-                    browsers: [
-                        mkBrowserResult({name: 'first-bro'})
-                    ]
-                })
-            ]
-        });
-
-        it('should be true if browser id is equal', () => {
-            assert.isTrue(utils.shouldSuiteBeShownByBrowser(suite, ['first-bro']));
-        });
-
-        it('should be false if browser id is not a strict match', () => {
-            assert.isFalse(utils.shouldSuiteBeShownByBrowser(suite, ['first']));
-        });
-
-        it('should be false if browser id is not equal', () => {
-            assert.isFalse(utils.shouldSuiteBeShownByBrowser(suite, ['second-bro']));
+            it('should be false if browser id is not equal', () => {
+                assert.isFalse(utils.shouldSuiteBeShown({suite, filteredBrowsers: ['second-bro']}));
+            });
         });
     });
 
