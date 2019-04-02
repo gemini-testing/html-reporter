@@ -15,6 +15,7 @@ describe('lib/gui/server', () => {
     const mkExpressApp_ = () => ({
         use: sandbox.stub(),
         get: sandbox.stub(),
+        set: sandbox.stub(),
         post: sandbox.stub(),
         listen: sandbox.stub().callsArg(2),
         static: sandbox.stub()
@@ -83,5 +84,13 @@ describe('lib/gui/server', () => {
 
                 assert.calledOnce(App.prototype.finalize);
             });
+    });
+
+    it('should correctly set json replacer', async () => {
+        const guiApi = mkApi_();
+
+        await startServer({guiApi});
+
+        assert.calledOnceWith(expressStub.set, 'json replacer', sinon.match.func);
     });
 });

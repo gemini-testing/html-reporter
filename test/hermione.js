@@ -81,7 +81,7 @@ describe('lib/hermione', () => {
         sandbox.stub(ReportBuilder.prototype, 'addError');
         sandbox.stub(ReportBuilder.prototype, 'addFail');
         sandbox.stub(ReportBuilder.prototype, 'addRetry');
-        sandbox.stub(ReportBuilder.prototype, 'setExtraItems');
+        sandbox.stub(ReportBuilder.prototype, 'setApiValues');
         sandbox.stub(ReportBuilder.prototype, 'save');
     });
 
@@ -192,14 +192,18 @@ describe('lib/hermione', () => {
         });
     });
 
-    it('should set extra items', () => {
-        return initReporter_()
-            .then(() => {
-                hermione.htmlReporter.addExtraItem('some', 'item');
+    it('should set values added through api', async () => {
+        await initReporter_();
 
-                return hermione.emitAndWait(hermione.events.RUNNER_END);
-            })
-            .then(() => assert.calledOnceWith(ReportBuilder.prototype.setExtraItems, {some: 'item'}));
+        hermione.htmlReporter.addExtraItem('key1', 'value1');
+        hermione.htmlReporter.addMetaInfoExtender('key2', 'value2');
+
+        await hermione.emitAndWait(hermione.events.RUNNER_END);
+
+        assert.calledOnceWith(ReportBuilder.prototype.setApiValues, {
+            extraItems: {key1: 'value1'},
+            metaInfoExtenders: {key2: 'value2'}
+        });
     });
 
     it('should save statistic', () => {

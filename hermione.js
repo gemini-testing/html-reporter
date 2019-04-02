@@ -30,7 +30,7 @@ function prepareData(hermione, reportBuilder) {
         hermione.on(hermione.events.RUNNER_END, (stats) => resolve(
             reportBuilder
                 .setStats(stats)
-                .setExtraItems(hermione.htmlReporter.extraItems)
+                .setApiValues(hermione.htmlReporter.values)
         ));
     });
 
