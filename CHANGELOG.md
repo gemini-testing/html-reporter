@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.4.0"></a>
+# [4.4.0](https://github.com/gemini-testing/html-reporter/compare/v4.3.0...v4.4.0) (2019-04-02)
+
+
+### Bug Fixes
+
+* **lazy-load:** recheck suite view on test filter ([1a125ec](https://github.com/gemini-testing/html-reporter/commit/1a125ec))
+
+
+### Features
+
+* add grouping by error type ([7a566a3](https://github.com/gemini-testing/html-reporter/commit/7a566a3))
+
+
+
 <a name="4.3.0"></a>
 # [4.3.0](https://github.com/gemini-testing/html-reporter/compare/v4.2.0...v4.3.0) (2019-03-28)
 
