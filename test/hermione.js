@@ -266,20 +266,4 @@ describe('lib/hermione', () => {
             })
             .then(() => assert.calledWith(utils.copyImageAsync, 'current/path', '/absolute/report'));
     });
-
-    it('should save current diff image from assert view fail', () => {
-        utils.getDiffAbsolutePath.callsFake((test, path) => `${path}/report`);
-
-        return initReporter_({path: '/absolute'})
-            .then(() => {
-                const err = new ImageDiffError();
-                err.stateName = 'some-name';
-                err.saveDiffTo = sinon.stub();
-                hermione.emit(events.TEST_FAIL, {assertViewResults: [err]});
-                return hermione.emitAndWait(events.RUNNER_END);
-            })
-            .then(() => assert.calledWith(
-                utils.saveDiff, sinon.match.instanceOf(ImageDiffError), '/absolute/report'
-            ));
-    });
 });
