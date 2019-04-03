@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.4.1"></a>
+## [4.4.1](https://github.com/gemini-testing/html-reporter/compare/v4.4.0...v4.4.1) (2019-04-03)
+
+
+### Bug Fixes
+
+* forever yellow tests in gui mode after running all tests ([14cf0f9](https://github.com/gemini-testing/html-reporter/commit/14cf0f9))
+
+
+
 <a name="4.4.0"></a>
 # [4.4.0](https://github.com/gemini-testing/html-reporter/compare/v4.3.0...v4.4.0) (2019-04-02)
 
