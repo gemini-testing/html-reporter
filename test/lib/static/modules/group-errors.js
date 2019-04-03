@@ -10,30 +10,80 @@ const {
 } = require('../../../utils');
 const {mkImg_} = require('../components/utils');
 
+function mkBrowserResultWithStatus(status) {
+    return mkBrowserResult({
+        name: `${status} test`,
+        result: mkTestResult({
+            status: status
+        }),
+        retries: [
+            mkTestResult({
+                error: {
+                    message: `message stub ${status}`
+                }
+            })
+        ]
+    });
+}
+
 describe('static/modules/group-errors', () => {
-    it('should not collect errors from success test', () => {
+    it('should collect errors from all tests if viewMode is "all"', () => {
         const suites = [
             mkSuiteTree({
                 browsers: [
-                    mkBrowserResult({
-                        result: mkTestResult({
-                            status: 'success'
-                        }),
-                        retries: [
-                            mkTestResult({
-                                error: {
-                                    message: 'message stub'
-                                }
-                            })
-                        ]
-                    })
+                    mkBrowserResultWithStatus('skipped'),
+                    mkBrowserResultWithStatus('success'),
+                    mkBrowserResultWithStatus('fail'),
+                    mkBrowserResultWithStatus('error')
                 ]
             })
         ];
 
-        const result = groupErrors({suites});
+        const result = groupErrors({suites, viewMode: 'all'});
 
-        assert.deepEqual(result, []);
+        assert.lengthOf(result, 4);
+        assert.include(result[0], {
+            count: 1,
+            name: 'message stub error'
+        });
+        assert.include(result[1], {
+            count: 1,
+            name: 'message stub fail'
+        });
+        assert.include(result[2], {
+            count: 1,
+            name: 'message stub skipped'
+        });
+        assert.include(result[3], {
+            count: 1,
+            name: 'message stub success'
+        });
+    });
+
+    it('should collect errors only from failed tests if viewMode is "failed"', () => {
+        const suites = [
+            mkSuiteTree({
+                suite: mkSuite({status: 'error'}),
+                browsers: [
+                    mkBrowserResultWithStatus('skipped'),
+                    mkBrowserResultWithStatus('success'),
+                    mkBrowserResultWithStatus('fail'),
+                    mkBrowserResultWithStatus('error')
+                ]
+            })
+        ];
+
+        const result = groupErrors({suites, viewMode: 'failed'});
+
+        assert.lengthOf(result, 2);
+        assert.include(result[0], {
+            count: 1,
+            name: 'message stub error'
+        });
+        assert.include(result[1], {
+            count: 1,
+            name: 'message stub fail'
+        });
     });
 
     it('should collect errors from error and imagesInfo[].error', () => {
@@ -82,9 +132,7 @@ describe('static/modules/group-errors', () => {
                 browsers: [
                     mkBrowserResult({
                         result: mkTestResult({
-                            imagesInfo: [
-                                {diffImg: mkImg_()}
-                            ]
+                            imagesInfo: [{diffImg: mkImg_()}]
                         })
                     })
                 ]
@@ -93,10 +141,12 @@ describe('static/modules/group-errors', () => {
 
         const result = groupErrors({suites});
 
-        assert.strictEqual(result.length, 1);
-        assert.strictEqual(result[0].count, 1);
-        assert.strictEqual(result[0].name, 'image comparison failed');
-        assert.strictEqual(result[0].pattern, 'image comparison failed');
+        assert.lengthOf(result, 1);
+        assert.include(result[0], {
+            count: 1,
+            name: 'image comparison failed',
+            pattern: 'image comparison failed'
+        });
     });
 
     it('should collect errors from result and retries', () => {
