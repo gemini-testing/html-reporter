@@ -8,6 +8,7 @@ const {
     mkSuiteTree,
     mkTestResult
 } = require('../../../utils');
+const {mkImg_} = require('../components/utils');
 
 describe('static/modules/group-errors', () => {
     it('should not collect errors from success test', () => {
@@ -73,6 +74,29 @@ describe('static/modules/group-errors', () => {
                 }
             }
         ]);
+    });
+
+    it('should collect image comparison fails', () => {
+        const suites = [
+            mkSuiteTree({
+                browsers: [
+                    mkBrowserResult({
+                        result: mkTestResult({
+                            imagesInfo: [
+                                {diffImg: mkImg_()}
+                            ]
+                        })
+                    })
+                ]
+            })
+        ];
+
+        const result = groupErrors({suites});
+
+        assert.strictEqual(result.length, 1);
+        assert.strictEqual(result[0].count, 1);
+        assert.strictEqual(result[0].name, 'image comparison failed');
+        assert.strictEqual(result[0].pattern, 'image comparison failed');
     });
 
     it('should collect errors from result and retries', () => {
