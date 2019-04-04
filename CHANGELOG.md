@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.5.0"></a>
+# [4.5.0](https://github.com/gemini-testing/html-reporter/compare/v4.4.1...v4.5.0) (2019-04-04)
+
+
+### Bug Fixes
+
+* add reaction on viewMode at grouping of error ([916c43f](https://github.com/gemini-testing/html-reporter/commit/916c43f))
+* collect image comparison fails in grouping error ([ecb9dc5](https://github.com/gemini-testing/html-reporter/commit/ecb9dc5))
+
+
+### Features
+
+* ability to add meta info extenders ([5536494](https://github.com/gemini-testing/html-reporter/commit/5536494))
+
+
+
 <a name="4.4.1"></a>
 ## [4.4.1](https://github.com/gemini-testing/html-reporter/compare/v4.4.0...v4.4.1) (2019-04-03)
 
