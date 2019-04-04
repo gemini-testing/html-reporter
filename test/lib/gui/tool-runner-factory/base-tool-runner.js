@@ -76,11 +76,11 @@ describe('lib/gui/tool-runner-factory/base-tool-runner', () => {
         });
 
         describe('create', () => {
-            it('should set extra items', () => {
-                tool = {htmlReporter: {extraItems: {some: 'item'}}};
+            it('should set values added through api', () => {
+                tool = {htmlReporter: {values: {foo: 'bar'}}};
                 initGuiReporter();
 
-                assert.calledWith(reportBuilder.setExtraItems, {some: 'item'});
+                assert.calledWith(reportBuilder.setApiValues, {foo: 'bar'});
             });
         });
 

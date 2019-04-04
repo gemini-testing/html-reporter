@@ -1,8 +1,9 @@
 import React from 'react';
 import proxyquire from 'proxyquire';
 import {defaults} from 'lodash';
-import {mkConnectedComponent, mkTestResult_, mkSuite_, mkImg_} from '../utils';
-import {mkBrowserResult} from '../../../../utils';
+import MetaInfo from 'lib/static/components/section/body/meta-info';
+import {mkConnectedComponent, mkTestResult_, mkSuite_, mkImg_} from '../../utils';
+import {mkBrowserResult} from '../../../../../utils';
 import {SUCCESS, FAIL, ERROR} from 'lib/constants/test-statuses';
 
 describe('<Body />', () => {
@@ -266,6 +267,31 @@ describe('<Body />', () => {
             component.find('[label="↻ Retry"]').simulate('click');
 
             assert.calledOnceWith(actionsStub.retryTest, suite, 'bro');
+        });
+    });
+
+    describe('meta-info', () => {
+        it('should pass "getExtraMetaInfo" props to meta info component', () => {
+            const component = mkBodyComponent();
+            const metaInfoProps = component.find(MetaInfo).props();
+
+            assert.isFunction(metaInfoProps.getExtraMetaInfo);
+        });
+
+        it('should return result of calling stringified function from "metaInfoExtenders"', () => {
+            const suite = mkSuite_();
+            const extraItems = {item1: 1};
+            const extender = () => 'foo-bar-baz';
+            const metaInfoExtenders = {extender1: extender.toString()};
+
+            const component = mkBodyComponent({suite}, {
+                apiValues: {extraItems, metaInfoExtenders}
+            });
+
+            const metaInfoProps = component.find(MetaInfo).props();
+            const result = metaInfoProps.getExtraMetaInfo();
+
+            assert.deepEqual(result, {extender1: 'foo-bar-baz'});
         });
     });
 });

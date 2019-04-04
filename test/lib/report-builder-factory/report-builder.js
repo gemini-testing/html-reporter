@@ -144,12 +144,12 @@ describe('ReportBuilder', () => {
         assert.match(reportBuilder.getResult(), {foo: 'bar'});
     });
 
-    it('should set passed extra items', () => {
+    it('should set values added through api', () => {
         const reportBuilder = mkReportBuilder_();
 
-        reportBuilder.setExtraItems({some: 'item'});
+        reportBuilder.setApiValues({key: 'value'});
 
-        assert.deepEqual(reportBuilder.getResult().extraItems, {some: 'item'});
+        assert.deepEqual(reportBuilder.getResult().apiValues, {key: 'value'});
     });
 
     it('should add skipped test to result', () => {

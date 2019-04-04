@@ -35,7 +35,7 @@ function prepareData(gemini, reportBuilder) {
         gemini.on(gemini.events.END, (stats) => resolve(
             reportBuilder
                 .setStats(stats)
-                .setExtraItems(gemini.htmlReporter.extraItems)
+                .setApiValues(gemini.htmlReporter.values)
         ));
     });
 }

@@ -540,6 +540,10 @@ a:active {
     text-decoration: none;
 }
 
+.menu-item__link::first-letter {
+    text-transform: uppercase;
+}
+
 .image-box__placeholder {
     position: relative;
     display: table-cell;

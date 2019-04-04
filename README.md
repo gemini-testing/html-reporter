@@ -24,9 +24,9 @@ directory.
 * **baseHost** (optional) - `String` - it changes original host for view in the browser; by default original host does not change
 * **scaleImages** (optional) – `Boolean` – fit images into page width; `false` by default
 * **lazyLoadOffset** (optional) - `Number` - allows you to specify how far above and below the viewport you want to begin loading images. Lazy loading would be disabled if you specify 0. `800` by default.
-* **errorPatterns** (optional) - `Array` - error message patterns for 'Group by error' mode. 
+* **errorPatterns** (optional) - `Array` - error message patterns for 'Group by error' mode.
 Array element must be `Object` ({'*name*': `String`, '*pattern*': `String`}) or `String` (interpret as *name* and *pattern*).
-Test will be associated with group if test error matches on group error pattern. 
+Test will be associated with group if test error matches on group error pattern.
 New group will be created if test cannot be associated with existing groups.
 
 Also there is ability to override plugin parameters by CLI options or environment variables
@@ -74,7 +74,6 @@ Add plugin to your `hermione` config file:
 ```js
 module.exports = {
     // ...
-    
     plugins: {
         'html-reporter/hermione': {
             enabled: true,
@@ -141,5 +140,27 @@ Adds item to html report as link:
 @param {String} text of link
 @param {String} url of link
 
-tool.htmlReporter.addExtraItem(linkText, linkUrl)
+tool.htmlReporter.addExtraItem('some-text', 'some-url')
 ```
+
+In this case url with link 'some-url' and text 'some-text' will be added to the menu bar.
+
+### addMetaInfoExtender
+
+Extend meta-info of each test using passed data:
+
+```js
+tool.htmlReporter.addMetaInfoExtender(name, value);
+```
+
+* **name** (required) `String` - name of meta info
+* **value** (required) `Function` - handler to which `suite` and `extraItems` are passed
+
+Example:
+```js
+tool.htmlReporter.addMetaInfoExtender('foo', (suite, extraItems) => {
+    return suite.suitePath.join(' ') + extraItems.platform;
+});
+```
+
+In this case a line `suite full name: some-platform` will be added to the meta info of each test.

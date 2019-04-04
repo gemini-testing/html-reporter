@@ -6,7 +6,7 @@ import {Dropdown} from 'semantic-ui-react';
 describe('<MenuBar />', () => {
     it('should show passed items as links in dropdown menu', () => {
         const component = mkConnectedComponent(<MenuBar />, {
-            initialState: {extraItems: {some: 'link'}}
+            initialState: {apiValues: {extraItems: {some: 'link'}}}
         });
         const dropDown = component.find(Dropdown.Item).first();
 
@@ -15,7 +15,9 @@ describe('<MenuBar />', () => {
     });
 
     it('should not show dropdown menu if extra items are not passed', () => {
-        const component = mkConnectedComponent(<MenuBar />);
+        const component = mkConnectedComponent(<MenuBar />, {
+            initialState: {apiValues: {extraItems: {}}}
+        });
         const dropDown = component.find(Dropdown.Item).first();
 
         assert.equal(dropDown.length, 0);
