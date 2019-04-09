@@ -10,7 +10,7 @@ function stubConfig(config = {}) {
         forBrowser: sinon.stub().named('forBrowser').callsFake((bro) => _.defaults(browsers[bro], config))
     };
 
-    return Object.assign(_.omit(config, 'browsers'), browserConfigs);
+    return Object.assign(config, browserConfigs);
 }
 
 function stubTool(config = stubConfig(), events = {}, errors = {}) {
