@@ -357,14 +357,14 @@ describe('ReportBuilder', () => {
         });
 
         describe('for several browsers', () => {
-            it('should rewrite suite status if new status has "forced" type', () => {
+            it('should not rewrite suite status to IDLE if some test still has such status', () => {
                 const reportBuilder = mkReportBuilder_();
 
                 reportBuilder.addFail(stubTest_({browserId: 'bro'}));
                 reportBuilder.addIdle(stubTest_({browserId: 'another-bro'}));
 
                 const suiteResult = getSuiteResult_(reportBuilder);
-                assert.equal(suiteResult.status, IDLE);
+                assert.equal(suiteResult.status, FAIL);
             });
 
             it('should determine "error" if first test has "error"', () => {
