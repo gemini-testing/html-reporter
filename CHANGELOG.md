@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.5.1"></a>
+## [4.5.1](https://github.com/gemini-testing/html-reporter/compare/v4.5.0...v4.5.1) (2019-04-11)
+
+
+### Bug Fixes
+
+* **gui:** idle status for suite if some of browsers has such status ([c07208d](https://github.com/gemini-testing/html-reporter/commit/c07208d))
+
+
+
 <a name="4.5.0"></a>
 # [4.5.0](https://github.com/gemini-testing/html-reporter/compare/v4.4.1...v4.5.0) (2019-04-04)
 
