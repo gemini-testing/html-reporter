@@ -3,7 +3,6 @@
 const Promise = require('bluebird');
 const PluginAdapter = require('./lib/plugin-adapter');
 const utils = require('./lib/server-utils');
-const {saveTestImages} = require('./lib/reporter-helpers');
 
 module.exports = (gemini, opts) => {
     const plugin = PluginAdapter.create(gemini, opts, 'gemini');
@@ -61,17 +60,17 @@ function prepareImages(gemini, pluginConfig, reportBuilder) {
 
             queue = queue.then(() => {
                 return formattedResult.hasDiff()
-                    ? saveTestImages(formattedResult, reportPath)
+                    ? formattedResult.saveTestImages(reportPath)
                     : handleErrorEvent(formattedResult);
             });
         });
 
         gemini.on(gemini.events.TEST_RESULT, (testResult) => {
-            queue = queue.then(() => saveTestImages(reportBuilder.format(testResult), reportPath));
+            queue = queue.then(() => reportBuilder.format(testResult).saveTestImages(reportPath));
         });
 
         gemini.on(gemini.events.UPDATE_RESULT, (testResult) => {
-            queue = queue.then(() => saveTestImages(reportBuilder.format(testResult), reportPath));
+            queue = queue.then(() => reportBuilder.format(testResult).saveTestImages(reportPath));
         });
 
         gemini.on(gemini.events.END, () => queue.then(resolve, reject));

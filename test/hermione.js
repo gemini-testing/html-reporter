@@ -18,10 +18,23 @@ describe('lib/hermione', () => {
         TEST_PASS: 'testPass',
         TEST_FAIL: 'testFail',
         RETRY: 'retry',
-        RUNNER_END: 'runnerEnd'
+        RUNNER_START: 'startRunner',
+        RUNNER_END: 'endRunner'
     };
 
-    class ImageDiffError extends Error {}
+    class ImageDiffError extends Error {
+        constructor() {
+            super();
+            this.stateName = '';
+            this.currImg = {
+                path: ''
+            };
+            this.refImg = {
+                path: ''
+            };
+        }
+    }
+
     class NoRefImageError extends Error {}
 
     function mkHermione_() {
@@ -69,7 +82,6 @@ describe('lib/hermione', () => {
         sandbox.stub(utils, 'copyImageAsync');
         sandbox.stub(utils, 'getCurrentAbsolutePath');
         sandbox.stub(utils, 'getReferenceAbsolutePath');
-        sandbox.stub(utils, 'saveDiff');
         sandbox.stub(utils, 'getDiffAbsolutePath');
         sandbox.stub(utils, 'logPathToHtmlReport');
         sandbox.stub(utils.logger, 'log');
@@ -83,6 +95,8 @@ describe('lib/hermione', () => {
         sandbox.stub(ReportBuilder.prototype, 'addRetry');
         sandbox.stub(ReportBuilder.prototype, 'setApiValues');
         sandbox.stub(ReportBuilder.prototype, 'save');
+
+        sandbox.stub(fs, 'readFile').resolves(Buffer.from(''));
     });
 
     afterEach(() => sandbox.restore());
@@ -267,19 +281,23 @@ describe('lib/hermione', () => {
             .then(() => assert.calledWith(utils.copyImageAsync, 'current/path', '/absolute/report'));
     });
 
-    it('should save current diff image from assert view fail', () => {
+    it('should save current diff image from assert view fail', async () => {
         utils.getDiffAbsolutePath.callsFake((test, path) => `${path}/report`);
+        const saveDiffTo = sinon.stub().resolves();
+        const err = new ImageDiffError();
 
-        return initReporter_({path: '/absolute'})
-            .then(() => {
-                const err = new ImageDiffError();
-                err.stateName = 'some-name';
-                err.saveDiffTo = sinon.stub();
-                hermione.emit(events.TEST_FAIL, {assertViewResults: [err]});
-                return hermione.emitAndWait(events.RUNNER_END);
-            })
-            .then(() => assert.calledWith(
-                utils.saveDiff, sinon.match.instanceOf(ImageDiffError), '/absolute/report'
-            ));
+        await initReporter_({path: '/absolute'});
+
+        await hermione.emitAndWait(events.RUNNER_START, {
+            registerWorkers: () => {
+                return {saveDiffTo};
+            }
+        });
+        hermione.emit(events.TEST_FAIL, {assertViewResults: [err]});
+        await hermione.emitAndWait(events.RUNNER_END);
+
+        assert.calledWith(
+            saveDiffTo, sinon.match.instanceOf(ImageDiffError), '/absolute/report'
+        );
     });
 });

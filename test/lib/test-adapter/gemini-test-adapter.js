@@ -98,12 +98,12 @@ describe('gemini test adapter', () => {
         });
     });
 
-    it('should save diff with passed args', () => {
+    it('should save diff with passed args', async () => {
         const saveDiffTo = sandbox.stub();
         const testResult = {saveDiffTo};
         const geminiTestAdapter = new GeminiTestResultAdapter(testResult);
 
-        geminiTestAdapter.saveDiffTo('some-arg');
+        await geminiTestAdapter.saveDiffTo('some-arg');
 
         assert.calledWith(saveDiffTo, 'some-arg');
     });
