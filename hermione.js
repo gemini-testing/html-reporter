@@ -1,6 +1,8 @@
 'use strict';
 
-const Promise = require('bluebird');
+const os = require('os');
+const PQueue = require('p-queue');
+
 const PluginAdapter = require('./lib/plugin-adapter');
 const {saveTestImages, saveBase64Screenshot} = require('./lib/reporter-helpers');
 
@@ -58,24 +60,27 @@ function prepareImages(hermione, pluginConfig, reportBuilder) {
     }
 
     return new Promise((resolve, reject) => {
-        let queue = Promise.resolve();
+        const queue = new PQueue({concurrency: os.cpus().length});
+        const promises = [];
 
-        hermione.on(hermione.events.TEST_PASS, (testResult) => {
-            queue = queue.then(() => saveTestImages(reportBuilder.format(testResult), reportPath)).catch(reject);
+        hermione.on(hermione.events.TEST_PASS, testResult => {
+            promises.push(queue.add(() => saveTestImages(reportBuilder.format(testResult), reportPath)).catch(reject));
         });
 
-        hermione.on(hermione.events.RETRY, (testResult) => {
-            queue = queue.then(() => failHandler(testResult)).catch(reject);
+        hermione.on(hermione.events.RETRY, testResult => {
+            promises.push(queue.add(() => failHandler(testResult)).catch(reject));
         });
 
-        hermione.on(hermione.events.TEST_FAIL, (testResult) => {
-            queue = queue.then(() => failHandler(testResult)).catch(reject);
+        hermione.on(hermione.events.TEST_FAIL, testResult => {
+            promises.push(queue.add(() => failHandler(testResult)).catch(reject));
         });
 
-        hermione.on(hermione.events.TEST_PENDING, (testResult) => {
-            queue = queue.then(() => failHandler(testResult)).catch(reject);
+        hermione.on(hermione.events.TEST_PENDING, testResult => {
+            promises.push(queue.add(() => failHandler(testResult)).catch(reject));
         });
 
-        hermione.on(hermione.events.RUNNER_END, () => queue.then(resolve));
+        hermione.on(hermione.events.RUNNER_END, () => {
+            return Promise.all(promises).then(resolve, reject);
+        });
     });
 }

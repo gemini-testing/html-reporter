@@ -123,4 +123,90 @@ describe('server-utils', () => {
                 });
         });
     });
+
+    describe('browser/commands/assert-view/capture-processors/save-diff', () => {
+        const sandbox = sinon.createSandbox();
+
+        const curPath = '/curPath.png';
+        const refPath = '/refPath.png';
+        const diffPath = '/diffPath.png';
+
+        let cache;
+        let workers;
+
+        const mkImageDiffError = () => {
+            return {
+                currImg: {
+                    path: curPath
+                },
+                refImg: {
+                    path: refPath
+                }
+            };
+        };
+
+        beforeEach(() => {
+            cache = new Map();
+
+            workers = {
+                exec: sandbox.stub().resolves()
+            };
+            sandbox.stub(fs, 'readFile');
+            sandbox.stub(fs, 'copy');
+
+            fs.readFile.withArgs(curPath).resolves(Buffer.from('currentContent'));
+            fs.readFile.withArgs(refPath).resolves(Buffer.from('referenceContent'));
+        });
+
+        afterEach(() => sandbox.restore());
+
+        it('should get result from cache for second call if data not changed', async () => {
+            await utils.saveDiffInWorker(workers, mkImageDiffError(), '/firstDiffPath.png', cache);
+            await utils.saveDiffInWorker(workers, mkImageDiffError(), diffPath, cache);
+
+            assert.calledOnceWith(
+                workers.exec,
+                'saveDiffTo',
+                sinon.match(mkImageDiffError()),
+                '/firstDiffPath.png'
+            );
+            assert.calledOnceWith(
+                fs.copy,
+                '/firstDiffPath.png',
+                diffPath,
+            );
+        });
+
+        it('should build diff for second call if current image changed ', async () => {
+            await utils.saveDiffInWorker(workers, mkImageDiffError(), '/firstDiffPath.png', cache);
+
+            fs.readFile.withArgs(curPath).resolves(Buffer.from('changedCurrentContent'));
+
+            await utils.saveDiffInWorker(workers, mkImageDiffError(), diffPath, cache);
+
+            assert.calledTwice(workers.exec);
+            assert.calledWith(
+                workers.exec,
+                'saveDiffTo',
+                sinon.match(mkImageDiffError()),
+                diffPath
+            );
+        });
+
+        it('should build diff for second call if reference image changed ', async () => {
+            await utils.saveDiffInWorker(workers, mkImageDiffError(), '/firstDiffPath.png', cache);
+
+            fs.readFile.withArgs(refPath).resolves(Buffer.from('changedReferenceContent'));
+
+            await utils.saveDiffInWorker(workers, mkImageDiffError(), diffPath, cache);
+
+            assert.calledTwice(workers.exec);
+            assert.calledWith(
+                workers.exec,
+                'saveDiffTo',
+                sinon.match(mkImageDiffError()),
+                diffPath
+            );
+        });
+    });
 });

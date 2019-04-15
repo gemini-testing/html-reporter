@@ -70,6 +70,7 @@ describe('lib/hermione', () => {
         sandbox.stub(utils, 'getCurrentAbsolutePath');
         sandbox.stub(utils, 'getReferenceAbsolutePath');
         sandbox.stub(utils, 'saveDiff');
+        sandbox.stub(utils, 'saveDiffInWorker');
         sandbox.stub(utils, 'getDiffAbsolutePath');
         sandbox.stub(utils, 'logPathToHtmlReport');
         sandbox.stub(utils.logger, 'log');
@@ -279,7 +280,7 @@ describe('lib/hermione', () => {
                 return hermione.emitAndWait(events.RUNNER_END);
             })
             .then(() => assert.calledWith(
-                utils.saveDiff, sinon.match.instanceOf(ImageDiffError), '/absolute/report'
+                utils.saveDiffInWorker, sinon.match.any, sinon.match.instanceOf(ImageDiffError), '/absolute/report'
             ));
     });
 });
