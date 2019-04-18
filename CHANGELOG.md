@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.6.0"></a>
+# [4.6.0](https://github.com/gemini-testing/html-reporter/compare/v4.5.1...v4.6.0) (2019-04-18)
+
+
+### Features
+
+* emit "UPDATE_REFERENCE" event in hermione on accept screenshot ([6f95fda](https://github.com/gemini-testing/html-reporter/commit/6f95fda))
+
+
+
 <a name="4.5.1"></a>
 ## [4.5.1](https://github.com/gemini-testing/html-reporter/compare/v4.5.0...v4.5.1) (2019-04-11)
 
