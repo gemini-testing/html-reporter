@@ -5,7 +5,7 @@ const reportSubscriber = require('lib/gui/tool-runner-factory/gemini/report-subs
 const ReportBuilder = require('lib/report-builder-factory/report-builder');
 const clientEvents = require('lib/gui/constants/client-events');
 const {RUNNING} = require('lib/constants/test-statuses');
-const {stubTool, stubConfig} = require('../../../../utils');
+const {stubTool, stubConfig} = require('test/unit/utils');
 
 describe('lib/gui/tool-runner-factory/gemini/report-subscriber', () => {
     const sandbox = sinon.createSandbox();

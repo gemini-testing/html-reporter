@@ -3,7 +3,7 @@
 const _ = require('lodash');
 const proxyquire = require('proxyquire');
 const ReportBuilder = require('lib/report-builder-factory/report-builder');
-const {stubTool, stubConfig, mkTestResult, mkImagesInfo} = require('../../../../utils');
+const {stubTool, stubConfig, mkTestResult, mkImagesInfo} = require('test/unit/utils');
 
 describe('lib/gui/tool-runner-factory/hermione/index', () => {
     const sandbox = sinon.createSandbox();

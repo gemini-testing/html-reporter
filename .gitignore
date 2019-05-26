@@ -13,3 +13,6 @@ hot
 .idea
 .vscode
 .nyc_output
+
+hermione-report
+/test/func/fixtures/report
