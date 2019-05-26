@@ -1,7 +1,7 @@
 'use strict';
 
-const parseConfig = require('../../lib/config');
-const {config: configDefaults} = require('../../lib/constants/defaults');
+const parseConfig = require('lib/config');
+const {config: configDefaults} = require('lib/constants/defaults');
 
 describe('config', () => {
     beforeEach(function() {

@@ -2,7 +2,7 @@
 
 const _ = require('lodash');
 const fs = require('fs-extra');
-const GeminiReporter = require('../gemini');
+const GeminiReporter = require('../../gemini');
 const PluginAdapter = require('lib/plugin-adapter');
 const ReportBuilder = require('lib/report-builder-factory/report-builder');
 const utils = require('lib/server-utils');

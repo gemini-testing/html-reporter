@@ -3,11 +3,11 @@
 const path = require('path');
 const fs = require('fs-extra');
 const _ = require('lodash');
-const serverUtils = require('../../../lib/server-utils');
+const serverUtils = require('lib/server-utils');
 const {logger} = serverUtils;
 const proxyquire = require('proxyquire');
-const {SUCCESS, FAIL, ERROR, SKIPPED, IDLE, UPDATED} = require('../../../lib/constants/test-statuses');
-const {getCommonErrors} = require('../../../lib/constants/errors');
+const {SUCCESS, FAIL, ERROR, SKIPPED, IDLE, UPDATED} = require('lib/constants/test-statuses');
+const {getCommonErrors} = require('lib/constants/errors');
 const {NO_REF_IMAGE_ERROR} = getCommonErrors();
 
 describe('ReportBuilder', () => {
@@ -56,7 +56,7 @@ describe('ReportBuilder', () => {
         sandbox.stub(serverUtils, 'prepareCommonJSData');
 
         hasImage = sandbox.stub().returns(true);
-        ReportBuilder = proxyquire('../../../lib/report-builder-factory/report-builder', {
+        ReportBuilder = proxyquire('lib/report-builder-factory/report-builder', {
             '../server-utils': {
                 hasImage
             }

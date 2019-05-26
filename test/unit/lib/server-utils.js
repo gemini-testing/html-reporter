@@ -2,7 +2,7 @@
 
 const path = require('path');
 const fs = require('fs-extra');
-const utils = require('../../lib/server-utils');
+const utils = require('lib/server-utils');
 
 describe('server-utils', () => {
     [

@@ -4,7 +4,7 @@ const path = require('path');
 const _ = require('lodash');
 const proxyquire = require('proxyquire');
 const ReportBuilder = require('lib/report-builder-factory/report-builder');
-const {stubTool, stubConfig, mkSuite, mkState, mkBrowserResult, mkSuiteTree} = require('test/utils');
+const {stubTool, stubConfig, mkSuite, mkState, mkBrowserResult, mkSuiteTree} = require('../../../utils');
 const serverUtils = require('lib/server-utils');
 
 describe('lib/gui/tool-runner-factory/base-tool-runner', () => {

@@ -1,14 +1,14 @@
 'use strict';
 
-const utils = require('../../../../lib/static/modules/utils');
+const utils = require('lib/static/modules/utils');
 const {
     FAIL,
     ERROR,
     SUCCESS
-} = require('../../../../lib/constants/test-statuses');
+} = require('lib/constants/test-statuses');
 const {
     NO_REF_IMAGE_ERROR
-} = require('../../../../lib/constants/errors').getCommonErrors();
+} = require('lib/constants/errors').getCommonErrors();
 const {
     mkSuite,
     mkState,

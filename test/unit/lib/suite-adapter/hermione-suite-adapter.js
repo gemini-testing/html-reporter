@@ -1,6 +1,6 @@
 'use strict';
 
-const HermioneSuiteAdapter = require('../../../lib/suite-adapter/hermione-suite-adapter');
+const HermioneSuiteAdapter = require('lib/suite-adapter/hermione-suite-adapter');
 
 describe('hermione suite adapter', () => {
     it('should return suite skip reason', () => {

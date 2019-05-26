@@ -1,6 +1,6 @@
 'use strict';
 
-const {groupErrors} = require('../../../../lib/static/modules/group-errors');
+const {groupErrors} = require('lib/static/modules/group-errors');
 const {
     mkSuite,
     mkState,

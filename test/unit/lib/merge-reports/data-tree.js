@@ -5,7 +5,7 @@ const path = require('path');
 const fs = require('fs-extra');
 
 const DataTree = require('lib/merge-reports/data-tree');
-const {mkSuiteTree, mkSuite, mkState, mkBrowserResult, mkTestResult} = require('test/utils');
+const {mkSuiteTree, mkSuite, mkState, mkBrowserResult, mkTestResult} = require('../../utils');
 const {SUCCESS, FAIL, ERROR, SKIPPED} = require('lib/constants/test-statuses');
 
 describe('lib/merge-reports/data-tree', () => {

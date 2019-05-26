@@ -1,6 +1,6 @@
 'use strict';
 
-const GeminiSuiteAdapter = require('../../../lib/suite-adapter/gemini-suite-adapter');
+const GeminiSuiteAdapter = require('lib/suite-adapter/gemini-suite-adapter');
 
 describe('gemini suite adapter', () => {
     const sandbox = sinon.sandbox.create();
