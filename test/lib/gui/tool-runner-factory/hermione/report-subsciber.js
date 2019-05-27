@@ -6,7 +6,6 @@ const ReportBuilder = require('lib/report-builder-factory/report-builder');
 const clientEvents = require('lib/gui/constants/client-events');
 const {RUNNING} = require('lib/constants/test-statuses');
 const utils = require('lib/gui/tool-runner-factory/utils');
-const reporterHelper = require('lib/reporter-helpers');
 const {stubTool, stubConfig} = require('test/utils');
 
 describe('lib/gui/tool-runner-factory/hermione/report-subscriber', () => {
@@ -27,8 +26,6 @@ describe('lib/gui/tool-runner-factory/hermione/report-subscriber', () => {
         sandbox.stub(ReportBuilder, 'create').returns(reportBuilder);
         reportBuilder.save.resolves();
         reportBuilder.setApiValues.returns(reportBuilder);
-
-        sandbox.stub(reporterHelper, 'saveTestImages').resolves();
 
         client = new EventEmitter();
         sandbox.spy(client, 'emit');
@@ -78,7 +75,10 @@ describe('lib/gui/tool-runner-factory/hermione/report-subscriber', () => {
     });
 
     describe('TEST_RESULT', () => {
-        const mkTestAdapterStub_ = () => ({prepareTestResult: () => {}});
+        const mkTestAdapterStub_ = () => ({
+            prepareTestResult: () => {},
+            saveTestImages: () => {}
+        });
 
         beforeEach(() => {
             reportBuilder.format.returns(mkTestAdapterStub_());
