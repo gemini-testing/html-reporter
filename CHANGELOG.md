@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.6.2"></a>
+## [4.6.2](https://github.com/gemini-testing/html-reporter/compare/v4.6.1...v4.6.2) (2019-05-29)
+
+
+### Bug Fixes
+
+* requires Hermione >=2.7.0 ([9e8606b](https://github.com/gemini-testing/html-reporter/commit/9e8606b))
+
+
+
 <a name="4.6.1"></a>
 ## [4.6.1](https://github.com/gemini-testing/html-reporter/compare/v4.6.0...v4.6.1) (2019-05-27)
 
