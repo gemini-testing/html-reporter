@@ -10,6 +10,8 @@ You can read more about gemini plugins [here](https://github.com/gemini-testing/
 npm install html-reporter
 ```
 
+**:warning: Requires Hermione >=2.7.0**
+
 ## Usage
 
 Plugin has following configuration:

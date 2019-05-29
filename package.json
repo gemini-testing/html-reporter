@@ -31,6 +31,9 @@
   ],
   "homepage": "https://github.com/gemini-testing/html-reporter#readme",
   "license": "MIT",
+  "peerDependencies": {
+    "hermione": ">=2.7.0"
+  },
   "dependencies": {
     "bluebird": "^3.5.3",
     "body-parser": "^1.18.2",
