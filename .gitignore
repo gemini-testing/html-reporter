@@ -12,3 +12,4 @@ hot
 
 .idea
 .vscode
+.nyc_output

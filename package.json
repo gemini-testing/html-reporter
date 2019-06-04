@@ -3,6 +3,7 @@
   "version": "4.6.2",
   "description": "Plugin for gemini and hermione which is intended to aggregate the results of tests running into html report",
   "scripts": {
+    "coverage": "nyc npm run test-unit",
     "lint": "eslint .",
     "test": "npm run lint && npm run test-unit",
     "test-unit": "cross-env NODE_ENV=test mocha test",
@@ -90,6 +91,7 @@
     "jsdom": "11.11.0",
     "jsdom-global": "3.0.2",
     "mocha": "^3.0.2",
+    "nyc": "^14.1.1",
     "prop-types": "^15.6.0",
     "proxyquire": "^1.7.11",
     "qemitter": "^1.0.0",
