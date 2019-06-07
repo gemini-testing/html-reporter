@@ -1,7 +1,9 @@
 'use strict';
 
 const path = require('path');
+
 const fs = require('fs-extra');
+
 const DataTree = require('lib/merge-reports/data-tree');
 const {mkSuiteTree, mkSuite, mkState, mkBrowserResult, mkTestResult} = require('test/utils');
 const {SUCCESS, FAIL, ERROR, SKIPPED} = require('lib/constants/test-statuses');
@@ -213,7 +215,7 @@ describe('lib/merge-reports/data-tree', () => {
                 });
             });
 
-            it('should add failed result even if it is already successed in tree', async () => {
+            it('should add failed result even if it is already succeed in tree', async () => {
                 const srcDataSuites1 = mkSuiteTree({
                     browsers: [mkBrowserResult({
                         name: 'yabro',
@@ -239,7 +241,7 @@ describe('lib/merge-reports/data-tree', () => {
                 });
             });
 
-            it('should add second success result even if it is already successed in tree', async () => {
+            it('should add second success result even if it is already succeed in tree', async () => {
                 const srcDataSuites1 = mkSuiteTree({
                     browsers: [mkBrowserResult({
                         name: 'yabro',
@@ -844,54 +846,132 @@ describe('lib/merge-reports/data-tree', () => {
             });
         });
 
-        it('should change suite status if current result in tree is not successful', async () => {
-            const srcDataSuites1 = mkSuiteTree({
-                suite: mkSuite({status: FAIL}),
-                state: mkState({status: FAIL}),
-                browsers: [mkBrowserResult({
-                    name: 'yabro',
-                    result: mkTestResult({status: FAIL, attempt: 0})
-                })]
+        [
+            {status: ERROR},
+            {status: FAIL},
+            {status: SUCCESS},
+            {status: SKIPPED}
+        ].forEach(({status}) => {
+            it(`should set suite status to ${status}`, async () => {
+                const srcDataSuites1 = mkSuiteTree({
+                    suite: mkSuite({status}),
+                    state: mkState({suitePath: ['default-suite', 'state1'], status}),
+                    browsers: [mkBrowserResult({
+                        name: 'yabro',
+                        result: mkTestResult({status, attempt: 0})
+                    })]
+                });
+                const srcDataSuites2 = mkSuiteTree({
+                    suite: mkSuite({status}),
+                    state: mkState({suitePath: ['default-suite', 'state2'], status}),
+                    browsers: [mkBrowserResult({
+                        name: 'yabro',
+                        result: mkTestResult({status, attempt: 0})
+                    })]
+                });
+
+                const initialData = {suites: [srcDataSuites1]};
+                const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
+
+                const {suites} = await mkDataTree_(initialData).mergeWith(dataCollection);
+
+                assert.equal(suites[0].children[0].status, status);
+                assert.equal(suites[0].children[1].status, status);
+                assert.equal(suites[0].status, status);
             });
-            const srcDataSuites2 = mkSuiteTree({
-                browsers: [mkBrowserResult({
-                    name: 'yabro',
-                    result: mkTestResult({status: SUCCESS, attempt: 0})
-                })]
-            });
-
-            const initialData = {suites: [srcDataSuites1]};
-            const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
-
-            const {suites} = await mkDataTree_(initialData).mergeWith(dataCollection);
-
-            assert.equal(suites[0].status, SUCCESS);
-            assert.equal(suites[0].children[0].status, SUCCESS);
         });
 
-        it('should not change suite status if current result in source report is skipped', async () => {
-            const srcDataSuites1 = mkSuiteTree({
-                suite: mkSuite({status: SUCCESS}),
-                state: mkState({status: SUCCESS}),
-                browsers: [mkBrowserResult({
-                    name: 'yabro',
-                    result: mkTestResult({status: SUCCESS, attempt: 0})
-                })]
+        [
+            {from: FAIL, to: ERROR},
+            {from: SUCCESS, to: ERROR},
+            {from: SKIPPED, to: ERROR},
+
+            {from: ERROR, to: FAIL},
+            {from: SUCCESS, to: FAIL},
+            {from: SKIPPED, to: FAIL},
+
+            {from: ERROR, to: SUCCESS},
+            {from: FAIL, to: SUCCESS},
+            {from: SKIPPED, to: SUCCESS},
+
+            {from: ERROR, to: SKIPPED},
+            {from: FAIL, to: SKIPPED},
+            {from: SUCCESS, to: SKIPPED}
+        ].forEach(({from, to}) => {
+            it(`should change suite status from ${from} to ${to}`, async () => {
+                const srcDataSuites1 = mkSuiteTree({
+                    suite: mkSuite({status: from}),
+                    state: mkState({status: from}),
+                    browsers: [mkBrowserResult({
+                        name: 'yabro',
+                        result: mkTestResult({status: from, attempt: 0})
+                    })]
+                });
+                const srcDataSuites2 = mkSuiteTree({
+                    browsers: [mkBrowserResult({
+                        name: 'yabro',
+                        result: mkTestResult({status: to, attempt: 0})
+                    })]
+                });
+
+                const initialData = {suites: [srcDataSuites1]};
+                const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
+
+                const {suites} = await mkDataTree_(initialData).mergeWith(dataCollection);
+
+                assert.equal(suites[0].status, to);
+                assert.equal(suites[0].children[0].status, to);
             });
-            const srcDataSuites2 = mkSuiteTree({
-                browsers: [mkBrowserResult({
-                    name: 'yabro',
-                    result: mkTestResult({status: SKIPPED, attempt: 0})
-                })]
+        });
+
+        [
+            {from: ERROR, to: ERROR, before: {b1: ERROR, b2: ERROR}, after: {b1: SKIPPED}},
+            {from: ERROR, to: FAIL, before: {b1: ERROR, b2: SKIPPED}, after: {b1: FAIL}},
+            {from: ERROR, to: SUCCESS, before: {b1: ERROR, b2: SKIPPED}, after: {b1: SUCCESS}},
+            {from: ERROR, to: SKIPPED, before: {b1: ERROR, b2: SKIPPED}, after: {b1: SKIPPED}},
+
+            {from: FAIL, to: ERROR, before: {b1: FAIL, b2: SKIPPED}, after: {b1: ERROR}},
+            {from: FAIL, to: FAIL, before: {b1: ERROR, b2: SKIPPED}, after: {b1: FAIL}},
+            {from: FAIL, to: SUCCESS, before: {b1: FAIL, b2: SKIPPED}, after: {b1: SUCCESS}},
+            {from: FAIL, to: SKIPPED, before: {b1: FAIL, b2: SKIPPED}, after: {b1: SKIPPED}},
+
+            {from: SUCCESS, to: ERROR, before: {b1: SUCCESS, b2: SUCCESS}, after: {b1: ERROR}},
+            {from: SUCCESS, to: FAIL, before: {b1: SUCCESS, b2: SUCCESS}, after: {b1: FAIL}},
+            {from: SUCCESS, to: SUCCESS, before: {b1: SUCCESS, b2: SUCCESS}, after: {b1: SKIPPED}},
+            {from: SUCCESS, to: SKIPPED, before: {b1: SUCCESS, b2: SKIPPED}, after: {b1: SKIPPED}},
+
+            {from: SKIPPED, to: ERROR, before: {b1: SKIPPED, b2: SKIPPED}, after: {b1: ERROR}},
+            {from: SKIPPED, to: FAIL, before: {b1: SKIPPED, b2: SKIPPED}, after: {b1: FAIL}},
+            {from: SKIPPED, to: SUCCESS, before: {b1: SKIPPED, b2: SKIPPED}, after: {b1: SUCCESS}},
+            {from: SKIPPED, to: SKIPPED, before: {b1: SKIPPED, b2: SKIPPED}, after: {b1: SKIPPED}}
+        ].forEach(({from, to, before, after}) => {
+            const children = Object.values(Object.assign({}, before, after));
+
+            it(`status should be "${to}" if children after merge are ${children.join('+')}`, async () => {
+                const srcDataSuites1 = mkSuiteTree({
+                    suite: mkSuite({status: from}),
+                    state: mkState({status: from}),
+                    browsers: Object.entries(before).map(([name, status]) => mkBrowserResult({
+                        name,
+                        result: mkTestResult({status, attempt: 0})
+                    }))
+                });
+                const srcDataSuites2 = mkSuiteTree({
+                    browsers: Object.entries(after).map(([name, status]) => mkBrowserResult({
+                        name,
+                        result: mkTestResult({status, attempt: 0})
+                    }))
+                });
+
+                const initialData = {suites: [srcDataSuites1]};
+                const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
+
+                const {suites} = await mkDataTree_(initialData).mergeWith(dataCollection);
+
+                assert.sameMembers(suites[0].children[0].browsers.map(({result}) => result.status), children);
+                assert.equal(suites[0].children[0].status, to);
+                assert.equal(suites[0].status, to);
             });
-
-            const initialData = {suites: [srcDataSuites1]};
-            const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
-
-            const {suites} = await mkDataTree_(initialData).mergeWith(dataCollection);
-
-            assert.equal(suites[0].status, SUCCESS);
-            assert.equal(suites[0].children[0].status, SUCCESS);
         });
     });
 });
