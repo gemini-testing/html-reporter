@@ -1,6 +1,6 @@
 {
   "name": "html-reporter",
-  "version": "4.6.2",
+  "version": "4.6.3",
   "description": "Plugin for gemini and hermione which is intended to aggregate the results of tests running into html report",
   "scripts": {
     "coverage": "nyc npm run test-unit",

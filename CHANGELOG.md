@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.6.3"></a>
+## [4.6.3](https://github.com/gemini-testing/html-reporter/compare/v4.6.2...v4.6.3) (2019-06-07)
+
+
+### Bug Fixes
+
+* skipped state merge should affect branch statuses ([7c79494](https://github.com/gemini-testing/html-reporter/commit/7c79494))
+
+
+
 <a name="4.6.2"></a>
 ## [4.6.2](https://github.com/gemini-testing/html-reporter/compare/v4.6.1...v4.6.2) (2019-05-29)
 
