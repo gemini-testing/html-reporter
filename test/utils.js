@@ -30,7 +30,7 @@ function mkSuite(opts = {}) {
     return _.defaults(opts, {
         name: _.last(opts.suitePath) || 'default-suite',
         suitePath: ['default-suite'],
-        status: 'default',
+        status: 'idle',
         children: []
     });
 }
@@ -39,7 +39,7 @@ function mkState(opts = {}) {
     return _.defaults(opts, {
         name: _.last(opts.suitePath) || 'default-state',
         suitePath: ['default-suite', 'default-state'],
-        status: 'default',
+        status: 'idle',
         browsers: []
     });
 }
@@ -58,7 +58,7 @@ function mkTestResult(result) {
         suiteUrl: '',
         metaInfo: {},
         imagesInfo: [],
-        status: 'default',
+        status: 'idle',
         attempt: 0
     });
 }
