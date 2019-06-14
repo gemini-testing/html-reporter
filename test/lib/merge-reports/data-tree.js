@@ -182,6 +182,49 @@ describe('lib/merge-reports/data-tree', () => {
             assert.deepEqual(suites[0], expected);
         });
 
+        it('should set status from non-existent suite in tree', async () => {
+            const srcDataSuites1 = mkSuite({
+                suitePath: ['suite'],
+                children: [
+                    mkState({
+                        suitePath: ['suite', 'state1'],
+                        browsers: [mkBrowserResult()]
+                    })
+                ]
+            });
+            const srcDataSuites2 = mkSuite({
+                suitePath: ['suite'],
+                children: [
+                    mkState({
+                        suitePath: ['suite', 'state2'],
+                        browsers: [mkBrowserResult()],
+                        status: 'error'
+                    })
+                ]
+            });
+            const expected = mkSuite({
+                suitePath: ['suite'],
+                children: [
+                    mkState({
+                        suitePath: ['suite', 'state1'],
+                        browsers: [mkBrowserResult()]
+                    }),
+                    mkState({
+                        suitePath: ['suite', 'state2'],
+                        browsers: [mkBrowserResult()],
+                        status: 'error'
+                    })
+                ],
+                status: 'error'
+            });
+
+            const initialData = {suites: [srcDataSuites1]};
+            const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
+            const {suites} = await mkDataTree_(initialData).mergeWith(dataCollection);
+
+            assert.deepEqual(suites[0], expected);
+        });
+
         describe('from existent browser with correct modified "attempt" field', () => {
             it('should merge browser results if there are no successful tests', async () => {
                 const srcDataSuites1 = mkSuiteTree({
@@ -295,7 +338,7 @@ describe('lib/merge-reports/data-tree', () => {
                     assert.equal(result[statName], 2);
                 });
 
-                it('should increment only "retries" if test retry status is "${status}"', async () => {
+                it(`should increment only "retries" if test retry status is "${status}"`, async () => {
                     const srcDataSuites1 = mkSuiteTree({suite: mkSuite({suitePath: ['suite1']})});
                     const srcDataSuites2 = mkSuiteTree({
                         suite: mkSuite({suitePath: ['suite2']}),
@@ -345,7 +388,7 @@ describe('lib/merge-reports/data-tree', () => {
                     assert.equal(result[statName], 2);
                 });
 
-                it('should increment only "retries" if test retry status is "${status}"', async () => {
+                it(`should increment only "retries" if test retry status is "${status}"`, async () => {
                     const srcDataSuites1 = mkSuiteTree({
                         suite: mkSuite({suitePath: ['suite']}),
                         state: mkState({suitePath: ['suite', 'state']})
@@ -400,7 +443,7 @@ describe('lib/merge-reports/data-tree', () => {
                     assert.equal(result[statName], 2);
                 });
 
-                it('should increment only "retries" if test retry status is "${status}"', async () => {
+                it(`should increment only "retries" if test retry status is "${status}"`, async () => {
                     const srcDataSuites1 = mkSuiteTree({
                         suite: mkSuite({suitePath: ['suite']}),
                         state: mkState({suitePath: ['suite', 'state']}),
