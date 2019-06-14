@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.6.4"></a>
+## [4.6.4](https://github.com/gemini-testing/html-reporter/compare/v4.6.3...v4.6.4) (2019-06-14)
+
+
+### Bug Fixes
+
+* lose suite status when merge reports ([dfbcc82](https://github.com/gemini-testing/html-reporter/commit/dfbcc82))
+
+
+
 <a name="4.6.3"></a>
 ## [4.6.3](https://github.com/gemini-testing/html-reporter/compare/v4.6.2...v4.6.3) (2019-06-07)
 
