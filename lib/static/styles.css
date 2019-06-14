@@ -135,6 +135,10 @@
     max-width: 100%;
 }
 
+.image-box__image.image-box__image_single {
+    display: block;
+}
+
 .image-box__screenshot {
     max-width: 100%;
 }
@@ -430,7 +434,7 @@ a:active {
     cursor: pointer;
 }
 
-.toggle-open__content {
+.toggle-open_type_text .toggle-open__content {
     margin: 5px 0;
     background: #f6f5f3;
     padding: 5px;
