@@ -47,5 +47,14 @@ describe('Screenshot component', () => {
 
             assert.lengthOf(screenshotComponent.find(Placeholder), 1);
         });
+
+        it('should not use lazyLoad wrapper if "noLazyLoad" prop was set', () => {
+            const screenshotComponent = mkConnectedComponent(
+                <Screenshot image={{path: '', size: {}}} noLazyLoad={true} />,
+                {initialState: {view: {lazyLoadOffset: 100}}}
+            );
+
+            assert.lengthOf(screenshotComponent.find(LazyLoad), 0);
+        });
     });
 });
