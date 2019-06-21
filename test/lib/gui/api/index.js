@@ -36,4 +36,17 @@ describe('lig/gui/api', () => {
             assert.calledOnceWith(onServerInit, {foo: 'bar'});
         });
     });
+
+    describe('serverReady', () => {
+        it('should emit "SERVER_READY" event through gui api', () => {
+            const tool = stubTool();
+            const api = Api.create(tool);
+            const onServerReady = sinon.spy().named('onServerReady');
+            tool.gui.on(guiEvents.SERVER_READY, onServerReady);
+
+            api.serverReady({url: 'http://my.server'});
+
+            assert.calledOnceWith(onServerReady, {url: 'http://my.server'});
+        });
+    });
 });
