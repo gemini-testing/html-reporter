@@ -21,14 +21,20 @@ describe('lib/gui/server', () => {
         static: sandbox.stub()
     });
 
-    const mkApi_ = () => ({initServer: sandbox.stub()});
+    const mkApi_ = () => ({
+        initServer: sandbox.stub(),
+        serverReady: sandbox.stub()
+    });
 
     const startServer = (opts = {}) => {
         opts = _.defaults(opts, {
             paths: [],
             tool: stubTool(),
             guiApi: mkApi_(),
-            configs: {options: {}, pluginConfig: {path: 'default-path'}}
+            configs: {
+                options: {hostname: 'localhost', port: '4444'},
+                pluginConfig: {path: 'default-path'}
+            }
         });
 
         return server.start(opts);
@@ -58,21 +64,24 @@ describe('lib/gui/server', () => {
         const guiApi = mkApi_();
 
         return startServer({guiApi})
-            .then(() => assert.calledOnceWith(guiApi.initServer, expressStub));
+            .then(() => {
+                assert.calledOnceWith(guiApi.initServer, expressStub);
+                assert.calledOnceWith(guiApi.serverReady, {url: 'http://localhost:4444'});
+            });
     });
 
     it('should init server only after body is parsed', () => {
         const guiApi = mkApi_();
 
         return startServer({guiApi})
-            .then(() => assert.callOrder(bodyParserStub.json, guiApi.initServer));
+            .then(() => assert.callOrder(bodyParserStub.json, guiApi.initServer, guiApi.serverReady));
     });
 
     it('should init server before any static middleware starts', () => {
         const guiApi = mkApi_();
 
         return startServer({guiApi})
-            .then(() => assert.callOrder(guiApi.initServer, staticMiddleware));
+            .then(() => assert.callOrder(guiApi.initServer, staticMiddleware, guiApi.serverReady));
     });
 
     it('should properly complete app working', () => {
