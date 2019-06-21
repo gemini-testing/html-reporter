@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.8.0"></a>
+# [4.8.0](https://github.com/gemini-testing/html-reporter/compare/v4.7.0...v4.8.0) (2019-06-21)
+
+
+### Features
+
+* 'serverReady' event ([1623baa](https://github.com/gemini-testing/html-reporter/commit/1623baa))
+
+
+
 <a name="4.7.0"></a>
 # [4.7.0](https://github.com/gemini-testing/html-reporter/compare/v4.6.4...v4.7.0) (2019-06-19)
 
