@@ -3,3 +3,6 @@ test
 hot
 /lib/static/js/
 /lib/static/report.css
+
+hermione-report
+.hermione.conf.js
