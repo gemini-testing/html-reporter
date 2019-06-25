@@ -130,6 +130,13 @@ Run [eslint](http://eslint.org) codestyle verification
 npm run lint
 ```
 
+Run [hermione](https://github.com/gemini-testing/hermione) (integration) tests:
+```bash
+npm run test-func
+```
+
+Before run integration tests on local machine you should run [sauce-connect](https://wiki.saucelabs.com/display/DOCS/Basic+Sauce+Connect+Proxy+Setup)
+
 ## Api
 
 Html-reporter adds to your tool object with api:
