@@ -1,14 +1,14 @@
-describe('Test summary', function() {
+describe('Test header', function() {
     it('should show tests summary', function() {
         return this.browser
             .url('')
             .waitForVisible('.summary')
-            .assertView('summary', '.summary', {ignoreElements: ['.summary__date', '.summary__value']});
+            .assertView('summary', '.summary', {ignoreElements: ['.summary__value']});
     });
 
     it('should add date to report', function() {
         return this.browser
             .url('')
-            .waitForVisible('.summary__date');
+            .waitForVisible('.header__date');
     });
 });
