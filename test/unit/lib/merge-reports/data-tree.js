@@ -600,6 +600,48 @@ describe('lib/merge-reports/data-tree', () => {
             );
         });
 
+        it('should not move image specified as http url', async () => {
+            const srcDataSuites1 = mkSuiteTree();
+            const srcDataSuites2 = mkSuiteTree({
+                browsers: [mkBrowserResult({
+                    name: 'yabro',
+                    result: mkTestResult({imagesInfo: [{
+                        actualImg: {path: 'http://host.com/screens/yabro/actual.png'},
+                        expectedImg: {path: 'http://host.com/screens/yabro/expected.png'},
+                        diffImg: {path: 'http://host.com/screens/yabro/diff.png'}
+                    }]})
+                })]
+            });
+
+            const initialData = {suites: [srcDataSuites1]};
+            const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
+
+            await mkDataTree_(initialData).mergeWith(dataCollection);
+
+            assert.notCalled(fs.move);
+        });
+
+        it('should not move image specified as https url', async () => {
+            const srcDataSuites1 = mkSuiteTree();
+            const srcDataSuites2 = mkSuiteTree({
+                browsers: [mkBrowserResult({
+                    name: 'yabro',
+                    result: mkTestResult({imagesInfo: [{
+                        actualImg: {path: 'https://host.com/screens/yabro/actual.png'},
+                        expectedImg: {path: 'https://host.com/screens/yabro/expected.png'},
+                        diffImg: {path: 'https://host.com/screens/yabro/diff.png'}
+                    }]})
+                })]
+            });
+
+            const initialData = {suites: [srcDataSuites1]};
+            const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
+
+            await mkDataTree_(initialData).mergeWith(dataCollection);
+
+            assert.notCalled(fs.move);
+        });
+
         [
             {keyName: 'actualImg', imgPaths: ['images/yabro~current_0.png', 'images/yabro~current_1.png']},
             {keyName: 'expectedImg', imgPaths: ['images/yabro~ref_0.png', 'images/yabro~ref_1.png']},
