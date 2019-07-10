@@ -116,7 +116,7 @@ describe('static/modules/utils', () => {
         });
 
         describe('filteredBrowsers', () => {
-            const suite = mkSuite({
+            const defaultSuite = mkSuite({
                 children: [
                     mkState({
                         browsers: [mkBrowserResult({name: 'first-bro'})]
@@ -125,15 +125,33 @@ describe('static/modules/utils', () => {
             });
 
             it('should be true if browser id is equal', () => {
-                assert.isTrue(utils.shouldSuiteBeShown({suite, filteredBrowsers: ['first-bro']}));
+                assert.isTrue(utils.shouldSuiteBeShown({suite: defaultSuite, filteredBrowsers: ['first-bro']}));
             });
 
             it('should be false if browser id is not a strict match', () => {
-                assert.isFalse(utils.shouldSuiteBeShown({suite, filteredBrowsers: ['first']}));
+                assert.isFalse(utils.shouldSuiteBeShown({suite: defaultSuite, filteredBrowsers: ['first']}));
             });
 
             it('should be false if browser id is not equal', () => {
-                assert.isFalse(utils.shouldSuiteBeShown({suite, filteredBrowsers: ['second-bro']}));
+                assert.isFalse(utils.shouldSuiteBeShown({suite: defaultSuite, filteredBrowsers: ['second-bro']}));
+            });
+
+            it('should be true if browser id is equal when suite contains children and browsers', () => {
+                const suite = mkSuite({
+                    children: [
+                        mkSuite({
+                            browsers: [mkBrowserResult({name: 'first-bro'})],
+                            children: [
+                                mkState({
+                                    browsers: [mkBrowserResult({name: 'second-bro'})]
+                                })
+                            ]
+                        })
+                    ]
+                });
+
+                assert.isTrue(utils.shouldSuiteBeShown({suite, filteredBrowsers: ['first-bro']}));
+                assert.isTrue(utils.shouldSuiteBeShown({suite, filteredBrowsers: ['second-bro']}));
             });
         });
     });

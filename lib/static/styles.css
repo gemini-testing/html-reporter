@@ -2,6 +2,10 @@
     font: 14px Helvetica Neue, Arial, sans-serif;
 }
 
+.summary {
+    display: inline-block;
+}
+
 .summary__key {
     font-weight: bold;
     display: inline;
@@ -608,7 +612,7 @@ a:active {
     background-color: #FF00FF;
 }
 
-.summary__date {
+.header__date {
     float: right;
     color: gray;
 }
