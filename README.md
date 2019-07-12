@@ -1,3 +1,4 @@
+// zerodiff
 # html-reporter
 
 Plugin for [gemini](https://github.com/gemini-testing/gemini) and [hermione](https://github.com/gemini-testing/hermione) which is intended to aggregate the results of tests running into html report.
