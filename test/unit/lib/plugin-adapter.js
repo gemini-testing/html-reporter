@@ -185,7 +185,7 @@ describe('lib/plugin-adapter', () => {
                     parseConfig.returns(config);
 
                     return initCliReporter_({}, {}, toolName)
-                        .then(() => assert.calledOnceWith(prepareImages, tool, config, reportBuilder));
+                        .then(() => assert.calledOnceWith(prepareImages, tool, reportBuilder, config));
                 });
 
                 it('should save report', () => {

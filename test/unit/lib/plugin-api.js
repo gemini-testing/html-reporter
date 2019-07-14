@@ -24,10 +24,12 @@ describe('plugin api', () => {
 
         pluginApi.addExtraItem('key1', 'value1');
         pluginApi.addMetaInfoExtender('key2', 'value2');
+        pluginApi.imagesSaver = {some: 'saver'};
 
         assert.deepEqual(pluginApi.values, {
             extraItems: {key1: 'value1'},
-            metaInfoExtenders: {key2: 'value2'}
+            metaInfoExtenders: {key2: 'value2'},
+            imagesSaver: {some: 'saver'}
         });
     });
 });

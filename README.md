@@ -173,3 +173,35 @@ tool.htmlReporter.addMetaInfoExtender('foo', (suite, extraItems) => {
 ```
 
 In this case a line `suite full name: some-platform` will be added to the meta info of each test.
+
+
+### externalStorage
+
+You can redefine native api for images saving and use your own storage (only for hermione).
+
+Example:
+```js
+const MyStorage = require('my-storage');
+const myStorage = new MyStorage();
+
+module.exports = (hermione, opts) => {
+    hermione.on(hermione.events.INIT, async () => {
+        hermione.htmlReporter.imagesSaver = {
+            /**
+            * Save image to your storage. Function can be asynchronous or synchronous. It have to return path of saved image or destPath will be used by default.
+            * @property {String} localFilePath – image path on your filesystem
+            * @param {Object} options
+            * @param {String} options.destPath – path to image in html-report
+            * @param {String} options.reportDir - path to your html-report dir
+            */
+            saveImg: async (localFilePath, options) => {
+                const {destPath, reportDir} = options;
+                const res = await myStorage.save(localFilePath, destPath, reportDir)
+                // ...
+
+                return res;
+            }
+        }
+    });
+};
+```
