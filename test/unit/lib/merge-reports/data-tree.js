@@ -310,6 +310,142 @@ describe('lib/merge-reports/data-tree', () => {
                 });
             });
         });
+
+        describe('with children and browsers', () => {
+            it('should add data to suite from children with error status', async () => {
+                const srcDataSuites1 = mkSuite({
+                    suitePath: ['first suite'],
+                    status: SUCCESS,
+                    children: [
+                        mkSuite({
+                            suitePath: ['first suite', 'second suite'],
+                            status: SUCCESS,
+                            browsers: [mkBrowserResult({
+                                result: mkTestResult({status: SUCCESS}),
+                                name: 'first-bro'
+                            })]
+                        })
+                    ]
+                });
+                const srcDataSuites2 = mkSuite({
+                    suitePath: ['first suite'],
+                    status: ERROR,
+                    children: [
+                        mkSuite({
+                            suitePath: ['first suite', 'second suite'],
+                            status: ERROR,
+                            children: [
+                                mkState({
+                                    suitePath: ['first suite', 'second suite', 'third suite'],
+                                    status: ERROR,
+                                    browsers: [mkBrowserResult({
+                                        name: 'second-bro',
+                                        result: mkTestResult({status: ERROR})
+                                    })]
+                                })
+                            ]
+                        })
+                    ]
+                });
+
+                const initialData = {suites: [srcDataSuites1]};
+                const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
+
+                const {suites} = await mkDataTree_(initialData).mergeWith(dataCollection);
+
+                assert.deepEqual(suites[0], mkSuite({
+                    suitePath: ['first suite'],
+                    status: ERROR,
+                    children: [
+                        mkSuite({
+                            suitePath: ['first suite', 'second suite'],
+                            status: ERROR,
+                            browsers: [mkBrowserResult({
+                                name: 'first-bro',
+                                result: mkTestResult({status: SUCCESS})
+                            })],
+                            children: [
+                                mkState({
+                                    suitePath: ['first suite', 'second suite', 'third suite'],
+                                    status: ERROR,
+                                    browsers: [mkBrowserResult({
+                                        name: 'second-bro',
+                                        result: mkTestResult({status: ERROR})
+                                    })]
+                                })
+                            ]
+                        })
+                    ]
+                }));
+            });
+
+            it('should add data to suite from browsers with error status', async () => {
+                const srcDataSuites1 = mkSuite({
+                    suitePath: ['first suite'],
+                    status: SUCCESS,
+                    children: [
+                        mkSuite({
+                            suitePath: ['first suite', 'second suite'],
+                            status: SUCCESS,
+                            children: [
+                                mkState({
+                                    suitePath: ['first suite', 'second suite', 'third suite'],
+                                    status: SUCCESS,
+                                    browsers: [mkBrowserResult({
+                                        name: 'first-bro',
+                                        result: mkTestResult({status: SUCCESS})
+                                    })]
+                                })
+                            ]
+                        })
+                    ]
+                });
+                const srcDataSuites2 = mkSuite({
+                    suitePath: ['first suite'],
+                    status: ERROR,
+                    children: [
+                        mkSuite({
+                            suitePath: ['first suite', 'second suite'],
+                            status: ERROR,
+                            browsers: [mkBrowserResult({
+                                name: 'second-bro',
+                                result: mkTestResult({status: ERROR})
+                            })]
+                        })
+                    ]
+                });
+
+                const initialData = {suites: [srcDataSuites1]};
+                const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
+
+                const {suites} = await mkDataTree_(initialData).mergeWith(dataCollection);
+
+                assert.deepEqual(suites[0], mkSuite({
+                    suitePath: ['first suite'],
+                    status: ERROR,
+                    children: [
+                        mkSuite({
+                            suitePath: ['first suite', 'second suite'],
+                            status: ERROR,
+                            children: [
+                                mkState({
+                                    suitePath: ['first suite', 'second suite', 'third suite'],
+                                    status: SUCCESS,
+                                    browsers: [mkBrowserResult({
+                                        name: 'first-bro',
+                                        result: mkTestResult({status: SUCCESS})
+                                    })]
+                                })
+                            ],
+                            browsers: [mkBrowserResult({
+                                name: 'second-bro',
+                                result: mkTestResult({status: ERROR})
+                            })]
+                        })
+                    ]
+                }));
+            });
+        });
     });
 
     describe('merge statistics data', () => {
