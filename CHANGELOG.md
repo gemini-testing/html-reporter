@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.9.2"></a>
+## [4.9.2](https://github.com/gemini-testing/html-reporter/compare/v4.9.1...v4.9.2) (2019-07-23)
+
+
+### Bug Fixes
+
+* **client:** don't run all tests when retrying successful one ([bf70b65](https://github.com/gemini-testing/html-reporter/commit/bf70b65))
+
+
+
 <a name="4.9.1"></a>
 ## [4.9.1](https://github.com/gemini-testing/html-reporter/compare/v4.9.0...v4.9.1) (2019-07-17)
 
