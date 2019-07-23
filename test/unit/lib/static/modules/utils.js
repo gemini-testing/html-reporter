@@ -2,6 +2,7 @@
 
 const utils = require('lib/static/modules/utils');
 const {
+    IDLE,
     FAIL,
     ERROR,
     SUCCESS
@@ -16,29 +17,191 @@ const {
 } = require('../../../utils');
 
 describe('static/modules/utils', () => {
+    describe('hasFails', () => {
+        describe('should return true for node if', () => {
+            const mkNode_ = ({imageStatus = SUCCESS, status = SUCCESS}) => {
+                return {
+                    result: {
+                        imagesInfo: [{status: SUCCESS}, {status: SUCCESS}, {status: imageStatus}],
+                        status
+                    }
+                };
+            };
+
+            it('at least one image is with failed status', () => {
+                const node = mkNode_({imageStatus: FAIL});
+
+                assert.isTrue(utils.hasFails(node));
+            });
+
+            it('at least one image is with errored status', () => {
+                const node = mkNode_({imageStatus: ERROR});
+
+                assert.isTrue(utils.hasFails(node));
+            });
+
+            it('no images with failed or errored statuses but test is failed', () => {
+                const node = mkNode_({status: FAIL});
+
+                assert.isTrue(utils.hasFails(node));
+            });
+
+            it('no images with failed or errored statuses but test is errored', () => {
+                const node = mkNode_({status: ERROR});
+
+                assert.isTrue(utils.hasFails(node));
+            });
+        });
+
+        describe('should return true for node with good result (no fail or error status) if', () => {
+            const mkNode_ = (key, {imageStatus = SUCCESS, status = SUCCESS}) => {
+                const goodResult = {
+                    result: {
+                        imagesInfo: [{status: SUCCESS}, {status: SUCCESS}, {status: SUCCESS}],
+                        status: SUCCESS
+                    }
+                };
+
+                return {
+                    ...goodResult,
+                    [key]: [
+                        {...goodResult},
+                        {
+                            result: {
+                                imagesInfo: [{status: SUCCESS}, {status: SUCCESS}, {status: imageStatus}],
+                                status
+                            }
+                        },
+                        {...goodResult}
+                    ]
+                };
+            };
+
+            it('at least one image in browsers of node is with failed status', () => {
+                const node = mkNode_('browsers', {imageStatus: FAIL});
+
+                assert.isTrue(utils.hasFails(node));
+            });
+
+            it('at least one image in children of node is with failed status', () => {
+                const node = mkNode_('children', {imageStatus: FAIL});
+
+                assert.isTrue(utils.hasFails(node));
+            });
+
+            it('at least one image in browsers is with errored status', () => {
+                const node = mkNode_('browsers', {imageStatus: ERROR});
+
+                assert.isTrue(utils.hasFails(node));
+            });
+
+            it('at least one image in children is with errored status', () => {
+                const node = mkNode_('children', {imageStatus: ERROR});
+
+                assert.isTrue(utils.hasFails(node));
+            });
+
+            it('in browsers no images with failed or errored statuses but test is failed', () => {
+                const node = mkNode_('browsers', {status: FAIL});
+
+                assert.isTrue(utils.hasFails(node));
+            });
+
+            it('in children no images with failed or errored statuses but test is failed', () => {
+                const node = mkNode_('children', {status: FAIL});
+
+                assert.isTrue(utils.hasFails(node));
+            });
+
+            it('in browsers no images with failed or errored statuses but test is errored', () => {
+                const node = mkNode_('browsers', {status: ERROR});
+
+                assert.isTrue(utils.hasFails(node));
+            });
+
+            it('in children no images with failed or errored statuses but test is errored', () => {
+                const node = mkNode_('children', {status: ERROR});
+
+                assert.isTrue(utils.hasFails(node));
+            });
+        });
+    });
+
+    describe('isSuiteIdle', () => {
+        it('should return true for idle test', () => {
+            assert.isTrue(utils.isSuiteIdle({status: IDLE}));
+        });
+
+        describe('should return false for', () => {
+            it('successful test', () => {
+                assert.isFalse(utils.isSuiteIdle({status: SUCCESS}));
+            });
+
+            it('failed test', () => {
+                assert.isFalse(utils.isSuiteIdle({status: FAIL}));
+            });
+
+            it('errored test', () => {
+                assert.isFalse(utils.isSuiteIdle({status: ERROR}));
+            });
+        });
+    });
+
+    describe('isSuiteSuccessful', () => {
+        it('should return true for successful test', () => {
+            assert.isTrue(utils.isSuiteSuccessful({status: SUCCESS}));
+        });
+
+        describe('should return false for', () => {
+            it('failed test', () => {
+                assert.isFalse(utils.isSuiteSuccessful({status: FAIL}));
+            });
+
+            it('errored test', () => {
+                assert.isFalse(utils.isSuiteSuccessful({status: ERROR}));
+            });
+        });
+    });
+
+    describe('isSuiteFailed', () => {
+        describe('should return true for', () => {
+            it('failed test', () => {
+                assert.isTrue(utils.isSuiteFailed({status: FAIL}));
+            });
+
+            it('errored test', () => {
+                assert.isTrue(utils.isSuiteFailed({status: ERROR}));
+            });
+        });
+
+        it('should return false for successful test', () => {
+            assert.isFalse(utils.isSuiteFailed({status: SUCCESS}));
+        });
+    });
+
     describe('isAcceptable', () => {
-        describe('should return true', () => {
-            it('for failed test', () => {
+        describe('should return true for', () => {
+            it('failed test', () => {
                 assert.isTrue(utils.isAcceptable({status: FAIL}));
             });
 
-            it('for test with missing reference image', () => {
+            it('test with missing reference image', () => {
                 const error = {stack: NO_REF_IMAGE_ERROR};
 
                 assert.isTrue(utils.isAcceptable({status: ERROR, error}));
             });
         });
 
-        describe('should return false', () => {
-            it('for test with not screenshot error', () => {
+        describe('should return false for', () => {
+            it('test with not screenshot error', () => {
                 assert.isFalse(utils.isAcceptable({status: ERROR, error: {}}));
             });
 
-            it('for test with empty error', () => {
+            it('test with empty error', () => {
                 assert.isFalse(utils.isAcceptable({status: ERROR, error: null}));
             });
 
-            it('for not failed test', () => {
+            it('not failed test', () => {
                 assert.isFalse(utils.isAcceptable({status: SUCCESS}));
             });
         });
