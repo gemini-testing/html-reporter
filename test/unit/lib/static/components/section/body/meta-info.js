@@ -34,4 +34,23 @@ describe('<MetaInfo />', () => {
             assert.equal(node.text(), expectedMetaInfo[i]);
         });
     });
+
+    it('should render meta-info with non-primitive values', () => {
+        const expectedMetaInfo = [
+            'foo1: {"bar":"baz"}',
+            'foo2: [{"bar":"baz"}]',
+            'url: some-url'
+        ];
+
+        const metaInfo = {
+            foo1: {bar: 'baz'},
+            foo2: [{bar: 'baz'}]
+        };
+
+        const component = mkMetaInfoComponent({metaInfo, suiteUrl: 'some-url'});
+
+        component.find('.toggle-open__item').forEach((node, i) => {
+            assert.equal(node.text(), expectedMetaInfo[i]);
+        });
+    });
 });
