@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.9.4"></a>
+## [4.9.4](https://github.com/gemini-testing/html-reporter/compare/v4.9.3...v4.9.4) (2019-07-26)
+
+
+### Bug Fixes
+
+* **client:** make screenshots available for downloading ([73b3242](https://github.com/gemini-testing/html-reporter/commit/73b3242))
+
+
+
 <a name="4.9.3"></a>
 ## [4.9.3](https://github.com/gemini-testing/html-reporter/compare/v4.9.2...v4.9.3) (2019-07-24)
 
