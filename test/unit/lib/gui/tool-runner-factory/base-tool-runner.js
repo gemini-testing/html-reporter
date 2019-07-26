@@ -244,6 +244,64 @@ describe('lib/gui/tool-runner-factory/base-tool-runner', () => {
                     });
             });
 
+            it('should apply reuse data for tree with nested suites with children and browsers', () => {
+                const gui = initGuiReporter();
+
+                const reuseYaBro = mkBrowserResult({
+                    name: 'yabro',
+                    result: {status: 'success'}
+                });
+
+                const reuseChrome = mkBrowserResult({
+                    name: 'chrome',
+                    result: {status: 'success'}
+                });
+
+                const reuseSuite = mkSuite({suitePath: ['suite1']});
+
+                const reuseNestedSuite = mkSuite({
+                    suitePath: ['suite1', 'suite2'],
+                    children: [
+                        mkState({
+                            suitePath: ['suite1', 'suite2', 'state'],
+                            browsers: [reuseChrome]
+                        })
+                    ],
+                    browsers: [reuseYaBro]
+                });
+
+                reuseSuite.children.push(reuseNestedSuite);
+                serverUtils.require.returns({suites: [reuseSuite]});
+
+                const suite = mkSuite({suitePath: ['suite1']});
+
+                const nestedSuite = mkSuite({
+                    suitePath: ['suite1', 'suite2'],
+                    children: [
+                        mkState({
+                            suitePath: ['suite1', 'suite2', 'state'],
+                            browsers: [mkBrowserResult({name: 'chrome'})]
+                        })
+                    ],
+                    browsers: [mkBrowserResult({name: 'yabro'})]
+                });
+
+                suite.children.push(nestedSuite);
+                reportBuilder.getResult.returns({suites: [suite]});
+
+                return gui.initialize()
+                    .then(() => {
+                        assert.deepEqual(
+                            gui.tree.suites[0].children[0].browsers[0],
+                            reuseYaBro
+                        );
+                        assert.deepEqual(
+                            gui.tree.suites[0].children[0].children[0].browsers[0],
+                            reuseChrome
+                        );
+                    });
+            });
+
             it('should change "status" for each level of the tree if data is reused', () => {
                 const gui = initGuiReporter();
 
