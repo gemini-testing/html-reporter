@@ -2,15 +2,16 @@
 
 import axios from 'axios';
 
-import {acceptOpened, retryTest} from 'lib/static/modules/actions';
+import {acceptOpened, retryTest, runFailedTests} from 'lib/static/modules/actions';
 import {
+    mkSuiteTree,
     mkSuite,
     mkState,
     mkBrowserResult,
     mkImagesInfo,
     mkTestResult
 } from '../../../utils';
-import {FAIL} from 'lib/constants/test-statuses';
+import {SUCCESS, FAIL} from 'lib/constants/test-statuses';
 
 const mkBrowserResultWithImagesInfo = name => {
     return mkBrowserResult({
@@ -129,6 +130,27 @@ describe('lib/static/modules/actions', () => {
                     return true;
                 })
             );
+        });
+    });
+
+    describe('runFailedTests', () => {
+        it('should run all failed tests', async () => {
+            const tests = mkSuiteTree({
+                browsers: [
+                    {state: {opened: false}, result: {status: FAIL}},
+                    {state: {opened: true}, result: {status: SUCCESS}},
+                    {state: {opened: true}, result: {status: FAIL}},
+                    {result: {status: FAIL}}
+                ]
+            });
+
+            await runFailedTests(tests)(dispatch);
+
+            assert.calledOnceWith(axios.post, sinon.match.any, sinon.match((formattedFails) => {
+                assert.lengthOf(formattedFails, 1);
+                assert.lengthOf(formattedFails[0].browsers, 3);
+                return true;
+            }));
         });
     });
 });
