@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.10.0"></a>
+# [4.10.0](https://github.com/gemini-testing/html-reporter/compare/v4.9.6...v4.10.0) (2019-08-08)
+
+
+### Features
+
+* add ability to use external images save api ([#238](https://github.com/gemini-testing/html-reporter/issues/238)) ([4f75b0e](https://github.com/gemini-testing/html-reporter/commit/4f75b0e))
+
+
+
 <a name="4.9.6"></a>
 ## [4.9.6](https://github.com/gemini-testing/html-reporter/compare/v4.9.5...v4.9.6) (2019-07-30)
 
