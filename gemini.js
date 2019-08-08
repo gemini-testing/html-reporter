@@ -39,7 +39,7 @@ function prepareData(gemini, reportBuilder) {
     });
 }
 
-function prepareImages(gemini, pluginConfig, reportBuilder) {
+function prepareImages(gemini, reportBuilder, pluginConfig) {
     const {path: reportPath} = pluginConfig;
 
     function handleErrorEvent(result) {

@@ -115,12 +115,14 @@ describe('lib/gemini', () => {
 
         gemini.htmlReporter.addExtraItem('key1', 'value1');
         gemini.htmlReporter.addMetaInfoExtender('key2', 'value2');
+        gemini.htmlReporter.imagesSaver = {some: 'saver'};
 
         gemini.emit(gemini.events.END);
 
         assert.calledOnceWith(ReportBuilder.prototype.setApiValues, {
             extraItems: {key1: 'value1'},
-            metaInfoExtenders: {key2: 'value2'}
+            metaInfoExtenders: {key2: 'value2'},
+            imagesSaver: {some: 'saver'}
         });
     });
 

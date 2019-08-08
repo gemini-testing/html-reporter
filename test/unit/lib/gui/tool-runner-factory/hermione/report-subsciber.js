@@ -16,16 +16,25 @@ describe('lib/gui/tool-runner-factory/hermione/report-subscriber', () => {
     const events = {
         RUNNER_END: 'runnerEnd',
         TEST_BEGIN: 'testBegin',
-        TEST_PENDING: 'pendingTest'
+        TEST_PENDING: 'pendingTest',
+        TEST_FAIL: 'failTest'
     };
 
     const mkHermione_ = () => stubTool(stubConfig(), events);
 
+    const mkTestAdapterStub_ = (opts = {}) => (Object.assign({
+        prepareTestResult: () => ({}),
+        saveTestImages: () => ({}),
+        hasDiff: () => ({})
+    }, opts));
+
     beforeEach(() => {
         reportBuilder = sinon.createStubInstance(ReportBuilder);
         sandbox.stub(ReportBuilder, 'create').returns(reportBuilder);
+        reportBuilder.format.returns(mkTestAdapterStub_());
         reportBuilder.save.resolves();
         reportBuilder.setApiValues.returns(reportBuilder);
+        sandbox.stub(utils, 'findTestResult');
 
         client = new EventEmitter();
         sandbox.spy(client, 'emit');
@@ -75,23 +84,15 @@ describe('lib/gui/tool-runner-factory/hermione/report-subscriber', () => {
     });
 
     describe('TEST_RESULT', () => {
-        const mkTestAdapterStub_ = () => ({
-            prepareTestResult: () => {},
-            saveTestImages: () => {}
-        });
-
-        beforeEach(() => {
-            reportBuilder.format.returns(mkTestAdapterStub_());
-            sandbox.stub(utils, 'findTestResult');
-        });
-
-        it('should add skipped test result to report', () => {
+        it('should add skipped test result to report', async () => {
             const hermione = mkHermione_();
 
             reportSubscriber(hermione, reportBuilder, client);
+            reportBuilder.format.withArgs({foo: 'bar'}).returns(mkTestAdapterStub_({formatted: 'res'}));
             hermione.emit(hermione.events.TEST_PENDING, {foo: 'bar'});
+            await hermione.emitAndWait(hermione.events.RUNNER_END);
 
-            assert.calledOnceWith(reportBuilder.addSkipped, {foo: 'bar'});
+            assert.calledOnceWith(reportBuilder.addSkipped, sinon.match({formatted: 'res'}));
         });
 
         it('should emit "TEST_RESULT" for client with test data', async () => {
@@ -102,6 +103,31 @@ describe('lib/gui/tool-runner-factory/hermione/report-subscriber', () => {
             await hermione.emitAndWait(hermione.events.TEST_PENDING, {});
 
             assert.calledOnceWith(client.emit, clientEvents.TEST_RESULT, {name: 'foo'});
+        });
+    });
+
+    describe('TEST_FAIL', () => {
+        it('should add correct attempt', async () => {
+            const hermione = mkHermione_();
+            reportBuilder.getCurrAttempt.returns(1);
+
+            reportSubscriber(hermione, reportBuilder, client, '');
+            hermione.emit(hermione.events.TEST_FAIL, {});
+            await hermione.emitAndWait(hermione.events.RUNNER_END, {});
+
+            assert.calledWithMatch(reportBuilder.addFail, {attempt: 1});
+        });
+
+        it('should save images before fail adding', async () => {
+            const hermione = mkHermione_();
+            const formattedResult = mkTestAdapterStub_({saveTestImages: sandbox.stub()});
+
+            reportBuilder.format.withArgs({some: 'res'}).returns(formattedResult);
+            reportSubscriber(hermione, reportBuilder, client, '');
+            hermione.emit(hermione.events.TEST_FAIL, {some: 'res'});
+            await hermione.emitAndWait(hermione.events.RUNNER_END);
+
+            assert.callOrder(formattedResult.saveTestImages, reportBuilder.addFail);
         });
     });
 });

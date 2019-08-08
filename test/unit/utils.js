@@ -13,7 +13,7 @@ function stubConfig(config = {}) {
     return Object.assign(config, browserConfigs);
 }
 
-function stubTool(config = stubConfig(), events = {}, errors = {}) {
+function stubTool(config = stubConfig(), events = {}, errors = {}, htmlReporter) {
     const tool = new QEmitter();
 
     tool.config = config;
@@ -21,7 +21,7 @@ function stubTool(config = stubConfig(), events = {}, errors = {}) {
     tool.errors = errors;
 
     tool.readTests = sinon.stub();
-    tool.htmlReporter = sinon.stub();
+    tool.htmlReporter = htmlReporter || sinon.stub();
 
     return tool;
 }

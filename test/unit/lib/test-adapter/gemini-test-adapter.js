@@ -1,7 +1,6 @@
 'use strict';
 
 const path = require('path');
-const proxyquire = require('proxyquire');
 const GeminiTestResultAdapter = require('lib/test-adapter/gemini-test-adapter');
 const {IDLE} = require('lib/constants/test-statuses');
 
@@ -40,6 +39,10 @@ describe('gemini test adapter', () => {
 
     describe('getImagesInfo', () => {
         describe('should set "imagesInfo" field', () => {
+            beforeEach(() => {
+                sandbox.stub(GeminiTestResultAdapter.prototype, 'getImagesFor');
+            });
+
             it('for "idle" status', () => {
                 const geminiTestAdapter = new GeminiTestResultAdapter({refImg: 'image-data'});
 
@@ -49,21 +52,10 @@ describe('gemini test adapter', () => {
             });
 
             describe('for not "idle" status', () => {
-                let StubGeminiTestResultAdapter;
-                let serverUtilsStub;
-
-                beforeEach(() => {
-                    serverUtilsStub = {getImagesFor: sandbox.stub()};
-
-                    StubGeminiTestResultAdapter = proxyquire('lib/test-adapter/gemini-test-adapter', {
-                        '../server-utils': serverUtilsStub
-                    });
-                });
-
                 it('with empty "error"', () => {
-                    const geminiTestAdapter = new StubGeminiTestResultAdapter({});
-                    serverUtilsStub.getImagesFor
-                        .withArgs('some-status', geminiTestAdapter)
+                    const geminiTestAdapter = new GeminiTestResultAdapter({suite: {path: 'some-path'}, state: {name: 'state'}});
+                    GeminiTestResultAdapter.prototype.getImagesFor
+                        .withArgs('some-status')
                         .returns({expectedImg: 'image-data'});
 
                     geminiTestAdapter.getImagesInfo('some-status');
@@ -74,13 +66,14 @@ describe('gemini test adapter', () => {
                 });
 
                 it('with "error"', () => {
-                    const geminiTestAdapter = new StubGeminiTestResultAdapter({
+                    const geminiTestAdapter = new GeminiTestResultAdapter({
+                        suite: {path: 'some-path'}, state: {name: 'state'},
                         message: 'msg',
                         stack: 'stack',
                         diffClusters: [{left: 0, top: 0, right: 1, bottom: 1}]
                     });
-                    serverUtilsStub.getImagesFor
-                        .withArgs('some-status', geminiTestAdapter)
+                    GeminiTestResultAdapter.prototype.getImagesFor
+                        .withArgs('some-status')
                         .returns({expectedImg: 'image-data'});
 
                     geminiTestAdapter.getImagesInfo('some-status');

@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs-extra');
 const _ = require('lodash');
 const serverUtils = require('lib/server-utils');
+const TestAdapter = require('lib/test-adapter/test-adapter');
 const {logger} = serverUtils;
 const proxyquire = require('proxyquire');
 const {SUCCESS, FAIL, ERROR, SKIPPED, IDLE, UPDATED} = require('lib/constants/test-statuses');
@@ -21,7 +22,9 @@ describe('ReportBuilder', () => {
         const browserConfigStub = {getAbsoluteUrl: toolConfig.getAbsoluteUrl};
         const config = {forBrowser: sandbox.stub().returns(browserConfigStub)};
 
-        return new ReportBuilder(config, pluginConfig, {create: (obj) => obj});
+        TestAdapter.create = (obj) => obj;
+
+        return new ReportBuilder(config, pluginConfig, TestAdapter);
     };
 
     const getReportBuilderResult_ = (reportBuilder) => reportBuilder.getResult().suites[0].children[0].browsers[0].result;
@@ -41,6 +44,7 @@ describe('ReportBuilder', () => {
             imageDir: '',
             imagesInfo,
             getImagesInfo: () => imagesInfo,
+            getImagesFor: () => ({}),
             getRefImg: () => ({}),
             getCurrImg: () => ({}),
             getErrImg: () => ({})
@@ -207,19 +211,6 @@ describe('ReportBuilder', () => {
             status: ERROR,
             error: 'some-stack-trace'
         });
-    });
-
-    it('should get correct test attempt while checking for image exists', () => {
-        const reportBuilder = mkReportBuilder_();
-        const testResult = stubTest_();
-
-        reportBuilder.addError(testResult);
-        const firstCallAttempt = hasImage.firstCall.args[0].attempt;
-        reportBuilder.addError(testResult);
-        const secondCallAttempt = hasImage.secondCall.args[0].attempt;
-
-        assert.equal(firstCallAttempt, 0);
-        assert.equal(secondCallAttempt, 1);
     });
 
     it('should add base host to result with value from plugin parameter "baseHost"', () => {

@@ -1,25 +1,55 @@
 'use strict';
 
 const _ = require('lodash');
-const HermioneTestResultAdapter = require('lib/test-adapter/hermione-test-adapter');
+const utils = require('lib/server-utils');
+const {SUCCESS} = require('lib/constants/test-statuses');
 const {stubTool, stubConfig} = require('../../utils');
+const proxyquire = require('proxyquire');
+const fs = require('fs-extra');
 
 describe('hermione test adapter', () => {
     const sandbox = sinon.sandbox.create();
+    let tmp, HermioneTestResultAdapter, err;
 
     class ImageDiffError extends Error {}
     class NoRefImageError extends Error {}
 
-    const mkHermioneTestResultAdapter = (testResult, toolOpts = {}) => {
+    const mkHermioneTestResultAdapter = (testResult, toolOpts = {}, htmlReporter = {}) => {
         const config = _.defaults(toolOpts.config, {
             browsers: {
                 bro: {}
             }
         });
-        const tool = stubTool(stubConfig(config), {}, {ImageDiffError, NoRefImageError});
+
+        const tool = stubTool(
+            stubConfig(config),
+            {},
+            {ImageDiffError, NoRefImageError},
+            Object.assign({imagesSaver: {saveImg: sandbox.stub()}}, htmlReporter)
+        );
 
         return new HermioneTestResultAdapter(testResult, tool);
     };
+
+    const mkErrStub = (ErrType = ImageDiffError) => {
+        const err = new ErrType();
+
+        err.stateName = 'plain';
+        err.currImg = {path: 'curr/path'};
+        err.refImg = {path: 'ref/path'};
+
+        return err;
+    };
+
+    beforeEach(() => {
+        tmp = {tmpdir: 'default/dir'};
+        HermioneTestResultAdapter = proxyquire('../../../../lib/test-adapter/hermione-test-adapter', {tmp});
+        sandbox.stub(utils, 'getCurrentPath').returns('');
+        sandbox.stub(utils, 'getDiffPath').returns('');
+        sandbox.stub(fs, 'readFile').resolves(Buffer.from(''));
+        sandbox.stub(fs, 'copy').resolves();
+        err = mkErrStub();
+    });
 
     afterEach(() => sandbox.restore());
 
@@ -34,7 +64,7 @@ describe('hermione test adapter', () => {
 
         const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {config});
 
-        assert.equal(hermioneTestAdapter.attempt, 4);
+        assert.equal(hermioneTestAdapter.attempt, 5);
     });
 
     it('should return test error with "message", "stack" and "stateName"', () => {
@@ -67,6 +97,42 @@ describe('hermione test adapter', () => {
         const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
 
         assert.deepEqual(hermioneTestAdapter.assertViewResults, [1]);
+    });
+
+    describe('saveTestImages', () => {
+        it('should build diff to tmp dir', async () => {
+            tmp.tmpdir = 'tmp/dir';
+            const testResult = {
+                id: () => '',
+                assertViewResults: [err]
+            };
+            utils.getDiffPath.returns('diff/report/path');
+
+            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {}, {});
+            const workers = {saveDiffTo: sandbox.stub()};
+            await hermioneTestAdapter.saveTestImages('', workers);
+
+            assert.calledOnceWith(workers.saveDiffTo, err, sinon.match('tmp/dir/diff/report/path'));
+        });
+
+        it('should save diff in report from tmp dir using external storage', async () => {
+            tmp.tmpdir = 'tmp/dir';
+            const testResult = {
+                id: () => '',
+                assertViewResults: [err]
+            };
+            utils.getDiffPath.returns('diff/report/path');
+            const imagesSaver = {saveImg: sandbox.stub()};
+            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {}, {imagesSaver});
+            const workers = {saveDiffTo: sandbox.stub()};
+            await hermioneTestAdapter.saveTestImages('html-report/path', workers);
+
+            assert.calledWith(
+                imagesSaver.saveImg,
+                sinon.match('tmp/dir/diff/report/path'),
+                {destPath: 'diff/report/path', reportDir: 'html-report/path'}
+            );
+        });
     });
 
     describe('hasDiff()', () => {
@@ -167,6 +233,11 @@ describe('hermione test adapter', () => {
     });
 
     describe('getImagesInfo()', () => {
+        beforeEach(() => {
+            sandbox.stub(utils, 'copyImageAsync');
+            sandbox.stub(utils, 'getReferencePath').returns('some/ref.png');
+        });
+
         const mkTestResult_ = (result) => _.defaults(result, {id: () => 'some-id'});
 
         it('should not reinit "imagesInfo"', () => {
@@ -194,6 +265,99 @@ describe('hermione test adapter', () => {
             const [{diffClusters}] = mkHermioneTestResultAdapter(testResult).getImagesInfo();
 
             assert.deepEqual(diffClusters, [{left: 0, top: 0, right: 1, bottom: 1}]);
+        });
+
+        it('should return saved images', async () => {
+            const testResult = mkTestResult_({
+                assertViewResults: [mkErrStub()],
+                imagesInfo: []
+            });
+
+            const imagesSaver = {saveImg: sandbox.stub()};
+            imagesSaver.saveImg.withArgs(
+                'ref/path',
+                {destPath: 'some/ref.png', reportDir: 'some/rep'}
+            ).returns('saved/ref.png');
+            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {}, {imagesSaver});
+            const workers = {saveDiffTo: sandbox.stub()};
+
+            await hermioneTestAdapter.saveTestImages('some/rep', workers);
+
+            const {expectedImg} = hermioneTestAdapter.getImagesFor(SUCCESS);
+            assert.equal(expectedImg.path, 'saved/ref.png');
+        });
+
+        it('should return dest image path by default', async () => {
+            const testResult = mkTestResult_({
+                assertViewResults: [mkErrStub()],
+                imagesInfo: []
+            });
+
+            const imagesSaver = {saveImg: sandbox.stub()};
+            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {}, {imagesSaver});
+            const workers = {saveDiffTo: sandbox.stub()};
+
+            await hermioneTestAdapter.saveTestImages('some/rep', workers);
+
+            const {expectedImg} = hermioneTestAdapter.getImagesFor(SUCCESS);
+            assert.equal(expectedImg.path, 'some/ref.png');
+        });
+    });
+
+    describe('saveBase64Screenshot', () => {
+        beforeEach(() => {
+            sandbox.stub(utils.logger, 'warn');
+            sandbox.stub(utils, 'makeDirFor').resolves();
+            sandbox.stub(fs, 'writeFile').resolves();
+            sandbox.stub(utils, 'copyImageAsync');
+        });
+
+        describe('if screenshot on reject does not exist', () => {
+            it('should not save screenshot', () => {
+                const testResult = {
+                    err: {screenshot: {base64: null}}
+                };
+                const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+
+                return hermioneTestAdapter.saveBase64Screenshot()
+                    .then(() => assert.notCalled(fs.writeFile));
+            });
+
+            it('should warn about it', () => {
+                const testResult = {
+                    err: {screenshot: {base64: null}}
+                };
+                const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+
+                return hermioneTestAdapter.saveBase64Screenshot()
+                    .then(() => assert.calledWith(utils.logger.warn, 'Cannot save screenshot on reject'));
+            });
+        });
+
+        it('should create directory for screenshot', () => {
+            const testResult = {
+                err: {screenshot: {base64: 'base64-data'}}
+            };
+            utils.getCurrentPath.returns('dest/path');
+            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+
+            return hermioneTestAdapter.saveBase64Screenshot()
+                .then(() => assert.calledOnceWith(utils.makeDirFor, sinon.match('dest/path')));
+        });
+
+        it('should save screenshot from base64 format', async () => {
+            const testResult = {
+                err: {screenshot: {base64: 'base64-data'}}
+            };
+            utils.getCurrentPath.returns('dest/path');
+            const bufData = new Buffer('base64-data', 'base64');
+            const imagesSaver = {saveImg: sandbox.stub()};
+            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {}, {imagesSaver});
+
+            await hermioneTestAdapter.saveBase64Screenshot('report/path');
+
+            assert.calledOnceWith(fs.writeFile, sinon.match('dest/path'), bufData, 'base64');
+            assert.calledWith(imagesSaver.saveImg, sinon.match('dest/path'), {destPath: 'dest/path', reportDir: 'report/path'});
         });
     });
 });
