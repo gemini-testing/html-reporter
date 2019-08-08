@@ -85,6 +85,25 @@ function mkSuiteTree({suite = mkSuite(), state = mkState(), browsers = [mkBrowse
     return suite;
 }
 
+function mkStorage() {
+    const storage = {};
+
+    return {
+        setItem: function(key, value) {
+            storage[key] = value || '';
+        },
+        getItem: function(key) {
+            return key in storage ? storage[key] : null;
+        },
+        removeItem: function(key) {
+            delete storage[key];
+        },
+        hasOwnProperty(prop) {
+            return prop in storage;
+        }
+    };
+}
+
 module.exports = {
     stubConfig,
     stubTool,
@@ -93,5 +112,6 @@ module.exports = {
     mkBrowserResult,
     mkTestResult,
     mkImagesInfo,
-    mkSuiteTree
+    mkSuiteTree,
+    mkStorage
 };
