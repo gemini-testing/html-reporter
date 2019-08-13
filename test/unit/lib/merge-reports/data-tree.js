@@ -7,6 +7,7 @@ const fs = require('fs-extra');
 const DataTree = require('lib/merge-reports/data-tree');
 const {mkSuiteTree, mkSuite, mkState, mkBrowserResult, mkTestResult} = require('test/unit/utils');
 const {SUCCESS, FAIL, ERROR, SKIPPED} = require('lib/constants/test-statuses');
+const {logger} = require('lib/server-utils');
 
 describe('lib/merge-reports/data-tree', () => {
     const sandbox = sinon.sandbox.create();
@@ -17,6 +18,7 @@ describe('lib/merge-reports/data-tree', () => {
 
     beforeEach(() => {
         sandbox.stub(fs, 'move');
+        sandbox.stub(logger, 'error');
     });
 
     afterEach(() => sandbox.restore());
@@ -886,6 +888,48 @@ describe('lib/merge-reports/data-tree', () => {
             await mkDataTree_(initialData).mergeWith(dataCollection);
 
             assert.notCalled(fs.move);
+        });
+
+        it('should not crash if image does not exist', async () => {
+            const srcDataSuites1 = mkSuiteTree();
+            const srcDataSuites2 = mkSuiteTree({
+                browsers: [mkBrowserResult({
+                    name: 'yabro',
+                    result: mkTestResult({imagesInfo: [{
+                        actualImg: {path: '/nonexistent/screen.png'}
+                    }]})
+                })]
+            });
+
+            const initialData = {suites: [srcDataSuites1]};
+            const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
+
+            const error = new Error('No such file or directory');
+            fs.move.rejects(error);
+
+            await assert.isFulfilled(mkDataTree_(initialData).mergeWith(dataCollection));
+        });
+
+        it('should print message with error if image does not exist', async () => {
+            const srcDataSuites1 = mkSuiteTree();
+            const srcDataSuites2 = mkSuiteTree({
+                browsers: [mkBrowserResult({
+                    name: 'yabro',
+                    result: mkTestResult({imagesInfo: [{
+                        actualImg: {path: '/nonexistent/screen.png'}
+                    }]})
+                })]
+            });
+
+            const initialData = {suites: [srcDataSuites1]};
+            const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
+
+            const error = new Error('No such file or directory');
+            fs.move.rejects(error);
+
+            await mkDataTree_(initialData).mergeWith(dataCollection);
+
+            assert.calledOnceWith(logger.error, sinon.match.any, error);
         });
 
         [
