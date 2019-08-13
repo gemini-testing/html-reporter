@@ -17,6 +17,7 @@ describe('config', () => {
         delete process.env['html_reporter_base_host'];
         delete process.env['html_reporter_scale_images'];
         delete process.env['html_reporter_lazy_load_offset'];
+        delete process.env['html_reporter_meta_info_base_urls'];
     });
 
     describe('"enabled" option', () => {
@@ -166,6 +167,38 @@ describe('config', () => {
 
         it('should validate if passed value is number', () => {
             assert.throws(() => parseConfig({lazyLoadOffset: 'some-value'}), /option must be number, but got string/);
+        });
+    });
+
+    describe('"metaInfoBaseUrls" option', () => {
+        it('should set from configuration file', () => {
+            const config = parseConfig({
+                metaInfoBaseUrls: {
+                    file: 'base/path'
+                }
+            });
+
+            assert.deepEqual(config.metaInfoBaseUrls, {file: 'base/path'});
+        });
+
+        it('should be set from environment variable', () => {
+            process.env['html_reporter_meta_info_base_urls'] = '{"file": "base/path"}';
+
+            assert.deepEqual(parseConfig({}).metaInfoBaseUrls, {file: 'base/path'});
+        });
+
+        it('should be set from cli', () => {
+            process.argv = process.argv.concat('--html-reporter-meta-info-base-urls', '{"file":"base/path"}');
+
+            assert.deepEqual(parseConfig({}).metaInfoBaseUrls, {file: 'base/path'});
+        });
+
+        it('should validate if passed value is string', () => {
+            assert.throws(() => parseConfig({metaInfoBaseUrls: 'some/urls'}), /option must be object, but got string/);
+        });
+
+        it('should validate if passed to object value is number', () => {
+            assert.throws(() => parseConfig({metaInfoBaseUrls: {file: 10}}), /option must be string, but got number/);
         });
     });
 });

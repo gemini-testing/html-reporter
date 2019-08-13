@@ -8,14 +8,14 @@ describe('<MetaInfo />', () => {
 
     let getExtraMetaInfo;
 
-    const mkMetaInfoComponent = (props = {}) => {
+    const mkMetaInfoComponent = (props = {}, initialState = {}) => {
         props = defaults(props, {
             metaInfo: {},
             suiteUrl: 'default-url',
             getExtraMetaInfo
         });
 
-        return mkConnectedComponent(<MetaInfo {...props} />);
+        return mkConnectedComponent(<MetaInfo {...props} />, {initialState});
     };
 
     beforeEach(() => {
@@ -51,6 +51,28 @@ describe('<MetaInfo />', () => {
 
         component.find('.toggle-open__item').forEach((node, i) => {
             assert.equal(node.text(), expectedMetaInfo[i]);
+        });
+    });
+
+    [
+        {
+            type: 'path',
+            metaInfoBaseUrls: {file: 'base/path'},
+            expectedFileUrl: 'base/path/test/file'
+        },
+        {
+            type: 'url',
+            metaInfoBaseUrls: {file: 'http://127.0.0.1'},
+            expectedFileUrl: 'http://127.0.0.1/test/file'
+        }
+    ].forEach((stub) => {
+        it(`should render link in meta info based upon metaInfoBaseUrls ${stub.type}`, () => {
+            const initialConfig = {config: {metaInfoBaseUrls: stub.metaInfoBaseUrls}};
+
+            const component = mkMetaInfoComponent({metaInfo: {file: 'test/file'}}, initialConfig);
+
+            assert.equal(component.find('.toggle-open__item:first-child').text(), 'file: test/file');
+            assert.equal(component.find('.toggle-open__item:first-child a').prop('href'), stub.expectedFileUrl);
         });
     });
 });

@@ -17,7 +17,7 @@ describe('ReportBuilder', () => {
 
     const mkReportBuilder_ = ({toolConfig, pluginConfig} = {}) => {
         toolConfig = _.defaults(toolConfig || {}, {getAbsoluteUrl: _.noop});
-        pluginConfig = _.defaults(pluginConfig || {}, {baseHost: '', path: ''});
+        pluginConfig = _.defaults(pluginConfig || {}, {baseHost: '', path: '', baseTestPath: ''});
 
         const browserConfigStub = {getAbsoluteUrl: toolConfig.getAbsoluteUrl};
         const config = {forBrowser: sandbox.stub().returns(browserConfigStub)};
