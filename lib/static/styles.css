@@ -414,6 +414,7 @@ a:active {
     position: sticky;
     top: 0;
     border-color: #bbb;
+    z-index: 10;
 }
 
 .tab__item .button_type_suite-controls:hover {
