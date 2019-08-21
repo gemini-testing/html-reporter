@@ -30,6 +30,7 @@ directory.
 Array element must be `Object` ({'*name*': `String`, '*pattern*': `String`}) or `String` (interpret as *name* and *pattern*).
 Test will be associated with group if test error matches on group error pattern.
 New group will be created if test cannot be associated with existing groups.
+* **metaInfoBaseUrls** (optional) `Object` - base paths for making link from Meta-info values. Object option must be Meta-info's key and value must be `String`. For example, {'file': 'base/path'}.
 
 Also there is ability to override plugin parameters by CLI options or environment variables
 (see [configparser](https://github.com/gemini-testing/configparser)).
