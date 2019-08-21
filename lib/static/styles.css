@@ -613,11 +613,15 @@ a:active {
 }
 
 .control-buttons {
-    margin:5px 0
+    margin: 5px 0;
+}
+
+.control-buttons .button {
+    margin-bottom: 5px;
 }
 
 .control-filters {
-    margin:5px 0;
+    margin: 5px 0;
 }
 
 .diff-circle {
