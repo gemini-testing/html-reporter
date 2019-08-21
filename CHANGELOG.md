@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.12.0"></a>
+# [4.12.0](https://github.com/gemini-testing/html-reporter/compare/v4.11.1...v4.12.0) (2019-08-21)
+
+
+### Bug Fixes
+
+* added vertical gap between controls in header ([deaeba1](https://github.com/gemini-testing/html-reporter/commit/deaeba1))
+* broken backgrounds inside controls switcher ([d5105fb](https://github.com/gemini-testing/html-reporter/commit/d5105fb))
+* do not cover Accept button by images ([b245901](https://github.com/gemini-testing/html-reporter/commit/b245901))
+* merging reports without screenshots ([d279590](https://github.com/gemini-testing/html-reporter/commit/d279590))
+* overflow meta and error text on report ([cce1c0a](https://github.com/gemini-testing/html-reporter/commit/cce1c0a))
+
+
+### Features
+
+* make links from meta-info values ([499bf9b](https://github.com/gemini-testing/html-reporter/commit/499bf9b))
+
+
+
 <a name="4.11.1"></a>
 ## [4.11.1](https://github.com/gemini-testing/html-reporter/compare/v4.11.0...v4.11.1) (2019-08-09)
 
