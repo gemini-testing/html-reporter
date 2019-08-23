@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.12.1"></a>
+## [4.12.1](https://github.com/gemini-testing/html-reporter/compare/v4.12.0...v4.12.1) (2019-08-23)
+
+
+### Bug Fixes
+
+* merge stats per browser ([0a066df](https://github.com/gemini-testing/html-reporter/commit/0a066df))
+
+
+
 <a name="4.12.0"></a>
 # [4.12.0](https://github.com/gemini-testing/html-reporter/compare/v4.11.1...v4.12.0) (2019-08-21)
 
