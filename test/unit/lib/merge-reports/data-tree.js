@@ -451,6 +451,18 @@ describe('lib/merge-reports/data-tree', () => {
     });
 
     describe('merge statistics data', () => {
+        const mkInitialData = ({suites, stats}) => {
+            return {
+                suites,
+                ...stats,
+                perBrowser: {
+                    'default-bro': {
+                        ...stats
+                    }
+                }
+            };
+        };
+
         describe('from non-existent suite in tree', () => {
             [
                 {statName: 'passed', status: SUCCESS},
@@ -467,13 +479,21 @@ describe('lib/merge-reports/data-tree', () => {
                         })]
                     });
 
-                    const initialData = {suites: [srcDataSuites1], total: 1, [statName]: 1};
+                    const initialData = mkInitialData({
+                        suites: [srcDataSuites1],
+                        stats: {
+                            total: 1,
+                            [statName]: 1
+                        }
+                    });
                     const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
                     const result = await mkDataTree_(initialData).mergeWith(dataCollection);
 
                     assert.equal(result.total, 2);
                     assert.equal(result[statName], 2);
+                    assert.equal(result.perBrowser['default-bro'].total, 2);
+                    assert.equal(result.perBrowser['default-bro'][statName], 2);
                 });
 
                 it(`should increment only "retries" if test retry status is "${status}"`, async () => {
@@ -485,7 +505,15 @@ describe('lib/merge-reports/data-tree', () => {
                         })]
                     });
 
-                    const initialData = {suites: [srcDataSuites1], total: 1, [statName]: 1, retries: 0};
+                    const initialData = mkInitialData({
+                        suites: [srcDataSuites1],
+                        stats: {
+                            total: 1,
+                            [statName]: 1,
+                            retries: 0
+                        }
+                    });
+
                     const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
                     const result = await mkDataTree_(initialData).mergeWith(dataCollection);
@@ -493,6 +521,9 @@ describe('lib/merge-reports/data-tree', () => {
                     assert.equal(result.total, 1);
                     assert.equal(result[statName], 1);
                     assert.equal(result.retries, 1);
+                    assert.equal(result.perBrowser['default-bro'].total, 1);
+                    assert.equal(result.perBrowser['default-bro'][statName], 1);
+                    assert.equal(result.perBrowser['default-bro'].retries, 1);
                 });
             });
         });
@@ -517,13 +548,22 @@ describe('lib/merge-reports/data-tree', () => {
                         })]
                     });
 
-                    const initialData = {suites: [srcDataSuites1], total: 1, [statName]: 1};
+                    const initialData = mkInitialData({
+                        suites: [srcDataSuites1],
+                        stats: {
+                            total: 1,
+                            [statName]: 1
+                        }
+                    });
+
                     const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
                     const result = await mkDataTree_(initialData).mergeWith(dataCollection);
 
                     assert.equal(result.total, 2);
                     assert.equal(result[statName], 2);
+                    assert.equal(result.perBrowser['default-bro'].total, 2);
+                    assert.equal(result.perBrowser['default-bro'][statName], 2);
                 });
 
                 it(`should increment only "retries" if test retry status is "${status}"`, async () => {
@@ -539,7 +579,15 @@ describe('lib/merge-reports/data-tree', () => {
                         })]
                     });
 
-                    const initialData = {suites: [srcDataSuites1], total: 1, [statName]: 1, retries: 0};
+                    const initialData = mkInitialData({
+                        suites: [srcDataSuites1],
+                        stats: {
+                            total: 1,
+                            [statName]: 1,
+                            retries: 0
+                        }
+                    });
+
                     const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
                     const result = await mkDataTree_(initialData).mergeWith(dataCollection);
@@ -547,6 +595,9 @@ describe('lib/merge-reports/data-tree', () => {
                     assert.equal(result.total, 1);
                     assert.equal(result[statName], 1);
                     assert.equal(result.retries, 1);
+                    assert.equal(result.perBrowser['default-bro'].total, 1);
+                    assert.equal(result.perBrowser['default-bro'][statName], 1);
+                    assert.equal(result.perBrowser['default-bro'].retries, 1);
                 });
             });
         });
@@ -572,13 +623,22 @@ describe('lib/merge-reports/data-tree', () => {
                         })]
                     });
 
-                    const initialData = {suites: [srcDataSuites1], total: 1, [statName]: 1};
+                    const initialData = mkInitialData({
+                        suites: [srcDataSuites1],
+                        stats: {
+                            total: 1,
+                            [statName]: 1
+                        }
+                    });
+
                     const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
                     const result = await mkDataTree_(initialData).mergeWith(dataCollection);
 
                     assert.equal(result.total, 2);
                     assert.equal(result[statName], 2);
+                    assert.equal(result.perBrowser['default-bro'].total, 2);
+                    assert.equal(result.perBrowser['default-bro'][statName], 2);
                 });
 
                 it(`should increment only "retries" if test retry status is "${status}"`, async () => {
@@ -595,7 +655,15 @@ describe('lib/merge-reports/data-tree', () => {
                         })]
                     });
 
-                    const initialData = {suites: [srcDataSuites1], total: 1, [statName]: 1, retries: 0};
+                    const initialData = mkInitialData({
+                        suites: [srcDataSuites1],
+                        stats: {
+                            total: 1,
+                            [statName]: 1,
+                            retries: 0
+                        }
+                    });
+
                     const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
                     const result = await mkDataTree_(initialData).mergeWith(dataCollection);
@@ -603,6 +671,9 @@ describe('lib/merge-reports/data-tree', () => {
                     assert.equal(result.total, 1);
                     assert.equal(result[statName], 1);
                     assert.equal(result.retries, 1);
+                    assert.equal(result.perBrowser['default-bro'].total, 1);
+                    assert.equal(result.perBrowser['default-bro'][statName], 1);
+                    assert.equal(result.perBrowser['default-bro'].retries, 1);
                 });
             });
         });
@@ -614,13 +685,11 @@ describe('lib/merge-reports/data-tree', () => {
                 beforeEach(() => {
                     srcDataSuites1 = mkSuiteTree({
                         browsers: [mkBrowserResult({
-                            name: 'yabro',
                             result: mkTestResult({status: SKIPPED})
                         })]
                     });
                     srcDataSuites2 = mkSuiteTree({
                         browsers: [mkBrowserResult({
-                            name: 'yabro',
                             result: mkTestResult({status: FAIL}),
                             retries: [mkTestResult({status: FAIL})]
                         })]
@@ -628,7 +697,14 @@ describe('lib/merge-reports/data-tree', () => {
                 });
 
                 it('should change current status', async () => {
-                    const initialData = {suites: [srcDataSuites1], total: 1, skipped: 1, failed: 0};
+                    const initialData = mkInitialData({
+                        suites: [srcDataSuites1],
+                        stats: {
+                            total: 1,
+                            skipped: 1,
+                            failed: 0
+                        }
+                    });
                     const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
                     const result = await mkDataTree_(initialData).mergeWith(dataCollection);
@@ -636,16 +712,27 @@ describe('lib/merge-reports/data-tree', () => {
                     assert.equal(result.total, 1);
                     assert.equal(result.skipped, 0);
                     assert.equal(result.failed, 1);
+                    assert.equal(result.perBrowser['default-bro'].total, 1);
+                    assert.equal(result.perBrowser['default-bro'].skipped, 0);
+                    assert.equal(result.perBrowser['default-bro'].failed, 1);
                 });
 
                 it('should increment "retries" by current result and retries from source report', async () => {
-                    const initialData = {suites: [srcDataSuites1], total: 1, retries: 0};
+                    const initialData = mkInitialData({
+                        suites: [srcDataSuites1],
+                        stats: {
+                            total: 1,
+                            retries: 0
+                        }
+                    });
                     const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
                     const result = await mkDataTree_(initialData).mergeWith(dataCollection);
 
                     assert.equal(result.total, 1);
                     assert.equal(result.retries, 2);
+                    assert.equal(result.perBrowser['default-bro'].total, 1);
+                    assert.equal(result.perBrowser['default-bro'].retries, 2);
                 });
             });
 
@@ -653,13 +740,11 @@ describe('lib/merge-reports/data-tree', () => {
                 beforeEach(() => {
                     srcDataSuites1 = mkSuiteTree({
                         browsers: [mkBrowserResult({
-                            name: 'yabro',
                             result: mkTestResult({status: SUCCESS})
                         })]
                     });
                     srcDataSuites2 = mkSuiteTree({
                         browsers: [mkBrowserResult({
-                            name: 'yabro',
                             result: mkTestResult({status: FAIL}),
                             retries: [mkTestResult({status: FAIL})]
                         })]
@@ -667,7 +752,14 @@ describe('lib/merge-reports/data-tree', () => {
                 });
 
                 it('should change current status', async () => {
-                    const initialData = {suites: [srcDataSuites1], total: 1, passed: 1, failed: 0};
+                    const initialData = mkInitialData({
+                        suites: [srcDataSuites1],
+                        stats: {
+                            total: 1,
+                            passed: 1,
+                            failed: 0
+                        }
+                    });
                     const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
                     const result = await mkDataTree_(initialData).mergeWith(dataCollection);
@@ -675,16 +767,27 @@ describe('lib/merge-reports/data-tree', () => {
                     assert.equal(result.total, 1);
                     assert.equal(result.passed, 0);
                     assert.equal(result.failed, 1);
+                    assert.equal(result.perBrowser['default-bro'].total, 1);
+                    assert.equal(result.perBrowser['default-bro'].passed, 0);
+                    assert.equal(result.perBrowser['default-bro'].failed, 1);
                 });
 
                 it('should increment "retries" by current result and retries from source report', async () => {
-                    const initialData = {suites: [srcDataSuites1], total: 1, retries: 0};
+                    const initialData = mkInitialData({
+                        suites: [srcDataSuites1],
+                        stats: {
+                            total: 1,
+                            retries: 0
+                        }
+                    });
                     const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
                     const result = await mkDataTree_(initialData).mergeWith(dataCollection);
 
                     assert.equal(result.total, 1);
                     assert.equal(result.retries, 2);
+                    assert.equal(result.perBrowser['default-bro'].total, 1);
+                    assert.equal(result.perBrowser['default-bro'].retries, 2);
                 });
             });
 
@@ -692,18 +795,23 @@ describe('lib/merge-reports/data-tree', () => {
                 it('should increment "retries" by current result from source report', async () => {
                     const srcDataSuites1 = mkSuiteTree({
                         browsers: [mkBrowserResult({
-                            name: 'yabro',
                             result: mkTestResult({status: SUCCESS})
                         })]
                     });
                     const srcDataSuites2 = mkSuiteTree({
                         browsers: [mkBrowserResult({
-                            name: 'yabro',
                             result: mkTestResult({status: SUCCESS})
                         })]
                     });
 
-                    const initialData = {suites: [srcDataSuites1], total: 1, passed: 1, retries: 0};
+                    const initialData = mkInitialData({
+                        suites: [srcDataSuites1],
+                        stats: {
+                            total: 1,
+                            passed: 1,
+                            retries: 0
+                        }
+                    });
                     const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
                     const result = await mkDataTree_(initialData).mergeWith(dataCollection);
@@ -711,12 +819,15 @@ describe('lib/merge-reports/data-tree', () => {
                     assert.equal(result.total, 1);
                     assert.equal(result.passed, 1);
                     assert.equal(result.retries, 1);
+                    assert.equal(result.perBrowser['default-bro'].total, 1);
+                    assert.equal(result.perBrowser['default-bro'].passed, 1);
+                    assert.equal(result.perBrowser['default-bro'].retries, 1);
                 });
             });
         });
 
         describe('with children and browsers', () => {
-            it('should add data to suite from children with error status', async () => {
+            it('should merge stats from suite with children and browsers', async () => {
                 const srcDataSuites1 = mkSuite({
                     suitePath: ['first suite'],
                     status: SUCCESS
@@ -729,7 +840,6 @@ describe('lib/merge-reports/data-tree', () => {
                             suitePath: ['first suite', 'second suite'],
                             status: ERROR,
                             browsers: [mkBrowserResult({
-                                name: 'second-bro',
                                 result: mkTestResult({status: ERROR})
                             })],
                             children: [
@@ -737,7 +847,6 @@ describe('lib/merge-reports/data-tree', () => {
                                     suitePath: ['first suite', 'second suite', 'third suite'],
                                     status: ERROR,
                                     browsers: [mkBrowserResult({
-                                        name: 'second-bro',
                                         result: mkTestResult({status: ERROR})
                                     })]
                                 })
@@ -746,82 +855,21 @@ describe('lib/merge-reports/data-tree', () => {
                     ]
                 });
 
-                const initialData = {suites: [srcDataSuites1], total: 0, passed: 0, failed: 0, skipped: 0};
+                const initialData = mkInitialData({
+                    suites: [srcDataSuites1],
+                    stats: {
+                        total: 0,
+                        failed: 0
+                    }
+                });
                 const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
 
                 const result = await mkDataTree_(initialData).mergeWith(dataCollection);
 
                 assert.equal(result.total, 2);
                 assert.equal(result.failed, 2);
-                assert.equal(result.passed, 0);
-                assert.equal(result.skipped, 0);
-            });
-
-            it('should add data to suite from browsers with error status', async () => {
-                const srcDataSuites1 = mkSuite({
-                    suitePath: ['first suite'],
-                    status: SUCCESS,
-                    children: [
-                        mkSuite({
-                            suitePath: ['first suite', 'second suite'],
-                            status: SUCCESS,
-                            children: [
-                                mkState({
-                                    suitePath: ['first suite', 'second suite', 'third suite'],
-                                    status: SUCCESS,
-                                    browsers: [mkBrowserResult({
-                                        name: 'first-bro',
-                                        result: mkTestResult({status: SUCCESS})
-                                    })]
-                                })
-                            ]
-                        })
-                    ]
-                });
-                const srcDataSuites2 = mkSuite({
-                    suitePath: ['first suite'],
-                    status: ERROR,
-                    children: [
-                        mkSuite({
-                            suitePath: ['first suite', 'second suite'],
-                            status: ERROR,
-                            browsers: [mkBrowserResult({
-                                name: 'second-bro',
-                                result: mkTestResult({status: ERROR})
-                            })]
-                        })
-                    ]
-                });
-
-                const initialData = {suites: [srcDataSuites1]};
-                const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
-
-                const {suites} = await mkDataTree_(initialData).mergeWith(dataCollection);
-
-                assert.deepEqual(suites[0], mkSuite({
-                    suitePath: ['first suite'],
-                    status: ERROR,
-                    children: [
-                        mkSuite({
-                            suitePath: ['first suite', 'second suite'],
-                            status: ERROR,
-                            children: [
-                                mkState({
-                                    suitePath: ['first suite', 'second suite', 'third suite'],
-                                    status: SUCCESS,
-                                    browsers: [mkBrowserResult({
-                                        name: 'first-bro',
-                                        result: mkTestResult({status: SUCCESS})
-                                    })]
-                                })
-                            ],
-                            browsers: [mkBrowserResult({
-                                name: 'second-bro',
-                                result: mkTestResult({status: ERROR})
-                            })]
-                        })
-                    ]
-                }));
+                assert.equal(result.perBrowser['default-bro'].total, 2);
+                assert.equal(result.perBrowser['default-bro'].failed, 2);
             });
         });
     });
