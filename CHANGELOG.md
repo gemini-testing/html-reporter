@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.12.2"></a>
+## [4.12.2](https://github.com/gemini-testing/html-reporter/compare/v4.12.1...v4.12.2) (2019-09-05)
+
+
+### Bug Fixes
+
+* corret retries order in report ([#261](https://github.com/gemini-testing/html-reporter/issues/261)) ([e60e7bc](https://github.com/gemini-testing/html-reporter/commit/e60e7bc))
+
+
+
 <a name="4.12.1"></a>
 ## [4.12.1](https://github.com/gemini-testing/html-reporter/compare/v4.12.0...v4.12.1) (2019-08-23)
 
