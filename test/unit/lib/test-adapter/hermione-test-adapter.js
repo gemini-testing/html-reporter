@@ -31,6 +31,11 @@ describe('hermione test adapter', () => {
         return new HermioneTestResultAdapter(testResult, tool);
     };
 
+    const mkTestResult_ = (result) => _.defaults(result, {
+        id: () => 'some-id',
+        fullTitle: () => 'default-title'
+    });
+
     const mkErrStub = (ErrType = ImageDiffError) => {
         const err = new ErrType();
 
@@ -54,25 +59,21 @@ describe('hermione test adapter', () => {
     afterEach(() => sandbox.restore());
 
     it('should return suite attempt', () => {
-        const testResult = {retriesLeft: 0, browserId: 'bro'};
-        const config = {
-            retry: 0,
-            browsers: {
-                bro: {retry: 5}
-            }
-        };
+        const firstTestResult = mkTestResult_({fullTitle: () => 'some-title'});
+        const secondTestResult = mkTestResult_({fullTitle: () => 'other-title'});
 
-        const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {config});
+        mkHermioneTestResultAdapter(firstTestResult);
 
-        assert.equal(hermioneTestAdapter.attempt, 5);
+        assert.equal(mkHermioneTestResultAdapter(firstTestResult).attempt, 1);
+        assert.equal(mkHermioneTestResultAdapter(secondTestResult).attempt, 0);
     });
 
     it('should return test error with "message", "stack" and "stateName"', () => {
-        const testResult = {
+        const testResult = mkTestResult_({
             err: {
                 message: 'some-message', stack: 'some-stack', stateName: 'some-test', foo: 'bar'
             }
-        };
+        });
 
         const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
 
@@ -84,7 +85,7 @@ describe('hermione test adapter', () => {
     });
 
     it('should return test state', () => {
-        const testResult = {title: 'some-test'};
+        const testResult = mkTestResult_({title: 'some-test'});
 
         const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
 
@@ -92,7 +93,7 @@ describe('hermione test adapter', () => {
     });
 
     it('should return assert view results', () => {
-        const testResult = {assertViewResults: [1]};
+        const testResult = mkTestResult_({assertViewResults: [1]});
 
         const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
 
@@ -102,10 +103,10 @@ describe('hermione test adapter', () => {
     describe('saveTestImages', () => {
         it('should build diff to tmp dir', async () => {
             tmp.tmpdir = 'tmp/dir';
-            const testResult = {
+            const testResult = mkTestResult_({
                 id: () => '',
                 assertViewResults: [err]
-            };
+            });
             utils.getDiffPath.returns('diff/report/path');
 
             const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {}, {});
@@ -117,10 +118,10 @@ describe('hermione test adapter', () => {
 
         it('should save diff in report from tmp dir using external storage', async () => {
             tmp.tmpdir = 'tmp/dir';
-            const testResult = {
+            const testResult = mkTestResult_({
                 id: () => '',
                 assertViewResults: [err]
-            };
+            });
             utils.getDiffPath.returns('diff/report/path');
             const imagesSaver = {saveImg: sandbox.stub()};
             const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {}, {imagesSaver});
@@ -137,7 +138,7 @@ describe('hermione test adapter', () => {
 
     describe('hasDiff()', () => {
         it('should return true if test has image diff errors', () => {
-            const testResult = {assertViewResults: [new ImageDiffError()]};
+            const testResult = mkTestResult_({assertViewResults: [new ImageDiffError()]});
 
             const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {errors: {ImageDiffError}});
 
@@ -145,7 +146,7 @@ describe('hermione test adapter', () => {
         });
 
         it('should return false if test has not image diff errors', () => {
-            const testResult = {assertViewResults: [new Error()]};
+            const testResult = mkTestResult_({assertViewResults: [new Error()]});
 
             const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {errors: {ImageDiffError}});
 
@@ -154,7 +155,7 @@ describe('hermione test adapter', () => {
     });
 
     it('should return image dir', () => {
-        const testResult = {id: () => 'some-id'};
+        const testResult = mkTestResult_({id: () => 'some-id'});
 
         const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
 
@@ -162,7 +163,7 @@ describe('hermione test adapter', () => {
     });
 
     it('should return description', () => {
-        const testResult = {description: 'some-description'};
+        const testResult = mkTestResult_({description: 'some-description'});
 
         const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
 
@@ -175,9 +176,9 @@ describe('hermione test adapter', () => {
     ].forEach(({field, method}) => {
         describe(`${method}`, () => {
             it(`should return ${field} from test result`, () => {
-                const testResult = {assertViewResults: [
+                const testResult = mkTestResult_({assertViewResults: [
                     {[field]: 'some-value', stateName: 'plain'}
-                ]};
+                ]});
 
                 const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
 
@@ -188,7 +189,7 @@ describe('hermione test adapter', () => {
 
     describe('getErrImg', () => {
         it('should return error screenshot from test result', () => {
-            const testResult = {err: {screenshot: 'some-value'}};
+            const testResult = mkTestResult_({err: {screenshot: 'some-value'}});
 
             const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
 
@@ -198,10 +199,10 @@ describe('hermione test adapter', () => {
 
     describe('prepareTestResult()', () => {
         it('should return correct "name" field', () => {
-            const testResult = {
+            const testResult = mkTestResult_({
                 root: true,
                 title: 'some-title'
-            };
+            });
 
             const result = mkHermioneTestResultAdapter(testResult).prepareTestResult();
 
@@ -210,10 +211,10 @@ describe('hermione test adapter', () => {
 
         it('should return correct "suitePath" field', () => {
             const parentSuite = {parent: {root: true}, title: 'root-title'};
-            const testResult = {
+            const testResult = mkTestResult_({
                 parent: parentSuite,
                 title: 'some-title'
-            };
+            });
 
             const result = mkHermioneTestResultAdapter(testResult).prepareTestResult();
 
@@ -221,10 +222,10 @@ describe('hermione test adapter', () => {
         });
 
         it('should return "browserId" field as is', () => {
-            const testResult = {
+            const testResult = mkTestResult_({
                 root: true,
                 browserId: 'bro'
-            };
+            });
 
             const result = mkHermioneTestResultAdapter(testResult).prepareTestResult();
 
@@ -237,8 +238,6 @@ describe('hermione test adapter', () => {
             sandbox.stub(utils, 'copyImageAsync');
             sandbox.stub(utils, 'getReferencePath').returns('some/ref.png');
         });
-
-        const mkTestResult_ = (result) => _.defaults(result, {id: () => 'some-id'});
 
         it('should not reinit "imagesInfo"', () => {
             const testResult = mkTestResult_({imagesInfo: [1, 2]});
@@ -314,9 +313,9 @@ describe('hermione test adapter', () => {
 
         describe('if screenshot on reject does not exist', () => {
             it('should not save screenshot', () => {
-                const testResult = {
+                const testResult = mkTestResult_({
                     err: {screenshot: {base64: null}}
-                };
+                });
                 const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
 
                 return hermioneTestAdapter.saveBase64Screenshot()
@@ -324,9 +323,9 @@ describe('hermione test adapter', () => {
             });
 
             it('should warn about it', () => {
-                const testResult = {
+                const testResult = mkTestResult_({
                     err: {screenshot: {base64: null}}
-                };
+                });
                 const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
 
                 return hermioneTestAdapter.saveBase64Screenshot()
@@ -335,9 +334,9 @@ describe('hermione test adapter', () => {
         });
 
         it('should create directory for screenshot', () => {
-            const testResult = {
+            const testResult = mkTestResult_({
                 err: {screenshot: {base64: 'base64-data'}}
-            };
+            });
             utils.getCurrentPath.returns('dest/path');
             const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
 
@@ -346,9 +345,9 @@ describe('hermione test adapter', () => {
         });
 
         it('should save screenshot from base64 format', async () => {
-            const testResult = {
+            const testResult = mkTestResult_({
                 err: {screenshot: {base64: 'base64-data'}}
-            };
+            });
             utils.getCurrentPath.returns('dest/path');
             const bufData = new Buffer('base64-data', 'base64');
             const imagesSaver = {saveImg: sandbox.stub()};

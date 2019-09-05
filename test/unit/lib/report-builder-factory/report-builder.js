@@ -33,6 +33,11 @@ describe('ReportBuilder', () => {
     const stubTest_ = (opts = {}) => {
         const {imagesInfo = []} = opts;
 
+        let attempt = 0;
+        if (opts.attempt === undefined) {
+            Object.defineProperty(opts, 'attempt', {get: () => attempt++});
+        }
+
         return _.defaultsDeep(opts, {
             state: {name: 'name-default'},
             suite: {
@@ -112,6 +117,7 @@ describe('ReportBuilder', () => {
             meta: {sessionId: 'sessionId-retry'},
             hasDiff: () => false
         });
+
         reportBuilder.addRetry(test);
 
         test.meta.sessionId = 'sessionId-fail';
@@ -227,6 +233,19 @@ describe('ReportBuilder', () => {
         const names = _.map(reportBuilder.getResult().suites[0].children, 'name');
 
         assert.sameOrderedMembers(names, ['other-state', 'some-state']);
+    });
+
+    it('should save retries order in the tree', () => {
+        const reportBuilder = mkReportBuilder_();
+
+        reportBuilder.addRetry(stubTest_({attempt: 1, hasDiff: () => false}));
+        reportBuilder.addFail(stubTest_({attempt: 2, hasDiff: () => false}));
+        reportBuilder.addFail(stubTest_({attempt: 0, hasDiff: () => false}));
+        const testResult = reportBuilder.getResult().suites[0].children[0].browsers[0];
+
+        assert.equal(testResult.result.attempt, 2);
+        assert.equal(testResult.retries[0].attempt, 0);
+        assert.equal(testResult.retries[1].attempt, 1);
     });
 
     describe('suite statuses', () => {

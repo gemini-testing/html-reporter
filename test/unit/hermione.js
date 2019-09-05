@@ -61,6 +61,7 @@ describe('lib/hermione', () => {
 
     function mkStubResult_(options = {}) {
         return _.defaultsDeep(options, {
+            fullTitle: () => 'default-title',
             id: () => 'some-id',
             err: {
                 type: options.diff && 'ImageDiffError',
@@ -133,7 +134,7 @@ describe('lib/hermione', () => {
 
     it('should add skipped test to result', async () => {
         await initReporter_();
-        hermione.emit(events.TEST_PENDING, {title: 'some-title'});
+        hermione.emit(events.TEST_PENDING, mkStubResult_({title: 'some-title'}));
         await hermione.emitAndWait(hermione.events.RUNNER_END);
 
         assert.deepEqual(ReportBuilder.prototype.addSkipped.args[0][0].state, {name: 'some-title'});
@@ -141,7 +142,7 @@ describe('lib/hermione', () => {
 
     it('should add passed test to result', async () => {
         await initReporter_();
-        hermione.emit(events.TEST_PASS, {title: 'some-title'});
+        hermione.emit(events.TEST_PASS, mkStubResult_({title: 'some-title'}));
         await hermione.emitAndWait(hermione.events.RUNNER_END);
 
         assert.deepEqual(ReportBuilder.prototype.addSuccess.args[0][0].state, {name: 'some-title'});
@@ -164,7 +165,7 @@ describe('lib/hermione', () => {
                 const err = new Error();
                 err.stateName = 'state-name';
 
-                hermione.emit(events[event], {title: 'some-title', assertViewResults: [err]});
+                hermione.emit(events[event], mkStubResult_({title: 'some-title', assertViewResults: [err]}));
                 await hermione.emitAndWait(hermione.events.RUNNER_END);
 
                 assert.deepEqual(ReportBuilder.prototype.addError.args[0][0].state, {name: 'some-title'});
@@ -192,7 +193,7 @@ describe('lib/hermione', () => {
                 const err = new ImageDiffError();
                 err.stateName = 'state-name';
 
-                hermione.emit(events[event], {title: 'some-title', assertViewResults: [err]});
+                hermione.emit(events[event], mkStubResult_({title: 'some-title', assertViewResults: [err]}));
                 await hermione.emitAndWait(hermione.events.RUNNER_END);
 
                 assert.deepEqual(ReportBuilder.prototype.addFail.args[0][0].state, {name: 'some-title'});
