@@ -71,7 +71,6 @@ async function prepare(hermione, {reportBuilder, reportBuilderSqlite}, pluginCon
         const promises = [];
 
         hermione.on(hermione.events.TEST_PASS, testResult => {
-            console.log("hermione.js test pass");
             promises.push(queue.add(async () => {
 
                 const formattedResult = reportBuilder.format(testResult);
