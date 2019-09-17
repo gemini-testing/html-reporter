@@ -31,7 +31,10 @@ Array element must be `Object` ({'*name*': `String`, '*pattern*': `String`}) or 
 Test will be associated with group if test error matches on group error pattern.
 New group will be created if test cannot be associated with existing groups.
 * **metaInfoBaseUrls** (optional) `Object` - base paths for making link from Meta-info values. Object option must be Meta-info's key and value must be `String`. For example, {'file': 'base/path'}.
-
+* **saveFormat** (optional) `String` - allows to specify the format, in which the results will be saved. Avaliable values are:
+  * `json` - save results in JSON format to data.js file. Default value.
+  * `sqlite` - save results to both data.js file and to Sqlite database. 
+  
 Also there is ability to override plugin parameters by CLI options or environment variables
 (see [configparser](https://github.com/gemini-testing/configparser)).
 Use `html_reporter_` prefix for the environment variables and `--html-reporter-` for the cli options.
