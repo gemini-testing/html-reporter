@@ -4,7 +4,7 @@ const {EventEmitter} = require('events');
 const _ = require('lodash');
 const proxyquire = require('proxyquire');
 const {logger} = require('lib/server-utils');
-const ReportBuilder = require('lib/report-builder-factory/report-builder');
+const ReportBuilder = require('lib/report-builder-factory/report-builder-json');
 const PluginApi = require('lib/plugin-api');
 const {stubTool, stubConfig} = require('../utils');
 

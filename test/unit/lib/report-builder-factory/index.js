@@ -1,7 +1,7 @@
 'use strict';
 
 const ReportBuilderFactory = require('lib/report-builder-factory');
-const ReportBuilder = require('lib/report-builder-factory/report-builder');
+const ReportBuilder = require('lib/report-builder-factory/report-builder-json');
 const GeminiTestAdapter = require('lib/test-adapter/gemini-test-adapter');
 const HermioneTestAdapter = require('lib/test-adapter/hermione-test-adapter');
 

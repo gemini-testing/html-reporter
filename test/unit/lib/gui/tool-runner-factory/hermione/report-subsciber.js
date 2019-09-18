@@ -2,7 +2,7 @@
 
 const {EventEmitter} = require('events');
 const reportSubscriber = require('lib/gui/tool-runner-factory/hermione/report-subscriber');
-const ReportBuilder = require('lib/report-builder-factory/report-builder');
+const ReportBuilder = require('lib/report-builder-factory/report-builder-json');
 const clientEvents = require('lib/gui/constants/client-events');
 const {RUNNING} = require('lib/constants/test-statuses');
 const utils = require('lib/gui/tool-runner-factory/utils');

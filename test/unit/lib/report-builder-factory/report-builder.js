@@ -65,7 +65,7 @@ describe('ReportBuilder', () => {
         sandbox.stub(serverUtils, 'prepareCommonJSData');
 
         hasImage = sandbox.stub().returns(true);
-        ReportBuilder = proxyquire('lib/report-builder-factory/report-builder', {
+        ReportBuilder = proxyquire('lib/report-builder-factory/report-builder-json', {
             '../server-utils': {
                 hasImage
             }

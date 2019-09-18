@@ -3,7 +3,7 @@
 const path = require('path');
 const _ = require('lodash');
 const proxyquire = require('proxyquire');
-const ReportBuilder = require('lib/report-builder-factory/report-builder');
+const ReportBuilder = require('lib/report-builder-factory/report-builder-json');
 const {stubTool, stubConfig, mkSuite, mkState, mkBrowserResult, mkSuiteTree} = require('../../../utils');
 const serverUtils = require('lib/server-utils');
 

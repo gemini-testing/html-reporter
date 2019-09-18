@@ -22,7 +22,9 @@ function stubTool(config = stubConfig(), events = {}, errors = {}, htmlReporter)
 
     tool.readTests = sinon.stub();
     tool.htmlReporter = htmlReporter || sinon.stub();
-
+    tool.isWorker = () => {
+        return false;
+    };
     return tool;
 }
 
