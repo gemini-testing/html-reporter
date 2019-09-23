@@ -3,6 +3,7 @@
 const path = require('path');
 
 const fs = require('fs-extra');
+const _ = require('lodash');
 
 const DataTree = require('lib/merge-reports/data-tree');
 const {mkSuiteTree, mkSuite, mkState, mkBrowserResult, mkTestResult} = require('test/unit/utils');
@@ -1237,6 +1238,30 @@ describe('lib/merge-reports/data-tree', () => {
                         path.resolve('dest-report/path', `images/yabro~current_${attempt + 2}.png`)
                     );
                 });
+            });
+
+            it('should not change images paths in data tree which are specified as urls', async () => {
+                const srcImages1 = {
+                    actualImg: {path: 'https://host.com/src1/yabro~current_0.png'},
+                    expectedImg: {path: 'https://host.com/src1/yabro~ref_0.png'},
+                    diffImg: {path: 'https://host.com/src1/yabro~diff_0.png'}
+                };
+                const srcImages2 = {
+                    actualImg: {path: 'http://host.com/src2/yabro~current_0.png'},
+                    expectedImg: {path: 'https://host.com/src2/yabro~ref_0.png'},
+                    diffImg: {path: 'https://host.com/src2/yabro~diff_0.png'}
+                };
+                const srcDataSuites1 = mkSuiteTree({browsers: [mkBrowserResult({result: mkTestResult({imagesInfo: [_.cloneDeep(srcImages1)]})})]});
+                const srcDataSuites2 = mkSuiteTree({browsers: [mkBrowserResult({result: mkTestResult({imagesInfo: [_.cloneDeep(srcImages2)]})})]});
+
+                const initialData = {suites: [srcDataSuites1]};
+                const dataCollection = {'src-report/path': {suites: [srcDataSuites2]}};
+
+                const dataTree = await mkDataTree_(initialData, 'dest-report/path').mergeWith(dataCollection);
+                const browserData = dataTree.suites[0].children[0].browsers[0];
+
+                assert.deepEqual(browserData.result.imagesInfo[0], srcImages2);
+                assert.deepEqual(browserData.retries[0].imagesInfo[0], srcImages1);
             });
 
             it('should move images if there is successful test in source report', async () => {
