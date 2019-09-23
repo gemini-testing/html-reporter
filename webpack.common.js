@@ -58,7 +58,7 @@ module.exports = {
         }),
         new HtmlWebpackIncludeAssetsPlugin({
             files: ['index.html'],
-            assets: ['data.js'],
+            assets: ['data.js', 'sql-wasm.js'],
             append: false
         })
     ]
