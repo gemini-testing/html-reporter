@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.12.4"></a>
+## [4.12.4](https://github.com/gemini-testing/html-reporter/compare/v4.12.3...v4.12.4) (2019-09-23)
+
+
+### Bug Fixes
+
+* **merge:** correct merge of the paths which are specifed as urls ([f88e50f](https://github.com/gemini-testing/html-reporter/commit/f88e50f))
+
+
+
+<a name="4.12.3"></a>
+## [4.12.3](https://github.com/gemini-testing/html-reporter/compare/v4.12.2...v4.12.3) (2019-09-22)
+
+
+### Bug Fixes
+
+* x2 max request size ([706cd05](https://github.com/gemini-testing/html-reporter/commit/706cd05))
+
+
+
 <a name="4.12.2"></a>
 ## [4.12.2](https://github.com/gemini-testing/html-reporter/compare/v4.12.1...v4.12.2) (2019-09-05)
 
