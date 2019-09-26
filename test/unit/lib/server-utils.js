@@ -3,8 +3,13 @@
 const path = require('path');
 const fs = require('fs-extra');
 const utils = require('lib/server-utils');
+const {getShortMD5} = require('lib/gui/tool-runner-factory/hermione/utils');
 
 describe('server-utils', () => {
+    const sandbox = sinon.sandbox.create();
+
+    afterEach(() => sandbox.restore());
+
     [
         {name: 'Reference', prefix: 'ref'},
         {name: 'Current', prefix: 'current'},
@@ -47,13 +52,9 @@ describe('server-utils', () => {
         });
 
         describe(`get${testData.name}AbsolutePath`, () => {
-            const sandbox = sinon.sandbox.create();
-
             beforeEach(() => {
                 sandbox.stub(process, 'cwd').returns('/root');
             });
-
-            afterEach(() => sandbox.restore());
 
             it('should generate correct absolute path for test image', () => {
                 const test = {
@@ -80,10 +81,6 @@ describe('server-utils', () => {
     });
 
     describe('prepareCommonJSData', () => {
-        const sandbox = sinon.sandbox.create();
-
-        afterEach(() => sandbox.restore());
-
         it('should wrap passed data with commonjs wrapper', () => {
             const result = utils.prepareCommonJSData({some: 'data'});
 
@@ -103,14 +100,10 @@ describe('server-utils', () => {
     });
 
     describe('copyImageAsync', () => {
-        const sandbox = sinon.sandbox.create();
-
         beforeEach(() => {
             sandbox.stub(fs, 'copy').resolves();
             sandbox.stub(fs, 'mkdirs').resolves();
         });
-
-        afterEach(() => sandbox.restore());
 
         it('should create directory and copy image', () => {
             const fromPath = '/from/image.png',
@@ -121,6 +114,16 @@ describe('server-utils', () => {
                     assert.calledWithMatch(fs.mkdirs, '/to');
                     assert.calledWithMatch(fs.copy, fromPath, toPath);
                 });
+        });
+    });
+
+    describe('getDetailsFileName', () => {
+        it('should compose correct file name from suite path, browser id and attempt', () => {
+            sandbox.stub(Date, 'now').returns('123456789');
+            const suitePath = ['root-title', 'some-title'];
+            const expected = `${getShortMD5('root-title some-title')}-bro_2_123456789.json`;
+
+            assert.equal(utils.getDetailsFileName(suitePath, 'bro', 1), expected);
         });
     });
 });

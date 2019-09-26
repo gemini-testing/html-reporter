@@ -9,7 +9,7 @@ const fs = require('fs-extra');
 
 describe('hermione test adapter', () => {
     const sandbox = sinon.sandbox.create();
-    let tmp, HermioneTestResultAdapter, err;
+    let tmp, HermioneTestResultAdapter, err, getSuitePath;
 
     class ImageDiffError extends Error {}
     class NoRefImageError extends Error {}
@@ -48,7 +48,12 @@ describe('hermione test adapter', () => {
 
     beforeEach(() => {
         tmp = {tmpdir: 'default/dir'};
-        HermioneTestResultAdapter = proxyquire('../../../../lib/test-adapter/hermione-test-adapter', {tmp});
+        getSuitePath = sandbox.stub();
+
+        HermioneTestResultAdapter = proxyquire('../../../../lib/test-adapter/hermione-test-adapter', {
+            tmp,
+            '../plugin-utils': {getHermioneUtils: () => ({getSuitePath})}
+        });
         sandbox.stub(utils, 'getCurrentPath').returns('');
         sandbox.stub(utils, 'getDiffPath').returns('');
         sandbox.stub(fs, 'readFile').resolves(Buffer.from(''));
@@ -98,6 +103,127 @@ describe('hermione test adapter', () => {
         const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
 
         assert.deepEqual(hermioneTestAdapter.assertViewResults, [1]);
+    });
+
+    describe('error details', () => {
+        let getDetailsFileName;
+
+        beforeEach(() => {
+            getDetailsFileName = sandbox.stub(utils, 'getDetailsFileName').returns('');
+        });
+
+        it('should be returned for test if they are available', () => {
+            const testResult = mkTestResult_({
+                err: {
+                    details: {title: 'some-title', data: {foo: 'bar'}}
+                }
+            });
+            getDetailsFileName.returns('md5-bro-n-time');
+
+            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+
+            assert.deepEqual(hermioneTestAdapter.errorDetails, {
+                title: 'some-title',
+                data: {foo: 'bar'},
+                filePath: 'error-details/md5-bro-n-time'
+            });
+        });
+
+        it('should have "error details" title if no title is given', () => {
+            const testResult = mkTestResult_({
+                err: {
+                    details: {data: {foo: 'bar'}}
+                }
+            });
+            getDetailsFileName.returns('md5-bro-n-time');
+
+            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+
+            assert.deepEqual(hermioneTestAdapter.errorDetails, {
+                title: 'error details',
+                data: {foo: 'bar'},
+                filePath: 'error-details/md5-bro-n-time'
+            });
+        });
+
+        it('should be memoized', () => {
+            const testResult = mkTestResult_({
+                err: {
+                    details: {title: 'some-title', data: {foo: 'bar'}}
+                }
+            });
+            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+
+            const firstErrDetails = hermioneTestAdapter.errorDetails;
+            const secondErrDetails = hermioneTestAdapter.errorDetails;
+
+            assert.calledOnce(getDetailsFileName);
+            assert.deepEqual(firstErrDetails, secondErrDetails);
+        });
+
+        it('should be returned as null if absent', () => {
+            const testResult = mkTestResult_({err: {}});
+
+            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+
+            assert.equal(hermioneTestAdapter.errorDetails, null);
+        });
+
+        it('should use suite path, browser-id and attempt for filepath composing', () => {
+            const testResult = mkTestResult_({
+                browserId: 'bro',
+                err: {
+                    details: {data: {foo: 'bar'}}
+                }
+            });
+            getSuitePath.returns(['root-title', 'some-title']);
+
+            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+
+            // we need to get errorDetails to trigger getDetailsFileName to be called
+            hermioneTestAdapter.errorDetails;
+
+            assert.calledWith(getDetailsFileName, ['root-title', 'some-title'], 'bro', hermioneTestAdapter.attempt);
+        });
+    });
+
+    describe('saveErrorDetails', () => {
+        let fsWriteFile;
+
+        beforeEach(() => {
+            fsWriteFile = sandbox.stub(fs, 'writeFile').returns();
+            sandbox.stub(utils, 'getDetailsFileName').returns('md5-bro-n-time');
+        });
+
+        it('should do nothing if no error details are available', async () => {
+            const hermioneTestAdapter = mkHermioneTestResultAdapter(mkTestResult_({err: {}}));
+
+            await hermioneTestAdapter.saveErrorDetails();
+
+            assert.notCalled(fsWriteFile);
+        });
+
+        it('should save error details to correct path', async () => {
+            const testResult = mkTestResult_({err: {
+                details: {title: 'some-title', data: {}}
+            }});
+            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+            const {filePath} = hermioneTestAdapter.errorDetails;
+
+            await hermioneTestAdapter.saveErrorDetails('report-path');
+
+            assert.calledWithMatch(fsWriteFile, `report-path/${filePath}`, sinon.match.any);
+        });
+
+        it('should save error details', async () => {
+            const data = {foo: 'bar'};
+            const testResult = mkTestResult_({err: {details: {data}}});
+            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+
+            await hermioneTestAdapter.saveErrorDetails('');
+
+            assert.calledWith(fsWriteFile, sinon.match.any, JSON.stringify(data, null, 2));
+        });
     });
 
     describe('saveTestImages', () => {
@@ -215,6 +341,7 @@ describe('hermione test adapter', () => {
                 parent: parentSuite,
                 title: 'some-title'
             });
+            getSuitePath.returns(['root-title', 'some-title']);
 
             const result = mkHermioneTestResultAdapter(testResult).prepareTestResult();
 
