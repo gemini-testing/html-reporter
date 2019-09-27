@@ -3,6 +3,7 @@
 const _ = require('lodash');
 const utils = require('lib/server-utils');
 const {SUCCESS} = require('lib/constants/test-statuses');
+const {ERROR_DETAILS_PATH} = require('lib/constants/paths');
 const {stubTool, stubConfig} = require('../../utils');
 const proxyquire = require('proxyquire');
 const fs = require('fs-extra');
@@ -125,25 +126,16 @@ describe('hermione test adapter', () => {
             assert.deepEqual(hermioneTestAdapter.errorDetails, {
                 title: 'some-title',
                 data: {foo: 'bar'},
-                filePath: 'error-details/md5-bro-n-time'
+                filePath: `${ERROR_DETAILS_PATH}/md5-bro-n-time`
             });
         });
 
         it('should have "error details" title if no title is given', () => {
-            const testResult = mkTestResult_({
-                err: {
-                    details: {data: {foo: 'bar'}}
-                }
-            });
-            getDetailsFileName.returns('md5-bro-n-time');
+            const testResult = mkTestResult_({err: {details: {}}});
 
             const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
 
-            assert.deepEqual(hermioneTestAdapter.errorDetails, {
-                title: 'error details',
-                data: {foo: 'bar'},
-                filePath: 'error-details/md5-bro-n-time'
-            });
+            assert.propertyVal(hermioneTestAdapter.errorDetails, 'title', 'error details');
         });
 
         it('should be memoized', () => {
@@ -164,26 +156,25 @@ describe('hermione test adapter', () => {
         it('should be returned as null if absent', () => {
             const testResult = mkTestResult_({err: {}});
 
-            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+            const {errorDetails} = mkHermioneTestResultAdapter(testResult);
 
-            assert.equal(hermioneTestAdapter.errorDetails, null);
+            assert.isNull(errorDetails);
         });
 
-        it('should use suite path, browser-id and attempt for filepath composing', () => {
+        it('should use test id, browser-id and attempt for filepath composing', () => {
             const testResult = mkTestResult_({
+                id: 'abcdef',
                 browserId: 'bro',
                 err: {
                     details: {data: {foo: 'bar'}}
                 }
             });
-            getSuitePath.returns(['root-title', 'some-title']);
-
             const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
 
             // we need to get errorDetails to trigger getDetailsFileName to be called
             hermioneTestAdapter.errorDetails;
 
-            assert.calledWith(getDetailsFileName, ['root-title', 'some-title'], 'bro', hermioneTestAdapter.attempt);
+            assert.calledWith(getDetailsFileName, 'abcdef', 'bro', hermioneTestAdapter.attempt);
         });
     });
 
@@ -191,8 +182,10 @@ describe('hermione test adapter', () => {
         let fsWriteFile;
 
         beforeEach(() => {
-            fsWriteFile = sandbox.stub(fs, 'writeFile').returns();
+            sandbox.stub(utils, 'makeDirFor').resolves();
             sandbox.stub(utils, 'getDetailsFileName').returns('md5-bro-n-time');
+
+            fsWriteFile = sandbox.stub(fs, 'writeFile').resolves();
         });
 
         it('should do nothing if no error details are available', async () => {
@@ -213,6 +206,15 @@ describe('hermione test adapter', () => {
             await hermioneTestAdapter.saveErrorDetails('report-path');
 
             assert.calledWithMatch(fsWriteFile, `report-path/${filePath}`, sinon.match.any);
+        });
+
+        it('should create directory for error details', async () => {
+            const testResult = mkTestResult_({err: {details: {data: {}}}});
+            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+
+            await hermioneTestAdapter.saveErrorDetails('report-path');
+
+            assert.calledOnceWith(utils.makeDirFor, sinon.match(`report-path/${ERROR_DETAILS_PATH}`));
         });
 
         it('should save error details', async () => {

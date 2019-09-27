@@ -3,7 +3,7 @@
 const path = require('path');
 const fs = require('fs-extra');
 const utils = require('lib/server-utils');
-const {getShortMD5} = require('lib/gui/tool-runner-factory/hermione/utils');
+const {IMAGES_PATH} = require('lib/constants/paths');
 
 describe('server-utils', () => {
     const sandbox = sinon.sandbox.create();
@@ -25,7 +25,7 @@ describe('server-utils', () => {
 
                 const resultPath = utils[`get${testData.name}Path`](test);
 
-                assert.equal(resultPath, path.join('images', 'some', 'dir', `bro~${testData.prefix}_2.png`));
+                assert.equal(resultPath, path.join(IMAGES_PATH, 'some', 'dir', `bro~${testData.prefix}_2.png`));
             });
 
             it('should add default attempt if it does not exist from test', () => {
@@ -36,7 +36,7 @@ describe('server-utils', () => {
 
                 const resultPath = utils[`get${testData.name}Path`](test);
 
-                assert.equal(resultPath, path.join('images', 'some', 'dir', `bro~${testData.prefix}_0.png`));
+                assert.equal(resultPath, path.join(IMAGES_PATH, 'some', 'dir', `bro~${testData.prefix}_0.png`));
             });
 
             it('should add state name to the path if it was passed', () => {
@@ -47,7 +47,7 @@ describe('server-utils', () => {
 
                 const resultPath = utils[`get${testData.name}Path`](test, 'plain');
 
-                assert.equal(resultPath, path.join('images', 'some', 'dir', `plain/bro~${testData.prefix}_0.png`));
+                assert.equal(resultPath, path.join(IMAGES_PATH, 'some', 'dir', `plain/bro~${testData.prefix}_0.png`));
             });
         });
 
@@ -64,7 +64,7 @@ describe('server-utils', () => {
 
                 const resultPath = utils[`get${testData.name}AbsolutePath`](test, 'reportPath');
 
-                assert.equal(resultPath, path.join('/root', 'reportPath', 'images', 'some', 'dir', `bro~${testData.prefix}_0.png`));
+                assert.equal(resultPath, path.join('/root', 'reportPath', IMAGES_PATH, 'some', 'dir', `bro~${testData.prefix}_0.png`));
             });
 
             it('should add state name to the path if it was passed', () => {
@@ -75,7 +75,7 @@ describe('server-utils', () => {
 
                 const resultPath = utils[`get${testData.name}AbsolutePath`](test, 'reportPath', 'plain');
 
-                assert.equal(resultPath, path.join('/root', 'reportPath', 'images', 'some', 'dir', 'plain', `bro~${testData.prefix}_0.png`));
+                assert.equal(resultPath, path.join('/root', 'reportPath', IMAGES_PATH, 'some', 'dir', 'plain', `bro~${testData.prefix}_0.png`));
             });
         });
     });
@@ -120,10 +120,10 @@ describe('server-utils', () => {
     describe('getDetailsFileName', () => {
         it('should compose correct file name from suite path, browser id and attempt', () => {
             sandbox.stub(Date, 'now').returns('123456789');
-            const suitePath = ['root-title', 'some-title'];
-            const expected = `${getShortMD5('root-title some-title')}-bro_2_123456789.json`;
+            const testId = 'abcdef';
+            const expected = `${testId}-bro_2_123456789.json`;
 
-            assert.equal(utils.getDetailsFileName(suitePath, 'bro', 1), expected);
+            assert.equal(utils.getDetailsFileName(testId, 'bro', 1), expected);
         });
     });
 });
