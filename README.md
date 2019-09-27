@@ -20,6 +20,7 @@ Plugin has following configuration:
 * **path** (optional) `String` - path to directory for saving html report file; by
 default html report will be saved into `gemini-report/index.html` inside current work
 directory.
+* **saveErrorDetails** (optional) `Boolean` – save/don't save error details to json-files (to error-details folder); `false` by default
 * **defaultView** (optional) `String` - default view mode. Available values are:
   * `all` - show all tests. Default value.
   * `failed` - show only failed tests.

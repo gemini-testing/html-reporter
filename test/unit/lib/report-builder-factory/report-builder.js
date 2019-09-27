@@ -208,6 +208,34 @@ describe('ReportBuilder', () => {
         });
     });
 
+    it('should add error details to result if saveErrorDetails is set', () => {
+        const reportBuilder = mkReportBuilder_({pluginConfig: {saveErrorDetails: true}});
+
+        reportBuilder.addFail(stubTest_({
+            errorDetails: {title: 'some-title', filePath: 'some-path'}
+        }));
+
+        assert.match(getReportBuilderResult_(reportBuilder), {
+            errorDetails: {
+                title: 'some-title', filePath: 'some-path'
+            }
+        });
+    });
+
+    it('should not add error details to result if saveErrorDetails is not set', () => {
+        const reportBuilder = mkReportBuilder_({pluginConfig: {saveErrorDetails: false}});
+
+        reportBuilder.addFail(stubTest_({
+            errorDetails: {title: 'some-title', filePath: 'some-path'}
+        }));
+
+        assert.notDeepInclude(getReportBuilderResult_(reportBuilder), {
+            errorDetails: {
+                title: 'some-title', filePath: 'some-path'
+            }
+        });
+    });
+
     it('should add error test to result', () => {
         const reportBuilder = mkReportBuilder_();
 
