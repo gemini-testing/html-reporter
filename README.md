@@ -120,7 +120,15 @@ Example of usage:
 ```
 npx hermione merge-reports src-report-1 src-report-2 -d dest-report
 ```
+### create-blank-report
 
+Command that saves files (index.html, report.min.js and etc.) to target directory
+so user can open empty html-report while no test data is provided yet. 
+
+Example of usage:
+```
+npx hermione create-blank-report target-dir
+```
 
 ## Testing
 

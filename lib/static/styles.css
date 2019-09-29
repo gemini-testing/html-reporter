@@ -636,3 +636,29 @@ a:active {
     float: right;
     color: gray;
 }
+
+.db-fetch__body p {
+    margin: 0.5em 0;
+}
+
+.db-fetch__body p:hover {
+    color: #2d3e50;
+}
+
+.db-fetch__body > p {
+    font-style: italic;
+    font-weight: normal;
+    cursor: pointer;
+}
+
+.db-fetch__success {
+    color: green;
+    font-weight: bold;
+}
+
+.db-fetch__fail {
+    color: red;
+}
+.db-fetch__item {
+    margin-left: 1em !important;
+}
