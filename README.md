@@ -20,7 +20,15 @@ Plugin has following configuration:
 * **path** (optional) `String` - path to directory for saving html report file; by
 default html report will be saved into `gemini-report/index.html` inside current work
 directory.
-* **saveErrorDetails** (optional) `Boolean` – save/don't save error details to json-files (to error-details folder); `false` by default
+* **saveErrorDetails** (optional) `Boolean` – save/don't save error details to json-files (to error-details folder); `false` by default.
+
+  Any plugin of hermione can add error details when throwing an error. Details can help a user to debug a problem in a test. Html-reporter saves these details to a file with name `<hash of suite path>-<browser>_<retry number>_<timestamp>.json` in the error-details folder. Below a stacktrace html-reporter adds the section `Error details` with the link `title` pointing to the json-file. A user can open it in a browser or any IDE.
+
+  How to add error details when throwing an error from a plugin:
+```
+   const err = new Error('some error');
+   err.details = {title: 'description, will be used as url title', data: {} | [] | 'some additional info'};
+```
 * **defaultView** (optional) `String` - default view mode. Available values are:
   * `all` - show all tests. Default value.
   * `failed` - show only failed tests.
