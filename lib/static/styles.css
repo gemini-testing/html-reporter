@@ -11,6 +11,33 @@
     display: inline;
 }
 
+.summary__db_key {
+    cursor: pointer;
+}
+
+.summary__db_body {
+    display: inline-block;
+    vertical-align: top;
+}
+
+.summary__db_body p {
+    margin: 0.25em 1.25em 0 1.25em;
+}
+
+.summary__db_body > div {
+    position: absolute;
+    background: white;
+    padding: 0.25em;
+    border: 1px solid #cccccc;
+    border-top: none;
+    z-index: 1;
+    display: block;
+}
+
+.dbs_collapsed > div {
+    display: none;
+}
+
 .summary__key::after {
     content: ':';
 }
@@ -196,6 +223,7 @@
 
 .section__title:before,
 .error-group__title:before,
+.summary__db_key:before,
 .state-title:before {
     height: 18px;
 }
@@ -203,6 +231,7 @@
 .section__title:before,
 .error-group__title:before,
 .state-title:before,
+.summary__db_key:before,
 .toggle-open__switcher:before {
     display: inline-block;
     margin-right: 2px;
@@ -293,6 +322,7 @@
 .section_collapsed .section__title:before,
 .error-group_collapsed .error-group__title:before,
 .state-title_collapsed:before,
+.dbs_collapsed > dt:before,
 .toggle-open_collapsed .toggle-open__switcher:before {
     -webkit-transform: rotate(-90deg);
     -moz-transform: rotate(-90deg);
@@ -637,28 +667,16 @@ a:active {
     color: gray;
 }
 
-.db-fetch__body p {
-    margin: 0.5em 0;
-}
-
-.db-fetch__body p:hover {
-    color: #2d3e50;
-}
-
-.db-fetch__body > p {
-    font-style: italic;
-    font-weight: normal;
-    cursor: pointer;
-}
-
 .db-fetch__success {
-    color: green;
+    color: #038035;
     font-weight: bold;
 }
 
 .db-fetch__fail {
-    color: red;
+    color: #c00;
+    font-weight: bold;
 }
-.db-fetch__item {
-    margin-left: 1em !important;
+
+.db-fetch__url {
+    font-style: italic;
 }
