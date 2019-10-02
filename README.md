@@ -28,6 +28,7 @@ directory.
 ```
    const err = new Error('some error');
    err.details = {title: 'description, will be used as url title', data: {} | [] | 'some additional info'};
+   throw err;
 ```
 * **defaultView** (optional) `String` - default view mode. Available values are:
   * `all` - show all tests. Default value.
