@@ -32,6 +32,10 @@ async function prepare(hermione, reportBuilder, pluginConfig) {
         const formattedResult = reportBuilder.format(testResult);
         const actions = [formattedResult.saveTestImages(reportPath, workers)];
 
+        if (formattedResult.errorDetails) {
+            actions.push(formattedResult.saveErrorDetails(reportPath));
+        }
+
         if (formattedResult.screenshot) {
             actions.push(formattedResult.saveBase64Screenshot(reportPath));
         }
