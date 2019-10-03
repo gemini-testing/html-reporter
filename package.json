@@ -57,6 +57,7 @@
     "semver": "^5.5.0",
     "shelljs": "^0.8.1",
     "signal-exit": "^3.0.2",
+    "sql.js": "gemini-testing/sql.js#html-reporter",
     "sqlite": "^3.0.3",
     "sqlite3": "^4.1.0",
     "tmp": "^0.1.0",

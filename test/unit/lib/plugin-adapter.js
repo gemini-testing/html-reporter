@@ -90,10 +90,12 @@ describe('lib/plugin-adapter', () => {
                 parseConfig = sandbox.stub().returns({enabled: true});
                 cliCommands.gui = sandbox.stub();
                 cliCommands['merge-reports'] = sandbox.stub();
+                cliCommands['create-blank-report'] = sandbox.stub();
                 toolReporter = proxyquire('lib/plugin-adapter', {
                     './config': parseConfig,
                     './cli-commands/gui': cliCommands.gui,
-                    './cli-commands/merge-reports': cliCommands['merge-reports']
+                    './cli-commands/merge-reports': cliCommands['merge-reports'],
+                    './cli-commands/create-blank-report': cliCommands['create-blank-report']
                 });
             });
 
@@ -124,7 +126,8 @@ describe('lib/plugin-adapter', () => {
 
             [
                 'gui',
-                'merge-reports'
+                'merge-reports',
+                'create-blank-report'
             ].forEach((commandName) => {
                 describe(`${commandName} command`, () => {
                     it('should register command on "CLI" event', () => {
