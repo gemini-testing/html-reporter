@@ -8,6 +8,7 @@ const _ = require('lodash');
 const DataTree = require('lib/merge-reports/data-tree');
 const {mkSuiteTree, mkSuite, mkState, mkBrowserResult, mkTestResult} = require('test/unit/utils');
 const {SUCCESS, FAIL, ERROR, SKIPPED} = require('lib/constants/test-statuses');
+const {IMAGES_PATH} = require('lib/constants/paths');
 const {logger} = require('lib/server-utils');
 
 describe('lib/merge-reports/data-tree', () => {
@@ -982,9 +983,9 @@ describe('lib/merge-reports/data-tree', () => {
         });
 
         [
-            {keyName: 'actualImg', imgPaths: ['images/yabro~current_0.png', 'images/yabro~current_1.png']},
-            {keyName: 'expectedImg', imgPaths: ['images/yabro~ref_0.png', 'images/yabro~ref_1.png']},
-            {keyName: 'diffImg', imgPaths: ['images/yabro~diff_0.png', 'images/yabro~diff_1.png']}
+            {keyName: 'actualImg', imgPaths: [`${IMAGES_PATH}/yabro~current_0.png`, `${IMAGES_PATH}/yabro~current_1.png`]},
+            {keyName: 'expectedImg', imgPaths: [`${IMAGES_PATH}/yabro~ref_0.png`, `${IMAGES_PATH}/yabro~ref_1.png`]},
+            {keyName: 'diffImg', imgPaths: [`${IMAGES_PATH}/yabro~diff_0.png`, `${IMAGES_PATH}/yabro~diff_1.png`]}
         ].forEach(({keyName, imgPaths}) => {
             it(`should move image specified in "${keyName}" field`, async () => {
                 const srcDataSuites1 = mkSuiteTree();
@@ -1013,13 +1014,26 @@ describe('lib/merge-reports/data-tree', () => {
 
         it('should move images from non-existent suite in tree', async () => {
             const srcDataSuites1 = mkSuiteTree({suite: mkSuite({suitePath: ['suite1']})});
+
             const srcDataSuites2 = mkSuiteTree({
                 suite: mkSuite({suitePath: ['suite2']}),
                 state: mkState({suitePath: ['suite2', 'state']}),
                 browsers: [mkBrowserResult({
                     name: 'yabro',
-                    result: mkTestResult({imagesInfo: [{actualImg: {path: 'images/yabro~current_1.png'}}]}),
-                    retries: [mkTestResult({imagesInfo: [{actualImg: {path: 'images/yabro~current_0.png'}}]})]
+                    result: mkTestResult({
+                        imagesInfo: [{
+                            actualImg: {
+                                path: `${IMAGES_PATH}/yabro~current_1.png`
+                            }
+                        }]
+                    }),
+                    retries: [mkTestResult({
+                        imagesInfo: [{
+                            actualImg: {
+                                path: `${IMAGES_PATH}/yabro~current_0.png`
+                            }
+                        }]
+                    })]
                 })]
             });
 
@@ -1031,8 +1045,8 @@ describe('lib/merge-reports/data-tree', () => {
             [0, 1].forEach((attempt) => {
                 assert.calledWith(
                     fs.move,
-                    path.resolve('src-report/path', `images/yabro~current_${attempt}.png`),
-                    path.resolve('dest-report/path', `images/yabro~current_${attempt}.png`)
+                    path.resolve('src-report/path', `${IMAGES_PATH}/yabro~current_${attempt}.png`),
+                    path.resolve('dest-report/path', `${IMAGES_PATH}/yabro~current_${attempt}.png`)
                 );
             });
         });
@@ -1042,13 +1056,26 @@ describe('lib/merge-reports/data-tree', () => {
                 suite: mkSuite({suitePath: ['suite']}),
                 state: mkState({suitePath: ['suite', 'state']})
             });
+
             const srcDataSuites2 = mkSuiteTree({
                 suite: mkSuite({suitePath: ['suite']}),
                 state: mkState({suitePath: ['suite', 'state2']}),
                 browsers: [mkBrowserResult({
                     name: 'yabro',
-                    result: mkTestResult({imagesInfo: [{actualImg: {path: 'images/yabro~current_1.png'}}]}),
-                    retries: [mkTestResult({imagesInfo: [{actualImg: {path: 'images/yabro~current_0.png'}}]})]
+                    result: mkTestResult({
+                        imagesInfo: [{
+                            actualImg: {
+                                path: `${IMAGES_PATH}/yabro~current_1.png`
+                            }
+                        }]
+                    }),
+                    retries: [mkTestResult({
+                        imagesInfo: [{
+                            actualImg: {
+                                path: `${IMAGES_PATH}/yabro~current_0.png`
+                            }
+                        }]
+                    })]
                 })]
             });
 
@@ -1060,8 +1087,8 @@ describe('lib/merge-reports/data-tree', () => {
             [0, 1].forEach((attempt) => {
                 assert.calledWith(
                     fs.move,
-                    path.resolve('src-report/path', `images/yabro~current_${attempt}.png`),
-                    path.resolve('dest-report/path', `images/yabro~current_${attempt}.png`)
+                    path.resolve('src-report/path', `${IMAGES_PATH}/yabro~current_${attempt}.png`),
+                    path.resolve('dest-report/path', `${IMAGES_PATH}/yabro~current_${attempt}.png`)
                 );
             });
         });
@@ -1072,13 +1099,26 @@ describe('lib/merge-reports/data-tree', () => {
                 state: mkState({suitePath: ['suite', 'state']}),
                 browsers: []
             });
+
             const srcDataSuites2 = mkSuiteTree({
                 suite: mkSuite({suitePath: ['suite']}),
                 state: mkState({suitePath: ['suite', 'state']}),
                 browsers: [mkBrowserResult({
                     name: 'yabro',
-                    result: mkTestResult({imagesInfo: [{actualImg: {path: 'images/yabro~current_1.png'}}]}),
-                    retries: [mkTestResult({imagesInfo: [{actualImg: {path: 'images/yabro~current_0.png'}}]})]
+                    result: mkTestResult({
+                        imagesInfo: [{
+                            actualImg: {
+                                path: `${IMAGES_PATH}/yabro~current_1.png`
+                            }
+                        }]
+                    }),
+                    retries: [mkTestResult({
+                        imagesInfo: [{
+                            actualImg: {
+                                path: `${IMAGES_PATH}/yabro~current_0.png`
+                            }
+                        }]
+                    })]
                 })]
             });
 
@@ -1090,8 +1130,8 @@ describe('lib/merge-reports/data-tree', () => {
             [0, 1].forEach((attempt) => {
                 assert.calledWith(
                     fs.move,
-                    path.resolve('src-report/path', `images/yabro~current_${attempt}.png`),
-                    path.resolve('dest-report/path', `images/yabro~current_${attempt}.png`)
+                    path.resolve('src-report/path', `${IMAGES_PATH}/yabro~current_${attempt}.png`),
+                    path.resolve('dest-report/path', `${IMAGES_PATH}/yabro~current_${attempt}.png`)
                 );
             });
         });
@@ -1104,12 +1144,17 @@ describe('lib/merge-reports/data-tree', () => {
                         result: mkTestResult({status: SUCCESS})
                     })]
                 });
+
                 const srcDataSuites2 = mkSuiteTree({
                     browsers: [mkBrowserResult({
                         name: 'yabro',
                         result: mkTestResult({
                             status: SUCCESS,
-                            imagesInfo: [{actualImg: {path: 'images/yabro~current_0.png'}}]
+                            imagesInfo: [{
+                                actualImg: {
+                                    path: `${IMAGES_PATH}/yabro~current_0.png`
+                                }
+                            }]
                         })
                     })]
                 });
@@ -1121,8 +1166,8 @@ describe('lib/merge-reports/data-tree', () => {
 
                 assert.calledOnceWith(
                     fs.move,
-                    path.resolve('src-report/path', 'images/yabro~current_0.png'),
-                    path.resolve('dest-report/path', 'images/yabro~current_1.png')
+                    path.resolve('src-report/path', `${IMAGES_PATH}/yabro~current_0.png`),
+                    path.resolve('dest-report/path', `${IMAGES_PATH}/yabro~current_1.png`)
                 );
             });
 
@@ -1133,10 +1178,17 @@ describe('lib/merge-reports/data-tree', () => {
                         result: mkTestResult()
                     })]
                 });
+
                 const srcDataSuites2 = mkSuiteTree({
                     browsers: [mkBrowserResult({
                         name: 'yabro',
-                        result: mkTestResult({imagesInfo: [{actualImg: {path: 'images/yabro~current_0.png'}}]})
+                        result: mkTestResult({
+                            imagesInfo: [{
+                                actualImg: {
+                                    path: `${IMAGES_PATH}/yabro~current_0.png`
+                                }
+                            }]
+                        })
                     })]
                 });
 
@@ -1147,8 +1199,8 @@ describe('lib/merge-reports/data-tree', () => {
 
                 assert.calledWith(
                     fs.move,
-                    path.resolve('src-report/path', `images/yabro~current_0.png`),
-                    path.resolve('dest-report/path', `images/yabro~current_1.png`)
+                    path.resolve('src-report/path', `${IMAGES_PATH}/yabro~current_0.png`),
+                    path.resolve('dest-report/path', `${IMAGES_PATH}/yabro~current_1.png`)
                 );
             });
 
@@ -1159,11 +1211,24 @@ describe('lib/merge-reports/data-tree', () => {
                         result: mkTestResult()
                     })]
                 });
+
                 const srcDataSuites2 = mkSuiteTree({
                     browsers: [mkBrowserResult({
                         name: 'yabro',
-                        result: mkTestResult({imagesInfo: [{actualImg: {path: 'images/yabro~current_1.png'}}]}),
-                        retries: [mkTestResult({imagesInfo: [{actualImg: {path: 'images/yabro~current_0.png'}}]})]
+                        result: mkTestResult({
+                            imagesInfo: [{
+                                actualImg: {
+                                    path: `${IMAGES_PATH}/yabro~current_1.png`
+                                }
+                            }]
+                        }),
+                        retries: [mkTestResult({
+                            imagesInfo: [{
+                                actualImg: {
+                                    path: `${IMAGES_PATH}/yabro~current_0.png`
+                                }
+                            }]
+                        })]
                     })]
                 });
 
@@ -1175,8 +1240,8 @@ describe('lib/merge-reports/data-tree', () => {
                 [0, 1].forEach((attempt) => {
                     assert.calledWith(
                         fs.move,
-                        path.resolve('src-report/path', `images/yabro~current_${attempt}.png`),
-                        path.resolve('dest-report/path', `images/yabro~current_${attempt + 1}.png`)
+                        path.resolve('src-report/path', `${IMAGES_PATH}/yabro~current_${attempt}.png`),
+                        path.resolve('dest-report/path', `${IMAGES_PATH}/yabro~current_${attempt + 1}.png`)
                     );
                 });
             });
@@ -1187,14 +1252,25 @@ describe('lib/merge-reports/data-tree', () => {
                         name: 'yabro',
                         result: mkTestResult({
                             status: SUCCESS,
-                            imagesInfo: [{actualImg: {path: 'images/yabro~current_0.png'}}]
+                            imagesInfo: [{
+                                actualImg: {
+                                    path: `${IMAGES_PATH}/yabro~current_0.png`
+                                }
+                            }]
                         })
                     })]
                 });
+
                 const srcDataSuites2 = mkSuiteTree({
                     browsers: [mkBrowserResult({
                         name: 'yabro',
-                        result: mkTestResult({imagesInfo: [{actualImg: {path: 'images/yabro~current_0.png'}}]})
+                        result: mkTestResult({
+                            imagesInfo: [{
+                                actualImg: {
+                                    path: `${IMAGES_PATH}/yabro~current_0.png`
+                                }
+                            }]
+                        })
                     })]
                 });
 
@@ -1205,8 +1281,8 @@ describe('lib/merge-reports/data-tree', () => {
 
                 assert.calledWith(
                     fs.move,
-                    path.resolve('src-report/path', `images/yabro~current_0.png`),
-                    path.resolve('dest-report/path', `images/yabro~current_1.png`)
+                    path.resolve('src-report/path', `${IMAGES_PATH}/yabro~current_0.png`),
+                    path.resolve('dest-report/path', `${IMAGES_PATH}/yabro~current_1.png`)
                 );
             });
 
@@ -1214,15 +1290,34 @@ describe('lib/merge-reports/data-tree', () => {
                 const srcDataSuites1 = mkSuiteTree({
                     browsers: [mkBrowserResult({
                         name: 'yabro',
-                        result: mkTestResult({status: SUCCESS, imagesInfo: [{actualImg: {path: 'images/yabro~current_1.png'}}]}),
+                        result: mkTestResult({
+                            status: SUCCESS, imagesInfo: [{
+                                actualImg: {
+                                    path: `${IMAGES_PATH}/yabro~current_1.png`
+                                }
+                            }]
+                        }),
                         retries: [mkTestResult()]
                     })]
                 });
+
                 const srcDataSuites2 = mkSuiteTree({
                     browsers: [mkBrowserResult({
                         name: 'yabro',
-                        result: mkTestResult({imagesInfo: [{actualImg: {path: 'images/yabro~current_1.png'}}]}),
-                        retries: [mkTestResult({imagesInfo: [{actualImg: {path: 'images/yabro~current_0.png'}}]})]
+                        result: mkTestResult({
+                            imagesInfo: [{
+                                actualImg: {
+                                    path: `${IMAGES_PATH}/yabro~current_1.png`
+                                }
+                            }]
+                        }),
+                        retries: [mkTestResult({
+                            imagesInfo: [{
+                                actualImg: {
+                                    path: `${IMAGES_PATH}/yabro~current_0.png`
+                                }
+                            }]
+                        })]
                     })]
                 });
 
@@ -1234,8 +1329,8 @@ describe('lib/merge-reports/data-tree', () => {
                 [0, 1].forEach((attempt) => {
                     assert.calledWith(
                         fs.move,
-                        path.resolve('src-report/path', `images/yabro~current_${attempt}.png`),
-                        path.resolve('dest-report/path', `images/yabro~current_${attempt + 2}.png`)
+                        path.resolve('src-report/path', `${IMAGES_PATH}/yabro~current_${attempt}.png`),
+                        path.resolve('dest-report/path', `${IMAGES_PATH}/yabro~current_${attempt + 2}.png`)
                     );
                 });
             });
@@ -1271,12 +1366,17 @@ describe('lib/merge-reports/data-tree', () => {
                         result: mkTestResult()
                     })]
                 });
+
                 const srcDataSuites2 = mkSuiteTree({
                     browsers: [mkBrowserResult({
                         name: 'yabro',
                         result: mkTestResult({
                             status: SUCCESS,
-                            imagesInfo: [{actualImg: {path: 'images/yabro~current_0.png'}}]
+                            imagesInfo: [{
+                                actualImg: {
+                                    path: `${IMAGES_PATH}/yabro~current_0.png`
+                                }
+                            }]
                         })
                     })]
                 });
@@ -1288,8 +1388,8 @@ describe('lib/merge-reports/data-tree', () => {
 
                 assert.calledWith(
                     fs.move,
-                    path.resolve('src-report/path', 'images/yabro~current_0.png'),
-                    path.resolve('dest-report/path', 'images/yabro~current_1.png')
+                    path.resolve('src-report/path', `${IMAGES_PATH}/yabro~current_0.png`),
+                    path.resolve('dest-report/path', `${IMAGES_PATH}/yabro~current_1.png`)
                 );
             });
         });
@@ -1309,6 +1409,7 @@ describe('lib/merge-reports/data-tree', () => {
                         result: mkTestResult({status, attempt: 0})
                     })]
                 });
+
                 const srcDataSuites2 = mkSuiteTree({
                     suite: mkSuite({status}),
                     state: mkState({suitePath: ['default-suite', 'state2'], status}),
@@ -1355,6 +1456,7 @@ describe('lib/merge-reports/data-tree', () => {
                         result: mkTestResult({status: from, attempt: 0})
                     })]
                 });
+
                 const srcDataSuites2 = mkSuiteTree({
                     browsers: [mkBrowserResult({
                         name: 'yabro',
@@ -1404,6 +1506,7 @@ describe('lib/merge-reports/data-tree', () => {
                         result: mkTestResult({status, attempt: 0})
                     }))
                 });
+
                 const srcDataSuites2 = mkSuiteTree({
                     browsers: Object.entries(after).map(([name, status]) => mkBrowserResult({
                         name,

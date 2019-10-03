@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="4.13.0"></a>
+# [4.13.0](https://github.com/gemini-testing/html-reporter/compare/v4.12.5...v4.13.0) (2019-10-03)
+
+
+### Bug Fixes
+
+* add path constants, add unit-test, fix remarks ([15ee098](https://github.com/gemini-testing/html-reporter/commit/15ee098))
+* add saveErrorDetails option, unit-test, fix readme ([043b4b7](https://github.com/gemini-testing/html-reporter/commit/043b4b7))
+* add unit tests for plugin-utils ([507f71c](https://github.com/gemini-testing/html-reporter/commit/507f71c))
+* don't show error-details for assertView failures ([ef1bac9](https://github.com/gemini-testing/html-reporter/commit/ef1bac9))
+* move error details under stacktrace, add info to readme ([e532d83](https://github.com/gemini-testing/html-reporter/commit/e532d83))
+* move error details underneath ([5c374b5](https://github.com/gemini-testing/html-reporter/commit/5c374b5))
+
+
+### Features
+
+* save & show error details ([449ee78](https://github.com/gemini-testing/html-reporter/commit/449ee78))
+
+
+
 <a name="4.12.5"></a>
 ## [4.12.5](https://github.com/gemini-testing/html-reporter/compare/v4.12.4...v4.12.5) (2019-09-23)
 
