@@ -20,6 +20,8 @@ describe('lib/merge-reports/report-builder', () => {
         sandbox.stub(fs, 'move');
         sandbox.stub(fs, 'writeFile');
         sandbox.stub(fs, 'readdir').resolves([]);
+        sandbox.stub(fs, 'stat');
+        sandbox.stub(fs, 'ensureDir');
 
         sandbox.stub(DataTree, 'create').returns(Object.create(DataTree.prototype));
         sandbox.stub(DataTree.prototype, 'mergeWith').resolves();
@@ -27,26 +29,53 @@ describe('lib/merge-reports/report-builder', () => {
 
     afterEach(() => sandbox.restore());
 
-    it('should move contents of first source report to destination report', async () => {
-        fs.readdir.resolves(['file-path']);
+    describe('should move source reports to destination report', () => {
+        const fsStubReportWithFolder_ = (reportPath, folderPath, filePath) => {
+            fs.readdir.withArgs(path.resolve(reportPath)).resolves([folderPath]);
 
-        const srcFilePath = path.resolve('src-report/path-1', 'file-path');
-        const destFilePath = path.resolve('dest-report/path', 'file-path');
+            const folderFullPath = path.resolve(reportPath, folderPath);
+            fs.readdir.withArgs(folderFullPath).resolves([filePath]);
 
-        await buildReport_(['src-report/path-1', 'src-report/path-2'], 'dest-report/path');
+            fs.stat.withArgs(folderFullPath).resolves({isDirectory: () => true});
 
-        assert.calledWith(fs.move, srcFilePath, destFilePath, {overwrite: true});
-    });
+            const srcFilePath = path.resolve(reportPath, folderPath, filePath);
+            fs.stat.withArgs(srcFilePath).resolves({isDirectory: () => false});
 
-    it('should not move "data.js" file from first source report to destinatino report', async () => {
-        fs.readdir.resolves(['file-path', 'data.js']);
+            return srcFilePath;
+        };
 
-        const srcDataPath = path.resolve('src-report/path-1', 'data.js');
-        const destPath = path.resolve('dest-report/path');
+        it('including all subfolders', async () => {
+            const srcFooFilePath = fsStubReportWithFolder_('foo/src-report', 'folder-path', 'file-path');
+            const srcBarFilePath = fsStubReportWithFolder_('bar/src-report', 'folder-path', 'file-path');
 
-        await buildReport_(['src-report/path-1', 'src-report/path-2'], 'dest-report/path');
+            const destFilePath = path.resolve('buz/dest-report', 'folder-path', 'file-path');
 
-        assert.neverCalledWith(fs.move, srcDataPath, destPath);
+            await buildReport_(['foo/src-report', 'bar/src-report'], 'buz/dest-report');
+
+            assert.calledWith(fs.move, srcFooFilePath, destFilePath, {overwrite: true});
+            assert.calledWith(fs.move, srcBarFilePath, destFilePath, {overwrite: true});
+        });
+
+        it('skipping images folders', async () => {
+            fsStubReportWithFolder_('foo/src-report', 'images', 'file-path');
+            fsStubReportWithFolder_('bar/src-report', 'images', 'file-path');
+
+            await buildReport_(['foo/src-report', 'bar/src-report'], 'buz/dest-report');
+
+            assert.notCalled(fs.move);
+        });
+
+        it('skipping "data.js"', async () => {
+            fs.readdir.resolves(['file-path', 'data.js']);
+            fs.stat.resolves({isDirectory: () => false});
+
+            const srcDataPath = path.resolve('src-report/path-1', 'data.js');
+            const destPath = path.resolve('dest-report/path');
+
+            await buildReport_(['src-report/path-1', 'src-report/path-2'], 'dest-report/path');
+
+            assert.neverCalledWith(fs.move, srcDataPath, destPath);
+        });
     });
 
     it('should not fail if data file does not find in source report path', async () => {
