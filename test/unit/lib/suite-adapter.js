@@ -1,12 +1,12 @@
 'use strict';
 
-const HermioneSuiteAdapter = require('lib/suite-adapter/hermione-suite-adapter');
+const SuiteAdapter = require('lib/suite-adapter');
 
-describe('hermione suite adapter', () => {
+describe('suite adapter', () => {
     it('should return suite skip reason', () => {
         const suite = {skipReason: 'some-reason'};
 
-        const hermioneSuiteAdapter = new HermioneSuiteAdapter(suite);
+        const hermioneSuiteAdapter = new SuiteAdapter(suite);
 
         assert.equal(hermioneSuiteAdapter.skipComment, 'some-reason');
     });
@@ -14,7 +14,7 @@ describe('hermione suite adapter', () => {
     it('should return suite parent skip reason', () => {
         const suite = {parent: {skipReason: 'some-reason'}};
 
-        const hermioneSuiteAdapter = new HermioneSuiteAdapter(suite);
+        const hermioneSuiteAdapter = new SuiteAdapter(suite);
 
         assert.equal(hermioneSuiteAdapter.skipComment, 'some-reason');
     });
@@ -22,7 +22,7 @@ describe('hermione suite adapter', () => {
     it('should return suite full name', () => {
         const suite = {fullTitle: () => 'some-name'};
 
-        const hermioneSuiteAdapter = new HermioneSuiteAdapter(suite);
+        const hermioneSuiteAdapter = new SuiteAdapter(suite);
 
         assert.equal(hermioneSuiteAdapter.fullName, 'some-name');
     });
@@ -41,7 +41,7 @@ describe('hermione suite adapter', () => {
             }
         };
 
-        const hermioneSuiteAdapter = new HermioneSuiteAdapter(suite);
+        const hermioneSuiteAdapter = new SuiteAdapter(suite);
 
         assert.deepEqual(hermioneSuiteAdapter.path, ['other-title', 'some-title']);
     });
@@ -49,7 +49,7 @@ describe('hermione suite adapter', () => {
     it('should return suite file', () => {
         const suite = {file: 'some-file.js'};
 
-        const hermioneSuiteAdapter = new HermioneSuiteAdapter(suite);
+        const hermioneSuiteAdapter = new SuiteAdapter(suite);
 
         assert.equal(hermioneSuiteAdapter.file, 'some-file.js');
     });
@@ -57,7 +57,7 @@ describe('hermione suite adapter', () => {
     it('should return suite url', () => {
         const suite = {meta: {url: 'http://expected.url'}};
 
-        const hermioneSuiteAdapter = new HermioneSuiteAdapter(suite);
+        const hermioneSuiteAdapter = new SuiteAdapter(suite);
 
         assert.equal(hermioneSuiteAdapter.getUrl(), 'http://expected.url');
     });
@@ -65,7 +65,7 @@ describe('hermione suite adapter', () => {
     it('should return suite full url', () => {
         const suite = {meta: {url: 'some/url'}};
 
-        const hermioneSuiteAdapter = new HermioneSuiteAdapter(suite);
+        const hermioneSuiteAdapter = new SuiteAdapter(suite);
 
         assert.equal(hermioneSuiteAdapter.getUrl(), 'some/url');
     });

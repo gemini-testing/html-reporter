@@ -5,7 +5,7 @@ const _ = require('lodash');
 const proxyquire = require('proxyquire');
 const Promise = require('bluebird');
 
-const ToolRunnerFactory = require('lib/gui/tool-runner-factory');
+const ToolRunner = require('lib/gui/tool-runner');
 const {stubTool, stubConfig, mkImagesInfo} = require('../../utils');
 
 describe('lib/gui/app', () => {
@@ -47,7 +47,7 @@ describe('lib/gui/app', () => {
             'looks-same': looksSame
         });
 
-        sandbox.stub(ToolRunnerFactory, 'create').returns(toolRunner);
+        sandbox.stub(ToolRunner, 'create').returns(toolRunner);
     });
 
     afterEach(() => sandbox.restore());
@@ -110,7 +110,7 @@ describe('lib/gui/app', () => {
         beforeEach(() => {
             tool = stubTool(stubConfig({tolerance: 100500, antialiasingTolerance: 500100}));
             toolRunner = mkToolRunner_(tool);
-            ToolRunnerFactory.create.returns(toolRunner);
+            ToolRunner.create.returns(toolRunner);
 
             pluginConfig = {path: 'report-path'};
             compareOpts = {tolerance: 100500, antialiasingTolerance: 500100, stopOnFirstFail: true, shouldCluster: false};

@@ -2,10 +2,10 @@
 
 const _ = require('lodash');
 const proxyquire = require('proxyquire');
-const ReportBuilder = require('lib/report-builder-factory/report-builder');
+const ReportBuilder = require('lib/report-builder');
 const {stubTool, stubConfig, mkTestResult, mkImagesInfo} = require('test/unit/utils');
 
-describe('lib/gui/tool-runner-factory/hermione/index', () => {
+describe('lib/gui/tool-runner/hermione/index', () => {
     const sandbox = sinon.createSandbox();
     let reportBuilder;
     let ToolGuiReporter;
@@ -43,12 +43,10 @@ describe('lib/gui/tool-runner-factory/hermione/index', () => {
         reportBuilder.format.returns({prepareTestResult: sandbox.stub()});
         reportBuilder.getResult.returns({});
 
-        ToolGuiReporter = proxyquire(`lib/gui/tool-runner-factory/hermione`, {
+        ToolGuiReporter = proxyquire(`lib/gui/tool-runner`, {
             './report-subscriber': sandbox.stub(),
-            '../base-tool-runner': proxyquire('lib/gui/tool-runner-factory/base-tool-runner', {
-                './utils': {findTestResult: sandbox.stub()},
-                '../../reporter-helpers': {updateReferenceImage: sandbox.stub().resolves()}
-            })
+            './utils': {findTestResult: sandbox.stub()},
+            '../../reporter-helpers': {updateReferenceImage: sandbox.stub().resolves()}
         });
     });
 
