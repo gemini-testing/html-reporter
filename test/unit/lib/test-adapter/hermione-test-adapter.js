@@ -15,7 +15,7 @@ describe('hermione test adapter', () => {
     class ImageDiffError extends Error {}
     class NoRefImageError extends Error {}
 
-    const mkHermioneTestResultAdapter = (testResult, toolOpts = {}, htmlReporter = {}) => {
+    const mkHermioneTestResultAdapter = (testResult, toolOpts = {}, htmlReporter = {}, saveAttempt = true) => {
         const config = _.defaults(toolOpts.config, {
             browsers: {
                 bro: {}
@@ -29,7 +29,7 @@ describe('hermione test adapter', () => {
             Object.assign({imagesSaver: {saveImg: sandbox.stub()}}, htmlReporter)
         );
 
-        return new HermioneTestResultAdapter(testResult, tool);
+        return new HermioneTestResultAdapter(testResult, tool, undefined, saveAttempt);
     };
 
     const mkTestResult_ = (result) => _.defaults(result, {
@@ -72,6 +72,13 @@ describe('hermione test adapter', () => {
 
         assert.equal(mkHermioneTestResultAdapter(firstTestResult).attempt, 1);
         assert.equal(mkHermioneTestResultAdapter(secondTestResult).attempt, 0);
+    });
+
+    it('should not save attempt if saveAttempt flag is false', () => {
+        const firstTestResult = mkTestResult_({fullTitle: () => 'some-title'});
+
+        mkHermioneTestResultAdapter(firstTestResult, undefined, undefined, false);
+        assert.equal(mkHermioneTestResultAdapter(firstTestResult).attempt, 0);
     });
 
     it('should return test error with "message", "stack" and "stateName"', () => {
