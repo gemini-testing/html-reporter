@@ -49,5 +49,26 @@ describe('lib/static/modules/reducer', () => {
                 assert.equal(newState.view.viewMode, 'failed');
             });
         });
+
+        describe('parsing database results', () => {
+            it('should build correct tree', () => {
+                const values = [
+                    [JSON.stringify(['test', 'smalltest1']), 'smalltest1', 'browser', 'url', JSON.stringify({muted: false}), 'yml', null, null, JSON.stringify([]), 0, 1, 'success', 0],
+                    [JSON.stringify(['test', 'smalltest2']), 'smalltest2', 'browser', 'url', JSON.stringify({muted: false}), 'yml', null, null, JSON.stringify([]), 0, 1, 'success', 1]
+                ];
+
+                const db = {
+                    exec: function() {
+                        return [{values: values}];
+                    }
+                };
+                const action = {
+                    type: actionNames.FETCH_DB, payload: {db: db, stats: {fetched: 1}}
+                };
+                const newState = reducer(defaultState, action);
+                assert.match(newState.suites['test'].children[0].name, 'smalltest1');
+                assert.match(newState.suites['test'].children[1].name, 'smalltest2');
+            });
+        });
     });
 });

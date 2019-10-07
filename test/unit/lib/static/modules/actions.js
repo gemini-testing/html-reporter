@@ -41,11 +41,6 @@ describe('lib/static/modules/actions', () => {
     beforeEach(() => {
         dispatch = sinon.stub();
         sandbox.stub(axios, 'post').resolves({data: {}});
-
-        // sandbox.stub(actions, 'fetchDbLocations').callsFake(() => {
-        //     throw Error('called fake');
-        //     return ['sqlite.db'];
-        // });
     });
 
     afterEach(() => sandbox.restore());
@@ -159,60 +154,70 @@ describe('lib/static/modules/actions', () => {
         });
     });
     describe('working with sqlite', () => {
-        it('should fetch db locations', async () => {
-            const createDbStub = sandbox.stub().resolves({db: null, url: 'test'});
-            const actions = proxyquire('lib/static/modules/actions', {
-                './sqlite': {
-                    createDb: createDbStub,
-                    mergeDbs: sinon.stub()
-                }
+        describe('opening databases', () => {
+            let createDbStub;
+            let actions;
+
+            beforeEach(() => {
+                createDbStub = sandbox.stub().resolves({db: null, url: 'test'});
+                actions = proxyquire('lib/static/modules/actions', {
+                    './sqlite': {
+                        createDb: createDbStub
+                    }
+                });
+            });
+            afterEach(() => sandbox.restore());
+
+            it('should fetch db locations', async () => {
+                sandbox.stub(axios, 'get').throws({response: {status: 404}});
+                sandbox.spy(actions, 'fetchDb');
+                await actions.fetchDb()(dispatch);
+                assert.calledOnce(actions.fetchDb);
             });
 
-            sandbox.stub(axios, 'get').resolves({status: 404});
-            sandbox.spy(actions, 'fetchDb');
-            actions.fetchDb()(dispatch);
+            it('should create database from "sqlite.db" if no db urls are provided', async () => {
+                sandbox.stub(axios, 'get').throws({response: {status: 404}});
+                await actions.fetchDb()(dispatch);
+                assert.calledWith(createDbStub, 'sqlite.db');
+            });
 
-            // assert.calledOnce(actions.fetchDb);
-            assert.equal(createDbStub.callCount, 1);
+            it('should create databases from urls in "databaseUrls.json" if the file is present', async () => {
+                sandbox.stub(axios, 'get').resolves({status: 200, data: {filePaths: ['test1.db', 'test2.db']}});
+                await actions.fetchDb()(dispatch);
+                assert.calledWith(createDbStub, 'test1.db');
+                assert.calledWith(createDbStub, 'test2.db');
+            });
         });
 
-        // const actions = rewire('lib/static/modules/actions');
-        //
-        // it('should fetch db locations', async () => {
-        //     sandbox.stub(axios, 'get').resolves({status: 404});
-        //     actions.__set__('createDatabase', () => ({db: null}));
-        //     actions.__set__('fetchDbLocations', sinon.spy(actions, 'fetchDbLocations'));
-        //     actions.fetchDb()(dispatch);
-        //     assert.calledOnce(actions.fetchDbLocations);
-        // });
+        describe('merging databases', () => {
+            let createDbStub;
+            let mergeDbsStub;
+            let actions;
 
-        // it('should fetch databases from urls in "databaseUrls.json" if it exists', async () => {
-        //     // sandbox.spy(sqliteActions, 'createDb').resolves({db: 'db', response: 200});
-        //     sandbox.stub(axios, 'get').resolves({status: 200, data: {filePaths: ['test1.db', 'test2.db']}});
-        //     // actions.__set__('createDatabase', (url) => ({db: 'db', response: 200, url}));
-        //     actions.__set__('fetchDbLocations', sinon.spy(actions, 'fetchDbLocations'));
-        //     actions.fetchDb()(dispatch);
-        //     assert.calledOnce(sqliteActions, 'createDb');
-        // });
-        //
-        // // it('should fetch db locations', async () => {
-        // //     actions.__set__('createDatabase', () => ({db: null, response: 404}));
-        // //     const fetchDbLocationsStub = sinon.stub(actions, 'fetchDbLocations').callsFake(() => {
-        // //         return ['sqlite.db'];
-        // //     });
-        // //     actions.__set__('fetchDbLocations', fetchDbLocationsStub);
-        // //     actions.fetchDb()(dispatch);
-        // //     assert.calledOnce(actions.fetchDbLocations);
-        // // });
-        //
-        // it('should open a database', () => {
-        //     actions.__set__('createDatabase', () => ({db: null, response: 404}));
-        //     const fetchDbLocationsStub = sinon.stub(actions, 'fetchDbLocations').callsFake(() => {
-        //         return ['sqlite.db'];
-        //     });
-        //     actions.__set__('fetchDbLocations', fetchDbLocationsStub);
-        //     actions.fetchDb()(dispatch);
-        //     assert.calledOnce(actions.createDatabase);
-        // });
+            beforeEach(() => {
+                createDbStub = sandbox.stub().resolves({db: 'db', url: 'test'});
+                mergeDbsStub = sandbox.stub();
+                actions = proxyquire('lib/static/modules/actions', {
+                    './sqlite': {
+                        createDb: createDbStub,
+                        mergeDbs: mergeDbsStub
+                    }
+                });
+            });
+
+            afterEach(() => sandbox.restore());
+
+            it('should merge databases into one if more than one db is opened', async () => {
+                sandbox.stub(axios, 'get').resolves({status: 200, data: {filePaths: ['test1.db', 'test2.db']}});
+                await actions.fetchDb()(dispatch);
+                assert.calledOnce(mergeDbsStub);
+            });
+
+            it('should not merge databases if only one db is opened', async () => {
+                sandbox.stub(axios, 'get').resolves({status: 200, data: {filePaths: ['test1.db']}});
+                await actions.fetchDb()(dispatch);
+                assert.notCalled(mergeDbsStub);
+            });
+        });
     });
 });
