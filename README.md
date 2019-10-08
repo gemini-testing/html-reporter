@@ -48,8 +48,8 @@ Use `html_reporter_` prefix for the environment variables and `--html-reporter-`
 
 For example you can override `path` option like so:
 ```bash
-$ html_reporter_path=custom/dir hermione test
-$ hermione test --html-reporter-path custom/dir
+$ html_reporter_path=custom/dir hermione path/to/mytest.js
+$ hermione path/to/mytest.js --html-reporter-path custom/dir
 ```
 
 Add plugin to your `hermione` config file:
