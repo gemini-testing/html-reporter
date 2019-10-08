@@ -18,10 +18,6 @@ jobs:
           background: true
 
       - run:
-          name: Unit tests
-          command: npm test
-
-      - run:
           name: Functional tests
           command: npm run test-func
 
