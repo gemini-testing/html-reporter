@@ -1,9 +1,9 @@
 'use strict';
 
-const utils = require('lib/gui/tool-runner-factory/utils');
+const utils = require('lib/gui/tool-runner/utils');
 const {mkSuite, mkState, mkBrowserResult} = require('../../../utils');
 
-describe('lib/gui/tool-runner-factory/utils', () => {
+describe('lib/gui/tool-runner/utils', () => {
     describe('formatTests', () => {
         it('should format suite with children and browsers', () => {
             const suite = mkSuite({

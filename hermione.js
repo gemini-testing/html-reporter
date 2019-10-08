@@ -4,12 +4,12 @@ const os = require('os');
 const PQueue = require('p-queue');
 
 const PluginAdapter = require('./lib/plugin-adapter');
-const createHermioneWorkers = require('./lib/workers/create-hermione-workers');
+const createWorkers = require('./lib/workers/create-workers');
 
 let workers;
 
 module.exports = (hermione, opts) => {
-    const plugin = PluginAdapter.create(hermione, opts, 'hermione');
+    const plugin = PluginAdapter.create(hermione, opts);
 
     if (!plugin.isEnabled()) {
         return;
@@ -21,7 +21,7 @@ module.exports = (hermione, opts) => {
         .init(prepare);
 
     hermione.on(hermione.events.RUNNER_START, (runner) => {
-        workers = createHermioneWorkers(runner);
+        workers = createWorkers(runner);
     });
 };
 

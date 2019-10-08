@@ -4,7 +4,7 @@ const _ = require('lodash');
 const utils = require('lib/server-utils');
 const {SUCCESS} = require('lib/constants/test-statuses');
 const {ERROR_DETAILS_PATH} = require('lib/constants/paths');
-const {stubTool, stubConfig} = require('../../utils');
+const {stubTool, stubConfig} = require('../utils');
 const proxyquire = require('proxyquire');
 const fs = require('fs-extra');
 
@@ -51,7 +51,7 @@ describe('hermione test adapter', () => {
         tmp = {tmpdir: 'default/dir'};
         getSuitePath = sandbox.stub();
 
-        HermioneTestResultAdapter = proxyquire('../../../../lib/test-adapter/hermione-test-adapter', {
+        HermioneTestResultAdapter = proxyquire('../../../lib/test-adapter', {
             tmp,
             '../plugin-utils': {getHermioneUtils: () => ({getSuitePath})}
         });
