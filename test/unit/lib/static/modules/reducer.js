@@ -53,7 +53,8 @@ describe('lib/static/modules/reducer', () => {
         describe('parsing database results', () => {
             it('should build correct tree', () => {
                 const values = [
-                    [JSON.stringify(['test', 'smalltest1']), 'smalltest1', 'browser', 'url', JSON.stringify({muted: false}), 'yml', null, null, JSON.stringify([]), 0, 1, 'success', 0],
+                    [JSON.stringify(['test', 'smalltest1']), 'smalltest1', 'browser', 'url', JSON.stringify({muted: false}), 'yml', null, null, JSON.stringify([]), 0, 1, 'fail', 0],
+                    [JSON.stringify(['test', 'smalltest1']), 'smalltest1', 'browser', 'url', JSON.stringify({muted: false}), 'yml', null, null, JSON.stringify([]), 0, 1, 'success', 1],
                     [JSON.stringify(['test', 'smalltest2']), 'smalltest2', 'browser', 'url', JSON.stringify({muted: false}), 'yml', null, null, JSON.stringify([]), 0, 1, 'success', 1]
                 ];
 
@@ -68,6 +69,8 @@ describe('lib/static/modules/reducer', () => {
                 const newState = reducer(defaultState, action);
                 assert.match(newState.suites['test'].children[0].name, 'smalltest1');
                 assert.match(newState.suites['test'].children[1].name, 'smalltest2');
+                assert.match(newState.suites['test'].children[0].browsers[0].retries.length, 1);
+                assert.match(newState.suites['test'].children[1].browsers[0].retries.length, 0);
             });
         });
     });
