@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="5.0.0"></a>
+# [5.0.0](https://github.com/gemini-testing/html-reporter/compare/v4.13.1...v5.0.0) (2019-10-08)
+
+
+### Features
+
+* remove Gemini support ([90e88eb](https://github.com/gemini-testing/html-reporter/commit/90e88eb))
+
+
+### BREAKING CHANGES
+
+* Migrate your Gemini test to Hermine or use html-reporter@4.
+
+
+
 <a name="4.13.1"></a>
 ## [4.13.1](https://github.com/gemini-testing/html-reporter/compare/v4.13.0...v4.13.1) (2019-10-05)
 
