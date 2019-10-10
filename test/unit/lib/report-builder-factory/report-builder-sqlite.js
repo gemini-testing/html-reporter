@@ -1,13 +1,11 @@
 'use strict';
 
-const path = require('path');
 const fs = require('fs-extra');
 const _ = require('lodash');
 const serverUtils = require('lib/server-utils');
 const TestAdapter = require('lib/test-adapter/test-adapter');
 const SqliteAdapter = require('lib/sqlite-adapter');
 const sqlite3 = require('sqlite3').verbose();
-const {logger} = serverUtils;
 const proxyquire = require('proxyquire');
 const {SUCCESS, FAIL, ERROR, SKIPPED} = require('lib/constants/test-statuses');
 
@@ -118,55 +116,6 @@ describe('ReportBuilderSqlite', () => {
                 status: ERROR,
                 error: 'some-stack-trace'
             });
-        });
-    });
-
-    describe('saveDataFileAsync', () => {
-        it('should create report directory asynchronously', () => {
-            const reportBuilder = mkReportBuilder_({pluginConfig: {path: 'some/report/dir'}});
-
-            return reportBuilder.saveConfigFileAsync()
-                .then(() => assert.calledOnceWith(fs.mkdirs, 'some/report/dir'));
-        });
-
-        it('should save config file with tests result asynchronously', () => {
-            const reportBuilder = mkReportBuilder_({pluginConfig: {path: 'some/report/dir'}});
-            serverUtils.prepareCommonJSData.returns('some data');
-            return reportBuilder.saveConfigFileAsync()
-                .then(() => assert.calledWith(fs.writeFile, path.join('some', 'report', 'dir', 'data.js'), 'some data', 'utf8'));
-        });
-
-        it('should create report directory before save config file', () => {
-            const reportBuilder = mkReportBuilder_();
-
-            return reportBuilder.saveConfigFileAsync()
-                .then(() => assert.callOrder(fs.mkdirs, fs.writeFile));
-        });
-    });
-
-    describe('save', () => {
-        beforeEach(() => {
-            sandbox.stub(logger, 'warn');
-        });
-
-        it('should copy sql.js files to report directory', async () => {
-            const reportBuilder = mkReportBuilder_({pluginConfig: {path: 'some/report/dir'}});
-
-            return reportBuilder.save().then(() => {
-                assert.calledWithMatch(fs.copy, 'sql-wasm.js', path.join('some/report/dir', 'sql-wasm.js'));
-                assert.calledWithMatch(fs.copy, 'sql-wasm.wasm', path.join('some/report/dir', 'sql-wasm.wasm'));
-            });
-        });
-
-        it('should copy static files to report directory', () => {
-            const reportBuilder = mkReportBuilder_({pluginConfig: {path: 'some/report/dir'}});
-
-            return reportBuilder.save()
-                .then(() => {
-                    assert.calledWithMatch(fs.copy, 'index.html', path.join('some/report/dir', 'index.html'));
-                    assert.calledWithMatch(fs.copy, 'report.min.js', path.join('some/report/dir', 'report.min.js'));
-                    assert.calledWithMatch(fs.copy, 'report.min.css', path.join('some/report/dir', 'report.min.css'));
-                });
         });
     });
 });

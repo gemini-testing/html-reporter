@@ -7,7 +7,7 @@ const DataTree = require('lib/merge-reports/data-tree');
 const serverUtils = require('lib/server-utils');
 const {stubTool} = require('../../utils');
 
-describe('lib/merge-reports/report-builder', () => {
+describe('lib/create-blank-report', () => {
     const sandbox = sinon.sandbox.create();
 
     const createBlankdReport_ = async (destPath = 'default-dest-report/path', pluginConfig, tool) => {
@@ -34,7 +34,7 @@ describe('lib/merge-reports/report-builder', () => {
         sandbox.stub(serverUtils, 'prepareCommonJSData');
         sandbox.stub(serverUtils.logger, 'warn');
         sandbox.stub(fs, 'move');
-        sandbox.stub(fs, 'writeFileSync');
+        sandbox.stub(fs, 'writeFile');
         sandbox.stub(fs, 'copy').resolves();
         sandbox.stub(fs, 'readdir').resolves([]);
 
@@ -43,34 +43,6 @@ describe('lib/merge-reports/report-builder', () => {
     });
 
     afterEach(() => sandbox.restore());
-
-    describe('create', () => {
-        it('should create "data.js" file with config and zero counters', async () => {
-            const configData = {
-                skips: [],
-                config: {
-                    defaultView: 'failed',
-                    baseHost: 'test',
-                    scaleImages: false,
-                    lazyLoadOffset: 2500,
-                    errorPatterns: []
-                },
-                apiValues: undefined,
-                date: new Date().toString(),
-                saveFormat: 'sqlite',
-                total: 0,
-                updated: 0,
-                passed: 0,
-                failed: 0,
-                skipped: 0,
-                retries: 0,
-                warned: 0
-            };
-
-            await createBlankdReport_('dest-report/path', config, hermioneTool);
-            assert.calledWith(serverUtils.prepareCommonJSData, sinon.match(configData));
-        });
-    });
 
     describe('save', () => {
         it('should move static files to destination folder', async () => {
@@ -97,7 +69,7 @@ describe('lib/merge-reports/report-builder', () => {
             const destFilePath = path.resolve('dest-report', 'path');
             await createBlankdReport_('dest-report/path', config, hermioneTool);
 
-            assert.calledWithMatch(fs.writeFileSync, path.join(destFilePath, 'data.js'));
+            assert.calledWithMatch(fs.writeFile, path.join(destFilePath, 'data.js'));
         });
     });
 });

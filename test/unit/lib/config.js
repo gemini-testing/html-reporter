@@ -70,7 +70,7 @@ describe('config', () => {
 
     describe('"saveFormat" option', () => {
         it('should be json by default', () => {
-            assert.equal(parseConfig({}).saveFormat, 'json');
+            assert.equal(parseConfig({}).saveFormat, 'js');
         });
 
         it('should set from configuration file', () => {
