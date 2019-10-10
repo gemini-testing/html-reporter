@@ -62,7 +62,7 @@
     border: 1px solid #fff;
     margin-top: 5px;
 }
-.button_type_action:disabled {
+.button_blink {
     -webkit-animation: blink 0.5s linear 0s infinite alternate;
             animation: blink 0.5s linear 0s infinite alternate;
 }

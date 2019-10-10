@@ -40,9 +40,9 @@ describe('<ControlButtons />', () => {
             assert.isFalse(component.find(RunButton).prop('isDisabled'));
         });
 
-        it('should be disabled while tests running', () => {
+        it('should be disabled while processing something', () => {
             const component = mkConnectedComponent(<ControlButtons />, {
-                initialState: {suiteIds: {all: ['some-suite']}, running: true}
+                initialState: {processing: true}
             });
 
             assert.isTrue(component.find(RunButton).prop('isDisabled'));
@@ -95,6 +95,14 @@ describe('<ControlButtons />', () => {
             it('should be disabled while tests running', () => {
                 const component = mkConnectedComponent(<ControlButtons />, {
                     initialState: {running: true}
+                });
+
+                assert.isTrue(component.find(`[label="${button.name}"]`).prop('isDisabled'));
+            });
+
+            it('should be disabled while processing something', () => {
+                const component = mkConnectedComponent(<ControlButtons />, {
+                    initialState: {processing: true}
                 });
 
                 assert.isTrue(component.find(`[label="${button.name}"]`).prop('isDisabled'));
