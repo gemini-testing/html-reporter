@@ -1,0 +1,26 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/node:8.6.0-browsers
+
+    steps:
+      - checkout
+
+      - run: npm install
+
+      - run:
+          name: Download Selenium
+          command: sudo npm install selenium-standalone@latest -g
+      - run:
+          name: Start Selenium
+          command: selenium-standalone install && selenium-standalone start
+          background: true
+
+      - run:
+          name: Functional tests
+          command: npm run test-func
+
+      - store_artifacts:
+          path: hermione-report/
+          destination: /hermione-report
