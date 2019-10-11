@@ -30,7 +30,7 @@ describe('<MetaInfo />', () => {
 
         const component = mkMetaInfoComponent({metaInfo: {foo: 'bar'}, suiteUrl: 'some-url'});
 
-        component.find('.toggle-open__item').forEach((node, i) => {
+        component.find('.meta-info__item').forEach((node, i) => {
             assert.equal(node.text(), expectedMetaInfo[i]);
         });
     });
@@ -49,7 +49,7 @@ describe('<MetaInfo />', () => {
 
         const component = mkMetaInfoComponent({metaInfo, suiteUrl: 'some-url'});
 
-        component.find('.toggle-open__item').forEach((node, i) => {
+        component.find('.details_type_text_item').forEach((node, i) => {
             assert.equal(node.text(), expectedMetaInfo[i]);
         });
     });
@@ -71,8 +71,8 @@ describe('<MetaInfo />', () => {
 
             const component = mkMetaInfoComponent({metaInfo: {file: 'test/file'}}, initialConfig);
 
-            assert.equal(component.find('.toggle-open__item:first-child').text(), 'file: test/file');
-            assert.equal(component.find('.toggle-open__item:first-child a').prop('href'), stub.expectedFileUrl);
+            assert.equal(component.find('.meta-info__item:first-child').text(), 'file: test/file');
+            assert.equal(component.find('.meta-info__item:first-child a').prop('href'), stub.expectedFileUrl);
         });
     });
 });
