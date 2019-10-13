@@ -16,7 +16,7 @@ describe('lib/sqlite-adapter', () => {
     });
 
     it('should create a database on init', () => {
-        SqliteAdapter.create(savePath, 'sqlite.db');
+        SqliteAdapter.create(savePath);
         assert.calledWith(sqlite3.Database, 'test/sqlite.db');
     });
 });

@@ -195,7 +195,7 @@ describe('lib/static/modules/actions', () => {
             let actions;
 
             beforeEach(() => {
-                createDbStub = sandbox.stub().resolves({db: 'db', url: 'test'});
+                createDbStub = sandbox.stub().resolves({connection: 'db', url: 'test'});
                 mergeDbsStub = sandbox.stub();
                 actions = proxyquire('lib/static/modules/actions', {
                     './sqlite': {

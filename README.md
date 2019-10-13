@@ -43,8 +43,13 @@ New group will be created if test cannot be associated with existing groups.
 * **metaInfoBaseUrls** (optional) `Object` - base paths for making link from Meta-info values. Object option must be Meta-info's key and value must be `String`. For example, {'file': 'base/path'}.
 * **saveFormat** (optional) `String` - allows to specify the format, in which the results will be saved. Avaliable values are:
   * `js` - save results in JSON format to data.js file. Default value.
-  * `sqlite` - save results to Sqlite database and to data.js file. When using this flag you have to *start a local server* in order to view the report.
-  
+  * `sqlite` - save results to Sqlite database and to data.js file. When using this flag you have to **start a local server** in order to view the report.
+* **databaseUrlsFile** (optional) `String` - allows to specify the location of the JSON file containing locations of databases. Upon opening, the report will try to fetch the file and access the databases. The accessed databases will be merged into one and the data from it will be used to build the report. File structure:
+ ```json
+{
+  "filePaths": ["filePath1.db", "filePath2.db"]
+}
+```
 Also there is ability to override plugin parameters by CLI options or environment variables
 (see [configparser](https://github.com/gemini-testing/configparser)).
 Use `html_reporter_` prefix for the environment variables and `--html-reporter-` for the cli options.
