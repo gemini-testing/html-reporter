@@ -204,6 +204,21 @@ describe('<Body />', () => {
                 {browserId: 'bro', suitePath: ['some-suite'], retryIndex: 0}
             );
         });
+
+        it('should change active result on click in switcher retry button', () => {
+            const suite = mkSuite_({suitePath: ['some-suite']});
+
+            const component = mkBodyComponent({
+                result: mkTestResult_({suiteUrl: 'foo'}),
+                retries: [mkTestResult_({suiteUrl: 'bar'})],
+                suite
+            });
+
+            component.find('.tab-switcher__button:first-child').simulate('click');
+
+            const metaInfoProps = component.find(MetaInfo).props();
+            assert.equal(metaInfoProps.suiteUrl, 'bar');
+        });
     });
 
     describe('errored additional tab', () => {

@@ -1,8 +1,8 @@
 # html-reporter
 
-Plugin for [gemini](https://github.com/gemini-testing/gemini) and [hermione](https://github.com/gemini-testing/hermione) which is intended to aggregate the results of tests running into html report.
+Plugin for [hermione](https://github.com/gemini-testing/hermione) which is intended to aggregate the results of tests running into html report.
 
-You can read more about gemini plugins [here](https://github.com/gemini-testing/gemini/blob/master/doc/plugins.md) and about hermione plugins [here](https://github.com/gemini-testing/hermione#plugins).
+You can read more about hermione plugins [here](https://github.com/gemini-testing/hermione#plugins).
 
 ## Installation
 
@@ -18,7 +18,7 @@ Plugin has following configuration:
 
 * **enabled** (optional) `Boolean` – enable/disable the plugin; by default plugin is enabled
 * **path** (optional) `String` - path to directory for saving html report file; by
-default html report will be saved into `gemini-report/index.html` inside current work
+default html report will be saved into `hermione-report/index.html` inside current work
 directory.
 * **saveErrorDetails** (optional) `Boolean` – save/don't save error details to json-files (to error-details folder); `false` by default.
 
@@ -56,39 +56,9 @@ Use `html_reporter_` prefix for the environment variables and `--html-reporter-`
 
 For example you can override `path` option like so:
 ```bash
-$ html_reporter_path=custom/dir gemini test
-$ gemini test --html-reporter-path custom/dir
+$ html_reporter_path=custom/dir hermione path/to/mytest.js
+$ hermione path/to/mytest.js --html-reporter-path custom/dir
 ```
-
-### Gemini Usage
-
-Add plugin to your `gemini` config file:
-
-```js
-module.exports = {
-    // ...
-    system: {
-        plugins: {
-            'html-reporter/gemini': {
-                enabled: true,
-                path: 'my/gemini-reports',
-                defaultView: 'all',
-                baseHost: 'test.com',
-                errorPatterns: [
-                    'Parameter .* must be a string',
-                    {
-                        name: 'Cannot read property of undefined',
-                        pattern: 'Cannot read property .* of undefined'
-                    }
-                ]
-            }
-        }
-    },
-    //...
-}
-```
-
-### Hermione Usage
 
 Add plugin to your `hermione` config file:
 
@@ -162,7 +132,7 @@ Run [hermione](https://github.com/gemini-testing/hermione) (integration) tests:
 npm run test-func
 ```
 
-Before run integration tests on local machine you should run [sauce-connect](https://wiki.saucelabs.com/display/DOCS/Basic+Sauce+Connect+Proxy+Setup)
+Integration tests run on Chromium in headless mode.
 
 ## Api
 

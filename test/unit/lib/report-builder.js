@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs-extra');
 const _ = require('lodash');
 const serverUtils = require('lib/server-utils');
-const TestAdapter = require('lib/test-adapter/test-adapter');
+const TestAdapter = require('lib/test-adapter');
 const {logger} = serverUtils;
 const proxyquire = require('proxyquire');
 const {SUCCESS, FAIL, ERROR, SKIPPED, IDLE, UPDATED} = require('lib/constants/test-statuses');
@@ -24,7 +24,7 @@ describe('ReportBuilder', () => {
 
         TestAdapter.create = (obj) => obj;
 
-        return new ReportBuilder(config, pluginConfig, TestAdapter);
+        return new ReportBuilder(config, pluginConfig);
     };
 
     const getReportBuilderResult_ = (reportBuilder) => reportBuilder.getResult().suites[0].children[0].browsers[0].result;
@@ -735,7 +735,7 @@ describe('ReportBuilder', () => {
 
     describe('save', () => {
         beforeEach(() => {
-            sandbox.stub(logger, 'warn');
+            sandbox.stub(logger, 'error');
         });
 
         it('should save data file', () => {
@@ -761,7 +761,7 @@ describe('ReportBuilder', () => {
             const reportBuilder = mkReportBuilder_();
             sandbox.stub(reportBuilder, 'saveDataFileAsync').rejects(new Error('some-error'));
 
-            return reportBuilder.save().then(() => assert.calledWith(logger.warn, 'some-error'));
+            return reportBuilder.save().then(() => assert.calledWith(logger.error, sinon.match('Html-reporter runtime error: Error: some-error')));
         });
     });
 });

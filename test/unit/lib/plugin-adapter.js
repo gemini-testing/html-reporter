@@ -23,30 +23,26 @@ describe('lib/plugin-adapter', () => {
         INIT: 'init'
     };
 
-    function mkGemini_() {
-        return stubTool(stubConfig(), Object.assign(events, {END_RUNNER: 'endRunner'}));
-    }
-
     function mkHermione_() {
         return stubTool(stubConfig(), Object.assign(events, {RUNNER_END: 'runnerEnd'}));
     }
 
-    function initReporter_(opts = {}, toolName) {
+    function initReporter_(opts = {}) {
         opts = _.defaults(opts, {enabled: true});
         parseConfig.returns(opts);
 
-        return toolReporter.create(tool, opts, toolName)
+        return toolReporter.create(tool, opts)
             .addCliCommands()
             .init(prepareData, prepareImages);
     }
 
-    function initApiReporter_(opts, toolName) {
-        initReporter_(opts, toolName);
+    function initApiReporter_(opts) {
+        initReporter_(opts);
         return tool.emitAndWait(tool.events.INIT);
     }
 
-    function initCliReporter_(opts, {command = 'foo'} = {}, toolName) {
-        initReporter_(opts, toolName);
+    function initCliReporter_(opts, {command = 'foo'} = {}) {
+        initReporter_(opts);
 
         const commander = mkCommander_(command);
         tool.emit(tool.events.CLI, commander);
@@ -70,150 +66,133 @@ describe('lib/plugin-adapter', () => {
 
         prepareData = sandbox.stub().resolves();
         prepareImages = sandbox.stub().resolves();
+
+        tool = mkHermione_();
+        parseConfig = sandbox.stub().returns({enabled: true});
+        cliCommands.gui = sandbox.stub();
+        cliCommands['merge-reports'] = sandbox.stub();
+        cliCommands['create-blank-report'] = sandbox.stub();
+        toolReporter = proxyquire('lib/plugin-adapter', {
+            './config': parseConfig,
+            './cli-commands/gui': cliCommands.gui,
+            './cli-commands/merge-reports': cliCommands['merge-reports'],
+            './cli-commands/create-blank-report': cliCommands['create-blank-report']
+        });
     });
 
     afterEach(() => sandbox.restore());
 
+    it('should parse config using passed options', () => {
+        const opts = {path: 'some/path', enabled: false, baseHost: 'some-host'};
+
+        toolReporter.create(tool, opts);
+
+        assert.calledWith(parseConfig, {path: 'some/path', enabled: false, baseHost: 'some-host'});
+    });
+
+    describe('isEnabled', () => {
+        it('should be enabled', () => {
+            const plugin = toolReporter.create(tool, {enabled: true});
+
+            assert.isTrue(plugin.isEnabled());
+        });
+
+        it('should be disabled', () => {
+            const opts = {enabled: false};
+            parseConfig.withArgs(opts).returns(opts);
+
+            const plugin = toolReporter.create(tool, opts);
+
+            assert.isFalse(plugin.isEnabled());
+        });
+    });
+
     [
-        {
-            toolName: 'gemini',
-            initTool: mkGemini_
-        },
-        {
-            toolName: 'hermione',
-            initTool: mkHermione_
-        }
-    ].forEach(({toolName, initTool}) => {
-        describe(`${toolName}`, () => {
-            beforeEach(() => {
-                tool = initTool();
-                parseConfig = sandbox.stub().returns({enabled: true});
-                cliCommands.gui = sandbox.stub();
-                cliCommands['merge-reports'] = sandbox.stub();
-                cliCommands['create-blank-report'] = sandbox.stub();
-                toolReporter = proxyquire('lib/plugin-adapter', {
-                    './config': parseConfig,
-                    './cli-commands/gui': cliCommands.gui,
-                    './cli-commands/merge-reports': cliCommands['merge-reports'],
-                    './cli-commands/create-blank-report': cliCommands['create-blank-report']
-                });
+        'gui',
+        'merge-reports',
+        'create-blank-report'
+    ].forEach((commandName) => {
+        describe(`${commandName} command`, () => {
+            it('should register command on "CLI" event', () => {
+                const opts = {enabled: true};
+                const commander = mkCommander_(commandName);
+
+                parseConfig.withArgs(opts).returns(opts);
+                const plugin = toolReporter.create(tool, opts);
+
+                plugin.addCliCommands();
+                tool.emit(tool.events.CLI, commander);
+
+                assert.calledOnceWith(cliCommands[commandName], commander, opts, tool);
             });
 
-            it('should parse config using passed options', () => {
-                const opts = {path: 'some/path', enabled: false, baseHost: 'some-host'};
+            it('should add api', () => {
+                const opts = {enabled: true};
+                const plugin = toolReporter.create(tool, opts);
 
-                toolReporter.create(tool, opts, toolName);
-
-                assert.calledWith(parseConfig, {path: 'some/path', enabled: false, baseHost: 'some-host'});
+                assert.deepEqual(plugin.addApi(), plugin);
+                assert.instanceOf(tool.htmlReporter, PluginApi);
             });
 
-            describe('isEnabled', () => {
-                it('should be enabled', () => {
-                    const plugin = toolReporter.create(tool, {enabled: true}, toolName);
-
-                    assert.isTrue(plugin.isEnabled());
-                });
-
-                it('should be disabled', () => {
-                    const opts = {enabled: false};
-                    parseConfig.withArgs(opts).returns(opts);
-
-                    const plugin = toolReporter.create(tool, opts, toolName);
-
-                    assert.isFalse(plugin.isEnabled());
-                });
+            it(`should not register command if hermione called via API`, () => {
+                return initApiReporter_({}).then(() => assert.notCalled(cliCommands[commandName]));
             });
 
-            [
-                'gui',
-                'merge-reports',
-                'create-blank-report'
-            ].forEach((commandName) => {
-                describe(`${commandName} command`, () => {
-                    it('should register command on "CLI" event', () => {
-                        const opts = {enabled: true};
-                        const commander = mkCommander_(commandName);
+            it('should not init html-reporter on running command', () => {
+                return initCliReporter_({}, {command: commandName}).then(() => assert.notCalled(ReportBuilder.create));
+            });
+        });
+    });
 
-                        parseConfig.withArgs(opts).returns(opts);
-                        const plugin = toolReporter.create(tool, opts, toolName);
+    describe('html-reporter', () => {
+        let reportBuilder;
+        let endRunnerEvent;
 
-                        plugin.addCliCommands();
-                        tool.emit(tool.events.CLI, commander);
+        beforeEach(() => {
+            reportBuilder = Object.create(ReportBuilder.prototype);
+            ReportBuilder.create.returns(reportBuilder);
 
-                        assert.calledOnceWith(cliCommands[commandName], commander, opts, tool);
-                    });
+            endRunnerEvent = tool.events.RUNNER_END;
+        });
 
-                    it('should add api', () => {
-                        const opts = {enabled: true};
-                        const plugin = toolReporter.create(tool, opts, toolName);
+        it(`should init html-reporter if hermione called via API`, () => {
+            return initApiReporter_({}).then(() => assert.calledOnce(ReportBuilder.create));
+        });
 
-                        assert.deepEqual(plugin.addApi(), plugin);
-                        assert.instanceOf(tool.htmlReporter, PluginApi);
-                    });
+        it('should prepare data', () => {
+            return initCliReporter_({}, {})
+                .then(() => assert.calledOnceWith(prepareData, tool, reportBuilder));
+        });
 
-                    it(`should not register command if ${toolName} called via API`, () => {
-                        return initApiReporter_({}, toolName).then(() => assert.notCalled(cliCommands[commandName]));
-                    });
+        it('should prepare images', () => {
+            const config = {enabled: true};
+            parseConfig.returns(config);
 
-                    it('should not init html-reporter on running command', () => {
-                        return initCliReporter_({}, {command: commandName}, toolName).then(() => assert.notCalled(ReportBuilder.create));
+            return initCliReporter_({}, {})
+                .then(() => assert.calledOnceWith(prepareImages, tool, reportBuilder, config));
+        });
+
+        it('should save report', () => {
+            return initCliReporter_({}, {})
+                .then(() => {
+                    tool.emit(tool.events.END);
+
+                    return tool.emitAndWait(endRunnerEvent).then(() => {
+                        assert.calledOnce(ReportBuilder.prototype.save);
                     });
                 });
-            });
+        });
 
-            describe('html-reporter', () => {
-                let reportBuilder;
-                let endRunnerEvent;
+        it('should log correct path to html report', () => {
+            return initCliReporter_({}, {})
+                .then(() => {
+                    ReportBuilder.prototype.save.resolves({reportPath: 'some/path'});
+                    tool.emit(tool.events.END);
 
-                beforeEach(() => {
-                    reportBuilder = Object.create(ReportBuilder.prototype);
-                    ReportBuilder.create.returns(reportBuilder);
-
-                    endRunnerEvent = toolName === 'gemini'
-                        ? tool.events.END_RUNNER
-                        : tool.events.RUNNER_END;
+                    return tool.emitAndWait(endRunnerEvent).then(() => {
+                        assert.calledWithMatch(logger.log, 'some/path');
+                    });
                 });
-
-                it(`should init html-reporter if ${toolName} called via API`, () => {
-                    return initApiReporter_({}, toolName).then(() => assert.calledOnce(ReportBuilder.create));
-                });
-
-                it('should prepare data', () => {
-                    return initCliReporter_({}, {}, toolName)
-                        .then(() => assert.calledOnceWith(prepareData, tool, reportBuilder));
-                });
-
-                it('should prepare images', () => {
-                    const config = {enabled: true};
-                    parseConfig.returns(config);
-
-                    return initCliReporter_({}, {}, toolName)
-                        .then(() => assert.calledOnceWith(prepareImages, tool, reportBuilder, config));
-                });
-
-                it('should save report', () => {
-                    return initCliReporter_({}, {}, toolName)
-                        .then(() => {
-                            tool.emit(tool.events.END);
-
-                            return tool.emitAndWait(endRunnerEvent).then(() => {
-                                assert.calledOnce(ReportBuilder.prototype.save);
-                            });
-                        });
-                });
-
-                it('should log correct path to html report', () => {
-                    return initCliReporter_({}, {}, toolName)
-                        .then(() => {
-                            ReportBuilder.prototype.save.resolves({reportPath: 'some/path'});
-                            tool.emit(tool.events.END);
-
-                            return tool.emitAndWait(endRunnerEvent).then(() => {
-                                assert.calledWithMatch(logger.log, 'some/path');
-                            });
-                        });
-                });
-            });
         });
     });
 });

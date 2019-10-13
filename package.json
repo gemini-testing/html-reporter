@@ -1,7 +1,7 @@
 {
   "name": "html-reporter",
-  "version": "4.13.1",
-  "description": "Plugin for gemini and hermione which is intended to aggregate the results of tests running into html report",
+  "version": "5.0.1",
+  "description": "Plugin for hermione which is intended to aggregate the results of tests running into html report",
   "scripts": {
     "coverage": "nyc npm run test-unit",
     "lint": "eslint .",
@@ -29,7 +29,6 @@
     "node": ">= 8"
   },
   "keywords": [
-    "gemini",
     "hermione",
     "plugin",
     "html-reporter"
@@ -92,6 +91,7 @@
     "eslint-plugin-react": "^7.4.0",
     "extract-text-webpack-plugin": "^3.0.1",
     "hermione": "^2.6.1",
+    "hermione-headless-chrome": "0.0.2",
     "html-react-parser": "^0.4.0",
     "html-reporter-test-server": "file:test/func/plugins/html-reporter-test-server",
     "html-reporter-tester": "file:test/func/plugins/html-reporter-tester",
