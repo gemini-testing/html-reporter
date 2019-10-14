@@ -13,7 +13,6 @@ hot
 .idea
 .vscode
 .nyc_output
-.DS_Store
 
 hermione-report
 /test/func/fixtures/report
