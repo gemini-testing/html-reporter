@@ -63,7 +63,7 @@ describe('ReportBuilderSqlite', () => {
         sandbox.stub(SqliteAdapter.prototype, 'close');
 
         hasImage = sandbox.stub().returns(true);
-        ReportBuilder = proxyquire('lib/report-builder-factory/report-builder-sqlite', {
+        ReportBuilder = proxyquire('lib/report-builder/report-builder-sqlite', {
             '../server-utils': {
                 hasImage
             }

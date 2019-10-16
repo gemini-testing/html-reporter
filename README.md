@@ -41,10 +41,14 @@ Array element must be `Object` ({'*name*': `String`, '*pattern*': `String`}) or 
 Test will be associated with group if test error matches on group error pattern.
 New group will be created if test cannot be associated with existing groups.
 * **metaInfoBaseUrls** (optional) `Object` - base paths for making link from Meta-info values. Object option must be Meta-info's key and value must be `String`. For example, {'file': 'base/path'}.
-* **saveFormat** (optional) `String` - allows to specify the format, in which the results will be saved. Avaliable values are:
+* **saveFormat** (optional) `String` - allows to specify the format, in which the results will be saved. Available values are:
   * `js` - save results in JSON format to data.js file. Default value.
   * `sqlite` - save results to Sqlite database and to data.js file. When using this flag you have to **start a local server** in order to view the report.
-* **databaseUrlsFile** (optional) `String` - allows to specify the location of the JSON file containing locations of databases. Upon opening, the report will try to fetch the file and access the databases. The accessed databases will be merged into one and the data from it will be used to build the report. File structure:
+* **databaseUrlsFile** (optional) `String` - allows to specify the location of the JSON file containing locations of databases when using saveFormat === 'sqlite'. 
+Upon opening, the report will try to fetch the file and access the databases. 
+The accessed databases will be merged into one and the data from it will be used to build the report. 
+Default value: `databaseUrls.json` in directory with html report file.
+File structure:
  ```json
 {
   "filePaths": ["filePath1.db", "filePath2.db"]
@@ -108,7 +112,9 @@ npx hermione merge-reports src-report-1 src-report-2 -d dest-report
 ### create-blank-report
 
 Command that saves files (index.html, report.min.js and etc.) to target directory
-so user can open empty html-report while no test data is provided yet. 
+so user can open empty html-report while no test data is provided yet. Useful when
+you are waiting for multiple databases to finish being generated and want to see the results
+as soon as at least one database is ready.
 
 Example of usage:
 ```

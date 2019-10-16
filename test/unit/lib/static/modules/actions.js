@@ -175,12 +175,6 @@ describe('lib/static/modules/actions', () => {
                 assert.calledOnce(actions.fetchDb);
             });
 
-            it('should create database from "sqlite.db" if no db urls are provided', async () => {
-                sandbox.stub(axios, 'get').throws({response: {status: 404}});
-                await actions.fetchDb()(dispatch);
-                assert.calledWith(createDbStub, 'sqlite.db');
-            });
-
             it('should create databases from urls in "databaseUrls.json" if the file is present', async () => {
                 sandbox.stub(axios, 'get').resolves({status: 200, data: {filePaths: ['test1.db', 'test2.db']}});
                 await actions.fetchDb()(dispatch);

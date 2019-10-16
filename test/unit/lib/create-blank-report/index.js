@@ -10,8 +10,8 @@ const {stubTool} = require('../../utils');
 describe('lib/create-blank-report', () => {
     const sandbox = sinon.sandbox.create();
 
-    const createBlankdReport_ = async (destPath = 'default-dest-report/path', pluginConfig, tool) => {
-        return await createBlankReport(destPath, pluginConfig, tool);
+    const createBlankReport_ = async (hermione, pluginConfig, destPath = 'default-dest-report/path') => {
+        return await createBlankReport(hermione, pluginConfig, destPath);
     };
 
     const events = {
@@ -48,7 +48,7 @@ describe('lib/create-blank-report', () => {
         it('should move static files to destination folder', async () => {
             fs.readdir.resolves(['file-path']);
             const destFilePath = path.resolve('dest-report', 'path');
-            await createBlankdReport_('dest-report/path', config, hermioneTool);
+            await createBlankReport_(hermioneTool, config, 'dest-report/path');
 
             assert.calledWithMatch(fs.copy, 'index.html', path.join(destFilePath, 'index.html'));
             assert.calledWithMatch(fs.copy, 'report.min.js', path.join(destFilePath, 'report.min.js'));
@@ -58,16 +58,15 @@ describe('lib/create-blank-report', () => {
         it('should move sql.js files to destination folder', async () => {
             fs.readdir.resolves(['file-path']);
             const destFilePath = path.resolve('dest-report', 'path');
-            await createBlankdReport_('dest-report/path', config, hermioneTool);
+            await createBlankReport_(hermioneTool, config, 'dest-report/path');
 
             assert.calledWithMatch(fs.copy, 'sql-wasm.js', path.join(destFilePath, 'sql-wasm.js'));
-            assert.calledWithMatch(fs.copy, 'sql-wasm.wasm', path.join(destFilePath, 'sql-wasm.wasm'));
         });
 
         it('should write "data.js"  to destination folder', async () => {
             fs.readdir.resolves(['file-path']);
             const destFilePath = path.resolve('dest-report', 'path');
-            await createBlankdReport_('dest-report/path', config, hermioneTool);
+            await createBlankReport_(hermioneTool, config, 'dest-report/path');
 
             assert.calledWithMatch(fs.writeFile, path.join(destFilePath, 'data.js'));
         });
