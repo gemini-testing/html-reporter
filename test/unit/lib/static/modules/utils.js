@@ -207,6 +207,48 @@ describe('static/modules/utils', () => {
         });
     });
 
+    describe('filterSuites', () => {
+        let suites;
+
+        beforeEach(() => {
+            suites = [mkSuite({
+                browsers: [
+                    mkBrowserResult({name: 'first-bro'}),
+                    mkBrowserResult({name: 'third-bro'})
+                ],
+                children: [
+                    mkState({
+                        browsers: [mkBrowserResult({name: 'first-bro'})]
+                    }),
+                    mkState({
+                        browsers: [mkBrowserResult({name: 'second-bro'})]
+                    })
+                ]
+            })];
+        });
+
+        it('should return suites as is if no browsers to filter', () => {
+            assert.deepEqual(suites, utils.filterSuites(suites));
+        });
+
+        it('should return empty suites if no suites given', () => {
+            assert.deepEqual([], utils.filterSuites([], ['some-bro']));
+        });
+
+        it('should filter suites by given browsers', () => {
+            const filteredSuites = [mkSuite({
+                browsers: [mkBrowserResult({name: 'first-bro'})],
+                children: [
+                    mkState({
+                        browsers: [mkBrowserResult({name: 'first-bro'})]
+                    })
+                ]
+            })];
+
+            assert.deepEqual(filteredSuites, utils.filterSuites(suites, ['first-bro']));
+        });
+    });
+
     describe('shouldSuiteBeShown', () => {
         describe('testNameFilter', () => {
             const suite = mkSuite({
