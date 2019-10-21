@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="5.2.1"></a>
+## [5.2.1](https://github.com/gemini-testing/html-reporter/compare/v5.2.0...v5.2.1) (2019-10-21)
+
+
+### Bug Fixes
+
+* reporter lost image after "accept" in gui mode ([ab2f433](https://github.com/gemini-testing/html-reporter/commit/ab2f433))
+
+
+
 <a name="5.2.0"></a>
 # [5.2.0](https://github.com/gemini-testing/html-reporter/compare/v5.0.1...v5.2.0) (2019-10-18)
 
