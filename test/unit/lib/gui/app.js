@@ -16,21 +16,23 @@ describe('lib/gui/app', () => {
     let toolRunner;
     let looksSame;
 
-    const mkApp_ = (opts = {}) => {
+    const mkApp_ = async (opts = {}) => {
         opts = _.defaultsDeep(opts, {
             paths: 'paths',
             tool: stubTool(),
             configs: {program: {name: () => 'tool'}, pluginConfig: {path: 'default-path'}}
         });
-
-        return new App(opts.paths, opts.tool, opts.configs);
+        const app = new App(opts.paths, opts.tool, opts.configs);
+        await app.initialize(opts.paths, opts.tool, opts.configs);
+        return app;
     };
 
     const mkToolRunner_ = (tool = {}) => {
         return {
             run: sandbox.stub().named('run').resolves(),
             finalize: sandbox.stub().named('finalize'),
-            config: tool.config
+            config: tool.config,
+            initialize: sandbox.stub().named('initialize').resolves()
         };
     };
 
@@ -53,19 +55,20 @@ describe('lib/gui/app', () => {
     afterEach(() => sandbox.restore());
 
     describe('run', () => {
-        it('should run all tests with retries from config', () => {
+        it('should run all tests with retries from config', async () => {
             let retryBeforeRun;
             toolRunner.run.callsFake(() => {
                 retryBeforeRun = tool.config.forBrowser('bro1').retry;
                 return Promise.resolve();
             });
 
-            return mkApp_({tool})
+            const App_ = await mkApp_({tool});
+            return App_
                 .run()
                 .then(() => assert.equal(retryBeforeRun, 1));
         });
 
-        it('should run specified tests with no retries', () => {
+        it('should run specified tests with no retries', async () => {
             let bro1RetryBeforeRun;
             let bro2RetryBeforeRun;
             toolRunner.run.callsFake(() => {
@@ -74,7 +77,8 @@ describe('lib/gui/app', () => {
                 return Promise.resolve();
             });
 
-            return mkApp_({tool})
+            const App_ = await mkApp_({tool});
+            return App_
                 .run(['test'])
                 .then(() => {
                     assert.equal(bro1RetryBeforeRun, 0);
@@ -82,8 +86,9 @@ describe('lib/gui/app', () => {
                 });
         });
 
-        it('should restore config retry values after run', () => {
-            return mkApp_({tool})
+        it('should restore config retry values after run', async () => {
+            const App_ = await mkApp_({tool});
+            return App_
                 .run(['test'])
                 .then(() => {
                     assert.equal(tool.config.forBrowser('bro1').retry, 1);
@@ -91,10 +96,11 @@ describe('lib/gui/app', () => {
                 });
         });
 
-        it('should restore config retry values even after error', () => {
+        it('should restore config retry values even after error', async () => {
             toolRunner.run.rejects();
 
-            return mkApp_({tool})
+            const App_ = await mkApp_({tool});
+            return App_
                 .run(['test'])
                 .catch(() => {
                     assert.equal(tool.config.forBrowser('bro1').retry, 1);
@@ -132,8 +138,8 @@ describe('lib/gui/app', () => {
                 compareOpts
             ).yields(null, {equal: false});
 
-            const result = await mkApp_({tool, configs: {pluginConfig}})
-                .findEqualDiffs([refImagesInfo].concat(comparedImagesInfo));
+            const App_ = await mkApp_({tool, configs: {pluginConfig}});
+            const result = await App_.findEqualDiffs([refImagesInfo].concat(comparedImagesInfo));
 
             assert.calledOnce(looksSame);
             assert.isEmpty(result);
@@ -154,8 +160,8 @@ describe('lib/gui/app', () => {
                 compareOpts
             ).yields(null, {equal: false});
 
-            const result = await mkApp_({tool, configs: {pluginConfig}})
-                .findEqualDiffs([refImagesInfo].concat(comparedImagesInfo));
+            const App_ = await mkApp_({tool, configs: {pluginConfig}});
+            const result = await App_.findEqualDiffs([refImagesInfo].concat(comparedImagesInfo));
 
             assert.calledTwice(looksSame);
             assert.isEmpty(result);
@@ -173,8 +179,8 @@ describe('lib/gui/app', () => {
 
             looksSame.yields(null, {equal: true});
 
-            await mkApp_({tool, configs: {pluginConfig}})
-                .findEqualDiffs([refImagesInfo].concat(comparedImagesInfo));
+            const App_ = await mkApp_({tool, configs: {pluginConfig}});
+            await App_.findEqualDiffs([refImagesInfo].concat(comparedImagesInfo));
 
             assert.equal(looksSame.callCount, 4);
         });
@@ -185,16 +191,16 @@ describe('lib/gui/app', () => {
 
             looksSame.yields(null, {equal: true});
 
-            const result = await mkApp_({tool, configs: {pluginConfig}})
-                .findEqualDiffs([refImagesInfo].concat(comparedImagesInfo));
+            const App_ = await mkApp_({tool, configs: {pluginConfig}});
+            const result = await App_.findEqualDiffs([refImagesInfo].concat(comparedImagesInfo));
 
             assert.deepEqual(result, comparedImagesInfo);
         });
     });
 
     describe('finalize', () => {
-        it('should properly complete tool working', () => {
-            const app = mkApp_({tool});
+        it('should properly complete tool working', async () => {
+            const app = await mkApp_({tool});
 
             app.finalize();
 

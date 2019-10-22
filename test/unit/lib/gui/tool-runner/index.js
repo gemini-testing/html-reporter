@@ -59,7 +59,7 @@ describe('lib/gui/tool-runner/hermione/index', () => {
 
             const gui = initGuiReporter(hermione, {paths: ['foo']});
 
-            return gui.initialize()
+            return gui.initialize(hermione, mkPluginConfig_())
                 .then(() => {
                     assert.notCalled(reportBuilder.addSkipped);
                     assert.notCalled(reportBuilder.addIdle);
@@ -72,7 +72,7 @@ describe('lib/gui/tool-runner/hermione/index', () => {
 
             const gui = initGuiReporter(hermione, {paths: ['foo']});
 
-            return gui.initialize()
+            return gui.initialize(hermione, mkPluginConfig_())
                 .then(() => {
                     assert.notCalled(reportBuilder.addSkipped);
                     assert.notCalled(reportBuilder.addIdle);
@@ -85,7 +85,7 @@ describe('lib/gui/tool-runner/hermione/index', () => {
 
             const gui = initGuiReporter(hermione, {paths: ['foo']});
 
-            return gui.initialize()
+            return gui.initialize(hermione, mkPluginConfig_())
                 .then(() => assert.calledOnce(reportBuilder.addSkipped));
         });
 
@@ -95,7 +95,7 @@ describe('lib/gui/tool-runner/hermione/index', () => {
 
             const gui = initGuiReporter(hermione, {paths: ['foo']});
 
-            return gui.initialize()
+            return gui.initialize(hermione, mkPluginConfig_())
                 .then(() => assert.calledOnce(reportBuilder.addIdle));
         });
     });
@@ -104,7 +104,7 @@ describe('lib/gui/tool-runner/hermione/index', () => {
         const mkHermione_ = (config) => {
             const hermione = stubTool(config, {UPDATE_REFERENCE: 'updateReference'});
             sandbox.stub(hermione, 'emit');
-
+            hermione.readTests.resolves(mkTestCollection_());
             return hermione;
         };
 
@@ -117,6 +117,7 @@ describe('lib/gui/tool-runner/hermione/index', () => {
 
                 const hermione = mkHermione_(config);
                 const gui = initGuiReporter(hermione);
+                await gui.initialize(hermione, mkPluginConfig_());
 
                 const tests = [mkTestResult({
                     browserId: 'yabro',
@@ -149,6 +150,7 @@ describe('lib/gui/tool-runner/hermione/index', () => {
 
                 const hermione = mkHermione_(config);
                 const gui = initGuiReporter(hermione);
+                await gui.initialize(hermione, mkPluginConfig_());
 
                 const tests = [mkTestResult({
                     browserId: 'yabro',
