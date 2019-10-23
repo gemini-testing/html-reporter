@@ -44,16 +44,7 @@ New group will be created if test cannot be associated with existing groups.
 * **saveFormat** (optional) `String` - allows to specify the format, in which the results will be saved. Available values are:
   * `js` - save results in JSON format to data.js file. Default value.
   * `sqlite` - save results to Sqlite database and to data.js file. When using this flag you have to **start a local server** in order to view the report.
-* **databaseUrlsFile** (optional) `String` - allows to specify the location of the JSON file containing locations of databases when using saveFormat === 'sqlite'. 
-Upon opening, the report will try to fetch the file and access the databases. 
-The accessed databases will be merged into one and the data from it will be used to build the report. 
-Default value: `databaseUrls.json` in directory with html report file.
-File structure:
- ```json
-{
-  "filePaths": ["filePath1.db", "filePath2.db"]
-}
-```
+
 Also there is ability to override plugin parameters by CLI options or environment variables
 (see [configparser](https://github.com/gemini-testing/configparser)).
 Use `html_reporter_` prefix for the environment variables and `--html-reporter-` for the cli options.
@@ -119,6 +110,17 @@ as soon as at least one database is ready.
 Example of usage:
 ```
 npx hermione create-blank-report target-dir
+```
+
+When creating a blank report you have to create a `databaseUrls.json` file, that will
+contain locations of databases. 
+Upon opening, the report will try to fetch this file and access the databases. 
+In browser, the accessed databases will be merged into one and the data from it will be used to build the report. 
+File structure:
+ ```json
+{
+  "filePaths": ["filePath1.db", "filePath2.db"]
+}
 ```
 
 ## Testing

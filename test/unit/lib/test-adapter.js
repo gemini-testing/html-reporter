@@ -74,13 +74,6 @@ describe('hermione test adapter', () => {
         assert.equal(mkHermioneTestResultAdapter(secondTestResult).attempt, 0);
     });
 
-    it('should not save attempt if saveAttempt flag is false', () => {
-        const firstTestResult = mkTestResult_({fullTitle: () => 'some-title'});
-
-        mkHermioneTestResultAdapter(firstTestResult, undefined, undefined, false);
-        assert.equal(mkHermioneTestResultAdapter(firstTestResult).attempt, 0);
-    });
-
     it('should return test error with "message", "stack" and "stateName"', () => {
         const testResult = mkTestResult_({
             err: {
