@@ -2,6 +2,59 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="5.3.0"></a>
+# [5.3.0](https://github.com/gemini-testing/html-reporter/compare/v5.2.1...v5.3.0) (2019-10-22)
+
+
+### Features
+
+* swap ToggleOpen to Details; hide error message and stack ([a54618d](https://github.com/gemini-testing/html-reporter/commit/a54618d))
+
+
+
+<a name="5.2.1"></a>
+## [5.2.1](https://github.com/gemini-testing/html-reporter/compare/v5.2.0...v5.2.1) (2019-10-21)
+
+
+### Bug Fixes
+
+* reporter lost image after "accept" in gui mode ([ab2f433](https://github.com/gemini-testing/html-reporter/commit/ab2f433))
+
+
+
+<a name="5.2.0"></a>
+# [5.2.0](https://github.com/gemini-testing/html-reporter/compare/v5.0.1...v5.2.0) (2019-10-18)
+
+
+### Bug Fixes
+
+* disable func tests on travis and screenshot update ([95c76fc](https://github.com/gemini-testing/html-reporter/commit/95c76fc))
+* filter suites by browsers correctly ([15d8890](https://github.com/gemini-testing/html-reporter/commit/15d8890))
+* retry only selected successful test ([6623625](https://github.com/gemini-testing/html-reporter/commit/6623625))
+
+
+### Features
+
+* use headless chromium and circle ci for integration tests ([1523b2c](https://github.com/gemini-testing/html-reporter/commit/1523b2c))
+
+
+
+<a name="5.1.0"></a>
+# [5.1.0](https://github.com/gemini-testing/html-reporter/compare/v5.0.1...v5.1.0) (2019-10-17)
+
+
+### Bug Fixes
+
+* disable func tests on travis and screenshot update ([95c76fc](https://github.com/gemini-testing/html-reporter/commit/95c76fc))
+* retry only selected successful test ([6623625](https://github.com/gemini-testing/html-reporter/commit/6623625))
+
+
+### Features
+
+* use headless chromium and circle ci for integration tests ([1523b2c](https://github.com/gemini-testing/html-reporter/commit/1523b2c))
+
+
+
 <a name="5.0.1"></a>
 ## [5.0.1](https://github.com/gemini-testing/html-reporter/compare/v5.0.0...v5.0.1) (2019-10-11)
 

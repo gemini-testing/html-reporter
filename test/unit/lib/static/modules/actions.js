@@ -1,6 +1,8 @@
 'use strict';
 
 import axios from 'axios';
+import {isArray} from 'lodash';
+
 import proxyquire from 'proxyquire';
 import {acceptOpened, retryTest, runFailedTests} from 'lib/static/modules/actions';
 import {
@@ -13,16 +15,16 @@ import {
 } from '../../../utils';
 import {SUCCESS, FAIL} from 'lib/constants/test-statuses';
 
-const mkBrowserResultWithImagesInfo = name => {
+const mkBrowserResultWithImagesInfo = (name, status = FAIL) => {
     return mkBrowserResult({
         name,
-        status: FAIL,
+        status,
         result: mkTestResult({
             name,
-            status: FAIL,
+            status,
             imagesInfo: [
                 mkImagesInfo({
-                    status: FAIL,
+                    status,
                     opened: true
                 })
             ]
@@ -84,6 +86,10 @@ describe('lib/static/modules/actions', () => {
     describe('retryTest', () => {
         const suite = mkSuite({
             suitePath: ['suite1'],
+            browsers: [
+                mkBrowserResultWithImagesInfo('yabro', SUCCESS),
+                mkBrowserResultWithImagesInfo('foo-bar', FAIL)
+            ],
             children: [
                 mkState({
                     suitePath: ['suite1', 'suite2'],
@@ -93,43 +99,30 @@ describe('lib/static/modules/actions', () => {
                         mkBrowserResultWithImagesInfo('yabro')
                     ]
                 })
-            ],
-            browsers: [mkBrowserResultWithImagesInfo('yabro')]
+            ]
         });
 
-        it('should run tests from suite with children and browsers', async () => {
-            await retryTest(suite)(dispatch);
+        [
+            {browserId: 'yabro', status: 'successful'},
+            {browserId: 'foo-bar', status: 'failed'}
+        ].forEach(({browserId, status}) => {
+            it(`should run only ${status} test if it was passed`, async () => {
+                await retryTest(suite, browserId)(dispatch);
 
-            assert.calledWith(
-                axios.post,
-                sinon.match.any,
-                sinon.match(tests => {
-                    assert.equal(tests.browserId, null);
-                    assert.lengthOf(tests.browsers, 1);
-                    assert.lengthOf(tests.children, 1);
-                    assert.lengthOf(tests.children[0].browsers, 2);
-                    assert.notProperty(tests.children[0], 'children');
-                    return true;
-                })
-            );
-        });
+                assert.calledWith(
+                    axios.post,
+                    sinon.match.any,
+                    sinon.match(tests => {
+                        if (isArray(tests)) {
+                            assert.equal(tests[0].browserId, browserId);
+                        } else {
+                            assert.equal(tests.browserId, browserId);
+                        }
 
-        it('should not run children if browserId defined', async () => {
-            const browserId = 'yabro';
-
-            await retryTest(suite, browserId)(dispatch);
-
-            assert.calledWith(
-                axios.post,
-                sinon.match.any,
-                sinon.match(tests => {
-                    assert.equal(tests.browserId, 'yabro');
-                    assert.notProperty(tests, 'children');
-                    assert.lengthOf(tests.browsers, 1);
-                    assert.equal(tests.browsers[0].name, 'yabro');
-                    return true;
-                })
-            );
+                        return true;
+                    })
+                );
+            });
         });
     });
 

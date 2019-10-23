@@ -2,7 +2,7 @@
 
 const _ = require('lodash');
 const utils = require('lib/server-utils');
-const {SUCCESS} = require('lib/constants/test-statuses');
+const {SUCCESS, UPDATED} = require('lib/constants/test-statuses');
 const {ERROR_DETAILS_PATH} = require('lib/constants/paths');
 const {stubTool, stubConfig} = require('../utils');
 const proxyquire = require('proxyquire');
@@ -435,6 +435,22 @@ describe('hermione test adapter', () => {
             await hermioneTestAdapter.saveTestImages('some/rep', workers);
 
             const {expectedImg} = hermioneTestAdapter.getImagesFor(SUCCESS);
+            assert.equal(expectedImg.path, 'some/ref.png');
+        });
+
+        it('should return ref image path after update image for NoRefImageError', async () => {
+            const testResult = mkTestResult_({
+                assertViewResults: [mkErrStub(NoRefImageError)],
+                imagesInfo: []
+            });
+
+            const imagesSaver = {saveImg: sandbox.stub()};
+            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {}, {imagesSaver});
+            const workers = {saveDiffTo: sandbox.stub()};
+
+            await hermioneTestAdapter.saveTestImages('some/rep', workers);
+
+            const {expectedImg} = hermioneTestAdapter.getImagesFor(UPDATED);
             assert.equal(expectedImg.path, 'some/ref.png');
         });
     });
