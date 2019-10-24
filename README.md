@@ -102,25 +102,14 @@ npx hermione merge-reports src-report-1 src-report-2 -d dest-report
 ```
 ### create-blank-report
 
-Command that saves files (index.html, report.min.js and etc.) to target directory
-so user can open empty html-report while no test data is provided yet. Useful when
+Command that saves files (index.html, report.min.js and etc.) and links to databases
+to target directory so user could open empty html-report while no test data is provided yet. Useful when
 you are waiting for multiple databases to finish being generated and want to see the results
 as soon as at least one database is ready.
 
 Example of usage:
 ```
-npx hermione create-blank-report target-dir
-```
-
-When creating a blank report you have to create a `databaseUrls.json` file, that will
-contain locations of databases. 
-Upon opening, the report will try to fetch this file and access the databases. 
-In browser, the accessed databases will be merged into one and the data from it will be used to build the report. 
-File structure:
- ```json
-{
-  "filePaths": ["filePath1.db", "filePath2.db"]
-}
+npx hermione create-blank-report database-path-1 database-path-2 ... target-dir
 ```
 
 ## Testing

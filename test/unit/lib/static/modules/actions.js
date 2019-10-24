@@ -147,42 +147,13 @@ describe('lib/static/modules/actions', () => {
         });
     });
     describe('working with sqlite', () => {
-        describe('opening databases', () => {
-            let createDbStub;
-            let actions;
+        let createDbStub;
+        let mergeDbsStub;
+        let actions;
 
+        describe('opening databases', () => {
             beforeEach(() => {
                 createDbStub = sandbox.stub().resolves({db: null, url: 'test'});
-                actions = proxyquire('lib/static/modules/actions', {
-                    './sqlite': {
-                        createDb: createDbStub
-                    }
-                });
-            });
-            afterEach(() => sandbox.restore());
-
-            it('should fetch db locations', async () => {
-                sandbox.stub(axios, 'get').throws({response: {status: 404}});
-                sandbox.spy(actions, 'fetchDb');
-                await actions.fetchDb()(dispatch);
-                assert.calledOnce(actions.fetchDb);
-            });
-
-            it('should create databases from urls in "databaseUrls.json" if the file is present', async () => {
-                sandbox.stub(axios, 'get').resolves({status: 200, data: {filePaths: ['test1.db', 'test2.db']}});
-                await actions.fetchDb()(dispatch);
-                assert.calledWith(createDbStub, 'test1.db');
-                assert.calledWith(createDbStub, 'test2.db');
-            });
-        });
-
-        describe('merging databases', () => {
-            let createDbStub;
-            let mergeDbsStub;
-            let actions;
-
-            beforeEach(() => {
-                createDbStub = sandbox.stub().resolves({connection: 'db', url: 'test'});
                 mergeDbsStub = sandbox.stub();
                 actions = proxyquire('lib/static/modules/actions', {
                     './sqlite': {
@@ -194,14 +165,38 @@ describe('lib/static/modules/actions', () => {
 
             afterEach(() => sandbox.restore());
 
+            it('should create databases from urls in "databaseUrls.js"', async () => {
+                // sandbox.stub(axios, 'get').resolves({status: 200, data: {filePaths: ['test1.db', 'test2.db']}});
+                global.window.dbFilePaths = ['test1.db', 'test2.db'];
+                await actions.fetchDb()(dispatch);
+                assert.calledWith(createDbStub, 'test1.db');
+                assert.calledWith(createDbStub, 'test2.db');
+            });
+        });
+
+        describe('merging databases', () => {
+            beforeEach(() => {
+                createDbStub = sandbox.stub().resolves({connection: 'db', url: 'test'});
+                mergeDbsStub = sandbox.stub();
+
+                actions = proxyquire('lib/static/modules/actions', {
+                    './sqlite': {
+                        createDb: createDbStub,
+                        mergeDbs: mergeDbsStub
+                    }
+                });
+            });
+
+            afterEach(() => sandbox.restore());
+
             it('should merge databases into one if more than one db is opened', async () => {
-                sandbox.stub(axios, 'get').resolves({status: 200, data: {filePaths: ['test1.db', 'test2.db']}});
+                global.window.dbFilePaths = ['test1.db', 'test2.db'];
                 await actions.fetchDb()(dispatch);
                 assert.calledOnce(mergeDbsStub);
             });
 
             it('should not merge databases if only one db is opened', async () => {
-                sandbox.stub(axios, 'get').resolves({status: 200, data: {filePaths: ['test1.db']}});
+                global.window.dbFilePaths = ['test1.db'];
                 await actions.fetchDb()(dispatch);
                 assert.notCalled(mergeDbsStub);
             });

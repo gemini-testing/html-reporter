@@ -11,7 +11,7 @@ describe('lib/create-blank-report', () => {
     const sandbox = sinon.sandbox.create();
 
     const createBlankReport_ = async (hermione, pluginConfig, destPath = 'default-dest-report/path') => {
-        return await createBlankReport(hermione, pluginConfig, destPath);
+        return await createBlankReport(hermione, pluginConfig, null, {destination: destPath});
     };
 
     const events = {
@@ -19,7 +19,6 @@ describe('lib/create-blank-report', () => {
         INIT: 'init'
     };
 
-    // const config = {};
     const config = {
         defaultView: 'failed',
         baseHost: 'test',
@@ -63,7 +62,7 @@ describe('lib/create-blank-report', () => {
             assert.calledWithMatch(fs.copy, 'sql-wasm.js', path.join(destFilePath, 'sql-wasm.js'));
         });
 
-        it('should write "data.js"  to destination folder', async () => {
+        it('should write "data.js" to destination folder', async () => {
             fs.readdir.resolves(['file-path']);
             const destFilePath = path.resolve('dest-report', 'path');
             await createBlankReport_(hermioneTool, config, 'dest-report/path');
