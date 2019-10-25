@@ -23,7 +23,7 @@ describe('lib/gui/app', () => {
             configs: {program: {name: () => 'tool'}, pluginConfig: {path: 'default-path'}}
         });
         const app = new App(opts.paths, opts.tool, opts.configs);
-        await app.initialize(opts.paths, opts.tool, opts.configs);
+        await app.initialize();
         return app;
     };
 

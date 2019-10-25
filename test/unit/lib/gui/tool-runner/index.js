@@ -59,7 +59,7 @@ describe('lib/gui/tool-runner/hermione/index', () => {
 
             const gui = initGuiReporter(hermione, {paths: ['foo']});
 
-            return gui.initialize(hermione, mkPluginConfig_())
+            return gui.initialize()
                 .then(() => {
                     assert.notCalled(reportBuilder.addSkipped);
                     assert.notCalled(reportBuilder.addIdle);
@@ -72,7 +72,7 @@ describe('lib/gui/tool-runner/hermione/index', () => {
 
             const gui = initGuiReporter(hermione, {paths: ['foo']});
 
-            return gui.initialize(hermione, mkPluginConfig_())
+            return gui.initialize()
                 .then(() => {
                     assert.notCalled(reportBuilder.addSkipped);
                     assert.notCalled(reportBuilder.addIdle);
@@ -85,7 +85,7 @@ describe('lib/gui/tool-runner/hermione/index', () => {
 
             const gui = initGuiReporter(hermione, {paths: ['foo']});
 
-            return gui.initialize(hermione, mkPluginConfig_())
+            return gui.initialize()
                 .then(() => assert.calledOnce(reportBuilder.addSkipped));
         });
 
@@ -95,7 +95,7 @@ describe('lib/gui/tool-runner/hermione/index', () => {
 
             const gui = initGuiReporter(hermione, {paths: ['foo']});
 
-            return gui.initialize(hermione, mkPluginConfig_())
+            return gui.initialize()
                 .then(() => assert.calledOnce(reportBuilder.addIdle));
         });
     });
@@ -117,7 +117,7 @@ describe('lib/gui/tool-runner/hermione/index', () => {
 
                 const hermione = mkHermione_(config);
                 const gui = initGuiReporter(hermione);
-                await gui.initialize(hermione, mkPluginConfig_());
+                await gui.initialize();
 
                 const tests = [mkTestResult({
                     browserId: 'yabro',
@@ -150,7 +150,7 @@ describe('lib/gui/tool-runner/hermione/index', () => {
 
                 const hermione = mkHermione_(config);
                 const gui = initGuiReporter(hermione);
-                await gui.initialize(hermione, mkPluginConfig_());
+                await gui.initialize();
 
                 const tests = [mkTestResult({
                     browserId: 'yabro',

@@ -59,7 +59,7 @@ describe('lib/gui/tool-runner/base-tool-runner', () => {
                 htmlReporter: {values: {foo: 'bar'}},
                 readTests: () => new Promise(res => res(mkHermioneTestCollection_()))
             };
-            await initGuiReporter().initialize(tool, mkPluginConfig_());
+            await initGuiReporter().initialize();
             assert.calledWith(reportBuilder.setApiValues, {foo: 'bar'});
         });
     });
@@ -68,7 +68,7 @@ describe('lib/gui/tool-runner/base-tool-runner', () => {
         it('should pass paths to "readTests" method', () => {
             const gui = initGuiReporter({paths: ['foo', 'bar']});
 
-            return gui.initialize(tool, mkPluginConfig_())
+            return gui.initialize()
                 .then(() => assert.calledOnceWith(tool.readTests, ['foo', 'bar']));
         });
 
@@ -82,7 +82,7 @@ describe('lib/gui/tool-runner/base-tool-runner', () => {
                 }
             });
 
-            return gui.initialize(tool, mkPluginConfig_())
+            return gui.initialize()
                 .then(() => {
                     assert.calledOnceWith(tool.readTests, sinon.match.any, {grep, sets: set, browsers: browser});
                 });
@@ -92,7 +92,7 @@ describe('lib/gui/tool-runner/base-tool-runner', () => {
     describe(`finalize hermione`, () => {
         it('should save data file', async () => {
             const gui = initGuiReporter();
-            await gui.initialize(tool, mkPluginConfig_());
+            await gui.initialize();
             gui.finalize();
 
             assert.calledOnce(reportBuilder.saveDataFileSync);
@@ -103,7 +103,7 @@ describe('lib/gui/tool-runner/base-tool-runner', () => {
         it('should not try load data for reuse if suites are empty', () => {
             const gui = initGuiReporter({configs: mkPluginConfig_({path: 'report_path'})});
 
-            return gui.initialize(tool, mkPluginConfig_())
+            return gui.initialize()
                 .then(() => assert.notCalled(serverUtils.require));
         });
 
@@ -114,7 +114,7 @@ describe('lib/gui/tool-runner/base-tool-runner', () => {
             const suites = [mkSuiteTree()];
             reportBuilder.getResult.returns({suites});
 
-            return gui.initialize(tool, mkPluginConfig_())
+            return gui.initialize()
                 .then(() => assert.calledOnceWith(serverUtils.require, reusePath));
         });
 
@@ -125,7 +125,7 @@ describe('lib/gui/tool-runner/base-tool-runner', () => {
 
             serverUtils.require.throws(new Error('Cannot find module'));
 
-            return assert.isFulfilled(gui.initialize(tool, mkPluginConfig_()));
+            return assert.isFulfilled(gui.initialize());
         });
 
         it('should log a warning that there is no data for reuse', () => {
@@ -135,7 +135,7 @@ describe('lib/gui/tool-runner/base-tool-runner', () => {
             const suites = [mkSuiteTree()];
             reportBuilder.getResult.returns({suites});
 
-            return gui.initialize(tool, mkPluginConfig_())
+            return gui.initialize()
                 .then(() => assert.calledWithMatch(serverUtils.logger.warn, 'Nothing to reuse'));
         });
 
@@ -147,7 +147,7 @@ describe('lib/gui/tool-runner/base-tool-runner', () => {
                 const suites = [mkSuiteTree()];
                 reportBuilder.getResult.returns({suites});
 
-                return gui.initialize(tool, mkPluginConfig_())
+                return gui.initialize()
                     .then(() => assert.deepEqual(gui.tree.suites, suites));
             });
 
@@ -157,7 +157,7 @@ describe('lib/gui/tool-runner/base-tool-runner', () => {
                 const suites = [mkSuiteTree()];
                 reportBuilder.getResult.returns({suites});
 
-                return gui.initialize(tool, mkPluginConfig_())
+                return gui.initialize()
                     .then(() => assert.deepEqual(gui.tree.suites, suites));
             });
         });
@@ -178,7 +178,7 @@ describe('lib/gui/tool-runner/base-tool-runner', () => {
             })];
             reportBuilder.getResult.returns({suites});
 
-            return gui.initialize(tool, mkPluginConfig_())
+            return gui.initialize()
                 .then(() => {
                     const {browsers} = gui.tree.suites[0].children[0];
 
@@ -214,7 +214,7 @@ describe('lib/gui/tool-runner/base-tool-runner', () => {
             suite.children.push(nestedSuite);
             reportBuilder.getResult.returns({suites: [suite]});
 
-            return gui.initialize(tool, mkPluginConfig_())
+            return gui.initialize()
                 .then(() => {
                     assert.deepEqual(
                         gui.tree.suites[0].children[0].children[0].browsers[0],
@@ -268,7 +268,7 @@ describe('lib/gui/tool-runner/base-tool-runner', () => {
             suite.children.push(nestedSuite);
             reportBuilder.getResult.returns({suites: [suite]});
 
-            return gui.initialize(tool, mkPluginConfig_())
+            return gui.initialize()
                 .then(() => {
                     assert.deepEqual(
                         gui.tree.suites[0].children[0].browsers[0],
@@ -298,7 +298,7 @@ describe('lib/gui/tool-runner/base-tool-runner', () => {
             })];
             reportBuilder.getResult.returns({suites});
 
-            return gui.initialize(tool, mkPluginConfig_())
+            return gui.initialize()
                 .then(() => {
                     const suite = gui.tree.suites[0];
 
@@ -325,7 +325,7 @@ describe('lib/gui/tool-runner/base-tool-runner', () => {
             })];
             reportBuilder.getResult.returns({suites});
 
-            return gui.initialize(tool, mkPluginConfig_())
+            return gui.initialize()
                 .then(() => {
                     const suite = gui.tree.suites[0];
 
