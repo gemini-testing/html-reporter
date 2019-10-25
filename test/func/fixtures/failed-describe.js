@@ -10,4 +10,11 @@ describe('failed describe', function() {
             .url('')
             .assertView('header', 'header');
     });
+
+    it('test with long error message', function() {
+        return this.browser
+            .then(() => {
+                throw new Error(`long_error_message ${'0123456789'.repeat(20)}\n message content`);
+            });
+    });
 });
