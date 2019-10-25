@@ -49,7 +49,7 @@ describe('lib/create-blank-report', () => {
             const destFilePath = path.resolve('dest-report', 'path');
             await createBlankReport_(hermioneTool, config, 'dest-report/path');
 
-            assert.calledWithMatch(fs.copy, 'index.html', path.join(destFilePath, 'index.html'));
+            assert.calledWithMatch(fs.copy, 'index_sqlite.html', path.join(destFilePath, 'index.html'));
             assert.calledWithMatch(fs.copy, 'report.min.js', path.join(destFilePath, 'report.min.js'));
             assert.calledWithMatch(fs.copy, 'report.min.css', path.join(destFilePath, 'report.min.css'));
         });
