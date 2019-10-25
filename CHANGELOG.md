@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="5.3.1"></a>
+## [5.3.1](https://github.com/gemini-testing/html-reporter/compare/v5.3.0...v5.3.1) (2019-10-24)
+
+
+### Bug Fixes
+
+* disable control buttons while accepted opened ([da188a8](https://github.com/gemini-testing/html-reporter/commit/da188a8))
+
+
+
 <a name="5.3.0"></a>
 # [5.3.0](https://github.com/gemini-testing/html-reporter/compare/v5.2.1...v5.3.0) (2019-10-22)
 

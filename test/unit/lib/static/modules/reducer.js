@@ -2,6 +2,7 @@
 import actionNames from 'lib/static/modules/action-names';
 import defaultState from 'lib/static/modules/default-state';
 
+const {assign} = require('lodash');
 const proxyquire = require('proxyquire');
 const reducer = proxyquire('lib/static/modules/reducer', {
     './local-storage-wrapper': {
@@ -47,6 +48,26 @@ describe('lib/static/modules/reducer', () => {
                 const newState = reducer(defaultState, action);
 
                 assert.equal(newState.view.viewMode, 'failed');
+            });
+        });
+
+        describe('PROCESS_BEGIN', () => {
+            it('should set processing flag', () => {
+                const action = {type: actionNames.PROCESS_BEGIN};
+
+                const newState = reducer(defaultState, action);
+
+                assert.isTrue(newState.processing);
+            });
+        });
+
+        describe('PROCESS_END', () => {
+            it('should reset processing flag', () => {
+                const action = {type: actionNames.PROCESS_END};
+
+                const newState = reducer(assign(defaultState, {processing: true}), action);
+
+                assert.isFalse(newState.processing);
             });
         });
 
