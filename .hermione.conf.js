@@ -46,6 +46,18 @@ module.exports = {
         'hermione-headless-chrome': {
             browserId: 'chrome',
             version: '77'
+        },
+        'hermione-global-hook': {
+            beforeEach: function() {
+                return this.browser
+                    .url('')
+                    .execute(() => {
+                        document.querySelectorAll('.section').forEach((section) => {
+                            const title = section.querySelector('.section__title').innerText;
+                            section.setAttribute('title', title);
+                        });
+                    });
+            }
         }
     }
 };
