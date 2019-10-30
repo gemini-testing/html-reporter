@@ -704,11 +704,11 @@ describe('ReportBuilder', () => {
         });
     });
 
-    describe('saveDataFileSync', () => {
+    describe('finalize', () => {
         it('should create report directory synchronously', () => {
             const reportBuilder = mkReportBuilder_({pluginConfig: {path: 'some/report/dir'}});
 
-            reportBuilder.saveDataFileSync();
+            reportBuilder.finalize();
 
             assert.calledOnceWith(fs.mkdirsSync, 'some/report/dir');
         });
@@ -719,7 +719,7 @@ describe('ReportBuilder', () => {
 
             const reportBuilder = mkReportBuilder_({pluginConfig: {path: 'some/report/dir'}});
 
-            reportBuilder.saveDataFileSync();
+            reportBuilder.finalize();
 
             assert.calledOnceWith(fs.writeFileSync, path.join('some', 'report', 'dir', 'data.js'), 'some data', 'utf8');
         });
@@ -727,7 +727,7 @@ describe('ReportBuilder', () => {
         it('should create report directory before save data file', () => {
             const reportBuilder = mkReportBuilder_();
 
-            reportBuilder.saveDataFileSync();
+            reportBuilder.finalize();
 
             assert.callOrder(fs.mkdirsSync, fs.writeFileSync);
         });

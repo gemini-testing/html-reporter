@@ -42,6 +42,7 @@ describe('lib/gui/tool-runner/base-tool-runner', () => {
         reportBuilder = sinon.createStubInstance(ReportBuilder);
         sandbox.stub(ReportBuilder, 'create').returns(reportBuilder);
         reportBuilder.getResult.returns({});
+        reportBuilder.finalize.returns({});
 
         tool = mkTool_();
         tool.readTests.resolves(mkHermioneTestCollection_());
@@ -90,12 +91,12 @@ describe('lib/gui/tool-runner/base-tool-runner', () => {
     });
 
     describe(`finalize hermione`, () => {
-        it('should save data file', async () => {
+        it('should call reportBuilder.finalize', async () => {
             const gui = initGuiReporter();
             await gui.initialize();
             gui.finalize();
 
-            assert.calledOnce(reportBuilder.saveDataFileSync);
+            assert.calledOnce(reportBuilder.finalize);
         });
     });
 

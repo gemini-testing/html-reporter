@@ -75,8 +75,7 @@ describe('lib/plugin-adapter', () => {
         toolReporter = proxyquire('lib/plugin-adapter', {
             './config': parseConfig,
             './cli-commands/gui': cliCommands.gui,
-            './cli-commands/merge-reports': cliCommands['merge-reports'],
-            './cli-commands/create-blank-report': cliCommands['create-blank-report']
+            './cli-commands/merge-reports': cliCommands['merge-reports']
         });
     });
 
@@ -109,8 +108,7 @@ describe('lib/plugin-adapter', () => {
 
     [
         'gui',
-        'merge-reports',
-        'create-blank-report'
+        'merge-reports'
     ].forEach((commandName) => {
         describe(`${commandName} command`, () => {
             it('should register command on "CLI" event', () => {
