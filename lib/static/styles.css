@@ -11,20 +11,20 @@
     display: inline;
 }
 
-.summary__db_key {
+.summary__db-key {
     cursor: pointer;
 }
 
-.summary__db_body {
+.db-info {
     display: inline-block;
     vertical-align: top;
 }
 
-.summary__db_body p {
+.db-info p {
     margin: 0.25em 1.25em 0 1.25em;
 }
 
-.summary__db_body > div {
+.db-info > div {
     position: absolute;
     background: white;
     padding: 0.25em;
@@ -34,7 +34,7 @@
     display: block;
 }
 
-.dbs_collapsed > div {
+.db-info_collapsed > div {
     display: none;
 }
 
@@ -223,14 +223,14 @@
 
 .section__title:before,
 .error-group__title:before,
-.summary__db_key:before,
+.summary__db-key:before,
 .state-title:before {
     height: 18px;
 }
 
 .section__title:before,
 .error-group__title:before,
-.summary__db_key:before,
+.summary__db-key:before,
 .state-title:before {
     display: inline-block;
     margin-right: 2px;
@@ -320,7 +320,7 @@
 
 .section_collapsed .section__title:before,
 .error-group_collapsed .error-group__title:before,
-.dbs_collapsed > dt:before,
+.db-info_collapsed > dt:before,
 .state-title_collapsed:before {
     -webkit-transform: rotate(-90deg);
     -moz-transform: rotate(-90deg);
@@ -663,16 +663,16 @@ a:active {
     color: gray;
 }
 
-.db-fetch__success {
+.db-info__success {
     color: #038035;
     font-weight: bold;
 }
 
-.db-fetch__fail {
+.db-info__fail {
     color: #c00;
     font-weight: bold;
 }
 
-.db-fetch__url {
+.db-info__url {
     font-style: italic;
 }

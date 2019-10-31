@@ -166,7 +166,6 @@ describe('lib/static/modules/actions', () => {
             afterEach(() => sandbox.restore());
 
             it('should create databases from urls in "databaseUrls.js"', async () => {
-                // sandbox.stub(axios, 'get').resolves({status: 200, data: {filePaths: ['test1.db', 'test2.db']}});
                 global.window.dbFilePaths = ['test1.db', 'test2.db'];
                 await actions.fetchDb()(dispatch);
                 assert.calledWith(createDbStub, 'test1.db');
