@@ -756,12 +756,5 @@ describe('ReportBuilder', () => {
                     assert.calledWithMatch(fs.copy, 'report.min.css', path.join('some', 'report', 'dir', 'report.min.css'));
                 });
         });
-
-        it('should log an error', () => {
-            const reportBuilder = mkReportBuilder_();
-            sandbox.stub(reportBuilder, 'saveDataFileAsync').rejects(new Error('some-error'));
-
-            return reportBuilder.save().then(() => assert.calledWith(logger.error, sinon.match('Html-reporter runtime error: Error: some-error')));
-        });
     });
 });

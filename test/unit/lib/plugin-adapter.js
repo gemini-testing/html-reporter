@@ -63,6 +63,7 @@ describe('lib/plugin-adapter', () => {
 
         sandbox.stub(ReportBuilder, 'create').returns(Object.create(ReportBuilder.prototype));
         sandbox.stub(ReportBuilder.prototype, 'save').resolves({});
+        sandbox.stub(logger, 'error');
 
         prepareData = sandbox.stub().resolves();
         prepareImages = sandbox.stub().resolves();
@@ -182,13 +183,25 @@ describe('lib/plugin-adapter', () => {
         });
 
         it('should log correct path to html report', () => {
-            return initCliReporter_({}, {})
+            return initCliReporter_({path: 'some/path'}, {})
                 .then(() => {
                     ReportBuilder.prototype.save.resolves({reportPath: 'some/path'});
                     tool.emit(tool.events.END);
 
                     return tool.emitAndWait(endRunnerEvent).then(() => {
                         assert.calledWithMatch(logger.log, 'some/path');
+                    });
+                });
+        });
+
+        it('should log an error', () => {
+            return initCliReporter_({}, {})
+                .then(() => {
+                    ReportBuilder.prototype.save.rejects('some-error');
+                    tool.emit(tool.events.END);
+
+                    return tool.emitAndWait(endRunnerEvent).then(() => {
+                        assert.calledWith(logger.error, sinon.match('Html-reporter runtime error: some-error'));
                     });
                 });
         });
