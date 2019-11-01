@@ -28,7 +28,7 @@ describe('lib/plugin-adapter', () => {
     }
 
     function initReporter_(opts = {}) {
-        opts = _.defaults(opts, {enabled: true});
+        opts = _.defaults(opts, {enabled: true, path: ''});
         parseConfig.returns(opts);
 
         return toolReporter.create(tool, opts)
@@ -164,7 +164,7 @@ describe('lib/plugin-adapter', () => {
         });
 
         it('should prepare images', () => {
-            const config = {enabled: true};
+            const config = {enabled: true, path: ''};
             parseConfig.returns(config);
 
             return initCliReporter_({}, {})

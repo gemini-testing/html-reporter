@@ -22,7 +22,7 @@ describe('lib/gui/tool-runner/base-tool-runner', () => {
         return {pluginConfig};
     };
 
-    const mkHermioneTestCollection_ = () => ({eachTest: sandbox.stub()});
+    const mkHermioneTestCollection_ = () => ({mapTests: sandbox.stub().returns([])});
 
     const initGuiReporter = (opts = {}) => {
         opts = _.defaults(opts, {

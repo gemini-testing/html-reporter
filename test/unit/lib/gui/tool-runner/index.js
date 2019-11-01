@@ -11,7 +11,15 @@ describe('lib/gui/tool-runner/hermione/index', () => {
     let ToolGuiReporter;
 
     const mkTestCollection_ = (testsTree = {}) => {
-        return {eachTest: (cb) => _.forEach(testsTree, cb)};
+        return {
+            mapTests: (cb) => {
+                const results = [];
+                _.forEach(testsTree, (test) => {
+                    results.push(cb(test));
+                });
+                return results;
+            }
+        };
     };
 
     const stubTest_ = (opts) => {
