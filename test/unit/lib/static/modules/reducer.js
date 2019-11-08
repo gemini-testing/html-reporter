@@ -74,9 +74,51 @@ describe('lib/static/modules/reducer', () => {
         describe('parsing database results', () => {
             it('should build correct tree', () => {
                 const values = [
-                    [JSON.stringify(['test', 'smalltest1']), 'smalltest1', 'browser', 'url', JSON.stringify({muted: false}), 'yml', null, null, JSON.stringify([]), 0, 1, 'fail', 0],
-                    [JSON.stringify(['test', 'smalltest1']), 'smalltest1', 'browser', 'url', JSON.stringify({muted: false}), 'yml', null, null, JSON.stringify([]), 0, 1, 'success', 1],
-                    [JSON.stringify(['test', 'smalltest2']), 'smalltest2', 'browser', 'url', JSON.stringify({muted: false}), 'yml', null, null, JSON.stringify([]), 0, 1, 'success', 1]
+                    [
+                        JSON.stringify(['test', 'smalltest1']),
+                        'smalltest1',
+                        'browser',
+                        'url',
+                        JSON.stringify({muted: false}),
+                        'description',
+                        JSON.stringify({message: 'error message', stack: 'error stack'}),
+                        'skipReason',
+                        JSON.stringify([{actualImg: {path: 'path', size: {width: 0, height: 0}}}]),
+                        Number(true), // multiple tabs
+                        Number(true), // screenshot
+                        'fail',
+                        0 // timestamp
+                    ],
+                    [
+                        JSON.stringify(['test', 'smalltest1']),
+                        'smalltest1',
+                        'browser',
+                        'url',
+                        JSON.stringify({muted: false}),
+                        'description',
+                        JSON.stringify({message: 'error message', stack: 'error stack'}),
+                        'skipReason',
+                        JSON.stringify([{actualImg: {path: 'path', size: {width: 0, height: 0}}}]),
+                        Number(true), // multiple tabs
+                        Number(true), // screenshot
+                        'success',
+                        1 // timestamp
+                    ],
+                    [
+                        JSON.stringify(['test', 'smalltest2']),
+                        'smalltest2',
+                        'browser',
+                        'url',
+                        JSON.stringify({muted: false}),
+                        'description',
+                        JSON.stringify({message: 'error message', stack: 'error stack'}),
+                        'skipReason',
+                        JSON.stringify([{actualImg: {path: 'path', size: {width: 0, height: 0}}}]),
+                        Number(true), // multiple tabs
+                        Number(true), // screenshot
+                        'success',
+                        0 // timestamp
+                    ]
                 ];
 
                 const db = {

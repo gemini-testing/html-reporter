@@ -2,27 +2,42 @@
 
 const fs = require('fs-extra');
 const _ = require('lodash');
-const serverUtils = require('lib/server-utils');
-const TestAdapter = require('lib/test-adapter');
-const SqliteAdapter = require('lib/sqlite-adapter');
 const sqlite3 = require('sqlite3').verbose();
 const proxyquire = require('proxyquire');
 const {SUCCESS, FAIL, ERROR, SKIPPED} = require('lib/constants/test-statuses');
 
 describe('ReportBuilderSqlite', () => {
     const sandbox = sinon.sandbox.create();
-    let hasImage, ReportBuilder;
+    let hasImage, ReportBuilder, reportBuilderSqlite;
 
-    const mkReportBuilder_ = ({toolConfig, pluginConfig} = {}) => {
-        toolConfig = _.defaults(toolConfig || {}, {getAbsoluteUrl: _.noop});
-        pluginConfig = _.defaults(pluginConfig || {}, {baseHost: '', path: '', baseTestPath: ''});
+    const formattedSuite_ = () => {
+        return {
+            browserId: 'bro1',
+            suite:
+                {
+                    fullName: 'suite-full-name',
+                    path: ['suite'],
+                    getUrl: function() {
+                        return 'url';
+                    }
+                },
+            state: {
+                name: 'name-default'
+            },
+            getImagesInfo: () => [],
+            getCurrImg: () => {
+                return {path: null};
+            }
+        };
+    };
+
+    const mkReportBuilder_ = ({toolConfig = {}, pluginConfig} = {}) => {
+        toolConfig = _.defaults(toolConfig, {getAbsoluteUrl: _.noop});
+        pluginConfig = _.defaults(pluginConfig, {baseHost: '', path: 'test', baseTestPath: ''});
 
         const browserConfigStub = {getAbsoluteUrl: toolConfig.getAbsoluteUrl};
-        const config = {forBrowser: sandbox.stub().returns(browserConfigStub)};
-
-        TestAdapter.create = (obj) => obj;
-
-        return new ReportBuilder(config, pluginConfig, TestAdapter, true);
+        const config = {forBrowser: sandbox.stub().returns(browserConfigStub), htmlReporter: {saveImg: sandbox.stub()}};
+        return ReportBuilder.create(config, pluginConfig);
     };
 
     const stubTest_ = (opts = {}) => {
@@ -52,69 +67,100 @@ describe('ReportBuilderSqlite', () => {
     };
 
     beforeEach(() => {
-        sandbox.stub(fs, 'copy').resolves();
-        sandbox.stub(fs, 'mkdirs').resolves();
-        sandbox.stub(fs, 'mkdirsSync');
-        sandbox.stub(fs, 'writeFile').resolves();
-        sandbox.stub(fs, 'writeFileSync');
-        sandbox.stub(serverUtils, 'prepareCommonJSData');
-        sandbox.stub(sqlite3, 'Database');
-        sandbox.stub(SqliteAdapter.prototype, '_createTable');
-        sandbox.stub(SqliteAdapter.prototype, 'close');
-
         hasImage = sandbox.stub().returns(true);
         ReportBuilder = proxyquire('lib/report-builder/report-builder-sqlite', {
             '../server-utils': {
                 hasImage
             }
         });
-        sandbox.stub(ReportBuilder.prototype, '_writeTestResultToDb');
     });
 
-    afterEach(() => sandbox.restore());
+    afterEach(() => {
+        fs.unlinkSync('test/sqlite.db');
+        sandbox.restore();
+    });
 
     describe('adding test results', () => {
-        it('should add skipped test to database', () => {
-            const reportBuilder = mkReportBuilder_();
-            reportBuilder.addSkipped(stubTest_({
-                browserId: 'bro1',
-                suite: {
-                    skipComment: 'some skip comment',
-                    fullName: 'suite-full-name'
-                }
-            }));
-            assert.calledWithMatch(ReportBuilder.prototype._writeTestResultToDb, {
-                skipReason: 'some skip comment',
-                status: SKIPPED
+        beforeEach(async () => {
+            reportBuilderSqlite = await mkReportBuilder_();
+            sandbox.stub(reportBuilderSqlite, 'format').returns(formattedSuite_());
+        });
+
+        it('should add skipped test to database', async () => {
+            await reportBuilderSqlite.addSkipped(stubTest_());
+
+            const db = new sqlite3.Database('test/sqlite.db');
+            await db.all('SELECT * from suites', function(err, result) {
+                db.close();
+
+                assert.equal(result[0].status, SKIPPED);
             });
         });
 
-        it('should add success test to database', () => {
-            const reportBuilder = mkReportBuilder_();
+        it('should add success test to database', async () => {
+            await reportBuilderSqlite.addSuccess(stubTest_());
 
-            reportBuilder.addSuccess(stubTest_({
-                browserId: 'bro1'
-            }));
-            assert.calledWithMatch(ReportBuilder.prototype._writeTestResultToDb, {status: SUCCESS, name: 'bro1'});
+            const db = new sqlite3.Database('test/sqlite.db');
+            await db.all('SELECT * from suites', function(err, result) {
+                db.close();
+
+                assert.equal(result[0].status, SUCCESS);
+            });
         });
 
-        it('should add failed test to database', () => {
-            const reportBuilder = mkReportBuilder_();
+        it('should add failed test to database', async () => {
+            await reportBuilderSqlite.addFail(stubTest_());
 
-            reportBuilder.addFail(stubTest_({
-                browserId: 'bro1',
-                imageDir: 'some-image-dir'
-            }));
-            assert.calledWithMatch(ReportBuilder.prototype._writeTestResultToDb, {status: FAIL, name: 'bro1'});
+            const db = new sqlite3.Database('test/sqlite.db');
+            await db.all('SELECT * from suites', function(err, result) {
+                db.close();
+
+                assert.equal(result[0].status, FAIL);
+            });
         });
 
-        it('should add error test to database', () => {
-            const reportBuilder = mkReportBuilder_();
+        it('should add error test to database', async () => {
+            await reportBuilderSqlite.addError(stubTest_());
 
-            reportBuilder.addError(stubTest_({error: 'some-stack-trace'}));
-            assert.calledWithMatch(ReportBuilder.prototype._writeTestResultToDb, {
-                status: ERROR,
-                error: 'some-stack-trace'
+            const db = new sqlite3.Database('test/sqlite.db');
+            await db.all('SELECT * from suites', function(err, result) {
+                db.close();
+
+                assert.equal(result[0].status, ERROR);
+            });
+        });
+    });
+
+    describe('working with database', () => {
+        it('should create database', async () => {
+            await mkReportBuilder_();
+            assert.equal(fs.existsSync('test/sqlite.db'), true);
+        });
+
+        it('should create database with correct structure', async () => {
+            await mkReportBuilder_();
+            const db = new sqlite3.Database('test/sqlite.db');
+            const tableStructure = [
+                /* eslint-disable camelcase */
+                {cid: 0, name: 'suitePath', type: 'TEXT', dflt_value: null, notnull: 0, pk: 0},
+                {cid: 1, name: 'suiteName', type: 'TEXT', dflt_value: null, notnull: 0, pk: 0},
+                {cid: 2, name: 'name', type: 'TEXT', dflt_value: null, notnull: 0, pk: 0},
+                {cid: 3, name: 'suiteUrl', type: 'TEXT', dflt_value: null, notnull: 0, pk: 0},
+                {cid: 4, name: 'metaInfo', type: 'TEXT', dflt_value: null, notnull: 0, pk: 0},
+                {cid: 5, name: 'description', type: 'TEXT', dflt_value: null, notnull: 0, pk: 0},
+                {cid: 6, name: 'error', type: 'TEXT', dflt_value: null, notnull: 0, pk: 0},
+                {cid: 7, name: 'skipReason', type: 'TEXT', dflt_value: null, notnull: 0, pk: 0},
+                {cid: 8, name: 'imagesInfo', type: 'TEXT', dflt_value: null, notnull: 0, pk: 0},
+                {cid: 9, name: 'screenshot', type: 'INT', dflt_value: null, notnull: 0, pk: 0},
+                {cid: 10, name: 'multipleTabs', type: 'INT', dflt_value: null, notnull: 0, pk: 0},
+                {cid: 11, name: 'status', type: 'TEXT', dflt_value: null, notnull: 0, pk: 0},
+                {cid: 12, name: 'timestamp', type: 'INT', dflt_value: null, notnull: 0, pk: 0}
+                /* eslint-enable camelcase */
+            ];
+
+            db.all('PRAGMA table_info(suites);', function(err, columns) {
+                db.close();
+                assert.sameDeepMembers(tableStructure, columns);
             });
         });
     });
