@@ -15,9 +15,9 @@
     vertical-align: inherit !important;
 }
 
-.db-info p {
+.db-info__row {
     margin: 0.25em;
-    font: 14px Helvetica Neue, Arial, sans-serif;
+    font: 14px Helvetica Neue, Arial, sans-serif !important;
 }
 
 .summary__key::after {
@@ -566,7 +566,6 @@ a:active {
     border: none;
     top: 0.3em;
     margin: 0 10px 0 0 !important;
-
 }
 
 .ui.simple.dropdown .menu > .item {

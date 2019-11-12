@@ -13,11 +13,7 @@ describe('lib/gui/tool-runner/hermione/index', () => {
     const mkTestCollection_ = (testsTree = {}) => {
         return {
             mapTests: (cb) => {
-                const results = [];
-                _.forEach(testsTree, (test) => {
-                    results.push(cb(test));
-                });
-                return results;
+                return Object.keys(testsTree).map((test) => cb(testsTree[test]));
             }
         };
     };

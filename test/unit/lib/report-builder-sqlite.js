@@ -13,14 +13,13 @@ describe('ReportBuilderSqlite', () => {
     const formattedSuite_ = () => {
         return {
             browserId: 'bro1',
-            suite:
-                {
-                    fullName: 'suite-full-name',
-                    path: ['suite'],
-                    getUrl: function() {
-                        return 'url';
-                    }
-                },
+            suite: {
+                fullName: 'suite-full-name',
+                path: ['suite'],
+                getUrl: function() {
+                    return 'url';
+                }
+            },
             state: {
                 name: 'name-default'
             },
@@ -141,26 +140,28 @@ describe('ReportBuilderSqlite', () => {
             await mkReportBuilder_();
             const db = new sqlite3.Database('test/sqlite.db');
             const tableStructure = [
-                /* eslint-disable camelcase */
-                {cid: 0, name: 'suitePath', type: 'TEXT', dflt_value: null, notnull: 0, pk: 0},
-                {cid: 1, name: 'suiteName', type: 'TEXT', dflt_value: null, notnull: 0, pk: 0},
-                {cid: 2, name: 'name', type: 'TEXT', dflt_value: null, notnull: 0, pk: 0},
-                {cid: 3, name: 'suiteUrl', type: 'TEXT', dflt_value: null, notnull: 0, pk: 0},
-                {cid: 4, name: 'metaInfo', type: 'TEXT', dflt_value: null, notnull: 0, pk: 0},
-                {cid: 5, name: 'description', type: 'TEXT', dflt_value: null, notnull: 0, pk: 0},
-                {cid: 6, name: 'error', type: 'TEXT', dflt_value: null, notnull: 0, pk: 0},
-                {cid: 7, name: 'skipReason', type: 'TEXT', dflt_value: null, notnull: 0, pk: 0},
-                {cid: 8, name: 'imagesInfo', type: 'TEXT', dflt_value: null, notnull: 0, pk: 0},
-                {cid: 9, name: 'screenshot', type: 'INT', dflt_value: null, notnull: 0, pk: 0},
-                {cid: 10, name: 'multipleTabs', type: 'INT', dflt_value: null, notnull: 0, pk: 0},
-                {cid: 11, name: 'status', type: 'TEXT', dflt_value: null, notnull: 0, pk: 0},
-                {cid: 12, name: 'timestamp', type: 'INT', dflt_value: null, notnull: 0, pk: 0}
-                /* eslint-enable camelcase */
+                {cid: 0, name: 'suitePath', type: 'TEXT'},
+                {cid: 1, name: 'suiteName', type: 'TEXT'},
+                {cid: 2, name: 'name', type: 'TEXT'},
+                {cid: 3, name: 'suiteUrl', type: 'TEXT'},
+                {cid: 4, name: 'metaInfo', type: 'TEXT'},
+                {cid: 5, name: 'description', type: 'TEXT'},
+                {cid: 6, name: 'error', type: 'TEXT'},
+                {cid: 7, name: 'skipReason', type: 'TEXT'},
+                {cid: 8, name: 'imagesInfo', type: 'TEXT'},
+                {cid: 9, name: 'screenshot', type: 'INT'},
+                {cid: 10, name: 'multipleTabs', type: 'INT'},
+                {cid: 11, name: 'status', type: 'TEXT'},
+                {cid: 12, name: 'timestamp', type: 'INT'}
             ];
 
             db.all('PRAGMA table_info(suites);', function(err, columns) {
                 db.close();
-                assert.sameDeepMembers(tableStructure, columns);
+                columns.map((column, index) => {
+                    assert.match(column.cid, tableStructure[index].cid);
+                    assert.match(column.name, tableStructure[index].name);
+                    assert.match(column.type, tableStructure[index].type);
+                });
             });
         });
     });
