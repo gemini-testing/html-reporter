@@ -25,7 +25,6 @@ module.exports = {
             windowSize: '1280x1024',
             desiredCapabilities: {
                 browserName: 'chrome',
-                'tunnel-identifier': process.env.TRAVIS_JOB_NUMBER,
                 chromeOptions: {
                     mobileEmulation: {deviceMetrics: {pixelRatio: 1}}
                 }
@@ -46,6 +45,18 @@ module.exports = {
         'hermione-headless-chrome': {
             browserId: 'chrome',
             version: '77'
+        },
+        'hermione-global-hook': {
+            beforeEach: function() {
+                return this.browser
+                    .url('')
+                    .execute(() => {
+                        document.querySelectorAll('.section').forEach((section) => {
+                            const title = section.querySelector('.section__title').innerText;
+                            section.setAttribute('title', title);
+                        });
+                    });
+            }
         }
     }
 };

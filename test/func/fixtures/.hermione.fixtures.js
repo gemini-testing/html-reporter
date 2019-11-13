@@ -20,8 +20,7 @@ module.exports = {
         chrome: {
             windowSize: '1280x1024',
             desiredCapabilities: {
-                browserName: 'chrome',
-                'tunnel-identifier': process.env.TRAVIS_JOB_NUMBER
+                browserName: 'chrome'
             }
         }
     },
