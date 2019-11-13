@@ -60,7 +60,9 @@ describe('lib/gui/tool-runner/base-tool-runner', () => {
                 htmlReporter: {values: {foo: 'bar'}},
                 readTests: () => new Promise(res => res(mkHermioneTestCollection_()))
             };
+
             await initGuiReporter().initialize();
+
             assert.calledWith(reportBuilder.setApiValues, {foo: 'bar'});
         });
     });

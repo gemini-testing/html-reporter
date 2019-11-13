@@ -109,6 +109,7 @@ describe('lib/gui/tool-runner/hermione/index', () => {
             const hermione = stubTool(config, {UPDATE_REFERENCE: 'updateReference'});
             sandbox.stub(hermione, 'emit');
             hermione.readTests.resolves(mkTestCollection_());
+
             return hermione;
         };
 

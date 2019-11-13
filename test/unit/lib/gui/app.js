@@ -24,6 +24,7 @@ describe('lib/gui/app', () => {
         });
         const app = new App(opts.paths, opts.tool, opts.configs);
         await app.initialize();
+
         return app;
     };
 
@@ -61,8 +62,8 @@ describe('lib/gui/app', () => {
                 retryBeforeRun = tool.config.forBrowser('bro1').retry;
                 return Promise.resolve();
             });
-
             const App_ = await mkApp_({tool});
+
             return App_
                 .run()
                 .then(() => assert.equal(retryBeforeRun, 1));
@@ -76,8 +77,8 @@ describe('lib/gui/app', () => {
                 bro2RetryBeforeRun = tool.config.forBrowser('bro2').retry;
                 return Promise.resolve();
             });
-
             const App_ = await mkApp_({tool});
+
             return App_
                 .run(['test'])
                 .then(() => {
@@ -88,6 +89,7 @@ describe('lib/gui/app', () => {
 
         it('should restore config retry values after run', async () => {
             const App_ = await mkApp_({tool});
+
             return App_
                 .run(['test'])
                 .then(() => {
@@ -97,9 +99,9 @@ describe('lib/gui/app', () => {
         });
 
         it('should restore config retry values even after error', async () => {
-            toolRunner.run.rejects();
-
+            await toolRunner.run.rejects();
             const App_ = await mkApp_({tool});
+
             return App_
                 .run(['test'])
                 .catch(() => {
@@ -119,7 +121,12 @@ describe('lib/gui/app', () => {
             ToolRunner.create.returns(toolRunner);
 
             pluginConfig = {path: 'report-path'};
-            compareOpts = {tolerance: 100500, antialiasingTolerance: 500100, stopOnFirstFail: true, shouldCluster: false};
+            compareOpts = {
+                tolerance: 100500,
+                antialiasingTolerance: 500100,
+                stopOnFirstFail: true,
+                shouldCluster: false
+            };
 
             sandbox.stub(path, 'resolve');
         });
@@ -168,14 +175,18 @@ describe('lib/gui/app', () => {
         });
 
         it('should compare each diff cluster', async () => {
-            const refImagesInfo = mkImagesInfo({diffClusters: [
-                {left: 0, top: 0, right: 5, bottom: 5},
-                {left: 10, top: 10, right: 15, bottom: 15}
-            ]});
-            const comparedImagesInfo = [mkImagesInfo({diffClusters: [
-                {left: 0, top: 0, right: 5, bottom: 5},
-                {left: 10, top: 10, right: 15, bottom: 15}
-            ]})];
+            const refImagesInfo = mkImagesInfo({
+                diffClusters: [
+                    {left: 0, top: 0, right: 5, bottom: 5},
+                    {left: 10, top: 10, right: 15, bottom: 15}
+                ]
+            });
+            const comparedImagesInfo = [mkImagesInfo({
+                diffClusters: [
+                    {left: 0, top: 0, right: 5, bottom: 5},
+                    {left: 10, top: 10, right: 15, bottom: 15}
+                ]
+            })];
 
             looksSame.yields(null, {equal: true});
 
@@ -186,12 +197,11 @@ describe('lib/gui/app', () => {
         });
 
         it('should return all found equal diffs', async () => {
+            looksSame.yields(null, {equal: true});
             const refImagesInfo = mkImagesInfo();
             const comparedImagesInfo = [mkImagesInfo(), mkImagesInfo()];
-
-            looksSame.yields(null, {equal: true});
-
             const App_ = await mkApp_({tool, configs: {pluginConfig}});
+
             const result = await App_.findEqualDiffs([refImagesInfo].concat(comparedImagesInfo));
 
             assert.deepEqual(result, comparedImagesInfo);

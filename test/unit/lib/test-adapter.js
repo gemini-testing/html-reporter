@@ -15,7 +15,7 @@ describe('hermione test adapter', () => {
     class ImageDiffError extends Error {}
     class NoRefImageError extends Error {}
 
-    const mkHermioneTestResultAdapter = (testResult, toolOpts = {}, htmlReporter = {}, saveAttempt = true) => {
+    const mkHermioneTestResultAdapter = (testResult, toolOpts = {}, htmlReporter = {}) => {
         const config = _.defaults(toolOpts.config, {
             browsers: {
                 bro: {}
@@ -29,7 +29,7 @@ describe('hermione test adapter', () => {
             Object.assign({imagesSaver: {saveImg: sandbox.stub()}}, htmlReporter)
         );
 
-        return new HermioneTestResultAdapter(testResult, tool, undefined, saveAttempt);
+        return new HermioneTestResultAdapter(testResult, tool);
     };
 
     const mkTestResult_ = (result) => _.defaults(result, {

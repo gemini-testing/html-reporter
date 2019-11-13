@@ -36,6 +36,7 @@ describe('ReportBuilderSqlite', () => {
 
         const browserConfigStub = {getAbsoluteUrl: toolConfig.getAbsoluteUrl};
         const config = {forBrowser: sandbox.stub().returns(browserConfigStub), htmlReporter: {saveImg: sandbox.stub()}};
+
         return ReportBuilder.create(config, pluginConfig);
     };
 
@@ -87,8 +88,8 @@ describe('ReportBuilderSqlite', () => {
 
         it('should add skipped test to database', async () => {
             await reportBuilderSqlite.addSkipped(stubTest_());
-
             const db = new sqlite3.Database('test/sqlite.db');
+
             await db.all('SELECT * from suites', function(err, result) {
                 db.close();
 
@@ -98,8 +99,8 @@ describe('ReportBuilderSqlite', () => {
 
         it('should add success test to database', async () => {
             await reportBuilderSqlite.addSuccess(stubTest_());
-
             const db = new sqlite3.Database('test/sqlite.db');
+
             await db.all('SELECT * from suites', function(err, result) {
                 db.close();
 
@@ -109,8 +110,8 @@ describe('ReportBuilderSqlite', () => {
 
         it('should add failed test to database', async () => {
             await reportBuilderSqlite.addFail(stubTest_());
-
             const db = new sqlite3.Database('test/sqlite.db');
+
             await db.all('SELECT * from suites', function(err, result) {
                 db.close();
 
@@ -120,48 +121,12 @@ describe('ReportBuilderSqlite', () => {
 
         it('should add error test to database', async () => {
             await reportBuilderSqlite.addError(stubTest_());
-
             const db = new sqlite3.Database('test/sqlite.db');
+
             await db.all('SELECT * from suites', function(err, result) {
                 db.close();
 
                 assert.equal(result[0].status, ERROR);
-            });
-        });
-    });
-
-    describe('working with database', () => {
-        it('should create database', async () => {
-            await mkReportBuilder_();
-            assert.equal(fs.existsSync('test/sqlite.db'), true);
-        });
-
-        it('should create database with correct structure', async () => {
-            await mkReportBuilder_();
-            const db = new sqlite3.Database('test/sqlite.db');
-            const tableStructure = [
-                {cid: 0, name: 'suitePath', type: 'TEXT'},
-                {cid: 1, name: 'suiteName', type: 'TEXT'},
-                {cid: 2, name: 'name', type: 'TEXT'},
-                {cid: 3, name: 'suiteUrl', type: 'TEXT'},
-                {cid: 4, name: 'metaInfo', type: 'TEXT'},
-                {cid: 5, name: 'description', type: 'TEXT'},
-                {cid: 6, name: 'error', type: 'TEXT'},
-                {cid: 7, name: 'skipReason', type: 'TEXT'},
-                {cid: 8, name: 'imagesInfo', type: 'TEXT'},
-                {cid: 9, name: 'screenshot', type: 'INT'},
-                {cid: 10, name: 'multipleTabs', type: 'INT'},
-                {cid: 11, name: 'status', type: 'TEXT'},
-                {cid: 12, name: 'timestamp', type: 'INT'}
-            ];
-
-            db.all('PRAGMA table_info(suites);', function(err, columns) {
-                db.close();
-                columns.map((column, index) => {
-                    assert.match(column.cid, tableStructure[index].cid);
-                    assert.match(column.name, tableStructure[index].name);
-                    assert.match(column.type, tableStructure[index].type);
-                });
             });
         });
     });

@@ -167,7 +167,9 @@ describe('lib/static/modules/actions', () => {
 
             it('should create databases from urls in "databaseUrls.js"', async () => {
                 global.window.dbFilePaths = ['test1.db', 'test2.db'];
+
                 await actions.fetchDb()(dispatch);
+
                 assert.calledWith(createDbStub, 'test1.db');
                 assert.calledWith(createDbStub, 'test2.db');
             });
@@ -190,13 +192,17 @@ describe('lib/static/modules/actions', () => {
 
             it('should merge databases into one if more than one db is opened', async () => {
                 global.window.dbFilePaths = ['test1.db', 'test2.db'];
+
                 await actions.fetchDb()(dispatch);
+
                 assert.calledOnce(mergeDbsStub);
             });
 
             it('should not merge databases if only one db is opened', async () => {
                 global.window.dbFilePaths = ['test1.db'];
+
                 await actions.fetchDb()(dispatch);
+
                 assert.notCalled(mergeDbsStub);
             });
         });

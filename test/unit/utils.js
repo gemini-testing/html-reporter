@@ -25,6 +25,7 @@ function stubTool(config = stubConfig(), events = {}, errors = {}, htmlReporter)
     tool.isWorker = () => {
         return false;
     };
+
     return tool;
 }
 

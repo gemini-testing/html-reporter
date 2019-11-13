@@ -120,7 +120,6 @@ describe('lib/static/modules/reducer', () => {
                         0 // timestamp
                     ]
                 ];
-
                 const db = {
                     exec: function() {
                         return [{values: values}];
@@ -129,7 +128,9 @@ describe('lib/static/modules/reducer', () => {
                 const action = {
                     type: actionNames.FETCH_DB, payload: {db: db, stats: {fetched: 1}}
                 };
+
                 const newState = reducer(defaultState, action);
+
                 assert.match(newState.suites['test'].children[0].name, 'smalltest1');
                 assert.match(newState.suites['test'].children[1].name, 'smalltest2');
                 assert.match(newState.suites['test'].children[0].browsers[0].retries.length, 1);
