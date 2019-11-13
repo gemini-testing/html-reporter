@@ -4,7 +4,7 @@ const _ = require('lodash');
 const fs = require('fs-extra');
 const HermioneReporter = require('../../hermione');
 const PluginAdapter = require('lib/plugin-adapter');
-const ReportBuilder = require('lib/report-builder');
+const ReportBuilder = require('lib/report-builder/report-builder-json');
 const utils = require('lib/server-utils');
 const {stubTool} = require('./utils');
 

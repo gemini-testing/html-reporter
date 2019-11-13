@@ -68,6 +68,30 @@ describe('config', () => {
         });
     });
 
+    describe('"saveFormat" option', () => {
+        it('should be json by default', () => {
+            assert.equal(parseConfig({}).saveFormat, 'js');
+        });
+
+        it('should set from configuration file', () => {
+            const config = parseConfig({saveFormat: 'sqlite'});
+
+            assert.equal(config.saveFormat, 'sqlite');
+        });
+
+        it('should set from environment variable', () => {
+            process.env['html_reporter_save_format'] = 'sqlite';
+
+            assert.equal(parseConfig({}).saveFormat, 'sqlite');
+        });
+
+        it('should set from cli', () => {
+            process.argv = process.argv.concat('--html-reporter-save-format', 'sqlite');
+
+            assert.equal(parseConfig({}).saveFormat, 'sqlite');
+        });
+    });
+
     describe('"saveErrorDetails" option', () => {
         it('should be false by default', () => {
             assert.isFalse(parseConfig({}).saveErrorDetails);

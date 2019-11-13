@@ -2,7 +2,7 @@
 
 const _ = require('lodash');
 const proxyquire = require('proxyquire');
-const ReportBuilder = require('lib/report-builder');
+const ReportBuilder = require('lib/report-builder/report-builder-json');
 const {stubTool, stubConfig, mkTestResult, mkImagesInfo} = require('test/unit/utils');
 
 describe('lib/gui/tool-runner/hermione/index', () => {
@@ -11,7 +11,11 @@ describe('lib/gui/tool-runner/hermione/index', () => {
     let ToolGuiReporter;
 
     const mkTestCollection_ = (testsTree = {}) => {
-        return {eachTest: (cb) => _.forEach(testsTree, cb)};
+        return {
+            mapTests: (cb) => {
+                return Object.keys(testsTree).map((test) => cb(testsTree[test]));
+            }
+        };
     };
 
     const stubTest_ = (opts) => {
@@ -104,6 +108,7 @@ describe('lib/gui/tool-runner/hermione/index', () => {
         const mkHermione_ = (config) => {
             const hermione = stubTool(config, {UPDATE_REFERENCE: 'updateReference'});
             sandbox.stub(hermione, 'emit');
+            hermione.readTests.resolves(mkTestCollection_());
 
             return hermione;
         };
@@ -117,6 +122,7 @@ describe('lib/gui/tool-runner/hermione/index', () => {
 
                 const hermione = mkHermione_(config);
                 const gui = initGuiReporter(hermione);
+                await gui.initialize();
 
                 const tests = [mkTestResult({
                     browserId: 'yabro',
@@ -149,6 +155,7 @@ describe('lib/gui/tool-runner/hermione/index', () => {
 
                 const hermione = mkHermione_(config);
                 const gui = initGuiReporter(hermione);
+                await gui.initialize();
 
                 const tests = [mkTestResult({
                     browserId: 'yabro',

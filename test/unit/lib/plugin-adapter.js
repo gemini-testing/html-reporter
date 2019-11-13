@@ -4,7 +4,7 @@ const {EventEmitter} = require('events');
 const _ = require('lodash');
 const proxyquire = require('proxyquire');
 const {logger} = require('lib/server-utils');
-const ReportBuilder = require('lib/report-builder');
+const ReportBuilder = require('lib/report-builder/report-builder-json');
 const PluginApi = require('lib/plugin-api');
 const {stubTool, stubConfig} = require('../utils');
 
@@ -28,7 +28,7 @@ describe('lib/plugin-adapter', () => {
     }
 
     function initReporter_(opts = {}) {
-        opts = _.defaults(opts, {enabled: true});
+        opts = _.defaults(opts, {enabled: true, path: ''});
         parseConfig.returns(opts);
 
         return toolReporter.create(tool, opts)
@@ -63,6 +63,7 @@ describe('lib/plugin-adapter', () => {
 
         sandbox.stub(ReportBuilder, 'create').returns(Object.create(ReportBuilder.prototype));
         sandbox.stub(ReportBuilder.prototype, 'save').resolves({});
+        sandbox.stub(logger, 'error');
 
         prepareData = sandbox.stub().resolves();
         prepareImages = sandbox.stub().resolves();
@@ -71,6 +72,7 @@ describe('lib/plugin-adapter', () => {
         parseConfig = sandbox.stub().returns({enabled: true});
         cliCommands.gui = sandbox.stub();
         cliCommands['merge-reports'] = sandbox.stub();
+        cliCommands['create-blank-report'] = sandbox.stub();
         toolReporter = proxyquire('lib/plugin-adapter', {
             './config': parseConfig,
             './cli-commands/gui': cliCommands.gui,
@@ -162,7 +164,7 @@ describe('lib/plugin-adapter', () => {
         });
 
         it('should prepare images', () => {
-            const config = {enabled: true};
+            const config = {enabled: true, path: ''};
             parseConfig.returns(config);
 
             return initCliReporter_({}, {})
@@ -181,13 +183,25 @@ describe('lib/plugin-adapter', () => {
         });
 
         it('should log correct path to html report', () => {
-            return initCliReporter_({}, {})
+            return initCliReporter_({path: 'some/path'}, {})
                 .then(() => {
                     ReportBuilder.prototype.save.resolves({reportPath: 'some/path'});
                     tool.emit(tool.events.END);
 
                     return tool.emitAndWait(endRunnerEvent).then(() => {
                         assert.calledWithMatch(logger.log, 'some/path');
+                    });
+                });
+        });
+
+        it('should log an error', () => {
+            return initCliReporter_({}, {})
+                .then(() => {
+                    ReportBuilder.prototype.save.rejects('some-error');
+                    tool.emit(tool.events.END);
+
+                    return tool.emitAndWait(endRunnerEvent).then(() => {
+                        assert.calledWith(logger.error, sinon.match('Html-reporter runtime error: some-error'));
                     });
                 });
         });

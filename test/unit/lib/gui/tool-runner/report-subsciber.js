@@ -1,8 +1,8 @@
 'use strict';
 
 const {EventEmitter} = require('events');
-const reportSubscriber = require('lib/gui/tool-runner/report-subscriber');
-const ReportBuilder = require('lib/report-builder');
+const proxyquire = require('proxyquire');
+const ReportBuilder = require('lib/report-builder/report-builder-json');
 const clientEvents = require('lib/gui/constants/client-events');
 const {RUNNING} = require('lib/constants/test-statuses');
 const utils = require('lib/gui/tool-runner/utils');
@@ -12,6 +12,7 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
     const sandbox = sinon.createSandbox();
     let reportBuilder;
     let client;
+    let reportSubscriber;
 
     const events = {
         RUNNER_END: 'runnerEnd',
@@ -23,7 +24,7 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
     const mkHermione_ = () => stubTool(stubConfig(), events);
 
     const mkTestAdapterStub_ = (opts = {}) => (Object.assign({
-        prepareTestResult: () => ({}),
+        prepareTestResult: () => ({suitePath: ['']}),
         saveTestImages: () => ({}),
         hasDiff: () => ({})
     }, opts));
@@ -35,6 +36,13 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
         reportBuilder.save.resolves();
         reportBuilder.setApiValues.returns(reportBuilder);
         sandbox.stub(utils, 'findTestResult');
+
+        const findTestResult = sandbox.stub();
+        reportSubscriber = proxyquire('lib/gui/tool-runner/report-subscriber', {
+            '../utils': {
+                findTestResult
+            }
+        });
 
         client = new EventEmitter();
         sandbox.spy(client, 'emit');

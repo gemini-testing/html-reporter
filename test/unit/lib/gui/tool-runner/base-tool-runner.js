@@ -3,7 +3,7 @@
 const path = require('path');
 const _ = require('lodash');
 const proxyquire = require('proxyquire');
-const ReportBuilder = require('lib/report-builder');
+const ReportBuilder = require('lib/report-builder/report-builder-json');
 const {stubTool, stubConfig, mkSuite, mkState, mkBrowserResult, mkSuiteTree} = require('../../../utils');
 const serverUtils = require('lib/server-utils');
 
@@ -22,7 +22,7 @@ describe('lib/gui/tool-runner/base-tool-runner', () => {
         return {pluginConfig};
     };
 
-    const mkHermioneTestCollection_ = () => ({eachTest: sandbox.stub()});
+    const mkHermioneTestCollection_ = () => ({mapTests: sandbox.stub().returns([])});
 
     const initGuiReporter = (opts = {}) => {
         opts = _.defaults(opts, {
@@ -42,6 +42,7 @@ describe('lib/gui/tool-runner/base-tool-runner', () => {
         reportBuilder = sinon.createStubInstance(ReportBuilder);
         sandbox.stub(ReportBuilder, 'create').returns(reportBuilder);
         reportBuilder.getResult.returns({});
+        reportBuilder.finalize.returns({});
 
         tool = mkTool_();
         tool.readTests.resolves(mkHermioneTestCollection_());
@@ -54,9 +55,13 @@ describe('lib/gui/tool-runner/base-tool-runner', () => {
     afterEach(() => sandbox.restore());
 
     describe('create', () => {
-        it('should set values added through api', () => {
-            tool = {htmlReporter: {values: {foo: 'bar'}}};
-            initGuiReporter();
+        it('should set values added through api', async () => {
+            tool = {
+                htmlReporter: {values: {foo: 'bar'}},
+                readTests: () => new Promise(res => res(mkHermioneTestCollection_()))
+            };
+
+            await initGuiReporter().initialize();
 
             assert.calledWith(reportBuilder.setApiValues, {foo: 'bar'});
         });
@@ -88,12 +93,12 @@ describe('lib/gui/tool-runner/base-tool-runner', () => {
     });
 
     describe(`finalize hermione`, () => {
-        it('should save data file', () => {
+        it('should call reportBuilder.finalize', async () => {
             const gui = initGuiReporter();
-
+            await gui.initialize();
             gui.finalize();
 
-            assert.calledOnce(reportBuilder.saveDataFileSync);
+            assert.calledOnce(reportBuilder.finalize);
         });
     });
 
@@ -118,7 +123,6 @@ describe('lib/gui/tool-runner/base-tool-runner', () => {
 
         it('should not fail if data for reuse does not exist', () => {
             const gui = initGuiReporter();
-
             const suites = [mkSuiteTree()];
             reportBuilder.getResult.returns({suites});
 

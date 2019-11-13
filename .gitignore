@@ -9,6 +9,7 @@ hot
 /lib/static/images
 /lib/static/gui.html
 /lib/static/index.html
+/lib/static/index_sqlite.html
 
 .idea
 .vscode

@@ -24,7 +24,7 @@ describe('ReportBuilder', () => {
 
         TestAdapter.create = (obj) => obj;
 
-        return new ReportBuilder(config, pluginConfig, TestAdapter);
+        return new ReportBuilder(config, pluginConfig);
     };
 
     const getReportBuilderResult_ = (reportBuilder) => reportBuilder.getResult().suites[0].children[0].browsers[0].result;
@@ -65,7 +65,7 @@ describe('ReportBuilder', () => {
         sandbox.stub(serverUtils, 'prepareCommonJSData');
 
         hasImage = sandbox.stub().returns(true);
-        ReportBuilder = proxyquire('lib/report-builder', {
+        ReportBuilder = proxyquire('lib/report-builder/report-builder-json', {
             '../server-utils': {
                 hasImage
             }
@@ -704,11 +704,11 @@ describe('ReportBuilder', () => {
         });
     });
 
-    describe('saveDataFileSync', () => {
+    describe('finalize', () => {
         it('should create report directory synchronously', () => {
             const reportBuilder = mkReportBuilder_({pluginConfig: {path: 'some/report/dir'}});
 
-            reportBuilder.saveDataFileSync();
+            reportBuilder.finalize();
 
             assert.calledOnceWith(fs.mkdirsSync, 'some/report/dir');
         });
@@ -719,7 +719,7 @@ describe('ReportBuilder', () => {
 
             const reportBuilder = mkReportBuilder_({pluginConfig: {path: 'some/report/dir'}});
 
-            reportBuilder.saveDataFileSync();
+            reportBuilder.finalize();
 
             assert.calledOnceWith(fs.writeFileSync, path.join('some', 'report', 'dir', 'data.js'), 'some data', 'utf8');
         });
@@ -727,7 +727,7 @@ describe('ReportBuilder', () => {
         it('should create report directory before save data file', () => {
             const reportBuilder = mkReportBuilder_();
 
-            reportBuilder.saveDataFileSync();
+            reportBuilder.finalize();
 
             assert.callOrder(fs.mkdirsSync, fs.writeFileSync);
         });
@@ -755,13 +755,6 @@ describe('ReportBuilder', () => {
                     assert.calledWithMatch(fs.copy, 'report.min.js', path.join('some', 'report', 'dir', 'report.min.js'));
                     assert.calledWithMatch(fs.copy, 'report.min.css', path.join('some', 'report', 'dir', 'report.min.css'));
                 });
-        });
-
-        it('should log an error', () => {
-            const reportBuilder = mkReportBuilder_();
-            sandbox.stub(reportBuilder, 'saveDataFileAsync').rejects(new Error('some-error'));
-
-            return reportBuilder.save().then(() => assert.calledWith(logger.error, sinon.match('Html-reporter runtime error: Error: some-error')));
         });
     });
 });

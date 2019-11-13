@@ -9,6 +9,9 @@ const createWorkers = require('./lib/workers/create-workers');
 let workers;
 
 module.exports = (hermione, opts) => {
+    if (hermione.isWorker()) {
+        return;
+    }
     const plugin = PluginAdapter.create(hermione, opts);
 
     if (!plugin.isEnabled()) {

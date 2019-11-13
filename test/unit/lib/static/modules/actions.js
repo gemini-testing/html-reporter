@@ -3,6 +3,7 @@
 import axios from 'axios';
 import {isArray} from 'lodash';
 
+import proxyquire from 'proxyquire';
 import {acceptOpened, retryTest, runFailedTests} from 'lib/static/modules/actions';
 import {
     mkSuiteTree,
@@ -143,6 +144,67 @@ describe('lib/static/modules/actions', () => {
                 assert.lengthOf(formattedFails[0].browsers, 3);
                 return true;
             }));
+        });
+    });
+    describe('working with sqlite', () => {
+        let createDbStub;
+        let mergeDbsStub;
+        let actions;
+
+        describe('opening databases', () => {
+            beforeEach(() => {
+                createDbStub = sandbox.stub().resolves({db: null, url: 'test'});
+                mergeDbsStub = sandbox.stub();
+                actions = proxyquire('lib/static/modules/actions', {
+                    './sqlite': {
+                        createDb: createDbStub,
+                        mergeDbs: mergeDbsStub
+                    }
+                });
+            });
+
+            afterEach(() => sandbox.restore());
+
+            it('should create databases from urls in "databaseUrls.js"', async () => {
+                global.window.dbFilePaths = ['test1.db', 'test2.db'];
+
+                await actions.fetchDb()(dispatch);
+
+                assert.calledWith(createDbStub, 'test1.db');
+                assert.calledWith(createDbStub, 'test2.db');
+            });
+        });
+
+        describe('merging databases', () => {
+            beforeEach(() => {
+                createDbStub = sandbox.stub().resolves({connection: 'db', url: 'test'});
+                mergeDbsStub = sandbox.stub();
+
+                actions = proxyquire('lib/static/modules/actions', {
+                    './sqlite': {
+                        createDb: createDbStub,
+                        mergeDbs: mergeDbsStub
+                    }
+                });
+            });
+
+            afterEach(() => sandbox.restore());
+
+            it('should merge databases into one if more than one db is opened', async () => {
+                global.window.dbFilePaths = ['test1.db', 'test2.db'];
+
+                await actions.fetchDb()(dispatch);
+
+                assert.calledOnce(mergeDbsStub);
+            });
+
+            it('should not merge databases if only one db is opened', async () => {
+                global.window.dbFilePaths = ['test1.db'];
+
+                await actions.fetchDb()(dispatch);
+
+                assert.notCalled(mergeDbsStub);
+            });
         });
     });
 });

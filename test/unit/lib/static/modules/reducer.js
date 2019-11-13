@@ -70,5 +70,72 @@ describe('lib/static/modules/reducer', () => {
                 assert.isFalse(newState.processing);
             });
         });
+
+        describe('parsing database results', () => {
+            it('should build correct tree', () => {
+                const values = [
+                    [
+                        JSON.stringify(['test', 'smalltest1']),
+                        'smalltest1',
+                        'browser',
+                        'url',
+                        JSON.stringify({muted: false}),
+                        'description',
+                        JSON.stringify({message: 'error message', stack: 'error stack'}),
+                        'skipReason',
+                        JSON.stringify([{actualImg: {path: 'path', size: {width: 0, height: 0}}}]),
+                        Number(true), // multiple tabs
+                        Number(true), // screenshot
+                        'fail',
+                        0 // timestamp
+                    ],
+                    [
+                        JSON.stringify(['test', 'smalltest1']),
+                        'smalltest1',
+                        'browser',
+                        'url',
+                        JSON.stringify({muted: false}),
+                        'description',
+                        JSON.stringify({message: 'error message', stack: 'error stack'}),
+                        'skipReason',
+                        JSON.stringify([{actualImg: {path: 'path', size: {width: 0, height: 0}}}]),
+                        Number(true), // multiple tabs
+                        Number(true), // screenshot
+                        'success',
+                        1 // timestamp
+                    ],
+                    [
+                        JSON.stringify(['test', 'smalltest2']),
+                        'smalltest2',
+                        'browser',
+                        'url',
+                        JSON.stringify({muted: false}),
+                        'description',
+                        JSON.stringify({message: 'error message', stack: 'error stack'}),
+                        'skipReason',
+                        JSON.stringify([{actualImg: {path: 'path', size: {width: 0, height: 0}}}]),
+                        Number(true), // multiple tabs
+                        Number(true), // screenshot
+                        'success',
+                        0 // timestamp
+                    ]
+                ];
+                const db = {
+                    exec: function() {
+                        return [{values: values}];
+                    }
+                };
+                const action = {
+                    type: actionNames.FETCH_DB, payload: {db: db, stats: {fetched: 1}}
+                };
+
+                const newState = reducer(defaultState, action);
+
+                assert.match(newState.suites['test'].children[0].name, 'smalltest1');
+                assert.match(newState.suites['test'].children[1].name, 'smalltest2');
+                assert.match(newState.suites['test'].children[0].browsers[0].retries.length, 1);
+                assert.match(newState.suites['test'].children[1].browsers[0].retries.length, 0);
+            });
+        });
     });
 });

@@ -11,6 +11,15 @@
     display: inline;
 }
 
+.ui.dropdown.db-info {
+    vertical-align: inherit;
+}
+
+.ui.dropdown .menu > .db-info__row {
+    margin: 0.25em;
+    font-size: 14px;
+}
+
 .summary__key::after {
     content: ':';
 }
@@ -549,6 +558,18 @@ a:active {
     height: 2px;
 }
 
+.icon.dropdown {
+    width: 12px;
+    height: 12px;
+    display: inline-block;
+    vertical-align: middle;
+    color: #000;
+    float: left;
+    border: none;
+    top: 0.3em;
+    margin: 0 10px 0 0 !important;
+}
+
 .ui.simple.dropdown .menu > .item {
     padding: 0 !important;
 }
@@ -633,4 +654,14 @@ a:active {
 .header__date {
     float: right;
     color: gray;
+}
+
+.db-info__success {
+    color: #038035;
+    font-weight: bold;
+}
+
+.db-info__fail {
+    color: #c00;
+    font-weight: bold;
 }

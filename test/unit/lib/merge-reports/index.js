@@ -2,6 +2,7 @@
 
 const _ = require('lodash');
 const Promise = require('bluebird');
+const {stubTool, stubConfig} = require('../../utils');
 const mergeReports = require('lib/merge-reports');
 const ReportBuilder = require('lib/merge-reports/report-builder');
 
@@ -11,7 +12,7 @@ describe('lib/merge-reports', () => {
     const execMergeReports_ = async (paths = [], opts = {}) => {
         opts = _.defaults(opts, {destination: 'default-dest-report/path'});
 
-        await mergeReports(paths, opts);
+        await mergeReports(stubConfig(), stubTool(stubConfig()), paths, opts);
     };
 
     beforeEach(() => {
