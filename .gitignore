@@ -13,6 +13,7 @@ hot
 
 .idea
 .vscode
+.DS_Store
 .nyc_output
 
 hermione-report
