@@ -11,13 +11,13 @@
     display: inline;
 }
 
-.db-info {
-    vertical-align: inherit !important;
+.ui.dropdown.db-info {
+    vertical-align: inherit;
 }
 
-.db-info__row {
+.ui.dropdown .menu > .db-info__row {
     margin: 0.25em;
-    font: 14px Helvetica Neue, Arial, sans-serif !important;
+    font-size: 14px;
 }
 
 .summary__key::after {
