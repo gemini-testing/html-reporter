@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="5.4.0"></a>
+# [5.4.0](https://github.com/gemini-testing/html-reporter/compare/v5.3.2...v5.4.0) (2019-11-13)
+
+
+### Features
+
+* Save test results to SQLite db ([#262](https://github.com/gemini-testing/html-reporter/issues/262)) ([3106c1a](https://github.com/gemini-testing/html-reporter/commit/3106c1a))
+
+
+
 <a name="5.3.2"></a>
 ## [5.3.2](https://github.com/gemini-testing/html-reporter/compare/v5.3.1...v5.3.2) (2019-10-28)
 
