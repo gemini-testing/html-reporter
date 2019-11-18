@@ -364,6 +364,21 @@
 .cswitcher__item, .tab-switcher__button {
     width: 22px;
     padding: 0;
+    border-radius: 4px;
+}
+
+.tab-switcher__button_status_success,
+.tab-switcher__button_status_updated {
+    background-color: #7bcc7b;
+}
+
+.tab-switcher__button_status_fail,
+.tab-switcher__button_status_error {
+    background-color: #ff9a9a;
+}
+
+.tab-switcher__button_status_skipped  {
+    background-color: #ccc;
 }
 
 .cswitcher__item_selected.cswitcher__item::before {
@@ -449,7 +464,7 @@ a:active {
 }
 
 .tab-switcher__button_active {
-    background: #ffeba0;
+    border-color: #5c9999;
 }
 
 .details {
