@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="5.5.0"></a>
+# [5.5.0](https://github.com/gemini-testing/html-reporter/compare/v5.4.0...v5.5.0) (2019-11-21)
+
+
+### Bug Fixes
+
+* **expand-retries:** expand only suites with failed retries ([b272fcd](https://github.com/gemini-testing/html-reporter/commit/b272fcd))
+
+
+### Features
+
+* show retry status ([121a3b8](https://github.com/gemini-testing/html-reporter/commit/121a3b8))
+
+
+
 <a name="5.4.0"></a>
 # [5.4.0](https://github.com/gemini-testing/html-reporter/compare/v5.3.2...v5.4.0) (2019-11-13)
 
