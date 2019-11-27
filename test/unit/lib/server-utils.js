@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs-extra');
 const utils = require('lib/server-utils');
 const {IMAGES_PATH} = require('lib/constants/paths');
+const testStatuses = require('lib/constants/test-statuses');
 
 describe('server-utils', () => {
     const sandbox = sinon.sandbox.create();
@@ -124,6 +125,26 @@ describe('server-utils', () => {
             const expected = `${testId}-bro_2_123456789.json`;
 
             assert.equal(utils.getDetailsFileName(testId, 'bro', 1), expected);
+        });
+    });
+
+    describe('shouldUpdateAttempt', () => {
+        const IgnoreAttemptStatuses = ['SKIPPED', 'UPDATED', 'IDLE'];
+
+        IgnoreAttemptStatuses.forEach((s) => {
+            const status = testStatuses[s];
+            it(`should return false for "${status}" status`, () => {
+                assert.isFalse(utils.shouldUpdateAttempt(status));
+            });
+        });
+
+        const UpdateAttemptStatuses = Object.keys(testStatuses).filter((s) => !IgnoreAttemptStatuses.includes(testStatuses[s]));
+
+        UpdateAttemptStatuses.forEach((s) => {
+            const status = testStatuses[s];
+            it(`should return true for ${status} status`, () => {
+                assert.isTrue(utils.shouldUpdateAttempt(testStatuses[status]));
+            });
         });
     });
 });

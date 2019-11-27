@@ -2,7 +2,7 @@
 
 const _ = require('lodash');
 const utils = require('lib/server-utils');
-const {SUCCESS, UPDATED} = require('lib/constants/test-statuses');
+const {SUCCESS, UPDATED, SKIPPED} = require('lib/constants/test-statuses');
 const {ERROR_DETAILS_PATH} = require('lib/constants/paths');
 const {stubTool, stubConfig} = require('../utils');
 const proxyquire = require('proxyquire');
@@ -15,7 +15,7 @@ describe('hermione test adapter', () => {
     class ImageDiffError extends Error {}
     class NoRefImageError extends Error {}
 
-    const mkHermioneTestResultAdapter = (testResult, toolOpts = {}, htmlReporter = {}) => {
+    const mkHermioneTestResultAdapter = (testResult, toolOpts = {}, htmlReporter = {}, status) => {
         const config = _.defaults(toolOpts.config, {
             browsers: {
                 bro: {}
@@ -29,7 +29,7 @@ describe('hermione test adapter', () => {
             Object.assign({imagesSaver: {saveImg: sandbox.stub()}}, htmlReporter)
         );
 
-        return new HermioneTestResultAdapter(testResult, tool);
+        return new HermioneTestResultAdapter(testResult, tool, status);
     };
 
     const mkTestResult_ = (result) => _.defaults(result, {
@@ -72,6 +72,15 @@ describe('hermione test adapter', () => {
 
         assert.equal(mkHermioneTestResultAdapter(firstTestResult).attempt, 1);
         assert.equal(mkHermioneTestResultAdapter(secondTestResult).attempt, 0);
+    });
+
+    it('should not increment attempt for skipped tests', () => {
+        const testResult = mkTestResult_({fullTitle: () => 'some-title'});
+
+        mkHermioneTestResultAdapter(testResult, {}, {}, SKIPPED);
+        const result = mkHermioneTestResultAdapter(testResult, {}, {}, SKIPPED);
+
+        assert.equal(result.attempt, 0);
     });
 
     it('should return test error with "message", "stack" and "stateName"', () => {
