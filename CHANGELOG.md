@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="5.5.2"></a>
+## [5.5.2](https://github.com/gemini-testing/html-reporter/compare/v5.5.1...v5.5.2) (2019-12-04)
+
+
+### Bug Fixes
+
+* filter suites by browsers in non-gui mode ([89543b5](https://github.com/gemini-testing/html-reporter/commit/89543b5))
+
+
+
 <a name="5.5.1"></a>
 ## [5.5.1](https://github.com/gemini-testing/html-reporter/compare/v5.5.0...v5.5.1) (2019-11-28)
 
