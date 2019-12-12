@@ -3,5 +3,6 @@ node_modules
 hot
 /lib/static/*.min.js
 /lib/static/data.js
+/lib/static/sql-wasm.js
 /test/func/fixtures/report
 /hermione-report

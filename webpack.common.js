@@ -69,7 +69,7 @@ module.exports = {
         }),
         new HtmlWebpackIncludeAssetsPlugin({
             files: ['index_sqlite.html'],
-            assets: ['data.js', 'sql-wasm.js', 'databaseUrls.js'],
+            assets: ['data.js', 'sql-wasm.js'],
             append: false
         })
     ]

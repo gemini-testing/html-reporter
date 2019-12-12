@@ -42,9 +42,15 @@ Test will be associated with group if test error matches on group error pattern.
 New group will be created if test cannot be associated with existing groups.
 * **metaInfoBaseUrls** (optional) `Object` - base paths for making link from Meta-info values. Object option must be Meta-info's key and value must be `String`. For example, {'file': 'base/path'}.
 * **saveFormat** (optional) `String` - allows to specify the format, in which the results will be saved. Available values are:
-  * `js` - save results in JSON format to data.js file. Default value.
-  * `sqlite` - save results to Sqlite database and to data.js file. When using this flag you have to **start a local server** in order to view the report.
-
+  * `js` - save tests results to data.js file as object. Default value.
+  * `sqlite` - save tests results to Sqlite database.
+  Files will be created:
+    * `sqlite.db` - Sqlite database with tests results
+    * `data.js` - report's config
+    * `databaseUrls.json` - absolute or relative URLs to Sqlite databases (`sqlite.db`) or/and URLs to other `databaseUrls.json` (see [merge-reports](#merge-reports))
+  
+     You can't open local report by 'file://' protocol. Use gui mode or start a local server. For example, execute `npx http-server -p 8080` at terminal from folder where report placed and open page `http://localhost:8080` at browser.
+  
 Also there is ability to override plugin parameters by CLI options or environment variables
 (see [configparser](https://github.com/gemini-testing/configparser)).
 Use `html_reporter_` prefix for the environment variables and `--html-reporter-` for the cli options.
@@ -96,14 +102,26 @@ npx hermione gui
 
 Command that adds ability to merge reports which are created after running the tests.
 
+#### When save format is js (default)
+
+Command takes paths to directories with reports. 
+It merge "data.js" files into single file and move reports files to destination directory.
+
 Example of usage:
 ```
 npx hermione merge-reports src-report-1 src-report-2 -d dest-report
 ```
 
-Example of usage, when merging reports saved to databases:
+#### When save format is sqlite
+
+Command takes paths to databases files or "databaseUrls.json" files from other html reports.
+It creates new html report at destination directory with common "databaseUrls.json"
+which will contain link to databases files or "databaseUrls.json" files from input parameters. 
+Databases files will not be copied to destination directory.
+
+Example of usage:
 ```
-npx hermione merge-reports path-to-database-1 path-to-database-2 -d dest-report --html-reporter-save-format sqlite
+npx hermione merge-reports path-to-database.db path-to-databaseUrls.json -d dest-report --html-reporter-save-format sqlite
 ```
 
 ## Testing
