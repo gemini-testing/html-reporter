@@ -31,6 +31,23 @@ describe('lib/static/modules/reducer', () => {
             });
         });
 
+        describe('VIEW_INITIAL', () => {
+            it('should take error patterns from config', () => {
+                const action = {
+                    type: actionNames.VIEW_INITIAL,
+                    payload: {
+                        config: {
+                            errorPatterns: [{name: 'err1', pattern: 'pattern1'}]
+                        }
+                    }
+                };
+
+                const newState = reducer(defaultState, action);
+
+                assert.deepEqual(newState.config.errorPatterns, [{name: 'err1', pattern: 'pattern1'}]);
+            });
+        });
+
         describe('VIEW_SHOW_ALL', () => {
             it('should change "viewMode" field on "all" value', () => {
                 const action = {type: actionNames.VIEW_SHOW_ALL};
