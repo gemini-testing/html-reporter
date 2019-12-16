@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="5.6.0"></a>
+# [5.6.0](https://github.com/gemini-testing/html-reporter/compare/v5.5.2...v5.6.0) (2019-12-16)
+
+
+### Bug Fixes
+
+* **gui:** use correct error-patterns in gui-mode ([2915fd8](https://github.com/gemini-testing/html-reporter/commit/2915fd8))
+
+
+### Features
+
+* **gui:** add min sizes to .button_type_suite-controls class ([c4beea7](https://github.com/gemini-testing/html-reporter/commit/c4beea7))
+
+
+
 <a name="5.5.2"></a>
 ## [5.5.2](https://github.com/gemini-testing/html-reporter/compare/v5.5.1...v5.5.2) (2019-12-04)
 
