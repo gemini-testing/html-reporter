@@ -2,6 +2,7 @@
 
 const path = require('path');
 const fs = require('fs-extra');
+const Promise = require('bluebird');
 const utils = require('lib/server-utils');
 const {IMAGES_PATH} = require('lib/constants/paths');
 const testStatuses = require('lib/constants/test-statuses');
@@ -197,6 +198,51 @@ describe('server-utils', () => {
                 dbUrls: ['http://foo.bar/baz.db?test=stub'],
                 jsonUrls: ['http://foo.bar/baz.json?test=stub']
             });
+        });
+    });
+
+    describe('initializeCustomGui', () => {
+        it('should initialize each group of controls if initialize-function is available', async () => {
+            const initializeSpy1 = sinon.spy().named('initialize-1');
+            const initializeSpy2 = sinon.spy().named('initialize-2');
+
+            const initialize1 = sinon.stub().callsFake(() => Promise.delay(5).then(initializeSpy1));
+            const initialize2 = sinon.stub().callsFake(() => Promise.delay(10).then(initializeSpy2));
+
+            const ctx1 = {initialize: initialize1};
+            const ctx2 = {initialize: initialize2};
+
+            const pluginConfig = {
+                customGui: {'section-1': [ctx1], 'section-2': [ctx2]}
+            };
+            const hermione = {};
+
+            await utils.initializeCustomGui(hermione, pluginConfig);
+
+            assert.calledOnceWith(initialize1, {hermione, ctx: ctx1});
+            assert.calledOnceWith(initialize2, {hermione, ctx: ctx2});
+
+            assert.callOrder(initializeSpy1, initializeSpy2);
+        });
+    });
+
+    describe('runCustomGuiAction', () => {
+        it('should run action for specified controls', async () => {
+            const actionSpy = sinon.spy().named('action');
+            const action = sinon.stub().callsFake(() => Promise.delay(10).then(actionSpy));
+            const control = {};
+            const ctx = {controls: [control], action};
+            const pluginConfig = {customGui: {'section': [ctx]}};
+            const hermione = {};
+
+            await utils.runCustomGuiAction(hermione, pluginConfig, {
+                sectionName: 'section',
+                groupIndex: 0,
+                controlIndex: 0
+            });
+
+            assert.calledOnceWith(action, {hermione, ctx, control});
+            assert.calledOnce(actionSpy);
         });
     });
 });

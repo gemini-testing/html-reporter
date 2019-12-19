@@ -1,7 +1,9 @@
 'use strict';
 
+const {isEmpty} = require('lodash');
 const parseConfig = require('lib/config');
 const {config: configDefaults} = require('lib/constants/defaults');
+const SUPPORTED_CONTROL_TYPES = Object.values(require('lib/gui/constants/custom-gui-control-types'));
 
 describe('config', () => {
     beforeEach(function() {
@@ -247,6 +249,88 @@ describe('config', () => {
 
         it('should validate if passed to object value is number', () => {
             assert.throws(() => parseConfig({metaInfoBaseUrls: {file: 10}}), /option must be string, but got number/);
+        });
+    });
+
+    describe('customGui', () => {
+        const mkCustomGuiConfig = (sectionGroupValue) => parseConfig({
+            customGui: {'section': [sectionGroupValue]}
+        });
+
+        it('should be empty by default', () => {
+            assert.isTrue(isEmpty(parseConfig({}).customGui));
+        });
+
+        it('should be set from configuration file', () => {
+            const initialize = () => {};
+            const action = () => {};
+
+            const config = mkCustomGuiConfig({
+                type: 'button',
+                controls: [{label: 'foo', value: 'bar'}],
+                initialize,
+                action
+            });
+
+            assert.deepEqual(config.customGui, {
+                'section': [{
+                    type: 'button',
+                    controls: [{label: 'foo', value: 'bar'}],
+                    initialize,
+                    action
+                }]
+            });
+        });
+
+        it('should validate it is plain object', () => assert.throws(
+            () => parseConfig({customGui: 'some-gui'}),
+            /"customGui" option must be plain object, but got string/
+        ));
+
+        describe('section should validate it is', () => {
+            it('array', () => assert.throws(
+                () => parseConfig({customGui: {'section': 'foo'}}),
+                /customGui\["section"\] must be an array, but got string/
+            ));
+
+            it('array of plain objects', () => assert.throws(
+                () => parseConfig({customGui: {'section': ['foo']}}),
+                /customGui\["section"\]\[0\] must be plain object, but got string/
+            ));
+        });
+
+        describe('section-array object should validate it contains', () => {
+            it('field "type"', () => assert.throws(
+                () => mkCustomGuiConfig({}), /must contain field "type"/
+            ));
+
+            it('string in the field "type"', () => assert.throws(
+                () => mkCustomGuiConfig({type: 100500}), /must contain string in the field "type"/
+            ));
+
+            it('only supported control in the field "type"', () => assert.throws(
+                () => mkCustomGuiConfig({type: 'foo'}),
+                new RegExp(`can contain in the field "type" only ${SUPPORTED_CONTROL_TYPES.join(', ')}`)
+            ));
+
+            it('field "controls"', () => assert.throws(
+                () => mkCustomGuiConfig({type: 'button'}), /must contain field "controls"/
+            ));
+
+            it('array in the field "controls"', () => assert.throws(
+                () => mkCustomGuiConfig({type: 'button', controls: 'foo'}),
+                /must contain array in the field "controls"/
+            ));
+
+            it('non-empty array in the field "controls"', () => assert.throws(
+                () => mkCustomGuiConfig({type: 'button', controls: []}),
+                /must contain non-empty array in the field "controls"/
+            ));
+
+            it('array of plain objects in the field "controls"', () => assert.throws(
+                () => mkCustomGuiConfig({type: 'button', controls: ['foo', 'bar']}),
+                /must contain objects in the array "controls"/
+            ));
         });
     });
 });
