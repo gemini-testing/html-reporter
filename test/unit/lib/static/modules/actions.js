@@ -146,65 +146,88 @@ describe('lib/static/modules/actions', () => {
             }));
         });
     });
-    describe('working with sqlite', () => {
-        let createDbStub;
-        let mergeDbsStub;
+
+    describe('openDbConnection', () => {
+        let fetchDatabasesStub;
+        let mergeDatabasesStub;
         let actions;
 
-        describe('opening databases', () => {
-            beforeEach(() => {
-                createDbStub = sandbox.stub().resolves({db: null, url: 'test'});
-                mergeDbsStub = sandbox.stub();
-                actions = proxyquire('lib/static/modules/actions', {
-                    './sqlite': {
-                        createDb: createDbStub,
-                        mergeDbs: mergeDbsStub
-                    }
-                });
-            });
+        beforeEach(() => {
+            fetchDatabasesStub = sandbox.stub().resolves();
+            mergeDatabasesStub = sandbox.stub().resolves();
 
-            afterEach(() => sandbox.restore());
+            global.window = {
+                location: {
+                    href: 'http://localhost/random/path.html'
+                }
+            };
 
-            it('should create databases from urls in "databaseUrls.js"', async () => {
-                global.window.dbFilePaths = ['test1.db', 'test2.db'];
-
-                await actions.fetchDb()(dispatch);
-
-                assert.calledWith(createDbStub, 'test1.db');
-                assert.calledWith(createDbStub, 'test2.db');
+            actions = proxyquire('lib/static/modules/actions', {
+                './sqlite': {
+                    fetchDatabases: fetchDatabasesStub,
+                    mergeDatabases: mergeDatabasesStub
+                }
             });
         });
 
-        describe('merging databases', () => {
-            beforeEach(() => {
-                createDbStub = sandbox.stub().resolves({connection: 'db', url: 'test'});
-                mergeDbsStub = sandbox.stub();
+        afterEach(() => {
+            sandbox.restore();
 
-                actions = proxyquire('lib/static/modules/actions', {
-                    './sqlite': {
-                        createDb: createDbStub,
-                        mergeDbs: mergeDbsStub
-                    }
-                });
-            });
+            global.window = undefined;
+        });
 
-            afterEach(() => sandbox.restore());
+        it('should fetch databaseUrls.json for default html page', async () => {
+            global.window.location.href = 'http://127.0.0.1:8080/';
 
-            it('should merge databases into one if more than one db is opened', async () => {
-                global.window.dbFilePaths = ['test1.db', 'test2.db'];
+            await actions.openDbConnection()(dispatch);
 
-                await actions.fetchDb()(dispatch);
+            assert.calledOnceWith(fetchDatabasesStub, ['http://127.0.0.1:8080/databaseUrls.json']);
+        });
 
-                assert.calledOnce(mergeDbsStub);
-            });
+        it('should fetch databaseUrls.json for custom html page', async () => {
+            global.window.location.href = 'http://127.0.0.1:8080/some/path.html';
 
-            it('should not merge databases if only one db is opened', async () => {
-                global.window.dbFilePaths = ['test1.db'];
+            await actions.openDbConnection()(dispatch);
 
-                await actions.fetchDb()(dispatch);
+            assert.calledOnceWith(fetchDatabasesStub, ['http://127.0.0.1:8080/some/databaseUrls.json']);
+        });
 
-                assert.notCalled(mergeDbsStub);
-            });
+        it('should dispatch empty payload if fetchDatabases rejected', async () => {
+            fetchDatabasesStub.rejects('stub');
+
+            await actions.openDbConnection()(dispatch);
+
+            assert.calledOnceWith(
+                dispatch,
+                sinon.match({
+                    payload: {db: null, fetchDbDetails: []}
+                }),
+            );
+        });
+
+        it('should dispatch payload.fetchDbDetails even if mergeDatabases rejected', async () => {
+            fetchDatabasesStub.resolves([{url: 'stub url', status: 200, data: 'stub'}]);
+            mergeDatabasesStub.rejects('stub');
+
+            await actions.openDbConnection()(dispatch);
+
+            assert.calledOnceWith(
+                dispatch,
+                sinon.match({
+                    payload: {fetchDbDetails: [{url: 'stub url', status: 200, success: true}]}
+                }),
+            );
+        });
+
+        it('should filter null data before merge databases', async () => {
+            fetchDatabasesStub.resolves([{url: 'stub url1', status: 404, data: null}, {url: 'stub url2', status: 200, data: 'stub'}]);
+
+            await actions.openDbConnection()(dispatch);
+
+            assert.calledOnceWith(
+                mergeDatabasesStub,
+                ['stub']
+            );
         });
     });
 });

@@ -6,11 +6,11 @@ describe('lib/static/modules/local-storage-wrapper', () => {
     const prefix = 'html-reporter';
 
     beforeEach(() => {
-        global.window.localStorage = mkStorage();
+        global.window = {localStorage: mkStorage()};
     });
 
     afterEach(() => {
-        global.window.localStorage = undefined;
+        global.window = undefined;
     });
 
     describe('updateDeprecatedKeys', () => {

@@ -89,6 +89,18 @@ describe('lib/static/modules/reducer', () => {
         });
 
         describe('parsing database results', () => {
+            beforeEach(() => {
+                global.window = {
+                    location: {
+                        href: 'http://localhost/'
+                    }
+                };
+            });
+
+            afterEach(() => {
+                global.window = undefined;
+            });
+
             it('should build correct tree', () => {
                 const values = [
                     [
@@ -143,7 +155,15 @@ describe('lib/static/modules/reducer', () => {
                     }
                 };
                 const action = {
-                    type: actionNames.FETCH_DB, payload: {db: db, stats: {fetched: 1}}
+                    type: actionNames.FETCH_DB,
+                    payload: {
+                        db: db,
+                        fetchDbDetails: [
+                            {
+                                url: 'stub'
+                            }
+                        ]
+                    }
                 };
 
                 const newState = reducer(defaultState, action);
