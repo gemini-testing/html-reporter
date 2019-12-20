@@ -500,6 +500,10 @@ a:active {
     border-radius: 2px;
 }
 
+.checkbox-label {
+    font-size: 12px;
+}
+
 .overlay {
     background: rgba(0, 0, 0, 0.3);
     left: 0;
