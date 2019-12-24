@@ -61,8 +61,6 @@
 .button_type_suite-controls {
     border: 1px solid #fff;
     margin-top: 5px;
-    min-width: 2vw;
-    min-height: 2vh;
 }
 .button_blink {
     -webkit-animation: blink 0.5s linear 0s infinite alternate;
