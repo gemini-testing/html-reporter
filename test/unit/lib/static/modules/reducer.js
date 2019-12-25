@@ -33,12 +33,12 @@ describe('lib/static/modules/reducer', () => {
         });
 
         describe('VIEW_INITIAL', () => {
-            const baseUrl = 'http://localhost/';
+            const baseUrl = 'http://localhost/?';
 
             beforeEach(() => {
                 global.window = {
                     location: {
-                        href: baseUrl
+                        href: new URL(baseUrl)
                     },
                     localStorage: mkStorage()
                 };
@@ -74,7 +74,7 @@ describe('lib/static/modules/reducer', () => {
                     });
 
                     it('should set "filteredBrowsers" property to specified browsers', () => {
-                        global.window.location.href = `${baseUrl}?browser=firefox&browser=safari`;
+                        global.window.location = new URL(`${baseUrl}browser=firefox&browser=safari`);
                         const action = {type: actionNames.VIEW_INITIAL, payload: {config: {}}};
 
                         const newState = reducer(undefined, action);
@@ -93,7 +93,7 @@ describe('lib/static/modules/reducer', () => {
                     });
 
                     it('should set "testNameFilter" property to specified value', () => {
-                        global.window.location.href = `${baseUrl}?testNameFilter=sometest`;
+                        global.window.location = new URL(`${baseUrl}testNameFilter=sometest`);
 
                         const action = {type: actionNames.VIEW_INITIAL, payload: {config: {}}};
 
@@ -112,18 +112,18 @@ describe('lib/static/modules/reducer', () => {
                         assert(!('retryIndex' in newState.view));
                     });
 
-                    it('does not set "retryIndex" when retryIndex is an invalid number', () => {
-                        global.window.location.href = `${baseUrl}?retryIndex=1abc`;
+                    it('should set "retryIndex" property to string when not a number specified', () => {
+                        global.window.location = new URL(`${baseUrl}retryIndex=1abc`);
 
                         const action = {type: actionNames.VIEW_INITIAL, payload: {config: {}}};
 
                         const newState = reducer(undefined, action);
 
-                        assert(!('retryIndex' in newState.view));
+                        assert.deepStrictEqual(newState.view.retryIndex, '1abc');
                     });
 
                     it('should set "retryIndex" property to specified number', () => {
-                        global.window.location.href = `${baseUrl}?retryIndex=10`;
+                        global.window.location = new URL(`${baseUrl}retryIndex=10`);
 
                         const action = {type: actionNames.VIEW_INITIAL, payload: {config: {}}};
 
@@ -143,7 +143,7 @@ describe('lib/static/modules/reducer', () => {
                     });
 
                     it('should set "viewMode" property to specified value', () => {
-                        global.window.location.href = `${baseUrl}?viewMode=failed`;
+                        global.window.location = new URL(`${baseUrl}viewMode=failed`);
 
                         const action = {type: actionNames.VIEW_INITIAL, payload: {config: {}}};
 
@@ -163,7 +163,7 @@ describe('lib/static/modules/reducer', () => {
                     });
 
                     it('should set "expand" property to specified value', () => {
-                        global.window.location.href = `${baseUrl}?expand=all`;
+                        global.window.location = new URL(`${baseUrl}expand=all`);
 
                         const action = {type: actionNames.VIEW_INITIAL, payload: {config: {}}};
 
@@ -183,7 +183,7 @@ describe('lib/static/modules/reducer', () => {
                     });
 
                     it('should set "groupByError" property to specified value', () => {
-                        global.window.location.href = `${baseUrl}?groupByError=true`;
+                        global.window.location = new URL(`${baseUrl}groupByError=true`);
 
                         const action = {type: actionNames.VIEW_INITIAL, payload: {config: {}}};
 
