@@ -37,6 +37,25 @@ describe('lib/static/modules/query-params', () => {
                 groupByError: true
             });
         });
+
+        describe('custom parser', () => {
+            it('parses search params with custom parser', () => {
+                const query = parseQuery('http://localhost/?' + [
+                    'a=10',
+                    'a=100',
+                    'a=1000'
+                ].join('&'), {
+                    a: {
+                        type: 'custom',
+                        parse: (searchParams, param) => searchParams.getAll(param).map(Number)
+                    }
+                });
+
+                assert.deepStrictEqual(query, {
+                    a: [10, 100, 1000]
+                });
+            });
+        });
     });
 
     describe('getUrlWithQuery', () => {
