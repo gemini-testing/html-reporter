@@ -147,4 +147,56 @@ describe('server-utils', () => {
             });
         });
     });
+
+    describe('createDatabaseUrlsFile', () => {
+        beforeEach(() => {
+            sandbox.stub(fs, 'writeJson').resolves();
+        });
+
+        it('should write json even if source paths are empty', () => {
+            const destPath = '/foobar';
+            const srcPaths = [];
+
+            utils.createDatabaseUrlsFile(destPath, srcPaths);
+
+            assert.calledOnceWith(fs.writeJson, '/foobar/databaseUrls.json', {dbUrls: [], jsonUrls: []});
+        });
+
+        it('should not write invalid urls', () => {
+            const destPath = '/foo';
+            const srcPaths = [
+                null,
+                '',
+                'foo',
+                'foo.bar',
+                'foo://bar/baz',
+                'http://foo.bar/baz.bar?test=stub'
+            ];
+
+            utils.createDatabaseUrlsFile(destPath, srcPaths);
+
+            assert.calledOnceWith(fs.writeJson, sinon.match.any, {dbUrls: [], jsonUrls: []});
+        });
+
+        it('should write relative urls', () => {
+            const destPath = '/foo';
+            const srcPaths = ['bar.db', 'bar.json'];
+
+            utils.createDatabaseUrlsFile(destPath, srcPaths);
+
+            assert.calledOnceWith(fs.writeJson, sinon.match.any, {dbUrls: ['bar.db'], jsonUrls: ['bar.json']});
+        });
+
+        it('should write absolute urls with search params', () => {
+            const destPath = '/foo';
+            const srcPaths = ['http://foo.bar/baz.db?test=stub', 'http://foo.bar/baz.json?test=stub'];
+
+            utils.createDatabaseUrlsFile(destPath, srcPaths);
+
+            assert.calledOnceWith(fs.writeJson, sinon.match.any, {
+                dbUrls: ['http://foo.bar/baz.db?test=stub'],
+                jsonUrls: ['http://foo.bar/baz.json?test=stub']
+            });
+        });
+    });
 });
