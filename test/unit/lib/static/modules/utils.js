@@ -291,6 +291,47 @@ describe('static/modules/utils', () => {
             });
         });
 
+        describe('strictMatchFilter', () => {
+            const suite = mkSuite({
+                suitePath: ['Some suite'],
+                children: [
+                    mkState({
+                        suitePath: ['Some suite', 'test one']
+                    })
+                ]
+            });
+
+            it('should be false if top-level title matches but filter is strict', () => {
+                assert.isFalse(utils.shouldSuiteBeShown({suite, strictMatchFilter: true, testNameFilter: 'Some suite'}));
+            });
+
+            it('should be false if bottom-level title matches but filter is strict', () => {
+                assert.isFalse(utils.shouldSuiteBeShown({suite, strictMatchFilter: true, testNameFilter: 'test one'}));
+            });
+
+            it('should be false if no matches found', () => {
+                assert.isFalse(utils.shouldSuiteBeShown({suite, strictMatchFilter: true, testNameFilter: 'test two'}));
+            });
+
+            it('should be true if full title matches', () => {
+                assert.isTrue(
+                    utils.shouldSuiteBeShown({suite, strictMatchFilter: true, testNameFilter: 'Some suite test one'})
+                );
+            });
+
+            it('should be false if only part of only top-level title matches', () => {
+                assert.isFalse(
+                    utils.shouldSuiteBeShown({suite, strictMatchFilter: true, testNameFilter: 'Some suite test two'})
+                );
+            });
+
+            it('should be false if only part of only bottom-level title matches', () => {
+                assert.isFalse(
+                    utils.shouldSuiteBeShown({suite, strictMatchFilter: true, testNameFilter: 'Another suite test one'})
+                );
+            });
+        });
+
         describe('errorGroupTests', () => {
             const suite = mkSuite({
                 suitePath: ['Some suite'],

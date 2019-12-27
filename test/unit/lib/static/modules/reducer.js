@@ -103,6 +103,26 @@ describe('lib/static/modules/reducer', () => {
                     });
                 });
 
+                describe('"strictMatchFilter" option', () => {
+                    it('should set "strictMatchFilter" property to an empty array by default', () => {
+                        const action = {type: actionNames.VIEW_INITIAL, payload: {config: {}}};
+
+                        const newState = reducer(undefined, action);
+
+                        assert.deepStrictEqual(newState.view.strictMatchFilter, false);
+                    });
+
+                    it('should set "strictMatchFilter" property to specified value', () => {
+                        global.window.location = new URL(`${baseUrl}?strictMatchFilter=true`);
+
+                        const action = {type: actionNames.VIEW_INITIAL, payload: {config: {}}};
+
+                        const newState = reducer(undefined, action);
+
+                        assert.deepStrictEqual(newState.view.strictMatchFilter, true);
+                    });
+                });
+
                 describe('"retryIndex" option', () => {
                     it('should set "retryIndex" property to an empty array by default', () => {
                         const action = {type: actionNames.VIEW_INITIAL, payload: {config: {}}};

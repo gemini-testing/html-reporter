@@ -308,6 +308,7 @@ describe('static/modules/group-errors', () => {
             suites,
             testNameFilter: 'suite state-one'
         });
+
         assert.deepEqual(result, [
             {
                 count: 1,
@@ -318,6 +319,149 @@ describe('static/modules/group-errors', () => {
                 }
             }
         ]);
+    });
+
+    it('should filter by partial test name', () => {
+        const suites = [
+            mkSuite({
+                suitePath: ['suite'],
+                children: [
+                    mkSuite({
+                        suitePath: ['suite', 'state-one'],
+                        browsers: [
+                            mkBrowserResult({
+                                result: mkTestResult({
+                                    error: {
+                                        message: 'message stub'
+                                    }
+                                })
+                            })
+                        ]
+                    }),
+                    mkSuite({
+                        suitePath: ['suite', 'state-two'],
+                        browsers: [
+                            mkBrowserResult({
+                                result: mkTestResult({
+                                    error: {
+                                        message: 'message stub'
+                                    }
+                                })
+                            })
+                        ]
+                    })
+                ]
+            })
+        ];
+
+        const result = groupErrors({
+            suites,
+            testNameFilter: 'suite state-o'
+        });
+
+        assert.deepEqual(result, [
+            {
+                count: 1,
+                name: 'message stub',
+                pattern: 'message stub',
+                tests: {
+                    'suite state-one': ['default-bro']
+                }
+            }
+        ]);
+    });
+
+    it('should filter by partial test name with strictMatchFilter', () => {
+        const suites = [
+            mkSuite({
+                suitePath: ['suite'],
+                children: [
+                    mkSuite({
+                        suitePath: ['suite', 'state-one'],
+                        browsers: [
+                            mkBrowserResult({
+                                result: mkTestResult({
+                                    error: {
+                                        message: 'message stub'
+                                    }
+                                })
+                            })
+                        ]
+                    }),
+                    mkSuite({
+                        suitePath: ['suite', 'state-two'],
+                        browsers: [
+                            mkBrowserResult({
+                                result: mkTestResult({
+                                    error: {
+                                        message: 'message stub'
+                                    }
+                                })
+                            })
+                        ]
+                    })
+                ]
+            })
+        ];
+
+        const result = groupErrors({
+            suites,
+            testNameFilter: 'suite state-one',
+            strictMatchFilter: true
+        });
+
+        assert.deepEqual(result, [
+            {
+                count: 1,
+                name: 'message stub',
+                pattern: 'message stub',
+                tests: {
+                    'suite state-one': ['default-bro']
+                }
+            }
+        ]);
+    });
+
+    it('should resolve to empty result by partial test name with strictMatchFilter', () => {
+        const suites = [
+            mkSuite({
+                suitePath: ['suite'],
+                children: [
+                    mkSuite({
+                        suitePath: ['suite', 'state-one'],
+                        browsers: [
+                            mkBrowserResult({
+                                result: mkTestResult({
+                                    error: {
+                                        message: 'message stub'
+                                    }
+                                })
+                            })
+                        ]
+                    }),
+                    mkSuite({
+                        suitePath: ['suite', 'state-two'],
+                        browsers: [
+                            mkBrowserResult({
+                                result: mkTestResult({
+                                    error: {
+                                        message: 'message stub'
+                                    }
+                                })
+                            })
+                        ]
+                    })
+                ]
+            })
+        ];
+
+        const result = groupErrors({
+            suites,
+            testNameFilter: 'suite state-on',
+            strictMatchFilter: true
+        });
+
+        assert.deepEqual(result, []);
     });
 
     it('should filter by browser', () => {
@@ -354,6 +498,7 @@ describe('static/modules/group-errors', () => {
             suites,
             filteredBrowsers: ['browser-one']
         });
+
         assert.deepEqual(result, [
             {
                 count: 1,
@@ -395,6 +540,7 @@ describe('static/modules/group-errors', () => {
         ];
 
         const result = groupErrors({suites, errorPatterns});
+
         assert.deepEqual(result, [
             {
                 count: 1,
