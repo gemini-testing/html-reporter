@@ -1,15 +1,16 @@
 'use strict';
+
 import {parseQuery, appendQuery} from 'lib/static/modules/query-params';
 
 describe('lib/static/modules/query-params', () => {
     describe('parseQuery', () => {
-        it('returns empty query object when no query params exist', () => {
+        it('should return empty query object when no query params exist', () => {
             const query = parseQuery('');
 
             assert.deepStrictEqual(query, {});
         });
 
-        it('parses specified query', () => {
+        it('should parse specified query', () => {
             const query = parseQuery([
                 'browser=safari',
                 'browser=firefox',
@@ -32,7 +33,7 @@ describe('lib/static/modules/query-params', () => {
             });
         });
 
-        it('properly parses deep values', () => {
+        it('should properly parse deep values', () => {
             const query = parseQuery([
                 'a=10',
                 'a=100',
@@ -44,7 +45,7 @@ describe('lib/static/modules/query-params', () => {
             });
         });
 
-        it('handles query produced by appendQuery', () => {
+        it('should handle query produced by appendQuery', () => {
             const url = appendQuery('http://localhost/?abc=111', {
                 browser: ['safari', 'firefox'],
                 testNameFilter: 'test',
@@ -69,7 +70,7 @@ describe('lib/static/modules/query-params', () => {
             });
         });
 
-        it('parses old-fashioned array format', () => {
+        it('should parse old-fashioned array format', () => {
             const query = parseQuery('browser=firefox&browser=safari');
 
             assert.deepStrictEqual(query, {
@@ -77,20 +78,21 @@ describe('lib/static/modules/query-params', () => {
             });
         });
 
-        it('handles initial question mark', () => {
+        it('should handle leading question mark', () => {
             const query = parseQuery('?a=10');
+
             assert.deepStrictEqual(query, {a: 10});
         });
     });
 
     describe('appendQuery', () => {
-        it('returns original url when query is empty', () => {
+        it('should return original url when query is empty', () => {
             const url = appendQuery('http://localhost/?abc=111', {});
 
             assert.strictEqual(url, 'http://localhost/?abc=111');
         });
 
-        it('returns url with the added query params', () => {
+        it('should return url with the added query params', () => {
             const url = appendQuery('http://localhost/?abc=111', {
                 browser: ['safari', 'firefox'],
                 testNameFilter: 'test',
