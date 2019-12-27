@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="5.8.0"></a>
+# [5.8.0](https://github.com/gemini-testing/html-reporter/compare/v5.7.0...v5.8.0) (2019-12-27)
+
+
+### Bug Fixes
+
+* report may refers to other reports by urls with search params ([8ed2f99](https://github.com/gemini-testing/html-reporter/commit/8ed2f99))
+
+
+### Features
+
+* allow to share specific test ([1d83322](https://github.com/gemini-testing/html-reporter/commit/1d83322))
+* strict match filter ([7148df2](https://github.com/gemini-testing/html-reporter/commit/7148df2))
+
+
+
 <a name="5.7.1"></a>
 ## [5.7.1](https://github.com/gemini-testing/html-reporter/compare/v5.7.0...v5.7.1) (2019-12-25)
 
