@@ -54,7 +54,6 @@
     "nested-error-stacks": "^2.1.0",
     "opener": "^1.4.3",
     "p-queue": "^5.0.0",
-    "qs": "^6.9.1",
     "react-markdown": "^3.2.0",
     "resolve": "^1.5.0",
     "semver": "^5.5.0",
