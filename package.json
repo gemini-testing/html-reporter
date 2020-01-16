@@ -56,6 +56,8 @@
     "p-queue": "^5.0.0",
     "qs": "^6.9.1",
     "react-markdown": "^3.2.0",
+    "reapop": "2.1.0",
+    "reapop-theme-wybo": "1.0.2",
     "resolve": "^1.5.0",
     "semver": "^5.5.0",
     "shelljs": "^0.8.1",

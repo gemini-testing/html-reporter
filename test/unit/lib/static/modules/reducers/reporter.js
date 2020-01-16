@@ -1,19 +1,19 @@
 'use strict';
 import actionNames from 'lib/static/modules/action-names';
 import defaultState from 'lib/static/modules/default-state';
-import {mkStorage} from '../../../utils';
+import {mkStorage} from '../../../../utils';
 
 const {assign} = require('lodash');
 const proxyquire = require('proxyquire');
-const reducer = proxyquire('lib/static/modules/reducer', {
-    './local-storage-wrapper': {
+const reducer = proxyquire('lib/static/modules/reducers/reporter', {
+    './helpers/local-storage-wrapper': {
         setItem: sinon.stub(),
         getItem: sinon.stub()
     }
 }).default;
 
-describe('lib/static/modules/reducer', () => {
-    describe('reducer', () => {
+describe('lib/static/modules/reducers', () => {
+    describe('reporter', () => {
         describe('regression', () => {
             it('shouldn\'t change "Expand" filter when "Show all" or "Show only failed" state changing', function() {
                 let newState = [
