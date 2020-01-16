@@ -5,7 +5,7 @@ import {Provider} from 'react-redux';
 import defaultState from 'lib/static/modules/default-state';
 
 exports.mkStore = (state) => {
-    const initialState = _.defaults(state, defaultState);
+    const initialState = {reporter: _.defaults(state, defaultState)};
     const mockStore = configureStore();
 
     return mockStore(initialState);

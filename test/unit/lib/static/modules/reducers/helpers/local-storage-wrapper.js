@@ -1,8 +1,8 @@
 'use strict';
-import * as localStorageWrapper from 'lib/static/modules/local-storage-wrapper';
-import {mkStorage} from '../../../utils';
+import * as localStorageWrapper from 'lib/static/modules/reducers/helpers/local-storage-wrapper';
+import {mkStorage} from '../../../../../utils';
 
-describe('lib/static/modules/local-storage-wrapper', () => {
+describe('lib/static/modules/reducers/helpers/local-storage-wrapper', () => {
     const prefix = 'html-reporter';
 
     beforeEach(() => {
