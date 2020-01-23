@@ -472,4 +472,23 @@ describe('static/modules/utils', () => {
             });
         });
     });
+
+    describe('getHttpErrorMessage', () => {
+        it('should return response error', () => {
+            const response = {status: '500', data: 'some-response-error'};
+
+            assert.equal(utils.getHttpErrorMessage({response}), '(500) some-response-error');
+        });
+
+        it('should return native error if there is no response error', () => {
+            assert.equal(utils.getHttpErrorMessage(new Error('some-native-error')), 'some-native-error');
+        });
+
+        it('should return response error ignoring native error', () => {
+            const response = {status: '500', data: 'some-response-error'};
+            const error = new Error('some-native-error');
+
+            assert.equal(utils.getHttpErrorMessage({...error, response}), '(500) some-response-error');
+        });
+    });
 });

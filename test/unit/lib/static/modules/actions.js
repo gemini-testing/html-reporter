@@ -2,9 +2,14 @@
 
 import axios from 'axios';
 import {isArray} from 'lodash';
-
 import proxyquire from 'proxyquire';
-import {acceptOpened, retryTest, runFailedTests} from 'lib/static/modules/actions';
+
+import {
+    acceptOpened,
+    retryTest,
+    runFailedTests
+} from 'lib/static/modules/actions';
+import actionNames from 'lib/static/modules/action-names';
 import {
     mkSuiteTree,
     mkSuite,
@@ -39,13 +44,54 @@ const mkBrowserResultWithImagesInfo = (name, status = FAIL) => {
 describe('lib/static/modules/actions', () => {
     const sandbox = sinon.sandbox.create();
     let dispatch;
+    let actions;
+    let addNotification;
 
     beforeEach(() => {
         dispatch = sinon.stub();
         sandbox.stub(axios, 'post').resolves({data: {}});
+        addNotification = sinon.stub();
+
+        actions = proxyquire('lib/static/modules/actions', {
+            'reapop': {addNotification}
+        });
     });
 
     afterEach(() => sandbox.restore());
+
+    describe('initial', () => {
+        it('should run init action on server', async () => {
+            sandbox.stub(axios, 'get').resolves({data: {}});
+
+            await actions.initial()(dispatch);
+
+            assert.calledOnceWith(axios.get, '/init');
+        });
+
+        it('should dispatch "VIEW_INITIAL" action', async () => {
+            sandbox.stub(axios, 'get').resolves({data: 'some-data'});
+
+            await actions.initial()(dispatch);
+
+            assert.calledOnceWith(dispatch, {type: actionNames.VIEW_INITIAL, payload: 'some-data'});
+        });
+
+        it('should show notification if error in initialization on the server is happened', async () => {
+            sandbox.stub(axios, 'get').throws(new Error('failed to initialize custom gui'));
+
+            await actions.initial()(dispatch);
+
+            assert.calledOnceWith(
+                addNotification,
+                {
+                    dismissAfter: 0,
+                    id: 'initial',
+                    message: 'failed to initialize custom gui',
+                    status: 'error'
+                }
+            );
+        });
+    });
 
     describe('acceptOpened', () => {
         it('should update reference for suite with children and browsers', async () => {
@@ -227,6 +273,72 @@ describe('lib/static/modules/actions', () => {
             assert.calledOnceWith(
                 mergeDatabasesStub,
                 ['stub']
+            );
+        });
+    });
+
+    describe('runCustomGuiAction', () => {
+        it('should run custom action on server for control of given group of section', async () => {
+            const payload = {
+                sectionName: 'foo',
+                groupIndex: 100,
+                controlIndex: 500
+            };
+
+            await actions.runCustomGuiAction(payload)(dispatch);
+
+            assert.calledOnceWith(
+                axios.post,
+                sinon.match.any,
+                sinon.match(({sectionName, groupIndex, controlIndex}) => {
+                    assert.equal(sectionName, 'foo');
+                    assert.equal(groupIndex, 100);
+                    assert.equal(controlIndex, 500);
+                    return true;
+                })
+            );
+        });
+
+        it('should dispatch action for control of given group of section', async () => {
+            const payload = {
+                sectionName: 'foo',
+                groupIndex: 100,
+                controlIndex: 500
+            };
+
+            await actions.runCustomGuiAction(payload)(dispatch);
+
+            assert.calledOnceWith(
+                dispatch,
+                {
+                    type: actionNames.RUN_CUSTOM_GUI_ACTION,
+                    payload: {
+                        sectionName: 'foo',
+                        groupIndex: 100,
+                        controlIndex: 500
+                    }
+                }
+            );
+        });
+
+        it('should show notification if error in action on the server is happened', async () => {
+            const payload = {
+                sectionName: 'foo',
+                groupIndex: 100,
+                controlIndex: 500
+            };
+            axios.post.throws(new Error('failed to run custom gui control action'));
+
+            await actions.runCustomGuiAction(payload)(dispatch);
+
+            assert.calledOnceWith(
+                addNotification,
+                {
+                    dismissAfter: 0,
+                    id: 'runCustomGuiAction',
+                    message: 'failed to run custom gui control action',
+                    status: 'error'
+                }
             );
         });
     });

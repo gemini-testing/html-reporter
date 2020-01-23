@@ -50,7 +50,91 @@ New group will be created if test cannot be associated with existing groups.
     * `databaseUrls.json` - absolute or relative URLs to Sqlite databases (`sqlite.db`) or/and URLs to other `databaseUrls.json` (see [merge-reports](#merge-reports))
   
      You can't open local report by 'file://' protocol. Use gui mode or start a local server. For example, execute `npx http-server -p 8080` at terminal from folder where report placed and open page `http://localhost:8080` at browser.
-  
+* **customGui** (optional) `Object` – allows to specify custom controls for gui-mode and define actions for them. `{}` is default value. Ordinarily custom controls should be split by sections depending on the purposes of the controls. At least one section should be specified.
+  The structure of the custom-gui object:
+    ```js
+    customGui: {
+        'choose-any-name-for-the-section-1': [{an object describing a group of controls}, ...],
+        'choose-any-name-for-the-section-2': [{an object describing a group of controls}, ...]
+    }
+    ```
+    The keys of customGui-object are any strings describing sections of controls. It is upon a user to choose appropriate names for the sections.
+    A value of a key should be an array that holds a set of objects describing groups of controls.
+
+    #### customGui-group-object
+        An object that describes one group of controls has the following structure:
+        ```js
+        {
+            type: 'specify-type-of-the-controls',
+            controls: [
+                {
+                    label: 'specify-label-for-the-control',
+                    value: 'specify-value-of-the-control'
+                },
+                {
+                    ...
+                }
+            ],
+            initialize: async ({hermione, ctx}) => {
+                // here goes your code
+                // returned value will be ignored
+            },
+            action: async ({hermione, ctx, control}) => {
+                // here goes your code
+                // returned value will be ignored
+            }
+        }
+        ```
+    * **type** (required) `String` – defines the type of controls. Available values are: `button` and `radiobutton`.
+
+    * **controls** (required) `Array` – array of objects that describe controls. Each object should have string fields `label` and `value`. `Label` defines the caption of the control, and `value` – its value.
+
+    * **initialize** (optional) – an async function to be executed at server-side at gui-mode start. Input parameter of this function is an object `{hermione, ctx}`, where `hermione` is an instance of hermione and `ctx` is the reference to the whole [object](#customGui-group-object) the initialize-function is being run for. A value that initialize-function returns will be ignored.
+
+    * **action** (required) – an async function to be executed at server-side when a user clicks a control. Input parameter of this function is an object `{hermione, ctx, control}`, where `hermione` is an instance of hermione, `ctx` is the reference to the whole [object](#customGui-group-object) the action-function is being run for, and `control` points to the control the user clicked. A value that action-function returns will be ignored.
+
+    #### Example of custom gui configuration:
+    ```js
+    customGui: {
+        'some-meaningful-name-of-section': [
+            {
+                type: 'radiobutton',
+                controls: [
+                    {
+                        label: 'Dev',
+                        value: 'http://localhost/development/'
+                    },
+                    {
+                        label: 'Prod',
+                        value: 'http://localhost/production/'
+                    }
+                ],
+                initialize: async ({hermione, ctx}) => {
+                    const {config} = hermione;
+                    const browserIds = config.getBrowserIds();
+
+                    if (browserIds.length) {
+                        const {baseUrl} = config.forBrowser(browserIds[0]);
+
+                        ctx.controls.forEach((control) => {
+                            control.active = (baseUrl === control.value);
+                        });
+                    }
+                },
+                action: async ({hermione, ctx, control}) => {
+                    const {config} = hermione;
+
+                    config
+                        .getBrowserIds()
+                        .forEach((browserId) => {
+                            config.forBrowser(browserId).baseUrl = control.value;
+                        });
+                }
+            }
+        ]
+    }
+    ```
+
 Also there is ability to override plugin parameters by CLI options or environment variables
 (see [configparser](https://github.com/gemini-testing/configparser)).
 Use `html_reporter_` prefix for the environment variables and `--html-reporter-` for the cli options.

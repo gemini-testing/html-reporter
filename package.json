@@ -48,6 +48,7 @@
     "fs-extra": "^7.0.1",
     "gemini-configparser": "^1.0.0",
     "gemini-core": "^3.7.0",
+    "http-codes": "1.0.0",
     "json-stringify-safe": "^5.0.1",
     "lodash": "^4.17.4",
     "looks-same": "^7.1.1",
