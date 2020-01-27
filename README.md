@@ -62,29 +62,31 @@ New group will be created if test cannot be associated with existing groups.
     A value of a key should be an array that holds a set of objects describing groups of controls.
 
     #### customGui-group-object
-        An object that describes one group of controls has the following structure:
-        ```js
-        {
-            type: 'specify-type-of-the-controls',
-            controls: [
-                {
-                    label: 'specify-label-for-the-control',
-                    value: 'specify-value-of-the-control'
-                },
-                {
-                    ...
-                }
-            ],
-            initialize: async ({hermione, ctx}) => {
-                // here goes your code
-                // returned value will be ignored
+
+    An object that describes one group of controls has the following structure:
+    ```js
+    {
+        type: 'specify-type-of-the-controls',
+        controls: [
+            {
+                label: 'specify-label-for-the-control',
+                value: 'specify-value-of-the-control'
             },
-            action: async ({hermione, ctx, control}) => {
-                // here goes your code
-                // returned value will be ignored
+            {
+                ...
             }
+        ],
+        initialize: async ({hermione, ctx}) => {
+            // here goes your code
+            // returned value will be ignored
+        },
+        action: async ({hermione, ctx, control}) => {
+            // here goes your code
+            // returned value will be ignored
         }
-        ```
+    }
+    ```
+
     * **type** (required) `String` – defines the type of controls. Available values are: `button` and `radiobutton`.
 
     * **controls** (required) `Array` – array of objects that describe controls. Each object should have string fields `label` and `value`. `Label` defines the caption of the control, and `value` – its value.
@@ -93,7 +95,7 @@ New group will be created if test cannot be associated with existing groups.
 
     * **action** (required) – an async function to be executed at server-side when a user clicks a control. Input parameter of this function is an object `{hermione, ctx, control}`, where `hermione` is an instance of hermione, `ctx` is the reference to the whole [object](#customGui-group-object) the action-function is being run for, and `control` points to the control the user clicked. A value that action-function returns will be ignored.
 
-    #### Example of custom gui configuration:
+    #### Example how to add radiobuttons for base url switching in gui-mode:
     ```js
     customGui: {
         'some-meaningful-name-of-section': [
