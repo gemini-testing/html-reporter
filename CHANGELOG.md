@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="5.9.1"></a>
+## [5.9.1](https://github.com/gemini-testing/html-reporter/compare/v5.9.0...v5.9.1) (2020-01-27)
+
+
+### Bug Fixes
+
+* **readme:** amend js-block, rename example-caption ([b9ef23e](https://github.com/gemini-testing/html-reporter/commit/b9ef23e))
+
+
+
 <a name="5.9.0"></a>
 # [5.9.0](https://github.com/gemini-testing/html-reporter/compare/v5.8.0...v5.9.0) (2020-01-23)
 
