@@ -145,6 +145,18 @@ directory.
         ]
     }
     ```
+* **customScripts** (optional) `function[]` - allows to add any scripts on the report html-page. Script will be executed immediately on page render. It can be helpful for adding some metrics or own extra functionality.
+
+```js
+customScripts: [
+  function() {console.log('something')},
+  () => {
+    const div = document.createElement('div');
+    div.innerHTML = 'hello';
+    document.body.prepend(div);
+  }
+]
+```
 
 Also there is ability to override plugin parameters by CLI options or environment variables
 (see [configparser](https://github.com/gemini-testing/configparser)).
