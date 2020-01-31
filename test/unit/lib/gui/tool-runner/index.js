@@ -12,8 +12,8 @@ describe('lib/gui/tool-runner/hermione/index', () => {
 
     const mkTestCollection_ = (testsTree = {}) => {
         return {
-            mapTests: (cb) => {
-                return Object.keys(testsTree).map((test) => cb(testsTree[test]));
+            eachTest: (cb) => {
+                Object.keys(testsTree).forEach((test) => cb(testsTree[test]));
             }
         };
     };

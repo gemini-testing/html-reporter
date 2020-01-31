@@ -2,7 +2,7 @@
 
 const fs = require('fs-extra');
 const _ = require('lodash');
-const sqlite3 = require('sqlite3').verbose();
+const Database = require('better-sqlite3');
 const proxyquire = require('proxyquire');
 const {SUCCESS, FAIL, ERROR, SKIPPED} = require('lib/constants/test-statuses');
 
@@ -30,14 +30,17 @@ describe('ReportBuilderSqlite', () => {
         };
     };
 
-    const mkReportBuilder_ = ({toolConfig = {}, pluginConfig} = {}) => {
+    const mkReportBuilder_ = async ({toolConfig = {}, pluginConfig} = {}) => {
         toolConfig = _.defaults(toolConfig, {getAbsoluteUrl: _.noop});
         pluginConfig = _.defaults(pluginConfig, {baseHost: '', path: 'test', baseTestPath: ''});
 
         const browserConfigStub = {getAbsoluteUrl: toolConfig.getAbsoluteUrl};
         const config = {forBrowser: sandbox.stub().returns(browserConfigStub), htmlReporter: {saveImg: sandbox.stub()}};
 
-        return ReportBuilder.create(config, pluginConfig);
+        const reportBuilder = ReportBuilder.create(config, pluginConfig);
+        await reportBuilder.init();
+
+        return reportBuilder;
     };
 
     const stubTest_ = (opts = {}) => {
@@ -88,46 +91,42 @@ describe('ReportBuilderSqlite', () => {
 
         it('should add skipped test to database', async () => {
             await reportBuilderSqlite.addSkipped(stubTest_());
-            const db = new sqlite3.Database('test/sqlite.db');
+            const db = new Database('test/sqlite.db');
 
-            await db.all('SELECT * from suites', function(err, result) {
-                db.close();
+            const [{status}] = db.prepare('SELECT * from suites').all();
+            db.close();
 
-                assert.equal(result[0].status, SKIPPED);
-            });
+            assert.equal(status, SKIPPED);
         });
 
         it('should add success test to database', async () => {
             await reportBuilderSqlite.addSuccess(stubTest_());
-            const db = new sqlite3.Database('test/sqlite.db');
+            const db = new Database('test/sqlite.db');
 
-            await db.all('SELECT * from suites', function(err, result) {
-                db.close();
+            const [{status}] = db.prepare('SELECT * from suites').all();
+            db.close();
 
-                assert.equal(result[0].status, SUCCESS);
-            });
+            assert.equal(status, SUCCESS);
         });
 
         it('should add failed test to database', async () => {
             await reportBuilderSqlite.addFail(stubTest_());
-            const db = new sqlite3.Database('test/sqlite.db');
+            const db = new Database('test/sqlite.db');
 
-            await db.all('SELECT * from suites', function(err, result) {
-                db.close();
+            const [{status}] = db.prepare('SELECT * from suites').all();
+            db.close();
 
-                assert.equal(result[0].status, FAIL);
-            });
+            assert.equal(status, FAIL);
         });
 
         it('should add error test to database', async () => {
             await reportBuilderSqlite.addError(stubTest_());
-            const db = new sqlite3.Database('test/sqlite.db');
+            const db = new Database('test/sqlite.db');
 
-            await db.all('SELECT * from suites', function(err, result) {
-                db.close();
+            const [{status}] = db.prepare('SELECT * from suites').all();
+            db.close();
 
-                assert.equal(result[0].status, ERROR);
-            });
+            assert.equal(status, ERROR);
         });
     });
 });
