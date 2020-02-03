@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="5.9.2"></a>
+## [5.9.2](https://github.com/gemini-testing/html-reporter/compare/v5.9.1...v5.9.2) (2020-02-03)
+
+
+### Bug Fixes
+
+* make suite green after accept in reuse mode ([ab302f1](https://github.com/gemini-testing/html-reporter/commit/ab302f1))
+
+
+
 <a name="5.9.1"></a>
 ## [5.9.1](https://github.com/gemini-testing/html-reporter/compare/v5.9.0...v5.9.1) (2020-01-27)
 
