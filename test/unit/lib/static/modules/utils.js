@@ -5,6 +5,7 @@ const {
     IDLE,
     FAIL,
     ERROR,
+    SKIPPED,
     SUCCESS
 } = require('lib/constants/test-statuses');
 const {
@@ -183,6 +184,10 @@ describe('static/modules/utils', () => {
         describe('should return true for', () => {
             it('failed test', () => {
                 assert.isTrue(utils.isAcceptable({status: FAIL}));
+            });
+
+            it('skipped test', () => {
+                assert.isTrue(utils.isAcceptable({status: SKIPPED}));
             });
 
             it('test with missing reference image', () => {
