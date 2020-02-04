@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="5.9.3"></a>
+## [5.9.3](https://github.com/gemini-testing/html-reporter/compare/v5.9.2...v5.9.3) (2020-02-04)
+
+
+### Bug Fixes
+
+* allow to accept screenshots from muted suites ([f39aa11](https://github.com/gemini-testing/html-reporter/commit/f39aa11))
+
+
+
 <a name="5.9.2"></a>
 ## [5.9.2](https://github.com/gemini-testing/html-reporter/compare/v5.9.1...v5.9.2) (2020-02-03)
 
