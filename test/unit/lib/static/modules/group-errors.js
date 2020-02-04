@@ -535,7 +535,8 @@ describe('static/modules/group-errors', () => {
         const errorPatterns = [
             {
                 name: 'Name group: message stub first',
-                pattern: 'message .* first'
+                pattern: 'message .* first',
+                regexp: /message .* first/
             }
         ];
 

@@ -35,6 +35,15 @@ describe('lib/static/modules/reducers', () => {
         describe('VIEW_INITIAL', () => {
             const baseUrl = 'http://localhost/';
 
+            const _mkInitialState = (state = {}) => {
+                return {
+                    config: {
+                        errorPatterns: []
+                    },
+                    ...state
+                };
+            };
+
             beforeEach(() => {
                 global.window = {
                     location: {
@@ -48,25 +57,41 @@ describe('lib/static/modules/reducers', () => {
                 global.window = undefined;
             });
 
-            it('should take error patterns from config', () => {
-                const action = {
-                    type: actionNames.VIEW_INITIAL,
-                    payload: {
-                        config: {
-                            errorPatterns: [{name: 'err1', pattern: 'pattern1'}]
-                        }
-                    }
-                };
+            describe('"errorPatterns" field in config', () => {
+                it('should add "regexp" field', () => {
+                    const errorPatterns = [{name: 'err1', pattern: 'pattern1'}];
+                    const action = {
+                        type: actionNames.VIEW_INITIAL,
+                        payload: _mkInitialState({
+                            config: {errorPatterns}
+                        })
+                    };
 
-                const newState = reducer(defaultState, action);
+                    const newState = reducer(defaultState, action);
 
-                assert.deepEqual(newState.config.errorPatterns, [{name: 'err1', pattern: 'pattern1'}]);
+                    assert.deepEqual(newState.config.errorPatterns, [{name: 'err1', pattern: 'pattern1', regexp: /pattern1/}]);
+                });
+
+                it('should not modify original object', () => {
+                    const origErrorPatterns = [{name: 'err1', pattern: 'pattern1'}];
+                    const action = {
+                        type: actionNames.VIEW_INITIAL,
+                        payload: _mkInitialState({
+                            config: {errorPatterns: origErrorPatterns}
+                        })
+                    };
+
+                    const newState = reducer(defaultState, action);
+
+                    assert.notExists(origErrorPatterns[0].regexp);
+                    assert.notDeepEqual(newState.config.errorPatterns, origErrorPatterns);
+                });
             });
 
             describe('query params', () => {
                 describe('"browser" option', () => {
                     it('should set "filteredBrowsers" property to an empty array by default', () => {
-                        const action = {type: actionNames.VIEW_INITIAL, payload: {config: {}}};
+                        const action = {type: actionNames.VIEW_INITIAL, payload: _mkInitialState()};
 
                         const newState = reducer(undefined, action);
 
@@ -75,7 +100,7 @@ describe('lib/static/modules/reducers', () => {
 
                     it('should set "filteredBrowsers" property to specified browsers', () => {
                         global.window.location = new URL(`${baseUrl}?browser=firefox&browser=safari`);
-                        const action = {type: actionNames.VIEW_INITIAL, payload: {config: {}}};
+                        const action = {type: actionNames.VIEW_INITIAL, payload: _mkInitialState()};
 
                         const newState = reducer(undefined, action);
 
@@ -85,7 +110,7 @@ describe('lib/static/modules/reducers', () => {
 
                 describe('"testNameFilter" option', () => {
                     it('should set "testNameFilter" property to an empty array by default', () => {
-                        const action = {type: actionNames.VIEW_INITIAL, payload: {config: {}}};
+                        const action = {type: actionNames.VIEW_INITIAL, payload: _mkInitialState()};
 
                         const newState = reducer(undefined, action);
 
@@ -95,7 +120,7 @@ describe('lib/static/modules/reducers', () => {
                     it('should set "testNameFilter" property to specified value', () => {
                         global.window.location = new URL(`${baseUrl}?testNameFilter=sometest`);
 
-                        const action = {type: actionNames.VIEW_INITIAL, payload: {config: {}}};
+                        const action = {type: actionNames.VIEW_INITIAL, payload: _mkInitialState()};
 
                         const newState = reducer(undefined, action);
 
@@ -105,7 +130,7 @@ describe('lib/static/modules/reducers', () => {
 
                 describe('"strictMatchFilter" option', () => {
                     it('should set "strictMatchFilter" property to an empty array by default', () => {
-                        const action = {type: actionNames.VIEW_INITIAL, payload: {config: {}}};
+                        const action = {type: actionNames.VIEW_INITIAL, payload: _mkInitialState()};
 
                         const newState = reducer(undefined, action);
 
@@ -115,7 +140,7 @@ describe('lib/static/modules/reducers', () => {
                     it('should set "strictMatchFilter" property to specified value', () => {
                         global.window.location = new URL(`${baseUrl}?strictMatchFilter=true`);
 
-                        const action = {type: actionNames.VIEW_INITIAL, payload: {config: {}}};
+                        const action = {type: actionNames.VIEW_INITIAL, payload: _mkInitialState()};
 
                         const newState = reducer(undefined, action);
 
@@ -125,7 +150,7 @@ describe('lib/static/modules/reducers', () => {
 
                 describe('"retryIndex" option', () => {
                     it('should set "retryIndex" property to an empty array by default', () => {
-                        const action = {type: actionNames.VIEW_INITIAL, payload: {config: {}}};
+                        const action = {type: actionNames.VIEW_INITIAL, payload: _mkInitialState()};
 
                         const newState = reducer(undefined, action);
 
@@ -135,7 +160,7 @@ describe('lib/static/modules/reducers', () => {
                     it('should set "retryIndex" property to string when not a number specified', () => {
                         global.window.location = new URL(`${baseUrl}?retryIndex=1abc`);
 
-                        const action = {type: actionNames.VIEW_INITIAL, payload: {config: {}}};
+                        const action = {type: actionNames.VIEW_INITIAL, payload: _mkInitialState()};
 
                         const newState = reducer(undefined, action);
 
@@ -145,7 +170,7 @@ describe('lib/static/modules/reducers', () => {
                     it('should set "retryIndex" property to specified number', () => {
                         global.window.location = new URL(`${baseUrl}?retryIndex=10`);
 
-                        const action = {type: actionNames.VIEW_INITIAL, payload: {config: {}}};
+                        const action = {type: actionNames.VIEW_INITIAL, payload: _mkInitialState()};
 
                         const newState = reducer(undefined, action);
 
@@ -155,7 +180,7 @@ describe('lib/static/modules/reducers', () => {
 
                 describe('"viewMode" option', () => {
                     it('should set "viewMode" to "all" by default', () => {
-                        const action = {type: actionNames.VIEW_INITIAL, payload: {config: {}}};
+                        const action = {type: actionNames.VIEW_INITIAL, payload: _mkInitialState()};
 
                         const newState = reducer(undefined, action);
 
@@ -165,7 +190,7 @@ describe('lib/static/modules/reducers', () => {
                     it('should set "viewMode" property to specified value', () => {
                         global.window.location = new URL(`${baseUrl}?viewMode=failed`);
 
-                        const action = {type: actionNames.VIEW_INITIAL, payload: {config: {}}};
+                        const action = {type: actionNames.VIEW_INITIAL, payload: _mkInitialState()};
 
                         const newState = reducer(undefined, action);
 
@@ -175,7 +200,7 @@ describe('lib/static/modules/reducers', () => {
 
                 describe('"expand" option', () => {
                     it('should set "expand" to "errors" by default', () => {
-                        const action = {type: actionNames.VIEW_INITIAL, payload: {config: {}}};
+                        const action = {type: actionNames.VIEW_INITIAL, payload: _mkInitialState()};
 
                         const newState = reducer(undefined, action);
 
@@ -185,7 +210,7 @@ describe('lib/static/modules/reducers', () => {
                     it('should set "expand" property to specified value', () => {
                         global.window.location = new URL(`${baseUrl}?expand=all`);
 
-                        const action = {type: actionNames.VIEW_INITIAL, payload: {config: {}}};
+                        const action = {type: actionNames.VIEW_INITIAL, payload: _mkInitialState()};
 
                         const newState = reducer(undefined, action);
 
@@ -195,7 +220,7 @@ describe('lib/static/modules/reducers', () => {
 
                 describe('"groupByError" option', () => {
                     it('should set "groupByError" to false by default', () => {
-                        const action = {type: actionNames.VIEW_INITIAL, payload: {config: {}}};
+                        const action = {type: actionNames.VIEW_INITIAL, payload: _mkInitialState()};
 
                         const newState = reducer(undefined, action);
 
@@ -205,7 +230,7 @@ describe('lib/static/modules/reducers', () => {
                     it('should set "groupByError" property to specified value', () => {
                         global.window.location = new URL(`${baseUrl}?groupByError=true`);
 
-                        const action = {type: actionNames.VIEW_INITIAL, payload: {config: {}}};
+                        const action = {type: actionNames.VIEW_INITIAL, payload: _mkInitialState()};
 
                         const newState = reducer(undefined, action);
 

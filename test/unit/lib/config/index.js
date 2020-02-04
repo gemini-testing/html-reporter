@@ -220,6 +220,57 @@ describe('config', () => {
         });
     });
 
+    describe('"errorPatterns", option', () => {
+        describe('should throw an error if value', () => {
+            it('is not an array', () => {
+                assert.throws(
+                    () => parseConfig({errorPatterns: 100500}),
+                    '"errorPatterns" option must be array, but got number'
+                );
+            });
+
+            it('is not a string or object', () => {
+                assert.throws(
+                    () => parseConfig({errorPatterns: [100500]}),
+                    'Element of "errorPatterns" option must be plain object or string, but got number'
+                );
+            });
+
+            it('is object but does not have "name" field', () => {
+                assert.throws(
+                    () => parseConfig({errorPatterns: [{pattern: 'some-pattern'}]}),
+                    'Field "name" in element of "errorPatterns" option must be string, but got undefined'
+                );
+            });
+
+            it('is object but does not have "pattern" field', () => {
+                assert.throws(
+                    () => parseConfig({errorPatterns: [{name: 'some-err'}]}),
+                    'Field "pattern" in element of "errorPatterns" option must be string, but got undefined'
+                );
+            });
+        });
+
+        it('should has default value', () => {
+            assert.deepEqual(parseConfig({}).errorPatterns, configDefaults.errorPatterns);
+        });
+
+        it('should modify string to object', () => {
+            const config = parseConfig({errorPatterns: ['some-err']});
+
+            assert.deepEqual(config.errorPatterns[0], {name: 'some-err', pattern: 'some-err'});
+        });
+
+        it('should set object', () => {
+            const config = parseConfig({errorPatterns: [{name: 'some-err', pattern: 'some-pattern'}]});
+
+            assert.deepEqual(
+                config.errorPatterns[0],
+                {name: 'some-err', pattern: 'some-pattern'}
+            );
+        });
+    });
+
     describe('"metaInfoBaseUrls" option', () => {
         it('should set from configuration file', () => {
             const config = parseConfig({

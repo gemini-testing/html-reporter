@@ -2,6 +2,7 @@ import React from 'react';
 import proxyquire from 'proxyquire';
 import {defaults, defaultsDeep} from 'lodash';
 import {SUCCESS, FAIL, ERROR, UPDATED, IDLE} from 'lib/constants/test-statuses';
+import StateError from 'lib/static/components/state/state-error';
 import {mkConnectedComponent, mkTestResult_, mkImg_} from '../utils';
 
 describe('<State/>', () => {
@@ -28,6 +29,7 @@ describe('<State/>', () => {
 
         initialState = defaultsDeep(initialState, {
             gui: true,
+            config: {errorPatterns: []},
             view: {expand: 'all', scaleImages: false, showOnlyDiff: false, lazyLoadOffset: 0}
         });
 
@@ -303,6 +305,21 @@ describe('<State/>', () => {
             assert.calledTwice(toggleHandler);
             assert.calledWith(toggleHandler.firstCall, {stateName: 'plain', opened: true});
             assert.calledWith(toggleHandler.secondCall, {stateName: 'plain', opened: false});
+        });
+    });
+
+    [ERROR, FAIL].forEach((status) => {
+        describe(`<StateError/> with ${status} status`, () => {
+            it('should render with first matched error pattern', () => {
+                const error = {message: 'foo-bar'};
+                const errorPatterns = [{name: 'first', regexp: /foo-bar/}, {name: 'second', regexp: /foo-bar/}];
+                const testResult = mkTestResult_({status, stateName: 'plain', opened: true});
+
+                const stateComponent = mkStateComponent({state: testResult, error}, {config: {errorPatterns}});
+
+                assert.lengthOf(stateComponent.find(StateError), 1);
+                assert.deepEqual(stateComponent.find(StateError).prop('errorPattern'), errorPatterns[0]);
+            });
         });
     });
 });
