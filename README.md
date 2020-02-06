@@ -36,10 +36,19 @@ directory.
 * **baseHost** (optional) - `String` - it changes original host for view in the browser; by default original host does not change
 * **scaleImages** (optional) – `Boolean` – fit images into page width; `false` by default
 * **lazyLoadOffset** (optional) - `Number` - allows you to specify how far above and below the viewport you want to begin loading images. Lazy loading would be disabled if you specify 0. `800` by default.
-* **errorPatterns** (optional) - `Array` - error message patterns for 'Group by error' mode.
-Array element must be `Object` ({'*name*': `String`, '*pattern*': `String`}) or `String` (interpret as *name* and *pattern*).
-Test will be associated with group if test error matches on group error pattern.
-New group will be created if test cannot be associated with existing groups.
+* **errorPatterns** (optional) - `Array` - error message patterns are used:
+  * to show more understandable information about matched error;
+  * in 'Group by error' mode.
+
+  Array elements must be one of the types:
+  * `Object` with required fields *name*, *pattern* and optional field *hint* - {*name*: `String`, *pattern*: `String`, *hint*: `String`};
+  * `String` which will be interpret as *name* and *pattern*.
+
+  When one of error patterns are matched on error message then:
+  * *name* of error pattern will be displayed as title of error message and original error message will be hidden under details;
+  * *hint* of error pattern will be displayed after error *stack* field. Can be specified as html string. For example, `<div>some-useful-hint</div>`.
+
+  In 'Group by error' mode test will be associated with group if test error matches on group error pattern. New group will be created if test cannot be associated with existing groups.
 * **metaInfoBaseUrls** (optional) `Object` - base paths for making link from Meta-info values. Object option must be Meta-info's key and value must be `String`. For example, {'file': 'base/path'}.
 * **saveFormat** (optional) `String` - allows to specify the format, in which the results will be saved. Available values are:
   * `js` - save tests results to data.js file as object. Default value.
@@ -48,7 +57,7 @@ New group will be created if test cannot be associated with existing groups.
     * `sqlite.db` - Sqlite database with tests results
     * `data.js` - report's config
     * `databaseUrls.json` - absolute or relative URLs to Sqlite databases (`sqlite.db`) or/and URLs to other `databaseUrls.json` (see [merge-reports](#merge-reports))
-  
+
      You can't open local report by 'file://' protocol. Use gui mode or start a local server. For example, execute `npx http-server -p 8080` at terminal from folder where report placed and open page `http://localhost:8080` at browser.
 * **customGui** (optional) `Object` – allows to specify custom controls for gui-mode and define actions for them. `{}` is default value. Ordinarily custom controls should be split by sections depending on the purposes of the controls. At least one section should be specified.
   The structure of the custom-gui object:
@@ -162,7 +171,8 @@ module.exports = {
                 'Parameter .* must be a string',
                 {
                     name: 'Cannot read property of undefined',
-                    pattern: 'Cannot read property .* of undefined'
+                    pattern: 'Cannot read property .* of undefined',
+                    hint: '<div>google it, i dont know how to fix it =(</div>'
                 }
             ]
         }
@@ -190,7 +200,7 @@ Command that adds ability to merge reports which are created after running the t
 
 #### When save format is js (default)
 
-Command takes paths to directories with reports. 
+Command takes paths to directories with reports.
 It merge "data.js" files into single file and move reports files to destination directory.
 
 Example of usage:
@@ -202,7 +212,7 @@ npx hermione merge-reports src-report-1 src-report-2 -d dest-report
 
 Command takes paths to databases files or "databaseUrls.json" files from other html reports.
 It creates new html report at destination directory with common "databaseUrls.json"
-which will contain link to databases files or "databaseUrls.json" files from input parameters. 
+which will contain link to databases files or "databaseUrls.json" files from input parameters.
 Databases files will not be copied to destination directory.
 
 Example of usage:

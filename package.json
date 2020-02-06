@@ -56,6 +56,7 @@
     "opener": "^1.4.3",
     "p-queue": "^5.0.0",
     "qs": "^6.9.1",
+    "react-html-parser": "^2.0.2",
     "react-markdown": "^3.2.0",
     "reapop": "2.1.0",
     "reapop-theme-wybo": "1.0.2",
