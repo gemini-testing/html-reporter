@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="5.11.0"></a>
+# [5.11.0](https://github.com/gemini-testing/html-reporter/compare/v5.10.0...v5.11.0) (2020-02-07)
+
+
+### Features
+
+* gui mode support loading many databases from databaseUrls.json ([90b9169](https://github.com/gemini-testing/html-reporter/commit/90b9169))
+
+
+
 <a name="5.10.0"></a>
 # [5.10.0](https://github.com/gemini-testing/html-reporter/compare/v5.9.3...v5.10.0) (2020-02-06)
 
