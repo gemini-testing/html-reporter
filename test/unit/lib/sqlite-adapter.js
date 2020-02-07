@@ -1,15 +1,17 @@
 'use strict';
 
 const fs = require('fs-extra');
-const sqlite3 = require('sqlite3').verbose();
+const Database = require('better-sqlite3');
 
 const SqliteAdapter = require('lib/sqlite-adapter');
 
 describe('lib/sqlite-adapter', () => {
     const sandbox = sinon.createSandbox();
 
-    const makeSqliteAdapter_ = () => {
-        return SqliteAdapter.create('test');
+    const makeSqliteAdapter_ = async () => {
+        const sqliteAdapter = SqliteAdapter.create({reportPath: 'test'});
+        await sqliteAdapter.init();
+        return sqliteAdapter;
     };
 
     afterEach(() => {
@@ -25,7 +27,7 @@ describe('lib/sqlite-adapter', () => {
 
     it('should create database with correct structure', async () => {
         await makeSqliteAdapter_();
-        const db = new sqlite3.Database('test/sqlite.db');
+        const db = new Database('test/sqlite.db');
         const tableStructure = [
             {cid: 0, name: 'suitePath', type: 'TEXT'},
             {cid: 1, name: 'suiteName', type: 'TEXT'},
@@ -42,14 +44,13 @@ describe('lib/sqlite-adapter', () => {
             {cid: 12, name: 'timestamp', type: 'INT'}
         ];
 
-        db.all('PRAGMA table_info(suites);', function(err, columns) {
-            db.close();
+        const columns = db.prepare('PRAGMA table_info(suites);').all();
+        db.close();
 
-            columns.map((column, index) => {
-                assert.match(column.cid, tableStructure[index].cid);
-                assert.match(column.name, tableStructure[index].name);
-                assert.match(column.type, tableStructure[index].type);
-            });
+        columns.map((column, index) => {
+            assert.match(column.cid, tableStructure[index].cid);
+            assert.match(column.name, tableStructure[index].name);
+            assert.match(column.type, tableStructure[index].type);
         });
     });
 });

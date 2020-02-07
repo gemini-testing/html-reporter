@@ -185,7 +185,6 @@ describe('lib/plugin-adapter', () => {
         it('should log correct path to html report', () => {
             return initCliReporter_({path: 'some/path'}, {})
                 .then(() => {
-                    ReportBuilder.prototype.save.resolves({reportPath: 'some/path'});
                     tool.emit(tool.events.END);
 
                     return tool.emitAndWait(endRunnerEvent).then(() => {
@@ -195,9 +194,10 @@ describe('lib/plugin-adapter', () => {
         });
 
         it('should log an error', () => {
+            ReportBuilder.prototype.save.rejects('some-error');
+
             return initCliReporter_({}, {})
                 .then(() => {
-                    ReportBuilder.prototype.save.rejects('some-error');
                     tool.emit(tool.events.END);
 
                     return tool.emitAndWait(endRunnerEvent).then(() => {
