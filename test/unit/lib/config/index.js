@@ -384,4 +384,32 @@ describe('config', () => {
             ));
         });
     });
+
+    describe('customScripts', () => {
+        it('should have default value', () => {
+            assert.deepEqual(parseConfig({}).customScripts, configDefaults.customScripts);
+        });
+
+        it('should validate for Array type', () => {
+            assert.throws(
+                () => parseConfig({customScripts: 'foo'}),
+                /"customScripts" option must be an array, but got string/
+            );
+        });
+
+        it('should validate for Array items', () => {
+            assert.throws(
+                () => parseConfig({customScripts: ['foo']}),
+                /"customScripts" option must be an array of functions but got string for one of items/
+            );
+        });
+
+        it('should not throw with correct values', () => {
+            const scripts = [function() {}];
+
+            const config = parseConfig({customScripts: scripts});
+
+            assert.deepEqual(config.customScripts, scripts);
+        });
+    });
 });
