@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="5.12.0"></a>
+# [5.12.0](https://github.com/gemini-testing/html-reporter/compare/v5.11.0...v5.12.0) (2020-02-10)
+
+
+### Features
+
+* ability to add custom scripts on report page ([9fe6cb8](https://github.com/gemini-testing/html-reporter/commit/9fe6cb8))
+
+
+
 <a name="5.11.0"></a>
 # [5.11.0](https://github.com/gemini-testing/html-reporter/compare/v5.10.0...v5.11.0) (2020-02-07)
 
