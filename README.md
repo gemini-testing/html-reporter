@@ -291,7 +291,9 @@ In this case a line `suite full name: some-platform` will be added to the meta i
 
 ### externalStorage
 
-You can redefine native api for images saving and use your own storage (only for hermione).
+You can redefine native api for images or sqlite dbs saving and use your own storage.
+
+#### images
 
 Example:
 ```js
@@ -302,18 +304,49 @@ module.exports = (hermione, opts) => {
     hermione.on(hermione.events.INIT, async () => {
         hermione.htmlReporter.imagesSaver = {
             /**
-            * Save image to your storage. Function can be asynchronous or synchronous. It have to return path of saved image or destPath will be used by default.
+            * Save image to your storage. Function can be asynchronous or synchronous. It have to return path or url of saved image.
             * @property {String} localFilePath – image path on your filesystem
             * @param {Object} options
             * @param {String} options.destPath – path to image in html-report
             * @param {String} options.reportDir - path to your html-report dir
+            * @returns {String} path or url
             */
             saveImg: async (localFilePath, options) => {
                 const {destPath, reportDir} = options;
-                const res = await myStorage.save(localFilePath, destPath, reportDir)
+                const imageUrl = await myStorage.save(localFilePath, destPath, reportDir)
                 // ...
 
-                return res;
+                return imageUrl;
+            }
+        }
+    });
+};
+```
+
+#### sqlite dbs
+
+Example:
+```js
+const MyStorage = require('my-storage');
+const myStorage = new MyStorage();
+
+module.exports = (hermione, opts) => {
+    hermione.on(hermione.events.INIT, async () => {
+        hermione.htmlReporter.reportsSaver = {
+            /**
+            * Save sqlite db to your storage. Function can be asynchronous or synchronous. It have to return path or url of saved sqlite db.
+            * @property {String} localFilePath – sqlite db path on your filesystem
+            * @param {Object} options
+            * @param {String} options.destPath – path to sqlite db in html-report
+            * @param {String} options.reportDir - path to your html-report dir
+            * @returns {String} path or url
+            */
+            saveReportData: async (localFilePath, options) => {
+                const {destPath, reportDir} = options;
+                const dbUrl = await myStorage.save(localFilePath, destPath, reportDir)
+                // ...
+
+                return dbUrl;
             }
         }
     });

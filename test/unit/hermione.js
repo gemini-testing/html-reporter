@@ -92,7 +92,7 @@ describe('lib/hermione', () => {
         sandbox.stub(utils, 'getCurrentPath');
         sandbox.stub(utils, 'getReferencePath');
         sandbox.stub(utils, 'getDiffPath').returns('/default/path');
-        sandbox.stub(utils, 'copyImageAsync');
+        sandbox.stub(utils, 'copyFileAsync');
         sandbox.stub(utils, 'makeDirFor');
         sandbox.stub(utils, 'logPathToHtmlReport');
         sandbox.stub(utils.logger, 'log');
@@ -206,14 +206,16 @@ describe('lib/hermione', () => {
 
         hermione.htmlReporter.addExtraItem('key1', 'value1');
         hermione.htmlReporter.addMetaInfoExtender('key2', 'value2');
-        hermione.htmlReporter.imagesSaver = {some: 'saver'};
+        hermione.htmlReporter.imagesSaver = {some: 'images_saver'};
+        hermione.htmlReporter.reportsSaver = {some: 'reports_saver'};
 
         await hermione.emitAndWait(hermione.events.RUNNER_END);
 
         assert.calledOnceWith(ReportBuilder.prototype.setApiValues, {
             extraItems: {key1: 'value1'},
             metaInfoExtenders: {key2: 'value2'},
-            imagesSaver: {some: 'saver'}
+            imagesSaver: {some: 'images_saver'},
+            reportsSaver: {some: 'reports_saver'}
         });
     });
 
@@ -231,7 +233,7 @@ describe('lib/hermione', () => {
         hermione.emit(events.TEST_PASS, testData);
         await hermione.emitAndWait(events.RUNNER_END);
 
-        assert.calledOnceWith(utils.copyImageAsync, 'ref/path', 'report/plain', '/absolute');
+        assert.calledOnceWith(utils.copyFileAsync, 'ref/path', 'report/plain', '/absolute');
     });
 
     it('should save image from assert view error', async () => {
@@ -244,7 +246,7 @@ describe('lib/hermione', () => {
         hermione.emit(events.RETRY, mkStubResult_({assertViewResults: [err]}));
         await hermione.emitAndWait(events.RUNNER_END);
 
-        assert.calledOnceWith(utils.copyImageAsync, 'current/path', 'report/plain', '/absolute');
+        assert.calledOnceWith(utils.copyFileAsync, 'current/path', 'report/plain', '/absolute');
     });
 
     it('should save reference image from assert view fail', async () => {
@@ -259,7 +261,7 @@ describe('lib/hermione', () => {
         hermione.emit(events.TEST_FAIL, mkStubResult_({assertViewResults: [err]}));
         await hermione.emitAndWait(events.RUNNER_END);
 
-        assert.calledWith(utils.copyImageAsync, 'reference/path', 'report/plain', '/absolute');
+        assert.calledWith(utils.copyFileAsync, 'reference/path', 'report/plain', '/absolute');
     });
 
     it('should save current image from assert view fail', async () => {
@@ -277,7 +279,7 @@ describe('lib/hermione', () => {
         hermione.emit(events.TEST_FAIL, mkStubResult_({assertViewResults: [err]}));
         await hermione.emitAndWait(events.RUNNER_END);
 
-        assert.calledWith(utils.copyImageAsync, 'current/path', 'report/plain', '/absolute');
+        assert.calledWith(utils.copyFileAsync, 'current/path', 'report/plain', '/absolute');
     });
 
     it('should save current diff image from assert view fail', async () => {

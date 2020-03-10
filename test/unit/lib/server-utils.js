@@ -101,7 +101,7 @@ describe('server-utils', () => {
         });
     });
 
-    describe('copyImageAsync', () => {
+    describe('copyFileAsync', () => {
         beforeEach(() => {
             sandbox.stub(fs, 'copy').resolves();
             sandbox.stub(fs, 'mkdirs').resolves();
@@ -111,7 +111,7 @@ describe('server-utils', () => {
             const fromPath = '/from/image.png',
                 toPath = '/to/image.png';
 
-            return utils.copyImageAsync(fromPath, toPath)
+            return utils.copyFileAsync(fromPath, toPath)
                 .then(() => {
                     assert.calledWithMatch(fs.mkdirs, '/to');
                     assert.calledWithMatch(fs.copy, fromPath, toPath);
@@ -149,7 +149,7 @@ describe('server-utils', () => {
         });
     });
 
-    describe('createDatabaseUrlsFile', () => {
+    describe('writeDatabaseUrlsFile', () => {
         beforeEach(() => {
             sandbox.stub(fs, 'writeJson').resolves();
         });
@@ -158,7 +158,7 @@ describe('server-utils', () => {
             const destPath = '/foobar';
             const srcPaths = [];
 
-            utils.createDatabaseUrlsFile(destPath, srcPaths);
+            utils.writeDatabaseUrlsFile(destPath, srcPaths);
 
             assert.calledOnceWith(fs.writeJson, '/foobar/databaseUrls.json', {dbUrls: [], jsonUrls: []});
         });
@@ -174,7 +174,7 @@ describe('server-utils', () => {
                 'http://foo.bar/baz.bar?test=stub'
             ];
 
-            utils.createDatabaseUrlsFile(destPath, srcPaths);
+            utils.writeDatabaseUrlsFile(destPath, srcPaths);
 
             assert.calledOnceWith(fs.writeJson, sinon.match.any, {dbUrls: [], jsonUrls: []});
         });
@@ -183,7 +183,7 @@ describe('server-utils', () => {
             const destPath = '/foo';
             const srcPaths = ['bar.db', 'bar.json'];
 
-            utils.createDatabaseUrlsFile(destPath, srcPaths);
+            utils.writeDatabaseUrlsFile(destPath, srcPaths);
 
             assert.calledOnceWith(fs.writeJson, sinon.match.any, {dbUrls: ['bar.db'], jsonUrls: ['bar.json']});
         });
@@ -192,7 +192,7 @@ describe('server-utils', () => {
             const destPath = '/foo';
             const srcPaths = ['http://foo.bar/baz.db?test=stub', 'http://foo.bar/baz.json?test=stub'];
 
-            utils.createDatabaseUrlsFile(destPath, srcPaths);
+            utils.writeDatabaseUrlsFile(destPath, srcPaths);
 
             assert.calledOnceWith(fs.writeJson, sinon.match.any, {
                 dbUrls: ['http://foo.bar/baz.db?test=stub'],
