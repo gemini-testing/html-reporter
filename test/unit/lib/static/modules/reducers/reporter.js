@@ -5,15 +5,24 @@ import {mkStorage} from '../../../../utils';
 
 const {assign} = require('lodash');
 const proxyquire = require('proxyquire');
+
+const localStorageWrapper = {};
+
 const reducer = proxyquire('lib/static/modules/reducers/reporter', {
-    './helpers/local-storage-wrapper': {
-        setItem: sinon.stub(),
-        getItem: sinon.stub()
-    }
+    './helpers/local-storage-wrapper': localStorageWrapper
 }).default;
 
 describe('lib/static/modules/reducers', () => {
     describe('reporter', () => {
+        const sandbox = sinon.sandbox.create();
+
+        beforeEach(() => {
+            localStorageWrapper.setItem = sinon.stub();
+            localStorageWrapper.getItem = sinon.stub();
+        });
+
+        afterEach(() => sandbox.restore());
+
         describe('regression', () => {
             it('shouldn\'t change "Expand" filter when "Show all" or "Show only failed" state changing', function() {
                 let newState = [
@@ -364,6 +373,40 @@ describe('lib/static/modules/reducers', () => {
                 assert.match(newState.suites['test'].children[1].name, 'smalltest2');
                 assert.match(newState.suites['test'].children[0].browsers[0].retries.length, 1);
                 assert.match(newState.suites['test'].children[1].browsers[0].retries.length, 0);
+            });
+        });
+
+        describe('storing state in browser storage', () => {
+            it('should be done for actions that start with VIEW prefix', () => {
+                const action = {type: 'VIEW_FOO_ACTION'};
+
+                reducer(defaultState, action);
+
+                assert.calledOnce(localStorageWrapper.setItem);
+            });
+
+            it('should be skipped for all actions that do not start with VIEW prefix', () => {
+                const action = {type: 'BAR_ACTION'};
+
+                reducer(defaultState, action);
+
+                assert.notCalled(localStorageWrapper.setItem);
+            });
+
+            it('should include all view params of state except for inputs', () => {
+                const action = {type: 'VIEW_FOO_ACTION'};
+
+                reducer(defaultState, action);
+
+                assert.calledOnceWith(localStorageWrapper.setItem, 'view', {
+                    expand: 'errors',
+                    groupByError: false,
+                    scaleImages: false,
+                    showOnlyDiff: false,
+                    showSkipped: false,
+                    strictMatchFilter: false,
+                    viewMode: 'all'
+                });
             });
         });
     });
