@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="5.12.1"></a>
+## [5.12.1](https://github.com/gemini-testing/html-reporter/compare/v5.12.0...v5.12.1) (2020-03-19)
+
+
+### Bug Fixes
+
+* do not save inputs to browser storage ([ef3ae0c](https://github.com/gemini-testing/html-reporter/commit/ef3ae0c))
+
+
+
 <a name="5.12.0"></a>
 # [5.12.0](https://github.com/gemini-testing/html-reporter/compare/v5.11.0...v5.12.0) (2020-02-10)
 
