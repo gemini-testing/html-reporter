@@ -373,7 +373,7 @@ describe('hermione test adapter', () => {
 
     describe('getImagesInfo()', () => {
         beforeEach(() => {
-            sandbox.stub(utils, 'copyImageAsync');
+            sandbox.stub(utils, 'copyFileAsync');
             sandbox.stub(utils, 'getReferencePath').returns('some/ref.png');
         });
 
@@ -462,7 +462,7 @@ describe('hermione test adapter', () => {
             sandbox.stub(utils.logger, 'warn');
             sandbox.stub(utils, 'makeDirFor').resolves();
             sandbox.stub(fs, 'writeFile').resolves();
-            sandbox.stub(utils, 'copyImageAsync');
+            sandbox.stub(utils, 'copyFileAsync');
         });
 
         describe('if screenshot on reject does not exist', () => {

@@ -5,10 +5,13 @@ const _ = require('lodash');
 const Database = require('better-sqlite3');
 const proxyquire = require('proxyquire');
 const {SUCCESS, FAIL, ERROR, SKIPPED} = require('lib/constants/test-statuses');
+const {LOCAL_DATABASE_NAME} = require('lib/constants/file-names');
+const TEST_REPORT_PATH = 'test';
+const TEST_DB_PATH = `${TEST_REPORT_PATH}/${LOCAL_DATABASE_NAME}`;
 
 describe('ReportBuilderSqlite', () => {
     const sandbox = sinon.sandbox.create();
-    let hasImage, ReportBuilder, reportBuilderSqlite;
+    let hasImage, ReportBuilder, reportBuilderSqlite, hermione;
 
     const formattedSuite_ = () => {
         return {
@@ -32,12 +35,19 @@ describe('ReportBuilderSqlite', () => {
 
     const mkReportBuilder_ = async ({toolConfig = {}, pluginConfig} = {}) => {
         toolConfig = _.defaults(toolConfig, {getAbsoluteUrl: _.noop});
-        pluginConfig = _.defaults(pluginConfig, {baseHost: '', path: 'test', baseTestPath: ''});
+        pluginConfig = _.defaults(pluginConfig, {baseHost: '', path: TEST_REPORT_PATH, baseTestPath: ''});
 
         const browserConfigStub = {getAbsoluteUrl: toolConfig.getAbsoluteUrl};
-        const config = {forBrowser: sandbox.stub().returns(browserConfigStub), htmlReporter: {saveImg: sandbox.stub()}};
+        hermione = {
+            forBrowser: sandbox.stub().returns(browserConfigStub),
+            htmlReporter: {
+                reportsSaver: {
+                    saveReportData: sandbox.stub()
+                }
+            }
+        };
 
-        const reportBuilder = ReportBuilder.create(config, pluginConfig);
+        const reportBuilder = ReportBuilder.create(hermione, pluginConfig);
         await reportBuilder.init();
 
         return reportBuilder;
@@ -79,7 +89,7 @@ describe('ReportBuilderSqlite', () => {
     });
 
     afterEach(() => {
-        fs.unlinkSync('test/sqlite.db');
+        fs.removeSync(TEST_DB_PATH);
         sandbox.restore();
     });
 
@@ -91,7 +101,7 @@ describe('ReportBuilderSqlite', () => {
 
         it('should add skipped test to database', async () => {
             await reportBuilderSqlite.addSkipped(stubTest_());
-            const db = new Database('test/sqlite.db');
+            const db = new Database(TEST_DB_PATH);
 
             const [{status}] = db.prepare('SELECT * from suites').all();
             db.close();
@@ -101,7 +111,7 @@ describe('ReportBuilderSqlite', () => {
 
         it('should add success test to database', async () => {
             await reportBuilderSqlite.addSuccess(stubTest_());
-            const db = new Database('test/sqlite.db');
+            const db = new Database(TEST_DB_PATH);
 
             const [{status}] = db.prepare('SELECT * from suites').all();
             db.close();
@@ -111,7 +121,7 @@ describe('ReportBuilderSqlite', () => {
 
         it('should add failed test to database', async () => {
             await reportBuilderSqlite.addFail(stubTest_());
-            const db = new Database('test/sqlite.db');
+            const db = new Database(TEST_DB_PATH);
 
             const [{status}] = db.prepare('SELECT * from suites').all();
             db.close();
@@ -121,12 +131,65 @@ describe('ReportBuilderSqlite', () => {
 
         it('should add error test to database', async () => {
             await reportBuilderSqlite.addError(stubTest_());
-            const db = new Database('test/sqlite.db');
+            const db = new Database(TEST_DB_PATH);
 
             const [{status}] = db.prepare('SELECT * from suites').all();
             db.close();
 
             assert.equal(status, ERROR);
+        });
+    });
+
+    describe('finalization', () => {
+        beforeEach(async () => {
+            reportBuilderSqlite = await mkReportBuilder_();
+            sandbox.stub(fs, 'writeJson');
+            sandbox.stub(fs, 'remove');
+        });
+
+        it('should not resave databaseUrls file with path to sqlite db when it is not moved', async () => {
+            hermione.htmlReporter.reportsSaver = null;
+
+            await reportBuilderSqlite.finalize();
+
+            assert.notCalled(fs.writeJson);
+            assert.notCalled(fs.remove);
+        });
+
+        it('should save databaseUrls file with custom path to sqlite db', async () => {
+            hermione.htmlReporter.reportsSaver.saveReportData.resolves('sqlite-copy.db');
+
+            await reportBuilderSqlite.finalize();
+
+            assert.calledWithExactly(fs.writeJson, sinon.match.string, {
+                dbUrls: ['sqlite-copy.db'],
+                jsonUrls: []
+            });
+            assert.calledWithExactly(fs.remove, TEST_DB_PATH);
+        });
+
+        it('should save databaseUrls file with absolute path to sqlite db', async () => {
+            hermione.htmlReporter.reportsSaver.saveReportData.resolves('/tmp/sqlite.db');
+
+            await reportBuilderSqlite.finalize();
+
+            assert.calledWithExactly(fs.writeJson, sinon.match.string, {
+                dbUrls: ['/tmp/sqlite.db'],
+                jsonUrls: []
+            });
+            assert.calledWithExactly(fs.remove, TEST_DB_PATH);
+        });
+
+        it('should save databaseUrls file with url to sqlite db', async () => {
+            hermione.htmlReporter.reportsSaver.saveReportData.resolves('https://localhost/sqlite.db');
+
+            await reportBuilderSqlite.finalize();
+
+            assert.calledWithExactly(fs.writeJson, sinon.match.string, {
+                dbUrls: ['https://localhost/sqlite.db'],
+                jsonUrls: []
+            });
+            assert.calledWithExactly(fs.remove, TEST_DB_PATH);
         });
     });
 });
