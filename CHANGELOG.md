@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="5.13.0"></a>
+# [5.13.0](https://github.com/gemini-testing/html-reporter/compare/v5.12.1...v5.13.0) (2020-03-20)
+
+
+### Features
+
+* allow to customize sqlite dbs save ([6335c9c](https://github.com/gemini-testing/html-reporter/commit/6335c9c))
+
+
+
 <a name="5.12.1"></a>
 ## [5.12.1](https://github.com/gemini-testing/html-reporter/compare/v5.12.0...v5.12.1) (2020-03-19)
 
