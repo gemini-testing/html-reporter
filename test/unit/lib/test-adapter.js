@@ -10,7 +10,7 @@ const fs = require('fs-extra');
 
 describe('hermione test adapter', () => {
     const sandbox = sinon.sandbox.create();
-    let tmp, HermioneTestResultAdapter, err, getSuitePath;
+    let tmp, HermioneTestResultAdapter, err, getSuitePath, getCommandHistory;
 
     class ImageDiffError extends Error {}
     class NoRefImageError extends Error {}
@@ -50,10 +50,12 @@ describe('hermione test adapter', () => {
     beforeEach(() => {
         tmp = {tmpdir: 'default/dir'};
         getSuitePath = sandbox.stub();
+        getCommandHistory = sandbox.stub();
 
         HermioneTestResultAdapter = proxyquire('../../../lib/test-adapter', {
             tmp,
-            '../plugin-utils': {getHermioneUtils: () => ({getSuitePath})}
+            './plugin-utils': {getHermioneUtils: () => ({getSuitePath})},
+            './history-utils': {getCommandHistory}
         });
         sandbox.stub(utils, 'getCurrentPath').returns('');
         sandbox.stub(utils, 'getDiffPath').returns('');
@@ -83,10 +85,16 @@ describe('hermione test adapter', () => {
         assert.equal(result.attempt, 0);
     });
 
-    it('should return test error with "message", "stack" and "stateName"', () => {
+    it('should return test error with "message", "stack", "history" and "stateName"', () => {
+        getCommandHistory.withArgs([{name: 'foo'}], 'bar').returns(['some-history']);
         const testResult = mkTestResult_({
+            file: 'bar',
             err: {
-                message: 'some-message', stack: 'some-stack', stateName: 'some-test', foo: 'bar'
+                message: 'some-message',
+                stack: 'some-stack',
+                history: [{name: 'foo'}],
+                stateName: 'some-test',
+                foo: 'bar'
             }
         });
 
@@ -95,6 +103,7 @@ describe('hermione test adapter', () => {
         assert.deepEqual(hermioneTestAdapter.error, {
             message: 'some-message',
             stack: 'some-stack',
+            history: ['some-history'],
             stateName: 'some-test'
         });
     });

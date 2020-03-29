@@ -311,7 +311,7 @@ describe('lib/static/modules/reducers', () => {
                         'url',
                         JSON.stringify({muted: false}),
                         'description',
-                        JSON.stringify({message: 'error message', stack: 'error stack'}),
+                        JSON.stringify({message: 'error message', stack: 'error stack', history: 'some history'}),
                         'skipReason',
                         JSON.stringify([{actualImg: {path: 'path', size: {width: 0, height: 0}}}]),
                         Number(true), // multiple tabs
@@ -326,7 +326,7 @@ describe('lib/static/modules/reducers', () => {
                         'url',
                         JSON.stringify({muted: false}),
                         'description',
-                        JSON.stringify({message: 'error message', stack: 'error stack'}),
+                        JSON.stringify({message: 'error message', stack: 'error stack', history: 'some history'}),
                         'skipReason',
                         JSON.stringify([{actualImg: {path: 'path', size: {width: 0, height: 0}}}]),
                         Number(true), // multiple tabs
@@ -341,7 +341,7 @@ describe('lib/static/modules/reducers', () => {
                         'url',
                         JSON.stringify({muted: false}),
                         'description',
-                        JSON.stringify({message: 'error message', stack: 'error stack'}),
+                        JSON.stringify({message: 'error message', stack: 'error stack', history: 'some history'}),
                         'skipReason',
                         JSON.stringify([{actualImg: {path: 'path', size: {width: 0, height: 0}}}]),
                         Number(true), // multiple tabs

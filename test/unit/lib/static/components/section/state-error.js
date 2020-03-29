@@ -16,13 +16,14 @@ describe('<StateError/> component', () => {
     };
 
     describe('"errorPattern" prop is not passed', () => {
-        it('should render error "message" and "stack" if "errorPattern" prop is not passed', () => {
-            const error = {message: 'some-msg', stack: 'some-stack'};
+        it('should render error "message", "stack" and "history" if "errorPattern" prop is not passed', () => {
+            const error = {message: 'some-msg', stack: 'some-stack', history: 'some-history'};
 
             const component = mkStateErrorComponent({error});
 
-            assert.equal(component.find('.error__item').first().text(), 'message: some-msg');
-            assert.equal(component.find('.error__item').last().text(), 'stack: some-stack');
+            assert.equal(component.find('.error__item').at(0).text(), 'message: some-msg');
+            assert.equal(component.find('.error__item').at(1).text(), 'stack: some-stack');
+            assert.equal(component.find('.error__item').at(2).text(), 'history: some-history');
         });
 
         it('should break error fields by line break', () => {
