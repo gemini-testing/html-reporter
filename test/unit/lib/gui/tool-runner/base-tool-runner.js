@@ -3,7 +3,8 @@
 const path = require('path');
 const _ = require('lodash');
 const proxyquire = require('proxyquire');
-const ReportBuilder = require('lib/report-builder/report-builder-json');
+const ReportBuilderJson = require('lib/report-builder/report-builder-json');
+const ReportBuilderSqlite = require('lib/report-builder/report-builder-sqlite');
 const {stubTool, stubConfig, mkSuite, mkState, mkBrowserResult, mkSuiteTree} = require('../../../utils');
 const serverUtils = require('lib/server-utils');
 
@@ -35,14 +36,20 @@ describe('lib/gui/tool-runner/base-tool-runner', () => {
         return ToolGuiReporter.create(opts.paths, tool, configs);
     };
 
+    const createReportBuilder = (ReportBuilder) => {
+        const builder = sinon.createStubInstance(ReportBuilder);
+        sandbox.stub(ReportBuilder, 'create').returns(builder);
+        builder.getResult.returns({});
+        builder.finalize.returns({});
+        return builder;
+    };
+
     beforeEach(() => {
         sandbox.stub(serverUtils.logger, 'warn');
         sandbox.stub(serverUtils, 'require').returns({});
 
-        reportBuilder = sinon.createStubInstance(ReportBuilder);
-        sandbox.stub(ReportBuilder, 'create').returns(reportBuilder);
-        reportBuilder.getResult.returns({});
-        reportBuilder.finalize.returns({});
+        reportBuilder = createReportBuilder(ReportBuilderJson);
+        createReportBuilder(ReportBuilderSqlite);
 
         tool = mkTool_();
         tool.readTests.resolves(mkHermioneTestCollection_());
@@ -103,19 +110,9 @@ describe('lib/gui/tool-runner/base-tool-runner', () => {
     });
 
     describe(`reuse hermione data`, () => {
-        it('should not try load data for reuse if suites are empty', () => {
-            const gui = initGuiReporter({configs: mkPluginConfig_({path: 'report_path'})});
-
-            return gui.initialize()
-                .then(() => assert.notCalled(serverUtils.require));
-        });
-
-        it('should try to load data for reuse', () => {
+        it('should load data for reuse', () => {
             const gui = initGuiReporter({configs: mkPluginConfig_({path: 'report_path'})});
             const reusePath = path.resolve(process.cwd(), 'report_path/data');
-
-            const suites = [mkSuiteTree()];
-            reportBuilder.getResult.returns({suites});
 
             return gui.initialize()
                 .then(() => assert.calledOnceWith(serverUtils.require, reusePath));
@@ -140,6 +137,26 @@ describe('lib/gui/tool-runner/base-tool-runner', () => {
 
             return gui.initialize()
                 .then(() => assert.calledWithMatch(serverUtils.logger.warn, 'Nothing to reuse'));
+        });
+
+        it('should use config saveFormat option when no actual data found', async () => {
+            const gui = initGuiReporter({configs: mkPluginConfig_({path: 'report_path', saveFormat: 'js'})});
+            serverUtils.require.returns(null);
+
+            await gui.initialize();
+
+            assert.calledOnce(ReportBuilderJson.create);
+            assert.notCalled(ReportBuilderSqlite.create);
+        });
+
+        it('should prefer existing report saveFormat over the config one', async () => {
+            const gui = initGuiReporter({configs: mkPluginConfig_({path: 'report_path', saveFormat: 'js'})});
+            serverUtils.require.returns({saveFormat: 'sqlite'});
+
+            await gui.initialize();
+
+            assert.calledOnce(ReportBuilderSqlite.create);
+            assert.notCalled(ReportBuilderJson.create);
         });
 
         describe('should not apply reuse data if', () => {
