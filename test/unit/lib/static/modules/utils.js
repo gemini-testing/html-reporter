@@ -496,4 +496,18 @@ describe('static/modules/utils', () => {
             assert.equal(utils.getHttpErrorMessage({...error, response}), '(500) some-response-error');
         });
     });
+
+    describe('hasFailedRetries', () => {
+        [
+            {expected: undefined, retries: []},
+            {expected: undefined, retries: [{status: 'success'}]},
+            {expected: undefined, retries: [null]},
+            {expected: true, retries: [{status: 'success'}, {status: 'fail'}]},
+            {expected: true, retries: [{status: 'success'}, {status: 'error'}, null]}
+        ].forEach(({expected, retries}) => {
+            it(`should return ${expected} for ${JSON.stringify(retries)}`, () => {
+                assert.strictEqual(utils.hasFailedRetries({retries}), expected);
+            });
+        });
+    });
 });
