@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="5.15.1"></a>
+## [5.15.1](https://github.com/gemini-testing/html-reporter/compare/v5.15.0...v5.15.1) (2020-04-06)
+
+
+### Bug Fixes
+
+* throw away null in retries when checking for hasFailedRetries ([f7bc70a](https://github.com/gemini-testing/html-reporter/commit/f7bc70a))
+
+
+
 <a name="5.15.0"></a>
 # [5.15.0](https://github.com/gemini-testing/html-reporter/compare/v5.14.0...v5.15.0) (2020-03-31)
 
