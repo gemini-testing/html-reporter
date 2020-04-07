@@ -56,11 +56,6 @@ describe('ReportBuilderSqlite', () => {
     const stubTest_ = (opts = {}) => {
         const {imagesInfo = []} = opts;
 
-        let attempt = 0;
-        if (opts.attempt === undefined) {
-            Object.defineProperty(opts, 'attempt', {get: () => attempt++});
-        }
-
         return _.defaultsDeep(opts, {
             state: {name: 'name-default'},
             suite: {
@@ -137,6 +132,29 @@ describe('ReportBuilderSqlite', () => {
             db.close();
 
             assert.equal(status, ERROR);
+        });
+
+        it('should use timestamp from test result when it is present', async () => {
+            reportBuilderSqlite.format.returns(_.defaults(formattedSuite_(), {
+                timestamp: 100500
+            }));
+            await reportBuilderSqlite.addSuccess(stubTest_());
+            const db = new Database(TEST_DB_PATH);
+
+            const [{timestamp}] = db.prepare('SELECT * from suites').all();
+            db.close();
+
+            assert.equal(timestamp, 100500);
+        });
+
+        it('should use some current timestamp when test result misses one', async () => {
+            await reportBuilderSqlite.addSuccess(stubTest_());
+            const db = new Database(TEST_DB_PATH);
+
+            const [{timestamp}] = db.prepare('SELECT * from suites').all();
+            db.close();
+
+            assert.isNumber(timestamp);
         });
     });
 
