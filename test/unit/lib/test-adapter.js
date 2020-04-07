@@ -522,4 +522,15 @@ describe('hermione test adapter', () => {
             assert.calledWith(imagesSaver.saveImg, sinon.match('dest/path'), {destPath: 'dest/path', reportDir: 'report/path'});
         });
     });
+
+    describe('timestamp', () => {
+        it('should return corresponding timestamp of the test result', () => {
+            const testResult = mkTestResult_({
+                timestamp: 100500
+            });
+            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+
+            assert.strictEqual(hermioneTestAdapter.timestamp, 100500);
+        });
+    });
 });
