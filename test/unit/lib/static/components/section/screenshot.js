@@ -5,6 +5,28 @@ import Placeholder from 'lib/static/components/state/placeholder';
 import {mkConnectedComponent} from '../utils';
 
 describe('Screenshot component', () => {
+    it('should encode symbols in path', () => {
+        const screenshotComponent = mkConnectedComponent(
+            <Screenshot image={{path: 'images/$/path'}} />,
+            {initialState: {view: {}}}
+        );
+
+        const image = screenshotComponent.find('img');
+
+        assert.equal(image.getDOMNode().src, 'images/%24/path');
+    });
+
+    it('should replace backslashes with slashes for screenshots', () => {
+        const screenshotComponent = mkConnectedComponent(
+            <Screenshot image={{path: 'images\\path'}} />,
+            {initialState: {view: {}}}
+        );
+
+        const image = screenshotComponent.find('img');
+
+        assert.equal(image.getDOMNode().src, 'images/path');
+    });
+
     describe('LazyLoad component', () => {
         const getLazyLoadComponent_ = ({lazyLoadOffset = 1} = {}) => {
             const screenshotComponent = mkConnectedComponent(
