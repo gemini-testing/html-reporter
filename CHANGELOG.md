@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="5.15.3"></a>
+## [5.15.3](https://github.com/gemini-testing/html-reporter/compare/v5.15.2...v5.15.3) (2020-04-23)
+
+
+### Bug Fixes
+
+* **screenshot:** wrong path for screenshots on Windows ([998593c](https://github.com/gemini-testing/html-reporter/commit/998593c))
+
+
+
 <a name="5.15.2"></a>
 ## [5.15.2](https://github.com/gemini-testing/html-reporter/compare/v5.15.1...v5.15.2) (2020-04-07)
 
