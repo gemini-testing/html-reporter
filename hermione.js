@@ -3,6 +3,7 @@
 const os = require('os');
 const PQueue = require('p-queue');
 
+const utils = require('./lib/common-utils');
 const PluginAdapter = require('./lib/plugin-adapter');
 const createWorkers = require('./lib/workers/create-workers');
 
@@ -85,6 +86,12 @@ async function prepare(hermione, reportBuilder, pluginConfig) {
                 .setApiValues(hermione.htmlReporter.values);
 
             return Promise.all(promises).then(resolve, reject);
+        });
+
+        hermione.on(hermione.events.AFTER_TESTS_READ, (collection) => {
+            const browsers = utils.formatBrowsers(collection);
+
+            reportBuilder.setBrowsers(browsers);
         });
     });
 }

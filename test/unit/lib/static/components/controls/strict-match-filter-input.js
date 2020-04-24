@@ -1,6 +1,7 @@
 import React from 'react';
 import {mkConnectedComponent} from '../utils';
 import proxyquire from 'proxyquire';
+import {Checkbox} from 'semantic-ui-react';
 
 describe('<StrictMatchFilterInput />', () => {
     const sandbox = sinon.sandbox.create();
@@ -41,8 +42,9 @@ describe('<StrictMatchFilterInput />', () => {
             initialState: {view: {strictMatchFilter: false}}
         });
 
-        component.find('input[type="checkbox"]').simulate('change');
-        assert.calledOnceWith(actionsStub.setStrictMatchFilter, false);
+        component.find(Checkbox).simulate('click');
+
+        assert.calledOnceWith(actionsStub.setStrictMatchFilter, true);
     });
 
     it('should call initiate setStrictMatchFilter action with true', () => {
@@ -50,7 +52,8 @@ describe('<StrictMatchFilterInput />', () => {
             initialState: {view: {strictMatchFilter: true}}
         });
 
-        component.find('input[type="checkbox"]').simulate('change');
-        assert.calledOnceWith(actionsStub.setStrictMatchFilter, true);
+        component.find(Checkbox).simulate('click');
+
+        assert.calledOnceWith(actionsStub.setStrictMatchFilter, false);
     });
 });

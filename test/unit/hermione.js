@@ -6,6 +6,7 @@ const HermioneReporter = require('../../hermione');
 const PluginAdapter = require('lib/plugin-adapter');
 const ReportBuilder = require('lib/report-builder/report-builder-json');
 const utils = require('lib/server-utils');
+const commonUtils = require('lib/common-utils');
 const {stubTool} = require('./utils');
 
 describe('lib/hermione', () => {
@@ -19,7 +20,8 @@ describe('lib/hermione', () => {
         TEST_FAIL: 'testFail',
         RETRY: 'retry',
         RUNNER_START: 'startRunner',
-        RUNNER_END: 'endRunner'
+        RUNNER_END: 'endRunner',
+        AFTER_TESTS_READ: 'afterTestsRead'
     };
 
     class ImageDiffError extends Error {
@@ -106,6 +108,7 @@ describe('lib/hermione', () => {
         sandbox.stub(ReportBuilder.prototype, 'addRetry');
         sandbox.stub(ReportBuilder.prototype, 'setApiValues');
         sandbox.stub(ReportBuilder.prototype, 'save');
+        sandbox.stub(ReportBuilder.prototype, 'setBrowsers');
 
         sandbox.stub(fs, 'readFile').resolves(Buffer.from(''));
     });
@@ -302,5 +305,19 @@ describe('lib/hermione', () => {
         assert.calledWith(
             saveDiffTo, sinon.match.instanceOf(ImageDiffError), sinon.match('/report/plain')
         );
+    });
+
+    it('should set browsers to the report builder', async () => {
+        await initReporter_();
+
+        const formatedBrowsers = [{id: 'bro1'}];
+        const collection = sandbox.stub();
+
+        sandbox.stub(commonUtils, 'formatBrowsers').returns(formatedBrowsers);
+
+        hermione.emit(events.AFTER_TESTS_READ, collection);
+
+        assert.calledOnceWith(commonUtils.formatBrowsers, collection);
+        assert.calledOnceWith(ReportBuilder.prototype.setBrowsers, formatedBrowsers);
     });
 });
