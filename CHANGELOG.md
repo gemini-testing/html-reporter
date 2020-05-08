@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="5.16.1"></a>
+## [5.16.1](https://github.com/gemini-testing/html-reporter/compare/v5.16.0...v5.16.1) (2020-05-08)
+
+
+### Bug Fixes
+
+* downgrade webpack-dev-server from 3.1.11 to 2.11.5 ([22bf0f7](https://github.com/gemini-testing/html-reporter/commit/22bf0f7))
+
+
+
 <a name="5.16.0"></a>
 # [5.16.0](https://github.com/gemini-testing/html-reporter/compare/v5.15.2...v5.16.0) (2020-05-08)
 
