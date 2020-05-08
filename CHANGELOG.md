@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="5.15.4"></a>
+## [5.15.4](https://github.com/gemini-testing/html-reporter/compare/v5.15.3...v5.15.4) (2020-05-08)
+
+
+
 <a name="5.15.3"></a>
 ## [5.15.3](https://github.com/gemini-testing/html-reporter/compare/v5.15.2...v5.15.3) (2020-04-23)
 
