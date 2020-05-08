@@ -9,6 +9,7 @@ describe('lib/gui/tool-runner/hermione/index', () => {
     const sandbox = sinon.createSandbox();
     let reportBuilder;
     let ToolGuiReporter;
+    let reportSubscriber;
 
     const mkTestCollection_ = (testsTree = {}) => {
         return {
@@ -43,12 +44,14 @@ describe('lib/gui/tool-runner/hermione/index', () => {
 
     beforeEach(() => {
         reportBuilder = sinon.createStubInstance(ReportBuilder);
+        reportSubscriber = sandbox.stub().named('reportSubscriber');
+
         sandbox.stub(ReportBuilder, 'create').returns(reportBuilder);
         reportBuilder.format.returns({prepareTestResult: sandbox.stub()});
         reportBuilder.getResult.returns({});
 
         ToolGuiReporter = proxyquire(`lib/gui/tool-runner`, {
-            './report-subscriber': sandbox.stub(),
+            './report-subscriber': reportSubscriber,
             './utils': {findTestResult: sandbox.stub()},
             '../../reporter-helpers': {updateReferenceImage: sandbox.stub().resolves()}
         });
@@ -101,6 +104,16 @@ describe('lib/gui/tool-runner/hermione/index', () => {
 
             return gui.initialize()
                 .then(() => assert.calledOnce(reportBuilder.addIdle));
+        });
+
+        it('should subscribe on events before tests have ran', () => {
+            const hermione = stubTool();
+            hermione.readTests.resolves(mkTestCollection_({bro: stubTest_()}));
+
+            const gui = initGuiReporter(hermione, {paths: ['foo']});
+
+            return gui.initialize()
+                .then(() => assert.callOrder(reportSubscriber, hermione.readTests));
         });
     });
 

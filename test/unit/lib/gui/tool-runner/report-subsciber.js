@@ -6,6 +6,7 @@ const ReportBuilder = require('lib/report-builder/report-builder-json');
 const clientEvents = require('lib/gui/constants/client-events');
 const {RUNNING} = require('lib/constants/test-statuses');
 const utils = require('lib/gui/tool-runner/utils');
+const commonUtils = require('lib/common-utils');
 const {stubTool, stubConfig} = require('test/unit/utils');
 
 describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
@@ -18,7 +19,8 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
         RUNNER_END: 'runnerEnd',
         TEST_BEGIN: 'testBegin',
         TEST_PENDING: 'pendingTest',
-        TEST_FAIL: 'failTest'
+        TEST_FAIL: 'failTest',
+        AFTER_TESTS_READ: 'afterTestsRead'
     };
 
     const mkHermione_ = () => stubTool(stubConfig(), events);
@@ -35,6 +37,7 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
         reportBuilder.format.returns(mkTestAdapterStub_());
         reportBuilder.save.resolves();
         reportBuilder.setApiValues.returns(reportBuilder);
+        reportBuilder.setBrowsers.returns(reportBuilder);
         sandbox.stub(utils, 'findTestResult');
 
         const findTestResult = sandbox.stub();
@@ -136,6 +139,21 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
             await hermione.emitAndWait(hermione.events.RUNNER_END);
 
             assert.callOrder(formattedResult.saveTestImages, reportBuilder.addFail);
+        });
+    });
+
+    describe('AFTER_TESTS_READ', () => {
+        it('should set browsers to the report builder', async () => {
+            const hermione = mkHermione_();
+            const collection = sandbox.stub();
+            const formatedBrowsers = [{id: 'bro1'}];
+
+            sandbox.stub(commonUtils, 'formatBrowsers').returns(formatedBrowsers);
+            reportSubscriber(hermione, reportBuilder, client, '');
+            hermione.emit(hermione.events.AFTER_TESTS_READ, collection);
+
+            assert.calledOnceWith(commonUtils.formatBrowsers, collection);
+            assert.calledOnceWith(reportBuilder.setBrowsers, formatedBrowsers);
         });
     });
 });

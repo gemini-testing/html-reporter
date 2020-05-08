@@ -11,7 +11,7 @@ const TEST_DB_PATH = `${TEST_REPORT_PATH}/${LOCAL_DATABASE_NAME}`;
 
 describe('ReportBuilderSqlite', () => {
     const sandbox = sinon.sandbox.create();
-    let hasImage, ReportBuilder, reportBuilderSqlite, hermione;
+    let hasImage, appendMetaToDataFile, ReportBuilder, reportBuilderSqlite, hermione;
 
     const formattedSuite_ = () => {
         return {
@@ -40,6 +40,10 @@ describe('ReportBuilderSqlite', () => {
         const browserConfigStub = {getAbsoluteUrl: toolConfig.getAbsoluteUrl};
         hermione = {
             forBrowser: sandbox.stub().returns(browserConfigStub),
+            events: {
+                AFTER_TESTS_READ: 'AFTER_TESTS_READ'
+            },
+            on: sandbox.spy(),
             htmlReporter: {
                 reportsSaver: {
                     saveReportData: sandbox.stub()
@@ -76,9 +80,12 @@ describe('ReportBuilderSqlite', () => {
 
     beforeEach(() => {
         hasImage = sandbox.stub().returns(true);
+        appendMetaToDataFile = sandbox.stub();
+
         ReportBuilder = proxyquire('lib/report-builder/report-builder-sqlite', {
             '../server-utils': {
-                hasImage
+                hasImage,
+                appendMetaToDataFile
             }
         });
     });
@@ -155,6 +162,26 @@ describe('ReportBuilderSqlite', () => {
             db.close();
 
             assert.isNumber(timestamp);
+        });
+    });
+
+    describe('init', () => {
+        it('should subscribe on "AFTER_TESTS_READ" event', async () => {
+            reportBuilderSqlite = await mkReportBuilder_();
+
+            assert.calledWith(hermione.on, hermione.events.AFTER_TESTS_READ);
+        });
+
+        it('should append meta data after event has triggered', async () => {
+            reportBuilderSqlite = await mkReportBuilder_();
+
+            const collection = {};
+            const [args] = hermione.on.args;
+            const [, originalFn] = args;
+
+            await originalFn(collection);
+
+            assert.calledWith(appendMetaToDataFile, collection);
         });
     });
 
