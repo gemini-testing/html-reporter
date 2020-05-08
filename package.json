@@ -72,7 +72,7 @@
     "@gemini-testing/react-lazily-render": "^1.2.0",
     "@gemini-testing/react-lazyload": "^2.3.2",
     "app-module-path": "^2.2.0",
-    "axios": "^0.17.1",
+    "axios": "^0.18.1",
     "babel-core": "^6.26.0",
     "babel-eslint": "^8.0.1",
     "babel-loader": "^7.1.2",
