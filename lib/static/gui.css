@@ -3,6 +3,11 @@
     to {opacity: 0.3;}
 }
 
+/* TODO: remove after header will be implemented */
+.report {
+    margin-top: 0;
+}
+
 .section__title:before,
 .state-title:before {
     display: inline-block;
@@ -10,6 +15,10 @@
     vertical-align: middle;
     content: '\25cf';
     color: #ccc;
+
+    width: auto;
+    height: auto;
+    background-image: none;
 }
 
 .section__icon_retry:before {
@@ -53,15 +62,35 @@
     display: none
 }
 
+.controls {
+    margin-bottom: 20px;
+}
+
 .controls__item {
     display: inline-block;
     vertical-align: top;
+    margin-right: 20px;
+}
+
+.state-controls {
+    margin-top: 20px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 .button_type_suite-controls {
-    border: 1px solid #fff;
-    margin-top: 5px;
+    padding: 2px 10px;
+    border-radius: 5px;
+    font-size: 13px;
+    line-height: 18px;
+    margin-right: 20px;
 }
+
+.controls__item > .button_type_suite-controls {
+    margin-right: 0;
+}
+
 .button_blink {
     -webkit-animation: blink 0.5s linear 0s infinite alternate;
             animation: blink 0.5s linear 0s infinite alternate;
@@ -112,7 +141,7 @@
 }
 
 .custom-gui {
-    margin: 10px 10px 10px 0;
+    margin-top: 20px;
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
@@ -120,4 +149,8 @@
 
 .custom-gui_section-controls {
     margin-right: 10px;
+}
+
+.tab-switcher {
+    margin-bottom: 0;
 }

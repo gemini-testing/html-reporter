@@ -1,0 +1,9 @@
+.header {
+    padding-bottom: 15px;
+    border-bottom: 1px solid #ccc;
+}
+
+.header__date {
+    float: right;
+    color: #8c8c8c;
+}
