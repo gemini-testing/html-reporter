@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="5.16.2"></a>
+## [5.16.2](https://github.com/gemini-testing/html-reporter/compare/v5.16.1...v5.16.2) (2020-05-15)
+
+
+### Bug Fixes
+
+* **browser-list:** Added ability to merge browsers ([9340219](https://github.com/gemini-testing/html-reporter/commit/9340219))
+
+
+
 <a name="5.16.1"></a>
 ## [5.16.1](https://github.com/gemini-testing/html-reporter/compare/v5.16.0...v5.16.1) (2020-05-08)
 
