@@ -1,8 +1,12 @@
 'use strict';
 
 import axios from 'axios';
+import * as _ from 'lodash';
 
-import {fetchDatabases, mergeDatabases} from 'lib/static/modules/sqlite';
+import {
+    fetchDatabases,
+    mergeDatabases
+} from 'lib/static/modules/sqlite';
 
 describe('lib/static/modules/sqlite', () => {
     const sandbox = sinon.sandbox.create();
@@ -181,38 +185,54 @@ describe('lib/static/modules/sqlite', () => {
             sandbox.restore();
         });
 
-        it('should return null if dataForDbs is empty', async () => {
-            const mergedDbConnection = await mergeDatabases([]);
+        describe('mergeDatabases', () => {
+            it('should return null if dataForDbs is empty', async () => {
+                const mergedDbConnection = await mergeDatabases([]);
 
-            assert.equal(mergedDbConnection, null);
-        });
+                assert.equal(mergedDbConnection, null);
+            });
 
-        it('should not create unnecessary databases if dataForDbs contain data for single db', async () => {
-            const data = new ArrayBuffer(1);
+            it('should not create unnecessary databases if dataForDbs contain data for single db', async () => {
+                const data = new ArrayBuffer(1);
 
-            const mergedDbConnection = await mergeDatabases([data]);
+                const mergedDbConnection = await mergeDatabases([data]);
 
-            assert.instanceOf(mergedDbConnection, SQL.Database);
-            assert.calledOnceWith(DatabaseConstructorSpy, new Uint8Array(1));
-            assert.notCalled(SQL.Database.prototype.run);
-            assert.notCalled(SQL.Database.prototype.close);
-        });
+                assert.instanceOf(mergedDbConnection, SQL.Database);
+                assert.calledOnceWith(DatabaseConstructorSpy, new Uint8Array(1));
+                assert.notCalled(SQL.Database.prototype.run);
+                assert.notCalled(SQL.Database.prototype.close);
+            });
 
-        it('should merge several chunk databases into one', async () => {
-            const chunkSize1 = 1;
-            const chunkSize2 = 2;
-            const sumOfChunkSizes = chunkSize1 + chunkSize2;
-            const data1 = new ArrayBuffer(chunkSize1);
-            const data2 = new ArrayBuffer(chunkSize2);
+            it('should merge several chunk databases into one', async () => {
+                const chunkSize1 = 1;
+                const chunkSize2 = 2;
+                const sumOfChunkSizes = chunkSize1 + chunkSize2;
+                const data1 = new ArrayBuffer(chunkSize1);
+                const data2 = new ArrayBuffer(chunkSize2);
 
-            const mergedDbConnection = await mergeDatabases([data1, data2]);
+                const mergedDbConnection = await mergeDatabases([data1, data2]);
 
-            assert.instanceOf(mergedDbConnection, SQL.Database);
-            assert.calledThrice(DatabaseConstructorSpy);
-            assert.calledWith(DatabaseConstructorSpy, new Uint8Array(chunkSize1));
-            assert.calledWith(DatabaseConstructorSpy, new Uint8Array(chunkSize2));
-            assert.calledWith(DatabaseConstructorSpy, undefined, sumOfChunkSizes);
-            assert.calledTwice(SQL.Database.prototype.close);
+                assert.instanceOf(mergedDbConnection, SQL.Database);
+                assert.calledThrice(DatabaseConstructorSpy);
+                assert.calledWith(DatabaseConstructorSpy, new Uint8Array(chunkSize1));
+                assert.calledWith(DatabaseConstructorSpy, new Uint8Array(chunkSize2));
+                assert.calledWith(DatabaseConstructorSpy, undefined, sumOfChunkSizes);
+                assert.calledTwice(SQL.Database.prototype.close);
+            });
+
+            it('should merge both "suites" and "browsers" tables', async () => {
+                const data1 = new ArrayBuffer(1);
+                const data2 = new ArrayBuffer(1);
+
+                await mergeDatabases([data1, data2]);
+
+                const rawQueries = _
+                    .flatten(SQL.Database.prototype.run.args)
+                    .join(' ');
+
+                assert.include(rawQueries, 'browsers');
+                assert.include(rawQueries, 'suites');
+            });
         });
     });
 });

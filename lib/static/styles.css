@@ -172,6 +172,11 @@
     font-size: 11px;
 }
 
+.menu-bar .ui.dropdown .menu>.item,
+.menu-bar .ui.selection.dropdown .menu>.item {
+    font-size: 13px;
+}
+
 .menu-bar {
     display: inline-block;
 }
@@ -191,6 +196,10 @@
 .summary__key {
     font-weight: bold;
     display: inline;
+}
+
+.summary__key_has-fails {
+    color: #cf0c3d;
 }
 
 .ui.dropdown.db-info {

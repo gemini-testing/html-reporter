@@ -251,7 +251,7 @@ describe('lib/static/modules/actions', () => {
             );
         });
 
-        it('should dispatch payload.fetchDbDetails even if mergeDatabases rejected', async () => {
+        it('should dispatch payload.fetchDbDetails even if "mergeDatabases" rejected', async () => {
             fetchDatabasesStub.resolves([{url: 'stub url', status: 200, data: 'stub'}]);
             mergeDatabasesStub.rejects('stub');
 
@@ -270,10 +270,7 @@ describe('lib/static/modules/actions', () => {
 
             await actions.openDbConnection()(dispatch);
 
-            assert.calledOnceWith(
-                mergeDatabasesStub,
-                ['stub']
-            );
+            assert.calledOnceWith(mergeDatabasesStub, ['stub']);
         });
     });
 

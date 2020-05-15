@@ -11,7 +11,7 @@ const TEST_DB_PATH = `${TEST_REPORT_PATH}/${LOCAL_DATABASE_NAME}`;
 
 describe('ReportBuilderSqlite', () => {
     const sandbox = sinon.sandbox.create();
-    let hasImage, appendMetaToDataFile, ReportBuilder, reportBuilderSqlite, hermione;
+    let hasImage, ReportBuilder, reportBuilderSqlite, hermione;
 
     const formattedSuite_ = () => {
         return {
@@ -40,9 +40,6 @@ describe('ReportBuilderSqlite', () => {
         const browserConfigStub = {getAbsoluteUrl: toolConfig.getAbsoluteUrl};
         hermione = {
             forBrowser: sandbox.stub().returns(browserConfigStub),
-            events: {
-                AFTER_TESTS_READ: 'AFTER_TESTS_READ'
-            },
             on: sandbox.spy(),
             htmlReporter: {
                 reportsSaver: {
@@ -80,12 +77,10 @@ describe('ReportBuilderSqlite', () => {
 
     beforeEach(() => {
         hasImage = sandbox.stub().returns(true);
-        appendMetaToDataFile = sandbox.stub();
 
         ReportBuilder = proxyquire('lib/report-builder/report-builder-sqlite', {
             '../server-utils': {
-                hasImage,
-                appendMetaToDataFile
+                hasImage
             }
         });
     });
@@ -165,23 +160,23 @@ describe('ReportBuilderSqlite', () => {
         });
     });
 
-    describe('init', () => {
-        it('should subscribe on "AFTER_TESTS_READ" event', async () => {
+    describe('setBrowsers', () => {
+        it('should write browsers to db when the method has called', async () => {
             reportBuilderSqlite = await mkReportBuilder_();
 
-            assert.calledWith(hermione.on, hermione.events.AFTER_TESTS_READ);
-        });
+            await reportBuilderSqlite.setBrowsers([
+                {id: 'chrome'},
+                {id: 'firefox'}
+            ]);
 
-        it('should append meta data after event has triggered', async () => {
-            reportBuilderSqlite = await mkReportBuilder_();
+            const db = new Database(TEST_DB_PATH);
+            const res = db.prepare('SELECT * from browsers').all();
+            db.close();
 
-            const collection = {};
-            const [args] = hermione.on.args;
-            const [, originalFn] = args;
-
-            await originalFn(collection);
-
-            assert.calledWith(appendMetaToDataFile, collection);
+            assert.deepEqual(res, [
+                {name: 'chrome'},
+                {name: 'firefox'}
+            ]);
         });
     });
 

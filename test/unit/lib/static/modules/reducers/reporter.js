@@ -303,7 +303,7 @@ describe('lib/static/modules/reducers', () => {
             });
 
             it('should build correct tree', () => {
-                const values = [
+                const suitesValues = [
                     [
                         JSON.stringify(['test', 'smalltest1']),
                         'smalltest1',
@@ -350,15 +350,19 @@ describe('lib/static/modules/reducers', () => {
                         0 // timestamp
                     ]
                 ];
+                const browsersValues = [
+                    ['chrome'],
+                    ['firefox']
+                ];
                 const db = {
-                    exec: function() {
-                        return [{values: values}];
-                    }
+                    exec: sinon.stub()
+                        .onFirstCall().returns([{values: suitesValues}])
+                        .onSecondCall().returns([{values: browsersValues}])
                 };
                 const action = {
                     type: actionNames.FETCH_DB,
                     payload: {
-                        db: db,
+                        db,
                         fetchDbDetails: [
                             {
                                 url: 'stub'
@@ -373,6 +377,11 @@ describe('lib/static/modules/reducers', () => {
                 assert.match(newState.suites['test'].children[1].name, 'smalltest2');
                 assert.match(newState.suites['test'].children[0].browsers[0].retries.length, 1);
                 assert.match(newState.suites['test'].children[1].browsers[0].retries.length, 0);
+
+                assert.deepEqual(newState.browsers, [
+                    {id: 'chrome'},
+                    {id: 'firefox'}
+                ]);
             });
         });
 
