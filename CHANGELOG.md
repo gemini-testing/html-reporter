@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="5.16.3"></a>
+## [5.16.3](https://github.com/gemini-testing/html-reporter/compare/v5.16.2...v5.16.3) (2020-05-18)
+
+
+### Bug Fixes
+
+* do not show success branches on "failed" view mode ([14df13d](https://github.com/gemini-testing/html-reporter/commit/14df13d))
+
+
+
 <a name="5.16.2"></a>
 ## [5.16.2](https://github.com/gemini-testing/html-reporter/compare/v5.16.1...v5.16.2) (2020-05-15)
 
