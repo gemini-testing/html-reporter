@@ -1,6 +1,7 @@
 'use strict';
 import actionNames from 'lib/static/modules/action-names';
 import defaultState from 'lib/static/modules/default-state';
+import viewModes from 'lib/constants/view-modes';
 import {mkStorage} from '../../../../utils';
 
 const {assign} = require('lodash');
@@ -193,7 +194,7 @@ describe('lib/static/modules/reducers', () => {
 
                         const newState = reducer(undefined, action);
 
-                        assert.deepStrictEqual(newState.view.viewMode, 'all');
+                        assert.deepStrictEqual(newState.view.viewMode, viewModes.ALL);
                     });
 
                     it('should set "viewMode" property to specified value', () => {
@@ -203,7 +204,7 @@ describe('lib/static/modules/reducers', () => {
 
                         const newState = reducer(undefined, action);
 
-                        assert.deepStrictEqual(newState.view.viewMode, 'failed');
+                        assert.deepStrictEqual(newState.view.viewMode, viewModes.FAILED);
                     });
                 });
 
@@ -255,7 +256,7 @@ describe('lib/static/modules/reducers', () => {
 
                 const newState = reducer(defaultState, action);
 
-                assert.equal(newState.view.viewMode, 'all');
+                assert.equal(newState.view.viewMode, viewModes.ALL);
             });
         });
 
@@ -265,7 +266,7 @@ describe('lib/static/modules/reducers', () => {
 
                 const newState = reducer(defaultState, action);
 
-                assert.equal(newState.view.viewMode, 'failed');
+                assert.equal(newState.view.viewMode, viewModes.FAILED);
             });
         });
 
@@ -414,7 +415,7 @@ describe('lib/static/modules/reducers', () => {
                     showOnlyDiff: false,
                     showSkipped: false,
                     strictMatchFilter: false,
-                    viewMode: 'all'
+                    viewMode: viewModes.ALL
                 });
             });
         });

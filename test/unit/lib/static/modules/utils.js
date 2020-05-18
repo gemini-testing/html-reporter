@@ -16,6 +16,7 @@ const {
     mkState,
     mkBrowserResult
 } = require('../../../utils');
+const viewModes = require('lib/constants/view-modes');
 
 describe('static/modules/utils', () => {
     describe('hasFails', () => {
@@ -403,6 +404,65 @@ describe('static/modules/utils', () => {
 
                 assert.isTrue(utils.shouldSuiteBeShown({suite, filteredBrowsers: ['first-bro']}));
                 assert.isTrue(utils.shouldSuiteBeShown({suite, filteredBrowsers: ['second-bro']}));
+            });
+        });
+
+        describe('viewMode', () => {
+            const successSuite = mkSuite({
+                status: 'success',
+                children: [
+                    mkState({
+                        browsers: [mkBrowserResult({name: 'first-bro'})]
+                    })
+                ]
+            });
+            const errorSuite = mkSuite({
+                status: 'error',
+                children: [
+                    mkState({
+                        status: 'error',
+                        browsers: [mkBrowserResult({name: 'second-bro', result: {status: 'error'}})]
+                    })
+                ]
+            });
+
+            it('should be true if viewMode is "all" for success suite', () => {
+                assert.isTrue(utils.shouldSuiteBeShown({suite: successSuite, viewMode: viewModes.ALL}));
+            });
+
+            it('should be true if viewMode is "all" for error suite', () => {
+                assert.isTrue(utils.shouldSuiteBeShown({suite: errorSuite, viewMode: viewModes.ALL}));
+            });
+
+            it('should be false if viewMode is "failed" for success suite', () => {
+                assert.isFalse(utils.shouldSuiteBeShown({suite: successSuite, viewMode: viewModes.FAILED}));
+            });
+
+            it('should be true if viewMode is "failed" for error suite', () => {
+                assert.isTrue(utils.shouldSuiteBeShown({suite: errorSuite, viewMode: viewModes.FAILED}));
+            });
+        });
+    });
+
+    describe('shouldBrowserBeShown', () => {
+        describe('viewMode', () => {
+            const successBrowser = mkBrowserResult({name: 'first-bro'});
+            const errorBrowser = mkBrowserResult({name: 'second-bro', result: {status: 'error'}});
+
+            it('should be true if viewMode is "all" for success browser', () => {
+                assert.isTrue(utils.shouldBrowserBeShown({browser: successBrowser, viewMode: viewModes.ALL}));
+            });
+
+            it('should be true if viewMode is "all" for error browser', () => {
+                assert.isTrue(utils.shouldBrowserBeShown({browser: errorBrowser, viewMode: viewModes.ALL}));
+            });
+
+            it('should be false if viewMode is "failed" for success browser', () => {
+                assert.isFalse(utils.shouldBrowserBeShown({browser: successBrowser, viewMode: viewModes.FAILED}));
+            });
+
+            it('should be true if viewMode is "failed" for error browser', () => {
+                assert.isTrue(utils.shouldBrowserBeShown({browser: errorBrowser, viewMode: viewModes.FAILED}));
             });
         });
     });

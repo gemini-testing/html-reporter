@@ -7,6 +7,7 @@ import {mkConnectedComponent} from './utils';
 import {mkState} from '../../../utils';
 import {config} from 'lib/constants/defaults';
 import clientEvents from 'lib/constants/client-events';
+import viewModes from 'lib/constants/view-modes';
 
 describe('<Suites/>', () => {
     let Suites;
@@ -23,7 +24,7 @@ describe('<Suites/>', () => {
             suites: {'suite1': mkState({
                 suitePath: ['suite1']
             })},
-            view: {viewMode: 'all', filteredBrowsers: [], lazyLoadOffset: config.lazyLoadOffset}
+            view: {viewMode: viewModes.ALL, filteredBrowsers: [], lazyLoadOffset: config.lazyLoadOffset}
         });
 
         return mkConnectedComponent(<Suites />, {initialState});

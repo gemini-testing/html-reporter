@@ -1,5 +1,6 @@
 'use strict';
 import {getViewQuery} from 'lib/static/modules/custom-queries';
+import viewModes from 'lib/constants/view-modes';
 
 describe('lib/static/modules/query-params', () => {
     describe('getViewQuery', () => {
@@ -25,7 +26,7 @@ describe('lib/static/modules/query-params', () => {
                 filteredBrowsers: ['safari browser', 'firefox'],
                 testNameFilter: 'test name',
                 retryIndex: 10,
-                viewMode: 'all',
+                viewMode: viewModes.ALL,
                 expand: 'none',
                 groupByError: true
             });

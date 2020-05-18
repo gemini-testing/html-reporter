@@ -3,6 +3,7 @@
 const {isEmpty} = require('lodash');
 const parseConfig = require('lib/config');
 const {config: configDefaults} = require('lib/constants/defaults');
+const viewModes = require('lib/constants/view-modes');
 const SUPPORTED_CONTROL_TYPES = Object.values(require('lib/gui/constants/custom-gui-control-types'));
 
 describe('config', () => {
@@ -120,7 +121,7 @@ describe('config', () => {
 
     describe('"defaultView" option', () => {
         it('should show all suites by default', () => {
-            assert.equal(parseConfig({}).defaultView, 'all');
+            assert.equal(parseConfig({}).defaultView, viewModes.ALL);
         });
 
         it('should set from configuration file', () => {
