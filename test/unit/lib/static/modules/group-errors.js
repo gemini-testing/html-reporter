@@ -9,6 +9,7 @@ const {
     mkTestResult
 } = require('../../../utils');
 const {mkImg_} = require('../components/utils');
+const viewModes = require('lib/constants/view-modes');
 
 function mkBrowserResultWithStatus(status) {
     return mkBrowserResult({
@@ -39,7 +40,7 @@ describe('static/modules/group-errors', () => {
             })
         ];
 
-        const result = groupErrors({suites, viewMode: 'all'});
+        const result = groupErrors({suites, viewMode: viewModes.ALL});
 
         assert.lengthOf(result, 4);
         assert.include(result[0], {
@@ -73,7 +74,7 @@ describe('static/modules/group-errors', () => {
             })
         ];
 
-        const result = groupErrors({suites, viewMode: 'failed'});
+        const result = groupErrors({suites, viewMode: viewModes.FAILED});
 
         assert.lengthOf(result, 2);
         assert.include(result[0], {
