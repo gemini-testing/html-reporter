@@ -83,6 +83,15 @@
     background: rgba(224, 225, 226, 0.36);
 }
 
+.ui.buttons .button {
+    height: 11px;
+    line-height: 10px;
+}
+
+.ui.buttons {
+    border-radius: 4px;
+}
+
 .ui.buttons:after {
     font-size: 0;
 }
