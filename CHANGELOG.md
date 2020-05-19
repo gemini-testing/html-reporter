@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="5.16.4"></a>
+## [5.16.4](https://github.com/gemini-testing/html-reporter/compare/v5.16.3...v5.16.4) (2020-05-19)
+
+
+### Bug Fixes
+
+* **browser-list:** Fixed data reuse for sqlite ([47f7137](https://github.com/gemini-testing/html-reporter/commit/47f7137))
+* **browser-list:** migration workaround ([19b9204](https://github.com/gemini-testing/html-reporter/commit/19b9204))
+
+
+
 <a name="5.16.3"></a>
 ## [5.16.3](https://github.com/gemini-testing/html-reporter/compare/v5.16.2...v5.16.3) (2020-05-18)
 
