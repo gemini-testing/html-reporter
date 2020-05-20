@@ -3,7 +3,7 @@
 const _ = require('lodash');
 const proxyquire = require('proxyquire');
 const ReportBuilder = require('lib/report-builder/report-builder-json');
-const {stubTool, stubConfig, mkTestResult, mkImagesInfo} = require('test/unit/utils');
+const {stubTool, stubConfig, mkTestResult, mkImagesInfo, mkState, mkSuite} = require('test/unit/utils');
 
 describe('lib/gui/tool-runner/hermione/index', () => {
     const sandbox = sinon.createSandbox();
@@ -20,7 +20,7 @@ describe('lib/gui/tool-runner/hermione/index', () => {
     };
 
     const stubTest_ = (opts) => {
-        return _.defaults(opts, {id: () => 'default-id'});
+        return mkState(_.defaults(opts, {id: () => 'default-id'}));
     };
 
     const mkToolCliOpts_ = (globalCliOpts = {name: () => 'hermione'}, guiCliOpts = {}) => {
@@ -76,6 +76,21 @@ describe('lib/gui/tool-runner/hermione/index', () => {
         it('should not add silently skipped test to report', () => {
             const hermione = stubTool();
             hermione.readTests.resolves(mkTestCollection_({bro: stubTest_({silentSkip: true})}));
+
+            const gui = initGuiReporter(hermione, {paths: ['foo']});
+
+            return gui.initialize()
+                .then(() => {
+                    assert.notCalled(reportBuilder.addSkipped);
+                    assert.notCalled(reportBuilder.addIdle);
+                });
+        });
+
+        it('should not add test from silently skipped suite to report', () => {
+            const hermione = stubTool();
+            const silentlySkippedSuite = mkSuite({silentSkip: true});
+
+            hermione.readTests.resolves(mkTestCollection_({bro: stubTest_({parent: silentlySkippedSuite})}));
 
             const gui = initGuiReporter(hermione, {paths: ['foo']});
 
