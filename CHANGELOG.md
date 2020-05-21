@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="6.0.0-alpha.0"></a>
+# [6.0.0-alpha.0](https://github.com/gemini-testing/html-reporter/compare/v5.16.4...v6.0.0-alpha.0) (2020-05-21)
+
+
+### Features
+
+* **style:** implement the main frame of the new design ([213a7e2](https://github.com/gemini-testing/html-reporter/commit/213a7e2))
+
+
+### BREAKING CHANGES
+
+* style: report design has completely changed
+
+
+
 <a name="5.16.4"></a>
 ## [5.16.4](https://github.com/gemini-testing/html-reporter/compare/v5.16.3...v5.16.4) (2020-05-19)
 
