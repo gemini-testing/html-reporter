@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="6.0.0-alpha.1"></a>
+# [6.0.0-alpha.1](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.0...v6.0.0-alpha.1) (2020-05-21)
+
+
+### Bug Fixes
+
+* errors in last image position and small arrow in errors group ([e88e88b](https://github.com/gemini-testing/html-reporter/commit/e88e88b))
+
+
+
 <a name="6.0.0-alpha.0"></a>
 # [6.0.0-alpha.0](https://github.com/gemini-testing/html-reporter/compare/v5.16.4...v6.0.0-alpha.0) (2020-05-21)
 
