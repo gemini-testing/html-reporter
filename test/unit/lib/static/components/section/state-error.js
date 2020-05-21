@@ -31,8 +31,8 @@ describe('<StateError/> component', () => {
 
             const component = mkStateErrorComponent({error});
 
-            assert.equal(component.find('.details__summary').first().text(), 'message: msg-title');
-            assert.equal(component.find('.details__content').first().text(), 'msg-content');
+            assert.equal(component.find('.details__title').first().text(), 'message: msg-title');
+            assert.equal(component.find('ShowMore').prop('content'), 'msg-content');
         });
 
         it(`should not break error fields if theirs length is less than ${ERROR_TITLE_TEXT_LENGTH} charachters`, () => {
@@ -50,8 +50,8 @@ describe('<StateError/> component', () => {
 
             const component = mkStateErrorComponent({error});
 
-            assert.equal(component.find('.details__summary').first().text(), `message: ${messageTitle}`);
-            assert.equal(component.find('.details__content').first().text(), messageContent);
+            assert.equal(component.find('.details__title').first().text(), `message: ${messageTitle}`);
+            assert.equal(component.find('ShowMore').prop('content'), messageContent);
         });
     });
 
@@ -62,8 +62,8 @@ describe('<StateError/> component', () => {
 
             const component = mkStateErrorComponent({error, errorPattern});
 
-            assert.equal(component.find('.details__summary').first().text(), 'message: some-name');
-            assert.equal(component.find('.details__content').first().text(), 'some-msg');
+            assert.equal(component.find('.details__title').first().text(), 'message: some-name');
+            assert.equal(component.find('ShowMore').prop('content'), 'some-msg');
         });
 
         it('should render "hint" as plain string', () => {
@@ -81,8 +81,9 @@ describe('<StateError/> component', () => {
 
             const component = mkStateErrorComponent({error, errorPattern});
 
-            assert.equal(component.find('.details__summary').last().text(), 'hint: show more');
-            assert.equal(component.find('.details__content .foo-bar').text(), 'some-hint');
+            assert.equal(component.find('.details__title').last().text(), 'hint: ');
+            assert.equal(component.find('ShowMore').last().prop('content').props.className, 'foo-bar');
+            assert.deepEqual(component.find('ShowMore').last().prop('content').props.children, ['some-hint']);
         });
     });
 });

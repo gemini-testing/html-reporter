@@ -138,14 +138,16 @@ describe('<State/>', () => {
 
     describe('scaleImages', () => {
         it('should not scale images by default', () => {
-            const stateComponent = mkStateComponent();
+            const testResult = mkTestResult_({status: FAIL, actualImg: mkImg_(), diffImg: mkImg_()});
+            const stateComponent = mkStateComponent({state: testResult});
             const imageContainer = stateComponent.find('.image-box__container');
 
             assert.isFalse(imageContainer.hasClass('image-box__container_scale'));
         });
 
         it('should scale images if "scaleImages" option is enabled', () => {
-            const stateComponent = mkStateComponent({}, {view: {scaleImages: true}});
+            const testResult = mkTestResult_({status: FAIL, actualImg: mkImg_(), diffImg: mkImg_()});
+            const stateComponent = mkStateComponent({state: testResult}, {view: {scaleImages: true}});
             const imageContainer = stateComponent.find('.image-box__container');
 
             assert.isTrue(imageContainer.hasClass('image-box__container_scale'));
