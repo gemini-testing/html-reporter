@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="6.0.0-alpha.4"></a>
+# [6.0.0-alpha.4](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.3...v6.0.0-alpha.4) (2020-05-28)
+
+
+### Bug Fixes
+
+* **style:** improvements in the new design ([befc232](https://github.com/gemini-testing/html-reporter/commit/befc232))
+
+
+
 <a name="6.0.0-alpha.3"></a>
 # [6.0.0-alpha.3](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.2...v6.0.0-alpha.3) (2020-05-21)
 
