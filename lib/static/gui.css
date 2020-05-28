@@ -63,17 +63,17 @@
 }
 
 .controls {
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 
 .controls__item {
     display: inline-block;
     vertical-align: top;
-    margin-right: 20px;
+    margin-right: 10px;
 }
 
 .state-controls {
-    margin-top: 20px;
+    margin-top: 10px;
     position: sticky;
     top: 0;
     z-index: 10;
@@ -84,7 +84,7 @@
     border-radius: 5px;
     font-size: 13px;
     line-height: 18px;
-    margin-right: 20px;
+    margin-right: 10px;
 }
 
 .controls__item > .button_type_suite-controls {
@@ -141,7 +141,7 @@
 }
 
 .custom-gui {
-    margin-top: 20px;
+    margin-bottom: 15px;
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
