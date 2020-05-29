@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="6.0.0-alpha.5"></a>
+# [6.0.0-alpha.5](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.4...v6.0.0-alpha.5) (2020-05-29)
+
+
+### Bug Fixes
+
+* **style:** fix indentation between elements ([dcc7fc8](https://github.com/gemini-testing/html-reporter/commit/dcc7fc8))
+
+
+
 <a name="6.0.0-alpha.4"></a>
 # [6.0.0-alpha.4](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.3...v6.0.0-alpha.4) (2020-05-28)
 
