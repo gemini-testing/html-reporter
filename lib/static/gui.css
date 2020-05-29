@@ -62,7 +62,11 @@
     display: none
 }
 
-.controls {
+.controls > .controls__item:not(:only-child) {
+    margin-bottom: 5px;
+}
+
+.controls > .controls__item:only-child {
     margin-bottom: 10px;
 }
 

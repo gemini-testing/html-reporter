@@ -40,7 +40,6 @@ main.container {
     vertical-align: top;
     margin-right: 15px;
     margin-bottom: 15px;
-    font-size: 10px;
 }
 
 .rc-tree-select-tree-switcher {
@@ -127,10 +126,10 @@ main.container {
     background: #ffeb9f;
     border: 1px solid #cebe7d;
     border-radius: 3px;
-    margin-right: 2px;
-    padding: 3px 4px 4px;
-    font-size: 11px;
+    padding: 4px;
     margin: 1px;
+    font-size: 11px;
+    line-height: 11px;
 }
 
 .rc-tree-select-tree .rc-tree-select-tree-treenode span.rc-tree-select-tree-iconEle {
@@ -645,7 +644,7 @@ a:active {
 
 .tab-switcher {
     display: inline-block;
-    margin-bottom: 20px;
+    margin-bottom: 5px;
 }
 
 .tab-switcher:before {
@@ -681,6 +680,10 @@ a:active {
 
 .details__summary::-webkit-details-marker {
     display: none;
+}
+
+.details_type_text {
+    margin-bottom: 10px;
 }
 
 .details_type_text .details__content {
