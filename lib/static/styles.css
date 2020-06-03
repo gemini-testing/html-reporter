@@ -489,6 +489,10 @@ details[open] > .details__summary:before {
     cursor: pointer;
 }
 
+.section_root > .section__title > .section__icon {
+    height: 25px;
+}
+
 .section__icon:hover {
     opacity: 1;
 }
