@@ -489,6 +489,10 @@ details[open] > .details__summary:before {
     cursor: pointer;
 }
 
+.section_root > .section__title > .section__icon {
+    height: 25px;
+}
+
 .section__icon:hover {
     opacity: 1;
 }
@@ -684,6 +688,10 @@ a:active {
 
 .details_type_text {
     margin-bottom: 10px;
+}
+
+.image-box .details_type_text:last-child {
+    margin-bottom: 0;
 }
 
 .details_type_text .details__content {
