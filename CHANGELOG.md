@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="6.0.0-alpha.6"></a>
+# [6.0.0-alpha.6](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.5...v6.0.0-alpha.6) (2020-06-09)
+
+
+### Bug Fixes
+
+* **style:** indentation for last details element ([85cdec0](https://github.com/gemini-testing/html-reporter/commit/85cdec0))
+* **style:** size of section control elements ([644e565](https://github.com/gemini-testing/html-reporter/commit/644e565))
+
+
+
 <a name="6.0.0-alpha.5"></a>
 # [6.0.0-alpha.5](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.4...v6.0.0-alpha.5) (2020-05-29)
 
