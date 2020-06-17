@@ -4,6 +4,7 @@ const {isEmpty} = require('lodash');
 const parseConfig = require('lib/config');
 const {config: configDefaults} = require('lib/constants/defaults');
 const viewModes = require('lib/constants/view-modes');
+const saveFormats = require('lib/constants/save-formats');
 const SUPPORTED_CONTROL_TYPES = Object.values(require('lib/gui/constants/custom-gui-control-types'));
 
 describe('config', () => {
@@ -72,26 +73,8 @@ describe('config', () => {
     });
 
     describe('"saveFormat" option', () => {
-        it('should be json by default', () => {
-            assert.equal(parseConfig({}).saveFormat, 'js');
-        });
-
-        it('should set from configuration file', () => {
-            const config = parseConfig({saveFormat: 'sqlite'});
-
-            assert.equal(config.saveFormat, 'sqlite');
-        });
-
-        it('should set from environment variable', () => {
-            process.env['html_reporter_save_format'] = 'sqlite';
-
-            assert.equal(parseConfig({}).saveFormat, 'sqlite');
-        });
-
-        it('should set from cli', () => {
-            process.argv = process.argv.concat('--html-reporter-save-format', 'sqlite');
-
-            assert.equal(parseConfig({}).saveFormat, 'sqlite');
+        it(`should be ${saveFormats.SQLITE} by default`, () => {
+            assert.equal(parseConfig({}).saveFormat, saveFormats.SQLITE);
         });
     });
 

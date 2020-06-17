@@ -1,11 +1,9 @@
 'use strict';
 
-const path = require('path');
 const fs = require('fs-extra');
 const _ = require('lodash');
 const serverUtils = require('lib/server-utils');
 const TestAdapter = require('lib/test-adapter');
-const {logger} = serverUtils;
 const proxyquire = require('proxyquire');
 const {SUCCESS, FAIL, ERROR, SKIPPED, IDLE, UPDATED} = require('lib/constants/test-statuses');
 const {getCommonErrors} = require('lib/constants/errors');
@@ -65,7 +63,7 @@ describe('ReportBuilder', () => {
         sandbox.stub(serverUtils, 'prepareCommonJSData');
 
         hasImage = sandbox.stub().returns(true);
-        ReportBuilder = proxyquire('lib/report-builder/report-builder-json', {
+        ReportBuilder = proxyquire('lib/report-builder/report-builder', {
             '../server-utils': {
                 hasImage
             }
@@ -675,86 +673,6 @@ describe('ReportBuilder', () => {
 
             assert.match(imagesInfo[0], {status: FAIL});
             assert.match(imagesInfo[1], {status: UPDATED});
-        });
-    });
-
-    describe('saveDataFileAsync', () => {
-        it('should create report directory asynchronously', () => {
-            const reportBuilder = mkReportBuilder_({pluginConfig: {path: 'some/report/dir'}});
-
-            return reportBuilder.saveDataFileAsync()
-                .then(() => assert.calledOnceWith(fs.mkdirs, 'some/report/dir'));
-        });
-
-        it('should save data file with tests result asynchronously', () => {
-            sandbox.stub(ReportBuilder.prototype, 'getResult').returns({test1: 'some-data'});
-            serverUtils.prepareCommonJSData.returns('some data');
-
-            const reportBuilder = mkReportBuilder_({pluginConfig: {path: 'some/report/dir'}});
-
-            return reportBuilder.saveDataFileAsync()
-                .then(() => assert.calledWith(fs.writeFile, path.join('some', 'report', 'dir', 'data.js'), 'some data', 'utf8'));
-        });
-
-        it('should create report directory before save data file', () => {
-            const reportBuilder = mkReportBuilder_();
-
-            return reportBuilder.saveDataFileAsync()
-                .then(() => assert.callOrder(fs.mkdirs, fs.writeFile));
-        });
-    });
-
-    describe('finalize', () => {
-        it('should create report directory synchronously', () => {
-            const reportBuilder = mkReportBuilder_({pluginConfig: {path: 'some/report/dir'}});
-
-            reportBuilder.finalize();
-
-            assert.calledOnceWith(fs.mkdirsSync, 'some/report/dir');
-        });
-
-        it('should save data file with tests result synchronously', () => {
-            sandbox.stub(ReportBuilder.prototype, 'getResult').returns({test1: 'some-data'});
-            serverUtils.prepareCommonJSData.returns('some data');
-
-            const reportBuilder = mkReportBuilder_({pluginConfig: {path: 'some/report/dir'}});
-
-            reportBuilder.finalize();
-
-            assert.calledOnceWith(fs.writeFileSync, path.join('some', 'report', 'dir', 'data.js'), 'some data', 'utf8');
-        });
-
-        it('should create report directory before save data file', () => {
-            const reportBuilder = mkReportBuilder_();
-
-            reportBuilder.finalize();
-
-            assert.callOrder(fs.mkdirsSync, fs.writeFileSync);
-        });
-    });
-
-    describe('save', () => {
-        beforeEach(() => {
-            sandbox.stub(logger, 'error');
-        });
-
-        it('should save data file', () => {
-            const reportBuilder = mkReportBuilder_({pluginConfig: {path: 'some/report/dir'}});
-            sandbox.stub(reportBuilder, 'saveDataFileAsync').resolves();
-
-            return reportBuilder.save()
-                .then(() => assert.calledOnce(reportBuilder.saveDataFileAsync));
-        });
-
-        it('should copy static files to report directory', () => {
-            const reportBuilder = mkReportBuilder_({pluginConfig: {path: 'some/report/dir'}});
-
-            return reportBuilder.save()
-                .then(() => {
-                    assert.calledWithMatch(fs.copy, 'index.html', path.join('some', 'report', 'dir', 'index.html'));
-                    assert.calledWithMatch(fs.copy, 'report.min.js', path.join('some', 'report', 'dir', 'report.min.js'));
-                    assert.calledWithMatch(fs.copy, 'report.min.css', path.join('some', 'report', 'dir', 'report.min.css'));
-                });
         });
     });
 });

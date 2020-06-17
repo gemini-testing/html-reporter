@@ -2,7 +2,7 @@
 
 const {EventEmitter} = require('events');
 const proxyquire = require('proxyquire');
-const ReportBuilder = require('lib/report-builder/report-builder-json');
+const ReportBuilder = require('lib/report-builder/report-builder-sqlite');
 const clientEvents = require('lib/gui/constants/client-events');
 const {RUNNING} = require('lib/constants/test-statuses');
 const utils = require('lib/gui/tool-runner/utils');
@@ -35,7 +35,6 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
         reportBuilder = sinon.createStubInstance(ReportBuilder);
         sandbox.stub(ReportBuilder, 'create').returns(reportBuilder);
         reportBuilder.format.returns(mkTestAdapterStub_());
-        reportBuilder.save.resolves();
         reportBuilder.setApiValues.returns(reportBuilder);
         reportBuilder.setBrowsers.returns(reportBuilder);
         sandbox.stub(utils, 'findTestResult');
@@ -54,15 +53,6 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
     afterEach(() => sandbox.restore());
 
     describe('RUNNER_END', () => {
-        it('should save report', () => {
-            const hermione = mkHermione_();
-
-            reportSubscriber(hermione, reportBuilder, client);
-
-            return hermione.emitAndWait(hermione.events.RUNNER_END)
-                .then(() => assert.calledOnce(reportBuilder.save));
-        });
-
         it('should emit "END" event for client', () => {
             const hermione = mkHermione_();
 

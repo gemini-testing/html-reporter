@@ -16,7 +16,7 @@ module.exports = {
 
     sets: {
         main: {
-            files: 'test/func/main'
+            files: 'test/func/main/**/*.hermione.js'
         }
     },
 

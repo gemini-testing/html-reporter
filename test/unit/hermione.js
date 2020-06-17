@@ -4,7 +4,7 @@ const _ = require('lodash');
 const fs = require('fs-extra');
 const HermioneReporter = require('../../hermione');
 const PluginAdapter = require('lib/plugin-adapter');
-const ReportBuilder = require('lib/report-builder/report-builder-json');
+const ReportBuilder = require('lib/report-builder/report-builder-sqlite');
 const utils = require('lib/server-utils');
 const commonUtils = require('lib/common-utils');
 const {stubTool} = require('./utils');
@@ -107,8 +107,11 @@ describe('lib/hermione', () => {
         sandbox.stub(ReportBuilder.prototype, 'addFail');
         sandbox.stub(ReportBuilder.prototype, 'addRetry');
         sandbox.stub(ReportBuilder.prototype, 'setApiValues');
-        sandbox.stub(ReportBuilder.prototype, 'save');
+        sandbox.stub(ReportBuilder.prototype, 'saveStaticFiles');
+        sandbox.stub(ReportBuilder.prototype, 'finalize');
         sandbox.stub(ReportBuilder.prototype, 'setBrowsers');
+
+        sandbox.stub(ReportBuilder.prototype, 'init');
 
         sandbox.stub(fs, 'readFile').resolves(Buffer.from(''));
     });
