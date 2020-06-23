@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="6.0.0-alpha.8"></a>
+# [6.0.0-alpha.8](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.7...v6.0.0-alpha.8) (2020-06-23)
+
+
+### Features
+
+* save report test results only in sqlite database ([#334](https://github.com/gemini-testing/html-reporter/issues/334)) ([486b2c1](https://github.com/gemini-testing/html-reporter/commit/486b2c1))
+
+
+
 <a name="6.0.0-alpha.7"></a>
 # [6.0.0-alpha.7](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.6...v6.0.0-alpha.7) (2020-06-17)
 
