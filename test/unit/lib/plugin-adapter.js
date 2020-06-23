@@ -4,7 +4,7 @@ const {EventEmitter} = require('events');
 const _ = require('lodash');
 const proxyquire = require('proxyquire');
 const {logger} = require('lib/server-utils');
-const ReportBuilder = require('lib/report-builder/report-builder-json');
+const ReportBuilder = require('lib/report-builder/report-builder-sqlite');
 const PluginApi = require('lib/plugin-api');
 const {stubTool, stubConfig} = require('../utils');
 
@@ -16,7 +16,6 @@ describe('lib/plugin-adapter', () => {
     let toolReporter;
     let commander;
     let prepareData;
-    let prepareImages;
 
     const events = {
         CLI: 'cli',
@@ -33,7 +32,7 @@ describe('lib/plugin-adapter', () => {
 
         return toolReporter.create(tool, opts)
             .addCliCommands()
-            .init(prepareData, prepareImages);
+            .init(prepareData);
     }
 
     function initApiReporter_(opts) {
@@ -60,13 +59,14 @@ describe('lib/plugin-adapter', () => {
 
     beforeEach(() => {
         sandbox.stub(logger, 'log');
-
-        sandbox.stub(ReportBuilder, 'create').returns(Object.create(ReportBuilder.prototype));
-        sandbox.stub(ReportBuilder.prototype, 'save').resolves({});
         sandbox.stub(logger, 'error');
 
+        sandbox.stub(ReportBuilder, 'create').returns(Object.create(ReportBuilder.prototype));
+        sandbox.stub(ReportBuilder.prototype, 'saveStaticFiles').resolves();
+        sandbox.stub(ReportBuilder.prototype, 'init').resolves();
+        sandbox.stub(ReportBuilder.prototype, 'finalize').resolves();
+
         prepareData = sandbox.stub().resolves();
-        prepareImages = sandbox.stub().resolves();
 
         tool = mkHermione_();
         parseConfig = sandbox.stub().returns({enabled: true});
@@ -145,13 +145,10 @@ describe('lib/plugin-adapter', () => {
 
     describe('html-reporter', () => {
         let reportBuilder;
-        let endRunnerEvent;
 
         beforeEach(() => {
             reportBuilder = Object.create(ReportBuilder.prototype);
             ReportBuilder.create.returns(reportBuilder);
-
-            endRunnerEvent = tool.events.RUNNER_END;
         });
 
         it(`should init html-reporter if hermione called via API`, () => {
@@ -163,21 +160,13 @@ describe('lib/plugin-adapter', () => {
                 .then(() => assert.calledOnceWith(prepareData, tool, reportBuilder));
         });
 
-        it('should prepare images', () => {
-            const config = {enabled: true, path: ''};
-            parseConfig.returns(config);
-
-            return initCliReporter_({}, {})
-                .then(() => assert.calledOnceWith(prepareImages, tool, reportBuilder, config));
-        });
-
         it('should save report', () => {
             return initCliReporter_({}, {})
                 .then(() => {
                     tool.emit(tool.events.END);
 
-                    return tool.emitAndWait(endRunnerEvent).then(() => {
-                        assert.calledOnce(ReportBuilder.prototype.save);
+                    return tool.emitAndWait(tool.events.RUNNER_END).then(() => {
+                        assert.calledOnce(ReportBuilder.prototype.finalize);
                     });
                 });
         });
@@ -187,20 +176,20 @@ describe('lib/plugin-adapter', () => {
                 .then(() => {
                     tool.emit(tool.events.END);
 
-                    return tool.emitAndWait(endRunnerEvent).then(() => {
+                    return tool.emitAndWait(tool.events.RUNNER_END).then(() => {
                         assert.calledWithMatch(logger.log, 'some/path');
                     });
                 });
         });
 
         it('should log an error', () => {
-            ReportBuilder.prototype.save.rejects('some-error');
+            ReportBuilder.prototype.finalize.rejects('some-error');
 
             return initCliReporter_({}, {})
                 .then(() => {
                     tool.emit(tool.events.END);
 
-                    return tool.emitAndWait(endRunnerEvent).then(() => {
+                    return tool.emitAndWait(tool.events.RUNNER_END).then(() => {
                         assert.calledWith(logger.error, sinon.match('Html-reporter runtime error: some-error'));
                     });
                 });

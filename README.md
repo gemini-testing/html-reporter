@@ -1,6 +1,8 @@
 # html-reporter
 
 Plugin for [hermione](https://github.com/gemini-testing/hermione) which is intended to aggregate the results of tests running into html report.
+Test result is saved to the [SQLite](https://www.sqlite.org/index.html) database. It means that you can't open local report by 'file://' protocol.
+Use gui mode - `npx hermione gui` or start a local server - `npx http-server -p 8080` at terminal from folder where report placed and open page `http://localhost:8080` at browser.
 
 You can read more about hermione plugins [here](https://github.com/gemini-testing/hermione#plugins).
 
@@ -50,15 +52,8 @@ directory.
 
   In 'Group by error' mode test will be associated with group if test error matches on group error pattern. New group will be created if test cannot be associated with existing groups.
 * **metaInfoBaseUrls** (optional) `Object` - base paths for making link from Meta-info values. Object option must be Meta-info's key and value must be `String`. For example, {'file': 'base/path'}.
-* **saveFormat** (optional) `String` - allows to specify the format, in which the results will be saved. Available values are:
-  * `js` - save tests results to data.js file as object. Default value.
-  * `sqlite` - save tests results to Sqlite database.
-  Files will be created:
-    * `sqlite.db` - Sqlite database with tests results
-    * `data.js` - report's config
-    * `databaseUrls.json` - absolute or relative URLs to Sqlite databases (`sqlite.db`) or/and URLs to other `databaseUrls.json` (see [merge-reports](#merge-reports))
-
-     You can't open local report by 'file://' protocol. Use gui mode or start a local server. For example, execute `npx http-server -p 8080` at terminal from folder where report placed and open page `http://localhost:8080` at browser.
+* **saveFormat** (**DEPRECATED**, optional) `String` - allows to specify the format, in which the results will be saved. Available values are:
+  * `sqlite` - save tests results to Sqlite database. Default value.
 * **customGui** (optional) `Object` – allows to specify custom controls for gui-mode and define actions for them. `{}` is default value. Ordinarily custom controls should be split by sections depending on the purposes of the controls. At least one section should be specified.
   The structure of the custom-gui object:
     ```js
@@ -192,6 +187,22 @@ module.exports = {
     //...
 }
 ```
+
+## Data storage format
+
+How was described at the beginning (see [html-reporter](#html-reporter)) test result is saved to the [SQLite](https://www.sqlite.org/index.html) database.
+
+Why we use SQLite:
+- serverless, simple to set up and zero configuration is required;
+- cross-platform, runs on any operating system;
+- single-file, easy to reuse and share report;
+- faster than direct filesystem I/O;
+- compact and has full-featured SQL implementation.
+
+Files that will be created during test execution:
+  * `sqlite.db` - Sqlite database with tests results
+  * `data.js` - report's config
+  * `databaseUrls.json` - absolute or relative URLs to Sqlite databases (`sqlite.db`) or/and URLs to other `databaseUrls.json` (see [merge-reports](#merge-reports))
 
 ## Additional commands
 

@@ -12,7 +12,7 @@ module.exports = {
 
     sets: {
         fixtures: {
-            files: 'test/func/fixtures'
+            files: 'test/func/fixtures/**/*.hermione.js'
         }
     },
 

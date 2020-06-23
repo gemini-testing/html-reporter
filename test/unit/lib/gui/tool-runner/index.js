@@ -1,15 +1,21 @@
 'use strict';
 
+const path = require('path');
+const fs = require('fs-extra');
 const _ = require('lodash');
 const proxyquire = require('proxyquire');
-const ReportBuilder = require('lib/report-builder/report-builder-json');
-const {stubTool, stubConfig, mkTestResult, mkImagesInfo, mkState, mkSuite} = require('test/unit/utils');
+const ReportBuilder = require('lib/report-builder/report-builder-sqlite');
+const constantFileNames = require('lib/constants/file-names');
+const serverUtils = require('lib/server-utils');
+const {stubTool, stubConfig, mkTestResult, mkImagesInfo, mkState, mkSuite, mkSuiteTree, mkBrowserResult} = require('test/unit/utils');
 
 describe('lib/gui/tool-runner/hermione/index', () => {
     const sandbox = sinon.createSandbox();
     let reportBuilder;
     let ToolGuiReporter;
     let reportSubscriber;
+    let hermione;
+    let getDataFromDatabase;
 
     const mkTestCollection_ = (testsTree = {}) => {
         return {
@@ -43,6 +49,9 @@ describe('lib/gui/tool-runner/hermione/index', () => {
     };
 
     beforeEach(() => {
+        hermione = stubTool();
+        hermione.readTests.resolves(mkTestCollection_());
+
         reportBuilder = sinon.createStubInstance(ReportBuilder);
         reportSubscriber = sandbox.stub().named('reportSubscriber');
 
@@ -50,9 +59,11 @@ describe('lib/gui/tool-runner/hermione/index', () => {
         reportBuilder.format.returns({prepareTestResult: sandbox.stub()});
         reportBuilder.getResult.returns({});
 
+        getDataFromDatabase = sandbox.stub().returns({});
+
         ToolGuiReporter = proxyquire(`lib/gui/tool-runner`, {
             './report-subscriber': reportSubscriber,
-            './utils': {findTestResult: sandbox.stub()},
+            './utils': {findTestResult: sandbox.stub(), getDataFromDatabase},
             '../../reporter-helpers': {updateReferenceImage: sandbox.stub().resolves()}
         });
     });
@@ -60,6 +71,41 @@ describe('lib/gui/tool-runner/hermione/index', () => {
     afterEach(() => sandbox.restore());
 
     describe('initialize', () => {
+        it('should set values added through api', () => {
+            const htmlReporter = {values: {foo: 'bar'}};
+            hermione = stubTool(stubConfig(), {}, {}, htmlReporter);
+            hermione.readTests.resolves(mkTestCollection_());
+
+            const gui = initGuiReporter(hermione);
+
+            return gui.initialize()
+                .then(() => assert.calledWith(reportBuilder.setApiValues, {foo: 'bar'}));
+        });
+
+        it('should pass paths to "readTests" method', () => {
+            const gui = initGuiReporter(hermione, {paths: ['foo', 'bar']});
+
+            return gui.initialize()
+                .then(() => assert.calledOnceWith(hermione.readTests, ['foo', 'bar']));
+        });
+
+        it('should pass "grep", "sets" and "browsers" options to "readTests" method', () => {
+            const grep = 'foo';
+            const set = 'bar';
+            const browser = 'yabro';
+
+            const gui = initGuiReporter(hermione, {
+                configs: {
+                    program: {name: () => 'tool', grep, set, browser}
+                }
+            });
+
+            return gui.initialize()
+                .then(() => {
+                    assert.calledOnceWith(hermione.readTests, sinon.match.any, {grep, sets: set, browsers: browser});
+                });
+        });
+
         it('should not add disabled test to report', () => {
             const hermione = stubTool();
             hermione.readTests.resolves(mkTestCollection_({bro: stubTest_({disabled: true})}));
@@ -217,6 +263,221 @@ describe('lib/gui/tool-runner/hermione/index', () => {
                     state: 'plain2'
                 });
             });
+        });
+    });
+
+    describe('finalize hermione', () => {
+        it('should call reportBuilder.finalize', async () => {
+            const gui = initGuiReporter(hermione);
+
+            await gui.initialize();
+            gui.finalize();
+
+            assert.calledOnce(reportBuilder.finalize);
+        });
+    });
+
+    describe('reuse hermione data', () => {
+        let gui;
+        let dbPath;
+
+        beforeEach(() => {
+            sandbox.stub(serverUtils.logger, 'warn');
+
+            gui = initGuiReporter(hermione, {configs: mkPluginConfig_({path: 'report_path'})});
+            dbPath = path.resolve('report_path', constantFileNames.LOCAL_DATABASE_NAME);
+
+            sandbox.stub(fs, 'pathExists').withArgs(dbPath).resolves(false);
+        });
+
+        it('should log a warning that there is no data for reuse', () => {
+            const suites = [mkSuiteTree()];
+            reportBuilder.getResult.returns({suites});
+
+            return gui.initialize()
+                .then(() => assert.calledWithMatch(serverUtils.logger.warn, 'Nothing to reuse'));
+        });
+
+        it('should not apply reuse data if it is empty', () => {
+            fs.pathExists.withArgs(dbPath).resolves(true);
+            getDataFromDatabase.returns({});
+
+            const suites = [mkSuiteTree()];
+            reportBuilder.getResult.returns({suites});
+
+            return gui.initialize()
+                .then(() => assert.deepEqual(gui.tree.suites, suites));
+        });
+
+        it('should apply reuse data only for the matched browser', () => {
+            fs.pathExists.withArgs(dbPath).resolves(true);
+
+            const reuseYaBro = mkBrowserResult({
+                name: 'yabro',
+                result: {status: 'success'}
+            });
+            const reuseSuites = [mkSuiteTree({browsers: [reuseYaBro]})];
+            getDataFromDatabase.returns({suites: reuseSuites});
+
+            const chromeBro = mkBrowserResult({name: 'chrome'});
+            const suites = [mkSuiteTree({
+                browsers: [mkBrowserResult({name: 'yabro'}), chromeBro]
+            })];
+            reportBuilder.getResult.returns({suites});
+
+            return gui.initialize()
+                .then(() => {
+                    const {browsers} = gui.tree.suites[0].children[0];
+
+                    assert.deepEqual(browsers[0], reuseYaBro);
+                    assert.deepEqual(browsers[1], chromeBro);
+                });
+        });
+
+        it('should apply reuse data for tree with nested suites', () => {
+            fs.pathExists.withArgs(dbPath).resolves(true);
+
+            const reuseYaBro = mkBrowserResult({
+                name: 'yabro',
+                result: {status: 'success'}
+            });
+            const reuseSuite = mkSuite({suitePath: ['suite1']});
+            const reuseNestedSuite = mkSuiteTree({
+                suite: mkSuite({suitePath: ['suite1', 'suite2']}),
+                state: mkState({suitePath: ['suite1', 'suite2', 'state']}),
+                browsers: [reuseYaBro]
+            });
+
+            reuseSuite.children.push(reuseNestedSuite);
+            getDataFromDatabase.returns({suites: [reuseSuite]});
+
+            const suite = mkSuite({suitePath: ['suite1']});
+            const nestedSuite = mkSuiteTree({
+                suite: mkSuite({suitePath: ['suite1', 'suite2']}),
+                state: mkState({suitePath: ['suite1', 'suite2', 'state']}),
+                browsers: [mkBrowserResult({name: 'yabro'})]
+            });
+
+            suite.children.push(nestedSuite);
+            reportBuilder.getResult.returns({suites: [suite]});
+
+            return gui.initialize()
+                .then(() => {
+                    assert.deepEqual(
+                        gui.tree.suites[0].children[0].children[0].browsers[0],
+                        reuseYaBro
+                    );
+                });
+        });
+
+        it('should apply reuse data for tree with nested suites with children and browsers', () => {
+            fs.pathExists.withArgs(dbPath).resolves(true);
+
+            const reuseYaBro = mkBrowserResult({
+                name: 'yabro',
+                result: {status: 'success'}
+            });
+            const reuseChrome = mkBrowserResult({
+                name: 'chrome',
+                result: {status: 'success'}
+            });
+
+            const reuseSuite = mkSuite({suitePath: ['suite1']});
+            const reuseNestedSuite = mkSuite({
+                suitePath: ['suite1', 'suite2'],
+                children: [
+                    mkState({
+                        suitePath: ['suite1', 'suite2', 'state'],
+                        browsers: [reuseChrome]
+                    })
+                ],
+                browsers: [reuseYaBro]
+            });
+
+            reuseSuite.children.push(reuseNestedSuite);
+            getDataFromDatabase.returns({suites: [reuseSuite]});
+
+            const suite = mkSuite({suitePath: ['suite1']});
+
+            const nestedSuite = mkSuite({
+                suitePath: ['suite1', 'suite2'],
+                children: [
+                    mkState({
+                        suitePath: ['suite1', 'suite2', 'state'],
+                        browsers: [mkBrowserResult({name: 'chrome'})]
+                    })
+                ],
+                browsers: [mkBrowserResult({name: 'yabro'})]
+            });
+
+            suite.children.push(nestedSuite);
+            reportBuilder.getResult.returns({suites: [suite]});
+
+            return gui.initialize()
+                .then(() => {
+                    assert.deepEqual(
+                        gui.tree.suites[0].children[0].browsers[0],
+                        reuseYaBro
+                    );
+                    assert.deepEqual(
+                        gui.tree.suites[0].children[0].children[0].browsers[0],
+                        reuseChrome
+                    );
+                });
+        });
+
+        it('should change "status" for each level of the tree if data is reused', () => {
+            fs.pathExists.withArgs(dbPath).resolves(true);
+
+            const reuseSuites = [mkSuiteTree({
+                suite: mkSuite({status: 'fail'}),
+                state: mkState({status: 'success'}),
+                browsers: [mkBrowserResult({status: 'skipped'})]
+            })];
+            getDataFromDatabase.returns({suites: reuseSuites});
+
+            const suites = [mkSuiteTree({
+                suite: mkSuite({status: 'idle'}),
+                state: mkState({status: 'idle'}),
+                browsers: [mkBrowserResult({status: 'idle'})]
+            })];
+            reportBuilder.getResult.returns({suites});
+
+            return gui.initialize()
+                .then(() => {
+                    const suite = gui.tree.suites[0];
+
+                    assert.equal(suite.status, 'fail');
+                    assert.equal(suite.children[0].status, 'success');
+                    assert.equal(suite.children[0].browsers[0].status, 'skipped');
+                });
+        });
+
+        it('should not change "status" for any level of the tree if data is not reused', () => {
+            fs.pathExists.withArgs(dbPath).resolves(true);
+
+            const reuseSuites = [mkSuiteTree({
+                suite: mkSuite({status: 'fail'}),
+                state: mkState({status: 'success'}),
+                browsers: [mkBrowserResult({name: 'yabro', status: 'skipped'})]
+            })];
+            getDataFromDatabase.returns({suites: reuseSuites});
+
+            const suites = [mkSuiteTree({
+                suite: mkSuite({status: 'idle'}),
+                state: mkState({status: 'idle'}),
+                browsers: [mkBrowserResult({name: 'chrome', status: 'idle'})]
+            })];
+            reportBuilder.getResult.returns({suites});
+
+            return gui.initialize()
+                .then(() => {
+                    const suite = gui.tree.suites[0];
+
+                    assert.equal(suite.status, 'idle');
+                    assert.equal(suite.children[0].status, 'idle');
+                    assert.equal(suite.children[0].browsers[0].status, 'idle');
+                });
         });
     });
 });

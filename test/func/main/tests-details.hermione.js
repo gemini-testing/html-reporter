@@ -14,7 +14,7 @@ describe('Test details', function() {
 
     it('should prevent details summary overflow', function() {
         const selector = mkNestedSelector(
-            '.section[title="test with long error message"]',
+            '.section .section_status_error', // TODO: make selector to test by title
             '.error .details__summary'
         );
 

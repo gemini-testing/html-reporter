@@ -57,27 +57,16 @@ module.exports = {
             template: 'template.html',
             chunks: ['report']
         }),
+        new HtmlWebpackIncludeAssetsPlugin({
+            files: ['index.html'],
+            assets: ['data.js', 'sql-wasm.js'],
+            append: false
+        }),
         new HtmlWebpackPlugin({
             title: 'Gui report',
             filename: 'gui.html',
             template: 'template.html',
             chunks: ['gui']
-        }),
-        new HtmlWebpackIncludeAssetsPlugin({
-            files: ['index.html'],
-            assets: ['data.js'],
-            append: false
-        }),
-        new HtmlWebpackPlugin({
-            title: 'HTML report',
-            filename: 'index_sqlite.html',
-            template: 'template.html',
-            chunks: ['report']
-        }),
-        new HtmlWebpackIncludeAssetsPlugin({
-            files: ['index_sqlite.html'],
-            assets: ['data.js', 'sql-wasm.js'],
-            append: false
         })
     ]
 };
