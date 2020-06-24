@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="6.0.0-alpha.9"></a>
+# [6.0.0-alpha.9](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.8...v6.0.0-alpha.9) (2020-06-24)
+
+
+### Bug Fixes
+
+* **node12:** fail to compile png-img  on install report with node[@12](https://github.com/12) ([43c2176](https://github.com/gemini-testing/html-reporter/commit/43c2176))
+
+
+
 <a name="6.0.0-alpha.8"></a>
 # [6.0.0-alpha.8](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.7...v6.0.0-alpha.8) (2020-06-23)
 
