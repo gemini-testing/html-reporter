@@ -80,11 +80,7 @@ async function prepare(hermione, reportBuilder, pluginConfig) {
             promises.push(queue.add(() => failHandler(testResult).then((testResult) => reportBuilder.addSkipped(testResult)).catch(reject)));
         });
 
-        hermione.on(hermione.events.RUNNER_END, (stats) => {
-            reportBuilder
-                .setStats(stats)
-                .setApiValues(hermione.htmlReporter.values);
-
+        hermione.on(hermione.events.RUNNER_END, () => {
             return Promise.all(promises).then(resolve, reject);
         });
 

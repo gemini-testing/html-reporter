@@ -9,24 +9,27 @@ const {SUCCESS, FAIL, ERROR, SKIPPED, IDLE, UPDATED} = require('lib/constants/te
 const {getCommonErrors} = require('lib/constants/errors');
 const {NO_REF_IMAGE_ERROR} = getCommonErrors();
 
-describe('ReportBuilder', () => {
+describe('GuiReportBuilder', () => {
     const sandbox = sinon.sandbox.create();
-    let hasImage, ReportBuilder;
+    let hasImage, GuiReportBuilder;
 
-    const mkReportBuilder_ = ({toolConfig, pluginConfig} = {}) => {
+    const mkGuiReportBuilder_ = async ({toolConfig, pluginConfig} = {}) => {
         toolConfig = _.defaults(toolConfig || {}, {getAbsoluteUrl: _.noop});
         pluginConfig = _.defaults(pluginConfig || {}, {baseHost: '', path: '', baseTestPath: ''});
 
         const browserConfigStub = {getAbsoluteUrl: toolConfig.getAbsoluteUrl};
-        const config = {forBrowser: sandbox.stub().returns(browserConfigStub)};
+        const hermione = {forBrowser: sandbox.stub().returns(browserConfigStub)};
 
         TestAdapter.create = (obj) => obj;
 
-        return new ReportBuilder(config, pluginConfig);
+        const reportBuilder = GuiReportBuilder.create(hermione, pluginConfig);
+        await reportBuilder.init();
+
+        return reportBuilder;
     };
 
-    const getReportBuilderResult_ = (reportBuilder) => reportBuilder.getResult().suites[0].children[0].browsers[0].result;
-    const getReportBuilderRetries_ = (reportBuilder) => reportBuilder.getResult().suites[0].children[0].browsers[0].retries;
+    const getReportBuilderResult_ = (reportBuilder) => reportBuilder.getSuites()[0].children[0].browsers[0].result;
+    const getReportBuilderRetries_ = (reportBuilder) => reportBuilder.getSuites()[0].children[0].browsers[0].retries;
 
     const stubTest_ = (opts = {}) => {
         const {imagesInfo = []} = opts;
@@ -63,7 +66,7 @@ describe('ReportBuilder', () => {
         sandbox.stub(serverUtils, 'prepareCommonJSData');
 
         hasImage = sandbox.stub().returns(true);
-        ReportBuilder = proxyquire('lib/report-builder/report-builder', {
+        GuiReportBuilder = proxyquire('lib/report-builder/gui', {
             '../server-utils': {
                 hasImage
             }
@@ -72,8 +75,8 @@ describe('ReportBuilder', () => {
 
     afterEach(() => sandbox.restore());
 
-    it('should contain "file" in "metaInfo"', () => {
-        const reportBuilder = mkReportBuilder_();
+    it('should contain "file" in "metaInfo"', async () => {
+        const reportBuilder = await mkGuiReportBuilder_();
 
         reportBuilder.addSuccess(stubTest_({
             suite: {file: '/path/file.js'}
@@ -84,8 +87,8 @@ describe('ReportBuilder', () => {
         assert.equal(metaInfo.file, '/path/file.js');
     });
 
-    it('should contain "url" in "metaInfo"', () => {
-        const reportBuilder = mkReportBuilder_();
+    it('should contain "url" in "metaInfo"', async () => {
+        const reportBuilder = await mkGuiReportBuilder_();
 
         reportBuilder.addSuccess(stubTest_({
             suite: {fullUrl: '/test/url'}
@@ -96,8 +99,8 @@ describe('ReportBuilder', () => {
         assert.equal(metaInfo.url, '/test/url');
     });
 
-    it('should contain values from meta in meta info', () => {
-        const reportBuilder = mkReportBuilder_();
+    it('should contain values from meta in meta info', async () => {
+        const reportBuilder = await mkGuiReportBuilder_();
 
         reportBuilder.addSuccess(stubTest_({
             meta: {some: 'value'}
@@ -108,8 +111,8 @@ describe('ReportBuilder', () => {
         assert.match(metaInfo, {some: 'value'});
     });
 
-    it('should do not duplicate sessionId from meta in meta info', () => {
-        const reportBuilder = mkReportBuilder_();
+    it('should do not duplicate sessionId from meta in meta info', async () => {
+        const reportBuilder = await mkGuiReportBuilder_();
 
         const test = stubTest_({
             meta: {sessionId: 'sessionId-retry'},
@@ -128,40 +131,31 @@ describe('ReportBuilder', () => {
         assert.equal(result.metaInfo.sessionId, 'sessionId-fail');
     });
 
-    it('should contain "name" for each suite', () => {
-        const reportBuilder = mkReportBuilder_();
+    it('should contain "name" for each suite', async () => {
+        const reportBuilder = await mkGuiReportBuilder_();
 
         reportBuilder.addSuccess(stubTest_({
             state: {name: 'some-state'},
             suite: {path: ['root-suite']}
         }));
 
-        const result = reportBuilder.getResult();
-        const suiteResult = result.suites[0];
+        const suiteResult = reportBuilder.getSuites()[0];
         const stateResult = suiteResult.children[0];
 
         assert.propertyVal(suiteResult, 'name', 'root-suite');
         assert.propertyVal(stateResult, 'name', 'some-state');
     });
 
-    it('should set passed statistic', () => {
-        const reportBuilder = mkReportBuilder_();
-
-        reportBuilder.setStats({foo: 'bar'});
-
-        assert.match(reportBuilder.getResult(), {foo: 'bar'});
-    });
-
-    it('should set values added through api', () => {
-        const reportBuilder = mkReportBuilder_();
+    it('should set values added through api', async () => {
+        const reportBuilder = await mkGuiReportBuilder_();
 
         reportBuilder.setApiValues({key: 'value'});
 
         assert.deepEqual(reportBuilder.getResult().apiValues, {key: 'value'});
     });
 
-    it('should add skipped test to result', () => {
-        const reportBuilder = mkReportBuilder_();
+    it('should add skipped test to result', async () => {
+        const reportBuilder = await mkGuiReportBuilder_();
 
         reportBuilder.addSkipped(stubTest_({
             browserId: 'bro1',
@@ -179,8 +173,8 @@ describe('ReportBuilder', () => {
         assert.equal(getReportBuilderResult_(reportBuilder).status, SKIPPED);
     });
 
-    it('should add success test to result', () => {
-        const reportBuilder = mkReportBuilder_();
+    it('should add success test to result', async () => {
+        const reportBuilder = await mkGuiReportBuilder_();
 
         reportBuilder.addSuccess(stubTest_({
             browserId: 'bro1'
@@ -192,8 +186,8 @@ describe('ReportBuilder', () => {
         });
     });
 
-    it('should add failed test to result', () => {
-        const reportBuilder = mkReportBuilder_();
+    it('should add failed test to result', async () => {
+        const reportBuilder = await mkGuiReportBuilder_();
 
         reportBuilder.addFail(stubTest_({
             browserId: 'bro1',
@@ -206,8 +200,8 @@ describe('ReportBuilder', () => {
         });
     });
 
-    it('should add error details to result if saveErrorDetails is set', () => {
-        const reportBuilder = mkReportBuilder_({pluginConfig: {saveErrorDetails: true}});
+    it('should add error details to result if saveErrorDetails is set', async () => {
+        const reportBuilder = await mkGuiReportBuilder_({pluginConfig: {saveErrorDetails: true}});
 
         reportBuilder.addFail(stubTest_({
             errorDetails: {title: 'some-title', filePath: 'some-path'}
@@ -220,8 +214,8 @@ describe('ReportBuilder', () => {
         });
     });
 
-    it('should not add error details to result if saveErrorDetails is not set', () => {
-        const reportBuilder = mkReportBuilder_({pluginConfig: {saveErrorDetails: false}});
+    it('should not add error details to result if saveErrorDetails is not set', async () => {
+        const reportBuilder = await mkGuiReportBuilder_({pluginConfig: {saveErrorDetails: false}});
 
         reportBuilder.addFail(stubTest_({
             errorDetails: {title: 'some-title', filePath: 'some-path'}
@@ -234,8 +228,8 @@ describe('ReportBuilder', () => {
         });
     });
 
-    it('should add error test to result', () => {
-        const reportBuilder = mkReportBuilder_();
+    it('should add error test to result', async () => {
+        const reportBuilder = await mkGuiReportBuilder_();
 
         reportBuilder.addError(stubTest_({error: 'some-stack-trace'}));
 
@@ -245,14 +239,14 @@ describe('ReportBuilder', () => {
         });
     });
 
-    it('should add base host to result with value from plugin parameter "baseHost"', () => {
-        const reportBuilder = mkReportBuilder_({pluginConfig: {baseHost: 'some-host'}});
+    it('should add base host to result with value from plugin parameter "baseHost"', async () => {
+        const reportBuilder = await mkGuiReportBuilder_({pluginConfig: {baseHost: 'some-host'}});
 
         assert.equal(reportBuilder.getResult().config.baseHost, 'some-host');
     });
 
-    it('should sort suites by name', () => {
-        const reportBuilder = mkReportBuilder_();
+    it('should sort suites by name', async () => {
+        const reportBuilder = await mkGuiReportBuilder_();
         reportBuilder.addSuccess(stubTest_({state: {name: 'some-state'}}));
         reportBuilder.addSuccess(stubTest_({state: {name: 'other-state'}}));
 
@@ -261,13 +255,13 @@ describe('ReportBuilder', () => {
         assert.sameOrderedMembers(names, ['other-state', 'some-state']);
     });
 
-    it('should save retries order in the tree', () => {
-        const reportBuilder = mkReportBuilder_();
+    it('should save retries order in the tree', async () => {
+        const reportBuilder = await mkGuiReportBuilder_();
 
         reportBuilder.addRetry(stubTest_({attempt: 1, hasDiff: () => false}));
         reportBuilder.addFail(stubTest_({attempt: 2, hasDiff: () => false}));
         reportBuilder.addFail(stubTest_({attempt: 0, hasDiff: () => false}));
-        const testResult = reportBuilder.getResult().suites[0].children[0].browsers[0];
+        const testResult = reportBuilder.getSuites()[0].children[0].browsers[0];
 
         assert.equal(testResult.result.attempt, 2);
         assert.equal(testResult.retries[0].attempt, 0);
@@ -275,10 +269,10 @@ describe('ReportBuilder', () => {
     });
 
     describe('suite statuses', () => {
-        const getSuiteResult_ = (reportBuilder) => reportBuilder.getResult().suites[0].children[0];
+        const getSuiteResult_ = (reportBuilder) => reportBuilder.getSuites()[0].children[0];
 
-        it('should set status for suite if suite status does not exist', () => {
-            const reportBuilder = mkReportBuilder_();
+        it('should set status for suite if suite status does not exist', async () => {
+            const reportBuilder = await mkGuiReportBuilder_();
 
             reportBuilder.addSuccess(stubTest_({browserId: 'bro'}));
 
@@ -288,8 +282,8 @@ describe('ReportBuilder', () => {
 
         describe('for one browser', () => {
             describe('should rewrite status to "skipped" if', () => {
-                it('first attempt was "idle"', () => {
-                    const reportBuilder = mkReportBuilder_();
+                it('first attempt was "idle"', async () => {
+                    const reportBuilder = await mkGuiReportBuilder_();
                     const test = stubTest_({browserId: 'bro'});
 
                     reportBuilder.addIdle(test);
@@ -299,8 +293,8 @@ describe('ReportBuilder', () => {
                     assert.equal(suiteResult.status, SKIPPED);
                 });
 
-                it('first attempt was "error"', () => {
-                    const reportBuilder = mkReportBuilder_();
+                it('first attempt was "error"', async () => {
+                    const reportBuilder = await mkGuiReportBuilder_();
                     const test = stubTest_({browserId: 'bro', hasDiff: () => false});
 
                     reportBuilder.addRetry(test);
@@ -310,8 +304,8 @@ describe('ReportBuilder', () => {
                     assert.equal(suiteResult.status, SKIPPED);
                 });
 
-                it('first attempt was "fail"', () => {
-                    const reportBuilder = mkReportBuilder_();
+                it('first attempt was "fail"', async () => {
+                    const reportBuilder = await mkGuiReportBuilder_();
                     const test = stubTest_({browserId: 'bro', hasDiff: () => true});
 
                     reportBuilder.addRetry(test);
@@ -321,8 +315,8 @@ describe('ReportBuilder', () => {
                     assert.equal(suiteResult.status, SKIPPED);
                 });
 
-                it('first attempt was "updated"', () => {
-                    const reportBuilder = mkReportBuilder_();
+                it('first attempt was "updated"', async () => {
+                    const reportBuilder = await mkGuiReportBuilder_();
                     const test = stubTest_({browserId: 'bro', hasDiff: () => true});
 
                     reportBuilder.addUpdated(test);
@@ -332,8 +326,8 @@ describe('ReportBuilder', () => {
                     assert.equal(suiteResult.status, SKIPPED);
                 });
 
-                it('first attempt was "success"', () => {
-                    const reportBuilder = mkReportBuilder_();
+                it('first attempt was "success"', async () => {
+                    const reportBuilder = await mkGuiReportBuilder_();
                     const test = stubTest_({browserId: 'bro', hasDiff: () => true});
 
                     reportBuilder.addSuccess(test);
@@ -344,9 +338,9 @@ describe('ReportBuilder', () => {
                 });
             });
 
-            describe('should rewrite status to "success" if', () => {
-                it('first attempt was "idle"', () => {
-                    const reportBuilder = mkReportBuilder_();
+            describe('should rewrite status to "success" if', async () => {
+                it('first attempt was "idle"', async () => {
+                    const reportBuilder = await mkGuiReportBuilder_();
                     const test = stubTest_({browserId: 'bro'});
 
                     reportBuilder.addIdle(test);
@@ -356,8 +350,8 @@ describe('ReportBuilder', () => {
                     assert.equal(suiteResult.status, SUCCESS);
                 });
 
-                it('first attempt was "error"', () => {
-                    const reportBuilder = mkReportBuilder_();
+                it('first attempt was "error"', async () => {
+                    const reportBuilder = await mkGuiReportBuilder_();
                     const test = stubTest_({browserId: 'bro', hasDiff: () => false});
 
                     reportBuilder.addRetry(test);
@@ -367,8 +361,8 @@ describe('ReportBuilder', () => {
                     assert.equal(suiteResult.status, SUCCESS);
                 });
 
-                it('first attempt was "fail"', () => {
-                    const reportBuilder = mkReportBuilder_();
+                it('first attempt was "fail"', async () => {
+                    const reportBuilder = await mkGuiReportBuilder_();
                     const test = stubTest_({browserId: 'bro', hasDiff: () => true});
 
                     reportBuilder.addRetry(test);
@@ -378,8 +372,8 @@ describe('ReportBuilder', () => {
                     assert.equal(suiteResult.status, SUCCESS);
                 });
 
-                it('update test', () => {
-                    const reportBuilder = mkReportBuilder_();
+                it('update test', async () => {
+                    const reportBuilder = await mkGuiReportBuilder_();
                     const test = stubTest_({browserId: 'bro', hasDiff: () => true});
 
                     reportBuilder.addRetry(test);
@@ -393,8 +387,8 @@ describe('ReportBuilder', () => {
         });
 
         describe('for several browsers', () => {
-            it('should not rewrite suite status to IDLE if some test still has such status', () => {
-                const reportBuilder = mkReportBuilder_();
+            it('should not rewrite suite status to IDLE if some test still has such status', async () => {
+                const reportBuilder = await mkGuiReportBuilder_();
 
                 reportBuilder.addFail(stubTest_({browserId: 'bro'}));
                 reportBuilder.addIdle(stubTest_({browserId: 'another-bro'}));
@@ -403,8 +397,8 @@ describe('ReportBuilder', () => {
                 assert.equal(suiteResult.status, FAIL);
             });
 
-            it('should determine "error" if first test has "error"', () => {
-                const reportBuilder = mkReportBuilder_();
+            it('should determine "error" if first test has "error"', async () => {
+                const reportBuilder = await mkGuiReportBuilder_();
 
                 reportBuilder.addError(stubTest_({browserId: 'bro1'}));
                 reportBuilder.addFail(stubTest_({browserId: 'bro2'}));
@@ -416,8 +410,8 @@ describe('ReportBuilder', () => {
                 assert.equal(suiteResult.status, ERROR);
             });
 
-            it('should determine "error" if last test has "error"', () => {
-                const reportBuilder = mkReportBuilder_();
+            it('should determine "error" if last test has "error"', async () => {
+                const reportBuilder = await mkGuiReportBuilder_();
 
                 reportBuilder.addSkipped(stubTest_({browserId: 'bro5'}));
                 reportBuilder.addSuccess(stubTest_({browserId: 'bro4'}));
@@ -429,8 +423,8 @@ describe('ReportBuilder', () => {
                 assert.equal(suiteResult.status, ERROR);
             });
 
-            it('should determine "fail" if first test has "fail"', () => {
-                const reportBuilder = mkReportBuilder_();
+            it('should determine "fail" if first test has "fail"', async () => {
+                const reportBuilder = await mkGuiReportBuilder_();
 
                 reportBuilder.addFail(stubTest_({browserId: 'bro1'}));
                 reportBuilder.addUpdated(stubTest_({browserId: 'bro2'}));
@@ -441,8 +435,8 @@ describe('ReportBuilder', () => {
                 assert.equal(suiteResult.status, FAIL);
             });
 
-            it('should determine "fail" if last test has "fail"', () => {
-                const reportBuilder = mkReportBuilder_();
+            it('should determine "fail" if last test has "fail"', async () => {
+                const reportBuilder = await mkGuiReportBuilder_();
 
                 reportBuilder.addSkipped(stubTest_({browserId: 'bro4'}));
                 reportBuilder.addSuccess(stubTest_({browserId: 'bro3'}));
@@ -453,8 +447,8 @@ describe('ReportBuilder', () => {
                 assert.equal(suiteResult.status, FAIL);
             });
 
-            it('should determine "success" if first test has "success"', () => {
-                const reportBuilder = mkReportBuilder_();
+            it('should determine "success" if first test has "success"', async () => {
+                const reportBuilder = await mkGuiReportBuilder_();
 
                 reportBuilder.addSuccess(stubTest_({browserId: 'bro1'}));
                 reportBuilder.addSkipped(stubTest_({browserId: 'bro2'}));
@@ -463,8 +457,8 @@ describe('ReportBuilder', () => {
                 assert.equal(suiteResult.status, SUCCESS);
             });
 
-            it('should determine "success" if last test has "success"', () => {
-                const reportBuilder = mkReportBuilder_();
+            it('should determine "success" if last test has "success"', async () => {
+                const reportBuilder = await mkGuiReportBuilder_();
 
                 reportBuilder.addSkipped(stubTest_({browserId: 'bro2'}));
                 reportBuilder.addSuccess(stubTest_({browserId: 'bro1'}));
@@ -473,8 +467,8 @@ describe('ReportBuilder', () => {
                 assert.equal(suiteResult.status, SUCCESS);
             });
 
-            it('should determine "success" if update failed test', () => {
-                const reportBuilder = mkReportBuilder_();
+            it('should determine "success" if update failed test', async () => {
+                const reportBuilder = await mkGuiReportBuilder_();
 
                 reportBuilder.addSkipped(stubTest_({browserId: 'bro1'}));
                 reportBuilder.addError(stubTest_({browserId: 'bro2'}));
@@ -490,8 +484,8 @@ describe('ReportBuilder', () => {
                 {status: 'failed', hasDiff: true},
                 {status: 'errored', hasDiff: false}
             ].forEach(({status, hasDiff}) => {
-                it(`should rewrite suite status to "success" if it has ${status}, then skipped test`, () => {
-                    const reportBuilder = mkReportBuilder_();
+                it(`should rewrite suite status to "success" if it has ${status}, then skipped test`, async () => {
+                    const reportBuilder = await mkGuiReportBuilder_();
                     const test1 = stubTest_({browserId: 'bro', hasDiff: () => hasDiff});
                     const test2 = stubTest_({browserId: 'bro', hasDiff: () => hasDiff});
 
@@ -506,8 +500,8 @@ describe('ReportBuilder', () => {
         });
 
         describe('should rewrite suite status to "fail" if test failed with no reference image error', () => {
-            it('and test does not exist in tests tree', () => {
-                const reportBuilder = mkReportBuilder_();
+            it('and test does not exist in tests tree', async () => {
+                const reportBuilder = await mkGuiReportBuilder_();
                 const test = stubTest_({
                     status: ERROR,
                     imagesInfo: [{
@@ -523,8 +517,8 @@ describe('ReportBuilder', () => {
                 assert.equal(suiteResult.status, FAIL);
             });
 
-            it('and test exists in tests tree', () => {
-                const reportBuilder = mkReportBuilder_();
+            it('and test exists in tests tree', async () => {
+                const reportBuilder = await mkGuiReportBuilder_();
                 const test = stubTest_({
                     status: ERROR,
                     imagesInfo: [{
@@ -547,8 +541,8 @@ describe('ReportBuilder', () => {
                 {status: FAIL, methodName: 'addFail'},
                 {status: ERROR, methodName: 'addError'}
             ].forEach(({status, methodName}) => {
-                it(`${status}ed`, () => {
-                    const reportBuilder = mkReportBuilder_();
+                it(`${status}ed`, async () => {
+                    const reportBuilder = await mkGuiReportBuilder_();
 
                     const test = stubTest_({
                         imagesInfo: [{stateName: 'plain', status: SUCCESS}]
@@ -566,16 +560,16 @@ describe('ReportBuilder', () => {
     });
 
     describe('addRetry', () => {
-        it('should add "fail" status to result if test result has not equal images', () => {
-            const reportBuilder = mkReportBuilder_();
+        it('should add "fail" status to result if test result has not equal images', async () => {
+            const reportBuilder = await mkGuiReportBuilder_();
 
             reportBuilder.addRetry(stubTest_({hasDiff: () => true}));
 
             assert.match(getReportBuilderResult_(reportBuilder), {status: FAIL});
         });
 
-        it('should add "error" status to result if test result has no image', () => {
-            const reportBuilder = mkReportBuilder_();
+        it('should add "error" status to result if test result has no image', async () => {
+            const reportBuilder = await mkGuiReportBuilder_();
 
             reportBuilder.addRetry(stubTest_({hasDiff: () => false}));
 
@@ -584,8 +578,8 @@ describe('ReportBuilder', () => {
     });
 
     describe('addIdle', () => {
-        it('should add "idle" status to result', () => {
-            const reportBuilder = mkReportBuilder_();
+        it('should add "idle" status to result', async () => {
+            const reportBuilder = await mkGuiReportBuilder_();
 
             reportBuilder.addIdle(stubTest_(), 'some/url');
 
@@ -595,8 +589,8 @@ describe('ReportBuilder', () => {
     });
 
     describe('addUpdated', () => {
-        it('should add "updated" status to result', () => {
-            const reportBuilder = mkReportBuilder_();
+        it('should add "updated" status to result', async () => {
+            const reportBuilder = await mkGuiReportBuilder_();
 
             reportBuilder.addUpdated(stubTest_());
 
@@ -604,8 +598,8 @@ describe('ReportBuilder', () => {
             assert.propertyVal(result, 'status', UPDATED);
         });
 
-        it('should update test image for current state name', () => {
-            const reportBuilder = mkReportBuilder_();
+        it('should update test image for current state name', async () => {
+            const reportBuilder = await mkGuiReportBuilder_();
 
             const failedTest = stubTest_({
                 imagesInfo: [
@@ -628,8 +622,8 @@ describe('ReportBuilder', () => {
             assert.match(imagesInfo[1], {stateName: 'plain2', status: FAIL});
         });
 
-        it('should not rewrite status to "updated" if test has failed states', () => {
-            const reportBuilder = mkReportBuilder_();
+        it('should not rewrite status to "updated" if test has failed states', async () => {
+            const reportBuilder = await mkGuiReportBuilder_();
 
             const failedTest = stubTest_({
                 imagesInfo: [
@@ -651,8 +645,8 @@ describe('ReportBuilder', () => {
             assert.equal(status, FAIL);
         });
 
-        it('should update last test image if state name was not passed', () => {
-            const reportBuilder = mkReportBuilder_();
+        it('should update last test image if state name was not passed', async () => {
+            const reportBuilder = await mkGuiReportBuilder_();
 
             const failedTest = stubTest_({
                 imagesInfo: [

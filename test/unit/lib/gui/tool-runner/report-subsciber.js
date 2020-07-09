@@ -2,7 +2,7 @@
 
 const {EventEmitter} = require('events');
 const proxyquire = require('proxyquire');
-const ReportBuilder = require('lib/report-builder/report-builder-sqlite');
+const GuiReportBuilder = require('lib/report-builder/gui');
 const clientEvents = require('lib/gui/constants/client-events');
 const {RUNNING} = require('lib/constants/test-statuses');
 const utils = require('lib/gui/tool-runner/utils');
@@ -32,10 +32,9 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
     }, opts));
 
     beforeEach(() => {
-        reportBuilder = sinon.createStubInstance(ReportBuilder);
-        sandbox.stub(ReportBuilder, 'create').returns(reportBuilder);
+        reportBuilder = sinon.createStubInstance(GuiReportBuilder);
+        sandbox.stub(GuiReportBuilder, 'create').returns(reportBuilder);
         reportBuilder.format.returns(mkTestAdapterStub_());
-        reportBuilder.setApiValues.returns(reportBuilder);
         reportBuilder.setBrowsers.returns(reportBuilder);
         sandbox.stub(utils, 'findTestResult');
 

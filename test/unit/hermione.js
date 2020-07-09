@@ -4,7 +4,7 @@ const _ = require('lodash');
 const fs = require('fs-extra');
 const HermioneReporter = require('../../hermione');
 const PluginAdapter = require('lib/plugin-adapter');
-const ReportBuilder = require('lib/report-builder/report-builder-sqlite');
+const StaticReportBuilder = require('lib/report-builder/static');
 const utils = require('lib/server-utils');
 const commonUtils = require('lib/common-utils');
 const {stubTool} = require('./utils');
@@ -100,18 +100,16 @@ describe('lib/hermione', () => {
         sandbox.stub(utils.logger, 'log');
         sandbox.stub(utils.logger, 'warn');
 
-        sandbox.spy(ReportBuilder.prototype, 'setStats');
-        sandbox.stub(ReportBuilder.prototype, 'addSkipped');
-        sandbox.stub(ReportBuilder.prototype, 'addSuccess');
-        sandbox.stub(ReportBuilder.prototype, 'addError');
-        sandbox.stub(ReportBuilder.prototype, 'addFail');
-        sandbox.stub(ReportBuilder.prototype, 'addRetry');
-        sandbox.stub(ReportBuilder.prototype, 'setApiValues');
-        sandbox.stub(ReportBuilder.prototype, 'saveStaticFiles');
-        sandbox.stub(ReportBuilder.prototype, 'finalize');
-        sandbox.stub(ReportBuilder.prototype, 'setBrowsers');
+        sandbox.stub(StaticReportBuilder.prototype, 'addSkipped');
+        sandbox.stub(StaticReportBuilder.prototype, 'addSuccess');
+        sandbox.stub(StaticReportBuilder.prototype, 'addError');
+        sandbox.stub(StaticReportBuilder.prototype, 'addFail');
+        sandbox.stub(StaticReportBuilder.prototype, 'addRetry');
+        sandbox.stub(StaticReportBuilder.prototype, 'saveStaticFiles');
+        sandbox.stub(StaticReportBuilder.prototype, 'finalize');
+        sandbox.stub(StaticReportBuilder.prototype, 'setBrowsers');
 
-        sandbox.stub(ReportBuilder.prototype, 'init');
+        sandbox.stub(StaticReportBuilder.prototype, 'init');
 
         sandbox.stub(fs, 'readFile').resolves(Buffer.from(''));
     });
@@ -143,7 +141,7 @@ describe('lib/hermione', () => {
         hermione.emit(events.TEST_PENDING, mkStubResult_({title: 'some-title'}));
         await hermione.emitAndWait(hermione.events.RUNNER_END);
 
-        assert.deepEqual(ReportBuilder.prototype.addSkipped.args[0][0].state, {name: 'some-title'});
+        assert.deepEqual(StaticReportBuilder.prototype.addSkipped.args[0][0].state, {name: 'some-title'});
     });
 
     it('should add passed test to result', async () => {
@@ -151,7 +149,7 @@ describe('lib/hermione', () => {
         hermione.emit(events.TEST_PASS, mkStubResult_({title: 'some-title'}));
         await hermione.emitAndWait(hermione.events.RUNNER_END);
 
-        assert.deepEqual(ReportBuilder.prototype.addSuccess.args[0][0].state, {name: 'some-title'});
+        assert.deepEqual(StaticReportBuilder.prototype.addSuccess.args[0][0].state, {name: 'some-title'});
     });
 
     ['TEST_FAIL', 'RETRY'].forEach((event) => {
@@ -163,7 +161,7 @@ describe('lib/hermione', () => {
                 hermione.emit(events[event], testResult);
                 await hermione.emitAndWait(hermione.events.RUNNER_END);
 
-                assert.deepEqual(ReportBuilder.prototype.addError.args[0][0].state, {name: 'some-title'});
+                assert.deepEqual(StaticReportBuilder.prototype.addError.args[0][0].state, {name: 'some-title'});
             });
 
             it(`errored assert view to result on ${event} event`, async () => {
@@ -174,7 +172,7 @@ describe('lib/hermione', () => {
                 hermione.emit(events[event], mkStubResult_({title: 'some-title', assertViewResults: [err]}));
                 await hermione.emitAndWait(hermione.events.RUNNER_END);
 
-                assert.deepEqual(ReportBuilder.prototype.addError.args[0][0].state, {name: 'some-title'});
+                assert.deepEqual(StaticReportBuilder.prototype.addError.args[0][0].state, {name: 'some-title'});
             });
 
             it(`failed test to result on ${event} event`, async () => {
@@ -190,7 +188,7 @@ describe('lib/hermione', () => {
                 hermione.emit(events[event], testResult);
                 await hermione.emitAndWait(hermione.events.RUNNER_END);
 
-                assert.deepEqual(ReportBuilder.prototype.addFail.args[0][0].state, {name: 'some-title'});
+                assert.deepEqual(StaticReportBuilder.prototype.addFail.args[0][0].state, {name: 'some-title'});
             });
 
             it(`failed test to result on ${event} event`, async () => {
@@ -202,33 +200,9 @@ describe('lib/hermione', () => {
                 hermione.emit(events[event], mkStubResult_({title: 'some-title', assertViewResults: [err]}));
                 await hermione.emitAndWait(hermione.events.RUNNER_END);
 
-                assert.deepEqual(ReportBuilder.prototype.addFail.args[0][0].state, {name: 'some-title'});
+                assert.deepEqual(StaticReportBuilder.prototype.addFail.args[0][0].state, {name: 'some-title'});
             });
         });
-    });
-
-    it('should set values added through api', async () => {
-        await initReporter_();
-
-        hermione.htmlReporter.addExtraItem('key1', 'value1');
-        hermione.htmlReporter.addMetaInfoExtender('key2', 'value2');
-        hermione.htmlReporter.imagesSaver = {some: 'images_saver'};
-        hermione.htmlReporter.reportsSaver = {some: 'reports_saver'};
-
-        await hermione.emitAndWait(hermione.events.RUNNER_END);
-
-        assert.calledOnceWith(ReportBuilder.prototype.setApiValues, {
-            extraItems: {key1: 'value1'},
-            metaInfoExtenders: {key2: 'value2'},
-            imagesSaver: {some: 'images_saver'},
-            reportsSaver: {some: 'reports_saver'}
-        });
-    });
-
-    it('should save statistic', () => {
-        return initReporter_()
-            .then(() => hermione.emitAndWait(hermione.events.RUNNER_END, {some: 'stat'}))
-            .then(() => assert.calledOnceWith(ReportBuilder.prototype.setStats, {some: 'stat'}));
     });
 
     it('should save image from passed test', async () => {
@@ -321,6 +295,6 @@ describe('lib/hermione', () => {
         hermione.emit(events.AFTER_TESTS_READ, collection);
 
         assert.calledOnceWith(commonUtils.formatBrowsers, collection);
-        assert.calledOnceWith(ReportBuilder.prototype.setBrowsers, formatedBrowsers);
+        assert.calledOnceWith(StaticReportBuilder.prototype.setBrowsers, formatedBrowsers);
     });
 });
