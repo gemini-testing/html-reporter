@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="6.0.0-alpha.10"></a>
+# [6.0.0-alpha.10](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.9...v6.0.0-alpha.10) (2020-07-10)
+
+
+
 <a name="6.0.0-alpha.9"></a>
 # [6.0.0-alpha.9](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.8...v6.0.0-alpha.9) (2020-06-24)
 
