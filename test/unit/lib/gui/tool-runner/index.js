@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs-extra');
 const _ = require('lodash');
 const proxyquire = require('proxyquire');
-const ReportBuilder = require('lib/report-builder/report-builder-sqlite');
+const GuiReportBuilder = require('lib/report-builder/gui');
 const constantFileNames = require('lib/constants/file-names');
 const serverUtils = require('lib/server-utils');
 const {stubTool, stubConfig, mkTestResult, mkImagesInfo, mkState, mkSuite, mkSuiteTree, mkBrowserResult} = require('test/unit/utils');
@@ -52,10 +52,10 @@ describe('lib/gui/tool-runner/hermione/index', () => {
         hermione = stubTool();
         hermione.readTests.resolves(mkTestCollection_());
 
-        reportBuilder = sinon.createStubInstance(ReportBuilder);
+        reportBuilder = sinon.createStubInstance(GuiReportBuilder);
         reportSubscriber = sandbox.stub().named('reportSubscriber');
 
-        sandbox.stub(ReportBuilder, 'create').returns(reportBuilder);
+        sandbox.stub(GuiReportBuilder, 'create').returns(reportBuilder);
         reportBuilder.format.returns({prepareTestResult: sandbox.stub()});
         reportBuilder.getResult.returns({});
 

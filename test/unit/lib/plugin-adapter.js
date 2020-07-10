@@ -4,7 +4,7 @@ const {EventEmitter} = require('events');
 const _ = require('lodash');
 const proxyquire = require('proxyquire');
 const {logger} = require('lib/server-utils');
-const ReportBuilder = require('lib/report-builder/report-builder-sqlite');
+const StaticReportBuilder = require('lib/report-builder/static');
 const PluginApi = require('lib/plugin-api');
 const {stubTool, stubConfig} = require('../utils');
 
@@ -61,10 +61,10 @@ describe('lib/plugin-adapter', () => {
         sandbox.stub(logger, 'log');
         sandbox.stub(logger, 'error');
 
-        sandbox.stub(ReportBuilder, 'create').returns(Object.create(ReportBuilder.prototype));
-        sandbox.stub(ReportBuilder.prototype, 'saveStaticFiles').resolves();
-        sandbox.stub(ReportBuilder.prototype, 'init').resolves();
-        sandbox.stub(ReportBuilder.prototype, 'finalize').resolves();
+        sandbox.stub(StaticReportBuilder, 'create').returns(Object.create(StaticReportBuilder.prototype));
+        sandbox.stub(StaticReportBuilder.prototype, 'saveStaticFiles').resolves();
+        sandbox.stub(StaticReportBuilder.prototype, 'init').resolves();
+        sandbox.stub(StaticReportBuilder.prototype, 'finalize').resolves();
 
         prepareData = sandbox.stub().resolves();
 
@@ -138,7 +138,7 @@ describe('lib/plugin-adapter', () => {
             });
 
             it('should not init html-reporter on running command', () => {
-                return initCliReporter_({}, {command: commandName}).then(() => assert.notCalled(ReportBuilder.create));
+                return initCliReporter_({}, {command: commandName}).then(() => assert.notCalled(StaticReportBuilder.create));
             });
         });
     });
@@ -147,12 +147,12 @@ describe('lib/plugin-adapter', () => {
         let reportBuilder;
 
         beforeEach(() => {
-            reportBuilder = Object.create(ReportBuilder.prototype);
-            ReportBuilder.create.returns(reportBuilder);
+            reportBuilder = Object.create(StaticReportBuilder.prototype);
+            StaticReportBuilder.create.returns(reportBuilder);
         });
 
         it(`should init html-reporter if hermione called via API`, () => {
-            return initApiReporter_({}).then(() => assert.calledOnce(ReportBuilder.create));
+            return initApiReporter_({}).then(() => assert.calledOnce(StaticReportBuilder.create));
         });
 
         it('should prepare data', () => {
@@ -166,7 +166,7 @@ describe('lib/plugin-adapter', () => {
                     tool.emit(tool.events.END);
 
                     return tool.emitAndWait(tool.events.RUNNER_END).then(() => {
-                        assert.calledOnce(ReportBuilder.prototype.finalize);
+                        assert.calledOnce(StaticReportBuilder.prototype.finalize);
                     });
                 });
         });
@@ -183,7 +183,7 @@ describe('lib/plugin-adapter', () => {
         });
 
         it('should log an error', () => {
-            ReportBuilder.prototype.finalize.rejects('some-error');
+            StaticReportBuilder.prototype.finalize.rejects('some-error');
 
             return initCliReporter_({}, {})
                 .then(() => {
