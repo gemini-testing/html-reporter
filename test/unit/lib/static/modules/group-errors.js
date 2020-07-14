@@ -497,7 +497,7 @@ describe('static/modules/group-errors', () => {
 
         const result = groupErrors({
             suites,
-            filteredBrowsers: ['browser-one']
+            filteredBrowsers: [{id: 'browser-one'}]
         });
 
         assert.deepEqual(result, [
@@ -505,6 +505,54 @@ describe('static/modules/group-errors', () => {
                 count: 1,
                 name: 'message stub',
                 pattern: 'message stub',
+                tests: {
+                    'suite state': ['browser-one']
+                }
+            }
+        ]);
+    });
+
+    it('should filter by browser with versions', () => {
+        const suites = [
+            mkSuite({
+                suitePath: ['suite'],
+                children: [
+                    mkSuite({
+                        suitePath: ['suite', 'state'],
+                        browsers: [
+                            mkBrowserResult({
+                                name: 'browser-one',
+                                result: mkTestResult({
+                                    error: {
+                                        message: 'message stub'
+                                    }
+                                })
+                            }),
+                            mkBrowserResult({
+                                name: 'browser-one',
+                                result: mkTestResult({
+                                    browserVersion: '1.1',
+                                    error: {
+                                        message: 'message stub 1'
+                                    }
+                                })
+                            })
+                        ]
+                    })
+                ]
+            })
+        ];
+
+        const result = groupErrors({
+            suites,
+            filteredBrowsers: [{id: 'browser-one', versions: ['1.1']}]
+        });
+
+        assert.deepEqual(result, [
+            {
+                count: 1,
+                name: 'message stub 1',
+                pattern: 'message stub 1',
                 tests: {
                     'suite state': ['browser-one']
                 }

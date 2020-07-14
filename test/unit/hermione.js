@@ -6,7 +6,6 @@ const HermioneReporter = require('../../hermione');
 const PluginAdapter = require('lib/plugin-adapter');
 const StaticReportBuilder = require('lib/report-builder/static');
 const utils = require('lib/server-utils');
-const commonUtils = require('lib/common-utils');
 const {stubTool} = require('./utils');
 
 describe('lib/hermione', () => {
@@ -107,7 +106,6 @@ describe('lib/hermione', () => {
         sandbox.stub(StaticReportBuilder.prototype, 'addRetry');
         sandbox.stub(StaticReportBuilder.prototype, 'saveStaticFiles');
         sandbox.stub(StaticReportBuilder.prototype, 'finalize');
-        sandbox.stub(StaticReportBuilder.prototype, 'setBrowsers');
 
         sandbox.stub(StaticReportBuilder.prototype, 'init');
 
@@ -282,19 +280,5 @@ describe('lib/hermione', () => {
         assert.calledWith(
             saveDiffTo, sinon.match.instanceOf(ImageDiffError), sinon.match('/report/plain')
         );
-    });
-
-    it('should set browsers to the report builder', async () => {
-        await initReporter_();
-
-        const formatedBrowsers = [{id: 'bro1'}];
-        const collection = sandbox.stub();
-
-        sandbox.stub(commonUtils, 'formatBrowsers').returns(formatedBrowsers);
-
-        hermione.emit(events.AFTER_TESTS_READ, collection);
-
-        assert.calledOnceWith(commonUtils.formatBrowsers, collection);
-        assert.calledOnceWith(StaticReportBuilder.prototype.setBrowsers, formatedBrowsers);
     });
 });

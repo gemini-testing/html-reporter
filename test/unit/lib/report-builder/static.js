@@ -160,26 +160,6 @@ describe('StaticReportBuilder', () => {
         });
     });
 
-    describe('setBrowsers', () => {
-        it('should write browsers to db when the method has called', async () => {
-            const reportBuilder = await mkStaticReportBuilder_();
-
-            await reportBuilder.setBrowsers([
-                {id: 'chrome'},
-                {id: 'firefox'}
-            ]);
-
-            const db = new Database(TEST_DB_PATH);
-            const res = db.prepare('SELECT * from browsers').all();
-            db.close();
-
-            assert.deepEqual(res, [
-                {name: 'chrome'},
-                {name: 'firefox'}
-            ]);
-        });
-    });
-
     describe('finalization', () => {
         let reportBuilder;
 
