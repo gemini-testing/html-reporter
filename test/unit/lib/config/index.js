@@ -102,6 +102,34 @@ describe('config', () => {
         });
     });
 
+    describe('"commandsWithShortHistory" option', () => {
+        it('should be empty array by default', () => {
+            assert.deepEqual(parseConfig({}).commandsWithShortHistory, []);
+        });
+
+        it('should set from configuration file', () => {
+            const config = parseConfig({commandsWithShortHistory: ['foo']});
+
+            assert.deepEqual(config.commandsWithShortHistory, ['foo']);
+        });
+
+        describe('should throw an error if value', () => {
+            it('is not an array', () => {
+                assert.throws(
+                    () => parseConfig({commandsWithShortHistory: 100500}),
+                    '"commandsWithShortHistory" option must be an array, but got number'
+                );
+            });
+
+            it('is not an array of strings', () => {
+                assert.throws(
+                    () => parseConfig({commandsWithShortHistory: [100500]}),
+                    '"commandsWithShortHistory" option must be an array of strings but got number for one of items'
+                );
+            });
+        });
+    });
+
     describe('"defaultView" option', () => {
         it('should show all suites by default', () => {
             assert.equal(parseConfig({}).defaultView, viewModes.ALL);
@@ -235,7 +263,7 @@ describe('config', () => {
             });
         });
 
-        it('should has default value', () => {
+        it('should have default value', () => {
             assert.deepEqual(parseConfig({}).errorPatterns, configDefaults.errorPatterns);
         });
 

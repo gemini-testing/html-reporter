@@ -21,6 +21,23 @@ describe('history-utils', () => {
             ]);
         });
 
+        it('should truncate args for specified commands in history', async () => {
+            const allHistory = [
+                {name: 'foo', args: ['foo-arg'], stack: 'foo("foo-arg") (/path/to/test/file:10:4)'},
+                {name: 'baz', args: ['baz-arg'], stack: 'baz("baz-arg") (/path/to/baz/file:20:4)'},
+                {name: 'bar', args: ['bar-arg'], stack: 'bar("bar-arg") (/path/to/test/file:11:4)'},
+                {name: 'qux', args: ['qux-arg'], stack: 'qux("qux-arg") (/path/to/qux/file:21:4)'}
+            ];
+
+            const history = await getCommandHistory(allHistory, '/path/to/test/file', ['foo', 'qux']);
+
+            assert.deepEqual(history, [
+                '\tfoo(...)\n',
+                '\tbar("bar-arg")\n',
+                '\t\tqux(...): /path/to/qux/file:21:4\n'
+            ]);
+        });
+
         it('should return undefined if all history is not given', async () => {
             const history = await getCommandHistory(undefined, '/path/to/test/file');
 
