@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="6.0.0-alpha.11"></a>
+# [6.0.0-alpha.11](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.10...v6.0.0-alpha.11) (2020-07-23)
+
+
+### Bug Fixes
+
+* set exact version of selenium-standalone ([17d87d9](https://github.com/gemini-testing/html-reporter/commit/17d87d9))
+
+
+### Features
+
+* eliminate args of specified commands in command history ([d047724](https://github.com/gemini-testing/html-reporter/commit/d047724))
+
+
+
 <a name="6.0.0-alpha.10"></a>
 # [6.0.0-alpha.10](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.9...v6.0.0-alpha.10) (2020-07-10)
 
