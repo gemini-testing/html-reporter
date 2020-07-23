@@ -32,6 +32,9 @@ directory.
    err.details = {title: 'description, will be used as url title', data: {} | [] | 'some additional info'};
    throw err;
 ```
+* **commandsWithShortHistory** `Array of Strings` – a list of test commands for which arguments should be eliminated in command history because of their long size. `[]` by default.
+
+  See options [saveHistoryOnError](https://github.com/gemini-testing/hermione#saveHistoryOnError) or [saveHistoryOnTestTimeout](https://github.com/gemini-testing/hermione#saveHistoryOnTestTimeout) in hermione that allow you to get command history if test fails on error or timeout.
 * **defaultView** (optional) `String` - default view mode. Available values are:
   * `all` - show all tests. Default value.
   * `failed` - show only failed tests.

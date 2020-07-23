@@ -15,7 +15,9 @@ describe('hermione test adapter', () => {
     class ImageDiffError extends Error {}
     class NoRefImageError extends Error {}
 
-    const mkHermioneTestResultAdapter = (testResult, toolOpts = {}, htmlReporter = {}, status) => {
+    const mkHermioneTestResultAdapter = (testResult, {
+        toolOpts = {}, pluginConfig = {}, htmlReporter = {}, status
+    } = {}) => {
         const config = _.defaults(toolOpts.config, {
             browsers: {
                 bro: {}
@@ -29,7 +31,7 @@ describe('hermione test adapter', () => {
             Object.assign({imagesSaver: {saveImg: sandbox.stub()}}, htmlReporter)
         );
 
-        return new HermioneTestResultAdapter(testResult, tool, status);
+        return new HermioneTestResultAdapter(testResult, tool, pluginConfig, status);
     };
 
     const mkTestResult_ = (result) => _.defaults(result, {
@@ -79,14 +81,14 @@ describe('hermione test adapter', () => {
     it('should not increment attempt for skipped tests', () => {
         const testResult = mkTestResult_({fullTitle: () => 'some-title'});
 
-        mkHermioneTestResultAdapter(testResult, {}, {}, SKIPPED);
-        const result = mkHermioneTestResultAdapter(testResult, {}, {}, SKIPPED);
+        mkHermioneTestResultAdapter(testResult, {status: SKIPPED});
+        const result = mkHermioneTestResultAdapter(testResult, {status: SKIPPED});
 
         assert.equal(result.attempt, 0);
     });
 
     it('should return test error with "message", "stack", "history" and "stateName"', () => {
-        getCommandHistory.withArgs([{name: 'foo'}], 'bar').returns(['some-history']);
+        getCommandHistory.withArgs([{name: 'foo'}], 'bar', ['foo']).returns(['some-history']);
         const testResult = mkTestResult_({
             file: 'bar',
             err: {
@@ -98,7 +100,11 @@ describe('hermione test adapter', () => {
             }
         });
 
-        const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+        const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {
+            pluginConfig: {
+                commandsWithShortHistory: ['foo']
+            }
+        });
 
         assert.deepEqual(hermioneTestAdapter.error, {
             message: 'some-message',
@@ -255,7 +261,7 @@ describe('hermione test adapter', () => {
             });
             utils.getDiffPath.returns('diff/report/path');
 
-            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {}, {});
+            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
             const workers = {saveDiffTo: sandbox.stub()};
             await hermioneTestAdapter.saveTestImages('', workers);
 
@@ -270,7 +276,11 @@ describe('hermione test adapter', () => {
             });
             utils.getDiffPath.returns('diff/report/path');
             const imagesSaver = {saveImg: sandbox.stub()};
-            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {}, {imagesSaver});
+            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {
+                htmlReporter: {
+                    imagesSaver
+                }
+            });
             const workers = {saveDiffTo: sandbox.stub()};
             await hermioneTestAdapter.saveTestImages('html-report/path', workers);
 
@@ -286,7 +296,11 @@ describe('hermione test adapter', () => {
         it('should return true if test has image diff errors', () => {
             const testResult = mkTestResult_({assertViewResults: [new ImageDiffError()]});
 
-            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {errors: {ImageDiffError}});
+            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {
+                toolOpts: {
+                    errors: {ImageDiffError}
+                }
+            });
 
             assert.isTrue(hermioneTestAdapter.hasDiff());
         });
@@ -294,7 +308,11 @@ describe('hermione test adapter', () => {
         it('should return false if test has not image diff errors', () => {
             const testResult = mkTestResult_({assertViewResults: [new Error()]});
 
-            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {errors: {ImageDiffError}});
+            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {
+                toolOpts: {
+                    errors: {ImageDiffError}
+                }
+            });
 
             assert.isFalse(hermioneTestAdapter.hasDiff());
         });
@@ -424,7 +442,11 @@ describe('hermione test adapter', () => {
                 'ref/path',
                 {destPath: 'some/ref.png', reportDir: 'some/rep'}
             ).returns('saved/ref.png');
-            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {}, {imagesSaver});
+            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {
+                htmlReporter: {
+                    imagesSaver
+                }
+            });
             const workers = {saveDiffTo: sandbox.stub()};
 
             await hermioneTestAdapter.saveTestImages('some/rep', workers);
@@ -440,7 +462,11 @@ describe('hermione test adapter', () => {
             });
 
             const imagesSaver = {saveImg: sandbox.stub()};
-            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {}, {imagesSaver});
+            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {
+                htmlReporter: {
+                    imagesSaver
+                }
+            });
             const workers = {saveDiffTo: sandbox.stub()};
 
             await hermioneTestAdapter.saveTestImages('some/rep', workers);
@@ -456,7 +482,11 @@ describe('hermione test adapter', () => {
             });
 
             const imagesSaver = {saveImg: sandbox.stub()};
-            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {}, {imagesSaver});
+            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {
+                htmlReporter: {
+                    imagesSaver
+                }
+            });
             const workers = {saveDiffTo: sandbox.stub()};
 
             await hermioneTestAdapter.saveTestImages('some/rep', workers);
@@ -514,7 +544,11 @@ describe('hermione test adapter', () => {
             utils.getCurrentPath.returns('dest/path');
             const bufData = new Buffer('base64-data', 'base64');
             const imagesSaver = {saveImg: sandbox.stub()};
-            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {}, {imagesSaver});
+            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {
+                htmlReporter: {
+                    imagesSaver
+                }
+            });
 
             await hermioneTestAdapter.saveBase64Screenshot('report/path');
 

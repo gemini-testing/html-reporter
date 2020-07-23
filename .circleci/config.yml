@@ -11,7 +11,7 @@ jobs:
 
       - run:
           name: Download Selenium
-          command: sudo npm install selenium-standalone@latest -g
+          command: sudo npm install selenium-standalone@6.17.0 -g
       - run:
           name: Start Selenium
           command: selenium-standalone install && selenium-standalone start
