@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="6.0.0-alpha.12"></a>
+# [6.0.0-alpha.12](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.11...v6.0.0-alpha.12) (2020-07-28)
+
+
+### Bug Fixes
+
+* eliminate cwd from file paths in command history ([64b3813](https://github.com/gemini-testing/html-reporter/commit/64b3813))
+
+
+### Features
+
+* Implemented browser versions for reporter ([b19fd61](https://github.com/gemini-testing/html-reporter/commit/b19fd61))
+
+
+
 <a name="6.0.0-alpha.11"></a>
 # [6.0.0-alpha.11](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.10...v6.0.0-alpha.11) (2020-07-23)
 
