@@ -4,6 +4,14 @@ const {getCommandHistory} = require('lib/history-utils');
 
 describe('history-utils', () => {
     describe('getCommandHistory', () => {
+        const sandbox = sinon.createSandbox();
+
+        beforeEach(() => {
+            sandbox.stub(process, 'cwd').returns('/path/to');
+        });
+
+        afterEach(() => sandbox.restore());
+
         it('should return commands executed in test file and all sub commands of the last command', async () => {
             const allHistory = [
                 {name: 'foo', args: ['foo-arg'], stack: 'foo("foo-arg") (/path/to/test/file:10:4)'},
@@ -17,7 +25,7 @@ describe('history-utils', () => {
             assert.deepEqual(history, [
                 '\tfoo("foo-arg")\n',
                 '\tbar("bar-arg")\n',
-                '\t\tqux("qux-arg"): /path/to/qux/file:21:4\n'
+                '\t\tqux("qux-arg"): qux/file:21:4\n'
             ]);
         });
 
@@ -34,7 +42,23 @@ describe('history-utils', () => {
             assert.deepEqual(history, [
                 '\tfoo(...)\n',
                 '\tbar("bar-arg")\n',
-                '\t\tqux(...): /path/to/qux/file:21:4\n'
+                '\t\tqux(...): qux/file:21:4\n'
+            ]);
+        });
+
+        it('should eliminate cwd from file paths in history', async () => {
+            const allHistory = [
+                {name: 'foo', args: ['foo-arg'], stack: 'foo("foo-arg") (/path/to/test/file:10:4)'},
+                {name: 'qux', args: ['qux-arg'], stack: 'qux("qux-arg") (/path/to/qux/file:21:4)'}
+            ];
+
+            const history = await getCommandHistory(allHistory, '/path/to/test/file');
+
+            assert.calledOnce(process.cwd);
+
+            assert.deepEqual(history, [
+                '\tfoo("foo-arg")\n',
+                '\t\tqux("qux-arg"): qux/file:21:4\n'
             ]);
         });
 
