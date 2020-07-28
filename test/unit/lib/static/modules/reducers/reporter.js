@@ -1,6 +1,7 @@
 'use strict';
 import actionNames from 'lib/static/modules/action-names';
 import defaultState from 'lib/static/modules/default-state';
+import {appendQuery, encodeBrowsers} from 'lib/static/modules/query-params';
 import viewModes from 'lib/constants/view-modes';
 import {mkStorage} from '../../../../utils';
 
@@ -114,7 +115,38 @@ describe('lib/static/modules/reducers', () => {
 
                         const newState = reducer(undefined, action);
 
-                        assert.deepStrictEqual(newState.view.filteredBrowsers, ['firefox', 'safari']);
+                        assert.deepStrictEqual(newState.view.filteredBrowsers, [
+                            {id: 'firefox', versions: []},
+                            {id: 'safari', versions: []}
+                        ]);
+                    });
+
+                    it('should set "filteredBrowsers" property to specified browsers and versions', () => {
+                        global.window.location = new URL(`${baseUrl}?browser=firefox&browser=safari:23,11.2`);
+                        const action = {type: actionNames.VIEW_INITIAL, payload: _mkInitialState()};
+
+                        const newState = reducer(undefined, action);
+
+                        assert.deepStrictEqual(newState.view.filteredBrowsers, [
+                            {id: 'firefox', versions: []},
+                            {id: 'safari', versions: ['23', '11.2']}
+                        ]);
+                    });
+
+                    it('should be able to encode and decode browser ids and versions', () => {
+                        const url = appendQuery(baseUrl, {
+                            browser: encodeBrowsers([{id: 'safari:some', versions: ['v:1', 'v,2']}])
+                        });
+
+                        global.window.location = new URL(url);
+
+                        const action = {type: actionNames.VIEW_INITIAL, payload: _mkInitialState()};
+                        const newState = reducer(undefined, action);
+
+                        assert.deepStrictEqual(newState.view.filteredBrowsers, [{
+                            id: 'safari:some',
+                            versions: ['v:1', 'v,2']
+                        }]);
                     });
                 });
 
@@ -325,7 +357,7 @@ describe('lib/static/modules/reducers', () => {
                         'smalltest1',
                         'browser',
                         'url',
-                        JSON.stringify({muted: false}),
+                        JSON.stringify({muted: false, browserVersion: '1.2'}),
                         'description',
                         JSON.stringify({message: 'error message', stack: 'error stack', history: 'some history'}),
                         'skipReason',
@@ -340,7 +372,7 @@ describe('lib/static/modules/reducers', () => {
                         'smalltest2',
                         'browser',
                         'url',
-                        JSON.stringify({muted: false}),
+                        JSON.stringify({muted: false, browserVersion: '1.1'}),
                         'description',
                         JSON.stringify({message: 'error message', stack: 'error stack', history: 'some history'}),
                         'skipReason',
@@ -351,14 +383,8 @@ describe('lib/static/modules/reducers', () => {
                         0 // timestamp
                     ]
                 ];
-                const browsersValues = [
-                    ['chrome'],
-                    ['firefox']
-                ];
                 const db = {
-                    exec: sinon.stub()
-                        .onFirstCall().returns([{values: suitesValues}])
-                        .onSecondCall().returns([{values: browsersValues}])
+                    exec: sinon.stub().onFirstCall().returns([{values: suitesValues}])
                 };
                 const action = {
                     type: actionNames.FETCH_DB,
@@ -379,10 +405,14 @@ describe('lib/static/modules/reducers', () => {
                 assert.match(newState.suites['test'].children[0].browsers[0].retries.length, 1);
                 assert.match(newState.suites['test'].children[1].browsers[0].retries.length, 0);
 
-                assert.deepEqual(newState.browsers, [
-                    {id: 'chrome'},
-                    {id: 'firefox'}
-                ]);
+                assert.deepEqual(newState.browsers, [{
+                    id: 'browser',
+                    versions: [
+                        'unknown',
+                        '1.1',
+                        '1.2'
+                    ]
+                }]);
             });
         });
 

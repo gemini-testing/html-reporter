@@ -26,8 +26,8 @@ describe('<BrowserList />', () => {
                 {id: 'bro3'}
             ],
             selected: [
-                'bro2',
-                'bro3'
+                {id: 'bro2'},
+                {id: 'bro3'}
             ]
         };
         const component = mount(<BrowserList {...props} />);
@@ -37,14 +37,32 @@ describe('<BrowserList />', () => {
         assert.equal(component.find('.rc-tree-select-selection-item').at(1).text(), 'bro3');
     });
 
-    it('should trigger "change" event when selected items have changed', () => {
+    it('should create nested checkboxes for versions', () => {
         const props = {
             available: [
-                {id: 'bro1'},
-                {id: 'bro2'}
+                {id: 'bro1', versions: ['v1', 'v2', 'v3']}
             ],
             selected: [
-                'bro2'
+                {id: 'bro1', versions: ['v1', 'v2']}
+            ]
+        };
+        const component = mount(<BrowserList {...props} />);
+
+        assert.equal(component.find('.rc-tree-select-selection-item').at(0).text(), 'bro1 (v1)');
+        assert.equal(component.find('.rc-tree-select-selection-item').at(1).text(), 'bro1 (v2)');
+    });
+
+    it('should trigger "change" event with selected browsers and versions', () => {
+        const props = {
+            available: [
+                {id: 'bro'},
+                {id: 'bro1', versions: []},
+                {id: 'bro2', versions: ['v1', 'v2']}
+            ],
+            selected: [
+                {id: 'bro'},
+                {id: 'bro1', versions: []},
+                {id: 'bro2', versions: ['v1']}
             ],
             onChange: sandbox.spy()
         };
@@ -53,6 +71,9 @@ describe('<BrowserList />', () => {
         component.find('.rc-tree-select-selection-item-remove').first().simulate('click');
 
         assert.equal(props.onChange.callCount, 1);
-        assert.equal(props.onChange.firstCall.lastArg.triggerValue, 'bro2');
+        assert.deepEqual(props.onChange.firstCall.lastArg, [
+            {id: 'bro1', versions: []},
+            {id: 'bro2', versions: ['v1']}
+        ]);
     });
 });

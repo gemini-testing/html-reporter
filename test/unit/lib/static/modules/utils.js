@@ -371,39 +371,63 @@ describe('static/modules/utils', () => {
             const defaultSuite = mkSuite({
                 children: [
                     mkState({
-                        browsers: [mkBrowserResult({name: 'first-bro'})]
+                        browsers: [mkBrowserResult({name: 'bro1'})]
                     })
                 ]
             });
 
             it('should be true if browser id is equal', () => {
-                assert.isTrue(utils.shouldSuiteBeShown({suite: defaultSuite, filteredBrowsers: ['first-bro']}));
+                assert.isTrue(utils.shouldSuiteBeShown({suite: defaultSuite, filteredBrowsers: [{id: 'bro1'}]}));
             });
 
             it('should be false if browser id is not a strict match', () => {
-                assert.isFalse(utils.shouldSuiteBeShown({suite: defaultSuite, filteredBrowsers: ['first']}));
+                assert.isFalse(utils.shouldSuiteBeShown({suite: defaultSuite, filteredBrowsers: [{id: 'bro'}]}));
             });
 
             it('should be false if browser id is not equal', () => {
-                assert.isFalse(utils.shouldSuiteBeShown({suite: defaultSuite, filteredBrowsers: ['second-bro']}));
+                assert.isFalse(utils.shouldSuiteBeShown({suite: defaultSuite, filteredBrowsers: [{id: 'non-existing-id'}]}));
             });
 
             it('should be true if browser id is equal when suite contains children and browsers', () => {
                 const suite = mkSuite({
                     children: [
                         mkSuite({
-                            browsers: [mkBrowserResult({name: 'first-bro'})],
+                            browsers: [mkBrowserResult({name: 'bro1'})],
                             children: [
                                 mkState({
-                                    browsers: [mkBrowserResult({name: 'second-bro'})]
+                                    browsers: [mkBrowserResult({name: 'bro2'})]
                                 })
                             ]
                         })
                     ]
                 });
 
-                assert.isTrue(utils.shouldSuiteBeShown({suite, filteredBrowsers: ['first-bro']}));
-                assert.isTrue(utils.shouldSuiteBeShown({suite, filteredBrowsers: ['second-bro']}));
+                assert.isTrue(utils.shouldSuiteBeShown({suite, filteredBrowsers: [{id: 'bro1'}]}));
+                assert.isTrue(utils.shouldSuiteBeShown({suite, filteredBrowsers: [{id: 'bro2'}]}));
+            });
+
+            it('should be true if browser id is equal and there is required version', () => {
+                const suite = mkSuite({
+                    children: [
+                        mkSuite({
+                            browsers: [mkBrowserResult({name: 'bro1', browserVersion: '1.1'})]
+                        })
+                    ]
+                });
+
+                assert.isTrue(utils.shouldSuiteBeShown({suite, filteredBrowsers: [{id: 'bro1', versions: ['1.1']}]}));
+            });
+
+            it('should be false if browser id is equal but there is no required version', () => {
+                const suite = mkSuite({
+                    children: [
+                        mkSuite({
+                            browsers: [mkBrowserResult({name: 'bro1', browserVersion: '1.1'})]
+                        })
+                    ]
+                });
+
+                assert.isFalse(utils.shouldSuiteBeShown({suite, filteredBrowsers: [{id: 'bro1', versions: ['1.2', '1.3']}]}));
             });
         });
 
@@ -477,26 +501,18 @@ describe('static/modules/utils', () => {
                 retries: 30
             },
             perBrowser: {
-                'first-bro': {
-                    total: 15,
-                    passed: 10,
-                    failed: 5,
-                    skipped: 0,
-                    retries: 10
+                bro1: {
+                    ver1: {failed: 1, passed: 1},
+                    ver2: {failed: 1, passed: 1}
                 },
-                'second-bro': {
-                    total: 15,
-                    passed: 5,
-                    failed: 0,
-                    skipped: 10,
-                    retries: 15
+                bro2: {
+                    ver1: {failed: 1, passed: 1},
+                    ver2: {failed: 1, passed: 1}
                 },
-                'third-bro': {
-                    total: 10,
-                    passed: 5,
-                    failed: 5,
-                    skipped: 0,
-                    retries: 5
+                bro3: {
+                    ver1: {failed: 1, passed: 1},
+                    ver2: {failed: 1, passed: 1},
+                    ver3: {failed: 1, passed: 1}
                 }
             }
         };
@@ -514,26 +530,32 @@ describe('static/modules/utils', () => {
         });
 
         it('should return correct statistics for one filtered browser', () => {
-            const stats = utils.getStats(inputStats, ['first-bro']);
+            const stats = utils.getStats(inputStats, [{id: 'bro1'}]);
 
             assert.deepEqual(stats, {
-                total: 15,
-                passed: 10,
-                failed: 5,
-                skipped: 0,
-                retries: 10
+                passed: 2,
+                failed: 2
             });
         });
 
         it('should return correct statistics for several filtered browsers', () => {
-            const stats = utils.getStats(inputStats, ['first-bro', 'second-bro']);
+            const stats = utils.getStats(inputStats, [{id: 'bro1'}, {id: 'bro2'}]);
 
             assert.deepEqual(stats, {
-                total: 30,
-                passed: 15,
-                failed: 5,
-                skipped: 10,
-                retries: 25
+                passed: 4,
+                failed: 4
+            });
+        });
+
+        it('should return correct statistics corresponding to versions', () => {
+            const stats = utils.getStats(inputStats, [
+                {id: 'bro1', versions: ['ver1', 'ver2']},
+                {id: 'bro2', versions: ['ver1']}
+            ]);
+
+            assert.deepEqual(stats, {
+                passed: 3,
+                failed: 3
             });
         });
     });

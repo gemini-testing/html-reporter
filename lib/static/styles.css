@@ -42,8 +42,15 @@ main.container {
     margin-bottom: 15px;
 }
 
-.rc-tree-select-tree-switcher {
+.browserlist_linear .rc-tree-select-tree-switcher {
     display: none!important;
+}
+
+.rc-tree-select-tree .rc-tree-select-tree-treenode span.rc-tree-select-tree-switcher {
+    width: 13px;
+    height: 15px;
+    margin-right: 0;
+    background-image: none;
 }
 
 .rc-tree-select-tree-checkbox {
@@ -70,6 +77,14 @@ main.container {
 .browserlist__icon-remove {
     cursor: pointer;
     padding-left: 2px;
+}
+.browserlist__icon-tree {
+    color: #424242;
+    font-size: 13px;
+}
+
+.browserlist__icon-tree:hover {
+    color: #000;
 }
 
 .rc-tree-select-tree-checkbox-checked::before,

@@ -4,16 +4,18 @@ import viewModes from 'lib/constants/view-modes';
 
 describe('lib/static/modules/query-params', () => {
     describe('getViewQuery', () => {
-        it('returns empty query object when no query params exist', () => {
+        it('returns initial query object when no query params exist', () => {
             const query = getViewQuery('');
 
-            assert.deepStrictEqual(query, {});
+            assert.deepStrictEqual(query, {
+                filteredBrowsers: []
+            });
         });
 
         it('parses specified view-related values', () => {
             const query = getViewQuery([
                 'browser=safari%20browser',
-                'browser=firefox',
+                'browser=firefox:23',
                 'testNameFilter=test name',
                 'retryIndex=10',
                 'viewMode=all',
@@ -23,7 +25,10 @@ describe('lib/static/modules/query-params', () => {
             ].join('&'));
 
             assert.deepStrictEqual(query, {
-                filteredBrowsers: ['safari browser', 'firefox'],
+                filteredBrowsers: [
+                    {id: 'safari browser', versions: []},
+                    {id: 'firefox', versions: ['23']}
+                ],
                 testNameFilter: 'test name',
                 retryIndex: 10,
                 viewMode: viewModes.ALL,

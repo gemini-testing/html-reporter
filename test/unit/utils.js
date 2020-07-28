@@ -50,7 +50,7 @@ function mkState(opts = {}) {
 function mkBrowserResult(opts = {}) {
     return _.defaults(opts, {
         name: 'default-bro',
-        result: mkTestResult({name: opts.name}),
+        result: mkTestResult({name: opts.name, browserVersion: opts.browserVersion}),
         retries: []
     });
 }
@@ -59,7 +59,7 @@ function mkTestResult(result) {
     return _.defaults(result, {
         name: 'default-bro',
         suiteUrl: '',
-        metaInfo: {},
+        metaInfo: {browserVersion: result.browserVersion},
         imagesInfo: [],
         status: 'idle',
         attempt: 0

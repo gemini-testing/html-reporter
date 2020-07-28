@@ -220,7 +220,7 @@ describe('lib/static/modules/sqlite', () => {
                 assert.calledTwice(SQL.Database.prototype.close);
             });
 
-            it('should merge both "suites" and "browsers" tables', async () => {
+            it('should merge both "suites" tables', async () => {
                 const data1 = new ArrayBuffer(1);
                 const data2 = new ArrayBuffer(1);
 
@@ -230,7 +230,6 @@ describe('lib/static/modules/sqlite', () => {
                     .flatten(SQL.Database.prototype.run.args)
                     .join(' ');
 
-                assert.include(rawQueries, 'browsers');
                 assert.include(rawQueries, 'suites');
             });
         });
