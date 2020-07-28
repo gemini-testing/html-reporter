@@ -7,7 +7,7 @@ const proxyquire = require('proxyquire');
 const GuiReportBuilder = require('lib/report-builder/gui');
 const constantFileNames = require('lib/constants/file-names');
 const serverUtils = require('lib/server-utils');
-const {stubTool, stubConfig, mkTestResult, mkImagesInfo, mkState, mkSuite, mkSuiteTree, mkBrowserResult} = require('test/unit/utils');
+const {stubTool, stubConfig, mkTestResult, mkImagesInfo, mkState, mkSuite, mkSuiteTree} = require('test/unit/utils');
 
 describe('lib/gui/tool-runner/hermione/index', () => {
     const sandbox = sinon.createSandbox();
@@ -66,6 +66,8 @@ describe('lib/gui/tool-runner/hermione/index', () => {
             './utils': {findTestResult: sandbox.stub(), getDataFromDatabase},
             '../../reporter-helpers': {updateReferenceImage: sandbox.stub().resolves()}
         });
+
+        sandbox.stub(serverUtils.logger, 'warn');
     });
 
     afterEach(() => sandbox.restore());
@@ -277,207 +279,69 @@ describe('lib/gui/tool-runner/hermione/index', () => {
         });
     });
 
-    describe('reuse hermione data', () => {
+    describe('reuse tests tree from database', () => {
         let gui;
         let dbPath;
 
         beforeEach(() => {
-            sandbox.stub(serverUtils.logger, 'warn');
-
             gui = initGuiReporter(hermione, {configs: mkPluginConfig_({path: 'report_path'})});
             dbPath = path.resolve('report_path', constantFileNames.LOCAL_DATABASE_NAME);
 
             sandbox.stub(fs, 'pathExists').withArgs(dbPath).resolves(false);
         });
 
-        it('should log a warning that there is no data for reuse', () => {
+        it('should log a warning that there is no data for reuse', async () => {
             const suites = [mkSuiteTree()];
             reportBuilder.getResult.returns({suites});
 
-            return gui.initialize()
-                .then(() => assert.calledWithMatch(serverUtils.logger.warn, 'Nothing to reuse'));
+            await gui.initialize();
+
+            assert.calledWithMatch(serverUtils.logger.warn, 'Nothing to reuse');
         });
 
-        it('should not apply reuse data if it is empty', () => {
+        it('should not reuse tree if it is empty', async () => {
             fs.pathExists.withArgs(dbPath).resolves(true);
             getDataFromDatabase.returns({});
 
-            const suites = [mkSuiteTree()];
-            reportBuilder.getResult.returns({suites});
+            await gui.initialize();
 
-            return gui.initialize()
-                .then(() => assert.deepEqual(gui.tree.suites, suites));
+            assert.notCalled(reportBuilder.reuseTestsTree);
         });
 
-        it('should apply reuse data only for the matched browser', () => {
+        it('should reuse tests tree', async () => {
             fs.pathExists.withArgs(dbPath).resolves(true);
+            getDataFromDatabase.returns('tests-tree');
 
-            const reuseYaBro = mkBrowserResult({
-                name: 'yabro',
-                result: {status: 'success'}
-            });
-            const reuseSuites = [mkSuiteTree({browsers: [reuseYaBro]})];
-            getDataFromDatabase.returns({suites: reuseSuites});
+            await gui.initialize();
 
-            const chromeBro = mkBrowserResult({name: 'chrome'});
-            const suites = [mkSuiteTree({
-                browsers: [mkBrowserResult({name: 'yabro'}), chromeBro]
-            })];
-            reportBuilder.getResult.returns({suites});
-
-            return gui.initialize()
-                .then(() => {
-                    const {browsers} = gui.tree.suites[0].children[0];
-
-                    assert.deepEqual(browsers[0], reuseYaBro);
-                    assert.deepEqual(browsers[1], chromeBro);
-                });
+            assert.calledOnceWith(reportBuilder.reuseTestsTree, 'tests-tree');
         });
 
-        it('should apply reuse data for tree with nested suites', () => {
-            fs.pathExists.withArgs(dbPath).resolves(true);
+        describe('should initialize gui tree with', () => {
+            it('results from report builder', async () => {
+                reportBuilder.getResult.returns({foo: 'bar', baz: 'qux'});
 
-            const reuseYaBro = mkBrowserResult({
-                name: 'yabro',
-                result: {status: 'success'}
-            });
-            const reuseSuite = mkSuite({suitePath: ['suite1']});
-            const reuseNestedSuite = mkSuiteTree({
-                suite: mkSuite({suitePath: ['suite1', 'suite2']}),
-                state: mkState({suitePath: ['suite1', 'suite2', 'state']}),
-                browsers: [reuseYaBro]
+                await gui.initialize();
+
+                assert.equal(gui.tree.foo, 'bar');
+                assert.equal(gui.tree.baz, 'qux');
             });
 
-            reuseSuite.children.push(reuseNestedSuite);
-            getDataFromDatabase.returns({suites: [reuseSuite]});
+            it('"gui" flag', async () => {
+                await gui.initialize();
 
-            const suite = mkSuite({suitePath: ['suite1']});
-            const nestedSuite = mkSuiteTree({
-                suite: mkSuite({suitePath: ['suite1', 'suite2']}),
-                state: mkState({suitePath: ['suite1', 'suite2', 'state']}),
-                browsers: [mkBrowserResult({name: 'yabro'})]
+                assert.isTrue(gui.tree.gui);
             });
 
-            suite.children.push(nestedSuite);
-            reportBuilder.getResult.returns({suites: [suite]});
+            it('"autoRun" from gui options', async () => {
+                const guiOpts = {autoRun: true};
+                const configs = {...mkPluginConfig_(), ...mkToolCliOpts_({}, guiOpts)};
+                const gui = ToolGuiReporter.create([], hermione, configs);
 
-            return gui.initialize()
-                .then(() => {
-                    assert.deepEqual(
-                        gui.tree.suites[0].children[0].children[0].browsers[0],
-                        reuseYaBro
-                    );
-                });
-        });
+                await gui.initialize();
 
-        it('should apply reuse data for tree with nested suites with children and browsers', () => {
-            fs.pathExists.withArgs(dbPath).resolves(true);
-
-            const reuseYaBro = mkBrowserResult({
-                name: 'yabro',
-                result: {status: 'success'}
+                assert.isTrue(gui.tree.autoRun);
             });
-            const reuseChrome = mkBrowserResult({
-                name: 'chrome',
-                result: {status: 'success'}
-            });
-
-            const reuseSuite = mkSuite({suitePath: ['suite1']});
-            const reuseNestedSuite = mkSuite({
-                suitePath: ['suite1', 'suite2'],
-                children: [
-                    mkState({
-                        suitePath: ['suite1', 'suite2', 'state'],
-                        browsers: [reuseChrome]
-                    })
-                ],
-                browsers: [reuseYaBro]
-            });
-
-            reuseSuite.children.push(reuseNestedSuite);
-            getDataFromDatabase.returns({suites: [reuseSuite]});
-
-            const suite = mkSuite({suitePath: ['suite1']});
-
-            const nestedSuite = mkSuite({
-                suitePath: ['suite1', 'suite2'],
-                children: [
-                    mkState({
-                        suitePath: ['suite1', 'suite2', 'state'],
-                        browsers: [mkBrowserResult({name: 'chrome'})]
-                    })
-                ],
-                browsers: [mkBrowserResult({name: 'yabro'})]
-            });
-
-            suite.children.push(nestedSuite);
-            reportBuilder.getResult.returns({suites: [suite]});
-
-            return gui.initialize()
-                .then(() => {
-                    assert.deepEqual(
-                        gui.tree.suites[0].children[0].browsers[0],
-                        reuseYaBro
-                    );
-                    assert.deepEqual(
-                        gui.tree.suites[0].children[0].children[0].browsers[0],
-                        reuseChrome
-                    );
-                });
-        });
-
-        it('should change "status" for each level of the tree if data is reused', () => {
-            fs.pathExists.withArgs(dbPath).resolves(true);
-
-            const reuseSuites = [mkSuiteTree({
-                suite: mkSuite({status: 'fail'}),
-                state: mkState({status: 'success'}),
-                browsers: [mkBrowserResult({status: 'skipped'})]
-            })];
-            getDataFromDatabase.returns({suites: reuseSuites});
-
-            const suites = [mkSuiteTree({
-                suite: mkSuite({status: 'idle'}),
-                state: mkState({status: 'idle'}),
-                browsers: [mkBrowserResult({status: 'idle'})]
-            })];
-            reportBuilder.getResult.returns({suites});
-
-            return gui.initialize()
-                .then(() => {
-                    const suite = gui.tree.suites[0];
-
-                    assert.equal(suite.status, 'fail');
-                    assert.equal(suite.children[0].status, 'success');
-                    assert.equal(suite.children[0].browsers[0].status, 'skipped');
-                });
-        });
-
-        it('should not change "status" for any level of the tree if data is not reused', () => {
-            fs.pathExists.withArgs(dbPath).resolves(true);
-
-            const reuseSuites = [mkSuiteTree({
-                suite: mkSuite({status: 'fail'}),
-                state: mkState({status: 'success'}),
-                browsers: [mkBrowserResult({name: 'yabro', status: 'skipped'})]
-            })];
-            getDataFromDatabase.returns({suites: reuseSuites});
-
-            const suites = [mkSuiteTree({
-                suite: mkSuite({status: 'idle'}),
-                state: mkState({status: 'idle'}),
-                browsers: [mkBrowserResult({name: 'chrome', status: 'idle'})]
-            })];
-            reportBuilder.getResult.returns({suites});
-
-            return gui.initialize()
-                .then(() => {
-                    const suite = gui.tree.suites[0];
-
-                    assert.equal(suite.status, 'idle');
-                    assert.equal(suite.children[0].status, 'idle');
-                    assert.equal(suite.children[0].browsers[0].status, 'idle');
-                });
         });
     });
 });
