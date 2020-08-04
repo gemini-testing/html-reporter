@@ -8,12 +8,12 @@ describe('lib/static/modules/middlewares/metrika', () => {
 
     const mkStore_ = (state = {}) => {
         return {
-            getState: sinon.stub().returns(state)
+            getState: sandbox.stub().returns(state)
         };
     };
 
     beforeEach(() => {
-        next = sinon.stub();
+        next = sandbox.stub();
 
         sandbox.stub(YandexMetrika, 'create').returns(Object.create(YandexMetrika.prototype));
         sandbox.stub(YandexMetrika.prototype, 'acceptScreenshot');
@@ -31,10 +31,10 @@ describe('lib/static/modules/middlewares/metrika', () => {
         assert.calledOnceWith(next, action);
     });
 
-    describe(`"${actionNames.VIEW_INITIAL}" event`, () => {
+    describe(`"${actionNames.INIT_GUI_REPORT}" event`, () => {
         it('should call next middleware with passed action', () => {
             const store = mkStore_();
-            const action = {type: actionNames.VIEW_INITIAL};
+            const action = {type: actionNames.INIT_GUI_REPORT};
 
             metrikaMiddleware(YandexMetrika)(store)(next)(action);
 
@@ -43,7 +43,7 @@ describe('lib/static/modules/middlewares/metrika', () => {
 
         it('should call next middleware before get state', () => {
             const store = mkStore_();
-            const action = {type: actionNames.VIEW_INITIAL};
+            const action = {type: actionNames.INIT_GUI_REPORT};
 
             metrikaMiddleware(YandexMetrika)(store)(next)(action);
 
@@ -52,7 +52,7 @@ describe('lib/static/modules/middlewares/metrika', () => {
 
         it('should create yandex metrika instance after get updated state', () => {
             const store = mkStore_();
-            const action = {type: actionNames.VIEW_INITIAL};
+            const action = {type: actionNames.INIT_GUI_REPORT};
 
             metrikaMiddleware(YandexMetrika)(store)(next)(action);
 
@@ -69,7 +69,7 @@ describe('lib/static/modules/middlewares/metrika', () => {
                     }
                 }
             });
-            const action = {type: actionNames.VIEW_INITIAL};
+            const action = {type: actionNames.INIT_GUI_REPORT};
 
             metrikaMiddleware(YandexMetrika)(store)(next)(action);
 

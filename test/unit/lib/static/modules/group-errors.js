@@ -1,613 +1,294 @@
 'use strict';
 
-const {groupErrors} = require('lib/static/modules/group-errors');
-const {
-    mkSuite,
-    mkState,
-    mkBrowserResult,
-    mkSuiteTree,
-    mkTestResult
-} = require('../../../utils');
-const {mkImg_} = require('../components/utils');
+const proxyquire = require('proxyquire');
+const {defaults} = require('lodash');
+const {FAIL, SUCCESS} = require('lib/constants/test-statuses');
 const viewModes = require('lib/constants/view-modes');
 
-function mkBrowserResultWithStatus(status) {
-    return mkBrowserResult({
-        name: `${status} test`,
-        result: mkTestResult({
-            status: status
-        }),
-        retries: [
-            mkTestResult({
-                error: {
-                    message: `message stub ${status}`
-                }
-            })
-        ]
-    });
-}
-
 describe('static/modules/group-errors', () => {
+    const sandbox = sinon.sandbox.create();
+    let groupErrors, shouldShowBrowser, isTestNameMatchFilters;
+
+    const mkRootSuite = (opts) => {
+        const rootSuite = defaults(opts, {
+            id: 'default-root-suite-id',
+            parentId: null,
+            status: FAIL,
+            suiteIds: []
+        });
+
+        return {[rootSuite.id]: rootSuite};
+    };
+
+    const mkSuite = (opts) => {
+        const suite = defaults(opts, {
+            id: 'default-suite-id',
+            parentId: 'default-root-suite-id',
+            status: FAIL,
+            browserIds: []
+        });
+
+        return {[suite.id]: suite};
+    };
+
+    const mkBrowser = (opts) => {
+        const browser = defaults(opts, {
+            id: 'default-bro-id',
+            parentId: 'default-test-id',
+            resultIds: []
+        });
+
+        return {[browser.id]: browser};
+    };
+
+    const mkResult = (opts) => {
+        const result = defaults(opts, {
+            id: 'default-result-id',
+            parentId: 'default-bro-id',
+            status: FAIL,
+            imageIds: []
+        });
+
+        return {[result.id]: result};
+    };
+
+    const mkImage = (opts) => {
+        const image = defaults(opts, {
+            id: 'default-image-id',
+            status: FAIL
+        });
+
+        return {[image.id]: image};
+    };
+
+    const mkTree = ({suitesById = {}, failedRootIds = [], browsersById = {}, resultsById = {}, imagesById = {}} = {}) => {
+        return {
+            suites: {byId: suitesById, failedRootIds},
+            browsers: {byId: browsersById},
+            results: {byId: resultsById},
+            images: {byId: imagesById}
+        };
+    };
+
+    beforeEach(() => {
+        shouldShowBrowser = sandbox.stub().returns(true);
+        isTestNameMatchFilters = sandbox.stub().returns(true);
+
+        const module = proxyquire('lib/static/modules/group-errors', {
+            './selectors/tree': {shouldShowBrowser},
+            './utils': {isTestNameMatchFilters}
+        });
+
+        groupErrors = module.groupErrors;
+    });
+
+    afterEach(() => sandbox.restore());
+
     it('should collect errors from all tests if viewMode is "all"', () => {
-        const suites = [
-            mkSuiteTree({
-                browsers: [
-                    mkBrowserResultWithStatus('skipped'),
-                    mkBrowserResultWithStatus('success'),
-                    mkBrowserResultWithStatus('fail'),
-                    mkBrowserResultWithStatus('error')
-                ]
-            })
-        ];
+        const browsersById = {
+            ...mkBrowser({id: 'yabro-1', parentId: 'test-1'}),
+            ...mkBrowser({id: 'yabro-2', parentId: 'test-2'})
+        };
+        const resultsById = {
+            ...mkResult({id: 'res-1', parentId: 'yabro-1', error: {message: 'err-1'}}),
+            ...mkResult({id: 'res-2', parentId: 'yabro-2', error: {message: 'err-2'}})
+        };
+        const tree = mkTree({browsersById, resultsById});
 
-        const result = groupErrors({suites, viewMode: viewModes.ALL});
-
-        assert.lengthOf(result, 4);
-        assert.include(result[0], {
-            count: 1,
-            name: 'message stub error'
-        });
-        assert.include(result[1], {
-            count: 1,
-            name: 'message stub fail'
-        });
-        assert.include(result[2], {
-            count: 1,
-            name: 'message stub skipped'
-        });
-        assert.include(result[3], {
-            count: 1,
-            name: 'message stub success'
-        });
-    });
-
-    it('should collect errors only from failed tests if viewMode is "failed"', () => {
-        const suites = [
-            mkSuiteTree({
-                suite: mkSuite({status: 'error'}),
-                browsers: [
-                    mkBrowserResultWithStatus('skipped'),
-                    mkBrowserResultWithStatus('success'),
-                    mkBrowserResultWithStatus('fail'),
-                    mkBrowserResultWithStatus('error')
-                ]
-            })
-        ];
-
-        const result = groupErrors({suites, viewMode: viewModes.FAILED});
-
-        assert.lengthOf(result, 2);
-        assert.include(result[0], {
-            count: 1,
-            name: 'message stub error'
-        });
-        assert.include(result[1], {
-            count: 1,
-            name: 'message stub fail'
-        });
-    });
-
-    it('should collect errors from error and imagesInfo[].error', () => {
-        const suites = [
-            mkSuiteTree({
-                browsers: [
-                    mkBrowserResult({
-                        result: mkTestResult({
-                            error: {
-                                message: 'message stub first'
-                            },
-                            imagesInfo: [
-                                {error: {message: 'message stub second'}}
-                            ]
-                        })
-                    })
-                ]
-            })
-        ];
-
-        const result = groupErrors({suites});
+        const result = groupErrors({tree, viewMode: viewModes.ALL});
 
         assert.deepEqual(result, [
             {
+                pattern: 'err-1',
+                name: 'err-1',
                 count: 1,
-                name: 'message stub first',
-                pattern: 'message stub first',
-                tests: {
-                    'default-suite default-state': ['default-bro']
-                }
+                browserIds: ['yabro-1']
             },
             {
+                pattern: 'err-2',
+                name: 'err-2',
                 count: 1,
-                name: 'message stub second',
-                pattern: 'message stub second',
-                tests: {
-                    'default-suite default-state': ['default-bro']
-                }
+                browserIds: ['yabro-2']
+            }
+        ]);
+    });
+
+    it('should collect errors only from failed tests if viewMode is "failed"', () => {
+        const suitesById = {
+            ...mkRootSuite({id: 'suite-1', status: FAIL, suiteIds: ['test-1', 'test-2']}),
+            ...mkSuite({id: 'test-1', status: FAIL, browserIds: ['yabro-1']}),
+            ...mkSuite({id: 'test-2', status: SUCCESS, browserIds: ['yabro-2']})
+        };
+        const failedRootIds = ['suite-1'];
+        const browsersById = {
+            ...mkBrowser({id: 'yabro-1', parentId: 'test-1', resultIds: ['res-1']}),
+            ...mkBrowser({id: 'yabro-2', parentId: 'test-2', resultIds: ['res-2']})
+        };
+        const resultsById = {
+            ...mkResult({id: 'res-1', parentId: 'yabro-1', status: FAIL, error: {message: 'err-1'}}),
+            ...mkResult({id: 'res-2', parentId: 'yabro-2', status: SUCCESS, error: {message: 'err-2'}})
+        };
+        const tree = mkTree({suitesById, failedRootIds, browsersById, resultsById});
+
+        const result = groupErrors({tree, viewMode: viewModes.FAILED});
+
+        assert.deepEqual(result, [{
+            pattern: 'err-1',
+            name: 'err-1',
+            count: 1,
+            browserIds: ['yabro-1']
+        }]);
+    });
+
+    it('should collect errors from tests and images', () => {
+        const browsersById = {
+            ...mkBrowser({id: 'yabro-1', parentId: 'test-1'})
+        };
+        const resultsById = {
+            ...mkResult({id: 'res-1', parentId: 'yabro-1', imageIds: ['img-1'], error: {message: 'err'}})
+        };
+        const imagesById = {
+            ...mkImage({id: 'img-1', error: {message: 'img-err'}})
+        };
+        const tree = mkTree({browsersById, resultsById, imagesById});
+
+        const result = groupErrors({tree});
+
+        assert.deepEqual(result, [
+            {
+                pattern: 'img-err',
+                name: 'img-err',
+                count: 1,
+                browserIds: ['yabro-1']
+            },
+            {
+                pattern: 'err',
+                name: 'err',
+                count: 1,
+                browserIds: ['yabro-1']
             }
         ]);
     });
 
     it('should collect image comparison fails', () => {
-        const suites = [
-            mkSuiteTree({
-                browsers: [
-                    mkBrowserResult({
-                        result: mkTestResult({
-                            imagesInfo: [{diffImg: mkImg_()}]
-                        })
-                    })
-                ]
-            })
-        ];
+        const browsersById = {
+            ...mkBrowser({id: 'yabro-1', parentId: 'test-1'})
+        };
+        const resultsById = {
+            ...mkResult({id: 'res-1', parentId: 'yabro-1', imageIds: ['img-1']})
+        };
+        const imagesById = {
+            ...mkImage({id: 'img-1', diffImg: {}})
+        };
+        const tree = mkTree({browsersById, resultsById, imagesById});
 
-        const result = groupErrors({suites});
+        const result = groupErrors({tree});
 
-        assert.lengthOf(result, 1);
-        assert.include(result[0], {
-            count: 1,
+        assert.deepEqual(result, [{
+            pattern: 'image comparison failed',
             name: 'image comparison failed',
-            pattern: 'image comparison failed'
-        });
+            count: 1,
+            browserIds: ['yabro-1']
+        }]);
     });
 
-    it('should collect errors from result and retries', () => {
-        const suites = [
-            mkSuiteTree({
-                browsers: [
-                    mkBrowserResult({
-                        result: mkTestResult({
-                            error: {
-                                message: 'message stub first'
-                            }
-                        }),
-                        retries: [
-                            mkTestResult({
-                                error: {
-                                    message: 'message stub second'
-                                }
-                            })
-                        ]
-                    })
-                ]
-            })
-        ];
+    it('should group equal errors', () => {
+        const browsersById = {
+            ...mkBrowser({id: 'yabro-1', parentId: 'test-1'}),
+            ...mkBrowser({id: 'yabro-2', parentId: 'test-2'})
+        };
+        const resultsById = {
+            ...mkResult({id: 'res-1', parentId: 'yabro-1', error: {message: 'err'}}),
+            ...mkResult({id: 'res-2', parentId: 'yabro-2', error: {message: 'err'}})
+        };
+        const tree = mkTree({browsersById, resultsById});
 
-        const result = groupErrors({suites});
+        const result = groupErrors({tree});
 
-        assert.deepEqual(result, [
-            {
-                count: 1,
-                name: 'message stub first',
-                pattern: 'message stub first',
-                tests: {
-                    'default-suite default-state': ['default-bro']
-                }
-            },
-            {
-                count: 1,
-                name: 'message stub second',
-                pattern: 'message stub second',
-                tests: {
-                    'default-suite default-state': ['default-bro']
-                }
-            }
-        ]);
-    });
-
-    it('should collect errors from children recursively', () => {
-        const suites = [
-            mkSuite({
-                suitePath: ['suite'],
-                children: [
-                    mkSuite({
-                        suitePath: ['suite', 'state-one'],
-                        children: [
-                            mkState({
-                                suitePath: ['suite', 'state-one', 'state-two'],
-                                browsers: [
-                                    mkBrowserResult({
-                                        result: mkTestResult({
-                                            error: {
-                                                message: 'message stub'
-                                            }
-                                        })
-                                    })
-                                ]
-                            })
-                        ]
-                    })
-                ]
-            })
-        ];
-
-        const result = groupErrors({suites});
-
-        assert.deepEqual(result, [
-            {
-                count: 1,
-                name: 'message stub',
-                pattern: 'message stub',
-                tests: {
-                    'suite state-one state-two': ['default-bro']
-                }
-            }
-        ]);
-    });
-
-    it('should group errors from different browser but single test', () => {
-        const suites = [
-            mkSuiteTree({
-                browsers: [
-                    mkBrowserResult({
-                        name: 'browserOne',
-                        result: mkTestResult({
-                            error: {
-                                message: 'message stub'
-                            }
-                        })
-                    }),
-                    mkBrowserResult({
-                        name: 'browserTwo',
-                        result: mkTestResult({
-                            error: {
-                                message: 'message stub'
-                            }
-                        })
-                    })
-                ]
-            })
-        ];
-
-        const result = groupErrors({suites});
-
-        assert.deepEqual(result, [
-            {
-                count: 2,
-                name: 'message stub',
-                pattern: 'message stub',
-                tests: {
-                    'default-suite default-state': ['browserOne', 'browserTwo']
-                }
-            }
-        ]);
+        assert.deepEqual(result, [{
+            pattern: 'err',
+            name: 'err',
+            count: 2,
+            browserIds: ['yabro-1', 'yabro-2']
+        }]);
     });
 
     it('should filter by test name', () => {
-        const suites = [
-            mkSuite({
-                suitePath: ['suite'],
-                children: [
-                    mkSuite({
-                        suitePath: ['suite', 'state-one'],
-                        browsers: [
-                            mkBrowserResult({
-                                result: mkTestResult({
-                                    error: {
-                                        message: 'message stub'
-                                    }
-                                })
-                            })
-                        ]
-                    }),
-                    mkSuite({
-                        suitePath: ['suite', 'state-two'],
-                        browsers: [
-                            mkBrowserResult({
-                                result: mkTestResult({
-                                    error: {
-                                        message: 'message stub'
-                                    }
-                                })
-                            })
-                        ]
-                    })
-                ]
-            })
-        ];
+        const browsersById = {
+            ...mkBrowser({id: 'yabro-1', parentId: 'test-1'}),
+            ...mkBrowser({id: 'yabro-2', parentId: 'test-2'})
+        };
+        const resultsById = {
+            ...mkResult({id: 'res-1', parentId: 'yabro-1', error: {message: 'err-1'}}),
+            ...mkResult({id: 'res-2', parentId: 'yabro-2', error: {message: 'err-2'}})
+        };
+        const tree = mkTree({browsersById, resultsById});
 
-        const result = groupErrors({
-            suites,
-            testNameFilter: 'suite state-one'
-        });
+        isTestNameMatchFilters
+            .withArgs('test-1', 'test-1', true).returns(true)
+            .withArgs('test-2', 'test-1', true).returns(false);
 
-        assert.deepEqual(result, [
-            {
-                count: 1,
-                name: 'message stub',
-                pattern: 'message stub',
-                tests: {
-                    'suite state-one': ['default-bro']
-                }
-            }
-        ]);
-    });
+        const result = groupErrors({tree, testNameFilter: 'test-1', strictMatchFilter: true});
 
-    it('should filter by partial test name', () => {
-        const suites = [
-            mkSuite({
-                suitePath: ['suite'],
-                children: [
-                    mkSuite({
-                        suitePath: ['suite', 'state-one'],
-                        browsers: [
-                            mkBrowserResult({
-                                result: mkTestResult({
-                                    error: {
-                                        message: 'message stub'
-                                    }
-                                })
-                            })
-                        ]
-                    }),
-                    mkSuite({
-                        suitePath: ['suite', 'state-two'],
-                        browsers: [
-                            mkBrowserResult({
-                                result: mkTestResult({
-                                    error: {
-                                        message: 'message stub'
-                                    }
-                                })
-                            })
-                        ]
-                    })
-                ]
-            })
-        ];
-
-        const result = groupErrors({
-            suites,
-            testNameFilter: 'suite state-o'
-        });
-
-        assert.deepEqual(result, [
-            {
-                count: 1,
-                name: 'message stub',
-                pattern: 'message stub',
-                tests: {
-                    'suite state-one': ['default-bro']
-                }
-            }
-        ]);
-    });
-
-    it('should filter by partial test name with strictMatchFilter', () => {
-        const suites = [
-            mkSuite({
-                suitePath: ['suite'],
-                children: [
-                    mkSuite({
-                        suitePath: ['suite', 'state-one'],
-                        browsers: [
-                            mkBrowserResult({
-                                result: mkTestResult({
-                                    error: {
-                                        message: 'message stub'
-                                    }
-                                })
-                            })
-                        ]
-                    }),
-                    mkSuite({
-                        suitePath: ['suite', 'state-two'],
-                        browsers: [
-                            mkBrowserResult({
-                                result: mkTestResult({
-                                    error: {
-                                        message: 'message stub'
-                                    }
-                                })
-                            })
-                        ]
-                    })
-                ]
-            })
-        ];
-
-        const result = groupErrors({
-            suites,
-            testNameFilter: 'suite state-one',
-            strictMatchFilter: true
-        });
-
-        assert.deepEqual(result, [
-            {
-                count: 1,
-                name: 'message stub',
-                pattern: 'message stub',
-                tests: {
-                    'suite state-one': ['default-bro']
-                }
-            }
-        ]);
-    });
-
-    it('should resolve to empty result by partial test name with strictMatchFilter', () => {
-        const suites = [
-            mkSuite({
-                suitePath: ['suite'],
-                children: [
-                    mkSuite({
-                        suitePath: ['suite', 'state-one'],
-                        browsers: [
-                            mkBrowserResult({
-                                result: mkTestResult({
-                                    error: {
-                                        message: 'message stub'
-                                    }
-                                })
-                            })
-                        ]
-                    }),
-                    mkSuite({
-                        suitePath: ['suite', 'state-two'],
-                        browsers: [
-                            mkBrowserResult({
-                                result: mkTestResult({
-                                    error: {
-                                        message: 'message stub'
-                                    }
-                                })
-                            })
-                        ]
-                    })
-                ]
-            })
-        ];
-
-        const result = groupErrors({
-            suites,
-            testNameFilter: 'suite state-on',
-            strictMatchFilter: true
-        });
-
-        assert.deepEqual(result, []);
+        assert.deepEqual(result, [{
+            pattern: 'err-1',
+            name: 'err-1',
+            count: 1,
+            browserIds: ['yabro-1']
+        }]);
     });
 
     it('should filter by browser', () => {
-        const suites = [
-            mkSuite({
-                suitePath: ['suite'],
-                children: [
-                    mkSuite({
-                        suitePath: ['suite', 'state'],
-                        browsers: [
-                            mkBrowserResult({
-                                name: 'browser-one',
-                                result: mkTestResult({
-                                    error: {
-                                        message: 'message stub'
-                                    }
-                                })
-                            }),
-                            mkBrowserResult({
-                                name: 'browser-two',
-                                result: mkTestResult({
-                                    error: {
-                                        message: 'message stub'
-                                    }
-                                })
-                            })
-                        ]
-                    })
-                ]
-            })
-        ];
+        const browsersById = {
+            ...mkBrowser({id: 'yabro-1', parentId: 'test-1'}),
+            ...mkBrowser({id: 'yabro-2', parentId: 'test-2'})
+        };
+        const resultsById = {
+            ...mkResult({id: 'res-1', parentId: 'yabro-1', error: {message: 'err-1'}}),
+            ...mkResult({id: 'res-2', parentId: 'yabro-2', error: {message: 'err-2'}})
+        };
+        const tree = mkTree({browsersById, resultsById});
+        const filteredBrowsers = ['yabro-1'];
 
-        const result = groupErrors({
-            suites,
-            filteredBrowsers: [{id: 'browser-one'}]
-        });
+        shouldShowBrowser
+            .withArgs(browsersById['yabro-1'], filteredBrowsers).returns(true)
+            .withArgs(browsersById['yabro-2'], filteredBrowsers).returns(false);
 
-        assert.deepEqual(result, [
-            {
-                count: 1,
-                name: 'message stub',
-                pattern: 'message stub',
-                tests: {
-                    'suite state': ['browser-one']
-                }
-            }
-        ]);
-    });
+        const result = groupErrors({tree, filteredBrowsers});
 
-    it('should filter by browser with versions', () => {
-        const suites = [
-            mkSuite({
-                suitePath: ['suite'],
-                children: [
-                    mkSuite({
-                        suitePath: ['suite', 'state'],
-                        browsers: [
-                            mkBrowserResult({
-                                name: 'browser-one',
-                                result: mkTestResult({
-                                    error: {
-                                        message: 'message stub'
-                                    }
-                                })
-                            }),
-                            mkBrowserResult({
-                                name: 'browser-one',
-                                result: mkTestResult({
-                                    browserVersion: '1.1',
-                                    error: {
-                                        message: 'message stub 1'
-                                    }
-                                })
-                            })
-                        ]
-                    })
-                ]
-            })
-        ];
-
-        const result = groupErrors({
-            suites,
-            filteredBrowsers: [{id: 'browser-one', versions: ['1.1']}]
-        });
-
-        assert.deepEqual(result, [
-            {
-                count: 1,
-                name: 'message stub 1',
-                pattern: 'message stub 1',
-                tests: {
-                    'suite state': ['browser-one']
-                }
-            }
-        ]);
+        assert.deepEqual(result, [{
+            pattern: 'err-1',
+            name: 'err-1',
+            count: 1,
+            browserIds: ['yabro-1']
+        }]);
     });
 
     it('should group by regexp', () => {
-        const suites = [
-            mkSuiteTree({
-                browsers: [
-                    mkBrowserResult({
-                        result: mkTestResult({
-                            error: {
-                                message: 'message stub first'
-                            }
-                        }),
-                        retries: [
-                            mkTestResult({
-                                error: {
-                                    message: 'message stub second'
-                                }
-                            })
-                        ]
-                    })
-                ]
-            })
-        ];
+        const browsersById = {
+            ...mkBrowser({id: 'yabro-1', parentId: 'test-1'}),
+            ...mkBrowser({id: 'yabro-2', parentId: 'test-2'})
+        };
+        const resultsById = {
+            ...mkResult({id: 'res-1', parentId: 'yabro-1', error: {message: 'err-1'}}),
+            ...mkResult({id: 'res-2', parentId: 'yabro-2', error: {message: 'err-2'}})
+        };
+        const tree = mkTree({browsersById, resultsById});
         const errorPatterns = [
             {
-                name: 'Name group: message stub first',
-                pattern: 'message .* first',
-                regexp: /message .* first/
+                name: 'Name group: err',
+                pattern: 'err-.*',
+                regexp: /err-.*/
             }
         ];
 
-        const result = groupErrors({suites, errorPatterns});
+        const result = groupErrors({tree, errorPatterns});
 
-        assert.deepEqual(result, [
-            {
-                count: 1,
-                name: 'message stub second',
-                pattern: 'message stub second',
-                tests: {
-                    'default-suite default-state': ['default-bro']
-                }
-            },
-            {
-                count: 1,
-                name: 'Name group: message stub first',
-                pattern: 'message .* first',
-                tests: {
-                    'default-suite default-state': ['default-bro']
-                }
-            }
-        ]);
+        assert.deepEqual(result, [{
+            pattern: 'err-.*',
+            name: 'Name group: err',
+            count: 2,
+            browserIds: ['yabro-1', 'yabro-2']
+        }]);
     });
 });

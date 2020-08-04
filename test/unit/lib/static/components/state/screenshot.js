@@ -79,4 +79,24 @@ describe('Screenshot component', () => {
             assert.lengthOf(screenshotComponent.find(LazyLoad), 0);
         });
     });
+
+    describe('should render placeholder with', () => {
+        it('"width" prop equal to passed image width', () => {
+            const screenshotComponent = mkConnectedComponent(
+                <Screenshot image={{path: '', size: {width: 200}}} />,
+                {initialState: {view: {lazyLoadOffset: 100}}}
+            );
+
+            assert.equal(screenshotComponent.find(Placeholder).prop('width'), 200);
+        });
+
+        it('"paddingTop" prop calculated depending on width and height of the image', () => {
+            const screenshotComponent = mkConnectedComponent(
+                <Screenshot image={{path: '', size: {width: 200, height: 100}}} />,
+                {initialState: {view: {lazyLoadOffset: 10}}}
+            );
+
+            assert.equal(screenshotComponent.find(Placeholder).prop('paddingTop'), '50.00%');
+        });
+    });
 });

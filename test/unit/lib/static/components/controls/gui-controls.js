@@ -1,23 +1,27 @@
 import React from 'react';
 import RunButton from 'lib/static/components/controls/run-button';
+import AcceptOpenedButton from 'lib/static/components/controls/accept-opened-button';
 import proxyquire from 'proxyquire';
-import {mkConnectedComponent} from '../utils';
+import {mkState, mkConnectedComponent} from '../utils';
 
-describe('<ControlButtons />', () => {
+describe('<GuiControls />', () => {
     const sandbox = sinon.sandbox.create();
 
-    let ControlButtons;
-    let actionsStub;
+    let GuiControls, actionsStub, selectors;
 
     beforeEach(() => {
         actionsStub = {
             runAllTests: sandbox.stub().returns({type: 'some-type'}),
-            runFailedTests: sandbox.stub().returns({type: 'some-type'}),
-            acceptOpened: sandbox.stub().returns({type: 'some-type'})
+            runFailedTests: sandbox.stub().returns({type: 'some-type'})
         };
 
-        ControlButtons = proxyquire('lib/static/components/controls/gui-controls', {
-            '../../modules/actions': actionsStub
+        selectors = {
+            getFailedTests: sandbox.stub().returns([])
+        };
+
+        GuiControls = proxyquire('lib/static/components/controls/gui-controls', {
+            '../../modules/actions': actionsStub,
+            '../../modules/selectors/tree': selectors
         }).default;
     });
 
@@ -25,31 +29,31 @@ describe('<ControlButtons />', () => {
 
     describe('"Run" button', () => {
         it('should be disabled if no suites to run', () => {
-            const component = mkConnectedComponent(<ControlButtons />, {
-                initialState: {suiteIds: {all: []}, running: false}
+            const component = mkConnectedComponent(<GuiControls />, {
+                initialState: {tree: {suites: {allRootIds: []}}, processing: false}
             });
 
             assert.isTrue(component.find(RunButton).prop('isDisabled'));
         });
 
         it('should be enabled if suites exist to run', () => {
-            const component = mkConnectedComponent(<ControlButtons />, {
-                initialState: {suiteIds: {all: ['some-suite']}, running: false}
+            const component = mkConnectedComponent(<GuiControls />, {
+                initialState: {tree: {suites: {allRootIds: ['suite']}}, processing: false}
             });
 
             assert.isFalse(component.find(RunButton).prop('isDisabled'));
         });
 
         it('should be disabled while processing something', () => {
-            const component = mkConnectedComponent(<ControlButtons />, {
-                initialState: {processing: true}
+            const component = mkConnectedComponent(<GuiControls />, {
+                initialState: {tree: {suites: {allRootIds: ['suite']}}, processing: true}
             });
 
             assert.isTrue(component.find(RunButton).prop('isDisabled'));
         });
 
         it('should pass "autoRun" prop', () => {
-            const component = mkConnectedComponent(<ControlButtons />, {
+            const component = mkConnectedComponent(<GuiControls />, {
                 initialState: {autoRun: true}
             });
 
@@ -57,8 +61,8 @@ describe('<ControlButtons />', () => {
         });
 
         it('should call "runAllTests" action on click', () => {
-            const component = mkConnectedComponent(<ControlButtons />, {
-                initialState: {suiteIds: {all: ['some-suite']}, running: false}
+            const component = mkConnectedComponent(<GuiControls />, {
+                initialState: {tree: {suites: {allRootIds: ['suite']}}, processing: false}
             });
 
             component.find(RunButton).simulate('click');
@@ -67,61 +71,48 @@ describe('<ControlButtons />', () => {
         });
     });
 
-    [
-        {name: 'Retry failed tests', handler: 'runFailedTests'},
-        {name: 'Accept opened', handler: 'acceptOpened'}
-    ].forEach((button) => {
-        describe(`"${button.name}" button`, () => {
-            it('should be disabled if no failed suites to run', () => {
-                const component = mkConnectedComponent(<ControlButtons />, {
-                    initialState: {suiteIds: {all: [], failed: []}, running: false}
-                });
-
-                assert.isTrue(component.find(`[label="${button.name}"]`).prop('isDisabled'));
+    describe('"Retry failed tests" button', () => {
+        it('should be disabled if no failed suites to run', () => {
+            const component = mkConnectedComponent(<GuiControls />, {
+                initialState: {tree: {suites: {failedRootIds: []}}, processing: false}
             });
 
-            it('should be enabled if failed suites exist to run', () => {
-                const component = mkConnectedComponent(<ControlButtons />, {
-                    initialState: {
-                        suites: {suite1: {}},
-                        suiteIds: {all: [], failed: ['suite1']},
-                        running: false
-                    }
-                });
+            assert.isTrue(component.find('[label="Retry failed tests"]').prop('isDisabled'));
+        });
 
-                assert.isFalse(component.find(`[label="${button.name}"]`).prop('isDisabled'));
+        it('should be enabled if failed suites exist to run', () => {
+            const component = mkConnectedComponent(<GuiControls />, {
+                initialState: {tree: {suites: {failedRootIds: ['suite']}}, processing: false}
             });
 
-            it('should be disabled while tests running', () => {
-                const component = mkConnectedComponent(<ControlButtons />, {
-                    initialState: {running: true}
-                });
+            assert.isFalse(component.find('[label="Retry failed tests"]').prop('isDisabled'));
+        });
 
-                assert.isTrue(component.find(`[label="${button.name}"]`).prop('isDisabled'));
+        it('should be disabled while processing something', () => {
+            const component = mkConnectedComponent(<GuiControls />, {
+                initialState: {tree: {suites: {failedRootIds: ['suite']}}, processing: true}
             });
 
-            it('should be disabled while processing something', () => {
-                const component = mkConnectedComponent(<ControlButtons />, {
-                    initialState: {processing: true}
-                });
+            assert.isTrue(component.find('[label="Retry failed tests"]').prop('isDisabled'));
+        });
 
-                assert.isTrue(component.find(`[label="${button.name}"]`).prop('isDisabled'));
-            });
+        it('should call "runFailedTests" action on click', () => {
+            const failedTests = [{testName: 'suite test', browserName: 'yabro'}];
+            const state = mkState({initialState: {tree: {suites: {failedRootIds: ['suite']}}, processing: false}});
+            selectors.getFailedTests.withArgs(state).returns(failedTests);
+            const component = mkConnectedComponent(<GuiControls />, {state});
 
-            it(`should call "${button.handler}" action on click`, () => {
-                const failedSuite = {name: 'suite1', status: 'fail'};
-                const component = mkConnectedComponent(<ControlButtons />, {
-                    initialState: {
-                        suites: {suite1: failedSuite},
-                        suiteIds: {all: [], failed: ['suite1']},
-                        running: false
-                    }
-                });
+            component.find('[label="Retry failed tests"]').simulate('click');
 
-                component.find(`[label="${button.name}"]`).simulate('click');
+            assert.calledOnceWith(actionsStub.runFailedTests, failedTests);
+        });
+    });
 
-                assert.calledOnceWith(actionsStub[button.handler], [failedSuite]);
-            });
+    describe('"Accept opened" button', () => {
+        it('should render button', () => {
+            const component = mkConnectedComponent(<GuiControls />);
+
+            assert.isTrue(component.contains(AcceptOpenedButton));
         });
     });
 });

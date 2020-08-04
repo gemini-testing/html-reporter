@@ -1,91 +1,57 @@
-'use strict';
-
 import axios from 'axios';
-import {isArray} from 'lodash';
 import proxyquire from 'proxyquire';
-
-import {
-    acceptOpened,
-    retryTest,
-    runFailedTests
-} from 'lib/static/modules/actions';
+import {acceptOpened, retryTest, runFailedTests} from 'lib/static/modules/actions';
 import actionNames from 'lib/static/modules/action-names';
-import {
-    mkSuiteTree,
-    mkSuite,
-    mkState,
-    mkBrowserResult,
-    mkImagesInfo,
-    mkTestResult
-} from '../../../utils';
-import {SUCCESS, FAIL} from 'lib/constants/test-statuses';
-
-const mkBrowserResultWithImagesInfo = (name, status = FAIL) => {
-    return mkBrowserResult({
-        name,
-        status,
-        result: mkTestResult({
-            name,
-            status,
-            imagesInfo: [
-                mkImagesInfo({
-                    status,
-                    opened: true
-                })
-            ]
-        }),
-        state: {
-            opened: true,
-            retryIndex: 0
-        }
-    });
-};
+import StaticTestsTreeBuilder from 'lib/tests-tree-builder/static';
 
 describe('lib/static/modules/actions', () => {
     const sandbox = sinon.sandbox.create();
-    let dispatch;
-    let actions;
-    let addNotification;
+    let dispatch, actions, addNotification, getSuitesTableRows;
 
     beforeEach(() => {
-        dispatch = sinon.stub();
+        dispatch = sandbox.stub();
         sandbox.stub(axios, 'post').resolves({data: {}});
-        addNotification = sinon.stub();
+        addNotification = sandbox.stub();
+        getSuitesTableRows = sandbox.stub();
+
+        sandbox.stub(StaticTestsTreeBuilder, 'create').returns(Object.create(StaticTestsTreeBuilder.prototype));
+        sandbox.stub(StaticTestsTreeBuilder.prototype, 'build').returns({});
 
         actions = proxyquire('lib/static/modules/actions', {
-            'reapop': {addNotification}
+            'reapop': {addNotification},
+            './database-utils': {getSuitesTableRows}
         });
     });
 
     afterEach(() => sandbox.restore());
 
-    describe('initial', () => {
+    describe('initGuiReport', () => {
         it('should run init action on server', async () => {
             sandbox.stub(axios, 'get').resolves({data: {}});
 
-            await actions.initial()(dispatch);
+            await actions.initGuiReport()(dispatch);
 
             assert.calledOnceWith(axios.get, '/init');
         });
 
-        it('should dispatch "VIEW_INITIAL" action', async () => {
+        it('should dispatch "INIT_GUI_REPORT" action', async () => {
             sandbox.stub(axios, 'get').resolves({data: 'some-data'});
 
-            await actions.initial()(dispatch);
+            await actions.initGuiReport()(dispatch);
 
-            assert.calledOnceWith(dispatch, {type: actionNames.VIEW_INITIAL, payload: 'some-data'});
+            assert.calledOnceWith(dispatch, {type: actionNames.INIT_GUI_REPORT, payload: 'some-data'});
         });
 
         it('should show notification if error in initialization on the server is happened', async () => {
             sandbox.stub(axios, 'get').throws(new Error('failed to initialize custom gui'));
 
-            await actions.initial()(dispatch);
+            await actions.initGuiReport()(dispatch);
 
             assert.calledOnceWith(
                 addNotification,
                 {
                     dismissAfter: 0,
-                    id: 'initial',
+                    id: 'initGuiReport',
                     message: 'failed to initialize custom gui',
                     status: 'error'
                 }
@@ -94,106 +60,44 @@ describe('lib/static/modules/actions', () => {
     });
 
     describe('acceptOpened', () => {
-        it('should update reference for suite with children and browsers', async () => {
-            const failed = [
-                mkSuite({
-                    suitePath: ['suite1'],
-                    children: [
-                        mkSuite({
-                            suitePath: ['suite1', 'suite2'],
-                            children: [
-                                mkState({
-                                    suitePath: ['suite1', 'suite2', 'state'],
-                                    status: FAIL,
-                                    browsers: [mkBrowserResultWithImagesInfo('chrome')]
-                                })
-                            ],
-                            browsers: [mkBrowserResultWithImagesInfo('yabro')]
-                        })
-                    ]
-                })
-            ];
+        it('should update opened images', async () => {
+            const imageIds = ['img-id-1', 'img-id-2'];
+            const images = [{id: 'img-id-1'}, {id: 'img-id-2'}];
+            axios.post.withArgs('/get-update-reference-data', imageIds).returns({data: images});
 
-            await acceptOpened(failed)(dispatch);
+            await acceptOpened(imageIds)(dispatch);
 
-            assert.calledWith(
-                axios.post,
-                sinon.match.any,
-                sinon.match(formattedFails => {
-                    assert.lengthOf(formattedFails, 2);
-                    assert.equal(formattedFails[0].browserId, 'yabro');
-                    assert.equal(formattedFails[1].browserId, 'chrome');
-                    return true;
-                })
-            );
+            assert.calledWith(axios.post.firstCall, '/get-update-reference-data', imageIds);
+            assert.calledWith(axios.post.secondCall, '/update-reference', images);
         });
     });
 
     describe('retryTest', () => {
-        const suite = mkSuite({
-            suitePath: ['suite1'],
-            browsers: [
-                mkBrowserResultWithImagesInfo('yabro', SUCCESS),
-                mkBrowserResultWithImagesInfo('foo-bar', FAIL)
-            ],
-            children: [
-                mkState({
-                    suitePath: ['suite1', 'suite2'],
-                    status: FAIL,
-                    browsers: [
-                        mkBrowserResultWithImagesInfo('chrome'),
-                        mkBrowserResultWithImagesInfo('yabro')
-                    ]
-                })
-            ]
-        });
+        it('should retry passed test', async () => {
+            const test = {testName: 'test-name', browserName: 'yabro'};
 
-        [
-            {browserId: 'yabro', status: 'successful'},
-            {browserId: 'foo-bar', status: 'failed'}
-        ].forEach(({browserId, status}) => {
-            it(`should run only ${status} test if it was passed`, async () => {
-                await retryTest(suite, browserId)(dispatch);
+            await retryTest(test)(dispatch);
 
-                assert.calledWith(
-                    axios.post,
-                    sinon.match.any,
-                    sinon.match(tests => {
-                        if (isArray(tests)) {
-                            assert.equal(tests[0].browserId, browserId);
-                        } else {
-                            assert.equal(tests.browserId, browserId);
-                        }
-
-                        return true;
-                    })
-                );
-            });
+            assert.calledOnceWith(axios.post, '/run', [test]);
+            assert.calledOnceWith(dispatch, {type: actionNames.RETRY_TEST});
         });
     });
 
     describe('runFailedTests', () => {
         it('should run all failed tests', async () => {
-            const tests = mkSuiteTree({
-                browsers: [
-                    {state: {opened: false}, result: {status: FAIL}},
-                    {state: {opened: true}, result: {status: SUCCESS}},
-                    {state: {opened: true}, result: {status: FAIL}},
-                    {result: {status: FAIL}}
-                ]
-            });
+            const failedTests = [
+                {testName: 'test-name-1', browserName: 'yabro'},
+                {testName: 'test-name-2', browserName: 'yabro'}
+            ];
 
-            await runFailedTests(tests)(dispatch);
+            await runFailedTests(failedTests)(dispatch);
 
-            assert.calledOnceWith(axios.post, sinon.match.any, sinon.match((formattedFails) => {
-                assert.lengthOf(formattedFails, 1);
-                assert.lengthOf(formattedFails[0].browsers, 3);
-                return true;
-            }));
+            assert.calledOnceWith(axios.post, '/run', failedTests);
+            assert.calledOnceWith(dispatch, {type: actionNames.RUN_FAILED_TESTS});
         });
     });
 
-    describe('openDbConnection', () => {
+    describe('initStaticReport', () => {
         let fetchDatabasesStub;
         let mergeDatabasesStub;
         let actions;
@@ -225,7 +129,7 @@ describe('lib/static/modules/actions', () => {
         it('should fetch databaseUrls.json for default html page', async () => {
             global.window.location.href = 'http://127.0.0.1:8080/';
 
-            await actions.openDbConnection()(dispatch);
+            await actions.initStaticReport()(dispatch);
 
             assert.calledOnceWith(fetchDatabasesStub, ['http://127.0.0.1:8080/databaseUrls.json']);
         });
@@ -233,7 +137,7 @@ describe('lib/static/modules/actions', () => {
         it('should fetch databaseUrls.json for custom html page', async () => {
             global.window.location.href = 'http://127.0.0.1:8080/some/path.html';
 
-            await actions.openDbConnection()(dispatch);
+            await actions.initStaticReport()(dispatch);
 
             assert.calledOnceWith(fetchDatabasesStub, ['http://127.0.0.1:8080/some/databaseUrls.json']);
         });
@@ -241,13 +145,14 @@ describe('lib/static/modules/actions', () => {
         it('should dispatch empty payload if fetchDatabases rejected', async () => {
             fetchDatabasesStub.rejects('stub');
 
-            await actions.openDbConnection()(dispatch);
+            await actions.initStaticReport()(dispatch);
 
-            assert.calledOnceWith(
-                dispatch,
-                sinon.match({
-                    payload: {db: null, fetchDbDetails: []}
-                }),
+            assert.calledWith(
+                dispatch.lastCall,
+                {
+                    type: actionNames.INIT_STATIC_REPORT,
+                    payload: sinon.match({db: null, fetchDbDetails: []})
+                }
             );
         });
 
@@ -255,22 +160,43 @@ describe('lib/static/modules/actions', () => {
             fetchDatabasesStub.resolves([{url: 'stub url', status: 200, data: 'stub'}]);
             mergeDatabasesStub.rejects('stub');
 
-            await actions.openDbConnection()(dispatch);
+            await actions.initStaticReport()(dispatch);
 
-            assert.calledOnceWith(
-                dispatch,
-                sinon.match({
-                    payload: {fetchDbDetails: [{url: 'stub url', status: 200, success: true}]}
-                }),
+            assert.calledWith(
+                dispatch.lastCall,
+                {
+                    type: actionNames.INIT_STATIC_REPORT,
+                    payload: sinon.match({fetchDbDetails: [{url: 'stub url', status: 200, success: true}]})
+                }
             );
         });
 
         it('should filter null data before merge databases', async () => {
             fetchDatabasesStub.resolves([{url: 'stub url1', status: 404, data: null}, {url: 'stub url2', status: 200, data: 'stub'}]);
 
-            await actions.openDbConnection()(dispatch);
+            await actions.initStaticReport()(dispatch);
 
             assert.calledOnceWith(mergeDatabasesStub, ['stub']);
+        });
+
+        it('should build tests tree', async () => {
+            const db = {};
+            const suitesFromDb = ['rows-with-suites'];
+            const treeBuilderResult = {tree: {}, stats: {}, skips: {}, browsers: {}};
+
+            mergeDatabasesStub.resolves(db);
+            getSuitesTableRows.withArgs(db).returns(suitesFromDb);
+            StaticTestsTreeBuilder.prototype.build.withArgs(suitesFromDb).returns(treeBuilderResult);
+
+            await actions.initStaticReport()(dispatch);
+
+            assert.calledWith(
+                dispatch.lastCall,
+                {
+                    type: actionNames.INIT_STATIC_REPORT,
+                    payload: sinon.match({...treeBuilderResult})
+                }
+            );
         });
     });
 

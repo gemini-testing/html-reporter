@@ -64,7 +64,6 @@ describe('StaticResultsTreeBuilder', () => {
     beforeEach(() => {
         sandbox.stub(StaticResultsTreeBuilder.prototype, 'addTestResult');
         sandbox.stub(StaticResultsTreeBuilder.prototype, 'sortTree');
-        sandbox.stub(StaticResultsTreeBuilder.prototype, 'convertToOldFormat').returns({});
 
         builder = StaticResultsTreeBuilder.create();
     });
@@ -133,23 +132,12 @@ describe('StaticResultsTreeBuilder', () => {
             });
         });
 
-        describe('should return tests tree', () => {
-            it('in old format by default', () => {
-                StaticResultsTreeBuilder.prototype.convertToOldFormat.returns('old-format-tree');
+        it('should return tests tree', () => {
+            sandbox.stub(StaticResultsTreeBuilder.prototype, 'tree').get(() => 'tree');
 
-                const {tree} = builder.build([]);
+            const {tree} = builder.build([]);
 
-                assert.equal(tree, 'old-format-tree');
-            });
-
-            it('without formatting', () => {
-                sandbox.stub(StaticResultsTreeBuilder.prototype, 'tree').get(() => 'tree');
-
-                const {tree} = builder.build([], {convertToOldFormat: false});
-
-                assert.notCalled(StaticResultsTreeBuilder.prototype.convertToOldFormat);
-                assert.equal(tree, 'tree');
-            });
+            assert.equal(tree, 'tree');
         });
 
         describe('should return browsers', () => {
