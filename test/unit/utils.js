@@ -107,6 +107,26 @@ function mkStorage() {
     };
 }
 
+function mkFormattedTest(result) {
+    return _.defaultsDeep(result, {
+        browserId: 'bro1',
+        suite: {
+            fullName: 'suite-full-name',
+            path: ['suite'],
+            getUrl: function() {
+                return 'url';
+            }
+        },
+        state: {
+            name: 'name-default'
+        },
+        getImagesInfo: () => [],
+        getCurrImg: () => {
+            return {path: null};
+        }
+    });
+}
+
 module.exports = {
     stubConfig,
     stubTool,
@@ -116,5 +136,6 @@ module.exports = {
     mkTestResult,
     mkImagesInfo,
     mkSuiteTree,
-    mkStorage
+    mkStorage,
+    mkFormattedTest
 };

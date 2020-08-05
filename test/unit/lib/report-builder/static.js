@@ -6,32 +6,14 @@ const Database = require('better-sqlite3');
 const proxyquire = require('proxyquire');
 const {SUCCESS, FAIL, ERROR, SKIPPED} = require('lib/constants/test-statuses');
 const {LOCAL_DATABASE_NAME} = require('lib/constants/file-names');
+const {mkFormattedTest} = require('../../utils');
+
 const TEST_REPORT_PATH = 'test';
 const TEST_DB_PATH = `${TEST_REPORT_PATH}/${LOCAL_DATABASE_NAME}`;
 
 describe('StaticReportBuilder', () => {
     const sandbox = sinon.sandbox.create();
     let hasImage, StaticReportBuilder, hermione;
-
-    const formattedSuite_ = () => {
-        return {
-            browserId: 'bro1',
-            suite: {
-                fullName: 'suite-full-name',
-                path: ['suite'],
-                getUrl: function() {
-                    return 'url';
-                }
-            },
-            state: {
-                name: 'name-default'
-            },
-            getImagesInfo: () => [],
-            getCurrImg: () => {
-                return {path: null};
-            }
-        };
-    };
 
     const mkStaticReportBuilder_ = async ({toolConfig = {}, pluginConfig} = {}) => {
         toolConfig = _.defaults(toolConfig, {getAbsoluteUrl: _.noop});
@@ -88,15 +70,15 @@ describe('StaticReportBuilder', () => {
         sandbox.restore();
     });
 
-    describe('adding test results', () => {
+    describe('adding test results to database', () => {
         let reportBuilder;
 
         beforeEach(async () => {
             reportBuilder = await mkStaticReportBuilder_();
-            sandbox.stub(reportBuilder, 'format').returns(formattedSuite_());
+            sandbox.stub(reportBuilder, 'format').returns(mkFormattedTest());
         });
 
-        it('should add skipped test to database', async () => {
+        it('should add skipped test', async () => {
             await reportBuilder.addSkipped(stubTest_());
             const db = new Database(TEST_DB_PATH);
 
@@ -106,7 +88,7 @@ describe('StaticReportBuilder', () => {
             assert.equal(status, SKIPPED);
         });
 
-        it('should add success test to database', async () => {
+        it('should add success test', async () => {
             await reportBuilder.addSuccess(stubTest_());
             const db = new Database(TEST_DB_PATH);
 
@@ -116,7 +98,7 @@ describe('StaticReportBuilder', () => {
             assert.equal(status, SUCCESS);
         });
 
-        it('should add failed test to database', async () => {
+        it('should add failed test', async () => {
             await reportBuilder.addFail(stubTest_());
             const db = new Database(TEST_DB_PATH);
 
@@ -126,7 +108,7 @@ describe('StaticReportBuilder', () => {
             assert.equal(status, FAIL);
         });
 
-        it('should add error test to database', async () => {
+        it('should add error test', async () => {
             await reportBuilder.addError(stubTest_());
             const db = new Database(TEST_DB_PATH);
 
@@ -137,7 +119,7 @@ describe('StaticReportBuilder', () => {
         });
 
         it('should use timestamp from test result when it is present', async () => {
-            reportBuilder.format.returns(_.defaults(formattedSuite_(), {
+            reportBuilder.format.returns(_.defaults(mkFormattedTest(), {
                 timestamp: 100500
             }));
             await reportBuilder.addSuccess(stubTest_());
