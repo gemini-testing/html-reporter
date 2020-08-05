@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="6.0.0-alpha.14"></a>
+# [6.0.0-alpha.14](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.13...v6.0.0-alpha.14) (2020-08-05)
+
+
+### Features
+
+* add ability to save goals in yandex metrika ([#343](https://github.com/gemini-testing/html-reporter/issues/343)) ([39c5619](https://github.com/gemini-testing/html-reporter/commit/39c5619))
+
+
+
 <a name="6.0.0-alpha.13"></a>
 # [6.0.0-alpha.13](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.12...v6.0.0-alpha.13) (2020-08-05)
 
