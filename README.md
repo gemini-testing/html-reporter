@@ -156,6 +156,15 @@ customScripts: [
 ]
 ```
 
+* **yandexMetrika** (optional) `Object` - allows to add [yandex metrika](https://yandex.ru/support/metrica/index.html) to your report. The metrika can help you to get how developers interact with your report and what kind of problems they encounter at that. To start using it, you should create a counter first: see [how to create a counter](https://yandex.ru/support/metrica/general/creating-counter.html). And then in the Yandex.Metrica interface, go to the Settings section (on the Code snippet tab), click Copy and add the copied code to the **customScripts**-field.
+
+Nested fields:
+  * **counterNumber** (optional) `Number` - uniq counter in yandex metrika, used in order to send goals achievement.
+
+Supported goals (js events), [more info about goals](https://yandex.ru/support/metrica/general/goals.html):
+* **ACCEPT_SCREENSHOT** - click on "Accept" button;
+* **ACCEPT_OPENED_SCREENSHOTS** - click on "Accept opened" button.
+
 Also there is ability to override plugin parameters by CLI options or environment variables
 (see [configparser](https://github.com/gemini-testing/configparser)).
 Use `html_reporter_` prefix for the environment variables and `--html-reporter-` for the cli options.

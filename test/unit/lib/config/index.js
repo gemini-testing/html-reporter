@@ -424,4 +424,34 @@ describe('config', () => {
             assert.deepEqual(config.customScripts, scripts);
         });
     });
+
+    describe('yandexMetrika', () => {
+        it('should have default value', () => {
+            assert.deepEqual(parseConfig({}).yandexMetrika, configDefaults.yandexMetrika);
+        });
+
+        describe('counterNumber', () => {
+            it('should throw error if option is not a null or number', () => {
+                assert.throws(() => {
+                    parseConfig({
+                        yandexMetrika: {
+                            counterNumber: 'string'
+                        }
+                    }),
+                    Error,
+                    /option must be number, but got string/;
+                });
+            });
+
+            it('should set value from config file', () => {
+                const config = parseConfig({
+                    yandexMetrika: {
+                        counterNumber: 100500
+                    }
+                });
+
+                assert.equal(config.yandexMetrika.counterNumber, 100500);
+            });
+        });
+    });
 });
