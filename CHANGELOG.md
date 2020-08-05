@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="6.0.0-alpha.13"></a>
+# [6.0.0-alpha.13](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.12...v6.0.0-alpha.13) (2020-08-05)
+
+
+### Features
+
+* normalize tests tree on the server side ([#341](https://github.com/gemini-testing/html-reporter/issues/341)) ([b6c36df](https://github.com/gemini-testing/html-reporter/commit/b6c36df))
+
+
+
 <a name="6.0.0-alpha.12"></a>
 # [6.0.0-alpha.12](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.11...v6.0.0-alpha.12) (2020-07-28)
 
