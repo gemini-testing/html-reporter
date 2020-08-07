@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="6.0.0-alpha.15"></a>
+# [6.0.0-alpha.15](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.14...v6.0.0-alpha.15) (2020-08-07)
+
+
+### Bug Fixes
+
+* remove unnecessary object stringifying ([a88670b](https://github.com/gemini-testing/html-reporter/commit/a88670b))
+
+
+
 <a name="6.0.0-alpha.14"></a>
 # [6.0.0-alpha.14](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.13...v6.0.0-alpha.14) (2020-08-05)
 
