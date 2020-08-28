@@ -1,34 +1,33 @@
 import React from 'react';
-import {defaults} from 'lodash';
+import {defaultsDeep} from 'lodash';
 import MetaInfo from 'lib/static/components/section/body/meta-info';
 import {mkConnectedComponent} from '../../utils';
 
 describe('<MetaInfo />', () => {
-    const sandbox = sinon.createSandbox();
-
-    let getExtraMetaInfo;
-
     const mkMetaInfoComponent = (props = {}, initialState = {}) => {
-        props = defaults(props, {
-            metaInfo: {},
-            suiteUrl: 'default-url',
-            getExtraMetaInfo
+        props = defaultsDeep(props, {
+            result: {
+                metaInfo: {},
+                suiteUrl: 'default-url'
+            },
+            testName: 'default suite test'
         });
 
         return mkConnectedComponent(<MetaInfo {...props} />, {initialState});
     };
 
-    beforeEach(() => {
-        getExtraMetaInfo = sandbox.stub().named('getExtraMetaInfo').returns({});
-    });
+    it('should render meta info from result, extra meta and link to url', () => {
+        const result = {metaInfo: {foo: 'bar'}, suiteUrl: 'some-url'};
+        const testName = 'suite test';
+        const apiValues = {
+            extraItems: {baz: 'qux'},
+            metaInfoExtenders: {
+                baz: ((data, extraItems) => `${data.testName}_${extraItems.baz}`).toString()
+            }
+        };
+        const expectedMetaInfo = ['foo: bar', `baz: ${testName}_qux`, 'url: some-url'];
 
-    afterEach(() => sandbox.restore());
-
-    it('should render all meta info from test, extra meta info and link to url', () => {
-        getExtraMetaInfo.returns({baz: 'qux'});
-        const expectedMetaInfo = ['foo: bar', 'baz: qux', 'url: some-url'];
-
-        const component = mkMetaInfoComponent({metaInfo: {foo: 'bar'}, suiteUrl: 'some-url'});
+        const component = mkMetaInfoComponent({result, testName}, {apiValues});
 
         component.find('.meta-info__item').forEach((node, i) => {
             assert.equal(node.text(), expectedMetaInfo[i]);
@@ -36,18 +35,20 @@ describe('<MetaInfo />', () => {
     });
 
     it('should render meta-info with non-primitive values', () => {
+        const result = {
+            metaInfo: {
+                foo1: {bar: 'baz'},
+                foo2: [{bar: 'baz'}]
+            },
+            suiteUrl: 'some-url'
+        };
         const expectedMetaInfo = [
             'foo1: {"bar":"baz"}',
             'foo2: [{"bar":"baz"}]',
             'url: some-url'
         ];
 
-        const metaInfo = {
-            foo1: {bar: 'baz'},
-            foo2: [{bar: 'baz'}]
-        };
-
-        const component = mkMetaInfoComponent({metaInfo, suiteUrl: 'some-url'});
+        const component = mkMetaInfoComponent({result});
 
         component.find('.details_type_text_item').forEach((node, i) => {
             assert.equal(node.text(), expectedMetaInfo[i]);
@@ -67,9 +68,12 @@ describe('<MetaInfo />', () => {
         }
     ].forEach((stub) => {
         it(`should render link in meta info based upon metaInfoBaseUrls ${stub.type}`, () => {
+            const result = {
+                metaInfo: {file: 'test/file'}
+            };
             const initialConfig = {config: {metaInfoBaseUrls: stub.metaInfoBaseUrls}};
 
-            const component = mkMetaInfoComponent({metaInfo: {file: 'test/file'}}, initialConfig);
+            const component = mkMetaInfoComponent({result}, initialConfig);
 
             assert.equal(component.find('.meta-info__item:first-child').text(), 'file: test/file');
             assert.equal(component.find('.meta-info__item:first-child a').prop('href'), stub.expectedFileUrl);

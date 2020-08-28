@@ -130,7 +130,7 @@ describe('server-utils', () => {
     });
 
     describe('shouldUpdateAttempt', () => {
-        const IgnoreAttemptStatuses = ['SKIPPED', 'UPDATED', 'IDLE'];
+        const IgnoreAttemptStatuses = ['SKIPPED', 'UPDATED', 'RUNNING', 'IDLE'];
 
         IgnoreAttemptStatuses.forEach((s) => {
             const status = testStatuses[s];

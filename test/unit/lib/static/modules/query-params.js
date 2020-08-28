@@ -1,5 +1,3 @@
-'use strict';
-
 import {parseQuery, appendQuery} from 'lib/static/modules/query-params';
 import viewModes from 'lib/constants/view-modes';
 

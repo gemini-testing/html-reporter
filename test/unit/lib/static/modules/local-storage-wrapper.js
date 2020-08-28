@@ -1,8 +1,7 @@
-'use strict';
-import * as localStorageWrapper from 'lib/static/modules/reducers/helpers/local-storage-wrapper';
-import {mkStorage} from '../../../../../utils';
+import * as localStorageWrapper from 'lib/static/modules/local-storage-wrapper';
+import {mkStorage} from '../../../utils';
 
-describe('lib/static/modules/reducers/helpers/local-storage-wrapper', () => {
+describe('lib/static/modules/local-storage-wrapper', () => {
     const prefix = 'html-reporter';
 
     beforeEach(() => {
@@ -11,18 +10,6 @@ describe('lib/static/modules/reducers/helpers/local-storage-wrapper', () => {
 
     afterEach(() => {
         global.window = undefined;
-    });
-
-    describe('updateDeprecatedKeys', () => {
-        it('should update storage keys if deprecated', () => {
-            global.window.localStorage.setItem('_gemini-replace-host', 'foo1');
-            global.window.localStorage.setItem('foo2', 'foo2');
-
-            localStorageWrapper.updateDeprecatedKeys();
-
-            assert.equal(global.window.localStorage.getItem(`${prefix}:replace-host`), '"foo1"');
-            assert.equal(global.window.localStorage.getItem('foo2'), 'foo2');
-        });
     });
 
     describe('setItem', () => {

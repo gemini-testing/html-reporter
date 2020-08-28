@@ -1,12 +1,11 @@
 'use strict';
 
-const path = require('path');
 const _ = require('lodash');
 const proxyquire = require('proxyquire');
 const Promise = require('bluebird');
 
 const ToolRunner = require('lib/gui/tool-runner');
-const {stubTool, stubConfig, mkImagesInfo} = require('../../utils');
+const {stubTool, stubConfig} = require('../../utils');
 
 describe('lib/gui/app', () => {
     const sandbox = sinon.createSandbox().usingPromise(Promise);
@@ -33,7 +32,8 @@ describe('lib/gui/app', () => {
             run: sandbox.stub().named('run').resolves(),
             finalize: sandbox.stub().named('finalize'),
             config: tool.config,
-            initialize: sandbox.stub().named('initialize').resolves()
+            initialize: sandbox.stub().named('initialize').resolves(),
+            findEqualDiffs: sandbox.stub().named('findEqualDiffs').resolves()
         };
     };
 
@@ -112,99 +112,12 @@ describe('lib/gui/app', () => {
     });
 
     describe('findEqualDiffs', () => {
-        let pluginConfig;
-        let compareOpts;
+        it('should find equal diffs for passed images', async () => {
+            const app = await mkApp_({tool});
 
-        beforeEach(() => {
-            tool = stubTool(stubConfig({tolerance: 100500, antialiasingTolerance: 500100}));
-            toolRunner = mkToolRunner_(tool);
-            ToolRunner.create.returns(toolRunner);
+            await app.findEqualDiffs('images');
 
-            pluginConfig = {path: 'report-path'};
-            compareOpts = {
-                tolerance: 100500,
-                antialiasingTolerance: 500100,
-                stopOnFirstFail: true,
-                shouldCluster: false
-            };
-
-            sandbox.stub(path, 'resolve');
-        });
-
-        it('should stop comparison on first diff in reference images', async () => {
-            const refImagesInfo = mkImagesInfo({expectedImg: {path: 'ref-path-1'}});
-            const comparedImagesInfo = [mkImagesInfo({expectedImg: {path: 'ref-path-2'}})];
-
-            path.resolve
-                .withArgs(process.cwd(), pluginConfig.path, 'ref-path-1').returns('/ref-path-1')
-                .withArgs(process.cwd(), pluginConfig.path, 'ref-path-2').returns('/ref-path-2');
-
-            looksSame.withArgs(
-                {source: '/ref-path-1', boundingBox: refImagesInfo.diffClusters[0]},
-                {source: '/ref-path-2', boundingBox: comparedImagesInfo[0].diffClusters[0]},
-                compareOpts
-            ).yields(null, {equal: false});
-
-            const App_ = await mkApp_({tool, configs: {pluginConfig}});
-            const result = await App_.findEqualDiffs([refImagesInfo].concat(comparedImagesInfo));
-
-            assert.calledOnce(looksSame);
-            assert.isEmpty(result);
-        });
-
-        it('should stop comparison on diff in actual images', async () => {
-            const refImagesInfo = mkImagesInfo({actualImg: {path: 'act-path-1'}});
-            const comparedImagesInfo = [mkImagesInfo({actualImg: {path: 'act-path-2'}})];
-
-            path.resolve
-                .withArgs(process.cwd(), pluginConfig.path, 'act-path-1').returns('/act-path-1')
-                .withArgs(process.cwd(), pluginConfig.path, 'act-path-2').returns('/act-path-2');
-
-            looksSame.onFirstCall().yields(null, {equal: true});
-            looksSame.withArgs(
-                {source: '/act-path-1', boundingBox: refImagesInfo.diffClusters[0]},
-                {source: '/act-path-2', boundingBox: comparedImagesInfo[0].diffClusters[0]},
-                compareOpts
-            ).yields(null, {equal: false});
-
-            const App_ = await mkApp_({tool, configs: {pluginConfig}});
-            const result = await App_.findEqualDiffs([refImagesInfo].concat(comparedImagesInfo));
-
-            assert.calledTwice(looksSame);
-            assert.isEmpty(result);
-        });
-
-        it('should compare each diff cluster', async () => {
-            const refImagesInfo = mkImagesInfo({
-                diffClusters: [
-                    {left: 0, top: 0, right: 5, bottom: 5},
-                    {left: 10, top: 10, right: 15, bottom: 15}
-                ]
-            });
-            const comparedImagesInfo = [mkImagesInfo({
-                diffClusters: [
-                    {left: 0, top: 0, right: 5, bottom: 5},
-                    {left: 10, top: 10, right: 15, bottom: 15}
-                ]
-            })];
-
-            looksSame.yields(null, {equal: true});
-
-            const App_ = await mkApp_({tool, configs: {pluginConfig}});
-            await App_.findEqualDiffs([refImagesInfo].concat(comparedImagesInfo));
-
-            assert.equal(looksSame.callCount, 4);
-        });
-
-        it('should return all found equal diffs', async () => {
-            looksSame.yields(null, {equal: true});
-            const refImagesInfo = mkImagesInfo();
-            const comparedImagesInfo = [mkImagesInfo(), mkImagesInfo()];
-            const App_ = await mkApp_({tool, configs: {pluginConfig}});
-
-            const result = await App_.findEqualDiffs([refImagesInfo].concat(comparedImagesInfo));
-
-            assert.deepEqual(result, comparedImagesInfo);
+            assert.calledOnceWith(toolRunner.findEqualDiffs, 'images');
         });
     });
 

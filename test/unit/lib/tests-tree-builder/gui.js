@@ -8,7 +8,7 @@ describe('GuiResultsTreeBuilder', () => {
     let builder;
 
     const mkTestResult_ = (result) => {
-        return _.defaults(result, {status: IDLE, imagesInfo: []});
+        return _.defaults(result, {status: IDLE, imagesInfo: [], metaInfo: {}});
     };
 
     const mkFormattedResult_ = (result) => {
@@ -37,12 +37,12 @@ describe('GuiResultsTreeBuilder', () => {
     });
 
     describe('"getImagesInfo" method', () => {
-        it('should return images from tree for passed result', () => {
+        it('should return images from tree for passed test result id', () => {
             const formattedRes = mkFormattedResult_({testPath: ['s'], browserId: 'b', attempt: 0});
             const imagesInfo = [{stateName: 'image-1'}, {stateName: 'image-2'}];
             builder.addTestResult(mkTestResult_({imagesInfo}), formattedRes);
 
-            const gotImagesInfo = builder.getImagesInfo(formattedRes);
+            const gotImagesInfo = builder.getImagesInfo('s b 0');
 
             assert.deepEqual(
                 gotImagesInfo,

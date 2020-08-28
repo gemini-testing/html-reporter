@@ -7,15 +7,16 @@ const proxyquire = require('proxyquire');
 const GuiReportBuilder = require('lib/report-builder/gui');
 const constantFileNames = require('lib/constants/file-names');
 const serverUtils = require('lib/server-utils');
-const {stubTool, stubConfig, mkTestResult, mkImagesInfo, mkState, mkSuite, mkSuiteTree} = require('test/unit/utils');
+const {stubTool, stubConfig, mkImagesInfo, mkState, mkSuite} = require('test/unit/utils');
 
-describe('lib/gui/tool-runner/hermione/index', () => {
+describe('lib/gui/tool-runner/index', () => {
     const sandbox = sinon.createSandbox();
     let reportBuilder;
     let ToolGuiReporter;
     let reportSubscriber;
     let hermione;
     let getDataFromDatabase;
+    let looksSame;
 
     const mkTestCollection_ = (testsTree = {}) => {
         return {
@@ -54,6 +55,7 @@ describe('lib/gui/tool-runner/hermione/index', () => {
 
         reportBuilder = sinon.createStubInstance(GuiReportBuilder);
         reportSubscriber = sandbox.stub().named('reportSubscriber');
+        looksSame = sandbox.stub().named('looksSame').yields(null, {equal: true});
 
         sandbox.stub(GuiReportBuilder, 'create').returns(reportBuilder);
         reportBuilder.format.returns({prepareTestResult: sandbox.stub()});
@@ -62,6 +64,7 @@ describe('lib/gui/tool-runner/hermione/index', () => {
         getDataFromDatabase = sandbox.stub().returns({});
 
         ToolGuiReporter = proxyquire(`lib/gui/tool-runner`, {
+            'looks-same': looksSame,
             './report-subscriber': reportSubscriber,
             './utils': {findTestResult: sandbox.stub(), getDataFromDatabase},
             '../../reporter-helpers': {updateReferenceImage: sandbox.stub().resolves()}
@@ -200,17 +203,18 @@ describe('lib/gui/tool-runner/hermione/index', () => {
                 const gui = initGuiReporter(hermione);
                 await gui.initialize();
 
-                const tests = [mkTestResult({
+                const tests = [{
                     browserId: 'yabro',
                     suite: {path: ['suite1']},
                     state: {},
+                    metaInfo: {},
                     imagesInfo: [mkImagesInfo({
                         stateName: 'plain1',
                         actualImg: {
                             size: {height: 100, width: 200}
                         }
                     })]
-                })];
+                }];
 
                 await gui.updateReferenceImage(tests);
 
@@ -233,10 +237,11 @@ describe('lib/gui/tool-runner/hermione/index', () => {
                 const gui = initGuiReporter(hermione);
                 await gui.initialize();
 
-                const tests = [mkTestResult({
+                const tests = [{
                     browserId: 'yabro',
                     suite: {path: ['suite1']},
                     state: {},
+                    metaInfo: {},
                     imagesInfo: [
                         mkImagesInfo({
                             stateName: 'plain1',
@@ -251,7 +256,7 @@ describe('lib/gui/tool-runner/hermione/index', () => {
                             }
                         })
                     ]
-                })];
+                }];
 
                 await gui.updateReferenceImage(tests);
 
@@ -265,6 +270,108 @@ describe('lib/gui/tool-runner/hermione/index', () => {
                     state: 'plain2'
                 });
             });
+        });
+    });
+
+    describe('findEqualDiffs', () => {
+        let compareOpts;
+
+        beforeEach(() => {
+            hermione = stubTool(stubConfig({tolerance: 100500, antialiasingTolerance: 500100}));
+            hermione.readTests.resolves(mkTestCollection_());
+
+            compareOpts = {
+                tolerance: 100500,
+                antialiasingTolerance: 500100,
+                stopOnFirstFail: true,
+                shouldCluster: false
+            };
+
+            sandbox.stub(path, 'resolve');
+        });
+
+        it('should stop comparison on first diff in reference images', async () => {
+            const gui = initGuiReporter(hermione, {configs: mkPluginConfig_({path: 'report_path'})});
+            const refImagesInfo = mkImagesInfo({expectedImg: {path: 'ref-path-1'}});
+            const comparedImagesInfo = [mkImagesInfo({expectedImg: {path: 'ref-path-2'}})];
+
+            path.resolve
+                .withArgs(process.cwd(), 'report_path', 'ref-path-1').returns('/ref-path-1')
+                .withArgs(process.cwd(), 'report_path', 'ref-path-2').returns('/ref-path-2');
+
+            looksSame.withArgs(
+                {source: '/ref-path-1', boundingBox: refImagesInfo.diffClusters[0]},
+                {source: '/ref-path-2', boundingBox: comparedImagesInfo[0].diffClusters[0]},
+                compareOpts
+            ).yields(null, {equal: false});
+
+            await gui.initialize();
+            const result = await gui.findEqualDiffs([refImagesInfo, ...comparedImagesInfo]);
+
+            assert.calledOnce(looksSame);
+            assert.isEmpty(result);
+        });
+
+        it('should stop comparison on diff in actual images', async () => {
+            const gui = initGuiReporter(hermione, {configs: mkPluginConfig_({path: 'report_path'})});
+            const refImagesInfo = mkImagesInfo({actualImg: {path: 'act-path-1'}});
+            const comparedImagesInfo = [mkImagesInfo({actualImg: {path: 'act-path-2'}})];
+
+            path.resolve
+                .withArgs(process.cwd(), 'report_path', 'act-path-1').returns('/act-path-1')
+                .withArgs(process.cwd(), 'report_path', 'act-path-2').returns('/act-path-2');
+
+            looksSame.onFirstCall().yields(null, {equal: true});
+            looksSame.withArgs(
+                {source: '/act-path-1', boundingBox: refImagesInfo.diffClusters[0]},
+                {source: '/act-path-2', boundingBox: comparedImagesInfo[0].diffClusters[0]},
+                compareOpts
+            ).yields(null, {equal: false});
+
+            await gui.initialize();
+            const result = await gui.findEqualDiffs([refImagesInfo, ...comparedImagesInfo]);
+
+            assert.calledTwice(looksSame);
+            assert.isEmpty(result);
+        });
+
+        it('should compare each diff cluster', async () => {
+            const gui = initGuiReporter(hermione, {configs: mkPluginConfig_({path: 'report_path'})});
+            const refImagesInfo = mkImagesInfo({
+                diffClusters: [
+                    {left: 0, top: 0, right: 5, bottom: 5},
+                    {left: 10, top: 10, right: 15, bottom: 15}
+                ]
+            });
+            const comparedImagesInfo = [mkImagesInfo({
+                diffClusters: [
+                    {left: 0, top: 0, right: 5, bottom: 5},
+                    {left: 10, top: 10, right: 15, bottom: 15}
+                ]
+            })];
+
+            looksSame.yields(null, {equal: true});
+
+            await gui.initialize();
+            await gui.findEqualDiffs([refImagesInfo, ...comparedImagesInfo]);
+
+            assert.equal(looksSame.callCount, 4);
+        });
+
+        it('should return all found image ids with equal diffs', async () => {
+            const gui = initGuiReporter(hermione);
+            const refImagesInfo = {...mkImagesInfo(), id: 'selected-img-1'};
+            const comparedImagesInfo = [
+                {...mkImagesInfo(), id: 'compared-img-2'},
+                {...mkImagesInfo(), id: 'compared-img-3'}
+            ];
+
+            looksSame.yields(null, {equal: true});
+
+            await gui.initialize();
+            const result = await gui.findEqualDiffs([refImagesInfo, ...comparedImagesInfo]);
+
+            assert.deepEqual(result, ['compared-img-2', 'compared-img-3']);
         });
     });
 
@@ -291,8 +398,7 @@ describe('lib/gui/tool-runner/hermione/index', () => {
         });
 
         it('should log a warning that there is no data for reuse', async () => {
-            const suites = [mkSuiteTree()];
-            reportBuilder.getResult.returns({suites});
+            reportBuilder.getResult.returns({});
 
             await gui.initialize();
 
@@ -325,12 +431,6 @@ describe('lib/gui/tool-runner/hermione/index', () => {
 
                 assert.equal(gui.tree.foo, 'bar');
                 assert.equal(gui.tree.baz, 'qux');
-            });
-
-            it('"gui" flag', async () => {
-                await gui.initialize();
-
-                assert.isTrue(gui.tree.gui);
             });
 
             it('"autoRun" from gui options', async () => {

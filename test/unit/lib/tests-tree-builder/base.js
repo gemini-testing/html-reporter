@@ -3,13 +3,14 @@
 const _ = require('lodash');
 const proxyquire = require('proxyquire');
 const {FAIL, ERROR, SUCCESS} = require('lib/constants/test-statuses');
+const {versions: browserVersions} = require('lib/constants/browser');
 
 describe('ResultsTreeBuilder', () => {
     const sandbox = sinon.sandbox.create();
     let ResultsTreeBuilder, builder, determineStatus;
 
     const mkTestResult_ = (result) => {
-        return _.defaults(result, {imagesInfo: []});
+        return _.defaults(result, {imagesInfo: [], metaInfo: {}});
     };
 
     const mkFormattedResult_ = (result) => {
@@ -130,9 +131,24 @@ describe('ResultsTreeBuilder', () => {
                         id: 's1 b1',
                         name: 'b1',
                         parentId: 's1',
-                        resultIds: ['s1 b1 0']
+                        resultIds: ['s1 b1 0'],
+                        versions: [browserVersions.UNKNOWN]
                     }
                 );
+            });
+
+            it('should collect all browser versions from results in browser', () => {
+                const result1 = mkTestResult_({metaInfo: {browserVersion: '1'}});
+                const result2 = mkTestResult_({metaInfo: {browserVersion: '2'}});
+
+                builder.addTestResult(result1, mkFormattedResult_({
+                    testPath: ['s1'], browserId: 'b1', attempt: 0
+                }));
+                builder.addTestResult(result2, mkFormattedResult_({
+                    testPath: ['s1'], browserId: 'b1', attempt: 1
+                }));
+
+                assert.deepEqual(builder.tree.browsers.byId['s1 b1'].versions, ['1', '2']);
             });
 
             it('should collect all ids to test results in browser', () => {
@@ -169,7 +185,8 @@ describe('ResultsTreeBuilder', () => {
                     {
                         id: 's1 b1 0',
                         parentId: 's1 b1',
-                        imageIds: []
+                        imageIds: [],
+                        metaInfo: {}
                     }
                 );
             });

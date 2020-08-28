@@ -300,12 +300,12 @@ tool.htmlReporter.addMetaInfoExtender(name, value);
 ```
 
 * **name** (required) `String` - name of meta info
-* **value** (required) `Function` - handler to which `suite` and `extraItems` are passed
+* **value** (required) `Function` - handler to which `data` (`Object` with `testName` field) and `extraItems` are passed
 
 Example:
 ```js
-tool.htmlReporter.addMetaInfoExtender('foo', (suite, extraItems) => {
-    return suite.suitePath.join(' ') + extraItems.platform;
+tool.htmlReporter.addMetaInfoExtender('foo', (data, extraItems) => {
+    return data.testName + extraItems.platform;
 });
 ```
 

@@ -6,7 +6,7 @@ const serverUtils = require('lib/server-utils');
 const TestAdapter = require('lib/test-adapter');
 const GuiTestsTreeBuilder = require('lib/tests-tree-builder/gui');
 const proxyquire = require('proxyquire');
-const {SUCCESS, FAIL, ERROR, SKIPPED, IDLE, UPDATED} = require('lib/constants/test-statuses');
+const {SUCCESS, FAIL, ERROR, SKIPPED, IDLE, RUNNING, UPDATED} = require('lib/constants/test-statuses');
 const {mkFormattedTest} = require('../../utils');
 
 describe('GuiReportBuilder', () => {
@@ -73,8 +73,10 @@ describe('GuiReportBuilder', () => {
         sandbox.stub(GuiTestsTreeBuilder, 'create').returns(Object.create(GuiTestsTreeBuilder.prototype));
         sandbox.stub(GuiTestsTreeBuilder.prototype, 'sortTree').returns({});
         sandbox.stub(GuiTestsTreeBuilder.prototype, 'reuseTestsTree');
+        sandbox.stub(GuiTestsTreeBuilder.prototype, 'getTestBranch').returns({});
+        sandbox.stub(GuiTestsTreeBuilder.prototype, 'getTestsDataToUpdateRefs').returns([]);
+        sandbox.stub(GuiTestsTreeBuilder.prototype, 'getImageDataToFindEqualDiffs').returns({});
         sandbox.stub(GuiTestsTreeBuilder.prototype, 'getImagesInfo').returns([]);
-        sandbox.stub(GuiTestsTreeBuilder.prototype, 'convertToOldFormat').returns({});
         sandbox.stub(GuiTestsTreeBuilder.prototype, 'getLastResult').returns({});
         sandbox.stub(GuiTestsTreeBuilder.prototype, 'addTestResult').returns({});
     });
@@ -88,6 +90,16 @@ describe('GuiReportBuilder', () => {
             reportBuilder.addIdle(stubTest_());
 
             assert.equal(getTestResult_().status, IDLE);
+        });
+    });
+
+    describe('"addRunning" method', () => {
+        it(`should add "${RUNNING}" status to result`, async () => {
+            const reportBuilder = await mkGuiReportBuilder_();
+
+            reportBuilder.addRunning(stubTest_());
+
+            assert.equal(getTestResult_().status, RUNNING);
         });
     });
 
@@ -203,11 +215,10 @@ describe('GuiReportBuilder', () => {
             GuiTestsTreeBuilder.prototype.getImagesInfo.returns(failedTest.imagesInfo);
             reportBuilder.addUpdated(updatedTest);
 
-            const {imagesInfo} = getTestResult_();
+            const updatedTestResult = GuiTestsTreeBuilder.prototype.addTestResult.secondCall.args[0];
 
-            assert.match(imagesInfo[0], {stateName: 'plain1', status: UPDATED});
-            assert.match(imagesInfo[1], {stateName: 'plain2', status: FAIL});
-            assert.equal(getTestResult_().status, FAIL);
+            assert.match(updatedTestResult.imagesInfo[0], {stateName: 'plain1', status: UPDATED});
+            assert.match(updatedTestResult.imagesInfo[1], {stateName: 'plain2', status: FAIL});
         });
 
         it('should update last test image if state name was not passed', async () => {
@@ -220,6 +231,7 @@ describe('GuiReportBuilder', () => {
                 ]
             });
             const updatedTest = stubTest_({
+                id: 'result-2',
                 imagesInfo: [
                     {status: UPDATED}
                 ]
@@ -229,7 +241,7 @@ describe('GuiReportBuilder', () => {
             GuiTestsTreeBuilder.prototype.getImagesInfo.returns(failedTest.imagesInfo);
             reportBuilder.addUpdated(updatedTest);
 
-            const {imagesInfo} = getTestResult_();
+            const {imagesInfo} = GuiTestsTreeBuilder.prototype.addTestResult.secondCall.args[0];
 
             assert.match(imagesInfo[0], {status: FAIL});
             assert.match(imagesInfo[1], {status: UPDATED});
@@ -246,13 +258,32 @@ describe('GuiReportBuilder', () => {
         });
     });
 
-    describe('"reuseTestsTree" method', () => {
-        it('should call "reuseTestsTree" from tests tree builder', async () => {
-            const reportBuilder = await mkGuiReportBuilder_();
+    [
+        {
+            method: 'reuseTestsTree',
+            arg: 'some-tree'
+        },
+        {
+            method: 'getTestBranch',
+            arg: 'test-id'
+        },
+        {
+            method: 'getTestsDataToUpdateRefs',
+            arg: ['img-id-1', 'img-id-2']
+        },
+        {
+            method: 'getImageDataToFindEqualDiffs',
+            arg: 'img-id'
+        }
+    ].forEach(({method, arg}) => {
+        describe(`"${method}" method`, () => {
+            it(`should call "${method}" from tests tree builder`, async () => {
+                const reportBuilder = await mkGuiReportBuilder_();
 
-            reportBuilder.reuseTestsTree('some-tree');
+                reportBuilder[method](arg);
 
-            assert.calledOnceWith(GuiTestsTreeBuilder.prototype.reuseTestsTree, 'some-tree');
+                assert.calledOnceWith(GuiTestsTreeBuilder.prototype[method], arg);
+            });
         });
     });
 
@@ -269,17 +300,6 @@ describe('GuiReportBuilder', () => {
             const reportBuilder = await mkGuiReportBuilder_({pluginConfig: {baseHost: 'some-host'}});
 
             assert.equal(reportBuilder.getResult().config.baseHost, 'some-host');
-        });
-    });
-
-    describe('"getSuites" method', () => {
-        it('should return suites from tests tree builder', async () => {
-            const suites = {some: 'suite'};
-            GuiTestsTreeBuilder.prototype.convertToOldFormat.returns({suites});
-
-            const reportBuilder = await mkGuiReportBuilder_();
-
-            assert.deepEqual(reportBuilder.getSuites(), suites);
         });
     });
 
