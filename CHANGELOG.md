@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="6.0.0-alpha.17"></a>
+# [6.0.0-alpha.17](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.16...v6.0.0-alpha.17) (2020-08-28)
+
+
+### Features
+
+* use normalized redux store ([#346](https://github.com/gemini-testing/html-reporter/issues/346)) ([7bc60bc](https://github.com/gemini-testing/html-reporter/commit/7bc60bc))
+
+
+
 <a name="6.0.0-alpha.16"></a>
 # [6.0.0-alpha.16](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.15...v6.0.0-alpha.16) (2020-08-12)
 
