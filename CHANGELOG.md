@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="6.0.0-alpha.18"></a>
+# [6.0.0-alpha.18](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.17...v6.0.0-alpha.18) (2020-08-30)
+
+
+### Bug Fixes
+
+* error with update "baseHost" and "parsedHost" in "view" reducer ([#347](https://github.com/gemini-testing/html-reporter/issues/347)) ([4a4e595](https://github.com/gemini-testing/html-reporter/commit/4a4e595))
+
+
+
 <a name="6.0.0-alpha.17"></a>
 # [6.0.0-alpha.17](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.16...v6.0.0-alpha.17) (2020-08-28)
 
