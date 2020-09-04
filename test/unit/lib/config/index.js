@@ -22,6 +22,7 @@ describe('config', () => {
         delete process.env['html_reporter_scale_images'];
         delete process.env['html_reporter_lazy_load_offset'];
         delete process.env['html_reporter_meta_info_base_urls'];
+        delete process.env['html_reporter_plugins_enabled'];
     });
 
     describe('"enabled" option', () => {
@@ -452,6 +453,128 @@ describe('config', () => {
 
                 assert.equal(config.yandexMetrika.counterNumber, 100500);
             });
+        });
+    });
+
+    describe('"pluginsEnabled" option', () => {
+        it('should be false by default', () => {
+            assert.isFalse(parseConfig({}).pluginsEnabled);
+        });
+
+        it('should set from configuration file', () => {
+            const config = parseConfig({pluginsEnabled: true});
+
+            assert.isTrue(config.pluginsEnabled);
+        });
+
+        it('should set from environment variable', () => {
+            process.env['html_reporter_plugins_enabled'] = 'true';
+
+            assert.isTrue(parseConfig({}).pluginsEnabled);
+        });
+
+        it('should set from cli', () => {
+            process.argv = process.argv.concat('--html-reporter-plugins-enabled', 'true');
+
+            assert.isTrue(parseConfig({}).pluginsEnabled);
+        });
+    });
+
+    describe('plugins', () => {
+        it('should have default value', () => {
+            assert.deepEqual(parseConfig({}).plugins, configDefaults.plugins);
+            assert.deepEqual(parseConfig({}).plugins, []);
+        });
+
+        it('should validate for Array type', () => {
+            assert.throws(
+                () => parseConfig({plugins: 'foo'}),
+                /"plugins" option must be an array, but got string/
+            );
+        });
+
+        it('should validate for Array items', () => {
+            assert.throws(
+                () => parseConfig({plugins: ['foo']}),
+                /plugin description expected to be an object but got string/
+            );
+        });
+
+        it('should validate for Array item required fields', () => {
+            assert.throws(
+                () => parseConfig({plugins: [{name: 'test-plugin'}]}),
+                /"plugins.component" option must be non-empty string but got undefined/
+            );
+        });
+
+        it('should validate for Array item point field when present', () => {
+            assert.throws(
+                () => parseConfig({plugins: [{name: 'test-plugin', component: 'TestComponent', point: 10}]}),
+                /"plugins.point" option must be string but got number/
+            );
+        });
+
+        it('should validate for Array item point field when present', () => {
+            assert.throws(
+                () => parseConfig({plugins: [
+                    {name: 'test-plugin', component: 'TestComponent', point: 'result', position: 'red'}
+                ]}),
+                /"plugins.position" option got an unexpected value "red"/
+            );
+        });
+
+        it('should validate for Array item unexpected fields', () => {
+            assert.throws(
+                () => parseConfig({plugins: [
+                    {name: 'test-plugin', component: 'TestComponent', unexpected: 'field'}
+                ]}),
+                /a "plugins" item has unexpected field "unexpected" of type string/
+            );
+        });
+
+        it('should not throw with correct values', () => {
+            const plugins = [
+                {
+                    name: 'test-plugin',
+                    component: 'TestComponent',
+                    point: 'result',
+                    position: 'wrap'
+                }
+            ];
+
+            const config = parseConfig({plugins: plugins});
+
+            assert.deepEqual(config.plugins, plugins);
+        });
+
+        it('should set from environment variable', () => {
+            const plugins = [
+                {
+                    name: 'test-plugin',
+                    component: 'TestComponent',
+                    point: 'result',
+                    position: 'wrap'
+                }
+            ];
+
+            process.env['html_reporter_plugins'] = JSON.stringify(plugins);
+
+            assert.deepEqual(parseConfig({}).plugins, plugins);
+        });
+
+        it('should set from cli', () => {
+            const plugins = [
+                {
+                    name: 'test-plugin',
+                    component: 'TestComponent',
+                    point: 'result',
+                    position: 'wrap'
+                }
+            ];
+
+            process.argv = process.argv.concat('--html-reporter-plugins', JSON.stringify(plugins));
+
+            assert.deepEqual(parseConfig({}).plugins, plugins);
         });
     });
 });

@@ -143,6 +143,142 @@ directory.
         ]
     }
     ```
+* **pluginsEnabled** (optional) `Boolean` - enable html-reporter plugins; `false` by default
+* **plugins** (optional) `Array` of html-reporter plugin descriptions; `[]` by default. Allows to extend report with custom UI components (both static and gui-mode) and custom server routes (gui-mode only).
+
+  The structure of the plugin descriptions config:
+    ```js
+    plugins: [
+        {
+            name: 'plugin-name',
+            component: 'PluginReactComponentName',
+            point: 'extension-point-name',
+            position: 'wrap'
+        },
+        {
+            name: 'plugin-name',
+            component: 'AnotherPluginReactComponentName',
+            point: 'extension-point-name',
+            position: 'before'
+        },
+        // ...
+    ]
+    ```
+
+    , where:
+
+    * **name** (required) - a name of an html-reporter plugin _package_. It expected to be `require`-resolvable from your project.
+    * **component** (optional) - React component name from the plugin.
+    * **point** (optional) - html-reporter's extension point name. Sets specific place within the html-reporter UI where to place the specified component. [More on extension points](#extension-points).
+    * **position** (optional) - specifies the way the component is going to be applied to the html-reporter UI extension point. Possible values are:
+        * `wrap` - to wrap the extension point UI
+        * `before` - to place the component before the extension point
+        * `after` - to place the component after the extension point
+
+    A plugin with only **name** specified may be used to redefine existing gui-server middleware.
+
+    A plugin may define more than one component. Each component may be applied to several extension points and/or several times to the same point (with separate config entries). The order of the components application is determined by the config order.
+
+    #### html-reporter plugins
+
+    _[Example plugins](./test/func/html-reporter-plugins) are available in functional tests._
+
+    An html-reporter plugin is an object with some set of React components on its keys and an optional key `reducers` with an array of redux reducers to manage the components state (which are later combined by [`reduce-reducers`](https://github.com/redux-utilities/reduce-reducers)).
+
+    An html-reporter plugin expected to have the following module files in the root of the package: `plugin.js` and/or `middleware.js`.
+
+    ##### plugin.js
+
+    Optional module. The file expected to export an object (or set of named exports) or a function returning such an object or an array with some specific structure.
+
+    It is possible to reuse dependencies of html-reporter within plugins (React, Redux, etc). To do so an array should be exported from the module with the list of needed deps followed by a function with the corresponding deps passed to it and returning the plugin itself:
+
+    ```javascript
+    import 'plugin-styles.css';
+
+    export default ['react', function(React, options) {
+        class PluginComponent extends React.Component {
+            // Component implementation
+        }
+
+        return {
+            PluginComponent,
+            reducers: []
+        };
+    }];
+    ```
+
+    Plugin styles are expected to be loaded with the `plugin.js` and the file is expected to be a single bundle.
+
+    Exported value of the `plugin.js` should be passed to the `__hermione_html_reporter_register_plugin__`. This could be achieved by either configuring your webpack build to produce corresponding `jsonp` library:
+
+    ```javascript
+    // ...
+    output: {
+        filename: 'plugin.js',
+        path: __dirname,
+        library: '__hermione_html_reporter_register_plugin__',
+        libraryTarget: 'jsonp'
+    },
+    // ...
+    ```
+
+    or, by passing it explicitly:
+
+    ```javascript
+    __hermione_html_reporter_register_plugin__(['react', function(React, options) {
+        /* ... */
+        return {PluginComponent};
+    }]);
+    ```
+
+    ##### middleware.js
+
+    Optional module. Exports a function accepting an **express** `Router`. The plugin routes are expected to be attached to the router. The router are then attached on the `/plugin-routes/:pluginName/` path:
+
+    ```javascript
+    module.exports = function(pluginRouter) {
+        pluginRouter.get('/plugin-route', function(req, res) {
+            // route implementation
+        });
+    };
+    ```
+
+    The routes then can be called from the plugin React components defined in the `plugin.js`. For convenience the plugin name is always passed with options when function- or array-returning form is used to export plugin as the function options property `pluginName`:
+
+    ```javascript
+    export default ['react', 'axios', function(React, axios, {pluginName, actions}) {
+        class PluginComponent extends React.Component {
+            // ... somewhere inside the component ...
+            const result = await axios.get(`/plugin-routes/${pluginName}/plugin-route`);
+        }
+
+        return {
+            PluginComponent,
+            reducers: []
+        };
+    }
+    ```
+
+    In the example you can also see another convenience property `actions` with all the html-reporter **Redux** actions.
+
+    #### Extension points
+
+    Extension points - places within the report UI that are available to extend with React components with the help of [html-reporter plugins](#html-reporter-plugins).
+
+    Each extension point may pass specific props to the plugin components depending on the point. As some plugins may rely on specific placement and hence on such specific props, it is possible to restrict plugin components to specific extension points by specifing static property `point` on such plugin components:
+
+    ```javascript
+    class PluginComponent extends React.Component {
+        static point = 'result';
+        // ...
+    }
+    ```
+
+    Currently the only registered extension points is `result` - allows to extend each test result; adds `resultId` and `testName` props to the plugin component.
+
+    An extension point may be extended by more than one component. In that case order of components application is determined by `plugins` config order. Each following component is applied to all previously composed components at the extension point.
+
 * **customScripts** (optional) `function[]` - allows to add any scripts on the report html-page. Script will be executed immediately on page render. It can be helpful for adding some metrics or own extra functionality.
 
 ```js

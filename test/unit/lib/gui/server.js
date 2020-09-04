@@ -11,6 +11,8 @@ describe('lib/gui/server', () => {
     let expressStub;
     let bodyParserStub;
     let staticMiddleware;
+    let initPluginRoutesStub;
+    let RouterStub;
 
     const mkExpressApp_ = () => ({
         use: sandbox.stub(),
@@ -48,13 +50,19 @@ describe('lib/gui/server', () => {
 
         expressStub = mkExpressApp_();
         staticMiddleware = sandbox.stub();
+        RouterStub = sandbox.stub();
         bodyParserStub = {json: sandbox.stub()};
+        initPluginRoutesStub = sandbox.stub();
 
         server = proxyquire('lib/gui/server', {
-            express: Object.assign(() => expressStub, {static: staticMiddleware}),
+            express: Object.assign(() => expressStub, {
+                static: staticMiddleware,
+                Router: () => RouterStub
+            }),
             'body-parser': bodyParserStub,
             'signal-exit': sandbox.stub().yields(),
-            '../server-utils': {logger: {log: sandbox.stub()}}
+            '../server-utils': {logger: {log: sandbox.stub()}},
+            './routes/plugins': initPluginRoutesStub
         });
     });
 
@@ -101,5 +109,23 @@ describe('lib/gui/server', () => {
         await startServer({guiApi});
 
         assert.calledOnceWith(expressStub.set, 'json replacer', sinon.match.func);
+    });
+
+    it('should try to attach plugins middleware on startup', async () => {
+        const pluginConfig = {
+            path: 'test-path',
+            plugins: [
+                {name: 'test-plugin', component: 'TestComponent'}
+            ]
+        };
+
+        await startServer({
+            configs: {
+                options: {hostname: 'localhost', port: '4444'},
+                pluginConfig
+            }
+        });
+
+        assert.calledOnceWith(initPluginRoutesStub, RouterStub, pluginConfig);
     });
 });

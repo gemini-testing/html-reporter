@@ -6,20 +6,22 @@ import StaticTestsTreeBuilder from 'lib/tests-tree-builder/static';
 
 describe('lib/static/modules/actions', () => {
     const sandbox = sinon.sandbox.create();
-    let dispatch, actions, addNotification, getSuitesTableRows;
+    let dispatch, actions, addNotification, getSuitesTableRows, pluginsStub;
 
     beforeEach(() => {
         dispatch = sandbox.stub();
         sandbox.stub(axios, 'post').resolves({data: {}});
         addNotification = sandbox.stub();
         getSuitesTableRows = sandbox.stub();
+        pluginsStub = {loadAll: sandbox.stub()};
 
         sandbox.stub(StaticTestsTreeBuilder, 'create').returns(Object.create(StaticTestsTreeBuilder.prototype));
         sandbox.stub(StaticTestsTreeBuilder.prototype, 'build').returns({});
 
         actions = proxyquire('lib/static/modules/actions', {
             'reapop': {addNotification},
-            './database-utils': {getSuitesTableRows}
+            './database-utils': {getSuitesTableRows},
+            './plugins': pluginsStub
         });
     });
 
@@ -56,6 +58,15 @@ describe('lib/static/modules/actions', () => {
                     status: 'error'
                 }
             );
+        });
+
+        it('should init plugins with the config from /init route', async () => {
+            const config = {pluginsEnabled: true, plugins: []};
+            sandbox.stub(axios, 'get').withArgs('/init').resolves({data: {config}});
+
+            await actions.initGuiReport()(dispatch);
+
+            assert.calledOnceWith(pluginsStub.loadAll, config);
         });
     });
 
@@ -116,7 +127,8 @@ describe('lib/static/modules/actions', () => {
                 './sqlite': {
                     fetchDatabases: fetchDatabasesStub,
                     mergeDatabases: mergeDatabasesStub
-                }
+                },
+                './plugins': pluginsStub
             });
         });
 
@@ -197,6 +209,15 @@ describe('lib/static/modules/actions', () => {
                     payload: sinon.match({...treeBuilderResult})
                 }
             );
+        });
+
+        it('should init plugins with the config from data.js', async () => {
+            const config = {pluginsEnabled: true, plugins: []};
+            global.window.data = {config};
+
+            await actions.initStaticReport()(dispatch);
+
+            assert.calledOnceWith(pluginsStub.loadAll, config);
         });
     });
 

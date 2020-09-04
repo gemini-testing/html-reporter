@@ -1,0 +1,7 @@
+{
+    "name": "@scoped/html-reporter-redux-with-server-plugin",
+    "version": "0.1.0",
+    "scripts": {
+        "build": "webpack --config webpack.config.js"
+    }
+}
