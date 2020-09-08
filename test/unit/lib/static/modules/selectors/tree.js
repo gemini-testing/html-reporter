@@ -1,6 +1,12 @@
 import {defaults} from 'lodash';
-import {SUCCESS, ERROR, IDLE} from 'lib/constants/test-statuses';
-import {mkShouldSuiteBeShown, mkShouldBrowserBeShown, areAllRootSuitesIdle} from 'lib/static/modules/selectors/tree';
+import {SUCCESS, FAIL, ERROR, IDLE} from 'lib/constants/test-statuses';
+import {
+    getAcceptableImagesByStateName,
+    mkGetLastImageByStateName,
+    mkShouldSuiteBeShown,
+    mkShouldBrowserBeShown,
+    areAllRootSuitesIdle
+} from 'lib/static/modules/selectors/tree';
 import viewModes from 'lib/constants/view-modes';
 
 describe('tree selectors', () => {
@@ -38,12 +44,23 @@ describe('tree selectors', () => {
         return {[result.id]: result};
     };
 
+    const mkImage = (opts) => {
+        const image = defaults(opts, {
+            id: 'default-image-id',
+            parentId: 'default-result-id',
+            stateName: 'default-state-name',
+            status: SUCCESS
+        });
+
+        return {[image.id]: image};
+    };
+
     const mkStateTree = ({suitesById = {}, suitesAllRootIds = [], browsersById = {}, resultsById = {}, imagesById = {}} = {}) => {
         return {
             suites: {byId: suitesById, allRootIds: suitesAllRootIds},
             browsers: {byId: browsersById},
             results: {byId: resultsById},
-            images: {byId: imagesById}
+            images: {byId: imagesById, allIds: Object.keys(imagesById)}
         };
     };
 
@@ -57,6 +74,120 @@ describe('tree selectors', () => {
     };
 
     const mkState = ({tree = mkStateTree(), view = mkStateView()} = {}) => ({tree, view});
+
+    describe('"getAcceptableImagesByStateName" selector', () => {
+        it('should return empty object if there are no acceptable images', () => {
+            const browsersById = mkBrowser({id: 'b', resultIds: ['r1']});
+            const resultsById = mkResult({id: 'r1', parentId: 'b', imageIds: ['img1']});
+            const imagesById = mkImage({id: 'img1', parentId: 'r1', status: SUCCESS});
+
+            const tree = mkStateTree({browsersById, resultsById, imagesById});
+            const state = mkState({tree});
+
+            assert.deepEqual(getAcceptableImagesByStateName(state), {});
+        });
+
+        it('should return images grouped by state name', () => {
+            const browsersById = mkBrowser({id: 'b', resultIds: ['r1', 'r2']});
+            const resultsById = {
+                ...mkResult({id: 'r1', parentId: 'b', imageIds: ['img1']}),
+                ...mkResult({id: 'r2', parentId: 'b', imageIds: ['img2']})
+            };
+            const imagesById = {
+                ...mkImage({id: 'img1', parentId: 'r1', stateName: 'first', status: FAIL}),
+                ...mkImage({id: 'img2', parentId: 'r2', stateName: 'first', status: FAIL})
+            };
+
+            const tree = mkStateTree({browsersById, resultsById, imagesById});
+            const state = mkState({tree});
+
+            assert.deepEqual(
+                getAcceptableImagesByStateName(state),
+                {'b first': [imagesById['img1'], imagesById['img2']]}
+            );
+        });
+
+        it('should return images sorted by suite id', () => {
+            const browsersById = {
+                ...mkBrowser({id: 'b1', parentId: 'suiteB', resultIds: ['r1']}),
+                ...mkBrowser({id: 'b2', parentId: 'suiteA', resultIds: ['r2']})
+            };
+            const resultsById = {
+                ...mkResult({id: 'r1', parentId: 'b1', imageIds: ['img1']}),
+                ...mkResult({id: 'r2', parentId: 'b2', imageIds: ['img2']})
+            };
+            const imagesById = {
+                ...mkImage({id: 'img1', parentId: 'r1', stateName: 'first', status: FAIL}),
+                ...mkImage({id: 'img2', parentId: 'r2', stateName: 'second', status: FAIL})
+            };
+
+            const tree = mkStateTree({browsersById, resultsById, imagesById});
+            const state = mkState({tree});
+
+            const imagesByStateName = getAcceptableImagesByStateName(state);
+            assert.deepEqual(Object.keys(imagesByStateName), ['b2 second', 'b1 first']);
+        });
+
+        it('should return images sorted by browser id', () => {
+            const browsersById = {
+                ...mkBrowser({id: 'b2', parentId: 'suite', resultIds: ['r2']}),
+                ...mkBrowser({id: 'b1', parentId: 'suite', resultIds: ['r1']})
+            };
+            const resultsById = {
+                ...mkResult({id: 'r1', parentId: 'b1', imageIds: ['img1']}),
+                ...mkResult({id: 'r2', parentId: 'b2', imageIds: ['img2']})
+            };
+            const imagesById = {
+                ...mkImage({id: 'img1', parentId: 'r1', stateName: 'first', status: FAIL}),
+                ...mkImage({id: 'img2', parentId: 'r2', stateName: 'second', status: FAIL})
+            };
+
+            const tree = mkStateTree({browsersById, resultsById, imagesById});
+            const state = mkState({tree});
+
+            const imagesByStateName = getAcceptableImagesByStateName(state);
+            assert.deepEqual(Object.keys(imagesByStateName), ['b1 first', 'b2 second']);
+        });
+    });
+
+    describe('"mkGetLastImageByStateName" factory', () => {
+        it('should return image with passed "id" if there are no images with the same state name', () => {
+            const browsersById = mkBrowser({id: 'b', resultIds: ['r1', 'r2']});
+            const resultsById = {
+                ...mkResult({id: 'r1', parentId: 'b', imageIds: ['img1']}),
+                ...mkResult({id: 'r2', parentId: 'b', imageIds: ['img2']})
+            };
+            const imagesById = {
+                ...mkImage({id: 'img1', parentId: 'r1', stateName: 'first'}),
+                ...mkImage({id: 'img2', parentId: 'r2', stateName: 'second'})
+            };
+
+            const tree = mkStateTree({browsersById, resultsById, imagesById});
+            const state = mkState({tree});
+
+            const lastImage = mkGetLastImageByStateName()(state, {imageId: 'img1'});
+            assert.deepEqual(lastImage, imagesById['img1']);
+        });
+
+        it('should return latest image with the same state name from last result', () => {
+            const browsersById = mkBrowser({id: 'b', resultIds: ['r1', 'r2', 'r3']});
+            const resultsById = {
+                ...mkResult({id: 'r1', parentId: 'b', imageIds: ['img1']}),
+                ...mkResult({id: 'r2', parentId: 'b', imageIds: ['img2']}),
+                ...mkResult({id: 'r3', parentId: 'b', imageIds: []})
+            };
+            const imagesById = {
+                ...mkImage({id: 'img1', parentId: 'r1', stateName: 'first'}),
+                ...mkImage({id: 'img2', parentId: 'r2', stateName: 'first'})
+            };
+
+            const tree = mkStateTree({browsersById, resultsById, imagesById});
+            const state = mkState({tree});
+
+            const lastImage = mkGetLastImageByStateName()(state, {imageId: 'img1'});
+            assert.deepEqual(lastImage, imagesById['img2']);
+        });
+    });
 
     describe('"mkShouldSuiteBeShown" factory', () => {
         describe('viewMode', () => {

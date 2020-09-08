@@ -1,8 +1,8 @@
 import React from 'react';
 import {defaults} from 'lodash';
-import RetrySwitcherItem from 'lib/static/components/section/body/retry-switcher/item';
+import RetrySwitcherItem from 'lib/static/components/retry-switcher/item';
 import {FAIL, SUCCESS} from 'lib/constants/test-statuses';
-import {mkConnectedComponent} from '../../../utils';
+import {mkConnectedComponent} from '../utils';
 
 describe('<RetrySwitcherItem />', () => {
     const sandbox = sinon.sandbox.create();
@@ -18,7 +18,7 @@ describe('<RetrySwitcherItem />', () => {
             tree: {
                 results: {
                     byId: {
-                        'default-id': {status: SUCCESS}
+                        'default-id': {status: SUCCESS, attempt: 0}
                     }
                 }
             }
@@ -34,7 +34,7 @@ describe('<RetrySwitcherItem />', () => {
             tree: {
                 results: {
                     byId: {
-                        'result-1': {status: FAIL}
+                        'result-1': {status: FAIL, attempt: 0}
                     }
                 }
             }
@@ -44,6 +44,23 @@ describe('<RetrySwitcherItem />', () => {
 
         assert.lengthOf(component.find('.tab-switcher__button'), 1);
         assert.lengthOf(component.find(`.tab-switcher__button_status_${FAIL}`), 1);
+    });
+
+    it('should render button with text from result "attempt" increased by one', () => {
+        const initialState = {
+            tree: {
+                results: {
+                    byId: {
+                        'result-1': {status: FAIL, attempt: 100499}
+                    }
+                }
+            }
+        };
+
+        const component = mkRetrySwitcherItem({resultId: 'result-1'}, initialState);
+        const text = component.find('.tab-switcher__button').text();
+
+        assert.equal(text, 100500);
     });
 
     it('should render button with correct active class name', () => {

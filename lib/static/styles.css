@@ -669,6 +669,7 @@ a:active {
 .tab-switcher:before {
     content: 'Attempts';
     margin-right: 10px;
+    vertical-align: middle;
 }
 
 .tab-switcher__button.tab-switcher__button_active {
@@ -869,4 +870,8 @@ a:active {
     z-index: 1;
     opacity: 0.3;
     background-color: #FF00FF;
+}
+
+.ui.loader {
+    z-index: 50;
 }

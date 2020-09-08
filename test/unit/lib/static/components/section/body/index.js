@@ -30,7 +30,7 @@ describe('<Body />', () => {
         Body = proxyquire('lib/static/components/section/body', {
             '../../../modules/actions': actionsStub,
             './result': {default: Result},
-            './retry-switcher': {default: RetrySwitcher}
+            '../../retry-switcher': {default: RetrySwitcher}
         }).default;
     });
 

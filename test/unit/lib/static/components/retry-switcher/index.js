@@ -19,7 +19,7 @@ describe('<RetrySwitcher >', () => {
     beforeEach(() => {
         RetrySwitcherItem = sinon.stub().returns(null);
 
-        RetrySwitcher = proxyquire('lib/static/components/section/body/retry-switcher', {
+        RetrySwitcher = proxyquire('lib/static/components/retry-switcher', {
             './item': {default: RetrySwitcherItem}
         }).default;
     });
@@ -33,16 +33,16 @@ describe('<RetrySwitcher >', () => {
     });
 
     it('should create tab switcher buttons for each result', () => {
-        mkRetrySwitcher({resultIds: ['result-1', 'result-2'], retryIndex: 1});
+        mkRetrySwitcher({resultIds: ['result-1', 'result-2'], retryIndex: 1, title: 'some-title'});
 
         assert.calledTwice(RetrySwitcherItem);
         assert.calledWith(
             RetrySwitcherItem.firstCall,
-            {children: 1, resultId: 'result-1', isActive: false, onClick: sinon.match.func}
+            {resultId: 'result-1', isActive: false, title: 'some-title', onClick: sinon.match.func}
         );
         assert.calledWith(
             RetrySwitcherItem.secondCall,
-            {children: 2, resultId: 'result-2', isActive: true, onClick: sinon.match.func}
+            {resultId: 'result-2', isActive: true, title: 'some-title', onClick: sinon.match.func}
         );
     });
 
