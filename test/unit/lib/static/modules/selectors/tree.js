@@ -1,6 +1,6 @@
 import {defaults} from 'lodash';
-import {SUCCESS, ERROR} from 'lib/constants/test-statuses';
-import {mkShouldSuiteBeShown, mkShouldBrowserBeShown} from 'lib/static/modules/selectors/tree';
+import {SUCCESS, ERROR, IDLE} from 'lib/constants/test-statuses';
+import {mkShouldSuiteBeShown, mkShouldBrowserBeShown, areAllRootSuitesIdle} from 'lib/static/modules/selectors/tree';
 import viewModes from 'lib/constants/view-modes';
 
 describe('tree selectors', () => {
@@ -38,9 +38,9 @@ describe('tree selectors', () => {
         return {[result.id]: result};
     };
 
-    const mkStateTree = ({suitesById, browsersById = {}, resultsById = {}, imagesById = {}} = {}) => {
+    const mkStateTree = ({suitesById = {}, suitesAllRootIds = [], browsersById = {}, resultsById = {}, imagesById = {}} = {}) => {
         return {
-            suites: {byId: suitesById},
+            suites: {byId: suitesById, allRootIds: suitesAllRootIds},
             browsers: {byId: browsersById},
             results: {byId: resultsById},
             images: {byId: imagesById}
@@ -267,6 +267,30 @@ describe('tree selectors', () => {
 
                 assert.isFalse(mkShouldBrowserBeShown()(state, {browserId: 's1', result: resultsById['r1']}));
             });
+        });
+    });
+
+    describe('"areAllRootSuitesIdle"', () => {
+        it(`should return true if there are all root suites with ${IDLE} status`, () => {
+            const suitesById = {
+                ...mkSuite({id: 's1', status: IDLE}),
+                ...mkSuite({id: 's2', status: IDLE})
+            };
+            const tree = mkStateTree({suitesById, suitesAllRootIds: ['s1', 's2']});
+            const state = mkState({tree});
+
+            assert.isTrue(areAllRootSuitesIdle(state));
+        });
+
+        it(`should return false if there is a suite not with ${IDLE} status`, () => {
+            const suitesById = {
+                ...mkSuite({id: 's1', status: IDLE}),
+                ...mkSuite({id: 's2', status: SUCCESS})
+            };
+            const tree = mkStateTree({suitesById, suitesAllRootIds: ['s1', 's2']});
+            const state = mkState({tree});
+
+            assert.isFalse(areAllRootSuitesIdle(state));
         });
     });
 });
