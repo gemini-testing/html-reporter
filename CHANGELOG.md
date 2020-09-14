@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="6.0.0-alpha.19"></a>
+# [6.0.0-alpha.19](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.18...v6.0.0-alpha.19) (2020-09-14)
+
+
+### Features
+
+* add plugins support ([0d8f568](https://github.com/gemini-testing/html-reporter/commit/0d8f568))
+
+
+
 <a name="6.0.0-alpha.18"></a>
 # [6.0.0-alpha.18](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.17...v6.0.0-alpha.18) (2020-08-30)
 
