@@ -74,6 +74,7 @@ describe('<MetaInfo />', () => {
             const initialConfig = {config: {metaInfoBaseUrls: stub.metaInfoBaseUrls}};
 
             const component = mkMetaInfoComponent({result}, initialConfig);
+            component.simulate('click');
 
             assert.equal(component.find('.meta-info__item:first-child').text(), 'file: test/file');
             assert.equal(component.find('.meta-info__item:first-child a').prop('href'), stub.expectedFileUrl);

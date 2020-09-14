@@ -53,7 +53,7 @@ describe('<Suites/>', () => {
         assert.notCalled(SectionCommon);
     });
 
-    it('should render section common without "eventToUpdate" if "lazyLoadOffset" disabled', () => {
+    it('should render section common without "eventToUpdate" and "eventToReset" if "lazyLoadOffset" disabled', () => {
         getVisibleRootSuiteIds.returns(['suite-id']);
 
         mkSuitesComponent({errorGroupBrowserIds: []}, {view: {lazyLoadOffset: 0}});
@@ -64,14 +64,19 @@ describe('<Suites/>', () => {
         );
     });
 
-    it('should render section common without "eventToUpdate" if "lazyLoadOffset" enabled', () => {
+    it('should render section common without "eventToUpdate" and "eventToReset" if "lazyLoadOffset" enabled', () => {
         getVisibleRootSuiteIds.returns(['suite-id']);
 
         mkSuitesComponent({errorGroupBrowserIds: []}, {view: {lazyLoadOffset: 100500}});
 
         assert.calledOnceWith(
             SectionCommon,
-            {suiteId: 'suite-id', eventToUpdate: clientEvents.VIEW_CHANGED, sectionRoot: true, errorGroupBrowserIds: []}
+            {
+                suiteId: 'suite-id',
+                sectionRoot: true, errorGroupBrowserIds: [],
+                eventToUpdate: clientEvents.VIEW_CHANGED,
+                eventToReset: clientEvents.SUITES_VISIBILITY_CHANGED
+            }
         );
     });
 
