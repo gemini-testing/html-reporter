@@ -245,4 +245,83 @@ describe('server-utils', () => {
             assert.calledOnce(actionSpy);
         });
     });
+
+    describe('forEachPlugin', () => {
+        it('should call the callback for each plugin only once', () => {
+            const plugins = [
+                {name: 'test-plugin-1'},
+                {name: 'test-plugin-3'},
+                {name: 'test-plugin-1'},
+                {name: 'test-plugin-2'},
+                {name: 'test-plugin-1'},
+                {name: 'test-plugin-2'}
+            ];
+
+            const callback = sandbox.stub();
+
+            utils.forEachPlugin(plugins, callback);
+
+            assert.calledThrice(callback);
+            assert.deepStrictEqual(callback.args, [
+                ['test-plugin-1'],
+                ['test-plugin-3'],
+                ['test-plugin-2']
+            ]);
+        });
+    });
+
+    describe('mapPlugins', () => {
+        it('should map the callback for each plugin only once', () => {
+            const plugins = [
+                {name: 'test-plugin-1'},
+                {name: 'test-plugin-3'},
+                {name: 'test-plugin-1'},
+                {name: 'test-plugin-2'},
+                {name: 'test-plugin-1'},
+                {name: 'test-plugin-2'}
+            ];
+
+            const callback = pluginName => pluginName;
+
+            const result = utils.mapPlugins(plugins, callback);
+
+            assert.deepStrictEqual(result, [
+                'test-plugin-1',
+                'test-plugin-3',
+                'test-plugin-2'
+            ]);
+        });
+    });
+
+    describe('isUnexpectedPlugin', () => {
+        it('should return true when the specified plugin is not present in the plugins config', () => {
+            const plugins = [
+                {name: 'test-plugin-1'},
+                {name: 'test-plugin-3'},
+                {name: 'test-plugin-1'},
+                {name: 'test-plugin-2'},
+                {name: 'test-plugin-1'},
+                {name: 'test-plugin-2'}
+            ];
+
+            const result = utils.isUnexpectedPlugin(plugins, 'test-plugin-5');
+
+            assert.strictEqual(result, true);
+        });
+
+        it('should return false when the specified plugin is present in the plugins config', () => {
+            const plugins = [
+                {name: 'test-plugin-1'},
+                {name: 'test-plugin-3'},
+                {name: 'test-plugin-1'},
+                {name: 'test-plugin-2'},
+                {name: 'test-plugin-1'},
+                {name: 'test-plugin-2'}
+            ];
+
+            const result = utils.isUnexpectedPlugin(plugins, 'test-plugin-3');
+
+            assert.strictEqual(result, false);
+        });
+    });
 });
