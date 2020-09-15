@@ -1,0 +1,434 @@
+import React from 'react';
+import {defaults, defaultsDeep} from 'lodash';
+import proxyquire from 'proxyquire';
+import {mkConnectedComponent} from '../../utils';
+
+describe('<ScreenshotAccepterHeader/>', () => {
+    const sandbox = sinon.sandbox.create();
+    let ScreenshotAccepterHeader, RetrySwitcher, GlobalHotKeys, actions, events;
+
+    const mkKeyDownEvent = (opts = {}) => {
+        return {...opts, preventDefault: () => {}};
+    };
+
+    const mkHeaderComponent = (props = {}, initialState = {}) => {
+        props = defaults(props, {
+            images: [{
+                id: 'default-image-id',
+                parentId: 'default-result-id'
+            }],
+            stateNameImageIds: ['default-browser default-state-name'],
+            retryIndex: 0,
+            activeImageIndex: 0,
+            onClose: () => {},
+            onRetryChange: () => {},
+            onActiveImageChange: () => {},
+            onScreenshotAccept: () => {}
+        });
+
+        initialState = defaultsDeep(initialState, {
+            view: {showOnlyDiff: false, scaleImages: false}
+        });
+
+        return mkConnectedComponent(<ScreenshotAccepterHeader {...props} />, {initialState});
+    };
+
+    beforeEach(() => {
+        actions = {
+            toggleScaleImages: sandbox.stub().returns({type: 'some-type'}),
+            toggleOnlyDiff: sandbox.stub().returns({type: 'some-type'})
+        };
+        events = {};
+        global.window.addEventListener = sandbox.stub().callsFake((event, cb) => {
+            events[event] = cb;
+        });
+
+        RetrySwitcher = sandbox.stub().returns(null);
+        GlobalHotKeys = sandbox.stub().returns(null);
+
+        ScreenshotAccepterHeader = proxyquire('lib/static/components/modals/screenshot-accepter/header', {
+            'react-hotkeys': {GlobalHotKeys},
+            '../../../modules/actions': actions,
+            '../../retry-switcher': {default: RetrySwitcher}
+        }).default;
+    });
+
+    afterEach(() => {
+        global.window.addEventListener = () => {};
+        sandbox.restore();
+    });
+
+    [
+        {
+            btnName: 'Arrow Up',
+            btnClass: '.screenshot-accepter__arrow-up-btn'
+        },
+        {
+            btnName: 'Arrow Down',
+            btnClass: '.screenshot-accepter__arrow-down-btn'
+        }
+    ].forEach(({btnName, btnClass}) => {
+        describe(`"${btnName}" button`, () => {
+            it('should be disabled if the current image is the last', () => {
+                const component = mkHeaderComponent({stateNameImageIds: ['state1']});
+
+                assert.isTrue(component.find(btnClass).prop('disabled'));
+            });
+
+            it('should be disabled if there are no images left', () => {
+                const component = mkHeaderComponent({stateNameImageIds: []});
+
+                assert.isTrue(component.find(btnClass).prop('disabled'));
+            });
+        });
+    });
+
+    describe('"Arrow Up" button', () => {
+        [
+            {
+                name: 'with previous image index',
+                activeImageIndex: 2,
+                expectedActiveImageIndex: 1
+            },
+            {
+                name: 'with last image index if there are no previous images',
+                activeImageIndex: 0,
+                expectedActiveImageIndex: 2
+            }
+        ].forEach(({name, activeImageIndex, expectedActiveImageIndex}) => {
+            it(`should call "onActiveImageChange" ${name} on click`, () => {
+                const onActiveImageChange = sandbox.stub();
+                const component = mkHeaderComponent({
+                    activeImageIndex,
+                    stateNameImageIds: ['state1', 'state2', 'state3'],
+                    onActiveImageChange
+                });
+
+                component.find('.screenshot-accepter__arrow-up-btn').simulate('click');
+
+                assert.calledOnceWith(onActiveImageChange, expectedActiveImageIndex);
+            });
+        });
+
+        [
+            {
+                name: 'with previous image index',
+                activeImageIndex: 2,
+                expectedActiveImageIndex: 1
+            },
+            {
+                name: 'with last image index if there are no previous images',
+                activeImageIndex: 0,
+                expectedActiveImageIndex: 2
+            }
+        ].forEach(({name, activeImageIndex, expectedActiveImageIndex}) => {
+            it(`should call "onActiveImageChange" ${name} on press on related keys`, () => {
+                const onActiveImageChange = sandbox.stub();
+                const component = mkHeaderComponent({
+                    activeImageIndex,
+                    stateNameImageIds: ['state1', 'state2', 'state3'],
+                    onActiveImageChange
+                });
+
+                const {PREV_SCREENSHOT: handler} = component.find(GlobalHotKeys).prop('handlers');
+                handler(mkKeyDownEvent());
+
+                assert.calledOnceWith(onActiveImageChange, expectedActiveImageIndex);
+            });
+        });
+    });
+
+    describe('"Arrow Down" button', () => {
+        [
+            {
+                name: 'with next image index',
+                activeImageIndex: 0,
+                expectedActiveImageIndex: 1
+            },
+            {
+                name: 'with first image index if there are no next images',
+                activeImageIndex: 2,
+                expectedActiveImageIndex: 0
+            }
+        ].forEach(({name, activeImageIndex, expectedActiveImageIndex}) => {
+            it(`should call "onActiveImageChange" ${name} on click`, () => {
+                const onActiveImageChange = sandbox.stub();
+                const component = mkHeaderComponent({
+                    activeImageIndex,
+                    stateNameImageIds: ['state1', 'state2', 'state3'],
+                    onActiveImageChange
+                });
+
+                component.find('.screenshot-accepter__arrow-down-btn').simulate('click');
+
+                assert.calledOnceWith(onActiveImageChange, expectedActiveImageIndex);
+            });
+        });
+
+        [
+            {
+                name: 'with next image index',
+                activeImageIndex: 0,
+                expectedActiveImageIndex: 1
+            },
+            {
+                name: 'with first image index if there are no next images',
+                activeImageIndex: 2,
+                expectedActiveImageIndex: 0
+            }
+        ].forEach(({name, activeImageIndex, expectedActiveImageIndex}) => {
+            it(`should call "onActiveImageChange" ${name} on press on related keys`, () => {
+                const onActiveImageChange = sandbox.stub();
+                const component = mkHeaderComponent({
+                    activeImageIndex,
+                    stateNameImageIds: ['state1', 'state2', 'state3'],
+                    onActiveImageChange
+                });
+
+                const {NEXT_SCREENSHOT: handler} = component.find(GlobalHotKeys).prop('handlers');
+                handler(mkKeyDownEvent());
+
+                assert.calledOnceWith(onActiveImageChange, expectedActiveImageIndex);
+            });
+        });
+    });
+
+    describe('"Accept" button', () => {
+        it('should be disabled if passed empty "images" array', () => {
+            const component = mkHeaderComponent({images: []});
+
+            assert.isTrue(component.find('[label="✔ Accept"]').prop('isDisabled'));
+        });
+
+        it('should be enabled if passed not empty "images" array', () => {
+            const component = mkHeaderComponent({images: [{id: 'img-1', parentId: 'res-1'}]});
+
+            assert.isFalse(component.find('[label="✔ Accept"]').prop('isDisabled'));
+        });
+
+        it('should call "onScreenshotAccept" handler with current image id on click', () => {
+            const onScreenshotAccept = sandbox.stub();
+            const component = mkHeaderComponent({
+                images: [
+                    {id: 'img-1', parentId: 'res-1'},
+                    {id: 'img-2', parentId: 'res-2'}
+                ],
+                retryIndex: 1,
+                onScreenshotAccept
+            });
+
+            component.find('[label="✔ Accept"]').simulate('click');
+
+            assert.calledOnceWith(onScreenshotAccept, 'img-2');
+        });
+
+        it('should call "onScreenshotAccept" handler with current image id on press on related keys', () => {
+            const onScreenshotAccept = sandbox.stub();
+            const component = mkHeaderComponent({
+                images: [
+                    {id: 'img-1', parentId: 'res-1'},
+                    {id: 'img-2', parentId: 'res-2'}
+                ],
+                retryIndex: 1,
+                onScreenshotAccept
+            });
+
+            const {ACCEPT_SCREENSHOT: handler} = component.find(GlobalHotKeys).prop('handlers');
+            handler(mkKeyDownEvent());
+
+            assert.calledOnceWith(onScreenshotAccept, 'img-2');
+        });
+    });
+
+    describe('<RetrySwitcher /> component', () => {
+        it('should render with correct props', () => {
+            const onRetryChange = sandbox.stub();
+            mkHeaderComponent({
+                images: [
+                    {id: 'img-1', parentId: 'res-1'},
+                    {id: 'img-2', parentId: 'res-2'}
+                ],
+                retryIndex: 0,
+                onRetryChange
+            });
+
+            assert.calledOnceWith(RetrySwitcher, {
+                title: 'Switch to selected attempt (left: ←,a; right: →,d)',
+                resultIds: ['res-1', 'res-2'],
+                retryIndex: 0,
+                onChange: onRetryChange
+            });
+        });
+
+        it('should call "onRetryChange" handler on call "onChange" prop with new retry index', () => {
+            const onRetryChange = sandbox.stub();
+            mkHeaderComponent({
+                images: [
+                    {id: 'img-1', parentId: 'res-1'},
+                    {id: 'img-2', parentId: 'res-2'}
+                ],
+                retryIndex: 0,
+                onRetryChange
+            });
+
+            RetrySwitcher.firstCall.args[0].onChange(1);
+
+            assert.calledOnceWith(onRetryChange, 1);
+        });
+
+        describe('on press on related keys', () => {
+            it('should call "onRetryChange" with previous retry index', () => {
+                const onRetryChange = sandbox.stub();
+                const component = mkHeaderComponent({
+                    images: [
+                        {id: 'img-1', parentId: 'res-1'},
+                        {id: 'img-2', parentId: 'res-2'}
+                    ],
+                    retryIndex: 1,
+                    onRetryChange
+                });
+
+                const {PREV_RETRY: handler} = component.find(GlobalHotKeys).prop('handlers');
+                handler(mkKeyDownEvent());
+
+                assert.calledOnceWith(onRetryChange, 0);
+            });
+
+            it('should call "onRetryChange" with last retry index if current retry is first', () => {
+                const onRetryChange = sandbox.stub();
+                const component = mkHeaderComponent({
+                    images: [
+                        {id: 'img-1', parentId: 'res-1'},
+                        {id: 'img-2', parentId: 'res-2'}
+                    ],
+                    retryIndex: 0,
+                    onRetryChange
+                });
+
+                const {PREV_RETRY: handler} = component.find(GlobalHotKeys).prop('handlers');
+                handler(mkKeyDownEvent());
+
+                assert.calledOnceWith(onRetryChange, 1);
+            });
+        });
+
+        describe('on press on related keys', () => {
+            it('should call "onRetryChange" with next retry index', () => {
+                const onRetryChange = sandbox.stub();
+                const component = mkHeaderComponent({
+                    images: [
+                        {id: 'img-1', parentId: 'res-1'},
+                        {id: 'img-2', parentId: 'res-2'}
+                    ],
+                    retryIndex: 0,
+                    onRetryChange
+                });
+
+                const {NEXT_RETRY: handler} = component.find(GlobalHotKeys).prop('handlers');
+                handler(mkKeyDownEvent());
+
+                assert.calledOnceWith(onRetryChange, 1);
+            });
+
+            it('should call "onRetryChange" with first retry index if current retry is last', () => {
+                const onRetryChange = sandbox.stub();
+                const component = mkHeaderComponent({
+                    images: [
+                        {id: 'img-1', parentId: 'res-1'},
+                        {id: 'img-2', parentId: 'res-2'}
+                    ],
+                    retryIndex: 1,
+                    onRetryChange
+                });
+
+                const {NEXT_RETRY: handler} = component.find(GlobalHotKeys).prop('handlers');
+                handler(mkKeyDownEvent());
+
+                assert.calledOnceWith(onRetryChange, 0);
+            });
+        });
+    });
+
+    describe('"Show only diff" button', () => {
+        it('should be not active if "showOnlyDiff" turned off', () => {
+            const component = mkHeaderComponent({}, {view: {showOnlyDiff: false}});
+
+            assert.isFalse(component.find('[label="Show only diff"]').prop('isActive'));
+        });
+
+        it('should be active if "showOnlyDiff" turned on', () => {
+            const component = mkHeaderComponent({}, {view: {showOnlyDiff: true}});
+
+            assert.isTrue(component.find('[label="Show only diff"]').prop('isActive'));
+        });
+
+        it('should call "toggleOnlyDiff" action on call "handler" prop', () => {
+            const component = mkHeaderComponent({}, {view: {showOnlyDiff: false}});
+
+            component.find('[label="Show only diff"]').prop('handler')();
+
+            assert.calledOnce(actions.toggleOnlyDiff);
+        });
+
+        it('should call "toggleOnlyDiff" action on press on related keys', () => {
+            const component = mkHeaderComponent({}, {view: {showOnlyDiff: false}});
+
+            const {SHOW_ONLY_DIFF: handler} = component.find(GlobalHotKeys).prop('handlers');
+            handler(mkKeyDownEvent());
+
+            assert.calledOnce(actions.toggleOnlyDiff);
+        });
+    });
+
+    describe('"Scale images" button', () => {
+        it('should be not active if "scaleImages" turned off', () => {
+            const component = mkHeaderComponent({}, {view: {scaleImages: false}});
+
+            assert.isFalse(component.find('[label="Scale images"]').prop('isActive'));
+        });
+
+        it('should be active if "scaleImages" turned on', () => {
+            const component = mkHeaderComponent({}, {view: {scaleImages: true}});
+
+            assert.isTrue(component.find('[label="Scale images"]').prop('isActive'));
+        });
+
+        it('should call "toggleScaleImages" action on call "handler" prop', () => {
+            const component = mkHeaderComponent({}, {view: {scaleImages: false}});
+
+            component.find('[label="Scale images"]').prop('handler')();
+
+            assert.calledOnce(actions.toggleScaleImages);
+        });
+
+        it('should call "toggleScaleImages" action on press on related keys', () => {
+            const component = mkHeaderComponent({}, {view: {scaleImages: false}});
+
+            const {SCALE_IMAGES: handler} = component.find(GlobalHotKeys).prop('handlers');
+            handler(mkKeyDownEvent());
+
+            assert.calledOnce(actions.toggleScaleImages);
+        });
+    });
+
+    describe('"Close screenshot accepting mode" button', () => {
+        it('should call "onClose" handler on click', () => {
+            const onClose = sandbox.stub();
+            const component = mkHeaderComponent({onClose});
+
+            component.find('.screenshot-accepter__arrows-close-btn').simulate('click');
+
+            assert.calledOnce(onClose);
+        });
+
+        it('should call "onClose" handler on press on related keys', () => {
+            const onClose = sandbox.stub();
+            const component = mkHeaderComponent({onClose});
+
+            const {CLOSE_MODAL: handler} = component.find(GlobalHotKeys).prop('handlers');
+            handler(mkKeyDownEvent());
+
+            assert.calledOnce(onClose);
+        });
+    });
+});

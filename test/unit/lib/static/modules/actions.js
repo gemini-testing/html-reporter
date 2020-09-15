@@ -286,4 +286,20 @@ describe('lib/static/modules/actions', () => {
             );
         });
     });
+
+    describe('openModal', () => {
+        it('should open modal', () => {
+            const modal = {id: 'modal-id'};
+
+            assert.deepEqual(actions.openModal(modal), {type: actionNames.OPEN_MODAL, payload: modal});
+        });
+    });
+
+    describe('closeModal', () => {
+        it('should close modal', () => {
+            const modal = {id: 'modal-id'};
+
+            assert.deepEqual(actions.closeModal(modal), {type: actionNames.CLOSE_MODAL, payload: modal});
+        });
+    });
 });

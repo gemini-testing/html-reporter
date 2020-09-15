@@ -2,11 +2,12 @@ import React from 'react';
 import proxyquire from 'proxyquire';
 import {defaults, defaultsDeep} from 'lodash';
 import {SUCCESS, FAIL, ERROR, UPDATED} from 'lib/constants/test-statuses';
+import {types as modalTypes} from 'lib/static/components/modals';
 import {mkConnectedComponent} from '../utils';
 
 describe('<State/>', () => {
     const sandbox = sinon.sandbox.create();
-    let State, StateError, StateSuccess, StateFail, FindSameDiffsButton, utilsStub, actionsStub;
+    let State, StateError, StateSuccess, StateFail, FindSameDiffsButton, utilsStub, actionsStub, selectors, getLastImageByStateName;
 
     const mkStateComponent = (props = {}, initialState = {}) => {
         props = defaults(props, {
@@ -40,7 +41,13 @@ describe('<State/>', () => {
 
         actionsStub = {
             toggleStateResult: sandbox.stub().returns({type: 'some-type'}),
-            acceptTest: sandbox.stub().returns({type: 'some-type'})
+            acceptTest: sandbox.stub().returns({type: 'some-type'}),
+            openModal: sandbox.stub().returns({type: 'some-type'})
+        };
+
+        getLastImageByStateName = sandbox.stub().returns({status: SUCCESS});
+        selectors = {
+            mkGetLastImageByStateName: sandbox.stub().returns(getLastImageByStateName)
         };
 
         StateError = sinon.stub().returns(null);
@@ -54,7 +61,8 @@ describe('<State/>', () => {
             './state-fail': {default: StateFail},
             '../controls/find-same-diffs-button': {default: FindSameDiffsButton},
             '../../modules/actions': actionsStub,
-            '../../modules/utils': utilsStub
+            '../../modules/utils': utilsStub,
+            '../../modules/selectors/tree': selectors
         }).default;
     });
 
@@ -64,13 +72,13 @@ describe('<State/>', () => {
         it('should not render button in static report', () => {
             const stateComponent = mkStateComponent({}, {gui: false});
 
-            assert.lengthOf(stateComponent.find('.button_type_suite-controls'), 0);
+            assert.lengthOf(stateComponent.find('[label="✔ Accept"]'), 0);
         });
 
         it('should render button in gui report', () => {
             const stateComponent = mkStateComponent({}, {gui: true});
 
-            assert.lengthOf(stateComponent.find('.button_type_suite-controls'), 1);
+            assert.lengthOf(stateComponent.find('[label="✔ Accept"]'), 1);
         });
 
         it('should be disabled if image is not acceptable', () => {
@@ -169,6 +177,96 @@ describe('<State/>', () => {
             mkStateComponent({result, imageId: 'img-id'}, initialState);
 
             assert.calledOnceWith(FindSameDiffsButton, {imageId: 'img-id', browserId: 'bro-id', isDisabled: false});
+        });
+    });
+
+    describe('"Open screenshot accepting mode" button', () => {
+        describe('in static report', () => {
+            it('should not render button', () => {
+                const stateComponent = mkStateComponent({}, {gui: false});
+
+                assert.lengthOf(stateComponent.find('[title="Open screenshot accepting mode"]'), 0);
+            });
+
+            it('should not call "getLastImageByStateName" selector', () => {
+                mkStateComponent({}, {gui: false});
+
+                assert.notCalled(getLastImageByStateName);
+            });
+        });
+
+        describe('in gui report', () => {
+            it('should render button in gui report', () => {
+                const stateComponent = mkStateComponent({}, {gui: true});
+
+                assert.lengthOf(stateComponent.find('[title="Open screenshot accepting mode"]'), 2);
+            });
+
+            it('should not call "getLastImageByStateName" selector if image id is not passed', () => {
+                mkStateComponent({imageId: null}, {gui: true});
+
+                assert.notCalled(getLastImageByStateName);
+            });
+
+            it('should be disabled if last image is not acceptable', () => {
+                const image = {stateName: 'some-name', status: SUCCESS};
+                const initialState = {
+                    tree: {
+                        images: {
+                            byId: {'img-id': image},
+                            stateById: {'img-id': {opened: true}}
+                        }
+                    },
+                    gui: true
+                };
+                getLastImageByStateName.returns(image);
+
+                const stateComponent = mkStateComponent({imageId: 'img-id'}, initialState);
+
+                assert.isTrue(stateComponent.find('[title="Open screenshot accepting mode"]').first().prop('isDisabled'));
+            });
+
+            it('should be enabled if last image is acceptable', () => {
+                const image = {stateName: 'some-name', status: FAIL};
+                const initialState = {
+                    tree: {
+                        images: {
+                            byId: {'img-id': image},
+                            stateById: {'img-id': {opened: true}}
+                        }
+                    }
+                };
+                utilsStub.isAcceptable.withArgs(image).returns(true);
+                getLastImageByStateName.returns(image);
+
+                const stateComponent = mkStateComponent({imageId: 'img-id'}, initialState);
+
+                assert.isFalse(stateComponent.find('[title="Open screenshot accepting mode"]').first().prop('isDisabled'));
+            });
+
+            it('should call "openModal" action on button click', () => {
+                const image = {stateName: 'some-name', status: FAIL};
+                const initialState = {
+                    tree: {
+                        images: {
+                            byId: {'img-id': image},
+                            stateById: {'img-id': {opened: true}}
+                        }
+                    }
+                };
+                utilsStub.isAcceptable.withArgs(image).returns(true);
+                getLastImageByStateName.returns(image);
+
+                const stateComponent = mkStateComponent({imageId: 'img-id'}, initialState);
+                stateComponent.find('[title="Open screenshot accepting mode"]').first().simulate('click');
+
+                assert.calledOnceWith(actionsStub.openModal, {
+                    id: modalTypes.SCREENSHOT_ACCEPTER,
+                    type: modalTypes.SCREENSHOT_ACCEPTER,
+                    className: 'screenshot-accepter',
+                    data: {image}
+                });
+            });
         });
     });
 
