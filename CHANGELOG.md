@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="6.0.0-alpha.20"></a>
+# [6.0.0-alpha.20](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.19...v6.0.0-alpha.20) (2020-09-15)
+
+
+### Bug Fixes
+
+* speed up render components ([#351](https://github.com/gemini-testing/html-reporter/issues/351)) ([191ef67](https://github.com/gemini-testing/html-reporter/commit/191ef67))
+
+
+### Features
+
+* add screenshot accepter mode in modal window ([#349](https://github.com/gemini-testing/html-reporter/issues/349)) ([f95cde4](https://github.com/gemini-testing/html-reporter/commit/f95cde4))
+* implement dynamically change favicon depending on the test results ([#350](https://github.com/gemini-testing/html-reporter/issues/350)) ([6b2f3d0](https://github.com/gemini-testing/html-reporter/commit/6b2f3d0))
+
+
+
 <a name="6.0.0-alpha.19"></a>
 # [6.0.0-alpha.19](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.18...v6.0.0-alpha.19) (2020-09-14)
 
