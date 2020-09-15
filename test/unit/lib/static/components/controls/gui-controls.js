@@ -112,7 +112,7 @@ describe('<GuiControls />', () => {
         it('should render button', () => {
             const component = mkConnectedComponent(<GuiControls />);
 
-            assert.isTrue(component.contains(AcceptOpenedButton));
+            assert.isTrue(component.exists(AcceptOpenedButton));
         });
     });
 });

@@ -125,33 +125,33 @@ describe('<SectionCommon/>', () => {
                 assert.equal(lazyOffset, 100500);
             });
 
-            it('should pass "eventToUpdate" prop to update suite', () => {
+            it('should pass "eventToUpdate" prop to lazy wrapper', () => {
                 const suitesById = mkSuite({id: 'suite-1'});
                 const tree = mkStateTree({suitesById});
 
                 const component = mkSectionCommonComponent(
-                    {suiteId: 'suite-1', sectionRoot: true, eventToUpdate: 'some-event'},
+                    {suiteId: 'suite-1', sectionRoot: true, eventToUpdate: 'update-event'},
                     {tree, view: {lazyLoadOffset: 100500}}
                 );
                 const lazyEventToUpdate = component.find(LazilyRender).prop('eventToUpdate');
 
-                assert.equal(lazyEventToUpdate, 'some-event');
+                assert.equal(lazyEventToUpdate, 'update-event');
             });
 
-            it('should pass empty "content" prop if suite is not rendered yet', () => {
+            it('should pass "eventToReset" prop to lazy wrapper', () => {
                 const suitesById = mkSuite({id: 'suite-1'});
                 const tree = mkStateTree({suitesById});
 
                 const component = mkSectionCommonComponent(
-                    {suiteId: 'suite-1', sectionRoot: true, eventToUpdate: 'some-event'},
+                    {suiteId: 'suite-1', sectionRoot: true, eventToReset: 'reset-event'},
                     {tree, view: {lazyLoadOffset: 100500}}
                 );
-                const lazyContent = component.find(LazilyRender).prop('content');
+                const lazyEventToUpdate = component.find(LazilyRender).prop('eventToReset');
 
-                assert.isNull(lazyContent);
+                assert.equal(lazyEventToUpdate, 'reset-event');
             });
 
-            it('should pass section to "content" prop if suite is rendered', () => {
+            it('should not render section if it is outside viewport', () => {
                 const suitesById = mkSuite({id: 'suite-1'});
                 const tree = mkStateTree({suitesById});
 
@@ -160,11 +160,23 @@ describe('<SectionCommon/>', () => {
                     {tree, view: {lazyLoadOffset: 100500}}
                 );
                 const lazy = component.find(LazilyRender);
-                lazy.invoke('onRender')();
+                const section = lazy.invoke('children')(false);
 
-                const lazyContent = component.find(LazilyRender).prop('content');
+                assert.isNull(section);
+            });
 
-                assert.isNotNull(lazyContent);
+            it('should render section if it is inside viewport', () => {
+                const suitesById = mkSuite({id: 'suite-1'});
+                const tree = mkStateTree({suitesById});
+
+                const component = mkSectionCommonComponent(
+                    {suiteId: 'suite-1', sectionRoot: true, eventToUpdate: 'some-event'},
+                    {tree, view: {lazyLoadOffset: 100500}}
+                );
+                const lazy = component.find(LazilyRender);
+                const section = lazy.invoke('children')(true);
+
+                assert.isNotNull(section);
             });
         });
     });
