@@ -2,7 +2,6 @@ import React from 'react';
 import {defaults} from 'lodash';
 import proxyquire from 'proxyquire';
 import {ERROR_TITLE_TEXT_LENGTH} from 'lib/constants/errors';
-import Details from 'lib/static/components/details';
 import {mkConnectedComponent} from '../utils';
 
 describe('<StateError/> component', () => {
@@ -49,7 +48,7 @@ describe('<StateError/> component', () => {
             const error = {message: 'msg-title\nmsg-content'};
 
             const component = mkStateErrorComponent({result: {error}}, {config: {errorPatterns: []}});
-            component.find(Details).first().simulate('click');
+            component.find('.details__summary').first().simulate('click');
 
             assert.equal(component.find('.details__summary').first().text(), 'message: msg-title');
             assert.equal(component.find('.details__content').first().text(), 'msg-content');
@@ -69,7 +68,7 @@ describe('<StateError/> component', () => {
             const error = {message: `${messageTitle} ${messageContent}`};
 
             const component = mkStateErrorComponent({result: {error}}, {config: {errorPatterns: []}});
-            component.find(Details).first().simulate('click');
+            component.find('.details__summary').first().simulate('click');
 
             assert.equal(component.find('.details__summary').first().text(), `message: ${messageTitle}`);
             assert.equal(component.find('.details__content').first().text(), messageContent);
@@ -82,7 +81,7 @@ describe('<StateError/> component', () => {
             const errorPatterns = [{name: 'some-name'}];
 
             const component = mkStateErrorComponent({result: {error}}, {config: {errorPatterns}});
-            component.find(Details).first().simulate('click');
+            component.find('.details__summary').first().simulate('click');
 
             assert.equal(component.find('.details__summary').first().text(), 'message: some-name');
             assert.equal(component.find('.details__content').first().text(), 'some-msg');
@@ -93,7 +92,7 @@ describe('<StateError/> component', () => {
             const errorPatterns = [{name: 'some-name', hint: '<span class="foo-bar">some-hint</span>'}];
 
             const component = mkStateErrorComponent({result: {error}}, {config: {errorPatterns}});
-            component.find(Details).last().simulate('click');
+            component.find('.details__summary').last().simulate('click');
 
             assert.equal(component.find('.details__summary').at(1).text(), 'hint: show more');
             assert.equal(component.find('.details__content .foo-bar').text(), ['some-hint']);
