@@ -33,13 +33,26 @@ describe('<RetrySwitcherItem />', () => {
     afterEach(() => sandbox.restore());
 
     describe('should render button with', () => {
-        [NO_REF_IMAGE_ERROR, ASSERT_VIEW_ERROR].forEach((errorType) => {
-            it(`${FAIL} status class name if test fails with ${errorType}`, () => {
+        [
+            {
+                name: `with "${NO_REF_IMAGE_ERROR}"`,
+                error: {stack: NO_REF_IMAGE_ERROR}
+            },
+            {
+                name: `with "${ASSERT_VIEW_ERROR}"`,
+                error: {stack: ASSERT_VIEW_ERROR}
+            },
+            {
+                name: 'without error (diff)',
+                error: undefined
+            }
+        ].forEach(({name, error}) => {
+            it(`${FAIL} status class name if test fails ${name}`, () => {
                 const initialState = {
                     tree: {
                         results: {
                             byId: {
-                                'result-1': {status: FAIL, attempt: 0, error: {stack: errorType}}
+                                'result-1': {status: FAIL, attempt: 0, error}
                             }
                         }
                     }
