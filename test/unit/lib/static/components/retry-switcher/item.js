@@ -1,8 +1,11 @@
 import React from 'react';
 import {defaults} from 'lodash';
 import RetrySwitcherItem from 'lib/static/components/retry-switcher/item';
-import {FAIL, SUCCESS} from 'lib/constants/test-statuses';
+import {FAIL, ERROR, SUCCESS} from 'lib/constants/test-statuses';
+import errors from 'lib/constants/errors';
 import {mkConnectedComponent} from '../utils';
+
+const {NO_REF_IMAGE_ERROR, ASSERT_VIEW_ERROR} = errors.getCommonErrors();
 
 describe('<RetrySwitcherItem />', () => {
     const sandbox = sinon.sandbox.create();
@@ -29,21 +32,42 @@ describe('<RetrySwitcherItem />', () => {
 
     afterEach(() => sandbox.restore());
 
-    it('should render button with status class name', () => {
-        const initialState = {
-            tree: {
-                results: {
-                    byId: {
-                        'result-1': {status: FAIL, attempt: 0}
+    describe('should render button with', () => {
+        [NO_REF_IMAGE_ERROR, ASSERT_VIEW_ERROR].forEach((errorType) => {
+            it(`${FAIL} status class name if test fails with ${errorType}`, () => {
+                const initialState = {
+                    tree: {
+                        results: {
+                            byId: {
+                                'result-1': {status: FAIL, attempt: 0, error: {stack: errorType}}
+                            }
+                        }
+                    }
+                };
+
+                const component = mkRetrySwitcherItem({resultId: 'result-1', isActive: true}, initialState);
+
+                assert.lengthOf(component.find('.tab-switcher__button'), 1);
+                assert.lengthOf(component.find(`.tab-switcher__button_status_${FAIL}`), 1);
+            });
+        });
+
+        it(`combination of ${FAIL} and ${ERROR} status class name if test fails with diff and assert`, () => {
+            const initialState = {
+                tree: {
+                    results: {
+                        byId: {
+                            'result-1': {status: FAIL, attempt: 0, error: {stack: 'assert error'}}
+                        }
                     }
                 }
-            }
-        };
+            };
 
-        const component = mkRetrySwitcherItem({resultId: 'result-1', isActive: true}, initialState);
+            const component = mkRetrySwitcherItem({resultId: 'result-1', isActive: true}, initialState);
 
-        assert.lengthOf(component.find('.tab-switcher__button'), 1);
-        assert.lengthOf(component.find(`.tab-switcher__button_status_${FAIL}`), 1);
+            assert.lengthOf(component.find('.tab-switcher__button'), 1);
+            assert.lengthOf(component.find(`.tab-switcher__button_status_${FAIL}_${ERROR}`), 1);
+        });
     });
 
     it('should render button with text from result "attempt" increased by one', () => {

@@ -602,10 +602,22 @@ details[open] > .details__summary:before {
     border-color: #7bcc7b;
 }
 
-.tab-switcher__button_status_fail,
 .tab-switcher__button_status_error {
     background-color: #ff9a9a;
     border-color: #ff9a9a;
+}
+
+.tab-switcher__button_status_fail {
+    background-color: #ffc5e0;
+    border-color: #ffc5e0;
+}
+
+.tab-switcher__button_status_fail_error {
+    background: linear-gradient(135deg, #ffc5e0 50%, #ff9a9a 50%);
+    border-left-color: #ffc5e0;
+    border-top-color: #ffc5e0;
+    border-right-color: #ff9a9a;
+    border-bottom-color: #ff9a9a;
 }
 
 .tab-switcher__button_status_skipped  {
