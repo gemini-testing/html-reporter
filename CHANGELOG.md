@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="6.0.0-alpha.21"></a>
+# [6.0.0-alpha.21](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.20...v6.0.0-alpha.21) (2020-09-16)
+
+
+### Bug Fixes
+
+* bug with visibility inside "Details" component ([#354](https://github.com/gemini-testing/html-reporter/issues/354)) ([3401b20](https://github.com/gemini-testing/html-reporter/commit/3401b20))
+* fixed indentation and newlines in lists ([d114596](https://github.com/gemini-testing/html-reporter/commit/d114596))
+
+
+### Features
+
+* separate image errors from other asserts by color in retry switcher ([#353](https://github.com/gemini-testing/html-reporter/issues/353)) ([073816c](https://github.com/gemini-testing/html-reporter/commit/073816c))
+
+
+
 <a name="6.0.0-alpha.20"></a>
 # [6.0.0-alpha.20](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.19...v6.0.0-alpha.20) (2020-09-15)
 
