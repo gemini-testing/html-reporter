@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="6.0.0-alpha.22"></a>
+# [6.0.0-alpha.22](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.21...v6.0.0-alpha.22) (2020-09-16)
+
+
+### Bug Fixes
+
+* bug with switch color for diff in retry switcher ([#355](https://github.com/gemini-testing/html-reporter/issues/355)) ([146c5f1](https://github.com/gemini-testing/html-reporter/commit/146c5f1))
+
+
+
 <a name="6.0.0-alpha.21"></a>
 # [6.0.0-alpha.21](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.20...v6.0.0-alpha.21) (2020-09-16)
 
