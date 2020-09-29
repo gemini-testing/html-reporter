@@ -1,5 +1,6 @@
 node_modules
 hot
+sqlite.db
 *.log
 /lib/static/*.min.*
 /lib/static/*.eot
