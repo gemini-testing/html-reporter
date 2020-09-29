@@ -58,6 +58,7 @@ describe('<GuiControls />', () => {
             });
 
             assert.isTrue(component.find(RunButton).prop('autoRun'));
+            assert.calledOnce(actionsStub.runAllTests);
         });
 
         it('should call "runAllTests" action on click', () => {
@@ -67,7 +68,7 @@ describe('<GuiControls />', () => {
 
             component.find(RunButton).simulate('click');
 
-            assert.calledOnceWith(actionsStub.runAllTests);
+            assert.calledOnce(actionsStub.runAllTests);
         });
     });
 
