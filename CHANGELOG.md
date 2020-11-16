@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="6.0.0-alpha.24"></a>
+# [6.0.0-alpha.24](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.23...v6.0.0-alpha.24) (2020-11-16)
+
+
+### Bug Fixes
+
+* up version of gemini-core to 6.1.0 ([78b249e](https://github.com/gemini-testing/html-reporter/commit/78b249e))
+
+
+
 <a name="6.0.0-alpha.23"></a>
 # [6.0.0-alpha.23](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.22...v6.0.0-alpha.23) (2020-09-29)
 
