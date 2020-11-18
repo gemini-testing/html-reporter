@@ -132,14 +132,14 @@ describe('ResultsTreeBuilder', () => {
                         name: 'b1',
                         parentId: 's1',
                         resultIds: ['s1 b1 0'],
-                        versions: [browserVersions.UNKNOWN]
+                        version: browserVersions.UNKNOWN
                     }
                 );
             });
 
             it('should collect all browser versions from results in browser', () => {
                 const result1 = mkTestResult_({metaInfo: {browserVersion: '1'}});
-                const result2 = mkTestResult_({metaInfo: {browserVersion: '2'}});
+                const result2 = mkTestResult_({metaInfo: {browserVersion: '1'}});
 
                 builder.addTestResult(result1, mkFormattedResult_({
                     testPath: ['s1'], browserId: 'b1', attempt: 0
@@ -148,7 +148,7 @@ describe('ResultsTreeBuilder', () => {
                     testPath: ['s1'], browserId: 'b1', attempt: 1
                 }));
 
-                assert.deepEqual(builder.tree.browsers.byId['s1 b1'].versions, ['1', '2']);
+                assert.deepEqual(builder.tree.browsers.byId['s1 b1'].version, '1');
             });
 
             it('should collect all ids to test results in browser', () => {

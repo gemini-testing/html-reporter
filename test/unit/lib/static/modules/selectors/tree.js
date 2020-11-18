@@ -27,7 +27,7 @@ describe('tree selectors', () => {
             name: 'default-bro',
             parentId: 'default-test-id',
             resultIds: [],
-            versions: []
+            version: null
         });
 
         return {[browser.id]: browser};
@@ -340,7 +340,7 @@ describe('tree selectors', () => {
                         ...mkSuite({id: 's1', status: SUCCESS, suiteIds: ['s2']}),
                         ...mkSuite({id: 's2', status: SUCCESS, browserIds: ['b1']})
                     };
-                    const browsersById = mkBrowser({id: 'b1', name: 'yabro', versions: ['1'], parentId: 's1 s2'});
+                    const browsersById = mkBrowser({id: 'b1', name: 'yabro', version: '1', parentId: 's1 s2'});
 
                     const tree = mkStateTree({suitesById, browsersById});
                     const view = mkStateView({filteredBrowsers});
@@ -359,7 +359,7 @@ describe('tree selectors', () => {
                         ...mkSuite({id: 's1', status: SUCCESS, suiteIds: ['s2']}),
                         ...mkSuite({id: 's2', status: SUCCESS, browserIds: ['b1']})
                     };
-                    const browsersById = mkBrowser({id: 'b1', name: 'yabro', versions: ['1'], parentId: 's1 s2'});
+                    const browsersById = mkBrowser({id: 'b1', name: 'yabro', version: '1', parentId: 's1 s2'});
 
                     const tree = mkStateTree({suitesById, browsersById});
                     const view = mkStateView({filteredBrowsers});
