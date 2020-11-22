@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="6.0.0-alpha.25"></a>
+# [6.0.0-alpha.25](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.24...v6.0.0-alpha.25) (2020-11-22)
+
+
+### Bug Fixes
+
+* **html-reporter:** update tree status on filter selection ([#359](https://github.com/gemini-testing/html-reporter/issues/359)) ([64a472e](https://github.com/gemini-testing/html-reporter/commit/64a472e))
+
+
+
 <a name="6.0.0-alpha.24"></a>
 # [6.0.0-alpha.24](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.23...v6.0.0-alpha.24) (2020-11-16)
 
