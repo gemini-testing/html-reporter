@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="6.0.0-alpha.26"></a>
+# [6.0.0-alpha.26](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.25...v6.0.0-alpha.26) (2020-12-16)
+
+
+### Bug Fixes
+
+* **html-reporter:** update init state using filtered browsers ([#360](https://github.com/gemini-testing/html-reporter/issues/360)) ([3bb9b6d](https://github.com/gemini-testing/html-reporter/commit/3bb9b6d))
+
+
+
 <a name="6.0.0-alpha.25"></a>
 # [6.0.0-alpha.25](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.24...v6.0.0-alpha.25) (2020-11-22)
 
