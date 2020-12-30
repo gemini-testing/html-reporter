@@ -11,6 +11,7 @@ module.exports = (hermione, opts) => {
     if (hermione.isWorker()) {
         return;
     }
+    console.log('INSIDE MY HTML_REPORTER');
     const plugin = PluginAdapter.create(hermione, opts);
 
     if (!plugin.isEnabled()) {
@@ -32,7 +33,7 @@ async function prepare(hermione, reportBuilder, pluginConfig) {
 
     const failHandler = async (testResult) => {
         const formattedResult = reportBuilder.format(testResult);
-        const actions = [formattedResult.saveTestImages(reportPath, workers)];
+        let actions = [formattedResult.saveTestImages(reportPath, workers)];
 
         if (formattedResult.errorDetails) {
             actions.push(formattedResult.saveErrorDetails(reportPath));
@@ -40,6 +41,11 @@ async function prepare(hermione, reportBuilder, pluginConfig) {
 
         if (formattedResult.screenshot) {
             actions.push(formattedResult.saveBase64Screenshot(reportPath));
+        }
+
+        if (hermione.htmlReporter.testResultHandlers) {
+            const handlers = hermione.htmlReporter.testResultHandlers.map((handler) => handler(formattedResult));
+            actions.concat(handlers);
         }
 
         await Promise.all(actions);
@@ -60,8 +66,20 @@ async function prepare(hermione, reportBuilder, pluginConfig) {
         hermione.on(hermione.events.TEST_PASS, testResult => {
             promises.push(queue.add(async () => {
                 const formattedResult = reportBuilder.format(testResult);
-                await formattedResult.saveTestImages(reportPath, workers);
 
+                let actions = [formattedResult.saveTestImages(reportPath, workers)];
+                // await formattedResult.saveTestImages(reportPath, workers);
+                if (hermione.htmlReporter.testResultHandlers) {
+                    console.log('hermione.htmlReporter.testResultHandlers:', hermione.htmlReporter.testResultHandlers);
+                    const handlers = hermione.htmlReporter.testResultHandlers.map((handler) => handler(formattedResult));
+                    actions = actions.concat(handlers);
+                }
+
+                console.log('actions:', actions);
+
+                await Promise.all(actions);
+
+                console.log('ADD SUCCESS RESULT!!!!!!!!!');
                 return reportBuilder.addSuccess(formattedResult);
             }).catch(reject));
         });
