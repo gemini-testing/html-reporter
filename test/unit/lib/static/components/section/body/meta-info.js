@@ -28,8 +28,11 @@ describe('<MetaInfo />', () => {
         const expectedMetaInfo = ['foo: bar', `baz: ${testName}_qux`, 'url: some-url'];
 
         const component = mkMetaInfoComponent({result, testName}, {apiValues});
+        component.find('.details__summary').simulate('click');
+        const metaItems = component.find('.meta-info__item');
 
-        component.find('.meta-info__item').forEach((node, i) => {
+        assert.equal(metaItems.length, expectedMetaInfo.length);
+        metaItems.forEach((node, i) => {
             assert.equal(node.text(), expectedMetaInfo[i]);
         });
     });
@@ -49,8 +52,35 @@ describe('<MetaInfo />', () => {
         ];
 
         const component = mkMetaInfoComponent({result});
+        component.find('.details__summary').simulate('click');
+        const metaItems = component.find('.meta-info__item');
 
-        component.find('.details_type_text_item').forEach((node, i) => {
+        assert.equal(metaItems.length, expectedMetaInfo.length);
+        metaItems.forEach((node, i) => {
+            assert.equal(node.text(), expectedMetaInfo[i]);
+        });
+    });
+
+    it('should render boolean values of meta-info as text', () => {
+        const result = {
+            metaInfo: {
+                foo1: true,
+                foo2: false
+            },
+            suiteUrl: 'some-url'
+        };
+        const expectedMetaInfo = [
+            'foo1: true',
+            'foo2: false',
+            'url: some-url'
+        ];
+
+        const component = mkMetaInfoComponent({result});
+        component.find('.details__summary').simulate('click');
+        const metaItems = component.find('.meta-info__item');
+
+        assert.equal(metaItems.length, expectedMetaInfo.length);
+        metaItems.forEach((node, i) => {
             assert.equal(node.text(), expectedMetaInfo[i]);
         });
     });
