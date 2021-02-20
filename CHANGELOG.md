@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="6.0.0-alpha.28"></a>
+# [6.0.0-alpha.28](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.27...v6.0.0-alpha.28) (2021-02-17)
+
+
+### Bug Fixes
+
+* correct state loading on 'group by error' ([#364](https://github.com/gemini-testing/html-reporter/issues/364)) ([39ea0ac](https://github.com/gemini-testing/html-reporter/commit/39ea0ac))
+
+
+
 <a name="6.0.0-alpha.27"></a>
 # [6.0.0-alpha.27](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.26...v6.0.0-alpha.27) (2021-01-20)
 
