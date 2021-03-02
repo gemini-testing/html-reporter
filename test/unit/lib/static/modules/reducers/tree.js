@@ -1,4 +1,4 @@
-import reducer from 'lib/static/modules/reducers/tree';
+import reducer, {getChildSuitesStatus} from 'lib/static/modules/reducers/tree';
 import actionNames from 'lib/static/modules/action-names';
 import {SUCCESS} from 'lib/constants/test-statuses';
 
@@ -106,6 +106,103 @@ describe('lib/static/modules/reducers/tree', () => {
             });
 
             assert.equal(newState.tree.suites.byId.suite.status, SUCCESS);
+        });
+    });
+
+    describe('function', () => {
+        describe('getChildSuitesStatus', () => {
+            it('should return `error` for combined test that has both success suites and failed browsers', () => {
+                const tree = {
+                    'suites': {
+                        'byId': {
+                            'suite': {
+                                'id': 'suite',
+                                'parentId': null,
+                                'name': 'suite',
+                                'suitePath': ['suite'],
+                                'root': true,
+                                'suiteIds': ['suite combined'],
+                                'status': 'error'
+                            },
+                            'suite combined': {
+                                'id': 'suite combined',
+                                'parentId': 'suite',
+                                'name': 'combined',
+                                'suitePath': ['suite', 'combined'],
+                                'root': false,
+                                'suiteIds': ['suite combined test'],
+                                'status': 'success',
+                                'browserIds': ['suite combined chrome']
+                            },
+                            'suite combined test': {
+                                'id': 'suite combined test',
+                                'parentId': 'suite combined',
+                                'name': 'test',
+                                'suitePath': ['suite', 'combined', 'test'],
+                                'root': false,
+                                'browserIds': ['suite combined test chrome'],
+                                'status': 'success'
+                            }
+                        },
+                        'allIds': ['suite', 'suite combined', 'suite combined test'],
+                        'allRootIds': ['suite'],
+                        'failedRootIds': ['suite']
+                    },
+                    'browsers': {
+                        'byId': {
+                            'suite combined test chrome': {
+                                'id': 'suite combined test chrome',
+                                'parentId': 'suite combined test',
+                                'name': 'chrome',
+                                'resultIds': ['suite combined test chrome 0'],
+                                'version': 'unknown'
+                            },
+                            'suite combined chrome': {
+                                'id': 'suite combined chrome',
+                                'parentId': 'suite combined',
+                                'name': 'chrome',
+                                'resultIds': ['suite combined chrome 0'],
+                                'version': 'unknown'
+                            }
+                        },
+                        'allIds': ['suite combined test chrome', 'suite combined chrome'],
+                        'stateById': {}
+                    },
+                    'results': {
+                        'byId': {
+                            'suite path test chrome-desktop 0': {
+                                'id': 'suite path test chrome-desktop 0',
+                                'parentId': 'suite path test chrome-desktop',
+                                'name': 'chrome-desktop',
+                                'status': 'fail'
+                            },
+                            'suite combined test chrome 0': {
+                                'id': 'suite combined test chrome 0',
+                                'parentId': 'suite combined test chrome',
+                                'name': 'chrome',
+                                'status': 'success'
+                            },
+                            'suite combined chrome 0': {
+                                'id': 'suite combined chrome 0',
+                                'parentId': 'suite combined chrome',
+                                'name': 'chrome',
+                                'status': 'error'
+                            }
+                        },
+                        'allIds': ['suite combined test chrome 0', 'suite combined chrome 0']
+                    }
+                };
+
+                const combinedSuiteName = tree.suites.allIds[1]; // 'suite combined'
+                const combinedBrowserName = `${combinedSuiteName} chrome`;
+                const filteredBrowsers = [{
+                    id: tree.browsers.byId[combinedBrowserName].name,
+                    versions: [tree.browsers.byId[combinedBrowserName].version]
+                }];
+                const getStatus = (suite) => getChildSuitesStatus({tree}, suite, filteredBrowsers);
+
+                assert.equal(getStatus(tree.suites.byId[combinedSuiteName]), 'error');
+            });
         });
     });
 });
