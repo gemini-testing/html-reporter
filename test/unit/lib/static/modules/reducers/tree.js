@@ -1,6 +1,7 @@
-import reducer, {getChildSuitesStatus} from 'lib/static/modules/reducers/tree';
+import reducer from 'lib/static/modules/reducers/tree';
 import actionNames from 'lib/static/modules/action-names';
-import {SUCCESS} from 'lib/constants/test-statuses';
+import {ERROR, SUCCESS} from 'lib/constants/test-statuses';
+import {defaults} from 'lodash';
 
 describe('lib/static/modules/reducers/tree', () => {
     describe(`${actionNames.BROWSERS_SELECTED} action`, () => {
@@ -109,100 +110,110 @@ describe('lib/static/modules/reducers/tree', () => {
         });
     });
 
-    describe('function', () => {
-        describe('getChildSuitesStatus', () => {
-            it('should return `error` for combined test that has both success suites and failed browsers', () => {
-                const tree = {
-                    'suites': {
-                        'byId': {
-                            'suite': {
-                                'id': 'suite',
-                                'parentId': null,
-                                'name': 'suite',
-                                'suitePath': ['suite'],
-                                'root': true,
-                                'suiteIds': ['suite combined'],
-                                'status': 'error'
-                            },
-                            'suite combined': {
-                                'id': 'suite combined',
-                                'parentId': 'suite',
-                                'name': 'combined',
-                                'suitePath': ['suite', 'combined'],
-                                'root': false,
-                                'suiteIds': ['suite combined test'],
-                                'status': 'success',
-                                'browserIds': ['suite combined chrome']
-                            },
-                            'suite combined test': {
-                                'id': 'suite combined test',
-                                'parentId': 'suite combined',
-                                'name': 'test',
-                                'suitePath': ['suite', 'combined', 'test'],
-                                'root': false,
-                                'browserIds': ['suite combined test chrome'],
-                                'status': 'success'
-                            }
-                        },
-                        'allIds': ['suite', 'suite combined', 'suite combined test'],
-                        'allRootIds': ['suite'],
-                        'failedRootIds': ['suite']
+    describe('function getChildSuitesStatus', () => {
+        it('should return `error` for combined test that has both success suites and failed browsers', () => {
+            const mkSuite = (opts) => {
+                const result = defaults(opts, {
+                    id: 'default-suite-id',
+                    parentId: null,
+                    name: 'default-name',
+                    root: false
+                });
+
+                return {[result.id]: result};
+            };
+
+            const mkBrowser = (opts) => {
+                const browser = defaults(opts, {
+                    id: 'default-bro-id',
+                    name: 'default-bro',
+                    parentId: 'default-test-id',
+                    resultIds: [],
+                    version: 'default-ver'
+                });
+
+                return {[browser.id]: browser};
+            };
+
+            const mkResult = (opts) => {
+                const result = defaults(opts, {
+                    id: 'default-result-id',
+                    parentId: 'default-bro-id',
+                    status: SUCCESS
+                });
+
+                return {[result.id]: result};
+            };
+
+            const mkStateTree = ({suitesById = {}, browsersById = {}, resultsById = {}, imagesById = {}} = {}) => {
+                return {
+                    suites: {
+                        byId: suitesById,
+                        allRootIds: Object.values(suitesById).filter(({root}) => root).map(({id}) => id),
+                        allIds: Object.keys(suitesById)
                     },
-                    'browsers': {
-                        'byId': {
-                            'suite combined test chrome': {
-                                'id': 'suite combined test chrome',
-                                'parentId': 'suite combined test',
-                                'name': 'chrome',
-                                'resultIds': ['suite combined test chrome 0'],
-                                'version': 'unknown'
-                            },
-                            'suite combined chrome': {
-                                'id': 'suite combined chrome',
-                                'parentId': 'suite combined',
-                                'name': 'chrome',
-                                'resultIds': ['suite combined chrome 0'],
-                                'version': 'unknown'
-                            }
-                        },
-                        'allIds': ['suite combined test chrome', 'suite combined chrome'],
-                        'stateById': {}
+                    browsers: {
+                        byId: browsersById,
+                        allIds: Object.keys(browsersById)
                     },
-                    'results': {
-                        'byId': {
-                            'suite path test chrome-desktop 0': {
-                                'id': 'suite path test chrome-desktop 0',
-                                'parentId': 'suite path test chrome-desktop',
-                                'name': 'chrome-desktop',
-                                'status': 'fail'
-                            },
-                            'suite combined test chrome 0': {
-                                'id': 'suite combined test chrome 0',
-                                'parentId': 'suite combined test chrome',
-                                'name': 'chrome',
-                                'status': 'success'
-                            },
-                            'suite combined chrome 0': {
-                                'id': 'suite combined chrome 0',
-                                'parentId': 'suite combined chrome',
-                                'name': 'chrome',
-                                'status': 'error'
-                            }
-                        },
-                        'allIds': ['suite combined test chrome 0', 'suite combined chrome 0']
-                    }
+                    results: {byId: resultsById},
+                    images: {byId: imagesById}
                 };
+            };
 
-                const combinedSuiteName = tree.suites.allIds[1]; // 'suite combined'
-                const combinedBrowserName = `${combinedSuiteName} chrome`;
-                const filteredBrowsers = [{
-                    id: tree.browsers.byId[combinedBrowserName].name,
-                    versions: [tree.browsers.byId[combinedBrowserName].version]
-                }];
-                const getStatus = (suite) => getChildSuitesStatus({tree}, suite, filteredBrowsers);
+            const suitesById = {
+                ...mkSuite({id: 'suite', root: true, name: 'suite', suiteIds: ['suite combined']}),
+                ...mkSuite({
+                    id: 'suite combined',
+                    name: 'combined',
+                    parentId: 'suite',
+                    suiteIds: ['suite combined test'],
+                    browserIds: ['suite combined bro']
+                }),
+                ...mkSuite({
+                    id: 'suite combined test',
+                    name: 'test',
+                    parentId: 'suite combined',
+                    browserIds: ['suite combined test bro']
+                })
+            };
+            const browsersById = {
+                ...mkBrowser({
+                    id: 'suite combined bro',
+                    parentId: 'suite combined',
+                    resultIds: ['suite combined bro 0']
+                }),
+                ...mkBrowser({
+                    id: 'suite combined test bro',
+                    parentId: 'suite combined test',
+                    resultIds: ['suite combined test bro 0']
+                })
+            };
+            const resultsById = {
+                ...mkResult({
+                    id: 'suite combined test bro 0',
+                    parentId: 'suite combined test bro',
+                    status: SUCCESS
+                }),
+                ...mkResult({
+                    id: 'suite combined bro 0',
+                    parentId: 'suite combined bro',
+                    status: ERROR
+                })
+            };
+            const filteredBrowsers = [{
+                id: 'default-bro',
+                versions: ['default-ver']
+            }];
 
-                assert.equal(getStatus(tree.suites.byId[combinedSuiteName]), 'error');
+            const tree = mkStateTree({suitesById, browsersById, resultsById});
+
+            const updatedState = reducer({tree, view: {filteredBrowsers}}, {
+                type: actionNames.INIT_STATIC_REPORT,
+                payload: {tree}
             });
+            assert.equal(updatedState.tree.suites.byId['suite'].status, ERROR);
+            assert.equal(updatedState.tree.suites.byId['suite combined'].status, ERROR);
         });
     });
 });
