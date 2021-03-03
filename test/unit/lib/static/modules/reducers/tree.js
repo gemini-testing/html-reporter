@@ -1,7 +1,7 @@
 import reducer from 'lib/static/modules/reducers/tree';
 import actionNames from 'lib/static/modules/action-names';
 import {ERROR, SUCCESS} from 'lib/constants/test-statuses';
-import {defaults} from 'lodash';
+import {mkSuite, mkBrowser, mkResult, mkStateTree} from 'test/unit/utils-tree';
 
 describe('lib/static/modules/reducers/tree', () => {
     describe(`${actionNames.BROWSERS_SELECTED} action`, () => {
@@ -112,99 +112,32 @@ describe('lib/static/modules/reducers/tree', () => {
 
     describe('function getChildSuitesStatus', () => {
         it('should return `error` for combined test that has both success suites and failed browsers', () => {
-            const mkSuite = (opts) => {
-                const result = defaults(opts, {
-                    id: 'default-suite-id',
-                    parentId: null,
-                    name: 'default-name',
-                    root: false
-                });
+            const suiteRoot = 'suite';
+            const suite1 = 'suite combined';
+            const suite2 = 'suite combined test';
 
-                return {[result.id]: result};
-            };
+            const browser1 = `${suite1} bro`;
+            const browser2 = `${suite2} bro`;
 
-            const mkBrowser = (opts) => {
-                const browser = defaults(opts, {
-                    id: 'default-bro-id',
-                    name: 'default-bro',
-                    parentId: 'default-test-id',
-                    resultIds: [],
-                    version: 'default-ver'
-                });
-
-                return {[browser.id]: browser};
-            };
-
-            const mkResult = (opts) => {
-                const result = defaults(opts, {
-                    id: 'default-result-id',
-                    parentId: 'default-bro-id',
-                    status: SUCCESS
-                });
-
-                return {[result.id]: result};
-            };
-
-            const mkStateTree = ({suitesById = {}, browsersById = {}, resultsById = {}, imagesById = {}} = {}) => {
-                return {
-                    suites: {
-                        byId: suitesById,
-                        allRootIds: Object.values(suitesById).filter(({root}) => root).map(({id}) => id),
-                        allIds: Object.keys(suitesById)
-                    },
-                    browsers: {
-                        byId: browsersById,
-                        allIds: Object.keys(browsersById)
-                    },
-                    results: {byId: resultsById},
-                    images: {byId: imagesById}
-                };
-            };
+            const result1 = `${browser1} 0`;
+            const result2 = `${browser2} 0`;
 
             const suitesById = {
-                ...mkSuite({id: 'suite', root: true, name: 'suite', suiteIds: ['suite combined']}),
-                ...mkSuite({
-                    id: 'suite combined',
-                    name: 'combined',
-                    parentId: 'suite',
-                    suiteIds: ['suite combined test'],
-                    browserIds: ['suite combined bro']
-                }),
-                ...mkSuite({
-                    id: 'suite combined test',
-                    name: 'test',
-                    parentId: 'suite combined',
-                    browserIds: ['suite combined test bro']
-                })
+                ...mkSuite({id: suiteRoot, root: true, suiteIds: [suite1]}),
+                // ключевой сьют, который содержит и suiteIds (success), и browserIds (failed)
+                ...mkSuite({id: suite1, parentId: suiteRoot, suiteIds: [suite2], browserIds: [browser1]}),
+                ...mkSuite({id: suite2, parentId: suite1, browserIds: [browser2]})
             };
+
             const browsersById = {
-                ...mkBrowser({
-                    id: 'suite combined bro',
-                    parentId: 'suite combined',
-                    resultIds: ['suite combined bro 0']
-                }),
-                ...mkBrowser({
-                    id: 'suite combined test bro',
-                    parentId: 'suite combined test',
-                    resultIds: ['suite combined test bro 0']
-                })
+                ...mkBrowser({id: browser1, parentId: suite1, resultIds: [result1]}),
+                ...mkBrowser({id: browser2, parentId: suite2, resultIds: [result2]})
             };
             const resultsById = {
-                ...mkResult({
-                    id: 'suite combined test bro 0',
-                    parentId: 'suite combined test bro',
-                    status: SUCCESS
-                }),
-                ...mkResult({
-                    id: 'suite combined bro 0',
-                    parentId: 'suite combined bro',
-                    status: ERROR
-                })
+                ...mkResult({id: result1, parentId: browser1, status: ERROR}),
+                ...mkResult({id: result2, parentId: browser2, status: SUCCESS})
             };
-            const filteredBrowsers = [{
-                id: 'default-bro',
-                versions: ['default-ver']
-            }];
+            const filteredBrowsers = [{id: 'default-bro', versions: ['default-ver']}];
 
             const tree = mkStateTree({suitesById, browsersById, resultsById});
 
@@ -212,8 +145,8 @@ describe('lib/static/modules/reducers/tree', () => {
                 type: actionNames.INIT_STATIC_REPORT,
                 payload: {tree}
             });
-            assert.equal(updatedState.tree.suites.byId['suite'].status, ERROR);
-            assert.equal(updatedState.tree.suites.byId['suite combined'].status, ERROR);
+            assert.equal(updatedState.tree.suites.byId[suiteRoot].status, ERROR);
+            assert.equal(updatedState.tree.suites.byId[suite1].status, ERROR);
         });
     });
 });
