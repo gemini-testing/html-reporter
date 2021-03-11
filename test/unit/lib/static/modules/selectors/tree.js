@@ -1,4 +1,3 @@
-import {defaults} from 'lodash';
 import {SUCCESS, FAIL, ERROR, IDLE} from 'lib/constants/test-statuses';
 import {
     getAcceptableImagesByStateName,
@@ -8,71 +7,9 @@ import {
     areAllRootSuitesIdle
 } from 'lib/static/modules/selectors/tree';
 import viewModes from 'lib/constants/view-modes';
+import {mkSuite, mkBrowser, mkResult, mkImage, mkStateTree, mkStateView} from '../../state-utils';
 
 describe('tree selectors', () => {
-    const mkSuite = (opts) => {
-        const result = defaults(opts, {
-            id: 'default-suite-id',
-            parentId: null,
-            name: 'default-name',
-            status: SUCCESS
-        });
-
-        return {[result.id]: result};
-    };
-
-    const mkBrowser = (opts) => {
-        const browser = defaults(opts, {
-            id: 'default-bro-id',
-            name: 'default-bro',
-            parentId: 'default-test-id',
-            resultIds: [],
-            version: null
-        });
-
-        return {[browser.id]: browser};
-    };
-
-    const mkResult = (opts) => {
-        const result = defaults(opts, {
-            id: 'default-result-id',
-            parentId: 'default-bro-id',
-            status: SUCCESS,
-            imageIds: []
-        });
-
-        return {[result.id]: result};
-    };
-
-    const mkImage = (opts) => {
-        const image = defaults(opts, {
-            id: 'default-image-id',
-            parentId: 'default-result-id',
-            stateName: 'default-state-name',
-            status: SUCCESS
-        });
-
-        return {[image.id]: image};
-    };
-
-    const mkStateTree = ({suitesById = {}, suitesAllRootIds = [], browsersById = {}, resultsById = {}, imagesById = {}} = {}) => {
-        return {
-            suites: {byId: suitesById, allRootIds: suitesAllRootIds},
-            browsers: {byId: browsersById},
-            results: {byId: resultsById},
-            images: {byId: imagesById, allIds: Object.keys(imagesById)}
-        };
-    };
-
-    const mkStateView = (opts = {}) => {
-        return defaults(opts, {
-            viewMode: viewModes.ALL,
-            testNameFilter: '',
-            strictMatchFilter: false,
-            filteredBrowsers: []
-        });
-    };
-
     const mkState = ({tree = mkStateTree(), view = mkStateView()} = {}) => ({tree, view});
 
     describe('"getAcceptableImagesByStateName" selector', () => {
