@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="6.0.0-alpha.29"></a>
+# [6.0.0-alpha.29](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.28...v6.0.0-alpha.29) (2021-03-11)
+
+
+### Bug Fixes
+
+* **tree reducer:** correct recalc suite statuses with suite and browser ([#369](https://github.com/gemini-testing/html-reporter/issues/369)) ([1977fab](https://github.com/gemini-testing/html-reporter/commit/1977fab))
+* correct display of `boolean` values in Meta section ([#365](https://github.com/gemini-testing/html-reporter/issues/365)) ([d5d7e52](https://github.com/gemini-testing/html-reporter/commit/d5d7e52))
+
+
+
 <a name="6.0.0-alpha.28"></a>
 # [6.0.0-alpha.28](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.27...v6.0.0-alpha.28) (2021-02-17)
 
