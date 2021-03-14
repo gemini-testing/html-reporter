@@ -1,11 +1,12 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import {defaults} from 'lodash';
 import proxyquire from 'proxyquire';
 import {mkConnectedComponent} from '../../utils';
 
 describe('<ScreenshotAccepter/>', () => {
     const sandbox = sinon.sandbox.create();
-    let ScreenshotAccepter, ScreenshotAccepterHeader, ScreenshotAccepterBody, actions, selectors;
+    let ScreenshotAccepter, ScreenshotAccepterHeader, ScreenshotAccepterBody, actions, selectors, parentNode;
 
     const mkResult = (opts) => {
         const result = defaults(opts, {
@@ -53,8 +54,14 @@ describe('<ScreenshotAccepter/>', () => {
             getAcceptableImagesByStateName: sandbox.stub().returns({})
         };
 
+        parentNode = {
+            scrollTo: sinon.stub()
+        };
+
         ScreenshotAccepterHeader = sinon.stub().returns(null);
         ScreenshotAccepterBody = sinon.stub().returns(null);
+
+        sandbox.stub(ReactDOM, 'findDOMNode').returns({parentNode});
 
         ScreenshotAccepter = proxyquire('lib/static/components/modals/screenshot-accepter', {
             './header': {default: ScreenshotAccepterHeader},
