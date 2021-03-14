@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="6.0.0-alpha.30"></a>
+# [6.0.0-alpha.30](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.29...v6.0.0-alpha.30) (2021-03-14)
+
+
+### Bug Fixes
+
+* **tinder mode:** scroll to top on component update ([#370](https://github.com/gemini-testing/html-reporter/issues/370)) ([3e1db7b](https://github.com/gemini-testing/html-reporter/commit/3e1db7b))
+
+
+
 <a name="6.0.0-alpha.29"></a>
 # [6.0.0-alpha.29](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.28...v6.0.0-alpha.29) (2021-03-11)
 
