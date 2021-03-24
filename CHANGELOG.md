@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="6.0.0-alpha.31"></a>
+# [6.0.0-alpha.31](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.30...v6.0.0-alpha.31) (2021-03-24)
+
+
+### Bug Fixes
+
+* get png-img[@3](https://github.com/3).3.0 from hermione@^3.11.0/gemini-core@^6.1.0 ([831b6ce](https://github.com/gemini-testing/html-reporter/commit/831b6ce))
+
+
+
 <a name="6.0.0-alpha.30"></a>
 # [6.0.0-alpha.30](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.29...v6.0.0-alpha.30) (2021-03-14)
 
