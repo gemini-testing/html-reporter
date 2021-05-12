@@ -61,11 +61,9 @@ describe('lib/static/modules/middlewares/metrika', () => {
 
         it('should create yandex metrika instance with passed config', () => {
             const store = mkStore_({
-                reporter: {
-                    config: {
-                        yandexMetrika: {
-                            foo: 'bar'
-                        }
+                config: {
+                    yandexMetrika: {
+                        foo: 'bar'
                     }
                 }
             });
