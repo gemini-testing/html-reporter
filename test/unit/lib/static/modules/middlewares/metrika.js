@@ -149,7 +149,7 @@ describe('lib/static/modules/middlewares/metrika', () => {
 
             metrikaMiddleware(YandexMetrika)(store)(next)(action);
 
-            assert.calledOnceWith(YandexMetrika.prototype.acceptOpenedScreenshots, {count: 2});
+            assert.calledOnceWith(YandexMetrika.prototype.acceptOpenedScreenshots, {acceptedImagesCount: 2});
         });
 
         it('should call next middleware after register goal', () => {

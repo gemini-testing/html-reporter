@@ -34,9 +34,9 @@ describe('YandexMetrika', () => {
             it('should register "${method}" goal', () => {
                 const yMetrika = YandexMetrika.create({counterNumber: 100500});
 
-                yMetrika[methodName]({count: 1});
+                yMetrika[methodName]({acceptedImagesCount: 1});
 
-                assert.calledOnceWith(global.window.ym, 100500, 'reachGoal', target, {count: 1});
+                assert.calledOnceWith(global.window.ym, 100500, 'reachGoal', target, {acceptedImagesCount: 1});
             });
         });
     });
