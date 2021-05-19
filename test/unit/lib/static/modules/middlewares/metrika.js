@@ -1,6 +1,7 @@
 import metrikaMiddleware from 'lib/static/modules/middlewares/metrika';
 import YandexMetrika from 'lib/static/modules/yandex-metrika';
 import actionNames from 'lib/static/modules/action-names';
+import webVitals from 'lib/static/modules/web-vitals';
 
 describe('lib/static/modules/middlewares/metrika', () => {
     const sandbox = sinon.sandbox.create();
@@ -19,6 +20,8 @@ describe('lib/static/modules/middlewares/metrika', () => {
         sandbox.stub(YandexMetrika.prototype, 'acceptScreenshot');
         sandbox.stub(YandexMetrika.prototype, 'acceptOpenedScreenshots');
         sandbox.stub(YandexMetrika.prototype, 'sendVisitParams');
+
+        sandbox.stub(webVitals, 'measurePerformance');
     });
 
     afterEach(() => sandbox.restore());
@@ -34,80 +37,140 @@ describe('lib/static/modules/middlewares/metrika', () => {
 
     [actionNames.INIT_GUI_REPORT, actionNames.INIT_STATIC_REPORT].forEach((eventName) => {
         describe(`"${eventName}" event`, () => {
-            it('should call next middleware with passed action', () => {
-                const store = mkStore_();
-                const action = {type: eventName};
-
-                metrikaMiddleware(YandexMetrika)(store)(next)(action);
-
-                assert.calledOnceWith(next, action);
-            });
-
-            it('should call next middleware before get state', () => {
-                const store = mkStore_();
-                const action = {type: eventName};
-
-                metrikaMiddleware(YandexMetrika)(store)(next)(action);
-
-                assert.callOrder(next, store.getState);
-            });
-
-            it('should create yandex metrika instance after get updated state', () => {
-                const store = mkStore_();
-                const action = {type: eventName};
-
-                metrikaMiddleware(YandexMetrika)(store)(next)(action);
-
-                assert.callOrder(store.getState, YandexMetrika.create);
-            });
-
-            it('should create yandex metrika instance with passed config', () => {
-                const store = mkStore_({
-                    config: {
-                        yandexMetrika: {
-                            foo: 'bar'
-                        }
-                    }
-                });
-                const action = {type: eventName};
-
-                metrikaMiddleware(YandexMetrika)(store)(next)(action);
-
-                assert.calledOnceWith(YandexMetrika.create, {foo: 'bar'});
-            });
-
-            describe('send visit parameters to metrika', () => {
-                let clock;
+            describe('"counterNumber" is not specified in y.metrika config', () => {
+                let store, payload;
 
                 beforeEach(() => {
-                    clock = sinon.useFakeTimers();
+                    store = mkStore_();
+                    payload = {};
                 });
 
-                afterEach(() => clock.restore());
-
-                it('should send "tti" time', () => {
-                    const store = mkStore_();
-                    const action = {type: eventName};
-                    next = () => clock.tick(5000);
+                it('should call next middleware with passed action', () => {
+                    const action = {type: eventName, payload};
 
                     metrikaMiddleware(YandexMetrika)(store)(next)(action);
 
-                    assert.calledOnceWith(YandexMetrika.prototype.sendVisitParams, sinon.match({tti: 5000}));
+                    assert.calledOnceWith(next, action);
                 });
 
-                it('should send "testsCount"', () => {
-                    const store = mkStore_({
-                        tree: {
-                            browsers: {
-                                allIds: ['a', 'b', 'c']
-                            }
-                        }
+                it('should not create y.metrika instance', () => {
+                    const action = {type: eventName, payload};
+
+                    metrikaMiddleware(YandexMetrika)(store)(next)(action);
+
+                    assert.notCalled(YandexMetrika.create);
+                });
+
+                it('should not measure site performance', () => {
+                    const action = {type: eventName, payload};
+
+                    metrikaMiddleware(YandexMetrika)(store)(next)(action);
+
+                    assert.notCalled(webVitals.measurePerformance);
+                });
+            });
+
+            describe('"counterNumber" is specified in y.metrika config', () => {
+                let store, payload;
+
+                beforeEach(() => {
+                    store = mkStore_();
+                    payload = {config: {
+                        yandexMetrika: {counterNumber: 100500}
+                    }};
+                });
+
+                it('should call next middleware with passed action', () => {
+                    const action = {type: eventName, payload};
+
+                    metrikaMiddleware(YandexMetrika)(store)(next)(action);
+
+                    assert.calledOnceWith(next, action);
+                });
+
+                it('should call next middleware before get state', () => {
+                    const action = {type: eventName, payload};
+
+                    metrikaMiddleware(YandexMetrika)(store)(next)(action);
+
+                    assert.callOrder(next, store.getState);
+                });
+
+                it('should create y.metrika instance with passed config', () => {
+                    const action = {type: eventName, payload};
+
+                    metrikaMiddleware(YandexMetrika)(store)(next)(action);
+
+                    assert.calledOnceWith(YandexMetrika.create, {counterNumber: 100500});
+                });
+
+                describe('measure site performance', () => {
+                    it('should send some performance info to y.metrika with rounded value', () => {
+                        const action = {type: eventName, payload};
+                        webVitals.measurePerformance.callsFake(cb => cb({name: 'XXX', value: 100.999}));
+
+                        metrikaMiddleware(YandexMetrika)(store)(next)(action);
+
+                        assert.calledWith(YandexMetrika.prototype.sendVisitParams.firstCall, {XXX: 101});
                     });
-                    const action = {type: eventName};
 
-                    metrikaMiddleware(YandexMetrika)(store)(next)(action);
+                    it('should send "CLS" performance info to y.metrika with multiplied by 1000 value', () => {
+                        const action = {type: eventName, payload};
+                        webVitals.measurePerformance.callsFake(cb => cb({name: 'CLS', value: 0.99999}));
 
-                    assert.calledOnceWith(YandexMetrika.prototype.sendVisitParams, sinon.match({testsCount: 3}));
+                        metrikaMiddleware(YandexMetrika)(store)(next)(action);
+
+                        assert.calledWith(YandexMetrika.prototype.sendVisitParams.firstCall, {CLS: 1000});
+                    });
+                });
+
+                describe('send visit parameters to metrika', () => {
+                    let clock;
+
+                    beforeEach(() => {
+                        clock = sinon.useFakeTimers();
+                    });
+
+                    afterEach(() => clock.restore());
+
+                    it(`should send "${eventName}" render time`, () => {
+                        const store = mkStore_();
+                        const action = {type: eventName, payload};
+                        next = () => clock.tick(5000);
+
+                        metrikaMiddleware(YandexMetrika)(store)(next)(action);
+
+                        assert.calledOnceWith(YandexMetrika.prototype.sendVisitParams, sinon.match({[eventName]: 5000}));
+                    });
+
+                    it('should send "testsCount"', () => {
+                        const store = mkStore_({
+                            tree: {
+                                browsers: {
+                                    allIds: ['a', 'b', 'c']
+                                }
+                            }
+                        });
+                        const action = {type: eventName, payload};
+
+                        metrikaMiddleware(YandexMetrika)(store)(next)(action);
+
+                        assert.calledOnceWith(YandexMetrika.prototype.sendVisitParams, sinon.match({testsCount: 3}));
+                    });
+
+                    it('should send "view" params', () => {
+                        const store = mkStore_({
+                            view: {foo: 'bar', baz: 'qux'}
+                        });
+                        const action = {type: eventName, payload};
+
+                        metrikaMiddleware(YandexMetrika)(store)(next)(action);
+
+                        assert.calledOnceWith(
+                            YandexMetrika.prototype.sendVisitParams,
+                            sinon.match({initView: {foo: 'bar', baz: 'qux'}})
+                        );
+                    });
                 });
             });
         });
