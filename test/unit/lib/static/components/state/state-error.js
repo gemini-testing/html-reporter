@@ -6,7 +6,7 @@ import {mkConnectedComponent} from '../utils';
 
 describe('<StateError/> component', () => {
     const sandbox = sinon.sandbox.create();
-    let StateError, Screenshot;
+    let StateError, Screenshot, actionsStub;
 
     const mkStateErrorComponent = (props = {}, initialState = {}) => {
         props = defaults(props, {
@@ -25,9 +25,13 @@ describe('<StateError/> component', () => {
 
     beforeEach(() => {
         Screenshot = sinon.stub().returns(null);
+        actionsStub = {
+            togglePageScreenshot: sandbox.stub().returns({type: 'some-type'})
+        };
 
         StateError = proxyquire('lib/static/components/state/state-error', {
-            './screenshot': {default: Screenshot}
+            './screenshot': {default: Screenshot},
+            '../../modules/actions': actionsStub
         }).default;
     });
 
@@ -96,6 +100,17 @@ describe('<StateError/> component', () => {
 
             assert.equal(component.find('.details__summary').at(1).text(), 'hint: show more');
             assert.equal(component.find('.details__content .foo-bar').text(), ['some-hint']);
+        });
+    });
+
+    describe('"togglePageScreenshot" action', () => {
+        it('should call on click in "Page screenshot"', () => {
+            const image = {actualImg: {}};
+
+            const component = mkStateErrorComponent({result: {error: {}}, image});
+            component.find('.details__summary').last().simulate('click');
+
+            assert.calledOnceWith(actionsStub.togglePageScreenshot);
         });
     });
 });

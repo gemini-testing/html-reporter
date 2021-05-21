@@ -1,9 +1,24 @@
 import React from 'react';
 import {defaultsDeep} from 'lodash';
-import MetaInfo from 'lib/static/components/section/body/meta-info';
+import proxyquire from 'proxyquire';
 import {mkConnectedComponent} from '../../utils';
 
 describe('<MetaInfo />', () => {
+    const sandbox = sinon.sandbox.create();
+    let MetaInfo, actionsStub;
+
+    beforeEach(() => {
+        actionsStub = {
+            toggleMetaInfo: sandbox.stub().returns({type: 'some-type'})
+        };
+
+        MetaInfo = proxyquire('lib/static/components/section/body/meta-info', {
+            '../../../modules/actions': actionsStub
+        }).default;
+    });
+
+    afterEach(() => sandbox.restore());
+
     const mkMetaInfoComponent = (props = {}, initialState = {}) => {
         props = defaultsDeep(props, {
             result: {
@@ -108,6 +123,16 @@ describe('<MetaInfo />', () => {
 
             assert.equal(component.find('.meta-info__item:first-child').text(), 'file: test/file');
             assert.equal(component.find('.meta-info__item:first-child a').prop('href'), stub.expectedFileUrl);
+        });
+    });
+
+    describe('"toggleMetaInfo" action', () => {
+        it('should call on click in details', () => {
+            const component = mkMetaInfoComponent();
+
+            component.find('.details__summary').simulate('click');
+
+            assert.calledOnceWith(actionsStub.toggleMetaInfo);
         });
     });
 });

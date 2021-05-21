@@ -6,7 +6,7 @@ import {mkConnectedComponent} from '../utils';
 
 describe('<SectionBrowser/>', () => {
     const sandbox = sinon.sandbox.create();
-    let SectionBrowser, Body, selectors, hasBrowserFailedRetries, shouldBrowserBeShown;
+    let SectionBrowser, Body, selectors, hasBrowserFailedRetries, shouldBrowserBeShown, actionsStub;
 
     const mkBrowser = (opts) => {
         const browser = defaults(opts, {
@@ -58,8 +58,10 @@ describe('<SectionBrowser/>', () => {
             mkHasBrowserFailedRetries: sandbox.stub().returns(hasBrowserFailedRetries),
             mkShouldBrowserBeShown: sandbox.stub().returns(shouldBrowserBeShown)
         };
+        actionsStub = {toggleBrowserSection: sandbox.stub().returns({type: 'some-type'})};
 
         SectionBrowser = proxyquire('lib/static/components/section/section-browser', {
+            '../../modules/actions': actionsStub,
             '../../modules/selectors/tree': selectors,
             './body': {default: Body}
         }).default;
@@ -186,6 +188,20 @@ describe('<SectionBrowser/>', () => {
             assert.calledOnceWith(
                 Body, {browserId: 'yabro-1', browserName: 'yabro', testName: 'test', resultIds: ['res-1']}
             );
+        });
+    });
+
+    describe('"toggleBrowserSection" action', () => {
+        it('should call on click in browser title of not skipped test', () => {
+            const browsersById = mkBrowser({id: 'yabro-1', name: 'yabro', resultIds: ['res-1'], parentId: 'test'});
+            const resultsById = mkResult({id: 'res-1', status: SUCCESS});
+
+            const tree = mkStateTree({browsersById, resultsById});
+
+            const component = mkSectionBrowserComponent({browserId: 'yabro-1'}, {tree, view: {expand: 'error'}});
+            component.find('.section__title').simulate('click');
+
+            assert.calledOnceWith(actionsStub.toggleBrowserSection, 'yabro-1');
         });
     });
 });

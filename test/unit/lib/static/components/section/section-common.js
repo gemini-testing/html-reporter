@@ -7,7 +7,7 @@ import {mkConnectedComponent} from '../utils';
 
 describe('<SectionCommon/>', () => {
     const sandbox = sinon.sandbox.create();
-    let SectionCommon, Title, SectionBrowser, selectors, hasSuiteFailedRetries, shouldSuiteBeShown;
+    let SectionCommon, Title, SectionBrowser, selectors, hasSuiteFailedRetries, shouldSuiteBeShown, actionsStub;
 
     const mkSuite = (opts) => {
         const result = defaults(opts, {
@@ -46,6 +46,7 @@ describe('<SectionCommon/>', () => {
         Title = sandbox.stub().returns(null);
         hasSuiteFailedRetries = sandbox.stub().returns(false);
         shouldSuiteBeShown = sandbox.stub().returns(true);
+        actionsStub = {toggleSuiteSection: sandbox.stub().returns({type: 'some-type'})};
 
         selectors = {
             mkHasSuiteFailedRetries: sandbox.stub().returns(hasSuiteFailedRetries),
@@ -53,6 +54,7 @@ describe('<SectionCommon/>', () => {
         };
 
         SectionCommon = proxyquire('lib/static/components/section/section-common', {
+            '../../modules/actions': actionsStub,
             '../../modules/selectors/tree': selectors,
             './section-browser': {default: SectionBrowser},
             './title/simple': {default: Title}
@@ -67,7 +69,7 @@ describe('<SectionCommon/>', () => {
             const tree = mkStateTree({suitesById});
             hasSuiteFailedRetries.returns(false);
 
-            mkSectionCommonComponent({suiteId: 'suite-1'}, {tree, view: {expand: 'retries'}});
+            mkSectionCommonComponent({suiteId: 'suite-1', sectionRoot: true}, {tree, view: {expand: 'retries'}});
 
             assert.notCalled(SectionBrowser);
         });
@@ -77,7 +79,10 @@ describe('<SectionCommon/>', () => {
             const tree = mkStateTree({suitesById});
             hasSuiteFailedRetries.returns(true);
 
-            mkSectionCommonComponent({suiteId: 'suite-1', errorGroupBrowserIds: []}, {tree, view: {expand: 'retries'}});
+            mkSectionCommonComponent(
+                {suiteId: 'suite-1', sectionRoot: true, errorGroupBrowserIds: []},
+                {tree, view: {expand: 'retries'}}
+            );
 
             assert.calledOnceWith(SectionBrowser, {browserId: 'bro-1', errorGroupBrowserIds: []});
         });
@@ -178,6 +183,19 @@ describe('<SectionCommon/>', () => {
 
                 assert.isNotNull(section);
             });
+        });
+    });
+
+    describe('"toggleSuiteSection" action', () => {
+        it('should call action on call passed handler in <Title /> component', () => {
+            const suitesById = mkSuite({id: 'suite-1', name: 'suite', status: SUCCESS});
+            const tree = mkStateTree({suitesById});
+            hasSuiteFailedRetries.returns(false);
+
+            mkSectionCommonComponent({suiteId: 'suite-1', sectionRoot: true}, {tree, view: {expand: 'all'}});
+            Title.getCall(0).args[0].handler();
+
+            assert.calledOnceWith(actionsStub.toggleSuiteSection, 'suite-1');
         });
     });
 });
