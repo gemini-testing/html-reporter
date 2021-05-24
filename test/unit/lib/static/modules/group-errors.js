@@ -7,7 +7,7 @@ const viewModes = require('lib/constants/view-modes');
 
 describe('static/modules/group-errors', () => {
     const sandbox = sinon.sandbox.create();
-    let groupErrors, shouldShowBrowser, isTestNameMatchFilters;
+    let groupErrors, shouldShowBrowser, isTestNameMatchFilters, isAssertViewError;
 
     const mkRootSuite = (opts) => {
         const rootSuite = defaults(opts, {
@@ -71,12 +71,13 @@ describe('static/modules/group-errors', () => {
     };
 
     beforeEach(() => {
-        shouldShowBrowser = sandbox.stub().returns(true);
-        isTestNameMatchFilters = sandbox.stub().returns(true);
+        shouldShowBrowser = sandbox.stub().named('shouldShowBrowser').returns(true);
+        isTestNameMatchFilters = sandbox.stub().named('isTestNameMatchFilters').returns(true);
+        isAssertViewError = sandbox.stub().named('isAssertViewError').returns(false);
 
         const module = proxyquire('lib/static/modules/group-errors', {
             './selectors/tree': {shouldShowBrowser},
-            './utils': {isTestNameMatchFilters}
+            './utils': {isTestNameMatchFilters, isAssertViewError}
         });
 
         groupErrors = module.groupErrors;
@@ -145,12 +146,13 @@ describe('static/modules/group-errors', () => {
             ...mkBrowser({id: 'yabro-1', parentId: 'test-1'})
         };
         const resultsById = {
-            ...mkResult({id: 'res-1', parentId: 'yabro-1', imageIds: ['img-1'], error: {message: 'err'}})
+            ...mkResult({id: 'res-1', parentId: 'yabro-1', imageIds: ['img-1'], error: {message: 'test-err'}})
         };
         const imagesById = {
             ...mkImage({id: 'img-1', error: {message: 'img-err'}})
         };
         const tree = mkTree({browsersById, resultsById, imagesById});
+        isAssertViewError.withArgs(tree.results.byId['res-1'].error).returns(false);
 
         const result = groupErrors({tree});
 
@@ -162,8 +164,33 @@ describe('static/modules/group-errors', () => {
                 browserIds: ['yabro-1']
             },
             {
-                pattern: 'err',
-                name: 'err',
+                pattern: 'test-err',
+                name: 'test-err',
+                count: 1,
+                browserIds: ['yabro-1']
+            }
+        ]);
+    });
+
+    it('should collect errors only from images if test has assert view error', () => {
+        const browsersById = {
+            ...mkBrowser({id: 'yabro-1', parentId: 'test-1'})
+        };
+        const resultsById = {
+            ...mkResult({id: 'res-1', parentId: 'yabro-1', imageIds: ['img-1'], error: {message: 'err'}})
+        };
+        const imagesById = {
+            ...mkImage({id: 'img-1', error: {message: 'img-err'}})
+        };
+        const tree = mkTree({browsersById, resultsById, imagesById});
+        isAssertViewError.withArgs(tree.results.byId['res-1'].error).returns(true);
+
+        const result = groupErrors({tree});
+
+        assert.deepEqual(result, [
+            {
+                pattern: 'img-err',
+                name: 'img-err',
                 count: 1,
                 browserIds: ['yabro-1']
             }
