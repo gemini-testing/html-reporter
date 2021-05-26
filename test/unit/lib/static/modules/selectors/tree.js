@@ -67,8 +67,8 @@ describe('tree selectors', () => {
 
         it('should return images sorted by browser id', () => {
             const browsersById = {
-                ...mkBrowser({id: 'b2', parentId: 'suite', resultIds: ['r2']}),
-                ...mkBrowser({id: 'b1', parentId: 'suite', resultIds: ['r1']})
+                ...mkBrowser({id: 'b2', name: 'bro2', parentId: 'suite', resultIds: ['r2']}),
+                ...mkBrowser({id: 'b1', name: 'bro1', parentId: 'suite', resultIds: ['r1']})
             };
             const resultsById = {
                 ...mkResult({id: 'r1', parentId: 'b1', imageIds: ['img1']}),
@@ -84,6 +84,33 @@ describe('tree selectors', () => {
 
             const imagesByStateName = getAcceptableImagesByStateName(state);
             assert.deepEqual(Object.keys(imagesByStateName), ['b1 first', 'b2 second']);
+        });
+
+        it('should return images from browser which matched to the passed filter', () => {
+            const browsersById = {
+                ...mkBrowser({id: 'b1', name: 'bro1', version: '1', parentId: 'suiteB', resultIds: ['r1']}),
+                ...mkBrowser({id: 'b2', name: 'bro1', version: '2', parentId: 'suiteB', resultIds: ['r2']}),
+                ...mkBrowser({id: 'b3', name: 'bro2', version: '1', parentId: 'suiteA', resultIds: ['r3']})
+            };
+            const resultsById = {
+                ...mkResult({id: 'r1', parentId: 'b1', imageIds: ['img1']}),
+                ...mkResult({id: 'r2', parentId: 'b2', imageIds: ['img2']}),
+                ...mkResult({id: 'r3', parentId: 'b3', imageIds: ['img3']})
+            };
+            const imagesById = {
+                ...mkImage({id: 'img1', parentId: 'r1', stateName: 'first', status: FAIL}),
+                ...mkImage({id: 'img2', parentId: 'r2', stateName: 'second', status: FAIL}),
+                ...mkImage({id: 'img3', parentId: 'r3', stateName: 'third', status: FAIL})
+            };
+
+            const tree = mkStateTree({browsersById, resultsById, imagesById});
+            const view = mkStateView({filteredBrowsers: [{id: 'bro1', versions: ['1']}]});
+            const state = mkState({tree, view});
+
+            assert.deepEqual(
+                getAcceptableImagesByStateName(state),
+                {'b1 first': [imagesById['img1']]}
+            );
         });
     });
 
