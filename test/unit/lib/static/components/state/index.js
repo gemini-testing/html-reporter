@@ -428,7 +428,10 @@ describe('<State/>', () => {
 
             mkStateComponent({imageId: 'img-id'}, initialState);
 
-            assert.calledOnceWith(actionsStub.toggleStateResult, {imageId: 'img-id', opened: true});
+            assert.calledOnceWith(
+                actionsStub.toggleStateResult,
+                {imageId: 'img-id', opened: true, isUserClick: false}
+            );
         });
 
         it('should call on click in state name', () => {
@@ -446,8 +449,10 @@ describe('<State/>', () => {
             stateComponent.find('.state-title').simulate('click');
 
             assert.calledTwice(actionsStub.toggleStateResult);
-            assert.calledWith(actionsStub.toggleStateResult.firstCall, {imageId: 'img-id', opened: true});
-            assert.calledWith(actionsStub.toggleStateResult.secondCall, {imageId: 'img-id', opened: false});
+            assert.calledWith(
+                actionsStub.toggleStateResult.secondCall,
+                {imageId: 'img-id', opened: false, isUserClick: true}
+            );
         });
 
         it('should call on unmount', () => {
@@ -465,8 +470,10 @@ describe('<State/>', () => {
             stateComponent.unmount();
 
             assert.calledTwice(actionsStub.toggleStateResult);
-            assert.calledWith(actionsStub.toggleStateResult.firstCall, {imageId: 'img-id', opened: true});
-            assert.calledWith(actionsStub.toggleStateResult.secondCall, {imageId: 'img-id', opened: false});
+            assert.calledWith(
+                actionsStub.toggleStateResult.secondCall,
+                {imageId: 'img-id', opened: false, isUserClick: false}
+            );
         });
     });
 });
