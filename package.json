@@ -75,7 +75,8 @@
     "shelljs": "^0.8.1",
     "signal-exit": "^3.0.2",
     "tmp": "^0.1.0",
-    "urijs": "^1.18.12"
+    "urijs": "^1.18.12",
+    "web-vitals": "^1.1.2"
   },
   "devDependencies": {
     "@gemini-testing/react-lazily-render": "^1.2.1",
