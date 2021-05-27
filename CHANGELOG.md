@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="6.0.0"></a>
+# [6.0.0](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.31...v6.0.0) (2021-05-27)
+
+
+### Bug Fixes
+
+* run tests not wrapped in "describe" ([#377](https://github.com/gemini-testing/html-reporter/issues/377)) ([2dba713](https://github.com/gemini-testing/html-reporter/commit/2dba713))
+* **group-errors:** do not show few error on case when ref is not exists ([#378](https://github.com/gemini-testing/html-reporter/issues/378)) ([5fcced1](https://github.com/gemini-testing/html-reporter/commit/5fcced1))
+* **tinder:** move open button to left side ([#380](https://github.com/gemini-testing/html-reporter/issues/380)) ([be8ff57](https://github.com/gemini-testing/html-reporter/commit/be8ff57))
+* **tinder mode:** filter images by selected browser ([#379](https://github.com/gemini-testing/html-reporter/issues/379)) ([910ae6b](https://github.com/gemini-testing/html-reporter/commit/910ae6b))
+* registering of yandex metrika goals ([#373](https://github.com/gemini-testing/html-reporter/issues/373)) ([7b0dc3d](https://github.com/gemini-testing/html-reporter/commit/7b0dc3d))
+
+
+### Features
+
+* **y.metrika:** send "tti" time and "testsCount" ([#374](https://github.com/gemini-testing/html-reporter/issues/374)) ([97255c4](https://github.com/gemini-testing/html-reporter/commit/97255c4))
+* **y.metrika:** send counters id clicked by user ([#376](https://github.com/gemini-testing/html-reporter/issues/376)) ([bf80777](https://github.com/gemini-testing/html-reporter/commit/bf80777))
+* **y.metrika:** send web vitals performance ([#375](https://github.com/gemini-testing/html-reporter/issues/375)) ([05cfef8](https://github.com/gemini-testing/html-reporter/commit/05cfef8))
+
+
+
 <a name="6.0.0-alpha.31"></a>
 # [6.0.0-alpha.31](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.30...v6.0.0-alpha.31) (2021-03-24)
 
