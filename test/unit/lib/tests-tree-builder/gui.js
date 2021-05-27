@@ -242,4 +242,17 @@ describe('GuiResultsTreeBuilder', () => {
             });
         });
     });
+
+    describe('getTestBranch', () => {
+        it('should return "suites" as array for root suite', () => {
+            builder.addTestResult(
+                mkTestResult_({status: IDLE}),
+                mkFormattedResult_({testPath: ['s'], browserId: 'b', attempt: 0})
+            );
+
+            const {suites} = builder.getTestBranch('s b 0');
+
+            assert.deepEqual(suites, [{id: 's', status: IDLE}]);
+        });
+    });
 });
