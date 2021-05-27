@@ -29,13 +29,13 @@
 
 .button.screenshot-accepter__arrows-open-btn,
 .button.screenshot-accepter__arrows-close-btn {
-    line-height: 0;
-    vertical-align: middle;
-    margin-left: auto;
-    margin-right: 0;
-    padding-left: 6px;
-    padding-right: 6px;
-    border-radius: 2px;
+    display: flex;
+    align-items: center;
+}
+
+.button.screenshot-accepter__arrows-open-btn .arrows-open,
+.button.screenshot-accepter__arrows-close-btn .arrows-close {
+    margin-right: 5px;
 }
 
 .button.screenshot-accepter__arrow-up-btn,
@@ -59,8 +59,8 @@
     transform-origin: center;
 }
 
-.button:disabled .arrows-open-icon,
-.button:disabled .arrows-close-icon {
+.button:disabled .arrows-open__icon,
+.button:disabled .arrows-close__icon {
     fill: rgba(16, 16, 16, .3);
 }
 

@@ -180,12 +180,12 @@ describe('<State/>', () => {
         });
     });
 
-    describe('"Open screenshot accepting mode" button', () => {
+    describe('"Switch accept mode" button', () => {
         describe('in static report', () => {
             it('should not render button', () => {
                 const stateComponent = mkStateComponent({}, {gui: false});
 
-                assert.lengthOf(stateComponent.find('[title="Open screenshot accepting mode"]'), 0);
+                assert.lengthOf(stateComponent.find('[label$="Switch accept mode"]'), 0);
             });
 
             it('should not call "getLastImageByStateName" selector', () => {
@@ -199,7 +199,7 @@ describe('<State/>', () => {
             it('should render button in gui report', () => {
                 const stateComponent = mkStateComponent({}, {gui: true});
 
-                assert.lengthOf(stateComponent.find('[title="Open screenshot accepting mode"]'), 2);
+                assert.lengthOf(stateComponent.find('[title="Open mode with fast screenshot accepting"]'), 2);
             });
 
             it('should not call "getLastImageByStateName" selector if image id is not passed', () => {
@@ -223,7 +223,7 @@ describe('<State/>', () => {
 
                 const stateComponent = mkStateComponent({imageId: 'img-id'}, initialState);
 
-                assert.isTrue(stateComponent.find('[title="Open screenshot accepting mode"]').first().prop('isDisabled'));
+                assert.isTrue(stateComponent.find('[title="Open mode with fast screenshot accepting"]').first().prop('isDisabled'));
             });
 
             it('should be enabled if last image is acceptable', () => {
@@ -241,7 +241,7 @@ describe('<State/>', () => {
 
                 const stateComponent = mkStateComponent({imageId: 'img-id'}, initialState);
 
-                assert.isFalse(stateComponent.find('[title="Open screenshot accepting mode"]').first().prop('isDisabled'));
+                assert.isFalse(stateComponent.find('[title="Open mode with fast screenshot accepting"]').first().prop('isDisabled'));
             });
 
             it('should call "openModal" action on button click', () => {
@@ -258,7 +258,7 @@ describe('<State/>', () => {
                 getLastImageByStateName.returns(image);
 
                 const stateComponent = mkStateComponent({imageId: 'img-id'}, initialState);
-                stateComponent.find('[title="Open screenshot accepting mode"]').first().simulate('click');
+                stateComponent.find('[title="Open mode with fast screenshot accepting"]').first().simulate('click');
 
                 assert.calledOnceWith(actionsStub.openModal, {
                     id: modalTypes.SCREENSHOT_ACCEPTER,

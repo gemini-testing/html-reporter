@@ -159,13 +159,3 @@
 .tab-switcher {
     margin-bottom: 0;
 }
-
-.button.screenshot-accepter__arrows-open-btn {
-    line-height: 0;
-    vertical-align: middle;
-    margin-left: auto;
-    margin-right: 0;
-    padding-left: 6px;
-    padding-right: 6px;
-    border-radius: 2px;
-}
