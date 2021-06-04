@@ -72,7 +72,7 @@ module.exports = {
                     position: 'after'
                 },
                 {
-                    name: '@scoped/html-reporter-redux-with-server-plugin',
+                    name: 'html-reporter-redux-with-server-plugin',
                     component: 'ColorBorder',
                     point: 'result',
                     position: 'after'
@@ -81,6 +81,12 @@ module.exports = {
                     name: 'html-reporter-redux-plugin',
                     component: 'ColorBorder',
                     position: 'before'
+                },
+                {
+                    name: 'html-reporter-menu-bar-plugin',
+                    component: 'MenuBarItem',
+                    position: 'after',
+                    point: 'menu-bar'
                 }
             ]
         },

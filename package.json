@@ -81,7 +81,6 @@
   "devDependencies": {
     "@gemini-testing/react-lazily-render": "^1.2.1",
     "@gemini-testing/react-lazyload": "^2.3.2",
-    "@scoped/html-reporter-redux-with-server-plugin": "file:test/func/html-reporter-plugins/redux-with-server",
     "app-module-path": "^2.2.0",
     "babel-core": "^6.26.0",
     "babel-eslint": "^8.0.1",
@@ -110,7 +109,9 @@
     "hermione-global-hook": "^1.0.1",
     "hermione-headless-chrome": "0.0.2",
     "html-react-parser": "^0.4.0",
+    "html-reporter-redux-with-server-plugin": "file:test/func/html-reporter-plugins/redux-with-server",
     "html-reporter-basic-plugin": "file:test/func/html-reporter-plugins/basic",
+    "html-reporter-menu-bar-plugin": "file:test/func/html-reporter-plugins/menu-bar",
     "html-reporter-redux-plugin": "file:test/func/html-reporter-plugins/redux",
     "html-reporter-test-server": "file:test/func/hermione-plugins/html-reporter-test-server",
     "html-reporter-tester": "file:test/func/hermione-plugins/html-reporter-tester",
