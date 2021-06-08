@@ -29,6 +29,7 @@ exports.mkResult = (opts) => {
     const result = defaults(opts, {
         id: 'default-result-id',
         parentId: 'default-bro-id',
+        metaInfo: {},
         status: SUCCESS,
         imageIds: []
     });
@@ -47,9 +48,18 @@ exports.mkImage = (opts) => {
     return {[image.id]: image};
 };
 
-exports.mkStateTree = ({suitesById = {}, suitesAllRootIds = [], browsersById = {}, resultsById = {}, imagesById = {}} = {}) => {
+exports.mkStateTree = (
+    {
+        suitesById = {},
+        suitesAllRootIds = [],
+        suitesFailedRootIds = [],
+        browsersById = {},
+        resultsById = {},
+        imagesById = {}
+    } = {}
+) => {
     return {
-        suites: {byId: suitesById, allRootIds: suitesAllRootIds},
+        suites: {byId: suitesById, allRootIds: suitesAllRootIds, failedRootIds: suitesFailedRootIds},
         browsers: {byId: browsersById, allIds: Object.keys(browsersById)},
         results: {byId: resultsById},
         images: {byId: imagesById, allIds: Object.keys(imagesById)}

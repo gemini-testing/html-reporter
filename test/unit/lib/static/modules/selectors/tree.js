@@ -8,6 +8,7 @@ import {
 } from 'lib/static/modules/selectors/tree';
 import viewModes from 'lib/constants/view-modes';
 import {mkSuite, mkBrowser, mkResult, mkImage, mkStateTree, mkStateView} from '../../state-utils';
+import {getFailedTests} from '../../../../../../lib/static/modules/selectors/tree';
 
 describe('tree selectors', () => {
     const mkState = ({tree = mkStateTree(), view = mkStateView()} = {}) => ({tree, view});
@@ -386,6 +387,31 @@ describe('tree selectors', () => {
             const state = mkState({tree});
 
             assert.isFalse(areAllRootSuitesIdle(state));
+        });
+    });
+
+    describe('"getFailedTests" selector', () => {
+        it('should return failed tests with metaInfo', () => {
+            const suitesById = mkSuite({id: 's1', status: FAIL, browserIds: ['b']});
+            const browsersById = mkBrowser({id: 'b', name: 'browser', parentId: 'test', resultIds: ['r1']});
+            const resultsById = mkResult({id: 'r1', parentId: 'b', status: FAIL, metaInfo: {param: 'value'}});
+
+            const tree = mkStateTree({
+                suitesFailedRootIds: ['s1'],
+                suitesById,
+                browsersById,
+                resultsById
+            });
+            const state = mkState({tree});
+
+            assert.deepEqual(
+                getFailedTests(state),
+                [{
+                    'browserName': 'browser',
+                    'metaInfo': {param: 'value'},
+                    'testName': 'test'
+                }]
+            );
         });
     });
 });
