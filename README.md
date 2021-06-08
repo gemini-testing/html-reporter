@@ -163,7 +163,8 @@ directory.
           name: 'plugin-name',
           component: 'PluginReactComponentName',
           point: 'extension-point-name',
-          position: 'wrap'
+          position: 'wrap',
+          config: { param: 'value'}
       },
       {
           name: 'plugin-name',
@@ -177,13 +178,14 @@ directory.
 
   , where:
 
-  * **name** (required) - a name of an html-reporter plugin _package_. It expected to be `require`-resolvable from your project.
-  * **component** (optional) - React component name from the plugin.
-  * **point** (optional) - html-reporter's extension point name. Sets specific place within the html-reporter UI where to place the specified component. [More on extension points](#extension-points).
-  * **position** (optional) - specifies the way the component is going to be applied to the html-reporter UI extension point. Possible values are:
+  * **name** (required) `String` - a name of an html-reporter plugin _package_. It expected to be `require`-resolvable from your project.
+  * **component** (optional) `String` - React component name from the plugin.
+  * **point** (optional) `String` - html-reporter's extension point name. Sets specific place within the html-reporter UI where to place the specified component. [More on extension points](#extension-points).
+  * **position** (optional) `String` - specifies the way the component is going to be applied to the html-reporter UI extension point. Possible values are:
       * `wrap` - to wrap the extension point UI
       * `before` - to place the component before the extension point
       * `after` - to place the component after the extension point
+  * **config** (optional) `Object` - plugin configuration
 
   A plugin with only **name** specified may be used to redefine existing gui-server middleware.
 
@@ -257,7 +259,7 @@ directory.
   The routes then can be called from the plugin React components defined in the `plugin.js`. For convenience the plugin name is always passed with options when function- or array-returning form is used to export plugin as the function options property `pluginName`:
 
   ```js
-  export default ['react', 'axios', function(React, axios, {pluginName, actions}) {
+  export default ['react', 'axios', function(React, axios, {pluginName, pluginConfig, actions}) {
       class PluginComponent extends React.Component {
           // ... somewhere inside the component ...
           const result = await axios.get(`/plugin-routes/${pluginName}/plugin-route`);
@@ -270,7 +272,9 @@ directory.
   }
   ```
 
-  In the example you can also see another convenience property `actions` with all the html-reporter **Redux** actions.
+  In the example you can also see another convenient properties:
+  - `actions` - all the html-reporter **Redux** actions;
+  - `pluginConfig` - plugin configuration.
 
   #### Extension points
 
