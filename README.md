@@ -1,5 +1,7 @@
 # html-reporter
 
+Requires **[hermione](https://github.com/gemini-testing/hermione)@4x**.
+
 Plugin for [hermione](https://github.com/gemini-testing/hermione) which is intended to aggregate the results of tests running into html report.
 
 Test result is saved to the [SQLite](https://www.sqlite.org/index.html) database. It means that you can't open local report by 'file://' protocol.
@@ -34,12 +36,8 @@ directory.
    throw err;
   ```
 
-* **commandsWithShortHistory** `Array of Strings` – a list of test commands for which arguments should be eliminated in command history because of their long size. `[]` by default.
-
-  See options [saveHistoryOnError](https://github.com/gemini-testing/hermione#saveHistoryOnError) or [saveHistoryOnTestTimeout](https://github.com/gemini-testing/hermione#saveHistoryOnTestTimeout) in hermione that allow you to get command history if test fails on error or timeout.
-
 * **defaultView** (optional) `String` - default view mode. Available values are:
-  
+
   * `all` - show all tests. Default value.
   * `failed` - show only failed tests.
 
@@ -293,7 +291,7 @@ directory.
   Currently, there are extension points:
   * `result` - allows to extend each test result; adds `resultId` and `testName` props to the plugin component.
   * `menu-bar` - allows to extend menu bar.
-  
+
   An extension point may be extended by more than one component. In that case order of components application is determined by `plugins` config order. Each following component is applied to all previously composed components at the extension point.
 
 * **customScripts** (optional) `function[]` - allows to add any scripts on the report html-page. Script will be executed immediately on page render. It can be helpful for adding some metrics or own extra functionality.
@@ -312,11 +310,11 @@ directory.
 * **yandexMetrika** (optional) `Object` - allows to add [yandex metrika](https://yandex.ru/support/metrica/index.html) to your report. The metrika can help you to get how developers interact with your report and what kind of problems they encounter at that. To start using it, you should create a counter first: see [how to create a counter](https://yandex.ru/support/metrica/general/creating-counter.html). And then in the Yandex.Metrica interface, go to the Settings section (on the Code snippet tab), click Copy and add the copied code to the **customScripts**-field.
 
   Nested fields:
-  
+
   * **counterNumber** (optional) `Number` - uniq counter in yandex metrika, used in order to send goals achievement.
 
   Supported goals (js events), [more info about goals](https://yandex.ru/support/metrica/general/goals.html):
-  
+
   * **ACCEPT_SCREENSHOT** - click on "Accept" button;
   * **ACCEPT_OPENED_SCREENSHOTS** - click on "Accept opened" button.
 

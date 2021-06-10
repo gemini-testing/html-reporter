@@ -10,7 +10,7 @@ const fs = require('fs-extra');
 
 describe('hermione test adapter', () => {
     const sandbox = sinon.sandbox.create();
-    let tmp, HermioneTestResultAdapter, err, getSuitePath, getCommandHistory;
+    let tmp, HermioneTestResultAdapter, err, getSuitePath, getCommandsHistory;
 
     class ImageDiffError extends Error {}
     class NoRefImageError extends Error {}
@@ -52,12 +52,12 @@ describe('hermione test adapter', () => {
     beforeEach(() => {
         tmp = {tmpdir: 'default/dir'};
         getSuitePath = sandbox.stub();
-        getCommandHistory = sandbox.stub();
+        getCommandsHistory = sandbox.stub();
 
         HermioneTestResultAdapter = proxyquire('../../../lib/test-adapter', {
             tmp,
             './plugin-utils': {getHermioneUtils: () => ({getSuitePath})},
-            './history-utils': {getCommandHistory}
+            './history-utils': {getCommandsHistory}
         });
         sandbox.stub(utils, 'getCurrentPath').returns('');
         sandbox.stub(utils, 'getDiffPath').returns('');
@@ -88,13 +88,13 @@ describe('hermione test adapter', () => {
     });
 
     it('should return test error with "message", "stack", "history" and "stateName"', () => {
-        getCommandHistory.withArgs([{name: 'foo'}], 'bar', ['foo']).returns(['some-history']);
+        getCommandsHistory.withArgs([{name: 'foo'}], ['foo']).returns(['some-history']);
         const testResult = mkTestResult_({
             file: 'bar',
+            history: [{name: 'foo'}],
             err: {
                 message: 'some-message',
                 stack: 'some-stack',
-                history: [{name: 'foo'}],
                 stateName: 'some-test',
                 foo: 'bar'
             }

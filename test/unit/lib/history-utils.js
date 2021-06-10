@@ -1,9 +1,9 @@
 'use strict';
 
-const {getCommandHistory} = require('lib/history-utils');
+const {getCommandsHistory} = require('lib/history-utils');
 
 describe('history-utils', () => {
-    describe('getCommandHistory', () => {
+    describe('getCommandsHistory', () => {
         const sandbox = sinon.createSandbox();
 
         beforeEach(() => {
@@ -14,62 +14,35 @@ describe('history-utils', () => {
 
         it('should return commands executed in test file and all sub commands of the last command', async () => {
             const allHistory = [
-                {name: 'foo', args: ['foo-arg'], stack: 'foo("foo-arg") (/path/to/test/file:10:4)'},
-                {name: 'baz', args: ['baz-arg'], stack: 'baz("baz-arg") (/path/to/baz/file:20:4)'},
-                {name: 'bar', args: ['bar-arg'], stack: 'bar("bar-arg") (/path/to/test/file:11:4)'},
-                {name: 'qux', args: ['qux-arg'], stack: 'qux("qux-arg") (/path/to/qux/file:21:4)'}
+                {n: 'foo', a: ['foo-arg'], d: 10, c: []},
+                {n: 'baz', a: ['baz-arg'], d: 1, c: []},
+                {n: 'bar', a: ['bar-arg'], d: 3, c: []},
+                {n: 'qux', a: ['qux-arg'], d: 4, c: [
+                    {n: 'qux', a: ['qux-arg'], d: 4, c: []},
+                    {n: 'baz', a: ['bar-arg'], d: 3, c: []}
+                ]}
             ];
 
-            const history = await getCommandHistory(allHistory, '/path/to/test/file');
+            const history = await getCommandsHistory(allHistory);
 
             assert.deepEqual(history, [
-                '\tfoo("foo-arg")\n',
-                '\tbar("bar-arg")\n',
-                '\t\tqux("qux-arg"): qux/file:21:4\n'
-            ]);
-        });
-
-        it('should truncate args for specified commands in history', async () => {
-            const allHistory = [
-                {name: 'foo', args: ['foo-arg'], stack: 'foo("foo-arg") (/path/to/test/file:10:4)'},
-                {name: 'baz', args: ['baz-arg'], stack: 'baz("baz-arg") (/path/to/baz/file:20:4)'},
-                {name: 'bar', args: ['bar-arg'], stack: 'bar("bar-arg") (/path/to/test/file:11:4)'},
-                {name: 'qux', args: ['qux-arg'], stack: 'qux("qux-arg") (/path/to/qux/file:21:4)'}
-            ];
-
-            const history = await getCommandHistory(allHistory, '/path/to/test/file', ['foo', 'qux']);
-
-            assert.deepEqual(history, [
-                '\tfoo(...)\n',
-                '\tbar("bar-arg")\n',
-                '\t\tqux(...): qux/file:21:4\n'
-            ]);
-        });
-
-        it('should eliminate cwd from file paths in history', async () => {
-            const allHistory = [
-                {name: 'foo', args: ['foo-arg'], stack: 'foo("foo-arg") (/path/to/test/file:10:4)'},
-                {name: 'qux', args: ['qux-arg'], stack: 'qux("qux-arg") (/path/to/qux/file:21:4)'}
-            ];
-
-            const history = await getCommandHistory(allHistory, '/path/to/test/file');
-
-            assert.calledOnce(process.cwd);
-
-            assert.deepEqual(history, [
-                '\tfoo("foo-arg")\n',
-                '\t\tqux("qux-arg"): qux/file:21:4\n'
+                '\tfoo("foo-arg") <- 10ms\n',
+                '\tbaz("baz-arg") <- 1ms\n',
+                '\tbar("bar-arg") <- 3ms\n',
+                '\tqux("qux-arg") <- 4ms\n',
+                '\t\tqux("qux-arg") <- 4ms\n',
+                '\t\tbaz("bar-arg") <- 3ms\n'
             ]);
         });
 
         it('should return undefined if all history is not given', async () => {
-            const history = await getCommandHistory(undefined, '/path/to/test/file');
+            const history = await getCommandsHistory(undefined);
 
             assert.isUndefined(history);
         });
 
         it('should return failure message in case of exception', async () => {
-            const history = await getCommandHistory([{}], '/path/to/test/file');
+            const history = await getCommandsHistory([{}]);
 
             assert.match(history, /failed to get command history: .*/);
         });
