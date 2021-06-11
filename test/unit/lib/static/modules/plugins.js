@@ -16,6 +16,25 @@ describe('static/modules/plugins', () => {
 
     afterEach(() => sandbox.restore());
 
+    describe('loadAll', () => {
+        it('should call loadPlugin function with configuration', async () => {
+            const config = {param: 'value'};
+
+            await plugins.loadAll({
+                pluginsEnabled: true,
+                plugins: [
+                    {name: 'plugin-a'},
+                    {name: 'plugin-b', config}
+                ]
+            });
+
+            assert.deepStrictEqual(loadPluginStub.args, [
+                ['plugin-a', undefined],
+                ['plugin-b', config]
+            ]);
+        });
+    });
+
     describe('getLoadedConfigs', () => {
         it('should return empty array when no plugins are configured', async () => {
             await plugins.loadAll();
