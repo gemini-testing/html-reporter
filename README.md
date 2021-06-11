@@ -285,8 +285,10 @@ directory.
   }
   ```
 
-  Currently the only registered extension points is `result` - allows to extend each test result; adds `resultId` and `testName` props to the plugin component.
-
+  Currently, there are extension points:
+  * `result` - allows to extend each test result; adds `resultId` and `testName` props to the plugin component.
+  * `menu-bar` - allows to extend menu bar.
+  
   An extension point may be extended by more than one component. In that case order of components application is determined by `plugins` config order. Each following component is applied to all previously composed components at the extension point.
 
 * **customScripts** (optional) `function[]` - allows to add any scripts on the report html-page. Script will be executed immediately on page render. It can be helpful for adding some metrics or own extra functionality.
