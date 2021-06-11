@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="6.1.0"></a>
+# [6.1.0](https://github.com/gemini-testing/html-reporter/compare/v6.0.0...v6.1.0) (2021-06-11)
+
+
+### Features
+
+* **plugins:** add menu-bar extension point ([#383](https://github.com/gemini-testing/html-reporter/issues/383)) ([6115ada](https://github.com/gemini-testing/html-reporter/commit/6115ada))
+* **plugins:** add plugin configuration ([#385](https://github.com/gemini-testing/html-reporter/issues/385)) ([#385](https://github.com/gemini-testing/html-reporter/issues/385)) ([5e7714b](https://github.com/gemini-testing/html-reporter/commit/5e7714b))
+
+
+
 <a name="6.0.0"></a>
 # [6.0.0](https://github.com/gemini-testing/html-reporter/compare/v6.0.0-alpha.31...v6.0.0) (2021-05-27)
 
