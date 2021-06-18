@@ -36,6 +36,21 @@ describe('GuiResultsTreeBuilder', () => {
         });
     });
 
+    describe('"getResultByOrigAttempt" method', () => {
+        it('should return previous result from tree', () => {
+            const formattedRes1 = mkFormattedResult_({testPath: ['s'], browserId: 'b', attempt: 0});
+            const formattedRes2 = mkFormattedResult_({testPath: ['s'], browserId: 'b', attempt: 1});
+            const formattedRes3 = mkFormattedResult_({testPath: ['s'], browserId: 'b', attempt: 2});
+            builder.addTestResult(mkTestResult_(), formattedRes1);
+            builder.addTestResult(mkTestResult_(), formattedRes2);
+            builder.addTestResult(mkTestResult_(), formattedRes3);
+
+            const lastResult = builder.getResultByOrigAttempt({testPath: ['s'], browserId: 'b', origAttempt: 1});
+
+            assert.deepEqual(lastResult, builder.tree.results.byId['s b 1']);
+        });
+    });
+
     describe('"getImagesInfo" method', () => {
         it('should return images from tree for passed test result id', () => {
             const formattedRes = mkFormattedResult_({testPath: ['s'], browserId: 'b', attempt: 0});
