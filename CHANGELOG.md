@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="6.2.0"></a>
+# [6.2.0](https://github.com/gemini-testing/html-reporter/compare/v6.1.0...v6.2.0) (2021-06-18)
+
+
+### Features
+
+* **plugins:** add export of createNotification actions ([#387](https://github.com/gemini-testing/html-reporter/issues/387)) ([bb13734](https://github.com/gemini-testing/html-reporter/commit/bb13734))
+
+
+
 <a name="6.1.0"></a>
 # [6.1.0](https://github.com/gemini-testing/html-reporter/compare/v6.0.0...v6.1.0) (2021-06-11)
 
