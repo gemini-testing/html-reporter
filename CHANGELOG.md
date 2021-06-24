@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="7.0.0"></a>
+# [7.0.0](https://github.com/gemini-testing/html-reporter/compare/v6.2.0...v7.0.0) (2021-06-24)
+
+
+### Code Refactoring
+
+* adapted the history to the new format ([ad0d455](https://github.com/gemini-testing/html-reporter/commit/ad0d455))
+
+
+### BREAKING CHANGES
+
+* requires commands-history from hermione@4.x
+
+
+
 <a name="6.2.0"></a>
 # [6.2.0](https://github.com/gemini-testing/html-reporter/compare/v6.1.0...v6.2.0) (2021-06-18)
 
