@@ -20,6 +20,7 @@ function stubTool(config = stubConfig(), events = {}, errors = {}, htmlReporter)
     tool.events = events;
     tool.errors = errors;
 
+    tool.run = sinon.stub();
     tool.readTests = sinon.stub();
     tool.htmlReporter = htmlReporter || sinon.stub();
     tool.isWorker = () => {

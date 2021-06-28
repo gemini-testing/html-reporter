@@ -1,6 +1,7 @@
 'use strict';
 
 const {EventEmitter} = require('events');
+const Promise = require('bluebird');
 const reportSubscriber = require('lib/gui/tool-runner/report-subscriber');
 const GuiReportBuilder = require('lib/report-builder/gui');
 const clientEvents = require('lib/gui/constants/client-events');
@@ -47,6 +48,22 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
 
             return hermione.emitAndWait(hermione.events.RUNNER_END)
                 .then(() => assert.calledOnceWith(client.emit, clientEvents.END));
+        });
+
+        it('should emit "END" event after all promises are resolved', async () => {
+            const hermione = mkHermione_();
+            const testResult = 'test-result';
+            const mediator = sinon.spy().named('mediator');
+            const saveTestImages = sandbox.stub().callsFake(() => Promise.delay(100).then(mediator));
+
+            const formattedResult = mkTestAdapterStub_({saveTestImages});
+            reportBuilder.format.withArgs(testResult, hermione.events.TEST_FAIL).returns(formattedResult);
+
+            reportSubscriber(hermione, reportBuilder, client);
+            hermione.emit(hermione.events.TEST_FAIL, testResult);
+            await hermione.emitAndWait(hermione.events.RUNNER_END);
+
+            assert.callOrder(mediator, client.emit.withArgs(clientEvents.END));
         });
     });
 

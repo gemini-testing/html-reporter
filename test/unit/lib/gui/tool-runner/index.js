@@ -7,6 +7,7 @@ const proxyquire = require('proxyquire');
 const GuiReportBuilder = require('lib/report-builder/gui');
 const constantFileNames = require('lib/constants/file-names');
 const serverUtils = require('lib/server-utils');
+const Runner = require('lib/gui/tool-runner/runner');
 const {stubTool, stubConfig, mkImagesInfo, mkState, mkSuite} = require('test/unit/utils');
 
 describe('lib/gui/tool-runner/index', () => {
@@ -54,7 +55,7 @@ describe('lib/gui/tool-runner/index', () => {
         hermione.readTests.resolves(mkTestCollection_());
 
         reportBuilder = sinon.createStubInstance(GuiReportBuilder);
-        reportSubscriber = sandbox.stub().named('reportSubscriber');
+        reportSubscriber = sandbox.stub().named('reportSubscriber').resolves();
         looksSame = sandbox.stub().named('looksSame').yields(null, {equal: true});
 
         sandbox.stub(GuiReportBuilder, 'create').returns(reportBuilder);
@@ -372,6 +373,32 @@ describe('lib/gui/tool-runner/index', () => {
             const result = await gui.findEqualDiffs([refImagesInfo, ...comparedImagesInfo]);
 
             assert.deepEqual(result, ['compared-img-2', 'compared-img-3']);
+        });
+    });
+
+    describe('run', () => {
+        let runner;
+        let collection;
+
+        beforeEach(() => {
+            runner = {run: sandbox.stub().resolves()};
+            collection = mkTestCollection_();
+            sandbox.stub(Runner, 'create').withArgs(collection).returns(runner);
+            hermione.readTests.resolves(collection);
+        });
+
+        it('should run hermione with passed opts', async () => {
+            const globalCliOpts = {grep: /some-grep/, set: 'some-set', browser: 'yabro'};
+            const configs = {...mkPluginConfig_(), ...mkToolCliOpts_(globalCliOpts)};
+            const gui = ToolGuiReporter.create([], hermione, configs);
+
+            await gui.initialize();
+            await gui.run();
+
+            const runHandler = runner.run.firstCall.args[0];
+            runHandler(collection);
+
+            assert.calledOnceWith(hermione.run, collection, {grep: /some-grep/, sets: 'some-set', browsers: 'yabro'});
         });
     });
 
