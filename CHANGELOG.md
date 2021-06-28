@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="7.0.1"></a>
+## [7.0.1](https://github.com/gemini-testing/html-reporter/compare/v7.0.0...v7.0.1) (2021-06-28)
+
+
+### Bug Fixes
+
+* **gui:** wait until all promises are resolved on "RUNNER_END" event ([#389](https://github.com/gemini-testing/html-reporter/issues/389)) ([be54df8](https://github.com/gemini-testing/html-reporter/commit/be54df8))
+
+
+
 <a name="7.0.0"></a>
 # [7.0.0](https://github.com/gemini-testing/html-reporter/compare/v6.2.0...v7.0.0) (2021-06-24)
 
