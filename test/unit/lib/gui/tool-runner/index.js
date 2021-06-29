@@ -272,6 +272,29 @@ describe('lib/gui/tool-runner/index', () => {
                 });
             });
         });
+
+        it('should pass "origAttempt" to the ReportBuilder.addUpdate method to be able to calculate status properly', async () => {
+            const getScreenshotPath = sandbox.stub().returns('/ref/path1');
+            const config = stubConfig({
+                browsers: {yabro: {getScreenshotPath}}
+            });
+
+            const hermione = mkHermione_(config);
+            const gui = initGuiReporter(hermione);
+            await gui.initialize();
+
+            const tests = [{
+                attempt: 10,
+                suite: {path: ['suite1']},
+                state: {},
+                metaInfo: {},
+                imagesInfo: []
+            }];
+
+            await gui.updateReferenceImage(tests);
+
+            assert.calledOnceWith(reportBuilder.addUpdated, sinon.match({origAttempt: 10}));
+        });
     });
 
     describe('findEqualDiffs', () => {

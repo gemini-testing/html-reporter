@@ -40,6 +40,7 @@ describe('GuiReportBuilder', () => {
         }
 
         return _.defaultsDeep(opts, {
+            origAttempt: 0,
             state: {name: 'name-default'},
             suite: {
                 path: ['suite'],
@@ -78,6 +79,7 @@ describe('GuiReportBuilder', () => {
         sandbox.stub(GuiTestsTreeBuilder.prototype, 'getImageDataToFindEqualDiffs').returns({});
         sandbox.stub(GuiTestsTreeBuilder.prototype, 'getImagesInfo').returns([]);
         sandbox.stub(GuiTestsTreeBuilder.prototype, 'getLastResult').returns({});
+        sandbox.stub(GuiTestsTreeBuilder.prototype, 'getResultByOrigAttempt').returns({});
         sandbox.stub(GuiTestsTreeBuilder.prototype, 'addTestResult').returns({});
     });
 
@@ -193,6 +195,23 @@ describe('GuiReportBuilder', () => {
             reportBuilder.addUpdated(stubTest_({imagesInfo: [{status: UPDATED}]}));
 
             assert.equal(getTestResult_().status, SUCCESS);
+        });
+
+        it(`should corectly determine the status based on a previous result`, async () => {
+            const reportBuilder = await mkGuiReportBuilder_();
+
+            GuiTestsTreeBuilder.prototype.getResultByOrigAttempt.returns({status: FAIL});
+
+            reportBuilder.addUpdated(stubTest_({
+                imagesInfo: [{status: FAIL}],
+                attempt: 4,
+                origAttempt: 2
+            }));
+
+            assert.equal(getTestResult_().status, FAIL);
+            assert.calledOnceWith(GuiTestsTreeBuilder.prototype.getResultByOrigAttempt, sinon.match({
+                origAttempt: 2
+            }));
         });
 
         it('should update test image for current state name', async () => {
