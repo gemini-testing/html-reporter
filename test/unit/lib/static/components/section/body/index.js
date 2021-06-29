@@ -55,6 +55,12 @@ describe('<Body />', () => {
             assert.isTrue(component.find('[label="↻ Retry"]').prop('isDisabled'));
         });
 
+        it('should be disabled when server is stopped', () => {
+            const component = mkBodyComponent({}, {serverStopped: true});
+
+            assert.isTrue(component.find('[label="↻ Retry"]').prop('isDisabled'));
+        });
+
         it('should be enabled if tests are not started yet', () => {
             const component = mkBodyComponent({}, {running: false});
 

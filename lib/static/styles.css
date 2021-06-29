@@ -227,7 +227,7 @@ main.container {
 
 .button:disabled {
     background: #f8f8f8;
-    cursor: default;
+    pointer-events: none;
 }
 
 .button:hover:disabled {
