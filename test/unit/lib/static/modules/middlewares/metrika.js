@@ -335,7 +335,6 @@ describe('lib/static/modules/middlewares/metrika', () => {
         actionNames.VIEW_TOGGLE_SKIPPED,
         actionNames.VIEW_TOGGLE_ONLY_DIFF,
         actionNames.VIEW_TOGGLE_SCALE_IMAGES,
-        actionNames.VIEW_TOGGLE_LAZY_LOAD_IMAGES,
         actionNames.VIEW_TOGGLE_GROUP_BY_ERROR,
         actionNames.VIEW_UPDATE_BASE_HOST,
         actionNames.BROWSERS_SELECTED,
