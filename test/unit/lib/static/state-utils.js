@@ -7,7 +7,8 @@ exports.mkSuite = (opts) => {
         id: 'default-suite-id',
         parentId: null,
         name: 'default-name',
-        status: SUCCESS
+        status: SUCCESS,
+        suitePath: [opts.id || 'default-suite-id']
     });
 
     return {[suite.id]: suite};
@@ -53,16 +54,22 @@ exports.mkStateTree = (
         suitesById = {},
         suitesAllRootIds = [],
         suitesFailedRootIds = [],
+        suitesStateById = {},
         browsersById = {},
+        browsersStateById = {},
         resultsById = {},
-        imagesById = {}
+        imagesById = {},
+        imagesStateById = {}
     } = {}
 ) => {
     return {
-        suites: {byId: suitesById, allRootIds: suitesAllRootIds, failedRootIds: suitesFailedRootIds},
-        browsers: {byId: browsersById, allIds: Object.keys(browsersById)},
-        results: {byId: resultsById},
-        images: {byId: imagesById, allIds: Object.keys(imagesById)}
+        suites: {
+            byId: suitesById, stateById: suitesStateById,
+            allRootIds: suitesAllRootIds, failedRootIds: suitesFailedRootIds, allIds: Object.keys(suitesById)
+        },
+        browsers: {byId: browsersById, stateById: browsersStateById, allIds: Object.keys(browsersById)},
+        results: {byId: resultsById, allIds: Object.keys(resultsById)},
+        images: {byId: imagesById, stateById: imagesStateById, allIds: Object.keys(imagesById)}
     };
 };
 

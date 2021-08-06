@@ -1,25 +1,25 @@
 import React from 'react';
 import RunButton from 'lib/static/components/controls/run-button';
-import AcceptOpenedButton from 'lib/static/components/controls/accept-opened-button';
 import proxyquire from 'proxyquire';
 import {mkState, mkConnectedComponent} from '../utils';
 
 describe('<GuiControls />', () => {
     const sandbox = sinon.sandbox.create();
 
-    let GuiControls, actionsStub, selectors;
+    let GuiControls, AcceptOpenedButton, actionsStub, selectors;
 
     beforeEach(() => {
+        AcceptOpenedButton = sandbox.stub().returns(null);
         actionsStub = {
             runAllTests: sandbox.stub().returns({type: 'some-type'}),
             runFailedTests: sandbox.stub().returns({type: 'some-type'})
         };
-
         selectors = {
             getFailedTests: sandbox.stub().returns([])
         };
 
         GuiControls = proxyquire('lib/static/components/controls/gui-controls', {
+            './accept-opened-button': {default: AcceptOpenedButton},
             '../../modules/actions': actionsStub,
             '../../modules/selectors/tree': selectors
         }).default;
@@ -111,9 +111,9 @@ describe('<GuiControls />', () => {
 
     describe('"Accept opened" button', () => {
         it('should render button', () => {
-            const component = mkConnectedComponent(<GuiControls />);
+            mkConnectedComponent(<GuiControls />);
 
-            assert.isTrue(component.exists(AcceptOpenedButton));
+            assert.calledOnce(AcceptOpenedButton);
         });
     });
 });

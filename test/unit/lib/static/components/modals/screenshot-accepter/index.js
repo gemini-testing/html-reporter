@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {defaults} from 'lodash';
 import proxyquire from 'proxyquire';
+import {EXPAND_ALL} from 'lib/constants/expand-modes';
 import {mkConnectedComponent} from '../../utils';
 
 describe('<ScreenshotAccepter/>', () => {
@@ -39,7 +40,7 @@ describe('<ScreenshotAccepter/>', () => {
         });
         initialState = defaults(initialState, {
             tree: mkStateTree(),
-            view: {expand: 'all'}
+            view: {expand: EXPAND_ALL}
         });
 
         return mkConnectedComponent(<ScreenshotAccepter {...props} />, {initialState});

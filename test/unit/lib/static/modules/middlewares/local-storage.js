@@ -2,6 +2,7 @@ import proxyquire from 'proxyquire';
 import actionNames from 'lib/static/modules/action-names';
 import defaultState from 'lib/static/modules/default-state';
 import viewModes from 'lib/constants/view-modes';
+import {EXPAND_ERRORS} from 'lib/constants/expand-modes';
 
 describe('lib/static/modules/middlewares/local-storage', () => {
     const sandbox = sinon.sandbox.create();
@@ -54,7 +55,7 @@ describe('lib/static/modules/middlewares/local-storage', () => {
                 localStorageMw(store)(next)(action);
 
                 assert.calledOnceWith(localStorageWrapper.setItem, 'view', {
-                    expand: 'errors',
+                    expand: EXPAND_ERRORS,
                     groupByError: false,
                     scaleImages: false,
                     showOnlyDiff: false,

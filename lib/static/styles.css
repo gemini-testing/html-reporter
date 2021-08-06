@@ -350,6 +350,10 @@ main.container {
     white-space: nowrap;
 }
 
+.sections_type_empty {
+    margin-top: 10px;
+}
+
 .section {
     margin-top: 10px;
 }

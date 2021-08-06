@@ -1,6 +1,6 @@
 import React from 'react';
 import proxyquire from 'proxyquire';
-import {defaults, defaultsDeep} from 'lodash';
+import {defaultsDeep} from 'lodash';
 
 import {mkConnectedComponent} from './utils';
 import {config} from 'lib/constants/defaults';
@@ -9,37 +9,26 @@ import viewModes from 'lib/constants/view-modes';
 
 describe('<Suites/>', () => {
     const sandbox = sinon.sandbox.create();
-    let Suites, SectionCommon, selectors, getVisibleRootSuiteIds;
+    let Suites, SectionCommon, getVisibleRootSuiteIds;
 
-    const mkSuitesComponent = (props = {}, initialState = {}) => {
-        props = defaults(props, {
-            errorGroupBrowserIds: []
-        });
-
+    const mkSuitesComponent = (initialState = {}) => {
         initialState = defaultsDeep(initialState, {
-            tree: {
-                suites: {
-                    allRootIds: ['default-root-id'],
-                    failedRootIds: []
-                }
-            },
-            view: {viewMode: viewModes.ALL, lazyLoadOffset: config.lazyLoadOffset}
+            view: {
+                viewMode: viewModes.ALL,
+                lazyLoadOffset: config.lazyLoadOffset
+            }
         });
 
-        return mkConnectedComponent(<Suites {...props} />, {initialState});
+        return mkConnectedComponent(<Suites />, {initialState});
     };
 
     beforeEach(() => {
         SectionCommon = sinon.stub().returns(null);
         getVisibleRootSuiteIds = sinon.stub().returns([]);
 
-        selectors = {
-            mkGetVisibleRootSuiteIds: sandbox.stub().returns(getVisibleRootSuiteIds)
-        };
-
         Suites = proxyquire('lib/static/components/suites', {
             './section/section-common': {default: SectionCommon},
-            '../modules/selectors/tree': selectors
+            '../modules/selectors/tree': {getVisibleRootSuiteIds}
         }).default;
     });
 
@@ -56,24 +45,24 @@ describe('<Suites/>', () => {
     it('should render section common without "eventToUpdate" and "eventToReset" if "lazyLoadOffset" disabled', () => {
         getVisibleRootSuiteIds.returns(['suite-id']);
 
-        mkSuitesComponent({errorGroupBrowserIds: []}, {view: {lazyLoadOffset: 0}});
+        mkSuitesComponent({view: {lazyLoadOffset: 0}});
 
         assert.calledOnceWith(
             SectionCommon,
-            {suiteId: 'suite-id', sectionRoot: true, errorGroupBrowserIds: []}
+            {suiteId: 'suite-id', sectionRoot: true}
         );
     });
 
     it('should render section common without "eventToUpdate" and "eventToReset" if "lazyLoadOffset" enabled', () => {
         getVisibleRootSuiteIds.returns(['suite-id']);
 
-        mkSuitesComponent({errorGroupBrowserIds: []}, {view: {lazyLoadOffset: 100500}});
+        mkSuitesComponent({view: {lazyLoadOffset: 100500}});
 
         assert.calledOnceWith(
             SectionCommon,
             {
                 suiteId: 'suite-id',
-                sectionRoot: true, errorGroupBrowserIds: [],
+                sectionRoot: true,
                 eventToUpdate: clientEvents.VIEW_CHANGED,
                 eventToReset: clientEvents.SUITES_VISIBILITY_CHANGED
             }

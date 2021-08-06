@@ -1,7 +1,8 @@
 import React from 'react';
 import proxyquire from 'proxyquire';
 import {defaults, defaultsDeep} from 'lodash';
-import {SUCCESS, FAIL, ERROR, UPDATED} from 'lib/constants/test-statuses';
+import {SUCCESS, FAIL} from 'lib/constants/test-statuses';
+import {EXPAND_ALL} from 'lib/constants/expand-modes';
 import {types as modalTypes} from 'lib/static/components/modals';
 import {mkConnectedComponent} from '../utils';
 
@@ -26,11 +27,11 @@ describe('<State/>', () => {
                         }
                     },
                     stateById: {
-                        'default-img-id': {opend: false}
+                        'default-img-id': {shouldBeOpened: false}
                     }
                 }
             },
-            view: {expand: 'all'}
+            view: {expand: EXPAND_ALL}
         });
 
         return mkConnectedComponent(<State {...props} />, {initialState});
@@ -76,7 +77,17 @@ describe('<State/>', () => {
         });
 
         it('should render button in gui report', () => {
-            const stateComponent = mkStateComponent({}, {gui: true});
+            const image = {stateName: 'some-name'};
+            const initialState = {
+                tree: {
+                    images: {
+                        byId: {'img-id': image},
+                        stateById: {'img-id': {shouldBeOpened: true}}
+                    }
+                }
+            };
+
+            const stateComponent = mkStateComponent({imageId: 'img-id'}, {gui: true, ...initialState});
 
             assert.lengthOf(stateComponent.find('[label="✔ Accept"]'), 1);
         });
@@ -87,7 +98,7 @@ describe('<State/>', () => {
                 tree: {
                     images: {
                         byId: {'img-id': image},
-                        stateById: {'img-id': {opened: false}}
+                        stateById: {'img-id': {shouldBeOpened: true}}
                     }
                 }
             };
@@ -104,7 +115,7 @@ describe('<State/>', () => {
                 tree: {
                     images: {
                         byId: {'img-id': image},
-                        stateById: {'img-id': {opened: true}}
+                        stateById: {'img-id': {shouldBeOpened: true}}
                     }
                 }
             };
@@ -121,7 +132,7 @@ describe('<State/>', () => {
                 tree: {
                     images: {
                         byId: {'img-id': image},
-                        stateById: {'img-id': {opened: true}}
+                        stateById: {'img-id': {shouldBeOpened: true}}
                     }
                 }
             };
@@ -142,7 +153,17 @@ describe('<State/>', () => {
         });
 
         it('should render button in gui report', () => {
-            mkStateComponent({}, {gui: true});
+            const image = {stateName: 'some-name'};
+            const initialState = {
+                tree: {
+                    images: {
+                        byId: {'img-id': image},
+                        stateById: {'img-id': {shouldBeOpened: true}}
+                    }
+                }
+            };
+
+            mkStateComponent({imageId: 'img-id'}, {gui: true, ...initialState});
 
             assert.calledOnce(FindSameDiffsButton);
         });
@@ -153,11 +174,12 @@ describe('<State/>', () => {
                 tree: {
                     images: {
                         byId: {'img-id': image},
-                        stateById: {'img-id': {opened: true}}
+                        stateById: {'img-id': {shouldBeOpened: true}}
                     }
                 }
             };
             const result = {parentId: 'bro-id', status: SUCCESS};
+
             mkStateComponent({result, imageId: 'img-id'}, initialState);
 
             assert.calledOnceWith(FindSameDiffsButton, {imageId: 'img-id', browserId: 'bro-id', isDisabled: true});
@@ -169,11 +191,12 @@ describe('<State/>', () => {
                 tree: {
                     images: {
                         byId: {'img-id': image},
-                        stateById: {'img-id': {opened: true}}
+                        stateById: {'img-id': {shouldBeOpened: true}}
                     }
                 }
             };
             const result = {parentId: 'bro-id', status: FAIL};
+
             mkStateComponent({result, imageId: 'img-id'}, initialState);
 
             assert.calledOnceWith(FindSameDiffsButton, {imageId: 'img-id', browserId: 'bro-id', isDisabled: false});
@@ -197,7 +220,17 @@ describe('<State/>', () => {
 
         describe('in gui report', () => {
             it('should render button in gui report', () => {
-                const stateComponent = mkStateComponent({}, {gui: true});
+                const image = {stateName: 'some-name'};
+                const initialState = {
+                    tree: {
+                        images: {
+                            byId: {'img-id': image},
+                            stateById: {'img-id': {shouldBeOpened: true}}
+                        }
+                    }
+                };
+
+                const stateComponent = mkStateComponent({imageId: 'img-id'}, {gui: true, ...initialState});
 
                 assert.lengthOf(stateComponent.find('[title="Open mode with fast screenshot accepting"]'), 2);
             });
@@ -214,7 +247,7 @@ describe('<State/>', () => {
                     tree: {
                         images: {
                             byId: {'img-id': image},
-                            stateById: {'img-id': {opened: true}}
+                            stateById: {'img-id': {shouldBeOpened: true}}
                         }
                     },
                     gui: true
@@ -232,7 +265,7 @@ describe('<State/>', () => {
                     tree: {
                         images: {
                             byId: {'img-id': image},
-                            stateById: {'img-id': {opened: true}}
+                            stateById: {'img-id': {shouldBeOpened: true}}
                         }
                     }
                 };
@@ -250,7 +283,7 @@ describe('<State/>', () => {
                     tree: {
                         images: {
                             byId: {'img-id': image},
-                            stateById: {'img-id': {opened: true}}
+                            stateById: {'img-id': {shouldBeOpened: true}}
                         }
                     }
                 };
@@ -271,208 +304,54 @@ describe('<State/>', () => {
     });
 
     describe('scaleImages', () => {
+        let initialState;
+
+        beforeEach(() => {
+            const image = {stateName: 'some-name', status: SUCCESS};
+            initialState = {
+                tree: {
+                    images: {
+                        byId: {'img-id': image},
+                        stateById: {'img-id': {shouldBeOpened: true}}
+                    }
+                }
+            };
+        });
+
         it('should not scale images by default', () => {
-            const stateComponent = mkStateComponent();
+            const stateComponent = mkStateComponent({imageId: 'img-id'}, initialState);
             const imageContainer = stateComponent.find('.image-box__container');
 
             assert.isFalse(imageContainer.hasClass('image-box__container_scale'));
         });
 
         it('should scale images if "scaleImages" option is enabled', () => {
-            const stateComponent = mkStateComponent({}, {view: {scaleImages: true}});
+            const stateComponent = mkStateComponent({imageId: 'img-id'}, {...initialState, view: {scaleImages: true}});
             const imageContainer = stateComponent.find('.image-box__container');
 
             assert.isTrue(imageContainer.hasClass('image-box__container_scale'));
         });
     });
 
-    describe('should show opened state if', () => {
-        ['errors', 'retries'].forEach((expand) => {
-            it(`"${expand}" expanded and test failed`, () => {
-                const image = {stateName: 'some-name', status: FAIL};
-                const initialState = {
-                    tree: {
-                        images: {
-                            byId: {'img-id': image}
-                        }
-                    },
-                    view: {expand}
-                };
-                const result = {status: FAIL};
-
-                const stateComponent = mkStateComponent({result, imageId: 'img-id'}, initialState);
-
-                assert.lengthOf(stateComponent.find('.image-box__container'), 1);
-            });
-
-            it(`"${expand}" expanded and test errored`, () => {
-                const image = {stateName: 'some-name', status: ERROR};
-                const initialState = {
-                    tree: {
-                        images: {
-                            byId: {'img-id': image}
-                        }
-                    },
-                    view: {expand}
-                };
-                const result = {status: ERROR};
-
-                const stateComponent = mkStateComponent({result, imageId: 'img-id'}, initialState);
-
-                assert.lengthOf(stateComponent.find('.image-box__container'), 1);
-            });
-        });
-
-        it('"all" expanded and test success', () => {
-            const image = {stateName: 'some-name', status: SUCCESS};
-            const initialState = {
-                tree: {
-                    images: {
-                        byId: {'img-id': image}
-                    }
-                },
-                view: {expand: 'all'}
-            };
-            const result = {status: SUCCESS};
-
-            const stateComponent = mkStateComponent({result, imageId: 'img-id'}, initialState);
-
-            assert.lengthOf(stateComponent.find('.image-box__container'), 1);
-        });
-
-        it('stateName is not specified', () => {
-            const image = {stateName: null, status: SUCCESS};
-            const initialState = {
-                tree: {
-                    images: {
-                        byId: {'img-id': image}
-                    }
-                },
-                view: {expand: 'errors'}
-            };
-            const result = {status: SUCCESS};
-
-            const stateComponent = mkStateComponent({result, imageId: 'img-id'}, initialState);
-
-            assert.lengthOf(stateComponent.find('.image-box__container'), 1);
-        });
-    });
-
-    describe('should not show opened state if', () => {
-        ['errors', 'retries'].forEach((expand) => {
-            it(`"${expand}" expanded and test success`, () => {
-                const image = {stateName: 'some-name', status: SUCCESS};
-                const initialState = {
-                    tree: {
-                        images: {
-                            byId: {'img-id': image}
-                        }
-                    },
-                    view: {expand}
-                };
-                const result = {status: SUCCESS};
-
-                const stateComponent = mkStateComponent({result, imageId: 'img-id'}, initialState);
-
-                assert.lengthOf(stateComponent.find('.image-box__container'), 0);
-            });
-
-            it(`"${expand}" expanded and test updated`, () => {
-                const image = {stateName: 'some-name', status: UPDATED};
-                const initialState = {
-                    tree: {
-                        images: {
-                            byId: {'img-id': image}
-                        }
-                    },
-                    view: {expand}
-                };
-                const result = {status: UPDATED};
-
-                const stateComponent = mkStateComponent({result, imageId: 'img-id'}, initialState);
-
-                assert.lengthOf(stateComponent.find('.image-box__container'), 0);
-            });
-        });
-    });
-
-    it('should open closed state by click on it', () => {
-        const image = {stateName: 'some-name', status: SUCCESS};
-        const initialState = {
-            tree: {
-                images: {
-                    byId: {'img-id': image}
-                }
-            },
-            view: {expand: 'errors'}
-        };
-        const result = {status: SUCCESS};
-
-        const stateComponent = mkStateComponent({result, imageId: 'img-id'}, initialState);
-        stateComponent.find('.state-title').simulate('click');
-
-        assert.lengthOf(stateComponent.find('.image-box__container'), 1);
-    });
-
     describe('"toggleStateResult" action', () => {
-        it('should call on mount', () => {
-            const image = {stateName: 'some-name', status: SUCCESS};
-            const initialState = {
-                tree: {
-                    images: {
-                        byId: {'img-id': image}
-                    }
-                },
-                view: {expand: 'all'}
-            };
-
-            mkStateComponent({imageId: 'img-id'}, initialState);
-
-            assert.calledOnceWith(
-                actionsStub.toggleStateResult,
-                {imageId: 'img-id', opened: true, isUserClick: false}
-            );
-        });
-
         it('should call on click in state name', () => {
             const image = {stateName: 'some-name', status: SUCCESS};
             const initialState = {
                 tree: {
                     images: {
-                        byId: {'img-id': image}
+                        byId: {'img-id': image},
+                        stateById: {'img-id': {shouldBeOpened: false}}
                     }
                 },
-                view: {expand: 'all'}
+                view: {expand: EXPAND_ALL}
             };
 
             const stateComponent = mkStateComponent({imageId: 'img-id'}, initialState);
             stateComponent.find('.state-title').simulate('click');
 
-            assert.calledTwice(actionsStub.toggleStateResult);
-            assert.calledWith(
-                actionsStub.toggleStateResult.secondCall,
-                {imageId: 'img-id', opened: false, isUserClick: true}
-            );
-        });
-
-        it('should call on unmount', () => {
-            const image = {stateName: 'some-name', status: SUCCESS};
-            const initialState = {
-                tree: {
-                    images: {
-                        byId: {'img-id': image}
-                    }
-                },
-                view: {expand: 'all'}
-            };
-
-            const stateComponent = mkStateComponent({imageId: 'img-id'}, initialState);
-            stateComponent.unmount();
-
-            assert.calledTwice(actionsStub.toggleStateResult);
-            assert.calledWith(
-                actionsStub.toggleStateResult.secondCall,
-                {imageId: 'img-id', opened: false, isUserClick: false}
+            assert.calledOnceWith(
+                actionsStub.toggleStateResult,
+                {imageId: 'img-id', shouldBeOpened: true}
             );
         });
     });

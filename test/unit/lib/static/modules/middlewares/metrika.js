@@ -414,32 +414,18 @@ describe('lib/static/modules/middlewares/metrika', () => {
             describe('should not send counter id if', () => {
                 it('metrika is not inited', () => {
                     const store = mkStore_();
-                    const action = {type: eventName, payload: {isUserClick: false}};
+                    const action = {type: eventName};
 
                     metrikaMiddleware(YandexMetrika)(store)(next)(action);
 
                     assert.notCalled(YandexMetrika.prototype.sendVisitParams);
                     assert.calledWith(next, action);
                 });
-
-                it('event not emitted by user', () => {
-                    const store = mkStore_();
-                    const action = {type: eventName, payload: {isUserClick: false}};
-                    initReportWithMetrikaCounter();
-
-                    metrikaMiddleware(YandexMetrika)(store)(next)(action);
-
-                    assert.neverCalledWith(
-                        YandexMetrika.prototype.sendVisitParams,
-                        {counterId: eventName}
-                    );
-                    assert.calledWith(next, action);
-                });
             });
 
-            it('should send counter id if event emitted by user', () => {
+            it('should send counter id', () => {
                 const store = mkStore_();
-                const action = {type: eventName, payload: {isUserClick: true}};
+                const action = {type: eventName};
                 initReportWithMetrikaCounter();
 
                 metrikaMiddleware(YandexMetrika)(store)(next)(action);
