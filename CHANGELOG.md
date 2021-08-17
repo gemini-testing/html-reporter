@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="7.0.3"></a>
+## [7.0.3](https://github.com/gemini-testing/html-reporter/compare/v7.0.2...v7.0.3) (2021-08-17)
+
+
+### Bug Fixes
+
+* **server-utils:** fix empty directories creation in project root ([#393](https://github.com/gemini-testing/html-reporter/issues/393)) ([355c941](https://github.com/gemini-testing/html-reporter/commit/355c941))
+
+
+
 <a name="7.0.2"></a>
 ## [7.0.2](https://github.com/gemini-testing/html-reporter/compare/v7.0.1...v7.0.2) (2021-06-29)
 
