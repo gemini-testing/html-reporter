@@ -108,12 +108,13 @@ describe('server-utils', () => {
         });
 
         it('should create directory and copy image', () => {
-            const fromPath = '/from/image.png',
-                toPath = '/to/image.png';
+            const fromPath = '/from/image.png';
+            const toPath = 'to/image.png';
+            const pathToReport = '/report-dir';
 
-            return utils.copyFileAsync(fromPath, toPath)
+            return utils.copyFileAsync(fromPath, toPath, pathToReport)
                 .then(() => {
-                    assert.calledWithMatch(fs.mkdirs, '/to');
+                    assert.calledWith(fs.mkdirs, '/report-dir/to');
                     assert.calledWithMatch(fs.copy, fromPath, toPath);
                 });
         });
