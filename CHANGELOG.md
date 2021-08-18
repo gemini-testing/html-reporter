@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="7.1.0"></a>
+# [7.1.0](https://github.com/gemini-testing/html-reporter/compare/v7.0.3...v7.1.0) (2021-08-18)
+
+
+### Features
+
+* add query params support to metaInfoBaseUrls ([#392](https://github.com/gemini-testing/html-reporter/issues/392)) ([8af41d0](https://github.com/gemini-testing/html-reporter/commit/8af41d0))
+
+
+
 <a name="7.0.3"></a>
 ## [7.0.3](https://github.com/gemini-testing/html-reporter/compare/v7.0.2...v7.0.3) (2021-08-17)
 
