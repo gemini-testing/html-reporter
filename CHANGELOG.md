@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="7.2.0"></a>
+# [7.2.0](https://github.com/gemini-testing/html-reporter/compare/v7.1.0...v7.2.0) (2021-09-13)
+
+
+### Features
+
+* remember users choice of opened suites, browsers, images, retries ([#394](https://github.com/gemini-testing/html-reporter/issues/394)) ([0990530](https://github.com/gemini-testing/html-reporter/commit/0990530))
+
+
+
 <a name="7.1.0"></a>
 # [7.1.0](https://github.com/gemini-testing/html-reporter/compare/v7.0.3...v7.1.0) (2021-08-18)
 
