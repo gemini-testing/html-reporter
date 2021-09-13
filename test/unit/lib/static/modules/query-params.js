@@ -1,5 +1,6 @@
 import {parseQuery, appendQuery} from 'lib/static/modules/query-params';
 import viewModes from 'lib/constants/view-modes';
+import {COLLAPSE_ALL} from 'lib/constants/expand-modes';
 
 describe('lib/static/modules/query-params', () => {
     describe('parseQuery', () => {
@@ -16,7 +17,7 @@ describe('lib/static/modules/query-params', () => {
                 'testNameFilter=test',
                 'retryIndex=10',
                 'viewMode=all',
-                'expand=none',
+                `expand=${COLLAPSE_ALL}`,
                 'groupByError=true',
                 'abc=111'
             ].join('&'));
@@ -26,7 +27,7 @@ describe('lib/static/modules/query-params', () => {
                 testNameFilter: 'test',
                 retryIndex: 10,
                 viewMode: viewModes.ALL,
-                expand: 'none',
+                expand: COLLAPSE_ALL,
                 groupByError: true,
                 abc: 111
             });
@@ -50,7 +51,7 @@ describe('lib/static/modules/query-params', () => {
                 testNameFilter: 'test',
                 retryIndex: 10,
                 viewMode: viewModes.ALL,
-                expand: 'none',
+                expand: COLLAPSE_ALL,
                 groupByError: true
             });
 
@@ -63,7 +64,7 @@ describe('lib/static/modules/query-params', () => {
                 testNameFilter: 'test',
                 retryIndex: 10,
                 viewMode: viewModes.ALL,
-                expand: 'none',
+                expand: COLLAPSE_ALL,
                 groupByError: true,
                 abc: 111
             });
@@ -97,7 +98,7 @@ describe('lib/static/modules/query-params', () => {
                 testNameFilter: 'test',
                 retryIndex: 10,
                 viewMode: viewModes.ALL,
-                expand: 'none',
+                expand: COLLAPSE_ALL,
                 groupByError: true
             });
 
@@ -106,8 +107,8 @@ describe('lib/static/modules/query-params', () => {
                 'browser=firefox',
                 'testNameFilter=test',
                 'retryIndex=10',
-                'viewMode=all',
-                'expand=none',
+                `viewMode=${viewModes.ALL}`,
+                `expand=${COLLAPSE_ALL}`,
                 'groupByError=true'
             ].join('&'));
         });

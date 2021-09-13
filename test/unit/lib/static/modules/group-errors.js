@@ -76,8 +76,7 @@ describe('static/modules/group-errors', () => {
         isAssertViewError = sandbox.stub().named('isAssertViewError').returns(false);
 
         const module = proxyquire('lib/static/modules/group-errors', {
-            './selectors/tree': {shouldShowBrowser},
-            './utils': {isTestNameMatchFilters, isAssertViewError}
+            './utils': {isTestNameMatchFilters, isAssertViewError, shouldShowBrowser}
         });
 
         groupErrors = module.groupErrors;
@@ -317,5 +316,36 @@ describe('static/modules/group-errors', () => {
             count: 2,
             browserIds: ['yabro-1', 'yabro-2']
         }]);
+    });
+
+    it('should sort errors by "count"', () => {
+        const browsersById = {
+            ...mkBrowser({id: 'yabro-1', parentId: 'test-1'}),
+            ...mkBrowser({id: 'yabro-2', parentId: 'test-1'}),
+            ...mkBrowser({id: 'yabro-3', parentId: 'test-2'})
+        };
+        const resultsById = {
+            ...mkResult({id: 'res-1', parentId: 'yabro-1', error: {message: 'err-1'}}),
+            ...mkResult({id: 'res-2', parentId: 'yabro-2', error: {message: 'err-2'}}),
+            ...mkResult({id: 'res-3', parentId: 'yabro-3', error: {message: 'err-2'}})
+        };
+        const tree = mkTree({browsersById, resultsById});
+
+        const result = groupErrors({tree, viewMode: viewModes.ALL});
+
+        assert.deepEqual(result, [
+            {
+                pattern: 'err-2',
+                name: 'err-2',
+                count: 2,
+                browserIds: ['yabro-2', 'yabro-3']
+            },
+            {
+                pattern: 'err-1',
+                name: 'err-1',
+                count: 1,
+                browserIds: ['yabro-1']
+            }
+        ]);
     });
 });

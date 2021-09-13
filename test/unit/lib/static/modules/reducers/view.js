@@ -3,6 +3,7 @@ import actionNames from 'lib/static/modules/action-names';
 import defaultState from 'lib/static/modules/default-state';
 import {appendQuery, encodeBrowsers} from 'lib/static/modules/query-params';
 import viewModes from 'lib/constants/view-modes';
+import {EXPAND_ALL, EXPAND_ERRORS} from 'lib/constants/expand-modes';
 import {mkStorage} from '../../../../utils';
 
 describe('lib/static/modules/reducers/view', () => {
@@ -182,7 +183,7 @@ describe('lib/static/modules/reducers/view', () => {
 
                         const newState = reducer(defaultState, action);
 
-                        assert.deepStrictEqual(newState.view.expand, 'errors');
+                        assert.deepStrictEqual(newState.view.expand, EXPAND_ERRORS);
                     });
 
                     it('should set "expand" property to specified value', () => {
@@ -192,7 +193,7 @@ describe('lib/static/modules/reducers/view', () => {
 
                         const newState = reducer(defaultState, action);
 
-                        assert.deepStrictEqual(newState.view.expand, 'all');
+                        assert.deepStrictEqual(newState.view.expand, EXPAND_ALL);
                     });
                 });
 

@@ -2,6 +2,7 @@ import React from 'react';
 import proxyquire from 'proxyquire';
 import {defaults} from 'lodash';
 import {mkConnectedComponent} from '../../utils';
+import {mkStateTree} from '../../../state-utils';
 
 describe('<Body />', () => {
     const sandbox = sinon.sandbox.create();
@@ -80,9 +81,12 @@ describe('<Body />', () => {
         });
 
         it('should render if test has more than one result', () => {
+            const browserId = 'yabro';
             const resultIds = ['result-1', 'result-2'];
+            const browsersStateById = {[browserId]: {retryIndex: 1}};
+            const tree = mkStateTree({browsersStateById});
 
-            mkBodyComponent({resultIds});
+            mkBodyComponent({resultIds, browserId}, {tree});
 
             assert.calledOnceWith(RetrySwitcher, {resultIds, retryIndex: 1, onChange: sinon.match.func});
         });
@@ -90,30 +94,39 @@ describe('<Body />', () => {
         it('should call "changeTestRetry" action on call "onChange" prop', () => {
             const browserId = 'yabro';
             const resultIds = ['result-1', 'result-2'];
+            const browsersStateById = {[browserId]: {retryIndex: 1}};
+            const tree = mkStateTree({browsersStateById});
 
-            mkBodyComponent({browserId, resultIds});
+            mkBodyComponent({browserId, resultIds}, {tree});
             RetrySwitcher.firstCall.args[0].onChange(0);
 
-            assert.calledWith(actionsStub.changeTestRetry.lastCall, {browserId, retryIndex: 0, isUserClick: true});
+            assert.calledOnceWith(actionsStub.changeTestRetry, {browserId, retryIndex: 0});
+        });
+
+        it('should not call "changeTestRetry" action on call "onChange" prop with the same retry index as current', () => {
+            const browserId = 'yabro';
+            const resultIds = ['result-1', 'result-2'];
+            const browsersStateById = {[browserId]: {retryIndex: 1}};
+            const tree = mkStateTree({browsersStateById});
+
+            mkBodyComponent({browserId, resultIds}, {tree});
+            RetrySwitcher.firstCall.args[0].onChange(1);
+
+            assert.notCalled(actionsStub.changeTestRetry);
         });
     });
 
     describe('"Result" component', () => {
         it('should render with current active result id and test name', () => {
+            const browserId = 'yabro';
             const testName = 'suite test';
             const resultIds = ['result-1', 'result-2'];
+            const browsersStateById = {[browserId]: {retryIndex: 1}};
+            const tree = mkStateTree({browsersStateById});
 
-            mkBodyComponent({testName, resultIds});
+            mkBodyComponent({browserId, testName, resultIds}, {tree});
 
             assert.calledOnceWith(Result, {resultId: 'result-2', testName});
-        });
-    });
-
-    describe('"changeTestRetry" action', () => {
-        it('should call on mount', () => {
-            mkBodyComponent({browserId: 'some-id', resultIds: ['result-1', 'result-2']});
-
-            assert.calledOnceWith(actionsStub.changeTestRetry, {browserId: 'some-id', retryIndex: 1, isUserClick: false});
         });
     });
 });

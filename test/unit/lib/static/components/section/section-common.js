@@ -4,38 +4,19 @@ import proxyquire from 'proxyquire';
 import LazilyRender from '@gemini-testing/react-lazily-render';
 import {FAIL, SUCCESS} from 'lib/constants/test-statuses';
 import {mkConnectedComponent} from '../utils';
+import {mkSuite, mkStateTree} from '../../state-utils';
 
 describe('<SectionCommon/>', () => {
     const sandbox = sinon.sandbox.create();
-    let SectionCommon, Title, SectionBrowser, selectors, hasSuiteFailedRetries, shouldSuiteBeShown, actionsStub;
-
-    const mkSuite = (opts) => {
-        const result = defaults(opts, {
-            id: 'default-suite-id',
-            parentId: null,
-            name: 'default-name',
-            status: SUCCESS,
-            browserIds: []
-        });
-
-        return {[result.id]: result};
-    };
-
-    const mkStateTree = ({suitesById = {}} = {}) => {
-        return {
-            suites: {byId: suitesById}
-        };
-    };
+    let SectionCommon, Title, SectionBrowser, actionsStub;
 
     const mkSectionCommonComponent = (props = {}, initialState = {}) => {
         props = defaults(props, {
             suiteId: 'default-suite-id',
-            eventToUpdate: '',
-            errorGroupBrowserIds: []
+            eventToUpdate: ''
         });
         initialState = defaults(initialState, {
-            tree: mkStateTree(),
-            view: {expand: 'all'}
+            tree: mkStateTree()
         });
 
         return mkConnectedComponent(<SectionCommon {...props} />, {initialState});
@@ -44,18 +25,10 @@ describe('<SectionCommon/>', () => {
     beforeEach(() => {
         SectionBrowser = sandbox.stub().returns(null);
         Title = sandbox.stub().returns(null);
-        hasSuiteFailedRetries = sandbox.stub().returns(false);
-        shouldSuiteBeShown = sandbox.stub().returns(true);
         actionsStub = {toggleSuiteSection: sandbox.stub().returns({type: 'some-type'})};
-
-        selectors = {
-            mkHasSuiteFailedRetries: sandbox.stub().returns(hasSuiteFailedRetries),
-            mkShouldSuiteBeShown: sandbox.stub().returns(shouldSuiteBeShown)
-        };
 
         SectionCommon = proxyquire('lib/static/components/section/section-common', {
             '../../modules/actions': actionsStub,
-            '../../modules/selectors/tree': selectors,
             './section-browser': {default: SectionBrowser},
             './title/simple': {default: Title}
         }).default;
@@ -63,35 +36,31 @@ describe('<SectionCommon/>', () => {
 
     afterEach(() => sandbox.restore());
 
-    describe('expand retries', () => {
-        it('should not render browser section if suite has not failed retries', () => {
-            const suitesById = mkSuite({id: 'suite-1', name: 'suite', status: SUCCESS});
-            const tree = mkStateTree({suitesById});
-            hasSuiteFailedRetries.returns(false);
+    it('should not render browser section if suite is closed', () => {
+        const suitesById = mkSuite({id: 'suite-1', name: 'suite', status: SUCCESS});
+        const suitesStateById = {'suite-1': {shouldBeShown: true, shouldBeOpened: false}};
+        const tree = mkStateTree({suitesById, suitesStateById});
 
-            mkSectionCommonComponent({suiteId: 'suite-1', sectionRoot: true}, {tree, view: {expand: 'retries'}});
+        mkSectionCommonComponent({suiteId: 'suite-1', sectionRoot: true}, {tree});
 
-            assert.notCalled(SectionBrowser);
-        });
+        assert.notCalled(SectionBrowser);
+    });
 
-        it('should render browser section if suite has failed retries', () => {
-            const suitesById = mkSuite({id: 'suite-1', name: 'suite', status: FAIL, browserIds: ['bro-1']});
-            const tree = mkStateTree({suitesById});
-            hasSuiteFailedRetries.returns(true);
+    it('should render browser section if suite is opened', () => {
+        const suitesById = mkSuite({id: 'suite-1', name: 'suite', status: FAIL, browserIds: ['bro-1']});
+        const suitesStateById = {'suite-1': {shouldBeShown: true, shouldBeOpened: true}};
+        const tree = mkStateTree({suitesById, suitesStateById});
 
-            mkSectionCommonComponent(
-                {suiteId: 'suite-1', sectionRoot: true, errorGroupBrowserIds: []},
-                {tree, view: {expand: 'retries'}}
-            );
+        mkSectionCommonComponent({suiteId: 'suite-1', sectionRoot: true}, {tree});
 
-            assert.calledOnceWith(SectionBrowser, {browserId: 'bro-1', errorGroupBrowserIds: []});
-        });
+        assert.calledOnceWith(SectionBrowser, {browserId: 'bro-1'});
     });
 
     describe('lazy renderer', () => {
         it('should not wrap root suite if "lazyLoadOffset" is disabled', () => {
             const suitesById = mkSuite({id: 'suite-1'});
-            const tree = mkStateTree({suitesById});
+            const suitesStateById = {'suite-1': {shouldBeShown: true, shouldBeOpened: false}};
+            const tree = mkStateTree({suitesById, suitesStateById});
 
             const component = mkSectionCommonComponent(
                 {suiteId: 'suite-1', sectionRoot: true},
@@ -107,7 +76,11 @@ describe('<SectionCommon/>', () => {
                     ...mkSuite({id: 'suite-1', suiteIds: ['suite-2']}),
                     ...mkSuite({id: 'suite-2', browserIds: ['bro-1']})
                 };
-                const tree = mkStateTree({suitesById});
+                const suitesStateById = {
+                    'suite-1': {shouldBeShown: true, shouldBeOpened: true},
+                    'suite-2': {shouldBeShown: true, shouldBeOpened: true}
+                };
+                const tree = mkStateTree({suitesById, suitesStateById});
 
                 const component = mkSectionCommonComponent(
                     {suiteId: 'suite-1', sectionRoot: true},
@@ -119,7 +92,8 @@ describe('<SectionCommon/>', () => {
 
             it('should pass "offset" prop to lazy wrapper', () => {
                 const suitesById = mkSuite({id: 'suite-1'});
-                const tree = mkStateTree({suitesById});
+                const suitesStateById = {'suite-1': {shouldBeShown: true, shouldBeOpened: false}};
+                const tree = mkStateTree({suitesById, suitesStateById});
 
                 const component = mkSectionCommonComponent(
                     {suiteId: 'suite-1', sectionRoot: true},
@@ -132,7 +106,8 @@ describe('<SectionCommon/>', () => {
 
             it('should pass "eventToUpdate" prop to lazy wrapper', () => {
                 const suitesById = mkSuite({id: 'suite-1'});
-                const tree = mkStateTree({suitesById});
+                const suitesStateById = {'suite-1': {shouldBeShown: true, shouldBeOpened: false}};
+                const tree = mkStateTree({suitesById, suitesStateById});
 
                 const component = mkSectionCommonComponent(
                     {suiteId: 'suite-1', sectionRoot: true, eventToUpdate: 'update-event'},
@@ -145,7 +120,8 @@ describe('<SectionCommon/>', () => {
 
             it('should pass "eventToReset" prop to lazy wrapper', () => {
                 const suitesById = mkSuite({id: 'suite-1'});
-                const tree = mkStateTree({suitesById});
+                const suitesStateById = {'suite-1': {shouldBeShown: true, shouldBeOpened: false}};
+                const tree = mkStateTree({suitesById, suitesStateById});
 
                 const component = mkSectionCommonComponent(
                     {suiteId: 'suite-1', sectionRoot: true, eventToReset: 'reset-event'},
@@ -158,7 +134,8 @@ describe('<SectionCommon/>', () => {
 
             it('should not render section if it is outside viewport', () => {
                 const suitesById = mkSuite({id: 'suite-1'});
-                const tree = mkStateTree({suitesById});
+                const suitesStateById = {'suite-1': {shouldBeShown: true, shouldBeOpened: false}};
+                const tree = mkStateTree({suitesById, suitesStateById});
 
                 const component = mkSectionCommonComponent(
                     {suiteId: 'suite-1', sectionRoot: true, eventToUpdate: 'some-event'},
@@ -172,7 +149,8 @@ describe('<SectionCommon/>', () => {
 
             it('should render section if it is inside viewport', () => {
                 const suitesById = mkSuite({id: 'suite-1'});
-                const tree = mkStateTree({suitesById});
+                const suitesStateById = {'suite-1': {shouldBeShown: true, shouldBeOpened: false}};
+                const tree = mkStateTree({suitesById, suitesStateById});
 
                 const component = mkSectionCommonComponent(
                     {suiteId: 'suite-1', sectionRoot: true, eventToUpdate: 'some-event'},
@@ -189,13 +167,13 @@ describe('<SectionCommon/>', () => {
     describe('"toggleSuiteSection" action', () => {
         it('should call action on call passed handler in <Title /> component', () => {
             const suitesById = mkSuite({id: 'suite-1', name: 'suite', status: SUCCESS});
-            const tree = mkStateTree({suitesById});
-            hasSuiteFailedRetries.returns(false);
+            const suitesStateById = {'suite-1': {shouldBeShown: true, shouldBeOpened: false}};
+            const tree = mkStateTree({suitesById, suitesStateById});
 
-            mkSectionCommonComponent({suiteId: 'suite-1', sectionRoot: true}, {tree, view: {expand: 'all'}});
+            mkSectionCommonComponent({suiteId: 'suite-1', sectionRoot: true}, {tree});
             Title.getCall(0).args[0].handler();
 
-            assert.calledOnceWith(actionsStub.toggleSuiteSection, 'suite-1');
+            assert.calledOnceWith(actionsStub.toggleSuiteSection, {suiteId: 'suite-1', shouldBeOpened: true});
         });
     });
 });
