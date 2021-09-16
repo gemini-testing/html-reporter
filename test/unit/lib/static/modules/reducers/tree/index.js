@@ -800,50 +800,6 @@ describe('lib/static/modules/reducers/tree', () => {
         });
     });
 
-    // [actionNames.VIEW_SHOW_ALL, actionNames.VIEW_SHOW_FAILED].forEach((actionName) => {
-    //     describe.only(`${actionName} action`, () => {
-    //         describe('recalc suites state', () => {
-    //             it('should change "shouldBeOpened" to "true"', () => {
-    //                 const suitesById = {...mkSuite({id: 's1'})};
-    //                 const suitesStateById = {s1: {shouldBeOpened: false}};
-    //                 const tree = mkStateTree({suitesById, suitesStateById});
-    //                 const view = mkStateView({expand: EXPAND_ALL});
-
-    //                 const newState = reducer({tree, view}, {type: actionName});
-
-    //                 assert.isTrue(newState.tree.suites.stateById.s1.shouldBeOpened);
-    //             });
-    //         });
-
-    //         describe('recalc browsers state', () => {
-    //             it(`should change "shouldBeOpened" to "true"`, () => {
-    //                 const browsersById = {...mkBrowser({id: 'b1', resultIds: ['r1']})};
-    //                 const resultsById = {...mkResult({id: 'r2', status: SUCCESS})};
-    //                 const browsersStateById = {b1: {shouldBeOpened: false}};
-    //                 const tree = mkStateTree({browsersById, resultsById, browsersStateById});
-    //                 const view = mkStateView({expand: EXPAND_ALL});
-
-    //                 const newState = reducer({tree, view}, {type: actionName});
-
-    //                 assert.isTrue(newState.tree.browsers.stateById.b1.shouldBeOpened);
-    //             });
-    //         });
-
-    //         describe('recalc images state', () => {
-    //             it(`should change "shouldBeOpened" to "true"`, () => {
-    //                 const imagesById = {...mkImage({id: 'i1', status: SUCCESS})};
-    //                 const imagesStateById = {i1: {shouldBeOpened: false}};
-    //                 const tree = mkStateTree({imagesById, imagesStateById});
-    //                 const view = mkStateView({expand: EXPAND_ALL});
-
-    //                 const newState = reducer({tree, view}, {type: actionName});
-
-    //                 assert.isTrue(newState.tree.images.stateById.i1.shouldBeOpened);
-    //             });
-    //         });
-    //     });
-    // });
-
     describe(`${actionNames.CLOSE_SECTIONS} action`, () => {
         it('should change "shouldBeOpened" state to "false" for passed images', () => {
             const imagesById = {...mkImage({id: 'i1'}), ...mkImage({id: 'i2'})};

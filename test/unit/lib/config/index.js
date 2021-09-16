@@ -6,13 +6,20 @@ const {config: configDefaults} = require('lib/constants/defaults');
 const viewModes = require('lib/constants/view-modes');
 const saveFormats = require('lib/constants/save-formats');
 const SUPPORTED_CONTROL_TYPES = Object.values(require('lib/gui/constants/custom-gui-control-types'));
+const utils = require('lib/server-utils');
 
 describe('config', () => {
+    const sandbox = sinon.createSandbox();
+
     beforeEach(function() {
+        sandbox.stub(utils.logger, 'warn');
+
         this.oldArgv = process.argv;
     });
 
     afterEach(function() {
+        sandbox.restore();
+
         process.argv = this.oldArgv;
 
         delete process.env['html_reporter_enabled'];
@@ -208,28 +215,10 @@ describe('config', () => {
             assert.equal(parseConfig({}).lazyLoadOffset, configDefaults.lazyLoadOffset);
         });
 
-        it('should set from configuration file', () => {
-            const config = parseConfig({
-                lazyLoadOffset: 700
-            });
+        it('should warn about deprecation', () => {
+            parseConfig({lazyLoadOffset: 700});
 
-            assert.equal(config.lazyLoadOffset, 700);
-        });
-
-        it('should set from environment variable', () => {
-            process.env['html_reporter_lazy_load_offset'] = 600;
-
-            assert.equal(parseConfig({}).lazyLoadOffset, 600);
-        });
-
-        it('should set from cli', () => {
-            process.argv = process.argv.concat('--html-reporter-lazy-load-offset', 500);
-
-            assert.equal(parseConfig({}).lazyLoadOffset, 500);
-        });
-
-        it('should validate if passed value is number', () => {
-            assert.throws(() => parseConfig({lazyLoadOffset: 'some-value'}), /option must be number, but got string/);
+            assert.calledOnceWith(utils.logger.warn, sinon.match('Warning: field "lazyLoadOffset" is deprecated'));
         });
     });
 

@@ -1,10 +1,9 @@
 import React from 'react';
 import proxyquire from 'proxyquire';
 import {defaultsDeep} from 'lodash';
+import {List} from 'react-virtualized';
 
 import {mkConnectedComponent} from './utils';
-import {config} from 'lib/constants/defaults';
-import clientEvents from 'lib/constants/client-events';
 import viewModes from 'lib/constants/view-modes';
 
 describe('<Suites/>', () => {
@@ -14,8 +13,7 @@ describe('<Suites/>', () => {
     const mkSuitesComponent = (initialState = {}) => {
         initialState = defaultsDeep(initialState, {
             view: {
-                viewMode: viewModes.ALL,
-                lazyLoadOffset: config.lazyLoadOffset
+                viewMode: viewModes.ALL
             }
         });
 
@@ -34,46 +32,25 @@ describe('<Suites/>', () => {
 
     afterEach(() => sandbox.restore());
 
-    it('should not render section common component if there are not visible root suite ids', () => {
+    it('should not render List component if there are no visible root suite ids', () => {
         getVisibleRootSuiteIds.returns([]);
 
-        mkSuitesComponent();
+        const component = mkSuitesComponent();
 
-        assert.notCalled(SectionCommon);
+        assert.equal(component.find(List).length, 0);
     });
 
-    it('should render section common without "eventToUpdate" and "eventToReset" if "lazyLoadOffset" disabled', () => {
-        getVisibleRootSuiteIds.returns(['suite-id']);
-
-        mkSuitesComponent({view: {lazyLoadOffset: 0}});
-
-        assert.calledOnceWith(
-            SectionCommon,
-            {suiteId: 'suite-id', sectionRoot: true}
-        );
-    });
-
-    it('should render section common without "eventToUpdate" and "eventToReset" if "lazyLoadOffset" enabled', () => {
-        getVisibleRootSuiteIds.returns(['suite-id']);
-
-        mkSuitesComponent({view: {lazyLoadOffset: 100500}});
-
-        assert.calledOnceWith(
-            SectionCommon,
-            {
-                suiteId: 'suite-id',
-                sectionRoot: true,
-                eventToUpdate: clientEvents.VIEW_CHANGED,
-                eventToReset: clientEvents.SUITES_VISIBILITY_CHANGED
-            }
-        );
-    });
-
-    it('should render few section commons components', () => {
+    it('should render few section common components', () => {
         getVisibleRootSuiteIds.returns(['suite-id-1', 'suite-id-2']);
 
-        mkSuitesComponent();
+        const component = mkSuitesComponent();
+        const listComponent = component.find(List);
+
+        mount(listComponent.prop('rowRenderer')({index: 0, key: 0, style: {}, parent: {}}));
+        mount(listComponent.prop('rowRenderer')({index: 1, key: 1, style: {}, parent: {}}));
 
         assert.calledTwice(SectionCommon);
+        assert.calledWith(SectionCommon.firstCall, {suiteId: 'suite-id-1', sectionRoot: true});
+        assert.calledWith(SectionCommon.secondCall, {suiteId: 'suite-id-2', sectionRoot: true});
     });
 });

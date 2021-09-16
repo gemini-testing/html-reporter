@@ -836,14 +836,6 @@ a:active {
     text-transform: uppercase;
 }
 
-.image-box__placeholder {
-    position: relative;
-    display: table-cell;
-    max-width: 100%;
-    height: 0;
-    background: #fff;
-}
-
 @-webkit-keyframes scale {
     0% {
         -webkit-transform: scale(1);
