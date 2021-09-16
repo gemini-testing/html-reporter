@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="7.3.0"></a>
+# [7.3.0](https://github.com/gemini-testing/html-reporter/compare/v7.2.0...v7.3.0) (2021-09-16)
+
+
+### Bug Fixes
+
+* **gui:** incorrect tests counting ([#396](https://github.com/gemini-testing/html-reporter/issues/396)) ([b9ae4d8](https://github.com/gemini-testing/html-reporter/commit/b9ae4d8))
+
+
+### Features
+
+* use react-virtualized to speed up report ([#391](https://github.com/gemini-testing/html-reporter/issues/391)) ([59a2dde](https://github.com/gemini-testing/html-reporter/commit/59a2dde))
+
+
+
 <a name="7.2.0"></a>
 # [7.2.0](https://github.com/gemini-testing/html-reporter/compare/v7.1.0...v7.2.0) (2021-09-13)
 
