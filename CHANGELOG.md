@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="7.3.1"></a>
+## [7.3.1](https://github.com/gemini-testing/html-reporter/compare/v7.3.0...v7.3.1) (2021-09-20)
+
+
+### Bug Fixes
+
+* correct calculation of suites state ([#398](https://github.com/gemini-testing/html-reporter/issues/398)) ([465e293](https://github.com/gemini-testing/html-reporter/commit/465e293))
+
+
+
 <a name="7.3.0"></a>
 # [7.3.0](https://github.com/gemini-testing/html-reporter/compare/v7.2.0...v7.3.0) (2021-09-16)
 
