@@ -107,6 +107,32 @@ describe('lib/static/modules/reducers/tree', () => {
                             assert.isTrue(newState.tree.suites.stateById.s1.shouldBeShown);
                             assert.isTrue(newState.tree.suites.stateById.s2.shouldBeShown);
                         });
+
+                        it('child browser is shown by view mode but browsers from child suites not', () => {
+                            const suitesById = {
+                                ...mkSuite({id: 's1', suiteIds: ['s2'], browserIds: ['b1']}),
+                                ...mkSuite({id: 's2', browserIds: ['b2'], parentId: 's1'})
+                            };
+                            const browsersById = {
+                                ...mkBrowser({id: 'b1', parentId: 's1', resultIds: ['r1']}),
+                                ...mkBrowser({id: 'b2', parentId: 's2', resultIds: ['r2']})
+                            };
+                            const resultsById = {
+                                ...mkResult({id: 'r1', parentId: 'b1', status: ERROR}),
+                                ...mkResult({id: 'r2', parentId: 'b2', status: SUCCESS})
+                            };
+
+                            const tree = mkStateTree({suitesById, browsersById, resultsById});
+                            const state = {view: mkStateView({viewMode: viewModes.FAILED})};
+
+                            const newState = reducer(state, {
+                                type: actionName,
+                                payload: {tree}
+                            });
+
+                            assert.isTrue(newState.tree.suites.stateById.s1.shouldBeShown);
+                            assert.isFalse(newState.tree.suites.stateById.s2.shouldBeShown);
+                        });
                     });
 
                     describe('should be "false" if', () => {
@@ -181,31 +207,58 @@ describe('lib/static/modules/reducers/tree', () => {
                                 assert.isTrue(newState.tree.suites.stateById.s1.shouldBeOpened);
                             });
 
-                            it(`"retries" expanded and in one child suite has retries with ${status} status`, () => {
-                                const suitesById = {
-                                    ...mkSuite({id: 's1', suiteIds: ['s2', 's3'], status: SUCCESS}),
-                                    ...mkSuite({id: 's2', parentId: 's1', browserIds: ['b1'], status: SUCCESS}),
-                                    ...mkSuite({id: 's3', parentId: 's1', browserIds: ['b2'], status})
-                                };
-                                const browsersById = {
-                                    ...mkBrowser({id: 'b1', parentId: 's2', resultIds: ['r1']}),
-                                    ...mkBrowser({id: 'b2', parentId: 's3', resultIds: ['r2', 'r3']})
-                                };
-                                const resultsById = {
-                                    ...mkResult({id: 'r1', status: SUCCESS}),
-                                    ...mkResult({id: 'r2', status}),
-                                    ...mkResult({id: 'r3', status: SUCCESS})
-                                };
-                                const tree = mkStateTree({suitesById, browsersById, resultsById});
+                            describe('"retries" expanded and', () => {
+                                it(`one child suite has retries with ${status} status`, () => {
+                                    const suitesById = {
+                                        ...mkSuite({id: 's1', suiteIds: ['s2', 's3'], status: SUCCESS}),
+                                        ...mkSuite({id: 's2', parentId: 's1', browserIds: ['b1'], status: SUCCESS}),
+                                        ...mkSuite({id: 's3', parentId: 's1', browserIds: ['b2'], status})
+                                    };
+                                    const browsersById = {
+                                        ...mkBrowser({id: 'b1', parentId: 's2', resultIds: ['r1']}),
+                                        ...mkBrowser({id: 'b2', parentId: 's3', resultIds: ['r2', 'r3']})
+                                    };
+                                    const resultsById = {
+                                        ...mkResult({id: 'r1', status: SUCCESS}),
+                                        ...mkResult({id: 'r2', status}),
+                                        ...mkResult({id: 'r3', status: SUCCESS})
+                                    };
+                                    const tree = mkStateTree({suitesById, browsersById, resultsById});
 
-                                const newState = reducer({view: mkStateView({expand: EXPAND_RETRIES})}, {
-                                    type: actionName,
-                                    payload: {tree}
+                                    const newState = reducer({view: mkStateView({expand: EXPAND_RETRIES})}, {
+                                        type: actionName,
+                                        payload: {tree}
+                                    });
+
+                                    assert.isTrue(newState.tree.suites.stateById.s1.shouldBeOpened);
+                                    assert.isFalse(newState.tree.suites.stateById.s2.shouldBeOpened);
+                                    assert.isTrue(newState.tree.suites.stateById.s3.shouldBeOpened);
                                 });
 
-                                assert.isTrue(newState.tree.suites.stateById.s1.shouldBeOpened);
-                                assert.isFalse(newState.tree.suites.stateById.s2.shouldBeOpened);
-                                assert.isTrue(newState.tree.suites.stateById.s3.shouldBeOpened);
+                                it(`child browser has retries but browsers from child suites not`, () => {
+                                    const suitesById = {
+                                        ...mkSuite({id: 's1', suiteIds: ['s2'], browserIds: ['b1']}),
+                                        ...mkSuite({id: 's2', browserIds: ['b2'], parentId: 's1'})
+                                    };
+                                    const browsersById = {
+                                        ...mkBrowser({id: 'b1', parentId: 's1', resultIds: ['r1', 'r2']}),
+                                        ...mkBrowser({id: 'b2', parentId: 's2', resultIds: ['r3']})
+                                    };
+                                    const resultsById = {
+                                        ...mkResult({id: 'r1', status}),
+                                        ...mkResult({id: 'r2', status: SUCCESS}),
+                                        ...mkResult({id: 'r3', status: SUCCESS})
+                                    };
+                                    const tree = mkStateTree({suitesById, browsersById, resultsById});
+
+                                    const newState = reducer({view: mkStateView({expand: EXPAND_RETRIES})}, {
+                                        type: actionName,
+                                        payload: {tree}
+                                    });
+
+                                    assert.isTrue(newState.tree.suites.stateById.s1.shouldBeOpened);
+                                    assert.isFalse(newState.tree.suites.stateById.s2.shouldBeOpened);
+                                });
                             });
                         });
 
