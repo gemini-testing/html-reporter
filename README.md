@@ -372,7 +372,7 @@ Files that will be created during test execution:
 
 ## Additional commands
 
-Additional commands that are added to the tool for which this plugin is connected.
+Additional commands that are added to the hermione.
 
 ### gui
 
@@ -430,7 +430,7 @@ Integration tests run on Chromium in headless mode.
 
 ## Api
 
-Html-reporter adds to your tool object with api:
+Html-reporter adds to hermione object with api:
 
 ### addExtraItem
 
@@ -440,7 +440,7 @@ Adds item to html report as link:
 @param {String} text of link
 @param {String} url of link
 
-tool.htmlReporter.addExtraItem('some-text', 'some-url')
+hermione.htmlReporter.addExtraItem('some-text', 'some-url')
 ```
 
 In this case url with link 'some-url' and text 'some-text' will be added to the menu bar.
@@ -450,7 +450,7 @@ In this case url with link 'some-url' and text 'some-text' will be added to the 
 Extend meta-info of each test using passed data:
 
 ```js
-tool.htmlReporter.addMetaInfoExtender(name, value);
+hermione.htmlReporter.addMetaInfoExtender(name, value);
 ```
 
 * **name** (required) `String` - name of meta info
@@ -458,7 +458,7 @@ tool.htmlReporter.addMetaInfoExtender(name, value);
 
 Example:
 ```js
-tool.htmlReporter.addMetaInfoExtender('foo', (data, extraItems) => {
+hermione.htmlReporter.addMetaInfoExtender('foo', (data, extraItems) => {
     return data.testName + extraItems.platform;
 });
 ```
