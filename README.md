@@ -428,9 +428,44 @@ npm run test-func
 
 Integration tests run on Chromium in headless mode.
 
-## Api
+## API
 
-Html-reporter adds to hermione object with api:
+Html-reporter adds to `hermione` object with its own API.
+
+**Properties of the `hermione.htmlReporter` object**
+
+Property name             | Description
+------------------------- | -------------
+`events`                  | Events list for subscription.
+`extraItems`              | Items list which will be added to the menu bar.
+`metaInfoExtenders`       | Items list which will be added to the meta info.
+`imagesSaver`             | Interface to save image into user storage.
+`reportsSaver`            | Interface to save sqlite database into user storage.
+
+**Available events which are triggered in the main process**
+
+Event                     | Description
+------------------------- | -------------
+`DATABASE_CREATED`        | Will be triggered after sqlite database is created. The handler accepts a database instance. The event is synchronous.
+
+### events
+
+Example of a subscription to an event `DATABASE_CREATED` from another hermione-plugin in the main process:
+
+```js
+module.exports = (hermione, opts) => {
+    if (!opts.enabled || hermione.isWorker()) {
+        return;
+    }
+
+    // `htmlreporter` field is guaranteed to be in the `hermione` object when `INIT` event is emitted
+    hermione.on(hermione.events.INIT, () => {
+        hermione.htmlReporter.on(hermione.htmlReporter.events.DATABASE_CREATED, (db) => {
+            db.prepare(`CREATE TABLE IF NOT EXISTS test1 (foo TEXT, bar TEXT)`).run();
+        });
+    });
+};
+```
 
 ### addExtraItem
 
@@ -464,7 +499,6 @@ hermione.htmlReporter.addMetaInfoExtender('foo', (data, extraItems) => {
 ```
 
 In this case a line `suite full name: some-platform` will be added to the meta info of each test.
-
 
 ### externalStorage
 

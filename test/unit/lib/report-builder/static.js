@@ -4,6 +4,7 @@ const fs = require('fs-extra');
 const _ = require('lodash');
 const Database = require('better-sqlite3');
 const proxyquire = require('proxyquire');
+const PluginApi = require('lib/plugin-api');
 const {SUCCESS, FAIL, ERROR, SKIPPED} = require('lib/constants/test-statuses');
 const {LOCAL_DATABASE_NAME} = require('lib/constants/file-names');
 const {mkFormattedTest} = require('../../utils');
@@ -23,11 +24,11 @@ describe('StaticReportBuilder', () => {
         hermione = {
             forBrowser: sandbox.stub().returns(browserConfigStub),
             on: sandbox.spy(),
-            htmlReporter: {
+            htmlReporter: _.extend(PluginApi.create(), {
                 reportsSaver: {
                     saveReportData: sandbox.stub()
                 }
-            }
+            })
         };
 
         const reportBuilder = StaticReportBuilder.create(hermione, pluginConfig);

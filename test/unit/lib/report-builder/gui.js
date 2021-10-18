@@ -2,12 +2,17 @@
 
 const fs = require('fs-extra');
 const _ = require('lodash');
+const proxyquire = require('proxyquire');
 const serverUtils = require('lib/server-utils');
 const TestAdapter = require('lib/test-adapter');
 const GuiTestsTreeBuilder = require('lib/tests-tree-builder/gui');
-const proxyquire = require('proxyquire');
+const PluginApi = require('lib/plugin-api');
 const {SUCCESS, FAIL, ERROR, SKIPPED, IDLE, RUNNING, UPDATED} = require('lib/constants/test-statuses');
+const {LOCAL_DATABASE_NAME} = require('lib/constants/file-names');
 const {mkFormattedTest} = require('../../utils');
+
+const TEST_REPORT_PATH = 'test';
+const TEST_DB_PATH = `${TEST_REPORT_PATH}/${LOCAL_DATABASE_NAME}`;
 
 describe('GuiReportBuilder', () => {
     const sandbox = sinon.sandbox.create();
@@ -15,10 +20,13 @@ describe('GuiReportBuilder', () => {
 
     const mkGuiReportBuilder_ = async ({toolConfig, pluginConfig} = {}) => {
         toolConfig = _.defaults(toolConfig || {}, {getAbsoluteUrl: _.noop});
-        pluginConfig = _.defaults(pluginConfig || {}, {baseHost: '', path: '', baseTestPath: ''});
+        pluginConfig = _.defaults(pluginConfig || {}, {baseHost: '', path: TEST_REPORT_PATH, baseTestPath: ''});
 
         const browserConfigStub = {getAbsoluteUrl: toolConfig.getAbsoluteUrl};
-        const hermione = {forBrowser: sandbox.stub().returns(browserConfigStub)};
+        const hermione = {
+            forBrowser: sandbox.stub().returns(browserConfigStub),
+            htmlReporter: PluginApi.create()
+        };
 
         TestAdapter.create = (obj) => obj;
 
@@ -83,7 +91,10 @@ describe('GuiReportBuilder', () => {
         sandbox.stub(GuiTestsTreeBuilder.prototype, 'addTestResult').returns({});
     });
 
-    afterEach(() => sandbox.restore());
+    afterEach(() => {
+        fs.removeSync(TEST_DB_PATH);
+        sandbox.restore();
+    });
 
     describe('"addIdle" method', () => {
         it(`should add "${IDLE}" status to result`, async () => {
