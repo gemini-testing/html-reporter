@@ -173,7 +173,7 @@ describe('lib/gui/tool-runner/index', () => {
                 .then(() => assert.calledOnce(reportBuilder.addIdle));
         });
 
-        it('should subscribe on events before tests have ran', () => {
+        it('should subscribe on events before read tests', () => {
             const hermione = stubTool();
             hermione.readTests.resolves(mkTestCollection_({bro: stubTest_()}));
 
@@ -181,6 +181,16 @@ describe('lib/gui/tool-runner/index', () => {
 
             return gui.initialize()
                 .then(() => assert.callOrder(reportSubscriber, hermione.readTests));
+        });
+
+        it('should initialize report builder after read tests for the correct order of events', async () => {
+            const hermione = stubTool();
+            hermione.readTests.resolves(mkTestCollection_({bro: stubTest_()}));
+            const gui = initGuiReporter(hermione, {paths: ['foo']});
+
+            await gui.initialize();
+
+            assert.callOrder(hermione.readTests, reportBuilder.init);
         });
     });
 

@@ -1,12 +1,26 @@
 {
-    "presets": ["env", "react", "stage-0"],
     "plugins": [
         ["transform-runtime", {"polyfill": false}],
         ["babel-plugin-transform-builtin-extend", {"globals": ["Error", "Array"]}]
     ],
     "env": {
         "test": {
+            "presets": [
+                [
+                    "env",
+                    {"exclude": ["transform-es2015-classes"]}
+                ],
+                "react",
+                "stage-0"
+            ],
             "plugins": ["dynamic-import-node"]
+        },
+        "production": {
+            "presets": [
+                "env",
+                "react",
+                "stage-0"
+            ]
         }
     }
 }
