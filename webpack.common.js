@@ -67,6 +67,11 @@ module.exports = {
             filename: 'gui.html',
             template: 'template.html',
             chunks: ['gui']
+        }),
+        new HtmlWebpackIncludeAssetsPlugin({
+            files: ['gui.html'],
+            assets: ['sql-wasm.js'],
+            append: false
         })
     ]
 };

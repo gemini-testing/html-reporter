@@ -3,16 +3,18 @@ import proxyquire from 'proxyquire';
 import {acceptOpened, retryTest, runFailedTests} from 'lib/static/modules/actions';
 import actionNames from 'lib/static/modules/action-names';
 import StaticTestsTreeBuilder from 'lib/tests-tree-builder/static';
+import {LOCAL_DATABASE_NAME} from 'lib/constants/file-names';
 
 describe('lib/static/modules/actions', () => {
     const sandbox = sinon.sandbox.create();
-    let dispatch, actions, addNotification, getSuitesTableRows, pluginsStub;
+    let dispatch, actions, addNotification, getSuitesTableRows, connectToDatabaseStub, pluginsStub;
 
     beforeEach(() => {
         dispatch = sandbox.stub();
         sandbox.stub(axios, 'post').resolves({data: {}});
         addNotification = sandbox.stub();
         getSuitesTableRows = sandbox.stub();
+        connectToDatabaseStub = sandbox.stub().resolves({});
         pluginsStub = {loadAll: sandbox.stub()};
 
         sandbox.stub(StaticTestsTreeBuilder, 'create').returns(Object.create(StaticTestsTreeBuilder.prototype));
@@ -21,6 +23,7 @@ describe('lib/static/modules/actions', () => {
         actions = proxyquire('lib/static/modules/actions', {
             'reapop': {addNotification},
             './database-utils': {getSuitesTableRows},
+            './sqlite': {connectToDatabase: connectToDatabaseStub},
             './plugins': pluginsStub
         });
     });
@@ -28,24 +31,49 @@ describe('lib/static/modules/actions', () => {
     afterEach(() => sandbox.restore());
 
     describe('initGuiReport', () => {
-        it('should run init action on server', async () => {
+        beforeEach(() => {
             sandbox.stub(axios, 'get').resolves({data: {}});
 
+            global.window = {
+                location: {
+                    href: 'http://localhost/random/path.html'
+                }
+            };
+        });
+
+        afterEach(() => {
+            global.window = undefined;
+        });
+
+        it('should run init action on server', async () => {
             await actions.initGuiReport()(dispatch);
 
             assert.calledOnceWith(axios.get, '/init');
         });
 
-        it('should dispatch "INIT_GUI_REPORT" action', async () => {
-            sandbox.stub(axios, 'get').resolves({data: 'some-data'});
+        it('should fetch database from default html page', async () => {
+            global.window.location.href = 'http://127.0.0.1:8080/';
 
             await actions.initGuiReport()(dispatch);
 
-            assert.calledOnceWith(dispatch, {type: actionNames.INIT_GUI_REPORT, payload: 'some-data'});
+            assert.calledOnceWith(connectToDatabaseStub, `http://127.0.0.1:8080/${LOCAL_DATABASE_NAME}`);
+        });
+
+        it('should dispatch "INIT_GUI_REPORT" action with data from "/init" route and connection to db', async () => {
+            const db = {};
+            connectToDatabaseStub.resolves(db);
+            axios.get.resolves({data: {some: 'data'}});
+
+            await actions.initGuiReport()(dispatch);
+
+            assert.calledOnceWith(dispatch, {
+                type: actionNames.INIT_GUI_REPORT,
+                payload: {some: 'data', db}
+            });
         });
 
         it('should show notification if error in initialization on the server is happened', async () => {
-            sandbox.stub(axios, 'get').throws(new Error('failed to initialize custom gui'));
+            axios.get.rejects(new Error('failed to initialize custom gui'));
 
             await actions.initGuiReport()(dispatch);
 
@@ -62,7 +90,7 @@ describe('lib/static/modules/actions', () => {
 
         it('should init plugins with the config from /init route', async () => {
             const config = {pluginsEnabled: true, plugins: []};
-            sandbox.stub(axios, 'get').withArgs('/init').resolves({data: {config}});
+            axios.get.withArgs('/init').resolves({data: {config}});
 
             await actions.initGuiReport()(dispatch);
 
