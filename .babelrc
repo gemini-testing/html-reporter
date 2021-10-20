@@ -21,6 +21,13 @@
                 "react",
                 "stage-0"
             ]
+        },
+        "development": {
+            "presets": [
+                "env",
+                "react",
+                "stage-0"
+            ]
         }
     }
 }
