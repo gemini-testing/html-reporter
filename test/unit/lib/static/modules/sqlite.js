@@ -1,7 +1,7 @@
 'use strict';
 
 import axios from 'axios';
-import * as _ from 'lodash';
+import proxyquire from 'proxyquire';
 
 import {
     fetchDatabases,
@@ -162,18 +162,27 @@ describe('lib/static/modules/sqlite', () => {
     });
 
     describe('mergeDatabases', () => {
-        let SQL;
+        let SQL, statement;
         let DatabaseConstructorSpy;
 
         beforeEach(() => {
+            statement = {
+                step: () => {},
+                get: () => {},
+                run: () => {}
+            };
+
             SQL = {
                 Database: class {
                     run() {}
                     close() {}
+                    prepare() {
+                        return statement;
+                    }
                 }
             };
             DatabaseConstructorSpy = sinon.spy(SQL, 'Database');
-            sandbox.spy(SQL.Database.prototype, 'run');
+            sandbox.spy(SQL.Database.prototype, 'prepare');
             sandbox.spy(SQL.Database.prototype, 'close');
 
             global.window = {
@@ -198,7 +207,7 @@ describe('lib/static/modules/sqlite', () => {
 
             assert.instanceOf(mergedDbConnection, SQL.Database);
             assert.calledOnceWith(DatabaseConstructorSpy, new Uint8Array(1));
-            assert.notCalled(SQL.Database.prototype.run);
+            assert.notCalled(SQL.Database.prototype.prepare);
             assert.notCalled(SQL.Database.prototype.close);
         });
 
@@ -219,17 +228,30 @@ describe('lib/static/modules/sqlite', () => {
             assert.calledTwice(SQL.Database.prototype.close);
         });
 
-        it('should merge both "suites" tables', async () => {
-            const data1 = new ArrayBuffer(1);
-            const data2 = new ArrayBuffer(1);
+        describe('merge tables', () => {
+            let mergeDatabases, mergeTables;
 
-            await mergeDatabases([data1, data2]);
+            beforeEach(() => {
+                mergeTables = sandbox.stub();
 
-            const rawQueries = _
-                .flatten(SQL.Database.prototype.run.args)
-                .join(' ');
+                mergeDatabases = proxyquire('lib/static/modules/sqlite', {
+                    '../../common-utils': {mergeTables}
+                }).mergeDatabases;
+            });
 
-            assert.include(rawQueries, 'suites');
+            it('should get existing tables', async () => {
+                const statement = {
+                    step: sandbox.stub().returns(true).onThirdCall().returns(false),
+                    get: sandbox.stub()
+                        .onFirstCall().returns(['table1'])
+                        .onSecondCall().returns(['table2'])
+                };
+
+                await mergeDatabases([new ArrayBuffer(1), new ArrayBuffer(2)]);
+                const tables = mergeTables.getCall(0).args[0].getExistingTables(statement);
+
+                assert.deepEqual(tables, ['table1', 'table2']);
+            });
         });
     });
 
