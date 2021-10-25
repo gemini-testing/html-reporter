@@ -12,7 +12,8 @@ describe('<GuiControls />', () => {
         AcceptOpenedButton = sandbox.stub().returns(null);
         actionsStub = {
             runAllTests: sandbox.stub().returns({type: 'some-type'}),
-            runFailedTests: sandbox.stub().returns({type: 'some-type'})
+            runFailedTests: sandbox.stub().returns({type: 'some-type'}),
+            stopTests: sandbox.stub().returns({type: 'some-type'})
         };
         selectors = {
             getFailedTests: sandbox.stub().returns([])
@@ -114,6 +115,46 @@ describe('<GuiControls />', () => {
             mkConnectedComponent(<GuiControls />);
 
             assert.calledOnce(AcceptOpenedButton);
+        });
+    });
+
+    describe('"Stop tests" button', () => {
+        it('should be disabled when tests are not running', () => {
+            const component = mkConnectedComponent(<GuiControls />, {
+                initialState: {running: false, stopping: false}
+            });
+
+            const stop = component.find('[label="Stop tests"]');
+            assert.isTrue(stop.prop('isDisabled'));
+        });
+
+        describe ('should be disabled when tests are', () => {
+            it('running', () => {
+                const component = mkConnectedComponent(<GuiControls />, {
+                    initialState: {running: true, stopping: false}
+                });
+
+                const stop = component.find('[label="Stop tests"]');
+                assert.isFalse(stop.prop('isDisabled'));
+            });
+
+            it('stopping', () => {
+                const component = mkConnectedComponent(<GuiControls />, {
+                    initialState: {running: true, stopping: true}
+                });
+
+                const stop = component.find('[label="Stop tests"]');
+                assert.isTrue(stop.prop('isDisabled'));
+            });
+        });
+
+        it('should call "stopTests" action on click', () => {
+            const component = mkConnectedComponent(<GuiControls />, {
+                initialState: {running: true}
+            });
+
+            component.find('[label="Stop tests"]').simulate('click');
+            assert.calledOnce(actionsStub.stopTests);
         });
     });
 });
