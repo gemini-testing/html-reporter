@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="7.5.0"></a>
+# [7.5.0](https://github.com/gemini-testing/html-reporter/compare/v7.4.0...v7.5.0) (2021-10-25)
+
+
+### Features
+
+* add an ability to stop tests directly from GUI ([686e50a](https://github.com/gemini-testing/html-reporter/commit/686e50a))
+
+
+
 <a name="7.4.0"></a>
 # [7.4.0](https://github.com/gemini-testing/html-reporter/compare/v7.3.1...v7.4.0) (2021-10-25)
 
