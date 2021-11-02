@@ -291,6 +291,7 @@ directory.
   * `result` - allows to extend each test result; adds `resultId` and `testName` props to the plugin component;
   * `result_meta` - allows to extend meta information of each test result; adds `result` and `testName` props to the plugin component;
   * `menu-bar` - allows to extend menu bar.
+  * `root` - allows to add floating items like modal or popup.
 
   An extension point may be extended by more than one component. In that case order of components application is determined by `plugins` config order. Each following component is applied to all previously composed components at the extension point.
 
