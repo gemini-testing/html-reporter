@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="7.6.0"></a>
+# [7.6.0](https://github.com/gemini-testing/html-reporter/compare/v7.5.0...v7.6.0) (2021-11-02)
+
+
+### Features
+
+* added 'root' extension-point ([b7e571a](https://github.com/gemini-testing/html-reporter/commit/b7e571a))
+
+
+
 <a name="7.5.0"></a>
 # [7.5.0](https://github.com/gemini-testing/html-reporter/compare/v7.4.0...v7.5.0) (2021-10-25)
 
