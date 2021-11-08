@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="7.6.1"></a>
+## [7.6.1](https://github.com/gemini-testing/html-reporter/compare/v7.6.0...v7.6.1) (2021-11-08)
+
+
+### Bug Fixes
+
+* ability to click on the entire area of the links inside burger menu ([33e2109](https://github.com/gemini-testing/html-reporter/commit/33e2109))
+
+
+
 <a name="7.6.0"></a>
 # [7.6.0](https://github.com/gemini-testing/html-reporter/compare/v7.5.0...v7.6.0) (2021-11-02)
 
