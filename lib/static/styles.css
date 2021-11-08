@@ -824,7 +824,7 @@ a:active {
 }
 
 .menu-item__link {
-    display: inline-block;
+    display: block;
     padding: 12px;
 }
 
