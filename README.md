@@ -270,9 +270,47 @@ directory.
   ```
 
   In the example you can also see another convenient properties:
+  - `pluginName` - plugin name;
   - `actions` - the html-reporter **Redux** actions;
   - `selectors` - the memoized html-reporter selectors which created using **reselect** library
   - `pluginConfig` - plugin configuration.
+
+  Available dependencies:
+  - `react`
+  - `redux`
+  - `react-redux`
+  - `lodash`
+  - `prop-types`
+  - `classnames`
+  - `semantic-ui-react`
+  - `react-markdown`
+  - `reduce-reducers`
+  - `immer`
+  - `reselect`
+  - `axios`
+
+  Available components:
+  - `components`
+    - `<Details />` - component which allows users to toggle the display of content.
+        Example of usage:
+        ```js
+        // ... inside your react component
+        render() {
+            return <Details
+                title='Some title'
+                content='Some content' // content that will appear when you click on the title
+                extendClassNames='some_class_name' // ability to add own css-classes to component
+                onClick={() => console.log('clicked')} // ability to add handler
+            />
+        }
+        ```
+
+        , where:
+
+        * **title** (required) `String|JSX.Element` - title that describes information hidden underneath.
+        * **content** (required) `Function|String|Array<String>|JSX.Element` - content that will appear after click on the title.
+        * **extendClassNames** (optional) `String|Array<String>` - ability to add own css classes to the component.
+        * **onClick** (optional) `Function` - handler that will be called when the title is clicked.
 
   #### Extension points
 
