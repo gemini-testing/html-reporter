@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="7.7.0"></a>
+# [7.7.0](https://github.com/gemini-testing/html-reporter/compare/v7.6.1...v7.7.0) (2021-11-09)
+
+
+### Features
+
+* add ability to share html-reporter components with its plugins ([#407](https://github.com/gemini-testing/html-reporter/issues/407)) ([f95b50f](https://github.com/gemini-testing/html-reporter/commit/f95b50f))
+
+
+
 <a name="7.6.1"></a>
 ## [7.6.1](https://github.com/gemini-testing/html-reporter/compare/v7.6.0...v7.6.1) (2021-11-08)
 
