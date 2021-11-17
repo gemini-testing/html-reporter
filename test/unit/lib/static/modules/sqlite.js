@@ -6,8 +6,10 @@ import proxyquire from 'proxyquire';
 import {
     fetchDatabases,
     mergeDatabases,
-    connectToDatabase
+    connectToDatabase,
+    getMainDatabaseUrl
 } from 'lib/static/modules/sqlite';
+import {LOCAL_DATABASE_NAME} from 'lib/constants/file-names';
 
 describe('lib/static/modules/sqlite', () => {
     const sandbox = sinon.sandbox.create();
@@ -16,7 +18,10 @@ describe('lib/static/modules/sqlite', () => {
         sandbox.stub(axios, 'get').resolves();
     });
 
-    afterEach(() => sandbox.restore());
+    afterEach(() => {
+        sandbox.restore();
+        global.window = undefined;
+    });
 
     describe('fetchDatabases', () => {
         it('should return empty arrays if dbUrls.json not contain useful data', async () => {
@@ -190,10 +195,6 @@ describe('lib/static/modules/sqlite', () => {
             };
         });
 
-        afterEach(() => {
-            global.window = undefined;
-        });
-
         it('should return null if dataForDbs is empty', async () => {
             const mergedDbConnection = await mergeDatabases([]);
 
@@ -267,10 +268,6 @@ describe('lib/static/modules/sqlite', () => {
             };
         });
 
-        afterEach(() => {
-            global.window = undefined;
-        });
-
         it('should return connection to database', async () => {
             axios.get
                 .withArgs('http://127.0.0.1:8080/sqlite.db', {responseType: 'arraybuffer'})
@@ -279,6 +276,24 @@ describe('lib/static/modules/sqlite', () => {
             const db = await connectToDatabase('http://127.0.0.1:8080/sqlite.db');
 
             assert.instanceOf(db, Database);
+        });
+    });
+
+    describe('getMainDatabaseUrl', () => {
+        beforeEach(() => {
+            global.window = {
+                location: {
+                    href: 'http://localhost/default/path.html'
+                }
+            };
+        });
+
+        it('should return url to main database', () => {
+            global.window.location.href = 'http://127.0.0.1:8080/';
+
+            const url = getMainDatabaseUrl();
+
+            assert.equal(url.href, `http://127.0.0.1:8080/${LOCAL_DATABASE_NAME}`);
         });
     });
 });
