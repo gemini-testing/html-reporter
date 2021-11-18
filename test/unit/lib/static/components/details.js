@@ -30,16 +30,34 @@ describe('<Details />', () => {
         assert.equal(text, 'some-title');
     });
 
-    it('should call "onClick" handler on click in title', () => {
-        const props = {
-            title: 'some-title',
-            content: 'foo bar',
-            onClick: sinon.stub()
-        };
+    describe('"onClick" handler', () => {
+        let props;
 
-        const component = mount(<Details {...props} />);
-        component.find('.details__summary').simulate('click');
+        beforeEach(() => {
+            props = {
+                title: 'some-title',
+                content: 'foo bar',
+                onClick: sinon.stub()
+            };
+        });
 
-        assert.calledOnceWith(props.onClick);
+        it('should call on click in title', () => {
+            const component = mount(<Details {...props} />);
+
+            component.find('.details__summary').simulate('click');
+
+            assert.calledOnce(props.onClick);
+        });
+
+        it('should call with changed state on each call', () => {
+            const component = mount(<Details {...props} />);
+
+            component.find('.details__summary')
+                .simulate('click')
+                .simulate('click');
+
+            assert.calledWith(props.onClick.firstCall, {isOpened: true});
+            assert.calledWith(props.onClick.secondCall, {isOpened: false});
+        });
     });
 });

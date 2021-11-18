@@ -7,13 +7,14 @@ import {LOCAL_DATABASE_NAME} from 'lib/constants/file-names';
 
 describe('lib/static/modules/actions', () => {
     const sandbox = sinon.sandbox.create();
-    let dispatch, actions, addNotification, getSuitesTableRows, connectToDatabaseStub, pluginsStub;
+    let dispatch, actions, addNotification, getSuitesTableRows, getMainDatabaseUrl, connectToDatabaseStub, pluginsStub;
 
     beforeEach(() => {
         dispatch = sandbox.stub();
         sandbox.stub(axios, 'post').resolves({data: {}});
         addNotification = sandbox.stub();
         getSuitesTableRows = sandbox.stub();
+        getMainDatabaseUrl = sandbox.stub().returns({href: 'http://localhost/default/sqlite.db'});
         connectToDatabaseStub = sandbox.stub().resolves({});
         pluginsStub = {loadAll: sandbox.stub()};
 
@@ -23,7 +24,7 @@ describe('lib/static/modules/actions', () => {
         actions = proxyquire('lib/static/modules/actions', {
             'reapop': {addNotification},
             './database-utils': {getSuitesTableRows},
-            './sqlite': {connectToDatabase: connectToDatabaseStub},
+            './sqlite': {getMainDatabaseUrl, connectToDatabase: connectToDatabaseStub},
             './plugins': pluginsStub
         });
     });
@@ -33,16 +34,6 @@ describe('lib/static/modules/actions', () => {
     describe('initGuiReport', () => {
         beforeEach(() => {
             sandbox.stub(axios, 'get').resolves({data: {}});
-
-            global.window = {
-                location: {
-                    href: 'http://localhost/random/path.html'
-                }
-            };
-        });
-
-        afterEach(() => {
-            global.window = undefined;
         });
 
         it('should run init action on server', async () => {
@@ -52,7 +43,8 @@ describe('lib/static/modules/actions', () => {
         });
 
         it('should fetch database from default html page', async () => {
-            global.window.location.href = 'http://127.0.0.1:8080/';
+            const href = 'http://127.0.0.1:8080/sqlite.db';
+            getMainDatabaseUrl.returns({href});
 
             await actions.initGuiReport()(dispatch);
 
@@ -328,6 +320,45 @@ describe('lib/static/modules/actions', () => {
             const modal = {id: 'modal-id'};
 
             assert.deepEqual(actions.closeModal(modal), {type: actionNames.CLOSE_MODAL, payload: modal});
+        });
+    });
+
+    describe('testsEnd', () => {
+        it('should connect to database', async () => {
+            const href = 'http://127.0.0.1:8080/sqlite.db';
+            getMainDatabaseUrl.returns({href});
+
+            await actions.testsEnd()(dispatch);
+
+            assert.calledOnceWith(connectToDatabaseStub, href);
+        });
+
+        it('should dispatch "TESTS_END" action with db connection', async () => {
+            const db = {};
+            connectToDatabaseStub.resolves(db);
+
+            await actions.testsEnd()(dispatch);
+
+            assert.calledOnceWith(dispatch, {
+                type: actionNames.TESTS_END,
+                payload: {db}
+            });
+        });
+
+        it('should show notification if error appears', async () => {
+            connectToDatabaseStub.rejects(new Error('failed to connect to database'));
+
+            await actions.testsEnd()(dispatch);
+
+            assert.calledOnceWith(
+                addNotification,
+                {
+                    dismissAfter: 0,
+                    id: 'testsEnd',
+                    message: 'failed to connect to database',
+                    status: 'error'
+                }
+            );
         });
     });
 });

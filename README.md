@@ -256,7 +256,7 @@ directory.
   The routes then can be called from the plugin React components defined in the `plugin.js`. For convenience the plugin name is always passed with options when function- or array-returning form is used to export plugin as the function options property `pluginName`:
 
   ```js
-  export default ['react', 'axios', function(React, axios, {pluginName, pluginConfig, actions, selectors}) {
+  export default ['react', 'axios', function(React, axios, {pluginName, pluginConfig, actions, actionNames, selectors}) {
       class PluginComponent extends React.Component {
           // ... somewhere inside the component ...
           const result = await axios.get(`/plugin-routes/${pluginName}/plugin-route`);
@@ -271,9 +271,11 @@ directory.
 
   In the example you can also see another convenient properties:
   - `pluginName` - plugin name;
+  - `pluginConfig` - plugin configuration;
   - `actions` - the html-reporter **Redux** actions;
-  - `selectors` - the memoized html-reporter selectors which created using **reselect** library
-  - `pluginConfig` - plugin configuration.
+  - `actionNames` - the html-reporter action names, that used in **Redux** actions. To be able to subscribe on html-reporter events;
+  - `selectors` - the memoized html-reporter selectors which created using **reselect** library.
+
 
   Available dependencies:
   - `react`
