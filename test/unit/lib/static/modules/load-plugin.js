@@ -2,6 +2,7 @@
 
 import axios from 'axios';
 import loadPlugin from 'lib/static/modules/load-plugin';
+import actionNames from 'lib/static/modules/action-names';
 import * as actions from 'lib/static/modules/actions';
 import * as selectors from 'lib/static/modules/selectors';
 
@@ -32,7 +33,7 @@ describe('static/modules/load-plugin', () => {
             await loadPlugin('plugin-a');
 
             assert.deepStrictEqual(plugin.args, [
-                [{actions, selectors, pluginName: 'plugin-a', pluginConfig: undefined}]
+                [{actions, actionNames, selectors, pluginName: 'plugin-a', pluginConfig: undefined}]
             ]);
         });
 
@@ -41,7 +42,7 @@ describe('static/modules/load-plugin', () => {
             await loadPlugin('plugin-b', config);
 
             assert.deepStrictEqual(plugin.args, [
-                [{actions, selectors, pluginName: 'plugin-b', pluginConfig: config}]
+                [{actions, actionNames, selectors, pluginName: 'plugin-b', pluginConfig: config}]
             ]);
         });
 
@@ -50,7 +51,7 @@ describe('static/modules/load-plugin', () => {
             await loadPlugin('plugin-c');
 
             assert.deepStrictEqual(plugin.args, [
-                [axios, {actions, selectors, pluginName: 'plugin-c', pluginConfig: undefined}]
+                [axios, {actions, actionNames, selectors, pluginName: 'plugin-c', pluginConfig: undefined}]
             ]);
         });
 
@@ -59,7 +60,7 @@ describe('static/modules/load-plugin', () => {
             await loadPlugin('plugin-d');
 
             assert.deepStrictEqual(plugin.args, [
-                [undefined, {actions, selectors, pluginName: 'plugin-d', pluginConfig: undefined}]
+                [undefined, {actions, actionNames, selectors, pluginName: 'plugin-d', pluginConfig: undefined}]
             ]);
         });
     });
