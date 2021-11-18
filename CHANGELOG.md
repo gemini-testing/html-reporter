@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="7.7.1"></a>
+## [7.7.1](https://github.com/gemini-testing/html-reporter/compare/v7.7.0...v7.7.1) (2021-11-18)
+
+
+### Bug Fixes
+
+* **gui:** reconnect to database on tests end event ([#411](https://github.com/gemini-testing/html-reporter/issues/411)) ([002b43d](https://github.com/gemini-testing/html-reporter/commit/002b43d))
+
+
+
 <a name="7.7.0"></a>
 # [7.7.0](https://github.com/gemini-testing/html-reporter/compare/v7.6.1...v7.7.0) (2021-11-09)
 
