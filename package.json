@@ -30,7 +30,7 @@
     "url": "https://github.com/gemini-testing/html-reporter/issues"
   },
   "engines": {
-    "node": ">= 8"
+    "node": ">= 12"
   },
   "keywords": [
     "hermione",
