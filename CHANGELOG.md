@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="8.0.0"></a>
+# [8.0.0](https://github.com/gemini-testing/html-reporter/compare/v7.7.1...v8.0.0) (2021-11-25)
+
+
+### Bug Fixes
+
+* update better-sqlite to support Node 16 ([0df4cb5](https://github.com/gemini-testing/html-reporter/commit/0df4cb5))
+
+
+### Chores
+
+* drop nodejs <= 12 support ([afbc1a5](https://github.com/gemini-testing/html-reporter/commit/afbc1a5))
+
+
+### BREAKING CHANGES
+
+* drop nodejs <= 12.x support
+
+
+
 <a name="7.7.1"></a>
 ## [7.7.1](https://github.com/gemini-testing/html-reporter/compare/v7.7.0...v7.7.1) (2021-11-18)
 
