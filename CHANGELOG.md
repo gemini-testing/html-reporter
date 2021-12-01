@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="8.0.1"></a>
+## [8.0.1](https://github.com/gemini-testing/html-reporter/compare/v8.0.0...v8.0.1) (2021-12-01)
+
+
+### Bug Fixes
+
+* **gui:** stop endlessly restarting tests ([#412](https://github.com/gemini-testing/html-reporter/issues/412)) ([fb8a397](https://github.com/gemini-testing/html-reporter/commit/fb8a397))
+
+
+
 <a name="8.0.0"></a>
 # [8.0.0](https://github.com/gemini-testing/html-reporter/compare/v7.7.1...v8.0.0) (2021-11-25)
 
