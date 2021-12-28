@@ -154,4 +154,30 @@ describe('<SectionBrowser/>', () => {
             assert.calledOnceWith(actionsStub.toggleBrowserSection, {browserId: 'yabro-1', shouldBeOpened: true});
         });
     });
+
+    describe('<ClipboardButton/>', () => {
+        let BrowserTitle;
+
+        beforeEach(() => {
+            BrowserTitle = sandbox.stub().returns(null);
+            SectionBrowser = proxyquire('lib/static/components/section/section-browser', {
+                './title/browser': {default: BrowserTitle}
+            }).default;
+        });
+
+        it('should render "BrowserTitle" with "browserName" for correctly working clipboard button', () => {
+            const browsersById = mkBrowser({id: 'yabro', name: 'yabro', resultIds: ['res']});
+            const browsersStateById = {'yabro': {shouldBeShown: true, shouldBeOpened: false}};
+            const resultsById = mkResult({id: 'res', status: SUCCESS});
+            const tree = mkStateTree({browsersById, browsersStateById, resultsById});
+
+            mkSectionBrowserComponent({browserId: 'yabro'}, {tree});
+
+            assert.calledOnceWith(BrowserTitle, {
+                browserId: 'yabro', browserName: 'yabro', handler: sinon.match.any,
+                lastResultId: 'res', title: 'yabro'
+            });
+        });
+    });
 });
+
