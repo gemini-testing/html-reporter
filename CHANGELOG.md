@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="8.0.2"></a>
+## [8.0.2](https://github.com/gemini-testing/html-reporter/compare/v8.0.1...v8.0.2) (2021-12-28)
+
+
+### Bug Fixes
+
+* copy link for skipped test ([9d0df96](https://github.com/gemini-testing/html-reporter/commit/9d0df96))
+
+
+
 <a name="8.0.1"></a>
 ## [8.0.1](https://github.com/gemini-testing/html-reporter/compare/v8.0.0...v8.0.1) (2021-12-01)
 
