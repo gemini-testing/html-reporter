@@ -2,6 +2,7 @@
 
 const _ = require('lodash');
 const utils = require('lib/server-utils');
+const {logger} = require('lib/common-utils');
 const {SUCCESS, UPDATED, SKIPPED} = require('lib/constants/test-statuses');
 const {ERROR_DETAILS_PATH} = require('lib/constants/paths');
 const {stubTool, stubConfig} = require('../utils');
@@ -498,7 +499,7 @@ describe('hermione test adapter', () => {
 
     describe('saveBase64Screenshot', () => {
         beforeEach(() => {
-            sandbox.stub(utils.logger, 'warn');
+            sandbox.stub(logger, 'warn');
             sandbox.stub(utils, 'makeDirFor').resolves();
             sandbox.stub(fs, 'writeFile').resolves();
             sandbox.stub(utils, 'copyFileAsync');
@@ -522,7 +523,7 @@ describe('hermione test adapter', () => {
                 const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
 
                 return hermioneTestAdapter.saveBase64Screenshot()
-                    .then(() => assert.calledWith(utils.logger.warn, 'Cannot save screenshot on reject'));
+                    .then(() => assert.calledWith(logger.warn, 'Cannot save screenshot on reject'));
             });
         });
 

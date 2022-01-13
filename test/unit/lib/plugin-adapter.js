@@ -3,10 +3,11 @@
 const {EventEmitter} = require('events');
 const _ = require('lodash');
 const proxyquire = require('proxyquire');
-const {logger} = require('lib/server-utils');
+const {logger} = require('lib/common-utils');
 const StaticReportBuilder = require('lib/report-builder/static');
 const PluginApi = require('lib/plugin-api');
 const {stubTool, stubConfig} = require('../utils');
+const {GUI, MERGE_REPORTS, REMOVE_UNUSED_SCREENS} = require('lib/cli-commands');
 
 describe('lib/plugin-adapter', () => {
     const sandbox = sinon.createSandbox();
@@ -70,13 +71,15 @@ describe('lib/plugin-adapter', () => {
 
         tool = mkHermione_();
         parseConfig = sandbox.stub().returns({enabled: true});
-        cliCommands.gui = sandbox.stub();
-        cliCommands['merge-reports'] = sandbox.stub();
-        cliCommands['create-blank-report'] = sandbox.stub();
+        cliCommands[GUI] = sandbox.stub();
+        cliCommands[MERGE_REPORTS] = sandbox.stub();
+        cliCommands[REMOVE_UNUSED_SCREENS] = sandbox.stub();
+
         toolReporter = proxyquire('lib/plugin-adapter', {
             './config': parseConfig,
-            './cli-commands/gui': cliCommands.gui,
-            './cli-commands/merge-reports': cliCommands['merge-reports']
+            [`./cli-commands/${GUI}`]: cliCommands[GUI],
+            [`./cli-commands/${MERGE_REPORTS}`]: cliCommands[MERGE_REPORTS],
+            [`./cli-commands/${REMOVE_UNUSED_SCREENS}`]: cliCommands[REMOVE_UNUSED_SCREENS]
         });
     });
 
