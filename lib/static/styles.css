@@ -883,3 +883,44 @@ a:active {
 .ui.loader {
     z-index: 50;
 }
+
+.bottom-progress-bar {
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+    line-height: 1em;
+    z-index: 999;
+}
+
+.bottom-progress-bar:hover .bottom-progress-bar__progress-container {
+    height: 15px;
+}
+
+.bottom-progress-bar__progress-container {
+    height: 3px;
+    background: #938965;
+    box-shadow: 0 0 6px -3px #848484;
+    transition: height .2s ease;
+}
+
+.bottom-progress-bar__progress-bar {
+    background-color: #ffcc00;
+    text-align: center;
+    height: 100%;
+}
+
+.bottom-progress-bar__counter {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    bottom: 0;
+    color: #382f0d;
+    font-size: 10px;
+    opacity: 0;
+
+    transition: opacity .1s ease;
+}
+
+.bottom-progress-bar:hover .bottom-progress-bar__counter {
+    opacity: 1;
+}
