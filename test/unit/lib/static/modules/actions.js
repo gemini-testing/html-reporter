@@ -3,7 +3,7 @@ import proxyquire from 'proxyquire';
 import {acceptOpened, retryTest, runFailedTests} from 'lib/static/modules/actions';
 import actionNames from 'lib/static/modules/action-names';
 import StaticTestsTreeBuilder from 'lib/tests-tree-builder/static';
-import {LOCAL_DATABASE_NAME} from 'lib/constants/file-names';
+import {LOCAL_DATABASE_NAME} from 'lib/constants/database';
 
 describe('lib/static/modules/actions', () => {
     const sandbox = sinon.sandbox.create();
@@ -24,7 +24,7 @@ describe('lib/static/modules/actions', () => {
         actions = proxyquire('lib/static/modules/actions', {
             'reapop': {addNotification},
             './database-utils': {getSuitesTableRows},
-            '../../sqlite-utils/client': {getMainDatabaseUrl, connectToDatabase: connectToDatabaseStub},
+            '../../db-utils/client': {getMainDatabaseUrl, connectToDatabase: connectToDatabaseStub},
             './plugins': pluginsStub
         });
     });
@@ -144,7 +144,7 @@ describe('lib/static/modules/actions', () => {
             };
 
             actions = proxyquire('lib/static/modules/actions', {
-                '../../sqlite-utils/client': {
+                '../../db-utils/client': {
                     fetchDataFromDatabases: fetchDataFromDatabasesStub,
                     mergeDatabases: mergeDatabasesStub
                 },

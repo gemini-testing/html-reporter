@@ -2,10 +2,10 @@
 
 const proxyquire = require('proxyquire');
 const axios = require('axios');
-const {fetchDataFromDatabases, mergeDatabases, connectToDatabase, getMainDatabaseUrl} = require('lib/sqlite-utils/client');
-const {LOCAL_DATABASE_NAME} = require('lib/constants/file-names');
+const {fetchDataFromDatabases, mergeDatabases, connectToDatabase, getMainDatabaseUrl} = require('lib/db-utils/client');
+const {LOCAL_DATABASE_NAME} = require('lib/constants/database');
 
-describe('lib/sqlite-utils/client', () => {
+describe('lib/db-utils/client', () => {
     const sandbox = sinon.sandbox.create();
     let windowOrig;
 
@@ -231,7 +231,7 @@ describe('lib/sqlite-utils/client', () => {
             beforeEach(() => {
                 mergeTables = sandbox.stub();
 
-                mergeDatabases = proxyquire('lib/sqlite-utils/client', {
+                mergeDatabases = proxyquire('lib/db-utils/client', {
                     './common': {mergeTables}
                 }).mergeDatabases;
             });

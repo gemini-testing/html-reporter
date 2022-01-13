@@ -425,6 +425,40 @@ Example of usage:
 npx hermione gui
 ```
 
+### remove-unused-screens
+
+Command that adds ability to remove all unused reference images. On first step it looks for screenshots for which there are no tests on the file system. On the second step it looks for screenshots that were not used in a successful test (the result of the tests is taken from the sqlite database). For the correct execution of the second step html-report should exist on the file system and contain the result of the tests. It means you should run tests locally or download report from CI.
+
+```
+npx hermione remove-unused-screens --help
+```
+
+shows the following:
+```
+  Usage: remove-unused-screens [options]
+
+  remove screenshots which were not used when running tests
+
+  Options:
+
+    -p, --pattern <pattern>  pattern for searching screenshots on the file system
+    --skip-questions         do not ask questions during execution (default values will be used)
+    -h, --help               output usage information
+
+  Example of usage:
+    Specify the folder in which all reference screenshots are located:
+    npx hermione remove-unused-screens -p hermione-screens-folder
+
+    Specify the mask by which all reference screenshots will be found:
+    npx hermione remove-unused-screens -p 'screens/**/*.png'
+
+    Specify few masks by which all reference screenshots will be found:
+    npx hermione remove-unused-screens -p 'screens/**/chrome/*.png' -p 'screens/**/firefox/*.png'
+
+    Don't ask me about anything and just delete unused reference screenshots:
+    npx hermione remove-unused-screens -p 'hermione-screens-folder' --skip-questions
+```
+
 ### merge-reports
 
 Command that adds ability to merge reports which are created after running the tests.
@@ -476,13 +510,16 @@ Html-reporter adds to `hermione` object with its own API.
 
 **Properties of the `hermione.htmlReporter` object**
 
-Property name             | Description
-------------------------- | -------------
-`events`                  | Events list for subscription.
-`extraItems`              | Items list which will be added to the menu bar.
-`metaInfoExtenders`       | Items list which will be added to the meta info.
-`imagesSaver`             | Interface to save image into user storage.
-`reportsSaver`            | Interface to save sqlite database into user storage.
+Property name              | Description
+-------------------------- | -------------
+`events`                   | Events list for subscription.
+`extraItems`               | Items list which will be added to the menu bar.
+`metaInfoExtenders`        | Items list which will be added to the meta info.
+`imagesSaver`              | Interface to save image into user storage.
+`reportsSaver`             | Interface to save sqlite database into user storage.
+`downloadDatabases`        | Method to download all databases from `databaseUrls.json` file.
+`mergeDatabases`           | Method to merge passed databases to passed report path.
+`getTestsTreeFromDatabase` | Method to get tests tree from passed database.
 
 **Available events which are triggered in the main process**
 

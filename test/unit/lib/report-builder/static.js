@@ -6,7 +6,7 @@ const Database = require('better-sqlite3');
 const proxyquire = require('proxyquire');
 const PluginApi = require('lib/plugin-api');
 const {SUCCESS, FAIL, ERROR, SKIPPED} = require('lib/constants/test-statuses');
-const {LOCAL_DATABASE_NAME} = require('lib/constants/file-names');
+const {LOCAL_DATABASE_NAME} = require('lib/constants/database');
 const {mkFormattedTest} = require('../../utils');
 
 const TEST_REPORT_PATH = 'test';

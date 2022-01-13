@@ -5,7 +5,7 @@ const fs = require('fs-extra');
 const _ = require('lodash');
 const proxyquire = require('proxyquire');
 const GuiReportBuilder = require('lib/report-builder/gui');
-const constantFileNames = require('lib/constants/file-names');
+const {LOCAL_DATABASE_NAME} = require('lib/constants/database');
 const {logger} = require('lib/common-utils');
 const Runner = require('lib/gui/tool-runner/runner');
 const {stubTool, stubConfig, mkImagesInfo, mkState, mkSuite} = require('test/unit/utils');
@@ -67,7 +67,7 @@ describe('lib/gui/tool-runner/index', () => {
             'looks-same': looksSame,
             './report-subscriber': reportSubscriber,
             './utils': {findTestResult: sandbox.stub()},
-            '../../sqlite-utils/server': {getTestsTreeFromDatabase},
+            '../../db-utils/server': {getTestsTreeFromDatabase},
             '../../reporter-helpers': {updateReferenceImage: sandbox.stub().resolves()}
         });
 
@@ -451,7 +451,7 @@ describe('lib/gui/tool-runner/index', () => {
 
         beforeEach(() => {
             gui = initGuiReporter(hermione, {configs: mkPluginConfig_({path: 'report_path'})});
-            dbPath = path.resolve('report_path', constantFileNames.LOCAL_DATABASE_NAME);
+            dbPath = path.resolve('report_path', LOCAL_DATABASE_NAME);
 
             sandbox.stub(fs, 'pathExists').withArgs(dbPath).resolves(false);
         });
