@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="8.2.0"></a>
+# [8.2.0](https://github.com/gemini-testing/html-reporter/compare/v8.1.0...v8.2.0) (2022-01-27)
+
+
+### Features
+
+* do not put space before title if there is no root suite ([f905879](https://github.com/gemini-testing/html-reporter/commit/f905879))
+
+
+
 <a name="8.1.0"></a>
 # [8.1.0](https://github.com/gemini-testing/html-reporter/compare/v8.0.2...v8.1.0) (2022-01-13)
 
