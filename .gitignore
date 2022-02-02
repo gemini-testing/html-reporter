@@ -2,18 +2,6 @@ node_modules
 hot
 sqlite.db
 *.log
-/lib/static/*.min.*
-/lib/static/*.eot
-/lib/static/*.ttf
-/lib/static/*.svg
-/lib/static/data.js
-/lib/static/images
-/lib/static/icons
-/lib/static/gui.html
-/lib/static/index.html
-/lib/static/sql-wasm.js
-/lib/static/sqlite.db
-/lib/static/databaseUrls.json
 
 .idea
 .vscode
