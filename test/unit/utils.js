@@ -13,6 +13,14 @@ function stubConfig(config = {}) {
     return Object.assign(config, browserConfigs);
 }
 
+const stubTestCollection = (testsTree = {}) => {
+    return {
+        eachTest: (cb) => {
+            Object.keys(testsTree).forEach((test) => cb(testsTree[test]));
+        }
+    };
+};
+
 function stubTool(config = stubConfig(), events = {}, errors = {}, htmlReporter) {
     const tool = new AsyncEmitter();
 
@@ -20,8 +28,8 @@ function stubTool(config = stubConfig(), events = {}, errors = {}, htmlReporter)
     tool.events = events;
     tool.errors = errors;
 
-    tool.run = sinon.stub();
-    tool.readTests = sinon.stub();
+    tool.run = sinon.stub().resolves(false);
+    tool.readTests = sinon.stub().resolves(stubTestCollection());
     tool.htmlReporter = htmlReporter || sinon.stub();
     tool.isWorker = () => {
         return false;
@@ -130,6 +138,7 @@ function mkFormattedTest(result) {
 
 module.exports = {
     stubConfig,
+    stubTestCollection,
     stubTool,
     mkSuite,
     mkState,

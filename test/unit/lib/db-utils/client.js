@@ -1,29 +1,25 @@
 'use strict';
 
-import axios from 'axios';
-import proxyquire from 'proxyquire';
+const proxyquire = require('proxyquire');
+const axios = require('axios');
+const {fetchDataFromDatabases, mergeDatabases, connectToDatabase, getMainDatabaseUrl} = require('lib/db-utils/client');
+const {LOCAL_DATABASE_NAME} = require('lib/constants/database');
 
-import {
-    fetchDatabases,
-    mergeDatabases,
-    connectToDatabase,
-    getMainDatabaseUrl
-} from 'lib/static/modules/sqlite';
-import {LOCAL_DATABASE_NAME} from 'lib/constants/file-names';
-
-describe('lib/static/modules/sqlite', () => {
+describe('lib/db-utils/client', () => {
     const sandbox = sinon.sandbox.create();
+    let windowOrig;
 
     beforeEach(() => {
         sandbox.stub(axios, 'get').resolves();
+        windowOrig = global.window;
     });
 
     afterEach(() => {
         sandbox.restore();
-        global.window = undefined;
+        global.window = windowOrig;
     });
 
-    describe('fetchDatabases', () => {
+    describe('fetchDataFromDatabases', () => {
         it('should return empty arrays if dbUrls.json not contain useful data', async () => {
             axios.get.resolves({
                 status: 200,
@@ -34,7 +30,7 @@ describe('lib/static/modules/sqlite', () => {
             });
 
             const fetchDbDetails = [];
-            const dataForDbs = await fetchDatabases(['http://127.0.0.1:8080/urls.json'], fetchDbDetails);
+            const dataForDbs = await fetchDataFromDatabases(['http://127.0.0.1:8080/urls.json']);
 
             assert.lengthOf(dataForDbs, 0);
             assert.lengthOf(fetchDbDetails, 0);
@@ -53,7 +49,7 @@ describe('lib/static/modules/sqlite', () => {
                 data: 'stub buffer'
             });
 
-            const fetchDbResponses = await fetchDatabases(['http://127.0.0.1:8080/urls.json']);
+            const fetchDbResponses = await fetchDataFromDatabases(['http://127.0.0.1:8080/urls.json']);
 
             assert.includeDeepMembers(fetchDbResponses, [
                 {status: 200, data: 'stub buffer', url: 'http://127.0.0.1:8080/sqlite.db'}
@@ -95,7 +91,7 @@ describe('lib/static/modules/sqlite', () => {
                 data: 'stub third'
             });
 
-            const fetchDbResponses = await fetchDatabases(['http://127.0.0.1:8080/urls.json']);
+            const fetchDbResponses = await fetchDataFromDatabases(['http://127.0.0.1:8080/urls.json']);
 
             assert.includeDeepMembers(fetchDbResponses, [
                 {status: 201, data: 'stub first', url: 'http://127.0.0.1:8080/sqlite.db'},
@@ -115,7 +111,7 @@ describe('lib/static/modules/sqlite', () => {
             axios.get.withArgs('http://127.0.0.1:8080/urls_first.json').rejects('error');
             axios.get.withArgs('http://127.0.0.1:8080/urls_second.json').rejects({response: {status: 404}});
 
-            const fetchDbResponses = await fetchDatabases(['http://127.0.0.1:8080/urls_main.json']);
+            const fetchDbResponses = await fetchDataFromDatabases(['http://127.0.0.1:8080/urls_main.json']);
 
             assert.includeDeepMembers(fetchDbResponses, [
                 {status: 'unknown', data: null, url: 'http://127.0.0.1:8080/urls_first.json'},
@@ -138,7 +134,7 @@ describe('lib/static/modules/sqlite', () => {
                 .withArgs('http://127.0.0.1:8080/sqlite_second.db', {responseType: 'arraybuffer'})
                 .rejects({response: {status: 404}});
 
-            const fetchDbResponses = await fetchDatabases(['http://127.0.0.1:8080/urls.json']);
+            const fetchDbResponses = await fetchDataFromDatabases(['http://127.0.0.1:8080/urls.json']);
 
             assert.includeDeepMembers(fetchDbResponses, [
                 {status: 'unknown', data: null, url: 'http://127.0.0.1:8080/sqlite_first.db'},
@@ -158,7 +154,7 @@ describe('lib/static/modules/sqlite', () => {
                 .withArgs('http://127.0.0.1:8080/sqlite.db?key=value', {responseType: 'arraybuffer'})
                 .resolves({status: 200, data: 'stub buffer'});
 
-            const fetchDbResponses = await fetchDatabases(['http://127.0.0.1:8080/urls.json?key=value']);
+            const fetchDbResponses = await fetchDataFromDatabases(['http://127.0.0.1:8080/urls.json?key=value']);
 
             assert.includeDeepMembers(fetchDbResponses, [
                 {status: 200, data: 'stub buffer', url: 'http://127.0.0.1:8080/sqlite.db?key=value'}
@@ -201,7 +197,7 @@ describe('lib/static/modules/sqlite', () => {
             assert.equal(mergedDbConnection, null);
         });
 
-        it('should not create unnecessary databases if dataForDbs contain data for single db', async () => {
+        it('should not create unnecessary databases if passed data from single db', async () => {
             const data = new ArrayBuffer(1);
 
             const mergedDbConnection = await mergeDatabases([data]);
@@ -235,8 +231,8 @@ describe('lib/static/modules/sqlite', () => {
             beforeEach(() => {
                 mergeTables = sandbox.stub();
 
-                mergeDatabases = proxyquire('lib/static/modules/sqlite', {
-                    '../../common-utils': {mergeTables}
+                mergeDatabases = proxyquire('lib/db-utils/client', {
+                    './common': {mergeTables}
                 }).mergeDatabases;
             });
 

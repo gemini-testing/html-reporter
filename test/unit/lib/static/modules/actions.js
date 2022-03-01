@@ -3,7 +3,7 @@ import proxyquire from 'proxyquire';
 import {acceptOpened, retryTest, runFailedTests} from 'lib/static/modules/actions';
 import actionNames from 'lib/static/modules/action-names';
 import StaticTestsTreeBuilder from 'lib/tests-tree-builder/static';
-import {LOCAL_DATABASE_NAME} from 'lib/constants/file-names';
+import {LOCAL_DATABASE_NAME} from 'lib/constants/database';
 
 describe('lib/static/modules/actions', () => {
     const sandbox = sinon.sandbox.create();
@@ -24,7 +24,7 @@ describe('lib/static/modules/actions', () => {
         actions = proxyquire('lib/static/modules/actions', {
             'reapop': {addNotification},
             './database-utils': {getSuitesTableRows},
-            './sqlite': {getMainDatabaseUrl, connectToDatabase: connectToDatabaseStub},
+            '../../db-utils/client': {getMainDatabaseUrl, connectToDatabase: connectToDatabaseStub},
             './plugins': pluginsStub
         });
     });
@@ -129,12 +129,12 @@ describe('lib/static/modules/actions', () => {
     });
 
     describe('initStaticReport', () => {
-        let fetchDatabasesStub;
+        let fetchDataFromDatabasesStub;
         let mergeDatabasesStub;
         let actions;
 
         beforeEach(() => {
-            fetchDatabasesStub = sandbox.stub().resolves();
+            fetchDataFromDatabasesStub = sandbox.stub().resolves();
             mergeDatabasesStub = sandbox.stub().resolves();
 
             global.window = {
@@ -144,8 +144,8 @@ describe('lib/static/modules/actions', () => {
             };
 
             actions = proxyquire('lib/static/modules/actions', {
-                './sqlite': {
-                    fetchDatabases: fetchDatabasesStub,
+                '../../db-utils/client': {
+                    fetchDataFromDatabases: fetchDataFromDatabasesStub,
                     mergeDatabases: mergeDatabasesStub
                 },
                 './plugins': pluginsStub
@@ -163,7 +163,7 @@ describe('lib/static/modules/actions', () => {
 
             await actions.initStaticReport()(dispatch);
 
-            assert.calledOnceWith(fetchDatabasesStub, ['http://127.0.0.1:8080/databaseUrls.json']);
+            assert.calledOnceWith(fetchDataFromDatabasesStub, ['http://127.0.0.1:8080/databaseUrls.json']);
         });
 
         it('should fetch databaseUrls.json for custom html page', async () => {
@@ -171,11 +171,11 @@ describe('lib/static/modules/actions', () => {
 
             await actions.initStaticReport()(dispatch);
 
-            assert.calledOnceWith(fetchDatabasesStub, ['http://127.0.0.1:8080/some/databaseUrls.json']);
+            assert.calledOnceWith(fetchDataFromDatabasesStub, ['http://127.0.0.1:8080/some/databaseUrls.json']);
         });
 
         it('should dispatch empty payload if fetchDatabases rejected', async () => {
-            fetchDatabasesStub.rejects('stub');
+            fetchDataFromDatabasesStub.rejects('stub');
 
             await actions.initStaticReport()(dispatch);
 
@@ -189,7 +189,7 @@ describe('lib/static/modules/actions', () => {
         });
 
         it('should dispatch payload.fetchDbDetails even if "mergeDatabases" rejected', async () => {
-            fetchDatabasesStub.resolves([{url: 'stub url', status: 200, data: 'stub'}]);
+            fetchDataFromDatabasesStub.resolves([{url: 'stub url', status: 200, data: 'stub'}]);
             mergeDatabasesStub.rejects('stub');
 
             await actions.initStaticReport()(dispatch);
@@ -204,7 +204,7 @@ describe('lib/static/modules/actions', () => {
         });
 
         it('should filter null data before merge databases', async () => {
-            fetchDatabasesStub.resolves([{url: 'stub url1', status: 404, data: null}, {url: 'stub url2', status: 200, data: 'stub'}]);
+            fetchDataFromDatabasesStub.resolves([{url: 'stub url1', status: 404, data: null}, {url: 'stub url2', status: 200, data: 'stub'}]);
 
             await actions.initStaticReport()(dispatch);
 

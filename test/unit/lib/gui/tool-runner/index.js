@@ -5,8 +5,8 @@ const fs = require('fs-extra');
 const _ = require('lodash');
 const proxyquire = require('proxyquire');
 const GuiReportBuilder = require('lib/report-builder/gui');
-const constantFileNames = require('lib/constants/file-names');
-const serverUtils = require('lib/server-utils');
+const {LOCAL_DATABASE_NAME} = require('lib/constants/database');
+const {logger} = require('lib/common-utils');
 const Runner = require('lib/gui/tool-runner/runner');
 const {stubTool, stubConfig, mkImagesInfo, mkState, mkSuite} = require('test/unit/utils');
 
@@ -16,7 +16,7 @@ describe('lib/gui/tool-runner/index', () => {
     let ToolGuiReporter;
     let reportSubscriber;
     let hermione;
-    let getDataFromDatabase;
+    let getTestsTreeFromDatabase;
     let looksSame;
 
     const mkTestCollection_ = (testsTree = {}) => {
@@ -52,7 +52,6 @@ describe('lib/gui/tool-runner/index', () => {
 
     beforeEach(() => {
         hermione = stubTool();
-        hermione.readTests.resolves(mkTestCollection_());
 
         reportBuilder = sinon.createStubInstance(GuiReportBuilder);
         reportSubscriber = sandbox.stub().named('reportSubscriber').resolves();
@@ -62,16 +61,17 @@ describe('lib/gui/tool-runner/index', () => {
         reportBuilder.format.returns({prepareTestResult: sandbox.stub()});
         reportBuilder.getResult.returns({});
 
-        getDataFromDatabase = sandbox.stub().returns({});
+        getTestsTreeFromDatabase = sandbox.stub().returns({});
 
         ToolGuiReporter = proxyquire(`lib/gui/tool-runner`, {
             'looks-same': looksSame,
             './report-subscriber': reportSubscriber,
-            './utils': {findTestResult: sandbox.stub(), getDataFromDatabase},
+            './utils': {findTestResult: sandbox.stub()},
+            '../../db-utils/server': {getTestsTreeFromDatabase},
             '../../reporter-helpers': {updateReferenceImage: sandbox.stub().resolves()}
         });
 
-        sandbox.stub(serverUtils.logger, 'warn');
+        sandbox.stub(logger, 'warn');
     });
 
     afterEach(() => sandbox.restore());
@@ -80,7 +80,6 @@ describe('lib/gui/tool-runner/index', () => {
         it('should set values added through api', () => {
             const htmlReporter = {values: {foo: 'bar'}};
             hermione = stubTool(stubConfig(), {}, {}, htmlReporter);
-            hermione.readTests.resolves(mkTestCollection_());
 
             const gui = initGuiReporter(hermione);
 
@@ -452,7 +451,7 @@ describe('lib/gui/tool-runner/index', () => {
 
         beforeEach(() => {
             gui = initGuiReporter(hermione, {configs: mkPluginConfig_({path: 'report_path'})});
-            dbPath = path.resolve('report_path', constantFileNames.LOCAL_DATABASE_NAME);
+            dbPath = path.resolve('report_path', LOCAL_DATABASE_NAME);
 
             sandbox.stub(fs, 'pathExists').withArgs(dbPath).resolves(false);
         });
@@ -462,12 +461,12 @@ describe('lib/gui/tool-runner/index', () => {
 
             await gui.initialize();
 
-            assert.calledWithMatch(serverUtils.logger.warn, 'Nothing to reuse');
+            assert.calledWithMatch(logger.warn, 'Nothing to reuse');
         });
 
         it('should not reuse tree if it is empty', async () => {
             fs.pathExists.withArgs(dbPath).resolves(true);
-            getDataFromDatabase.returns({});
+            getTestsTreeFromDatabase.returns({});
 
             await gui.initialize();
 
@@ -476,7 +475,7 @@ describe('lib/gui/tool-runner/index', () => {
 
         it('should reuse tests tree', async () => {
             fs.pathExists.withArgs(dbPath).resolves(true);
-            getDataFromDatabase.returns('tests-tree');
+            getTestsTreeFromDatabase.returns('tests-tree');
 
             await gui.initialize();
 

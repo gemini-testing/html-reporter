@@ -6,6 +6,7 @@ const HermioneReporter = require('../../hermione');
 const PluginAdapter = require('lib/plugin-adapter');
 const StaticReportBuilder = require('lib/report-builder/static');
 const utils = require('lib/server-utils');
+const {logger} = require('lib/common-utils');
 const {stubTool} = require('./utils');
 
 describe('lib/hermione', () => {
@@ -96,8 +97,8 @@ describe('lib/hermione', () => {
         sandbox.stub(utils, 'copyFileAsync');
         sandbox.stub(utils, 'makeDirFor');
         sandbox.stub(utils, 'logPathToHtmlReport');
-        sandbox.stub(utils.logger, 'log');
-        sandbox.stub(utils.logger, 'warn');
+        sandbox.stub(logger, 'log');
+        sandbox.stub(logger, 'warn');
 
         sandbox.stub(StaticReportBuilder.prototype, 'addSkipped');
         sandbox.stub(StaticReportBuilder.prototype, 'addSuccess');

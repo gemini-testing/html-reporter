@@ -61,7 +61,7 @@ describe('lib/gui/server', () => {
             }),
             'body-parser': bodyParserStub,
             'signal-exit': sandbox.stub().yields(),
-            '../server-utils': {logger: {log: sandbox.stub()}},
+            '../common-utils': {logger: {log: sandbox.stub()}},
             './routes/plugins': initPluginRoutesStub
         });
     });

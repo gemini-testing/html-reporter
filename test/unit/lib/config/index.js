@@ -6,13 +6,13 @@ const {config: configDefaults} = require('lib/constants/defaults');
 const viewModes = require('lib/constants/view-modes');
 const saveFormats = require('lib/constants/save-formats');
 const SUPPORTED_CONTROL_TYPES = Object.values(require('lib/gui/constants/custom-gui-control-types'));
-const utils = require('lib/server-utils');
+const {logger} = require('lib/common-utils');
 
 describe('config', () => {
     const sandbox = sinon.createSandbox();
 
     beforeEach(function() {
-        sandbox.stub(utils.logger, 'warn');
+        sandbox.stub(logger, 'warn');
 
         this.oldArgv = process.argv;
     });
@@ -218,7 +218,7 @@ describe('config', () => {
         it('should warn about deprecation', () => {
             parseConfig({lazyLoadOffset: 700});
 
-            assert.calledOnceWith(utils.logger.warn, sinon.match('Warning: field "lazyLoadOffset" is deprecated'));
+            assert.calledOnceWith(logger.warn, sinon.match('Warning: field "lazyLoadOffset" is deprecated'));
         });
     });
 

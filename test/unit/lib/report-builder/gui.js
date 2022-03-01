@@ -8,7 +8,7 @@ const TestAdapter = require('lib/test-adapter');
 const GuiTestsTreeBuilder = require('lib/tests-tree-builder/gui');
 const PluginApi = require('lib/plugin-api');
 const {SUCCESS, FAIL, ERROR, SKIPPED, IDLE, RUNNING, UPDATED} = require('lib/constants/test-statuses');
-const {LOCAL_DATABASE_NAME} = require('lib/constants/file-names');
+const {LOCAL_DATABASE_NAME} = require('lib/constants/database');
 const {mkFormattedTest} = require('../../utils');
 
 const TEST_REPORT_PATH = 'test';
