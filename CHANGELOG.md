@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="8.3.0"></a>
+# [8.3.0](https://github.com/gemini-testing/html-reporter/compare/v8.2.0...v8.3.0) (2022-03-01)
+
+
+### Features
+
+* cli command to remove unused screens ([#415](https://github.com/gemini-testing/html-reporter/issues/415)) ([c4a3d38](https://github.com/gemini-testing/html-reporter/commit/c4a3d38))
+
+
+
 <a name="8.2.0"></a>
 # [8.2.0](https://github.com/gemini-testing/html-reporter/compare/v8.1.0...v8.2.0) (2022-01-27)
 
