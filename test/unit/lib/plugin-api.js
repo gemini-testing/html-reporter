@@ -42,5 +42,12 @@ describe('plugin api', () => {
 
             assert.deepEqual(pluginApi.events, PluginEvents);
         });
+
+        it('plugin config', () => {
+            const pluginConfig = {path: 'some-path'};
+            const pluginApi = PluginApi.create(pluginConfig);
+
+            assert.deepEqual(pluginApi.config, pluginConfig);
+        });
     });
 });
