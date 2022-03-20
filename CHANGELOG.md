@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="8.4.0"></a>
+# [8.4.0](https://github.com/gemini-testing/html-reporter/compare/v8.3.0...v8.4.0) (2022-03-20)
+
+
+### Bug Fixes
+
+* **remove-unused-screens:** read hermione-tests silently ([ed3bec1](https://github.com/gemini-testing/html-reporter/commit/ed3bec1))
+
+
+### Features
+
+* share config with other plugins ([70ad1e5](https://github.com/gemini-testing/html-reporter/commit/70ad1e5))
+
+
+
 <a name="8.3.0"></a>
 # [8.3.0](https://github.com/gemini-testing/html-reporter/compare/v8.2.0...v8.3.0) (2022-03-01)
 
