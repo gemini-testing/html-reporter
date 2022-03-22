@@ -66,12 +66,12 @@ describe('lib/cli-commands/remove-unused-screens/utils', () => {
             getScreenshotPath = sandbox.stub();
         });
 
-        it('should read all hermione tests silently', async () => {
+        it('should read all hermione tests', async () => {
             const hermione = mkHermione_();
 
             await utils.getTestsFromFs(hermione);
 
-            assert.calledOnceWith(hermione.readTests, [], {silent: true});
+            assert.calledOnceWith(hermione.readTests);
         });
 
         it('should add test tests tree with its screen info', async () => {
