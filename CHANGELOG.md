@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="8.4.1"></a>
+## [8.4.1](https://github.com/gemini-testing/html-reporter/compare/v8.4.0...v8.4.1) (2022-03-22)
+
+
+### Bug Fixes
+
+* **remove-unused-screens:** temporary remove "silent" from read tests ([74ad1fc](https://github.com/gemini-testing/html-reporter/commit/74ad1fc))
+
+
+
 <a name="8.4.0"></a>
 # [8.4.0](https://github.com/gemini-testing/html-reporter/compare/v8.3.0...v8.4.0) (2022-03-20)
 
