@@ -54,10 +54,12 @@ describe('lib/cli-commands/remove-unused-screens', () => {
 
     beforeEach(() => {
         sandbox.stub(fs, 'pathExists').resolves(true);
+        sandbox.stub(fs, 'access').resolves(undefined);
         sandbox.stub(fs, 'move').resolves();
         sandbox.stub(fs, 'stat').resolves({size: 1});
         sandbox.stub(logger, 'log');
         sandbox.stub(logger, 'error');
+        sandbox.stub(logger, 'warn');
         sandbox.stub(process, 'exit');
 
         getTestsFromFs = sandbox.stub().resolves(mkTestsTreeFromFs_());
@@ -202,6 +204,20 @@ describe('lib/cli-commands/remove-unused-screens', () => {
                 await removeUnusedScreens_({program});
 
                 assert.calledOnceWith(identifyOutdatedScreens, foundScreenPaths, screenPatterns);
+            });
+
+            it('should not throw if outdated screen does not exist on fs', async () => {
+                findScreens.resolves(['/root/broId/testId/1.png', '/root/broId/outdatedTestId/2.png']);
+                identifyOutdatedScreens.returns(['/root/broId/outdatedTestId/2.png']);
+
+                const accessError = new Error('file does not exist');
+                accessError.code = 'ENOENT';
+                fs.access.withArgs('/root/broId/outdatedTestId/2.png').rejects(accessError);
+
+                await removeUnusedScreens_({program: mkProgram_({pattern: ['broId/**/*.png'], skipQuestions})});
+
+                assert.calledOnceWith(logger.warn, sinon.match('Screen by path: "/root/broId/outdatedTestId/2.png" is not found in your file system'));
+                assert.calledWith(logger.log, `Found ${chalk.green('0')} outdated reference images out of ${chalk.bold('2')}`);
             });
 
             it('should inform user about the number of outdated screens', async () => {
@@ -425,6 +441,20 @@ describe('lib/cli-commands/remove-unused-screens', () => {
                 await removeUnusedScreens_({hermione, program, pluginConfig});
 
                 assert.calledOnceWith(identifyUnusedScreens, testsTreeFromFs, {hermione, mergedDbPath});
+            });
+
+            it('should not throw if unused screen does not exist on fs', async () => {
+                findScreens.resolves(['/root/broId/testId/1.png', '/root/broId/unusedTestId/2.png']);
+                identifyUnusedScreens.returns(['/root/broId/unusedTestId/2.png']);
+
+                const accessError = new Error('file does not exist');
+                accessError.code = 'ENOENT';
+                fs.access.withArgs('/root/broId/unusedTestId/2.png').rejects(accessError);
+
+                await removeUnusedScreens_({hermione, program, pluginConfig});
+
+                assert.calledOnceWith(logger.warn, sinon.match('Screen by path: "/root/broId/unusedTestId/2.png" is not found in your file system'));
+                assert.calledWith(logger.log, `Found ${chalk.green('0')} unused reference images out of ${chalk.bold('2')}`);
             });
 
             it('should inform user about the number of unused screens', async () => {
