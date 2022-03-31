@@ -63,15 +63,15 @@ describe('lib/cli-commands/remove-unused-screens/utils', () => {
         let getScreenshotPath;
 
         beforeEach(() => {
-            getScreenshotPath = sandbox.stub();
+            getScreenshotPath = sandbox.stub().returns('/default/path/*.png');
         });
 
-        it('should read all hermione tests', async () => {
+        it('should read all hermione tests silently', async () => {
             const hermione = mkHermione_();
 
             await utils.getTestsFromFs(hermione);
 
-            assert.calledOnceWith(hermione.readTests);
+            assert.calledOnceWith(hermione.readTests, [], {silent: true});
         });
 
         it('should add test tests tree with its screen info', async () => {
@@ -84,11 +84,11 @@ describe('lib/cli-commands/remove-unused-screens/utils', () => {
 
             const hermione = mkHermione_(testCollection, config);
 
-            const testsTree = await utils.getTestsFromFs(hermione);
+            const tests = await utils.getTestsFromFs(hermione);
 
-            assert.lengthOf(Object.keys(testsTree.byId), 1);
+            assert.lengthOf(Object.keys(tests.byId), 1);
             assert.deepEqual(
-                testsTree.byId['first bro'],
+                tests.byId['first bro'],
                 {
                     ...test,
                     screenPaths: ['/ref/path/1.png', '/ref/path/2.png'],
@@ -108,9 +108,39 @@ describe('lib/cli-commands/remove-unused-screens/utils', () => {
             const config = stubConfig({browsers: {bro1: {getScreenshotPath}, bro2: {getScreenshotPath}}});
             const hermione = mkHermione_(testCollection, config);
 
-            const testsTree = await utils.getTestsFromFs(hermione);
+            const tests = await utils.getTestsFromFs(hermione);
 
-            assert.deepEqual(testsTree.screenPatterns, ['/ref/path-1/*.png', '/ref/path-2/*.png']);
+            assert.deepEqual(tests.screenPatterns, ['/ref/path-1/*.png', '/ref/path-2/*.png']);
+        });
+
+        it('should return the number of unique tests', async () => {
+            const test1 = stubTest_({fullTitle: () => 'first'});
+            const test2 = stubTest_({fullTitle: () => 'second'});
+            const testCollection = mkTestCollection_({bro1: test1, bro2: test1, bro3: test2, bro4: test2});
+
+            const config = stubConfig({browsers: {
+                bro1: {getScreenshotPath}, bro2: {getScreenshotPath},
+                bro3: {getScreenshotPath}, bro4: {getScreenshotPath}
+            }});
+            const hermione = mkHermione_(testCollection, config);
+
+            const tests = await utils.getTestsFromFs(hermione);
+
+            assert.equal(tests.count, 2);
+        });
+
+        it('should return the list of unique browsers', async () => {
+            const test = stubTest_({fullTitle: () => 'first'});
+            const testCollection = mkTestCollection_({bro1: test, bro2: test, bro3: test});
+
+            const config = stubConfig({browsers: {
+                bro1: {getScreenshotPath}, bro2: {getScreenshotPath}, bro3: {getScreenshotPath}
+            }});
+            const hermione = mkHermione_(testCollection, config);
+
+            const tests = await utils.getTestsFromFs(hermione);
+
+            assert.deepEqual(tests.browserIds, new Set(['bro1', 'bro2', 'bro3']));
         });
     });
 
