@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="8.4.2"></a>
+## [8.4.2](https://github.com/gemini-testing/html-reporter/compare/v8.4.1...v8.4.2) (2022-03-31)
+
+
+### Bug Fixes
+
+* **remove-unused-screens:** check if screens exist in fs ([edca7a2](https://github.com/gemini-testing/html-reporter/commit/edca7a2))
+* **remove-unused-screens:** read tests silently ([a252bf3](https://github.com/gemini-testing/html-reporter/commit/a252bf3))
+* **remove-unused-screens:** show user correct number of uniq tests read ([1024e58](https://github.com/gemini-testing/html-reporter/commit/1024e58))
+
+
+
 <a name="8.4.1"></a>
 ## [8.4.1](https://github.com/gemini-testing/html-reporter/compare/v8.4.0...v8.4.1) (2022-03-22)
 
