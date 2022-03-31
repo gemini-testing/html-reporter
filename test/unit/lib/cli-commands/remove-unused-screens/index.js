@@ -39,7 +39,7 @@ describe('lib/cli-commands/remove-unused-screens', () => {
     };
 
     const mkTestsTreeFromFs_ = (opts = {}) => {
-        return {byId: {}, screenPatterns: [], ...opts};
+        return {byId: {}, screenPatterns: [], count: 0, browserIds: new Set(), ...opts};
     };
 
     const removeUnusedScreens_ = async ({
@@ -108,13 +108,15 @@ describe('lib/cli-commands/remove-unused-screens', () => {
 
     it('should inform user about the number of tests read', async () => {
         const testsTreeFromFs = mkTestsTreeFromFs_({
-            byId: {a: {}, b: {}, c: {}}
+            byId: {a: {}, b: {}, c: {}},
+            count: 3,
+            browserIds: new Set(['bro1', 'bro2'])
         });
         getTestsFromFs.resolves(testsTreeFromFs);
 
         await removeUnusedScreens_();
 
-        assert.calledWith(logger.log, `${chalk.green('3')} tests were read`);
+        assert.calledWith(logger.log, `${chalk.green(testsTreeFromFs.count)} uniq tests were read in browsers: bro1, bro2`);
     });
 
     describe('transform user patterns', () => {
