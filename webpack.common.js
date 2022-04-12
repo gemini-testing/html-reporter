@@ -39,6 +39,13 @@ module.exports = {
                 })
             },
             {
+                test: /\.styl$/,
+                loader: ExtractTextPlugin.extract({
+                    fallback: 'style-loader',
+                    use: ['css-loader', 'stylus-loader']
+                })
+            },
+            {
                 test: /\.js$/,
                 use: 'babel-loader',
                 exclude: /node_modules/

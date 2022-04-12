@@ -1,6 +1,6 @@
 import React from 'react';
-import DiffCircle from 'lib/static/components/state/diff-circle';
-import {mkConnectedComponent} from '../utils';
+import DiffCircle from 'lib/static/components/state/screenshot/diff-circle';
+import {mkConnectedComponent} from '../../utils';
 
 describe('DiffCircle component', () => {
     const sandbox = sinon.createSandbox();

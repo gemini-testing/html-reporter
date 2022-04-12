@@ -264,6 +264,18 @@ main.container {
     margin-bottom: 5px;
 }
 
+.image-box__container.image-box__container_scale .image-box__image {
+    padding: 0 5px;
+}
+
+.image-box__container.image-box__container_scale .image-box__image:first-child {
+    padding-left: 0;
+}
+
+.image-box__container.image-box__container_scale .image-box__image:last-child {
+    padding-right: 0;
+}
+
 .image-box__container_scale {
     display: flex;
     flex-flow: row wrap;
@@ -275,17 +287,12 @@ main.container {
 }
 
 .image-box__image {
-    padding-right: 10px;
     display: inline-block;
     vertical-align: top;
     flex-basis: 33.333%;
     flex-grow: 1;
     box-sizing: border-box;
     max-width: 100%;
-}
-
-.image-box__image:last-child {
-    margin-right: -10px;
 }
 
 .image-box__image.image-box__image_single {

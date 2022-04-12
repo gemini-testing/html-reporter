@@ -1,0 +1,32 @@
+.diff-modes-container
+    width: 100%
+    display: flex
+    justify-content: center
+    border-top: 1px solid #ccc
+    padding-top: 10px
+    margin-top: 10px
+
+.tab:last-child
+    .diff-modes-container
+        margin-bottom: -5px
+
+.diff-modes
+    list-style: none
+    margin: 0
+    padding: 0
+
+    &__item
+        display: inline-block
+        border-right: 1px solid #ccc
+        padding: 0 5px
+        cursor: pointer
+
+    &__item:first-child
+        padding-left: 0
+
+    &__item:last-child
+        border-right: none
+        padding-right: 0
+
+    &__active
+        font-weight: bold

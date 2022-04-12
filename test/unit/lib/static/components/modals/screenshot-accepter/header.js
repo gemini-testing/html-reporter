@@ -349,37 +349,6 @@ describe('<ScreenshotAccepterHeader/>', () => {
         });
     });
 
-    describe('"Show only diff" button', () => {
-        it('should be not active if "showOnlyDiff" turned off', () => {
-            const component = mkHeaderComponent({}, {view: {showOnlyDiff: false}});
-
-            assert.isFalse(component.find('[label="Show only diff"]').prop('isActive'));
-        });
-
-        it('should be active if "showOnlyDiff" turned on', () => {
-            const component = mkHeaderComponent({}, {view: {showOnlyDiff: true}});
-
-            assert.isTrue(component.find('[label="Show only diff"]').prop('isActive'));
-        });
-
-        it('should call "toggleOnlyDiff" action on call "handler" prop', () => {
-            const component = mkHeaderComponent({}, {view: {showOnlyDiff: false}});
-
-            component.find('[label="Show only diff"]').prop('handler')();
-
-            assert.calledOnce(actions.toggleOnlyDiff);
-        });
-
-        it('should call "toggleOnlyDiff" action on press on related keys', () => {
-            const component = mkHeaderComponent({}, {view: {showOnlyDiff: false}});
-
-            const {SHOW_ONLY_DIFF: handler} = component.find(GlobalHotKeys).prop('handlers');
-            handler(mkKeyDownEvent());
-
-            assert.calledOnce(actions.toggleOnlyDiff);
-        });
-    });
-
     describe('"Scale images" button', () => {
         it('should be not active if "scaleImages" turned off', () => {
             const component = mkHeaderComponent({}, {view: {scaleImages: false}});

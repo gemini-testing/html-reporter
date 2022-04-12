@@ -1,0 +1,81 @@
+.swipe-diff
+    width: 100%
+    position: relative
+    overflow: hidden
+    cursor: move
+
+    &:hover .swipe-diff-divider__arrows
+    &_pressed .swipe-diff-divider__arrows
+        opacity: 0
+
+    &__overlay
+        overflow: hidden
+
+    &__img
+        pointer-events: none
+        user-select: none
+
+    &__first
+        position: absolute
+        left: 0
+        top: 0
+        line-height: 0
+        z-index: 1
+        transform: translateX(calc(var(--img1-pos-x) * -1))
+
+        .swipe-diff__frame
+            transform: translateX(var(--img1-pos-x))
+
+    &__second
+        position: relative
+        line-height: 0
+
+        .swipe-diff__frame
+            overflow: hidden
+            transform: translateX(var(--img2-pos-x))
+
+        .swipe-diff__img
+            transform: translateX(calc(var(--img2-pos-x) * -1))
+
+    &-divider
+        transform: translateX(50%)
+        position: absolute
+        top: 0
+        right: 0
+        display: flex
+        align-items: flex-end
+        justify-content: center
+        flex-direction: column
+
+        &__line
+            position: absolute
+            height: 100%
+            width: 100%
+            left: 0
+            top: 0
+            display: flex
+            align-items: center
+            justify-content: center
+            flex-direction: column
+
+            &:after
+                content: ''
+                display: block
+                height: 100%
+                border-left-width: 1px
+                border-left-style: solid
+                border-left-color: #ccc
+
+        &__arrows
+            pointer-events: none
+            box-sizing: border-box
+            margin-left: 1px
+            transform: translateX(-0.5px)
+            opacity: 1
+            transition: opacity 500ms
+
+        .arrows-move
+            width: 100px
+
+            &__icon
+                stroke: #ccc

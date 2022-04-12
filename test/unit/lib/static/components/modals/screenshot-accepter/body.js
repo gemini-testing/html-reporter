@@ -5,7 +5,7 @@ import {mkConnectedComponent} from '../../utils';
 
 describe('<ScreenshotAccepterBody/>', () => {
     const sandbox = sinon.sandbox.create();
-    let ScreenshotAccepterBody, Screenshot, StateFail, isNoRefImageError;
+    let ScreenshotAccepterBody, ResizedScreenshot, StateFail, isNoRefImageError;
 
     const mkBrowser = (opts) => {
         const browser = defaults(opts, {
@@ -55,12 +55,12 @@ describe('<ScreenshotAccepterBody/>', () => {
     };
 
     beforeEach(() => {
-        Screenshot = sandbox.stub().returns(null);
+        ResizedScreenshot = sandbox.stub().returns(null);
         StateFail = sandbox.stub().returns(null);
         isNoRefImageError = sandbox.stub().returns(false);
 
         ScreenshotAccepterBody = proxyquire('lib/static/components/modals/screenshot-accepter/body', {
-            '../../state/screenshot': {default: Screenshot},
+            '../../state/screenshot/resized': {default: ResizedScreenshot},
             '../../state/state-fail': {default: StateFail},
             '../../../modules/utils': {isNoRefImageError}
         }).default;
@@ -112,7 +112,7 @@ describe('<ScreenshotAccepterBody/>', () => {
                 component.find('.image-box__title').text(),
                 'No reference image'
             );
-            assert.calledOnceWith(Screenshot, {image: image.actualImg});
+            assert.calledOnceWith(ResizedScreenshot, {image: image.actualImg});
         });
     });
 
