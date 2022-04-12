@@ -41,8 +41,16 @@ directory.
   * `all` - show all tests. Default value.
   * `failed` - show only failed tests.
 
+* **diffMode** (optional) - `String` - default diff mode. Available values are:
+
+  * `3-up` - show all images (expected, actual, diff) in column. Default value;
+  * `3-up-scaled` - show all images in row (fit into page width);
+  * `only-diff` - show only diff image;
+  * `switch` - mode with ability to switch between expected and actual images (use click on mouse in images field to switch);
+  * `swipe` - mode with ability to move divider between expected and actual images;
+  * `onion-skin` - mode with ability to change the transparency of actual image.
+
 * **baseHost** (optional) - `String` - it changes original host for view in the browser; by default original host does not change
-* **scaleImages** (optional) – `Boolean` – fit images into page width; `false` by default.
 * **errorPatterns** (optional) - `Array` - error message patterns are used:
 
   * to show more understandable information about matched error;

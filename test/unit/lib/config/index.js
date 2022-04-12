@@ -4,6 +4,7 @@ const {isEmpty} = require('lodash');
 const parseConfig = require('lib/config');
 const {config: configDefaults} = require('lib/constants/defaults');
 const viewModes = require('lib/constants/view-modes');
+const diffModes = require('lib/constants/diff-modes');
 const saveFormats = require('lib/constants/save-formats');
 const SUPPORTED_CONTROL_TYPES = Object.values(require('lib/gui/constants/custom-gui-control-types'));
 const {logger} = require('lib/common-utils');
@@ -162,6 +163,30 @@ describe('config', () => {
         });
     });
 
+    describe('"diffMode" option', () => {
+        it('should show images in column by default', () => {
+            assert.equal(parseConfig({}).diffMode, diffModes.THREE_UP.id);
+        });
+
+        it('should set from configuration file', () => {
+            const config = parseConfig({diffMode: diffModes.SWIPE.id});
+
+            assert.equal(config.diffMode, diffModes.SWIPE.id);
+        });
+
+        it('should set from environment variable', () => {
+            process.env['html_reporter_diff_mode'] = diffModes.ONLY_DIFF.id;
+
+            assert.equal(parseConfig({}).diffMode, diffModes.ONLY_DIFF.id);
+        });
+
+        it('should set from cli', () => {
+            process.argv = process.argv.concat('--html-reporter-diff-mode', diffModes.ONION_SKIN.id);
+
+            assert.equal(parseConfig({}).diffMode, diffModes.ONION_SKIN.id);
+        });
+    });
+
     describe('"baseHost" option', () => {
         it('should be empty by default', () => {
             assert.equal(parseConfig({}).baseHost, '');
@@ -183,30 +208,6 @@ describe('config', () => {
             process.argv = process.argv.concat('--html-reporter-base-host', 'cli/some-host');
 
             assert.equal(parseConfig({}).baseHost, 'cli/some-host');
-        });
-    });
-
-    describe('"scaleImages" option', () => {
-        it('should be false by default', () => {
-            assert.isFalse(parseConfig({}).scaleImages);
-        });
-
-        it('should set from configuration file', () => {
-            const config = parseConfig({scaleImages: true});
-
-            assert.isTrue(config.scaleImages);
-        });
-
-        it('should set from environment variable', () => {
-            process.env['html_reporter_scale_images'] = 'true';
-
-            assert.isTrue(parseConfig({}).scaleImages);
-        });
-
-        it('should set from cli', () => {
-            process.argv = process.argv.concat('--html-reporter-scale-images', 'true');
-
-            assert.isTrue(parseConfig({}).scaleImages);
         });
     });
 

@@ -1,0 +1,44 @@
+.control-select
+    display: inline-flex
+    margin-right: 15px
+    margin-bottom: 15px
+
+    .control-select__label
+        font-size: 11px
+        margin: 0
+        padding: 0 5px
+        line-height: 25px
+        background-color: #e7e7e7
+        border-radius: 2px
+        border-top-right-radius: 0
+        border-bottom-right-radius: 0
+
+    .control-select__dropdown.ui.dropdown
+        min-height: 25px
+        min-width: 60px
+        font-size: 11px
+        line-height: 13px
+        padding: 5px
+        border: 1px solid #ccc
+        border-radius: 2px
+        border-top-left-radius: 0
+        border-bottom-left-radius: 0
+
+        &:hover
+            border: 1px solid #555;
+
+        &.active
+            &:hover
+            .menu
+                border-color: #ffd947
+
+        .icon
+            top: 50%
+            right: 10px
+            padding: 0
+            margin: 0
+            transform: translateY(-50%)
+
+    &.diff-mode
+        .control-select__dropdown.ui.dropdown
+            min-width: 90px

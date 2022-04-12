@@ -41,7 +41,7 @@ module.exports = {
         'html-reporter-tester': {
             enabled: true,
             path: 'hermione-report',
-            scaleImages: true
+            diffMode: '3-up'
         },
         'hermione-headless-chrome': {
             browserId: 'chrome',

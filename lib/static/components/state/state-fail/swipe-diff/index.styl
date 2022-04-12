@@ -1,0 +1,82 @@
+.swipe-diff
+    display: grid
+    grid-template-areas: 'one one'
+    max-width: max-content
+    overflow: hidden
+    cursor: move
+
+    &_pressed .swipe-diff-divider__arrows
+        opacity: 0
+
+    &__overlay
+        overflow: hidden
+
+    &__img
+        max-width: 100%
+        pointer-events: none
+        user-select: none
+        border: 1px solid #ccc
+
+    &__first
+        grid-area: one
+        line-height: 0
+        transform: translateX(calc(var(--img1-pos-x) * -1))
+
+        .swipe-diff__frame
+            transform: translateX(var(--img1-pos-x))
+
+    &__second
+        line-height: 0
+        grid-area: one
+        transform: translateX(var(--img2-pos-x))
+        overflow: hidden
+
+        .swipe-diff__frame
+            transform: translateX(calc(var(--img2-pos-x) * -1))
+
+    &-divider
+        transform: translateX(50%)
+        position: absolute
+        height: 100%
+        top: 0
+        right: 0
+        display: flex
+        align-items: flex-end
+        justify-content: center
+        flex-direction: column
+
+        &__line
+            position: absolute
+            height: 100%
+            width: 100%
+            left: 0
+            top: 0
+            display: flex
+            align-items: center
+            justify-content: center
+            flex-direction: column
+
+            &:after
+                content: ''
+                display: block
+                height: 100%
+                border-left-width: 1px
+                border-left-style: solid
+                border-left-color: black
+
+        &__arrows
+            pointer-events: none
+            box-sizing: border-box
+            margin-left: 1px
+            transform: translateX(-0.5px)
+            opacity: 1
+            transition: opacity 500ms
+
+        .arrows-move
+            width: 60px
+
+            &__icon
+                stroke: black
+
+.disable-user-select
+    user-select: none

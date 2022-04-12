@@ -328,36 +328,6 @@ describe('<State/>', () => {
         });
     });
 
-    describe('scaleImages', () => {
-        let initialState;
-
-        beforeEach(() => {
-            const image = {stateName: 'some-name', status: SUCCESS};
-            initialState = {
-                tree: {
-                    images: {
-                        byId: {'img-id': image},
-                        stateById: {'img-id': {shouldBeOpened: true}}
-                    }
-                }
-            };
-        });
-
-        it('should not scale images by default', () => {
-            const stateComponent = mkStateComponent({imageId: 'img-id'}, initialState);
-            const imageContainer = stateComponent.find('.image-box__container');
-
-            assert.isFalse(imageContainer.hasClass('image-box__container_scale'));
-        });
-
-        it('should scale images if "scaleImages" option is enabled', () => {
-            const stateComponent = mkStateComponent({imageId: 'img-id'}, {...initialState, view: {scaleImages: true}});
-            const imageContainer = stateComponent.find('.image-box__container');
-
-            assert.isTrue(imageContainer.hasClass('image-box__container_scale'));
-        });
-    });
-
     describe('"toggleStateResult" action', () => {
         it('should call on click in state name', () => {
             const image = {stateName: 'some-name', status: SUCCESS};
