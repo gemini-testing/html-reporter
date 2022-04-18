@@ -39,7 +39,7 @@ async function prepare(hermione, reportBuilder, pluginConfig) {
         }
 
         if (formattedResult.screenshot) {
-            actions.push(formattedResult.saveBase64Screenshot(reportPath));
+            actions.push(formattedResult.saveErrorScreenshot(reportPath));
         }
 
         await Promise.all(actions);
