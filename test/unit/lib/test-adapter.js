@@ -497,7 +497,7 @@ describe('hermione test adapter', () => {
         });
     });
 
-    describe('saveBase64Screenshot', () => {
+    describe('saveErrorScreenshot', () => {
         beforeEach(() => {
             sandbox.stub(logger, 'warn');
             sandbox.stub(utils, 'makeDirFor').resolves();
@@ -512,7 +512,7 @@ describe('hermione test adapter', () => {
                 });
                 const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
 
-                return hermioneTestAdapter.saveBase64Screenshot()
+                return hermioneTestAdapter.saveErrorScreenshot()
                     .then(() => assert.notCalled(fs.writeFile));
             });
 
@@ -522,7 +522,7 @@ describe('hermione test adapter', () => {
                 });
                 const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
 
-                return hermioneTestAdapter.saveBase64Screenshot()
+                return hermioneTestAdapter.saveErrorScreenshot()
                     .then(() => assert.calledWith(logger.warn, 'Cannot save screenshot on reject'));
             });
         });
@@ -534,7 +534,7 @@ describe('hermione test adapter', () => {
             utils.getCurrentPath.returns('dest/path');
             const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
 
-            return hermioneTestAdapter.saveBase64Screenshot()
+            return hermioneTestAdapter.saveErrorScreenshot()
                 .then(() => assert.calledOnceWith(utils.makeDirFor, sinon.match('dest/path')));
         });
 
@@ -551,7 +551,7 @@ describe('hermione test adapter', () => {
                 }
             });
 
-            await hermioneTestAdapter.saveBase64Screenshot('report/path');
+            await hermioneTestAdapter.saveErrorScreenshot('report/path');
 
             assert.calledOnceWith(fs.writeFile, sinon.match('dest/path'), bufData, 'base64');
             assert.calledWith(imagesSaver.saveImg, sinon.match('dest/path'), {destPath: 'dest/path', reportDir: 'report/path'});

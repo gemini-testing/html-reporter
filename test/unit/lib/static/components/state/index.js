@@ -1,7 +1,7 @@
 import React from 'react';
 import proxyquire from 'proxyquire';
 import {defaults, defaultsDeep} from 'lodash';
-import {SUCCESS, FAIL} from 'lib/constants/test-statuses';
+import {SUCCESS, FAIL, ERROR} from 'lib/constants/test-statuses';
 import {EXPAND_ALL} from 'lib/constants/expand-modes';
 import {types as modalTypes} from 'lib/static/components/modals';
 import {mkConnectedComponent} from '../utils';
@@ -76,8 +76,8 @@ describe('<State/>', () => {
             assert.lengthOf(stateComponent.find('[label="✔ Accept"]'), 0);
         });
 
-        it('should render button in gui report', () => {
-            const image = {stateName: 'some-name'};
+        it('should render button in gui report if image is acceptable', () => {
+            const image = {stateName: 'some-name', state: FAIL};
             const initialState = {
                 tree: {
                     images: {
@@ -86,13 +86,14 @@ describe('<State/>', () => {
                     }
                 }
             };
+            utilsStub.isAcceptable.withArgs(image).returns(true);
 
             const stateComponent = mkStateComponent({imageId: 'img-id'}, {gui: true, ...initialState});
 
             assert.lengthOf(stateComponent.find('[label="✔ Accept"]'), 1);
         });
 
-        it('should be disabled if image is not acceptable', () => {
+        it('should not render button if image is not acceptable', () => {
             const image = {stateName: 'some-name', status: SUCCESS};
             const initialState = {
                 tree: {
@@ -106,7 +107,7 @@ describe('<State/>', () => {
 
             const stateComponent = mkStateComponent({imageId: 'img-id'}, initialState);
 
-            assert.isTrue(stateComponent.find('[label="✔ Accept"]').prop('isDisabled'));
+            assert.isEmpty(stateComponent.find('[label="✔ Accept"]'));
         });
 
         it('should be enabled if image is acceptable', () => {
@@ -152,7 +153,7 @@ describe('<State/>', () => {
             assert.notCalled(FindSameDiffsButton);
         });
 
-        it('should render button in gui report', () => {
+        it('should render button in gui report if image is acceptable', () => {
             const image = {stateName: 'some-name'};
             const initialState = {
                 tree: {
@@ -162,6 +163,7 @@ describe('<State/>', () => {
                     }
                 }
             };
+            utilsStub.isAcceptable.withArgs(image).returns(true);
 
             mkStateComponent({imageId: 'img-id'}, {gui: true, ...initialState});
 
@@ -169,7 +171,7 @@ describe('<State/>', () => {
         });
 
         it('should be disabled if image is not failed', () => {
-            const image = {stateName: 'some-name', status: SUCCESS};
+            const image = {stateName: 'some-name', status: ERROR};
             const initialState = {
                 tree: {
                     images: {
@@ -178,7 +180,8 @@ describe('<State/>', () => {
                     }
                 }
             };
-            const result = {parentId: 'bro-id', status: SUCCESS};
+            const result = {parentId: 'bro-id', status: ERROR};
+            utilsStub.isAcceptable.withArgs(image).returns(true);
 
             mkStateComponent({result, imageId: 'img-id'}, initialState);
 
@@ -196,6 +199,7 @@ describe('<State/>', () => {
                 }
             };
             const result = {parentId: 'bro-id', status: FAIL};
+            utilsStub.isAcceptable.withArgs(image).returns(true);
 
             mkStateComponent({result, imageId: 'img-id'}, initialState);
 
@@ -219,7 +223,7 @@ describe('<State/>', () => {
         });
 
         describe('in gui report', () => {
-            it('should render button in gui report', () => {
+            it('should render button if image is acceptable', () => {
                 const image = {stateName: 'some-name'};
                 const initialState = {
                     tree: {
@@ -229,6 +233,7 @@ describe('<State/>', () => {
                         }
                     }
                 };
+                utilsStub.isAcceptable.withArgs(image).returns(true);
 
                 const stateComponent = mkStateComponent({imageId: 'img-id'}, {gui: true, ...initialState});
 
@@ -241,7 +246,7 @@ describe('<State/>', () => {
                 assert.notCalled(getLastImageByStateName);
             });
 
-            it('should be disabled if last image is not acceptable', () => {
+            it('should be disabled if current image is successful', () => {
                 const image = {stateName: 'some-name', status: SUCCESS};
                 const initialState = {
                     tree: {
@@ -252,6 +257,26 @@ describe('<State/>', () => {
                     },
                     gui: true
                 };
+                utilsStub.isAcceptable.withArgs(image).returns(true);
+                getLastImageByStateName.returns(image);
+
+                const stateComponent = mkStateComponent({imageId: 'img-id'}, initialState);
+
+                assert.isTrue(stateComponent.find('[title="Open mode with fast screenshot accepting"]').first().prop('isDisabled'));
+            });
+
+            it('should be disabled if last image is not acceptable', () => {
+                const image = {stateName: 'some-name', status: FAIL};
+                const initialState = {
+                    tree: {
+                        images: {
+                            byId: {'img-id': image},
+                            stateById: {'img-id': {shouldBeOpened: true}}
+                        }
+                    },
+                    gui: true
+                };
+                utilsStub.isAcceptable.withArgs(image).returns(false);
                 getLastImageByStateName.returns(image);
 
                 const stateComponent = mkStateComponent({imageId: 'img-id'}, initialState);
