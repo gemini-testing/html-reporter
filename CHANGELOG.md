@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="8.4.3"></a>
+## [8.4.3](https://github.com/gemini-testing/html-reporter/compare/v8.4.2...v8.4.3) (2022-04-26)
+
+
+### Bug Fixes
+
+* **state:** hide control buttons ([0b7c79f](https://github.com/gemini-testing/html-reporter/commit/0b7c79f))
+* **state-error:** hide error info for "AssertViewError" ([0711226](https://github.com/gemini-testing/html-reporter/commit/0711226))
+* **static:** fix error when accept the screenshot ([06cfc61](https://github.com/gemini-testing/html-reporter/commit/06cfc61))
+
+
+
 <a name="8.4.2"></a>
 ## [8.4.2](https://github.com/gemini-testing/html-reporter/compare/v8.4.1...v8.4.2) (2022-03-31)
 
