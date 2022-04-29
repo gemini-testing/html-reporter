@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="8.4.4"></a>
+## [8.4.4](https://github.com/gemini-testing/html-reporter/compare/v8.4.3...v8.4.4) (2022-04-29)
+
+
+
 <a name="8.4.3"></a>
 ## [8.4.3](https://github.com/gemini-testing/html-reporter/compare/v8.4.2...v8.4.3) (2022-04-26)
 
