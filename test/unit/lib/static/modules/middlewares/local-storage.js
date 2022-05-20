@@ -2,6 +2,7 @@ import proxyquire from 'proxyquire';
 import actionNames from 'lib/static/modules/action-names';
 import defaultState from 'lib/static/modules/default-state';
 import viewModes from 'lib/constants/view-modes';
+import diffModes from 'lib/constants/diff-modes';
 import {EXPAND_ERRORS} from 'lib/constants/expand-modes';
 
 describe('lib/static/modules/middlewares/local-storage', () => {
@@ -57,11 +58,10 @@ describe('lib/static/modules/middlewares/local-storage', () => {
                 assert.calledOnceWith(localStorageWrapper.setItem, 'view', {
                     expand: EXPAND_ERRORS,
                     groupByError: false,
-                    scaleImages: false,
-                    showOnlyDiff: false,
                     showSkipped: false,
                     strictMatchFilter: false,
-                    viewMode: viewModes.ALL
+                    viewMode: viewModes.ALL,
+                    diffMode: diffModes.THREE_UP.id
                 });
             });
         });

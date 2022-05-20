@@ -6,7 +6,7 @@ import {mkConnectedComponent} from '../utils';
 
 describe('<StateError/> component', () => {
     const sandbox = sinon.sandbox.create();
-    let StateError, Screenshot, actionsStub;
+    let StateError, ResizedScreenshot, actionsStub;
 
     const mkStateErrorComponent = (props = {}, initialState = {}) => {
         props = defaults(props, {
@@ -24,13 +24,13 @@ describe('<StateError/> component', () => {
     };
 
     beforeEach(() => {
-        Screenshot = sinon.stub().returns(null);
+        ResizedScreenshot = sinon.stub().returns(null);
         actionsStub = {
             togglePageScreenshot: sandbox.stub().returns({type: 'some-type'})
         };
 
         StateError = proxyquire('lib/static/components/state/state-error', {
-            './screenshot': {default: Screenshot},
+            './screenshot/resized': {default: ResizedScreenshot},
             '../../modules/actions': actionsStub
         }).default;
     });

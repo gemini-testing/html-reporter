@@ -1,17 +1,17 @@
 import React from 'react';
-import {defaults, defaultsDeep} from 'lodash';
+import {defaults} from 'lodash';
 import proxyquire from 'proxyquire';
 import {mkConnectedComponent} from '../../utils';
 
 describe('<ScreenshotAccepterHeader/>', () => {
     const sandbox = sinon.sandbox.create();
-    let ScreenshotAccepterHeader, RetrySwitcher, GlobalHotKeys, actions, events;
+    let ScreenshotAccepterHeader, RetrySwitcher, GlobalHotKeys, events;
 
     const mkKeyDownEvent = (opts = {}) => {
         return {...opts, preventDefault: () => {}};
     };
 
-    const mkHeaderComponent = (props = {}, initialState = {}) => {
+    const mkHeaderComponent = (props = {}) => {
         props = defaults(props, {
             images: [{
                 id: 'default-image-id',
@@ -26,18 +26,10 @@ describe('<ScreenshotAccepterHeader/>', () => {
             onScreenshotAccept: () => {}
         });
 
-        initialState = defaultsDeep(initialState, {
-            view: {showOnlyDiff: false, scaleImages: false}
-        });
-
-        return mkConnectedComponent(<ScreenshotAccepterHeader {...props} />, {initialState});
+        return mkConnectedComponent(<ScreenshotAccepterHeader {...props} />);
     };
 
     beforeEach(() => {
-        actions = {
-            toggleScaleImages: sandbox.stub().returns({type: 'some-type'}),
-            toggleOnlyDiff: sandbox.stub().returns({type: 'some-type'})
-        };
         events = {};
         global.window.addEventListener = sandbox.stub().callsFake((event, cb) => {
             events[event] = cb;
@@ -48,7 +40,6 @@ describe('<ScreenshotAccepterHeader/>', () => {
 
         ScreenshotAccepterHeader = proxyquire('lib/static/components/modals/screenshot-accepter/header', {
             'react-hotkeys': {GlobalHotKeys},
-            '../../../modules/actions': actions,
             '../../retry-switcher': {default: RetrySwitcher}
         }).default;
     });
@@ -346,68 +337,6 @@ describe('<ScreenshotAccepterHeader/>', () => {
 
                 assert.calledOnceWith(onRetryChange, 0);
             });
-        });
-    });
-
-    describe('"Show only diff" button', () => {
-        it('should be not active if "showOnlyDiff" turned off', () => {
-            const component = mkHeaderComponent({}, {view: {showOnlyDiff: false}});
-
-            assert.isFalse(component.find('[label="Show only diff"]').prop('isActive'));
-        });
-
-        it('should be active if "showOnlyDiff" turned on', () => {
-            const component = mkHeaderComponent({}, {view: {showOnlyDiff: true}});
-
-            assert.isTrue(component.find('[label="Show only diff"]').prop('isActive'));
-        });
-
-        it('should call "toggleOnlyDiff" action on call "handler" prop', () => {
-            const component = mkHeaderComponent({}, {view: {showOnlyDiff: false}});
-
-            component.find('[label="Show only diff"]').prop('handler')();
-
-            assert.calledOnce(actions.toggleOnlyDiff);
-        });
-
-        it('should call "toggleOnlyDiff" action on press on related keys', () => {
-            const component = mkHeaderComponent({}, {view: {showOnlyDiff: false}});
-
-            const {SHOW_ONLY_DIFF: handler} = component.find(GlobalHotKeys).prop('handlers');
-            handler(mkKeyDownEvent());
-
-            assert.calledOnce(actions.toggleOnlyDiff);
-        });
-    });
-
-    describe('"Scale images" button', () => {
-        it('should be not active if "scaleImages" turned off', () => {
-            const component = mkHeaderComponent({}, {view: {scaleImages: false}});
-
-            assert.isFalse(component.find('[label="Scale images"]').prop('isActive'));
-        });
-
-        it('should be active if "scaleImages" turned on', () => {
-            const component = mkHeaderComponent({}, {view: {scaleImages: true}});
-
-            assert.isTrue(component.find('[label="Scale images"]').prop('isActive'));
-        });
-
-        it('should call "toggleScaleImages" action on call "handler" prop', () => {
-            const component = mkHeaderComponent({}, {view: {scaleImages: false}});
-
-            component.find('[label="Scale images"]').prop('handler')();
-
-            assert.calledOnce(actions.toggleScaleImages);
-        });
-
-        it('should call "toggleScaleImages" action on press on related keys', () => {
-            const component = mkHeaderComponent({}, {view: {scaleImages: false}});
-
-            const {SCALE_IMAGES: handler} = component.find(GlobalHotKeys).prop('handlers');
-            handler(mkKeyDownEvent());
-
-            assert.calledOnce(actions.toggleScaleImages);
         });
     });
 
