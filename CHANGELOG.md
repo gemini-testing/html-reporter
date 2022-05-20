@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="9.0.0"></a>
+# [9.0.0](https://github.com/gemini-testing/html-reporter/compare/v8.4.4...v9.0.0) (2022-05-20)
+
+
+### Features
+
+* add new modes to view image diffs ([318c3b4](https://github.com/gemini-testing/html-reporter/commit/318c3b4))
+
+
+### BREAKING CHANGES
+
+* remove "scaleImages" option from config
+
+
+
 <a name="8.4.4"></a>
 ## [8.4.4](https://github.com/gemini-testing/html-reporter/compare/v8.4.3...v8.4.4) (2022-04-29)
 
