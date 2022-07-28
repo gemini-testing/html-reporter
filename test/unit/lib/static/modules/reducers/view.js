@@ -188,32 +188,11 @@ describe('lib/static/modules/reducers/view', () => {
 
                     it('should set "expand" property to specified value', () => {
                         global.window.location = new URL(`${baseUrl}?expand=all`);
-
                         const action = {type, payload: _mkInitialState()};
 
                         const newState = reducer(defaultState, action);
 
                         assert.deepStrictEqual(newState.view.expand, EXPAND_ALL);
-                    });
-                });
-
-                describe('"groupByError" option', () => {
-                    it('should set "groupByError" to false by default', () => {
-                        const action = {type, payload: _mkInitialState()};
-
-                        const newState = reducer(defaultState, action);
-
-                        assert.deepStrictEqual(newState.view.groupByError, false);
-                    });
-
-                    it('should set "groupByError" property to specified value', () => {
-                        global.window.location = new URL(`${baseUrl}?groupByError=true`);
-
-                        const action = {type, payload: _mkInitialState()};
-
-                        const newState = reducer(defaultState, action);
-
-                        assert.deepStrictEqual(newState.view.groupByError, true);
                     });
                 });
             });
@@ -237,6 +216,16 @@ describe('lib/static/modules/reducers/view', () => {
             const newState = reducer(defaultState, action);
 
             assert.equal(newState.view.viewMode, viewModes.FAILED);
+        });
+    });
+
+    describe(`"${actionNames.GROUP_TESTS_BY_KEY}" action`, () => {
+        it('should set "groupTestsByKey" field to passed value', () => {
+            const action = {type: actionNames.GROUP_TESTS_BY_KEY, payload: 'foo.bar'};
+
+            const newState = reducer(defaultState, action);
+
+            assert.equal(newState.view.groupTestsByKey, 'foo.bar');
         });
     });
 });

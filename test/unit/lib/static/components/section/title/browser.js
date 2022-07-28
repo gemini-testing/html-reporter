@@ -72,10 +72,8 @@ describe('<BrowserTitle/>', () => {
                 strictMatchFilter: true,
                 retryIndex: 0,
                 viewModes: viewModes.ALL,
-                expand: EXPAND_ALL,
-                groupByError: false
+                expand: EXPAND_ALL
             });
         });
     });
 });
-

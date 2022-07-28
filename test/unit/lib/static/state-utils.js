@@ -1,6 +1,7 @@
 import {defaults} from 'lodash';
 import viewModes from 'lib/constants/view-modes';
 import {SUCCESS} from 'lib/constants/test-statuses';
+import {groupedTests} from 'lib/static/modules/default-state';
 
 exports.mkSuite = (opts) => {
     const suite = defaults(opts, {
@@ -78,6 +79,11 @@ exports.mkStateView = (opts = {}) => {
         viewMode: viewModes.ALL,
         testNameFilter: '',
         strictMatchFilter: false,
-        filteredBrowsers: []
+        filteredBrowsers: [],
+        groupTestsByKey: ''
     });
+};
+
+exports.mkStateGroupedTests = (opts = {}) => {
+    return defaults(opts, groupedTests);
 };

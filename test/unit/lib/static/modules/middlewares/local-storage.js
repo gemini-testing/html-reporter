@@ -57,7 +57,6 @@ describe('lib/static/modules/middlewares/local-storage', () => {
 
                 assert.calledOnceWith(localStorageWrapper.setItem, 'view', {
                     expand: EXPAND_ERRORS,
-                    groupByError: false,
                     showSkipped: false,
                     strictMatchFilter: false,
                     viewMode: viewModes.ALL,

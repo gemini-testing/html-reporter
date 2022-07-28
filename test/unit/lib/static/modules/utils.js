@@ -3,6 +3,7 @@
 const utils = require('lib/static/modules/utils');
 const {IDLE, FAIL, ERROR, SKIPPED, SUCCESS} = require('lib/constants/test-statuses');
 const viewModes = require('lib/constants/view-modes');
+const {SECTIONS, RESULT_KEYS, KEY_DELIMITER} = require('lib/constants/group-tests');
 const {NO_REF_IMAGE_ERROR} = require('lib/constants/errors').getCommonErrors();
 
 describe('static/modules/utils', () => {
@@ -176,6 +177,34 @@ describe('static/modules/utils', () => {
 
                 assert.isFalse(utils.shouldShowBrowser(browser, filteredBrowsers));
             });
+        });
+    });
+
+    describe('"parseGroupTestsByKey"', () => {
+        it('should throw error if passed group section is not available', () => {
+            const availableGroupSections = Object.values(SECTIONS).join(', ');
+
+            assert.throws(
+                () => utils.parseGroupTestsByKey('unknown-group'),
+                new RegExp(`Group section must be one of ${availableGroupSections}, but got unknown-group`)
+            );
+        });
+
+        it('should throw error if passed group key is not supported', () => {
+            const availableKeys = RESULT_KEYS.join(', ');
+
+            assert.throws(
+                () => utils.parseGroupTestsByKey(`${SECTIONS.RESULT}${KEY_DELIMITER}unknown-key`),
+                new RegExp(`Group key must be one of ${availableKeys}, but got unknown-key`)
+            );
+        });
+
+        it('should correctly parse group', () => {
+            const groupTestsByKey = `${SECTIONS.META}${KEY_DELIMITER}foo${KEY_DELIMITER}bar`;
+
+            const result = utils.parseGroupTestsByKey(groupTestsByKey);
+
+            assert.deepEqual(result, [SECTIONS.META, `foo${KEY_DELIMITER}bar`]);
         });
     });
 });
