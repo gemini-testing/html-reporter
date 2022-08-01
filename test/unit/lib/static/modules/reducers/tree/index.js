@@ -625,6 +625,20 @@ describe('lib/static/modules/reducers/tree', () => {
                     });
                 });
             });
+
+            describe('init result states with "matchedSelectedGroup"', () => {
+                it('should be "false" by default', () => {
+                    const resultsById = {...mkResult({id: 'r1'})};
+                    const tree = mkStateTree({resultsById});
+
+                    const newState = reducer({view: mkStateView()}, {
+                        type: actionName,
+                        payload: {tree}
+                    });
+
+                    assert.isFalse(newState.tree.results.stateById.r1.matchedSelectedGroup);
+                });
+            });
         });
     });
 
@@ -659,7 +673,7 @@ describe('lib/static/modules/reducers/tree', () => {
     ].forEach((actionName) => {
         describe(`${actionName} action`, () => {
             describe('recalc browsers state', () => {
-                it('should change "retryIndex" to the last result', () => {
+                it('should not change "retryIndex" to the last result', () => {
                     const browsersById = {...mkBrowser({id: 'b1', resultIds: ['r1', 'r2']})};
                     const resultsById = {...mkResult({id: 'r1'}), ...mkResult({id: 'r2'})};
                     const browsersStateById = {b1: {retryIndex: 0}};
@@ -668,7 +682,7 @@ describe('lib/static/modules/reducers/tree', () => {
 
                     const newState = reducer({tree, view}, {type: actionName});
 
-                    assert.equal(newState.tree.browsers.stateById.b1.retryIndex, 1);
+                    assert.equal(newState.tree.browsers.stateById.b1.retryIndex, 0);
                 });
             });
         });
@@ -913,6 +927,273 @@ describe('lib/static/modules/reducers/tree', () => {
 
             assert.equal(newState.tree.suites.byId.s1.status, FAIL);
             assert.equal(newState.tree.suites.byId.s2.status, SUCCESS);
+        });
+    });
+
+    describe(`${actionNames.CHANGE_TEST_RETRY} action`, () => {
+        it('should change retry index', () => {
+            const browsersById = {...mkBrowser({id: 'b1'})};
+            const browsersStateById = {b1: {retryIndex: 1}};
+            const tree = mkStateTree({browsersById, browsersStateById});
+
+            const newState = reducer({tree, view: mkStateView()}, {
+                type: actionNames.CHANGE_TEST_RETRY,
+                payload: {browserId: 'b1', retryIndex: 100500}
+            });
+
+            assert.deepEqual(newState.tree.browsers.stateById.b1, {retryIndex: 100500});
+        });
+
+        it('should reset last matched retry index if group tests mode is enablde', () => {
+            const browsersById = {...mkBrowser({id: 'b1'})};
+            const browsersStateById = {b1: {retryIndex: 1, lastMatchedRetryIndex: 0}};
+            const tree = mkStateTree({browsersById, browsersStateById});
+            const view = mkStateView({groupTestsByKey: 'some-key'});
+
+            const newState = reducer({tree, view}, {
+                type: actionNames.CHANGE_TEST_RETRY,
+                payload: {browserId: 'b1', retryIndex: 100500}
+            });
+
+            assert.deepEqual(newState.tree.browsers.stateById.b1, {retryIndex: 100500, lastMatchedRetryIndex: null});
+        });
+    });
+
+    describe(`${actionNames.TOGGLE_TESTS_GROUP} action`, () => {
+        describe('if group tests is closed', () => {
+            it('should close all browsers', () => {
+                const browsersById = {...mkBrowser({id: 'b1'}), ...mkBrowser({id: 'b2'})};
+                const browsersStateById = {b1: {shouldBeShown: true}, b2: {shouldBeShown: true}};
+                const tree = mkStateTree({browsersById, browsersStateById});
+
+                const newState = reducer({tree, view: mkStateView()}, {
+                    type: actionNames.TOGGLE_TESTS_GROUP,
+                    payload: {isActive: false}
+                });
+
+                assert.isFalse(newState.tree.browsers.stateById.b1.shouldBeShown);
+                assert.isFalse(newState.tree.browsers.stateById.b2.shouldBeShown);
+            });
+
+            it('should reset last matched retry index for each browser', () => {
+                const browsersById = {...mkBrowser({id: 'b1'}), ...mkBrowser({id: 'b2'})};
+                const browsersStateById = {b1: {lastMatchedRetryIndex: 1}, b2: {lastMatchedRetryIndex: 2}};
+                const tree = mkStateTree({browsersById, browsersStateById});
+
+                const newState = reducer({tree, view: mkStateView()}, {
+                    type: actionNames.TOGGLE_TESTS_GROUP,
+                    payload: {isActive: false}
+                });
+
+                assert.isNull(newState.tree.browsers.stateById.b1.lastMatchedRetryIndex);
+                assert.isNull(newState.tree.browsers.stateById.b2.lastMatchedRetryIndex);
+            });
+
+            it('should close all suites', () => {
+                const suitesById = {...mkSuite({id: 's1'}), ...mkSuite({id: 's2'})};
+                const suitesStateById = {s1: {shouldBeShown: true}, s2: {shouldBeShown: true}};
+                const tree = mkStateTree({suitesById, suitesStateById});
+
+                const newState = reducer({tree, view: mkStateView()}, {
+                    type: actionNames.TOGGLE_TESTS_GROUP,
+                    payload: {isActive: false}
+                });
+
+                assert.isFalse(newState.tree.suites.stateById.s1.shouldBeShown);
+                assert.isFalse(newState.tree.suites.stateById.s2.shouldBeShown);
+            });
+
+            it('should reset flag of matching result to selected group for each results', () => {
+                const resultsById = {...mkResult({id: 'r1'}), ...mkResult({id: 'r2'})};
+                const resultsStateById = {r1: {matchedSelectedGroup: true}, r2: {matchedSelectedGroup: true}};
+                const tree = mkStateTree({resultsById, resultsStateById});
+
+                const newState = reducer({tree, view: mkStateView()}, {
+                    type: actionNames.TOGGLE_TESTS_GROUP,
+                    payload: {isActive: false}
+                });
+
+                assert.isFalse(newState.tree.results.stateById.r1.matchedSelectedGroup);
+                assert.isFalse(newState.tree.results.stateById.r2.matchedSelectedGroup);
+            });
+        });
+
+        describe('if group tests is opened', () => {
+            it('should not modify result states if browser is not matched by status filter', () => {
+                const browsersById = {...mkBrowser({id: 'b1', resultIds: ['r1', 'r2']})};
+                const resultsById = {...mkResult({id: 'r1', status: SUCCESS}), ...mkResult({id: 'r2', status: SUCCESS})};
+                const resultsStateById = {r1: {}, r2: {}};
+                const tree = mkStateTree({browsersById, resultsById, resultsStateById});
+                const view = mkStateView({viewMode: viewModes.FAILED});
+
+                const newState = reducer({tree, view}, {
+                    type: actionNames.TOGGLE_TESTS_GROUP,
+                    payload: {isActive: true, browserIds: ['b1']}
+                });
+
+                assert.deepEqual(newState.tree.results.stateById.r1, {});
+                assert.deepEqual(newState.tree.results.stateById.r2, {});
+            });
+
+            it('should not modify result states for browser that is not matched by selected group', () => {
+                const browsersById = {...mkBrowser({id: 'b1', resultIds: ['r1']}), ...mkBrowser({id: 'b2', resultIds: ['r2']})};
+                const browsersStateById = {b1: {shouldBeShown: true}, b2: {shouldBeShown: true}};
+                const resultsById = {...mkResult({id: 'r1', status: SUCCESS}), ...mkResult({id: 'r2', status: SUCCESS})};
+                const resultsStateById = {r1: {}, r2: {}};
+                const tree = mkStateTree({browsersById, browsersStateById, resultsById, resultsStateById});
+
+                const newState = reducer({tree, view: mkStateView()}, {
+                    type: actionNames.TOGGLE_TESTS_GROUP,
+                    payload: {isActive: true, browserIds: ['b2'], resultIds: ['r2']}
+                });
+
+                assert.deepEqual(newState.tree.results.stateById.r1, {});
+                assert.isFalse(newState.tree.browsers.stateById.b1.shouldBeShown);
+            });
+
+            describe('if result is not matches by selected group', () => {
+                it('should set "matchedSelectedGroup" flag with "false" value', () => {
+                    const browsersById = {...mkBrowser({id: 'b1', resultIds: ['r1']})};
+                    const resultsById = {...mkResult({id: 'r1', status: SUCCESS})};
+                    const resultsStateById = {r1: {}, r2: {}};
+                    const tree = mkStateTree({browsersById, resultsById, resultsStateById});
+
+                    const newState = reducer({tree, view: mkStateView()}, {
+                        type: actionNames.TOGGLE_TESTS_GROUP,
+                        payload: {isActive: true, browserIds: ['b1'], resultIds: ['r2']}
+                    });
+
+                    assert.deepEqual(newState.tree.results.stateById.r1, {matchedSelectedGroup: false});
+                });
+            });
+
+            describe('if one of results is matches by selected group', () => {
+                it('should set "matchedSelectedGroup" flag with "true" value for matched result', () => {
+                    const browsersById = {...mkBrowser({id: 'b1', resultIds: ['r1', 'r2']})};
+                    const resultsById = {...mkResult({id: 'r1', status: SUCCESS}), ...mkResult({id: 'r2', status: SUCCESS})};
+                    const resultsStateById = {r1: {}, r2: {}};
+                    const tree = mkStateTree({browsersById, resultsById, resultsStateById});
+
+                    const newState = reducer({tree, view: mkStateView()}, {
+                        type: actionNames.TOGGLE_TESTS_GROUP,
+                        payload: {isActive: true, browserIds: ['b1'], resultIds: ['r2']}
+                    });
+
+                    assert.deepEqual(newState.tree.results.stateById.r1, {matchedSelectedGroup: false});
+                    assert.deepEqual(newState.tree.results.stateById.r2, {matchedSelectedGroup: true});
+                });
+            });
+
+            it('should set last matched retry index for browser matches on group', () => {
+                const browsersById = {...mkBrowser({id: 'b1', resultIds: ['r1', 'r2', 'r3']})};
+                const resultsById = {
+                    ...mkResult({id: 'r1', status: SUCCESS}),
+                    ...mkResult({id: 'r2', status: SUCCESS}),
+                    ...mkResult({id: 'r3', status: SUCCESS})
+                };
+                const tree = mkStateTree({browsersById, resultsById});
+
+                const newState = reducer({tree, view: mkStateView()}, {
+                    type: actionNames.TOGGLE_TESTS_GROUP,
+                    payload: {isActive: true, browserIds: ['b1'], resultIds: ['r1', 'r2']}
+                });
+
+                assert.equal(newState.tree.browsers.stateById.b1.lastMatchedRetryIndex, 1);
+            });
+        });
+    });
+
+    describe(`${actionNames.GROUP_TESTS_BY_KEY} action`, () => {
+        [
+            {
+                keyAction: 'selected',
+                view: mkStateView({groupTestsByKey: 'some-key'})
+            },
+            {
+                keyAction: 'cleared',
+                view: mkStateView({groupTestsByKey: ''})
+            }
+        ].forEach(({keyAction, view}) => {
+            describe(`if key is ${keyAction} in group tests select`, () => {
+                it('should reset flag of matching result to selected group for each results', () => {
+                    const resultsById = {...mkResult({id: 'r1'}), ...mkResult({id: 'r2'})};
+                    const resultsStateById = {r1: {matchedSelectedGroup: true}, r2: {matchedSelectedGroup: true}};
+                    const tree = mkStateTree({resultsById, resultsStateById});
+
+                    const newState = reducer({tree, view}, {type: actionNames.GROUP_TESTS_BY_KEY});
+
+                    assert.isFalse(newState.tree.results.stateById.r1.matchedSelectedGroup);
+                    assert.isFalse(newState.tree.results.stateById.r2.matchedSelectedGroup);
+                });
+
+                it('should reset last matched retry index for each browser', () => {
+                    const browsersById = {...mkBrowser({id: 'b1'}), ...mkBrowser({id: 'b2'})};
+                    const browsersStateById = {b1: {lastMatchedRetryIndex: 1}, b2: {lastMatchedRetryIndex: 2}};
+                    const tree = mkStateTree({browsersById, browsersStateById});
+                    const view = mkStateView({groupTestsByKey: 'some-key'});
+
+                    const newState = reducer({tree, view}, {type: actionNames.GROUP_TESTS_BY_KEY});
+
+                    assert.isNull(newState.tree.browsers.stateById.b1.lastMatchedRetryIndex);
+                    assert.isNull(newState.tree.browsers.stateById.b2.lastMatchedRetryIndex);
+                });
+            });
+        });
+
+        describe('if key is selected in group tests select', () => {
+            it('should close all browsers', () => {
+                const browsersById = {...mkBrowser({id: 'b1'}), ...mkBrowser({id: 'b2'})};
+                const browsersStateById = {b1: {shouldBeShown: true}, b2: {shouldBeShown: true}};
+                const tree = mkStateTree({browsersById, browsersStateById});
+                const view = mkStateView({groupTestsByKey: 'some-key'});
+
+                const newState = reducer({tree, view}, {type: actionNames.GROUP_TESTS_BY_KEY});
+
+                assert.isFalse(newState.tree.browsers.stateById.b1.shouldBeShown);
+                assert.isFalse(newState.tree.browsers.stateById.b2.shouldBeShown);
+            });
+
+            it('should close all suites', () => {
+                const suitesById = {...mkSuite({id: 's1'}), ...mkSuite({id: 's2'})};
+                const suitesStateById = {s1: {shouldBeShown: true}, s2: {shouldBeShown: true}};
+                const tree = mkStateTree({suitesById, suitesStateById});
+                const view = mkStateView({groupTestsByKey: 'some-key'});
+
+                const newState = reducer({tree, view}, {type: actionNames.GROUP_TESTS_BY_KEY});
+
+                assert.isFalse(newState.tree.suites.stateById.s1.shouldBeShown);
+                assert.isFalse(newState.tree.suites.stateById.s2.shouldBeShown);
+            });
+        });
+
+        describe('if key is cleared in group tests select', () => {
+            it('should calculate browser showness', () => {
+                const browsersById = {...mkBrowser({id: 'b1', resultIds: ['r1']}), ...mkBrowser({id: 'b2', resultIds: ['r2']})};
+                const browsersStateById = {b1: {shouldBeShown: false}, b2: {shouldBeShown: false}};
+                const resultsById = {...mkResult({id: 'r1', status: SUCCESS}), ...mkResult({id: 'r2', status: SUCCESS})};
+                const tree = mkStateTree({browsersById, browsersStateById, resultsById});
+                const view = mkStateView({groupTestsByKey: ''});
+
+                const newState = reducer({tree, view}, {type: actionNames.GROUP_TESTS_BY_KEY});
+
+                assert.isTrue(newState.tree.browsers.stateById.b1.shouldBeShown);
+                assert.isTrue(newState.tree.browsers.stateById.b2.shouldBeShown);
+            });
+
+            it('should calculate suite showness', () => {
+                const suitesById = {...mkSuite({id: 's1', browserIds: ['b1']}), ...mkSuite({id: 's2', browserIds: ['b2']})};
+                const suitesStateById = {s1: {shouldBeShown: false}, s2: {shouldBeShown: false}};
+                const browsersById = {...mkBrowser({id: 'b1', resultIds: ['r1']}), ...mkBrowser({id: 'b2', resultIds: ['r2']})};
+                const browsersStateById = {b1: {shouldBeShown: false}, b2: {shouldBeShown: false}};
+                const resultsById = {...mkResult({id: 'r1', status: SUCCESS}), ...mkResult({id: 'r2', status: SUCCESS})};
+                const tree = mkStateTree({suitesById, suitesStateById, browsersById, browsersStateById, resultsById});
+                const view = mkStateView({groupTestsByKey: ''});
+
+                const newState = reducer({tree, view}, {type: actionNames.GROUP_TESTS_BY_KEY});
+
+                assert.isTrue(newState.tree.suites.stateById.s1.shouldBeShown);
+                assert.isTrue(newState.tree.suites.stateById.s2.shouldBeShown);
+            });
         });
     });
 });

@@ -59,6 +59,7 @@ exports.mkStateTree = (
         browsersById = {},
         browsersStateById = {},
         resultsById = {},
+        resultsStateById = {},
         imagesById = {},
         imagesStateById = {}
     } = {}
@@ -69,7 +70,7 @@ exports.mkStateTree = (
             allRootIds: suitesAllRootIds, failedRootIds: suitesFailedRootIds, allIds: Object.keys(suitesById)
         },
         browsers: {byId: browsersById, stateById: browsersStateById, allIds: Object.keys(browsersById)},
-        results: {byId: resultsById, allIds: Object.keys(resultsById)},
+        results: {byId: resultsById, stateById: resultsStateById, allIds: Object.keys(resultsById)},
         images: {byId: imagesById, stateById: imagesStateById, allIds: Object.keys(imagesById)}
     };
 };

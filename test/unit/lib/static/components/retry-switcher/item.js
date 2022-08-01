@@ -20,9 +20,8 @@ describe('<RetrySwitcherItem />', () => {
         initialState = defaults(initialState, {
             tree: {
                 results: {
-                    byId: {
-                        'default-id': {status: SUCCESS, attempt: 0}
-                    }
+                    byId: {'default-id': {status: SUCCESS, attempt: 0}},
+                    stateById: {'default-id': {}}
                 }
             }
         });
@@ -32,7 +31,7 @@ describe('<RetrySwitcherItem />', () => {
 
     afterEach(() => sandbox.restore());
 
-    describe('should render button with', () => {
+    describe('should render button', () => {
         [
             {
                 name: `with "${NO_REF_IMAGE_ERROR}"`,
@@ -47,13 +46,14 @@ describe('<RetrySwitcherItem />', () => {
                 error: undefined
             }
         ].forEach(({name, error}) => {
-            it(`${FAIL} status class name if test fails ${name}`, () => {
+            it(`with ${FAIL} status class name if test fails ${name}`, () => {
                 const initialState = {
                     tree: {
                         results: {
                             byId: {
                                 'result-1': {status: FAIL, attempt: 0, error}
-                            }
+                            },
+                            stateById: {'result-1': {}}
                         }
                     }
                 };
@@ -65,13 +65,14 @@ describe('<RetrySwitcherItem />', () => {
             });
         });
 
-        it(`combination of ${FAIL} and ${ERROR} status class name if test fails with diff and assert`, () => {
+        it(`with combination of ${FAIL} and ${ERROR} status class name if test fails with diff and assert`, () => {
             const initialState = {
                 tree: {
                     results: {
                         byId: {
                             'result-1': {status: FAIL, attempt: 0, error: {stack: 'assert error'}}
-                        }
+                        },
+                        stateById: {'result-1': {}}
                     }
                 }
             };
@@ -81,6 +82,57 @@ describe('<RetrySwitcherItem />', () => {
             assert.lengthOf(component.find('.tab-switcher__button'), 1);
             assert.lengthOf(component.find(`.tab-switcher__button_status_${FAIL}_${ERROR}`), 1);
         });
+
+        it('without non matched class if group is not selected', () => {
+            const initialState = {
+                tree: {
+                    results: {
+                        byId: {'result-1': {status: SUCCESS, attempt: 0}},
+                        stateById: {'result-1': {}}
+                    }
+                },
+                view: {groupTestsByKey: ''}
+            };
+
+            const component = mkRetrySwitcherItem({resultId: 'result-1'}, initialState);
+
+            assert.lengthOf(component.find('.tab-switcher__button'), 1);
+            assert.lengthOf(component.find('.tab-switcher__button_non-matched'), 0);
+        });
+
+        it('without non matched class if group is selected and result is matched on it', () => {
+            const initialState = {
+                tree: {
+                    results: {
+                        byId: {'result-1': {status: SUCCESS, attempt: 0}},
+                        stateById: {'result-1': {matchedSelectedGroup: true}}
+                    }
+                },
+                view: {groupTestsByKey: 'some-key'}
+            };
+
+            const component = mkRetrySwitcherItem({resultId: 'result-1'}, initialState);
+
+            assert.lengthOf(component.find('.tab-switcher__button'), 1);
+            assert.lengthOf(component.find('.tab-switcher__button_non-matched'), 0);
+        });
+
+        it('with non matched class if group is selected but result is not matched on it', () => {
+            const initialState = {
+                tree: {
+                    results: {
+                        byId: {'result-1': {status: SUCCESS, attempt: 0}},
+                        stateById: {'result-1': {matchedSelectedGroup: false}}
+                    }
+                },
+                view: {groupTestsByKey: 'some-key'}
+            };
+
+            const component = mkRetrySwitcherItem({resultId: 'result-1'}, initialState);
+
+            assert.lengthOf(component.find('.tab-switcher__button'), 1);
+            assert.lengthOf(component.find('.tab-switcher__button_non-matched'), 1);
+        });
     });
 
     it('should render button with text from result "attempt" increased by one', () => {
@@ -89,7 +141,8 @@ describe('<RetrySwitcherItem />', () => {
                 results: {
                     byId: {
                         'result-1': {status: FAIL, attempt: 100499}
-                    }
+                    },
+                    stateById: {'result-1': {}}
                 }
             }
         };
