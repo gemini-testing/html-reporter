@@ -29,7 +29,11 @@ describe('hermione test adapter', () => {
             stubConfig(config),
             {},
             {ImageDiffError, NoRefImageError},
-            Object.assign({imagesSaver: {saveImg: sandbox.stub()}}, htmlReporter)
+            Object.assign({
+                imagesSaver: {saveImg: sandbox.stub()},
+                events: {TEST_SCREENSHOTS_SAVED: 'testScreenshotsSaved'},
+                emit: sinon.stub()
+            }, htmlReporter)
         );
 
         return new HermioneTestResultAdapter(testResult, tool, pluginConfig, status);
@@ -290,6 +294,33 @@ describe('hermione test adapter', () => {
                 sinon.match('tmp/dir/diff/report/path'),
                 {destPath: 'diff/report/path', reportDir: 'html-report/path'}
             );
+        });
+
+        it('should emit TEST_SCREENSHOTS_SAVED event', async () => {
+            tmp.tmpdir = 'tmp/dir';
+            const testResult = mkTestResult_({
+                id: () => '',
+                browserId: 'chrome',
+                assertViewResults: [err]
+            });
+            utils.getDiffPath.returns('diff/report/path');
+
+            const htmlReporterEmitStub = sinon.stub();
+            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {
+                htmlReporter: {
+                    emit: htmlReporterEmitStub
+                }
+            });
+            sinon.stub(hermioneTestAdapter, 'getImagesInfo').returns([{test: 123}]);
+            const workers = {saveDiffTo: sandbox.stub()};
+
+            await hermioneTestAdapter.saveTestImages('', workers);
+
+            assert.calledOnceWith(htmlReporterEmitStub, 'testScreenshotsSaved', {
+                attempt: 0,
+                testId: 'default-title.chrome',
+                imagesInfo: [{test: 123}]
+            });
         });
     });
 
