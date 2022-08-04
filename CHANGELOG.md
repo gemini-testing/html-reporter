@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="9.1.0"></a>
+# [9.1.0](https://github.com/gemini-testing/html-reporter/compare/v9.0.0...v9.1.0) (2022-08-04)
+
+
+### Features
+
+* add TEST_SCREENSHOTS_SAVED event ([e50ab0f](https://github.com/gemini-testing/html-reporter/commit/e50ab0f))
+
+
+
 <a name="9.0.0"></a>
 # [9.0.0](https://github.com/gemini-testing/html-reporter/compare/v8.4.4...v9.0.0) (2022-05-20)
 
