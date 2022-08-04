@@ -1,5 +1,7 @@
 # html-reporter
 
+Test
+
 Requires **[hermione](https://github.com/gemini-testing/hermione)@4x**.
 
 Plugin for [hermione](https://github.com/gemini-testing/hermione) which is intended to aggregate the results of tests running into html report.
