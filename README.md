@@ -54,7 +54,7 @@ directory.
 * **errorPatterns** (optional) - `Array` - error message patterns are used:
 
   * to show more understandable information about matched error;
-  * in 'Group by error' mode.
+  * in 'Group by' mode with selected 'error' key.
 
   Array elements must be one of the types:
 
@@ -66,7 +66,7 @@ directory.
   * *name* of error pattern will be displayed as title of error message and original error message will be hidden under details;
   * *hint* of error pattern will be displayed after error *stack* field. Can be specified as html string. For example, `<div>some-useful-hint</div>`.
 
-  In 'Group by error' mode test will be associated with group if test error matches on group error pattern. New group will be created if test cannot be associated with existing groups.
+  In 'Group by' mode with selected 'error' key test will be associated with group if test error matches on group error pattern. New group will be created if test cannot be associated with existing groups.
 
 * **metaInfoBaseUrls** (optional) `Object` - base paths for making link from Meta-info values. Object option must be Meta-info's key and value must be `String`. For example, {'file': 'base/path'}.
 * **saveFormat** (**DEPRECATED**, optional) `String` - allows to specify the format, in which the results will be saved. Available values are:

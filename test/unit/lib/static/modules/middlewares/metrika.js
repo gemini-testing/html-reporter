@@ -333,7 +333,6 @@ describe('lib/static/modules/middlewares/metrika', () => {
         actionNames.VIEW_EXPAND_ERRORS,
         actionNames.VIEW_EXPAND_RETRIES,
         actionNames.VIEW_TOGGLE_SKIPPED,
-        actionNames.VIEW_TOGGLE_GROUP_BY_ERROR,
         actionNames.VIEW_UPDATE_BASE_HOST,
         actionNames.VIEW_THREE_UP_DIFF,
         actionNames.VIEW_THREE_UP_SCALED_DIFF,
@@ -349,7 +348,8 @@ describe('lib/static/modules/middlewares/metrika', () => {
         actionNames.VIEW_IN_BROWSER,
         actionNames.COPY_TEST_LINK,
         actionNames.TOGGLE_SUITE_SECTION,
-        actionNames.TOGGLE_BROWSER_SECTION
+        actionNames.TOGGLE_BROWSER_SECTION,
+        actionNames.GROUP_TESTS_BY_KEY
     ].forEach((eventName) => {
         describe(`"${eventName}" event`, () => {
             it('should not send counter id if metrika is not inited', () => {

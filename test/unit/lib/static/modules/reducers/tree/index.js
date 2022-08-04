@@ -154,14 +154,14 @@ describe('lib/static/modules/reducers/tree', () => {
                             assert.isFalse(newState.tree.suites.stateById.s2.shouldBeShown);
                         });
 
-                        it('"groupByError" mode is enabled', () => {
+                        it('group by tests mode is enabled', () => {
                             const resultsById = {
                                 ...mkResult({id: 'r1', parentId: 'b1', status: SUCCESS}),
                                 ...mkResult({id: 'r2', parentId: 'b2', status: SUCCESS})
                             };
 
                             const tree = mkStateTree({suitesById, browsersById, resultsById});
-                            const state = {view: mkStateView({groupByError: true})};
+                            const state = {view: mkStateView({keyToGroupTestsBy: 'foo.bar'})};
 
                             const newState = reducer(state, {
                                 type: actionName,
@@ -432,13 +432,13 @@ describe('lib/static/modules/reducers/tree', () => {
                             assert.isFalse(newState.tree.browsers.stateById.b1.shouldBeShown);
                         });
 
-                        it('"groupByError" mode is enabled', () => {
+                        it('group by tests mode is enabled', () => {
                             const suitesById = {...mkSuite({id: 's1', browserIds: ['b1']})};
                             const browsersById = {...mkBrowser({id: 'b1', name: 'yabro', parentId: 's1', resultIds: ['r1']})};
                             const resultsById = {...mkResult({id: 'r1', parentId: 'b1'})};
 
                             const tree = mkStateTree({suitesById, browsersById, resultsById});
-                            const state = {view: mkStateView({groupByError: true})};
+                            const state = {view: mkStateView({keyToGroupTestsBy: 'foo.bar'})};
 
                             const newState = reducer(state, {
                                 type: actionName,

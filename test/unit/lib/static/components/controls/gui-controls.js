@@ -6,10 +6,11 @@ import {mkState, mkConnectedComponent} from '../utils';
 describe('<GuiControls />', () => {
     const sandbox = sinon.sandbox.create();
 
-    let GuiControls, AcceptOpenedButton, actionsStub, selectors;
+    let GuiControls, AcceptOpenedButton, CommonControls, actionsStub, selectors;
 
     beforeEach(() => {
         AcceptOpenedButton = sandbox.stub().returns(null);
+        CommonControls = sandbox.stub().returns(null);
         actionsStub = {
             runAllTests: sandbox.stub().returns({type: 'some-type'}),
             runFailedTests: sandbox.stub().returns({type: 'some-type'}),
@@ -21,6 +22,7 @@ describe('<GuiControls />', () => {
 
         GuiControls = proxyquire('lib/static/components/controls/gui-controls', {
             './accept-opened-button': {default: AcceptOpenedButton},
+            './common-controls': {default: CommonControls},
             '../../modules/actions': actionsStub,
             '../../modules/selectors/tree': selectors
         }).default;

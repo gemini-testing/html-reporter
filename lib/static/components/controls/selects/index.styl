@@ -1,9 +1,9 @@
-.control-select
+.select
     display: inline-flex
     margin-right: 15px
     margin-bottom: 15px
 
-    .control-select__label
+    .select__label
         font-size: 11px
         margin: 0
         padding: 0 5px
@@ -13,12 +13,13 @@
         border-top-right-radius: 0
         border-bottom-right-radius: 0
 
-    .control-select__dropdown.ui.dropdown
+    .select__dropdown.ui.dropdown
         min-height: 25px
-        min-width: 60px
+        min-width: 70px
         font-size: 11px
         line-height: 13px
         padding: 5px
+        padding-right: 25px
         border: 1px solid #ccc
         border-radius: 2px
         border-top-left-radius: 0
@@ -32,13 +33,26 @@
             .menu
                 border-color: #ffd947
 
-        .icon
-            top: 50%
-            right: 10px
+        .icon.dropdown
             padding: 0
             margin: 0
-            transform: translateY(-50%)
+            line-height: initial
 
     &.diff-mode
-        .control-select__dropdown.ui.dropdown
+        .select__dropdown.ui.dropdown
             min-width: 90px
+
+    &.select_type_group
+        .select__dropdown.ui.dropdown
+            min-width: 110px
+
+            .menu > .header
+                margin: 0
+                padding: 0 0 0 5px
+                border-bottom: 0
+
+            .menu > .divider
+                margin: 5px 0
+
+            .menu > .item
+                padding-left: 10px !important
