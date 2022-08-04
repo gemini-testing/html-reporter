@@ -534,6 +534,7 @@ Property name              | Description
 Event                     | Description
 ------------------------- | -------------
 `DATABASE_CREATED`        | Will be triggered after sqlite database is created. The handler accepts a database instance. The event is synchronous.
+`TEST_SCREENSHOTS_SAVED`       | Will be triggered after test screenshots were saved. The handler accepts test id and screenshots info. The event is synchronous.
 
 ### events
 
@@ -552,6 +553,29 @@ module.exports = (hermione, opts) => {
         });
     });
 };
+```
+
+Example of a subscription to an event `TEST_SCREENSHOTS_SAVED`:
+
+```js
+hermione.htmlReporter.on(hermione.htmlReporter.events.TEST_SCREENSHOTS_SAVED, ({testId, attempt, imagesInfo}) => {
+    console.log(`Screenshots for test "${testId}" (attempt #${attempt}) were saved:`, imagesInfo);
+    /* Expected output:
+    Screenshots for test "Feature Test.chrome-desktop" (attempt #0) were saved:
+    [
+        {
+            stateName: 'plain',
+            refImg: { path: '...', size: { width: 400, height: 200 } },
+            status: 'fail',
+            error: undefined,
+            diffClusters: [...],
+            expectedImg: { path: '...', size: { width: 400, height: 200 } }
+            actualImg: { path: '...', size: { width: 400, height: 200 } }
+            diffImg: { path: '...', size: { width: 400, height: 200 } }
+        }
+    ]
+    */
+});
 ```
 
 ### addExtraItem
