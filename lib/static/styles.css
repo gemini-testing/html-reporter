@@ -313,15 +313,15 @@ main.container {
     height: 100%;
 }
 
-.groupedErrors {
+.grouped-tests {
     margin-top: 10px;
 }
 
-.error-group {
+.tests-group {
     margin-bottom: 10px;
 }
 
-.error-group__title {
+.tests-group__title {
     display: flex;
     align-items: center;
     font-size: 20px;
@@ -332,11 +332,11 @@ main.container {
     user-select: none;
 }
 
-.error-group__title:hover {
+.tests-group__title:hover {
     color: #a3a3a3;
 }
 
-.error-group__name {
+.tests-group__name {
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
@@ -350,7 +350,7 @@ main.container {
     margin-top: 10px;
 }
 
-.error-group__body .section {
+.tests-group__body .section {
     margin-top: 5px;
 }
 
@@ -379,7 +379,7 @@ main.container {
 }
 
 .section__title:before,
-.error-group__title:before,
+.tests-group__title:before,
 .state-title:after,
 .details__summary:after,
 .error .details__summary:before {
@@ -392,7 +392,7 @@ main.container {
     background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8 6.416L12.793 11.206C12.9816 11.3882 13.2342 11.489 13.4964 11.4867C13.7586 11.4844 14.0094 11.3792 14.1948 11.1938C14.3802 11.0084 14.4854 10.7576 14.4877 10.4954C14.4899 10.2332 14.3892 9.9806 14.207 9.792L8.707 4.295C8.51947 4.10753 8.26516 4.00221 8 4.00221C7.73483 4.00221 7.48052 4.10753 7.293 4.295L1.793 9.792C1.61084 9.9806 1.51004 10.2332 1.51232 10.4954C1.5146 10.7576 1.61977 11.0084 1.80518 11.1938C1.99058 11.3792 2.2414 11.4844 2.50359 11.4867C2.76579 11.489 3.01839 11.3882 3.207 11.206L8 6.416Z' fill='black'/%3E%3C/svg%3E%0A");
 }
 
-.error-group__title:before {
+.tests-group__title:before {
     flex-shrink: 0;
 }
 
@@ -423,7 +423,7 @@ details[open] > .details__summary:before {
 }
 
 .section_collapsed .section__title:before,
-.error-group_collapsed .error-group__title:before,
+.tests-group_collapsed .tests-group__title:before,
 .state-title_collapsed.state-title:after {
     transform: rotate(180deg);
 }
@@ -480,7 +480,7 @@ details[open] > .details__summary:before {
 }
 
 .section__body,
-.error-group__body {
+.tests-group__body {
     padding-left: 10px;
 }
 

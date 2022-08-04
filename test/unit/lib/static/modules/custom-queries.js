@@ -21,7 +21,6 @@ describe('lib/static/modules/query-params', () => {
                 'retryIndex=10',
                 'viewMode=all',
                 'expand=none',
-                'groupByError=true',
                 'abc=111'
             ].join('&'));
 
@@ -33,8 +32,7 @@ describe('lib/static/modules/query-params', () => {
                 testNameFilter: 'test name',
                 retryIndex: 10,
                 viewMode: viewModes.ALL,
-                expand: COLLAPSE_ALL,
-                groupByError: true
+                expand: COLLAPSE_ALL
             });
         });
     });
