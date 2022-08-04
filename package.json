@@ -71,7 +71,7 @@
     "react-html-parser": "^2.0.2",
     "react-markdown": "^3.2.0",
     "reapop": "2.1.0",
-    "reapop-theme-wybo": "1.0.2",
+    "reapop-theme-wybo": "^1.1.0",
     "reduce-reducers": "^1.0.4",
     "reselect": "^4.0.0",
     "resolve": "^1.5.0",
