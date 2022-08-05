@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="9.2.0"></a>
+# [9.2.0](https://github.com/gemini-testing/html-reporter/compare/v9.1.1...v9.2.0) (2022-08-05)
+
+
+### Features
+
+* add ability to group tests by keys from meta of tests ([5fd3526](https://github.com/gemini-testing/html-reporter/commit/5fd3526))
+* add ability to mark matched results on selected group ([8275b95](https://github.com/gemini-testing/html-reporter/commit/8275b95))
+
+
+
 <a name="9.1.1"></a>
 ## [9.1.1](https://github.com/gemini-testing/html-reporter/compare/v9.1.0...v9.1.1) (2022-08-04)
 
