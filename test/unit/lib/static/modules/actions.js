@@ -1,5 +1,6 @@
 import axios from 'axios';
 import proxyquire from 'proxyquire';
+import {POSITIONS} from 'reapop';
 import {acceptOpened, retryTest, runFailedTests} from 'lib/static/modules/actions';
 import actionNames from 'lib/static/modules/action-names';
 import StaticTestsTreeBuilder from 'lib/tests-tree-builder/static';
@@ -8,12 +9,12 @@ import diffModes from 'lib/constants/diff-modes';
 
 describe('lib/static/modules/actions', () => {
     const sandbox = sinon.sandbox.create();
-    let dispatch, actions, addNotification, getSuitesTableRows, getMainDatabaseUrl, connectToDatabaseStub, pluginsStub;
+    let dispatch, actions, notify, getSuitesTableRows, getMainDatabaseUrl, connectToDatabaseStub, pluginsStub;
 
     beforeEach(() => {
         dispatch = sandbox.stub();
         sandbox.stub(axios, 'post').resolves({data: {}});
-        addNotification = sandbox.stub();
+        notify = sandbox.stub();
         getSuitesTableRows = sandbox.stub();
         getMainDatabaseUrl = sandbox.stub().returns({href: 'http://localhost/default/sqlite.db'});
         connectToDatabaseStub = sandbox.stub().resolves({});
@@ -23,7 +24,7 @@ describe('lib/static/modules/actions', () => {
         sandbox.stub(StaticTestsTreeBuilder.prototype, 'build').returns({});
 
         actions = proxyquire('lib/static/modules/actions', {
-            'reapop': {addNotification},
+            'reapop': {notify},
             './database-utils': {getSuitesTableRows},
             '../../db-utils/client': {getMainDatabaseUrl, connectToDatabase: connectToDatabaseStub},
             './plugins': pluginsStub
@@ -71,12 +72,16 @@ describe('lib/static/modules/actions', () => {
             await actions.initGuiReport()(dispatch);
 
             assert.calledOnceWith(
-                addNotification,
+                notify,
                 {
                     dismissAfter: 0,
                     id: 'initGuiReport',
                     message: 'failed to initialize custom gui',
-                    status: 'error'
+                    status: 'error',
+                    position: POSITIONS.topCenter,
+                    dismissible: true,
+                    showDismissButton: true,
+                    allowHTML: true
                 }
             );
         });
@@ -297,12 +302,16 @@ describe('lib/static/modules/actions', () => {
             await actions.runCustomGuiAction(payload)(dispatch);
 
             assert.calledOnceWith(
-                addNotification,
+                notify,
                 {
                     dismissAfter: 0,
                     id: 'runCustomGuiAction',
                     message: 'failed to run custom gui control action',
-                    status: 'error'
+                    status: 'error',
+                    position: POSITIONS.topCenter,
+                    dismissible: true,
+                    showDismissButton: true,
+                    allowHTML: true
                 }
             );
         });
@@ -352,12 +361,16 @@ describe('lib/static/modules/actions', () => {
             await actions.testsEnd()(dispatch);
 
             assert.calledOnceWith(
-                addNotification,
+                notify,
                 {
                     dismissAfter: 0,
                     id: 'testsEnd',
                     message: 'failed to connect to database',
-                    status: 'error'
+                    status: 'error',
+                    position: POSITIONS.topCenter,
+                    dismissible: true,
+                    showDismissButton: true,
+                    allowHTML: true
                 }
             );
         });
