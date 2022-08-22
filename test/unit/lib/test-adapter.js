@@ -322,6 +322,71 @@ describe('hermione test adapter', () => {
                 imagesInfo: [{test: 123}]
             });
         });
+
+        describe('saving error screenshot', () => {
+            beforeEach(() => {
+                sandbox.stub(logger, 'warn');
+                sandbox.stub(utils, 'makeDirFor').resolves();
+                sandbox.stub(fs, 'writeFile').resolves();
+                sandbox.stub(utils, 'copyFileAsync');
+            });
+
+            describe('if screenshot on reject does not exist', () => {
+                it('should not save screenshot', () => {
+                    const testResult = mkTestResult_({
+                        err: {screenshot: {base64: null}},
+                        assertViewResults: []
+                    });
+                    const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+
+                    return hermioneTestAdapter.saveTestImages()
+                        .then(() => assert.notCalled(fs.writeFile));
+                });
+
+                it('should warn about it', () => {
+                    const testResult = mkTestResult_({
+                        err: {screenshot: {base64: null}},
+                        assertViewResults: []
+                    });
+                    const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+
+                    return hermioneTestAdapter.saveTestImages()
+                        .then(() => assert.calledWith(logger.warn, 'Cannot save screenshot on reject'));
+                });
+            });
+
+            it('should create directory for screenshot', () => {
+                const testResult = mkTestResult_({
+                    err: {screenshot: {base64: 'base64-data'}},
+                    assertViewResults: []
+                });
+                utils.getCurrentPath.returns('dest/path');
+                const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+
+                return hermioneTestAdapter.saveTestImages()
+                    .then(() => assert.calledOnceWith(utils.makeDirFor, sinon.match('dest/path')));
+            });
+
+            it('should save screenshot from base64 format', async () => {
+                const testResult = mkTestResult_({
+                    err: {screenshot: {base64: 'base64-data'}},
+                    assertViewResults: []
+                });
+                utils.getCurrentPath.returns('dest/path');
+                const bufData = new Buffer('base64-data', 'base64');
+                const imagesSaver = {saveImg: sandbox.stub()};
+                const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {
+                    htmlReporter: {
+                        imagesSaver
+                    }
+                });
+
+                await hermioneTestAdapter.saveTestImages('report/path');
+
+                assert.calledOnceWith(fs.writeFile, sinon.match('dest/path'), bufData, 'base64');
+                assert.calledWith(imagesSaver.saveImg, sinon.match('dest/path'), {destPath: 'dest/path', reportDir: 'report/path'});
+            });
+        });
     });
 
     describe('hasDiff()', () => {
@@ -525,67 +590,6 @@ describe('hermione test adapter', () => {
 
             const {expectedImg} = hermioneTestAdapter.getImagesFor(UPDATED);
             assert.equal(expectedImg.path, 'some/ref.png');
-        });
-    });
-
-    describe('saveErrorScreenshot', () => {
-        beforeEach(() => {
-            sandbox.stub(logger, 'warn');
-            sandbox.stub(utils, 'makeDirFor').resolves();
-            sandbox.stub(fs, 'writeFile').resolves();
-            sandbox.stub(utils, 'copyFileAsync');
-        });
-
-        describe('if screenshot on reject does not exist', () => {
-            it('should not save screenshot', () => {
-                const testResult = mkTestResult_({
-                    err: {screenshot: {base64: null}}
-                });
-                const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
-
-                return hermioneTestAdapter.saveErrorScreenshot()
-                    .then(() => assert.notCalled(fs.writeFile));
-            });
-
-            it('should warn about it', () => {
-                const testResult = mkTestResult_({
-                    err: {screenshot: {base64: null}}
-                });
-                const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
-
-                return hermioneTestAdapter.saveErrorScreenshot()
-                    .then(() => assert.calledWith(logger.warn, 'Cannot save screenshot on reject'));
-            });
-        });
-
-        it('should create directory for screenshot', () => {
-            const testResult = mkTestResult_({
-                err: {screenshot: {base64: 'base64-data'}}
-            });
-            utils.getCurrentPath.returns('dest/path');
-            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
-
-            return hermioneTestAdapter.saveErrorScreenshot()
-                .then(() => assert.calledOnceWith(utils.makeDirFor, sinon.match('dest/path')));
-        });
-
-        it('should save screenshot from base64 format', async () => {
-            const testResult = mkTestResult_({
-                err: {screenshot: {base64: 'base64-data'}}
-            });
-            utils.getCurrentPath.returns('dest/path');
-            const bufData = new Buffer('base64-data', 'base64');
-            const imagesSaver = {saveImg: sandbox.stub()};
-            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {
-                htmlReporter: {
-                    imagesSaver
-                }
-            });
-
-            await hermioneTestAdapter.saveErrorScreenshot('report/path');
-
-            assert.calledOnceWith(fs.writeFile, sinon.match('dest/path'), bufData, 'base64');
-            assert.calledWith(imagesSaver.saveImg, sinon.match('dest/path'), {destPath: 'dest/path', reportDir: 'report/path'});
         });
     });
 

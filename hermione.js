@@ -38,10 +38,6 @@ async function prepare(hermione, reportBuilder, pluginConfig) {
             actions.push(formattedResult.saveErrorDetails(reportPath));
         }
 
-        if (formattedResult.screenshot) {
-            actions.push(formattedResult.saveErrorScreenshot(reportPath));
-        }
-
         await Promise.all(actions);
 
         return formattedResult;
