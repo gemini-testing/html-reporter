@@ -46,7 +46,7 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
 
             reportSubscriber(hermione, reportBuilder, client);
 
-            return hermione.emitAndWait(hermione.events.RUNNER_END)
+            return hermione.emitAsync(hermione.events.RUNNER_END)
                 .then(() => assert.calledOnceWith(client.emit, clientEvents.END));
         });
 
@@ -61,7 +61,7 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
 
             reportSubscriber(hermione, reportBuilder, client);
             hermione.emit(hermione.events.TEST_FAIL, testResult);
-            await hermione.emitAndWait(hermione.events.RUNNER_END);
+            await hermione.emitAsync(hermione.events.RUNNER_END);
 
             assert.callOrder(mediator, client.emit.withArgs(clientEvents.END));
         });
@@ -91,8 +91,8 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
             reportBuilder.format.withArgs(testData, hermione.events.TEST_PENDING).returns(formattedResult);
 
             reportSubscriber(hermione, reportBuilder, client);
-            hermione.emitAndWait(hermione.events.TEST_PENDING, testData);
-            await hermione.emitAndWait(hermione.events.RUNNER_END);
+            hermione.emitAsync(hermione.events.TEST_PENDING, testData);
+            await hermione.emitAsync(hermione.events.RUNNER_END);
 
             assert.calledOnceWith(reportBuilder.addSkipped, formattedResult);
         });
@@ -106,8 +106,8 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
             reportBuilder.getTestBranch.withArgs('some-id').returns('test-tree-branch');
 
             reportSubscriber(hermione, reportBuilder, client);
-            hermione.emitAndWait(hermione.events.TEST_PENDING, testData);
-            await hermione.emitAndWait(hermione.events.RUNNER_END);
+            hermione.emitAsync(hermione.events.TEST_PENDING, testData);
+            await hermione.emitAsync(hermione.events.RUNNER_END);
 
             assert.calledWith(client.emit, clientEvents.TEST_RESULT, 'test-tree-branch');
         });
@@ -124,7 +124,7 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
 
             reportSubscriber(hermione, reportBuilder, client);
             hermione.emit(hermione.events.TEST_FAIL, testData);
-            await hermione.emitAndWait(hermione.events.RUNNER_END);
+            await hermione.emitAsync(hermione.events.RUNNER_END);
 
             assert.calledWithMatch(reportBuilder.addFail, {attempt: 1});
         });
@@ -138,7 +138,7 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
 
             reportSubscriber(hermione, reportBuilder, client);
             hermione.emit(hermione.events.TEST_FAIL, testData);
-            await hermione.emitAndWait(hermione.events.RUNNER_END);
+            await hermione.emitAsync(hermione.events.RUNNER_END);
 
             assert.callOrder(formattedResult.saveTestImages, reportBuilder.addFail);
         });
@@ -153,7 +153,7 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
 
             reportSubscriber(hermione, reportBuilder, client);
             hermione.emit(hermione.events.TEST_FAIL, testData);
-            await hermione.emitAndWait(hermione.events.RUNNER_END);
+            await hermione.emitAsync(hermione.events.RUNNER_END);
 
             assert.calledWith(client.emit, clientEvents.TEST_RESULT, 'test-tree-branch');
         });
