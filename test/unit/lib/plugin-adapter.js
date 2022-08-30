@@ -38,7 +38,7 @@ describe('lib/plugin-adapter', () => {
 
     function initApiReporter_(opts) {
         initReporter_(opts);
-        return tool.emitAndWait(tool.events.INIT);
+        return tool.emitAsync(tool.events.INIT);
     }
 
     function initCliReporter_(opts, {command = 'foo'} = {}) {
@@ -48,7 +48,7 @@ describe('lib/plugin-adapter', () => {
         tool.emit(tool.events.CLI, commander);
         commander.emit(`command:${command}`);
 
-        return tool.emitAndWait(tool.events.INIT);
+        return tool.emitAsync(tool.events.INIT);
     }
 
     function mkCommander_(commands = ['default-command']) {
@@ -168,7 +168,7 @@ describe('lib/plugin-adapter', () => {
                 .then(() => {
                     tool.emit(tool.events.END);
 
-                    return tool.emitAndWait(tool.events.RUNNER_END).then(() => {
+                    return tool.emitAsync(tool.events.RUNNER_END).then(() => {
                         assert.calledOnce(StaticReportBuilder.prototype.finalize);
                     });
                 });
@@ -179,7 +179,7 @@ describe('lib/plugin-adapter', () => {
                 .then(() => {
                     tool.emit(tool.events.END);
 
-                    return tool.emitAndWait(tool.events.RUNNER_END).then(() => {
+                    return tool.emitAsync(tool.events.RUNNER_END).then(() => {
                         assert.calledWithMatch(logger.log, 'some/path');
                     });
                 });
@@ -192,7 +192,7 @@ describe('lib/plugin-adapter', () => {
                 .then(() => {
                     tool.emit(tool.events.END);
 
-                    return tool.emitAndWait(tool.events.RUNNER_END).then(() => {
+                    return tool.emitAsync(tool.events.RUNNER_END).then(() => {
                         assert.calledWith(logger.error, sinon.match('Html-reporter runtime error: some-error'));
                     });
                 });

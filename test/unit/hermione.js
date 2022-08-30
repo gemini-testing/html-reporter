@@ -58,7 +58,7 @@ describe('lib/hermione', () => {
 
         HermioneReporter(hermione, opts);
 
-        return hermione.emitAndWait(hermione.events.INIT);
+        return hermione.emitAsync(hermione.events.INIT);
     }
 
     function mkStubResult_(options = {}) {
@@ -73,7 +73,7 @@ describe('lib/hermione', () => {
     }
 
     async function stubWorkers() {
-        await hermione.emitAndWait(events.RUNNER_START, {
+        await hermione.emitAsync(events.RUNNER_START, {
             registerWorkers: () => {
                 return {saveDiffTo: sandbox.stub()};
             }
@@ -138,7 +138,7 @@ describe('lib/hermione', () => {
     it('should add skipped test to result', async () => {
         await initReporter_();
         hermione.emit(events.TEST_PENDING, mkStubResult_({title: 'some-title'}));
-        await hermione.emitAndWait(hermione.events.RUNNER_END);
+        await hermione.emitAsync(hermione.events.RUNNER_END);
 
         assert.deepEqual(StaticReportBuilder.prototype.addSkipped.args[0][0].state, {name: 'some-title'});
     });
@@ -146,7 +146,7 @@ describe('lib/hermione', () => {
     it('should add passed test to result', async () => {
         await initReporter_();
         hermione.emit(events.TEST_PASS, mkStubResult_({title: 'some-title'}));
-        await hermione.emitAndWait(hermione.events.RUNNER_END);
+        await hermione.emitAsync(hermione.events.RUNNER_END);
 
         assert.deepEqual(StaticReportBuilder.prototype.addSuccess.args[0][0].state, {name: 'some-title'});
     });
@@ -158,7 +158,7 @@ describe('lib/hermione', () => {
                 await initReporter_();
 
                 hermione.emit(events[event], testResult);
-                await hermione.emitAndWait(hermione.events.RUNNER_END);
+                await hermione.emitAsync(hermione.events.RUNNER_END);
 
                 assert.deepEqual(StaticReportBuilder.prototype.addError.args[0][0].state, {name: 'some-title'});
             });
@@ -169,7 +169,7 @@ describe('lib/hermione', () => {
                 err.stateName = 'state-name';
 
                 hermione.emit(events[event], mkStubResult_({title: 'some-title', assertViewResults: [err]}));
-                await hermione.emitAndWait(hermione.events.RUNNER_END);
+                await hermione.emitAsync(hermione.events.RUNNER_END);
 
                 assert.deepEqual(StaticReportBuilder.prototype.addError.args[0][0].state, {name: 'some-title'});
             });
@@ -185,7 +185,7 @@ describe('lib/hermione', () => {
                 });
 
                 hermione.emit(events[event], testResult);
-                await hermione.emitAndWait(hermione.events.RUNNER_END);
+                await hermione.emitAsync(hermione.events.RUNNER_END);
 
                 assert.deepEqual(StaticReportBuilder.prototype.addFail.args[0][0].state, {name: 'some-title'});
             });
@@ -197,7 +197,7 @@ describe('lib/hermione', () => {
                 err.stateName = 'state-name';
 
                 hermione.emit(events[event], mkStubResult_({title: 'some-title', assertViewResults: [err]}));
-                await hermione.emitAndWait(hermione.events.RUNNER_END);
+                await hermione.emitAsync(hermione.events.RUNNER_END);
 
                 assert.deepEqual(StaticReportBuilder.prototype.addFail.args[0][0].state, {name: 'some-title'});
             });
@@ -210,7 +210,7 @@ describe('lib/hermione', () => {
         await initReporter_({path: '/absolute'});
         const testData = mkStubResult_({assertViewResults: [{refImg: {path: 'ref/path'}, stateName: 'plain'}]});
         hermione.emit(events.TEST_PASS, testData);
-        await hermione.emitAndWait(events.RUNNER_END);
+        await hermione.emitAsync(events.RUNNER_END);
 
         assert.calledOnceWith(utils.copyFileAsync, 'ref/path', 'report/plain', '/absolute');
     });
@@ -223,7 +223,7 @@ describe('lib/hermione', () => {
         err.currImg = {path: 'current/path'};
 
         hermione.emit(events.RETRY, mkStubResult_({assertViewResults: [err]}));
-        await hermione.emitAndWait(events.RUNNER_END);
+        await hermione.emitAsync(events.RUNNER_END);
 
         assert.calledOnceWith(utils.copyFileAsync, 'current/path', 'report/plain', '/absolute');
     });
@@ -238,7 +238,7 @@ describe('lib/hermione', () => {
         err.refImg = {path: 'reference/path'};
 
         hermione.emit(events.TEST_FAIL, mkStubResult_({assertViewResults: [err]}));
-        await hermione.emitAndWait(events.RUNNER_END);
+        await hermione.emitAsync(events.RUNNER_END);
 
         assert.calledWith(utils.copyFileAsync, 'reference/path', 'report/plain', '/absolute');
     });
@@ -246,7 +246,7 @@ describe('lib/hermione', () => {
     it('should save current image from assert view fail', async () => {
         utils.getCurrentPath.callsFake((test, stateName) => `report/${stateName}`);
         await initReporter_({path: '/absolute'});
-        await hermione.emitAndWait(events.RUNNER_START, {
+        await hermione.emitAsync(events.RUNNER_START, {
             registerWorkers: () => {
                 return {saveDiffTo: sandbox.stub()};
             }
@@ -256,7 +256,7 @@ describe('lib/hermione', () => {
         err.currImg = {path: 'current/path'};
 
         hermione.emit(events.TEST_FAIL, mkStubResult_({assertViewResults: [err]}));
-        await hermione.emitAndWait(events.RUNNER_END);
+        await hermione.emitAsync(events.RUNNER_END);
 
         assert.calledWith(utils.copyFileAsync, 'current/path', 'report/plain', '/absolute');
     });
@@ -270,13 +270,13 @@ describe('lib/hermione', () => {
 
         await initReporter_();
 
-        await hermione.emitAndWait(events.RUNNER_START, {
+        await hermione.emitAsync(events.RUNNER_START, {
             registerWorkers: () => {
                 return {saveDiffTo};
             }
         });
         hermione.emit(events.TEST_FAIL, mkStubResult_({assertViewResults: [err]}));
-        await hermione.emitAndWait(events.RUNNER_END);
+        await hermione.emitAsync(events.RUNNER_END);
 
         assert.calledWith(
             saveDiffTo, sinon.match.instanceOf(ImageDiffError), sinon.match('/report/plain')

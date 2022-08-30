@@ -1,7 +1,7 @@
 'use strict';
 
 const _ = require('lodash');
-const {AsyncEmitter} = require('gemini-core').events;
+const EventEmitter2 = require('eventemitter2');
 
 function stubConfig(config = {}) {
     const browsers = config.browsers || {};
@@ -22,7 +22,7 @@ const stubTestCollection = (testsTree = {}) => {
 };
 
 function stubTool(config = stubConfig(), events = {}, errors = {}, htmlReporter) {
-    const tool = new AsyncEmitter();
+    const tool = new EventEmitter2();
 
     tool.config = config;
     tool.events = events;
