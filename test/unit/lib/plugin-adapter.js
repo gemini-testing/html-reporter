@@ -174,6 +174,15 @@ describe('lib/plugin-adapter', () => {
                 });
         });
 
+        it('should emit REPORT_SAVED event', async () => {
+            await initCliReporter_({path: '/some/report/path'}, {});
+
+            tool.emit(tool.events.END);
+            await tool.emitAsync(tool.events.RUNNER_END);
+
+            assert.calledOnceWith(tool.htmlReporter.emitAsync, 'reportSaved', {reportPath: '/some/report/path'});
+        });
+
         it('should log correct path to html report', () => {
             return initCliReporter_({path: 'some/path'}, {})
                 .then(() => {

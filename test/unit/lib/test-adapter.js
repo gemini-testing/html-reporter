@@ -32,7 +32,7 @@ describe('hermione test adapter', () => {
             Object.assign({
                 imagesSaver: {saveImg: sandbox.stub()},
                 events: {TEST_SCREENSHOTS_SAVED: 'testScreenshotsSaved'},
-                emit: sinon.stub()
+                emitAsync: sinon.stub()
             }, htmlReporter)
         );
 
@@ -308,7 +308,7 @@ describe('hermione test adapter', () => {
             const htmlReporterEmitStub = sinon.stub();
             const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {
                 htmlReporter: {
-                    emit: htmlReporterEmitStub
+                    emitAsync: htmlReporterEmitStub
                 }
             });
             sinon.stub(hermioneTestAdapter, 'getImagesInfo').returns([{test: 123}]);
