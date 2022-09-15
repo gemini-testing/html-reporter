@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="9.3.0"></a>
+# [9.3.0](https://github.com/gemini-testing/html-reporter/compare/v9.2.2...v9.3.0) (2022-09-15)
+
+
+### Features
+
+* add REPORT_SAVED event ([cd16aa6](https://github.com/gemini-testing/html-reporter/commit/cd16aa6))
+* use EventEmitter2 instead of AsyncEmitter from gemini-core ([3c41ab7](https://github.com/gemini-testing/html-reporter/commit/3c41ab7))
+
+
+
 <a name="9.2.2"></a>
 ## [9.2.2](https://github.com/gemini-testing/html-reporter/compare/v9.2.1...v9.2.2) (2022-08-23)
 
