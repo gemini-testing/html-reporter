@@ -31,6 +31,10 @@ function stubTool(config = stubConfig(), events = {}, errors = {}, htmlReporter)
     tool.run = sinon.stub().resolves(false);
     tool.readTests = sinon.stub().resolves(stubTestCollection());
     tool.htmlReporter = htmlReporter || sinon.stub();
+    _.defaultsDeep(tool.htmlReporter, {
+        emitAsync: sinon.stub(),
+        events: {REPORT_SAVED: 'reportSaved'}
+    });
     tool.isWorker = () => {
         return false;
     };

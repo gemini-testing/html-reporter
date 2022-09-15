@@ -534,7 +534,8 @@ Property name              | Description
 Event                     | Description
 ------------------------- | -------------
 `DATABASE_CREATED`        | Will be triggered after sqlite database is created. The handler accepts a database instance. The event is synchronous.
-`TEST_SCREENSHOTS_SAVED`       | Will be triggered after test screenshots were saved. The handler accepts test id and screenshots info. The event is synchronous.
+`TEST_SCREENSHOTS_SAVED`  | Will be triggered after test screenshots were saved. The handler accepts test id and screenshots info. The event is asynchronous, so your handler can return a promise.
+`REPORT_SAVED`            | Will be triggered after all test files were saved. The event is asynchronous, so your handler can return a promise.
 
 ### events
 
@@ -558,7 +559,7 @@ module.exports = (hermione, opts) => {
 Example of a subscription to an event `TEST_SCREENSHOTS_SAVED`:
 
 ```js
-hermione.htmlReporter.on(hermione.htmlReporter.events.TEST_SCREENSHOTS_SAVED, ({testId, attempt, imagesInfo}) => {
+hermione.htmlReporter.on(hermione.htmlReporter.events.TEST_SCREENSHOTS_SAVED, async ({testId, attempt, imagesInfo}) => {
     console.log(`Screenshots for test "${testId}" (attempt #${attempt}) were saved:`, imagesInfo);
     /* Expected output:
     Screenshots for test "Feature Test.chrome-desktop" (attempt #0) were saved:
@@ -575,6 +576,13 @@ hermione.htmlReporter.on(hermione.htmlReporter.events.TEST_SCREENSHOTS_SAVED, ({
         }
     ]
     */
+});
+```
+
+Example of a subscription to an event `REPORT_SAVED`:
+```js
+hermione.htmlReporter.on(hermione.htmlReporter.events.REPORT_SAVED, async ({reportPath}) => {
+    await uploadDirToS3(reportPath);
 });
 ```
 
