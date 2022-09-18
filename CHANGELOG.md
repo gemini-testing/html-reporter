@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="9.3.1"></a>
+## [9.3.1](https://github.com/gemini-testing/html-reporter/compare/v9.3.0...v9.3.1) (2022-09-18)
+
+
+### Bug Fixes
+
+* move static deps to dev and remove unused deps ([1f0fab5](https://github.com/gemini-testing/html-reporter/commit/1f0fab5))
+
+
+
 <a name="9.3.0"></a>
 # [9.3.0](https://github.com/gemini-testing/html-reporter/compare/v9.2.2...v9.3.0) (2022-09-15)
 
