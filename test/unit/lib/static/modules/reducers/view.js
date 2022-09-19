@@ -199,24 +199,16 @@ describe('lib/static/modules/reducers/view', () => {
         });
     });
 
-    describe(`"${actionNames.VIEW_SHOW_ALL}" action`, () => {
-        it('should change "viewMode" field on "all" value', () => {
-            const action = {type: actionNames.VIEW_SHOW_ALL};
+    describe(`"${actionNames.CHANGE_VIEW_MODE}" action`, () => {
+        Object.keys(viewModes).forEach(((viewModeKey) => {
+            it(`should change "viewMode" field to selected ${viewModeKey} value`, () => {
+                const action = {type: actionNames.CHANGE_VIEW_MODE, payload: viewModes[viewModeKey]};
 
-            const newState = reducer(defaultState, action);
+                const newState = reducer(defaultState, action);
 
-            assert.equal(newState.view.viewMode, viewModes.ALL);
-        });
-    });
-
-    describe(`"${actionNames.VIEW_SHOW_FAILED}" action`, () => {
-        it('should change "viewMode" field on "failed" value', () => {
-            const action = {type: actionNames.VIEW_SHOW_FAILED};
-
-            const newState = reducer(defaultState, action);
-
-            assert.equal(newState.view.viewMode, viewModes.FAILED);
-        });
+                assert.equal(newState.view.viewMode, viewModes[viewModeKey]);
+            });
+        }));
     });
 
     describe(`"${actionNames.GROUP_TESTS_BY_KEY}" action`, () => {

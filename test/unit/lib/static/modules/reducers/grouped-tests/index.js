@@ -40,8 +40,7 @@ describe('lib/static/modules/reducers/grouped-tests', () => {
         actionNames.BROWSERS_SELECTED,
         actionNames.VIEW_UPDATE_FILTER_BY_NAME,
         actionNames.VIEW_SET_STRICT_MATCH_FILTER,
-        actionNames.VIEW_SHOW_ALL,
-        actionNames.VIEW_SHOW_FAILED,
+        actionNames.CHANGE_VIEW_MODE,
         actionNames.ACCEPT_SCREENSHOT,
         actionNames.ACCEPT_OPENED_SCREENSHOTS
     ].forEach((actionName) => {
