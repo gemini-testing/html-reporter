@@ -44,7 +44,7 @@ describe('lib/gui/app', () => {
         };
         tool = stubTool(stubConfig({browsers: browserConfigs}));
         toolRunner = mkToolRunner_(tool);
-        looksSame = sandbox.stub().named('looksSame').yields(null, {equal: true});
+        looksSame = sandbox.stub().named('looksSame').resolves({equal: true});
 
         App = proxyquire('lib/gui/app', {
             'looks-same': looksSame
