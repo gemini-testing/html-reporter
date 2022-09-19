@@ -55,7 +55,7 @@ describe('lib/gui/tool-runner/index', () => {
 
         reportBuilder = sinon.createStubInstance(GuiReportBuilder);
         reportSubscriber = sandbox.stub().named('reportSubscriber').resolves();
-        looksSame = sandbox.stub().named('looksSame').yields(null, {equal: true});
+        looksSame = sandbox.stub().named('looksSame').resolves({equal: true});
 
         sandbox.stub(GuiReportBuilder, 'create').returns(reportBuilder);
         reportBuilder.format.returns({prepareTestResult: sandbox.stub()});
@@ -336,7 +336,7 @@ describe('lib/gui/tool-runner/index', () => {
                 {source: '/ref-path-1', boundingBox: refImagesInfo.diffClusters[0]},
                 {source: '/ref-path-2', boundingBox: comparedImagesInfo[0].diffClusters[0]},
                 compareOpts
-            ).yields(null, {equal: false});
+            ).resolves({equal: false});
 
             await gui.initialize();
             const result = await gui.findEqualDiffs([refImagesInfo, ...comparedImagesInfo]);
@@ -354,12 +354,12 @@ describe('lib/gui/tool-runner/index', () => {
                 .withArgs(process.cwd(), 'report_path', 'act-path-1').returns('/act-path-1')
                 .withArgs(process.cwd(), 'report_path', 'act-path-2').returns('/act-path-2');
 
-            looksSame.onFirstCall().yields(null, {equal: true});
+            looksSame.onFirstCall().resolves({equal: true});
             looksSame.withArgs(
                 {source: '/act-path-1', boundingBox: refImagesInfo.diffClusters[0]},
                 {source: '/act-path-2', boundingBox: comparedImagesInfo[0].diffClusters[0]},
                 compareOpts
-            ).yields(null, {equal: false});
+            ).resolves({equal: false});
 
             await gui.initialize();
             const result = await gui.findEqualDiffs([refImagesInfo, ...comparedImagesInfo]);
@@ -383,7 +383,7 @@ describe('lib/gui/tool-runner/index', () => {
                 ]
             })];
 
-            looksSame.yields(null, {equal: true});
+            looksSame.resolves({equal: true});
 
             await gui.initialize();
             await gui.findEqualDiffs([refImagesInfo, ...comparedImagesInfo]);
@@ -399,7 +399,7 @@ describe('lib/gui/tool-runner/index', () => {
                 {...mkImagesInfo(), id: 'compared-img-3'}
             ];
 
-            looksSame.yields(null, {equal: true});
+            looksSame.resolves({equal: true});
 
             await gui.initialize();
             const result = await gui.findEqualDiffs([refImagesInfo, ...comparedImagesInfo]);
