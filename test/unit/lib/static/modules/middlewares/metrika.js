@@ -331,7 +331,6 @@ describe('lib/static/modules/middlewares/metrika', () => {
         actionNames.VIEW_COLLAPSE_ALL,
         actionNames.VIEW_EXPAND_ERRORS,
         actionNames.VIEW_EXPAND_RETRIES,
-        actionNames.VIEW_TOGGLE_SKIPPED,
         actionNames.VIEW_UPDATE_BASE_HOST,
         actionNames.VIEW_THREE_UP_DIFF,
         actionNames.VIEW_THREE_UP_SCALED_DIFF,
