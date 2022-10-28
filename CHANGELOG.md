@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="9.4.0"></a>
+# [9.4.0](https://github.com/gemini-testing/html-reporter/compare/v9.3.1...v9.4.0) (2022-10-28)
+
+
+### Features
+
+* **static:** expand test statuses filter ([0217508](https://github.com/gemini-testing/html-reporter/commit/0217508))
+* use looks-same directly instead of gemini-core.Image wrapper ([0ed8f83](https://github.com/gemini-testing/html-reporter/commit/0ed8f83))
+
+
+
 <a name="9.3.1"></a>
 ## [9.3.1](https://github.com/gemini-testing/html-reporter/compare/v9.3.0...v9.3.1) (2022-09-18)
 
