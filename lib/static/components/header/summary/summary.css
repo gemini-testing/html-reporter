@@ -1,6 +1,6 @@
 .summary {
     margin: 0;
-    display: inline-block;
+    display: flex;
 }
 
 .summary__key {
@@ -40,10 +40,10 @@
     line-height: 18px;
     height: auto;
     padding: 0;
-    margin-left: 50px;
     box-shadow: none !important;
     border: none;
     color: #000 !important;
+    margin-left: auto;
 }
 
 .ui.basic.db-info:hover {

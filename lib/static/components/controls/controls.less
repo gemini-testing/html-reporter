@@ -4,9 +4,34 @@
     background-color: #fafaf9;
 }
 
-.control-buttons .button {
-    margin-right: 15px;
-    margin-bottom: 15px;
+.control-buttons {
+    display: flex;
+    flex-wrap: wrap;
+
+    .common-controls {
+        display: flex;
+        flex-wrap: wrap;
+        width: 100%;
+
+        .basehost {
+            display: inline-block;
+            margin-right: auto;
+        }
+
+        .report-info {
+            display: inline-block;
+        }
+    }
+
+    .button, .control-label, .control-input {
+        margin-right: 15px;
+        margin-bottom: 15px;
+    }
+
+    .control-label {
+        border-radius: 2px;
+        height: 25px;
+    }
 }
 
 .control-group .button {
