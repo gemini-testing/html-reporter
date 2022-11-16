@@ -15,7 +15,8 @@ describe('<GuiControls />', () => {
         actionsStub = {
             runAllTests: sandbox.stub().returns({type: 'some-type'}),
             runFailedTests: sandbox.stub().returns({type: 'some-type'}),
-            stopTests: sandbox.stub().returns({type: 'some-type'})
+            stopTests: sandbox.stub().returns({type: 'some-type'}),
+            stopServer: sandbox.stub().returns({type: 'some-type'})
         };
         selectors = {
             getFailedTests: sandbox.stub().returns([]),
@@ -79,6 +80,36 @@ describe('<GuiControls />', () => {
 
             component.find('[label="Stop tests"]').simulate('click');
             assert.calledOnce(actionsStub.stopTests);
+        });
+    });
+
+    describe('"Stop server" button', () => {
+        it('should be disabled when server is already stopped', () => {
+            const component = mkConnectedComponent(<GuiControls />, {
+                initialState: {serverStopped: true}
+            });
+
+            assert.isTrue(component.find('[label="Stop server"]').prop('isDisabled'));
+        });
+
+        it('should call "stopServer" action on click', () => {
+            const component = mkConnectedComponent(<GuiControls />);
+
+            component.find('[label="Stop server"]').simulate('click');
+
+            assert.calledOnceWith(actionsStub.stopServer);
+        });
+
+        it('should work when tests are running', () => {
+            const component = mkConnectedComponent(<GuiControls />, {
+                initialState: {running: true, processing: true}
+            });
+
+            const stop = component.find('[label="Stop server"]');
+            assert.isFalse(stop.prop('isDisabled'));
+
+            stop.simulate('click');
+            assert.calledOnceWith(actionsStub.stopServer);
         });
     });
 });

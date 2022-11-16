@@ -19,7 +19,8 @@ class Body extends Component {
         // from store
         gui: PropTypes.bool.isRequired,
         running: PropTypes.bool.isRequired,
-        retryIndex: PropTypes.number
+        retryIndex: PropTypes.number,
+        serverStopped: PropTypes.bool.isRequired
     };
 
     onRetrySwitcherChange = (index) => {
@@ -57,7 +58,7 @@ class Body extends Component {
     };
 
     _addRetryButton = () => {
-        const {gui, running} = this.props;
+        const {gui, running, serverStopped} = this.props;
 
         return gui
             ? (
@@ -65,7 +66,7 @@ class Body extends Component {
                     <ControlButton
                         label="↻ Retry"
                         isSuiteControl={true}
-                        isDisabled={running}
+                        isDisabled={running || serverStopped}
                         handler={this.onTestRetry}
                         dataTestId="test-retry"
                     />
@@ -99,7 +100,7 @@ class Body extends Component {
 }
 
 export default connect(
-    ({gui, running, view: {retryIndex: viewRetryIndex}, tree}, {browserId}) => {
+    ({gui, running, view: {retryIndex: viewRetryIndex}, tree, serverStopped}, {browserId}) => {
         const {retryIndex: browserRetryIndex, lastMatchedRetryIndex} = tree.browsers.stateById[browserId] || {};
         let retryIndex;
 
@@ -109,7 +110,7 @@ export default connect(
             retryIndex = isNumber(lastMatchedRetryIndex) ? lastMatchedRetryIndex : browserRetryIndex;
         }
 
-        return {gui, running, retryIndex};
+        return {gui, running, retryIndex, serverStopped};
     },
     (dispatch) => ({actions: bindActionCreators(actions, dispatch)})
 )(Body);

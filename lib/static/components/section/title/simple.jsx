@@ -10,7 +10,7 @@ import {mkGetTestsBySuiteId} from '../../../modules/selectors/tree';
 import {getToggledCheckboxState} from '../../../../common-utils';
 import Bullet from '../../bullet';
 
-const SectionTitle = ({name, suiteId, handler, gui, checkStatus, suiteTests, actions}) => {
+const SectionTitle = ({name, suiteId, handler, gui, checkStatus, suiteTests, actions, serverStopped}) => {
     const onCopySuiteName = (e) => {
         e.stopPropagation();
 
@@ -43,6 +43,7 @@ const SectionTitle = ({name, suiteId, handler, gui, checkStatus, suiteTests, act
 
     const drawRetryButton = () => (
         <button
+            disabled={serverStopped}
             className="button custom-icon custom-icon_retry"
             title="retry suite"
             onClick={onSuiteRetry}>
@@ -65,6 +66,7 @@ SectionTitle.propTypes = {
     handler: PropTypes.func.isRequired,
     // from store
     gui: PropTypes.bool.isRequired,
+    serverStopped: PropTypes.bool.isRequired,
     checkStatus: PropTypes.number,
     suiteTests: PropTypes.arrayOf(PropTypes.shape({
         testName: PropTypes.string,
@@ -79,6 +81,7 @@ export default connect(
         return (state, {suiteId}) => ({
             gui: state.gui,
             checkStatus: state.tree.suites.stateById[suiteId].checkStatus,
+            serverStopped: state.serverStopped,
             suiteTests: getTestsBySuiteId(state, {suiteId})
         });
     },

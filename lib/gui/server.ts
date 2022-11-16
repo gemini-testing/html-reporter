@@ -119,10 +119,18 @@ export const start = async ({paths, hermione, guiApi, configs}: ServerArgs): Pro
         }
     });
 
-    onExit(() => {
+    function shutDown(): void {
         app.finalize();
         logger.log('server shutting down');
+    }
+
+    server.post('/terminate', (_req, res) => {
+        res.sendStatus(OK);
+        shutDown();
+        process.exit(0);
     });
+
+    onExit(shutDown);
 
     server.post('/stop', (_req, res) => {
         try {

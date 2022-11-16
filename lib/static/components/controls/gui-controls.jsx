@@ -16,11 +16,12 @@ class GuiControls extends Component {
     static propTypes = {
         // from store
         running: PropTypes.bool.isRequired,
-        stopping: PropTypes.bool.isRequired
+        stopping: PropTypes.bool.isRequired,
+        serverStopped: PropTypes.bool.isRequired
     };
 
     render() {
-        const {actions, running, stopping} = this.props;
+        const {actions, running, stopping, serverStopped} = this.props;
         return (
             <div className="main-menu container">
                 <CustomGuiControls />
@@ -30,6 +31,11 @@ class GuiControls extends Component {
                         label="Stop tests"
                         isDisabled={!running || stopping}
                         handler={actions.stopTests}
+                    />
+                    <ControlButton
+                        label="Stop server"
+                        isDisabled={serverStopped}
+                        handler={actions.stopServer}
                     />
                     <AcceptOpenedButton />
                     <CommonControls/>
@@ -41,6 +47,6 @@ class GuiControls extends Component {
 }
 
 export default connect(
-    ({running, stopping}) => ({running, stopping}),
+    ({running, stopping, serverStopped}) => ({running, stopping, serverStopped}),
     (dispatch) => ({actions: bindActionCreators(actions, dispatch)})
 )(GuiControls);

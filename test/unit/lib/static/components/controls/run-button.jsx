@@ -50,6 +50,14 @@ describe('<RunButton />', () => {
         assert.isTrue(component.find('button').prop('disabled'));
     });
 
+    it('should be disabled when server is stopped', () => {
+        const component = mkConnectedComponent(<RunButton />, {
+            initialState: {tree: {suites: {allRootIds: ['suite']}}, serverStopped: true}
+        });
+
+        assert.isTrue(component.find('button').prop('disabled'));
+    });
+
     it('should run all tests with "autoRun" prop', () => {
         mkConnectedComponent(<RunButton />, {
             initialState: {autoRun: true}

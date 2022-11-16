@@ -118,7 +118,7 @@ export default connect(
         const autoRun = state.autoRun;
         const allRootSuiteIds = state.tree.suites.allRootIds;
         const processing = state.processing;
-        const isDisabled = !allRootSuiteIds.length || processing;
+        const isDisabled = !allRootSuiteIds.length || processing || state.serverStopped;
         const isRunning = state.running;
         const failedTests = getFailedTests(state);
         const checkedTests = getCheckedTests(state);

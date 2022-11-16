@@ -25,6 +25,7 @@ class State extends Component {
         imageId: PropTypes.string,
         // from store
         gui: PropTypes.bool.isRequired,
+        serverStopped: PropTypes.bool.isRequired,
         image: PropTypes.shape({
             status: PropTypes.string,
             error: PropTypes.object,
@@ -70,9 +71,9 @@ class State extends Component {
             return null;
         }
 
-        const {node, imageId, result, isScreenshotAccepterDisabled} = this.props;
-        const isAcceptDisabled = !isAcceptable(node);
-        const isFindSameDiffDisabled = !isFailStatus(node.status);
+        const {node, imageId, result, isScreenshotAccepterDisabled, serverStopped} = this.props;
+        const isAcceptDisabled = !isAcceptable(node) || serverStopped;
+        const isFindSameDiffDisabled = !isFailStatus(node.status) || serverStopped;
 
         if (isAcceptDisabled && isFindSameDiffDisabled && isScreenshotAccepterDisabled) {
             return null;
@@ -202,7 +203,7 @@ export default connect(
         const getLastImageByStateName = mkGetLastImageByStateName();
 
         return (state, {imageId, result}) => {
-            const {gui, tree} = state;
+            const {gui, tree, serverStopped} = state;
             const image = tree.images.byId[imageId] || {};
             const shouldImageBeOpened = image.stateName ? tree.images.stateById[imageId].shouldBeOpened : true;
             const node = imageId ? image : result;
@@ -217,6 +218,7 @@ export default connect(
 
             return {
                 gui,
+                serverStopped,
                 image,
                 node,
                 shouldImageBeOpened,
