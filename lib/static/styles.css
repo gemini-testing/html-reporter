@@ -38,8 +38,6 @@ main.container {
 .browserlist {
     display: inline-block;
     vertical-align: top;
-    margin-right: 15px;
-    margin-bottom: 15px;
 }
 
 .browserlist_linear .rc-tree-select-tree-switcher {
@@ -153,8 +151,7 @@ main.container {
 
 .strict-match-filter {
     display: inline-block;
-    margin-left: 15px;
-    margin-bottom: 15px;
+    height: 25px;
     line-height: 21px;
 }
 
@@ -187,10 +184,14 @@ main.container {
 }
 
 .menu-bar {
-    display: inline-block;
-    vertical-align: middle;
-    margin-left: 15px;
+    align-items: center;
+    display: flex;
     font-size: 20px;
+    height: 25px;
+}
+
+.menu-bar .icon {
+    margin: 0;
 }
 
 .menu-bar .ui.dropdown .menu>.item,
@@ -209,7 +210,6 @@ main.container {
     font-size: 11px;
     font-family: inherit;
     cursor: pointer;
-    margin-right: 5px;
     background: #fff;
     border: 1px solid #ccc;
     border-radius: 2px;
@@ -780,11 +780,10 @@ a:active {
     border: 1px solid #ccc;
     border-radius: 2px;
     height: 25px;
-    margin-bottom: 15px;
 }
 
 .basehost__text {
-    width: 200px;
+    width: 210px;
 }
 
 .filter__input-name {
