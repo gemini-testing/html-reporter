@@ -59,7 +59,7 @@
     "inquirer": "^8.2.0",
     "json-stringify-safe": "^5.0.1",
     "lodash": "^4.17.4",
-    "looks-same": "^8.0.0",
+    "looks-same": "^8.1.0",
     "nested-error-stacks": "^2.1.0",
     "opener": "^1.4.3",
     "ora": "^5.4.1",
