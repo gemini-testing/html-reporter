@@ -22,7 +22,6 @@
 .report {
     font: 15px YS Text, Helvetica Neue, Arial, sans-serif;
     line-height: 20px;
-    margin-top: 15px;
     margin-bottom: 15px;
 }
 
@@ -285,7 +284,8 @@ main.container {
 .tests-group__title:before,
 .state-title:after,
 .details__summary:after,
-.error .details__summary:before {
+.error .details__summary:before,
+.sticky-header__wrap:before {
     content: '';
     width: 16px;
     height: 16px;
