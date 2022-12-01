@@ -59,7 +59,7 @@ describe('<Result />', () => {
 
             mkResult({resultId: 'result-1', testName: 'test-name'}, initialState);
 
-            assert.calledOnceWith(MetaInfo, {result, testName: 'test-name'});
+            assert.calledOnceWith(MetaInfo, {resultId: 'result-1'});
         });
     });
 

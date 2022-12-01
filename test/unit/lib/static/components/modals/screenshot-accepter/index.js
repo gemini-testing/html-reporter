@@ -7,7 +7,7 @@ import {mkConnectedComponent} from '../../utils';
 
 describe('<ScreenshotAccepter/>', () => {
     const sandbox = sinon.sandbox.create();
-    let ScreenshotAccepter, ScreenshotAccepterHeader, ScreenshotAccepterBody, actions, selectors, parentNode;
+    let ScreenshotAccepter, ScreenshotAccepterHeader, ScreenshotAccepterMeta, ScreenshotAccepterBody, actions, selectors, parentNode;
 
     const mkResult = (opts) => {
         const result = defaults(opts, {
@@ -60,12 +60,14 @@ describe('<ScreenshotAccepter/>', () => {
         };
 
         ScreenshotAccepterHeader = sinon.stub().returns(null);
+        ScreenshotAccepterMeta = sinon.stub().returns(null);
         ScreenshotAccepterBody = sinon.stub().returns(null);
 
         sandbox.stub(ReactDOM, 'findDOMNode').returns({parentNode});
 
         ScreenshotAccepter = proxyquire('lib/static/components/modals/screenshot-accepter', {
             './header': {default: ScreenshotAccepterHeader},
+            './meta': {default: ScreenshotAccepterMeta},
             './body': {default: ScreenshotAccepterBody},
             '../../../modules/actions': actions,
             '../../../modules/selectors/tree': selectors
@@ -90,10 +92,12 @@ describe('<ScreenshotAccepter/>', () => {
                     stateNameImageIds: ['bro-1 plain'],
                     retryIndex: 0,
                     activeImageIndex: 0,
+                    showMeta: false,
                     onClose: sinon.match.func,
                     onRetryChange: sinon.match.func,
                     onActiveImageChange: sinon.match.func,
-                    onScreenshotAccept: sinon.match.func
+                    onScreenshotAccept: sinon.match.func,
+                    onShowMeta: sinon.match.func
                 }
             );
         });
@@ -164,6 +168,43 @@ describe('<ScreenshotAccepter/>', () => {
 
                 assert.calledOnceWith(actions.acceptTest, 'img-1');
             });
+        });
+
+        describe('"onShowMeta" handler', () => {
+            it('should invert state "showMeta"', () => {
+                const image = mkImage({id: 'img-1', parentId: 'res-1', stateName: 'plain'});
+                const resultsById = mkResult({id: 'res-1', parentId: 'bro-1', imageIds: ['img-1']});
+                const tree = mkStateTree({resultsById});
+                selectors.getAcceptableImagesByStateName.returns({'bro-1 plain': [image]});
+
+                mkScreenshotAccepterComponent({image}, {tree});
+
+                ScreenshotAccepterHeader.firstCall.args[0].onShowMeta();
+
+                assert.calledTwice(ScreenshotAccepterHeader);
+                assert.calledWith(ScreenshotAccepterHeader.secondCall, sinon.match({
+                    showMeta: true
+                }));
+            });
+        });
+    });
+
+    describe('"ScreenshotAccepterMeta"', () => {
+        it('should render with correct props', () => {
+            const image = mkImage({id: 'img-1', parentId: 'res-1', stateName: 'plain'});
+            const resultsById = mkResult({id: 'res-1', parentId: 'bro-1', imageIds: ['img-1']});
+            const tree = mkStateTree({resultsById});
+            selectors.getAcceptableImagesByStateName.returns({'bro-1 plain': [image]});
+
+            mkScreenshotAccepterComponent({image}, {tree});
+
+            assert.calledOnceWith(
+                ScreenshotAccepterMeta,
+                {
+                    showMeta: false,
+                    resultId: 'res-1'
+                }
+            );
         });
     });
 
