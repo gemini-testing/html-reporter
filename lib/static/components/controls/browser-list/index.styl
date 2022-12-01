@@ -1,0 +1,52 @@
+.browserlist
+    label-bg-color = #3333cc1a
+    button-hover-bg-color = #99999950
+
+    .array
+        width 220px
+
+    .rct-controls
+        width 100%
+        height 25px
+        margin-bottom 10px
+        border none
+        border-radius 5px
+        cursor pointer
+        background-color label-bg-color
+        transition background-color 150ms linear
+
+        &:hover
+            background-color button-hover-bg-color;
+
+    .rct-node-parent
+        .rct-node-leaf
+            .rct-node-icon
+                display none
+
+    .rct-node-icon
+        color black
+        text-align center
+
+    .rct-text
+        label
+            display inline-flex
+            width 100%
+            user-select none
+
+            &:not(:hover)
+                .rct-label__controls
+                    visibility hidden
+
+            &:hover
+                background-color: label-bg-color
+
+                .rct-label__controls
+                    visibility visible
+
+            .rct-title
+                display inherit
+                width 100%
+
+                .rct-label
+                    display inherit
+                    width 100%
