@@ -1,7 +1,9 @@
 'use strict';
 
 const path = require('path');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const HtmlWebpackIncludeAssetsPlugin = require('html-webpack-include-assets-plugin');
 
@@ -23,27 +25,15 @@ module.exports = {
         rules: [
             {
                 test: /\.css$/,
-                loader: ExtractTextPlugin.extract({
-                    fallback: 'style-loader',
-                    use: [{
-                        loader: 'css-loader',
-                        options: {minimize: true}
-                    }]
-                })
+                use: [MiniCssExtractPlugin.loader, 'css-loader']
             },
             {
                 test: /\.less$/,
-                loader: ExtractTextPlugin.extract({
-                    fallback: 'style-loader',
-                    use: ['css-loader', 'less-loader']
-                })
+                use: [MiniCssExtractPlugin.loader, 'css-loader', 'less-loader']
             },
             {
                 test: /\.styl$/,
-                loader: ExtractTextPlugin.extract({
-                    fallback: 'style-loader',
-                    use: ['css-loader', 'stylus-loader']
-                })
+                use: [MiniCssExtractPlugin.loader, 'css-loader', 'stylus-loader']
             },
             {
                 test: /\.js$/,
@@ -57,7 +47,7 @@ module.exports = {
         ]
     },
     plugins: [
-        new ExtractTextPlugin('[name].min.css'),
+        new MiniCssExtractPlugin({filename: '[name].min.css'}),
         new HtmlWebpackPlugin({
             title: 'HTML report',
             filename: 'index.html',
@@ -80,5 +70,26 @@ module.exports = {
             assets: ['sql-wasm.js'],
             append: false
         })
-    ]
+    ],
+    optimization: {
+        minimizer: [
+            new CssMinimizerPlugin(),
+            new TerserPlugin({
+                parallel: true,
+                minify: TerserPlugin.uglifyJsMinify,
+                terserOptions: {
+                    compress: true,
+                    mangle: true,
+                    format: {
+                        comments: false
+                    }
+                },
+                extractComments: false
+            })
+        ]
+    },
+    performance: {
+        maxEntrypointSize: 2100000,
+        assetFilter: assetFilename => !['gui.min.js', 'report.min.js'].includes(assetFilename)
+    }
 };
