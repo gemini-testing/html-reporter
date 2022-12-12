@@ -34,6 +34,10 @@
     display: inline;
 }
 
+.db-info__popup {
+    margin-left: auto;
+}
+
 .ui.basic.db-info {
     font-family: inherit;
     font-size: inherit;
@@ -43,7 +47,6 @@
     box-shadow: none !important;
     border: none;
     color: #000 !important;
-    margin-left: auto;
 }
 
 .ui.basic.db-info:hover {
@@ -58,8 +61,8 @@
     color: #e66767 !important;
 }
 
-.ui.dropdown .menu > .db-info__row {
-    margin: 5px;
+.popup__content .db-info__row {
+    white-space: nowrap;
     font-size: 15px;
 }
 

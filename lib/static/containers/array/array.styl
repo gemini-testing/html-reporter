@@ -1,0 +1,32 @@
+.array 
+    display inline-flex
+    height 25px
+    font-size 11px
+    border 1px solid #ccc
+    border-radius 2px
+    user-select none
+
+    &:hover 
+        border-color #555
+
+    .array__container 
+        display inherit
+        flex-wrap wrap
+        overflow hidden
+
+    .array__placeholder
+        margin-left 8px
+        line-height 22px
+        opacity .6
+
+    .array__item 
+        flex-shrink 0
+        background #ffeb9f
+        border 1px solid #cebe7d
+        border-radius 3px
+        padding 4px
+        margin 1px
+        line-height 11px
+
+        &.array__item_hidden 
+            display none
