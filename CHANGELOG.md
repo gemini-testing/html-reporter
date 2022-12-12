@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="9.6.0"></a>
+# [9.6.0](https://github.com/gemini-testing/html-reporter/compare/v9.5.1...v9.6.0) (2022-12-12)
+
+
+### Features
+
+* sticky header ([f2aea96](https://github.com/gemini-testing/html-reporter/commit/f2aea96))
+* **browser-list:** add "Only" and "Except" buttons ([29be12d](https://github.com/gemini-testing/html-reporter/commit/29be12d))
+
+
+
 <a name="9.5.1"></a>
 ## [9.5.1](https://github.com/gemini-testing/html-reporter/compare/v9.5.0...v9.5.1) (2022-11-23)
 
