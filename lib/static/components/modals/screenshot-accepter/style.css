@@ -93,3 +93,12 @@
 .screenshot-accepter__body {
     margin-bottom: 30px;
 }
+
+.screenshot-accepter__body .screenshot-accepter__icon_view-in-browser {
+    background: inherit;
+}
+
+.screenshot-accepter__meta {
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
