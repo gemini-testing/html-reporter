@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="9.7.0"></a>
+# [9.7.0](https://github.com/gemini-testing/html-reporter/compare/v9.6.0...v9.7.0) (2022-12-13)
+
+
+### Features
+
+* **screenshot-accepter:** add abbility to view meta info ([bf1c08d](https://github.com/gemini-testing/html-reporter/commit/bf1c08d))
+* **screenshot-accepter:** add view-in-browser button ([e54dec6](https://github.com/gemini-testing/html-reporter/commit/e54dec6))
+
+
+
 <a name="9.6.0"></a>
 # [9.6.0](https://github.com/gemini-testing/html-reporter/compare/v9.5.1...v9.6.0) (2022-12-12)
 
