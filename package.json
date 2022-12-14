@@ -96,7 +96,7 @@
     "eslint-config-gemini-testing": "^2.8.0",
     "eslint-plugin-babel": "^5.3.1",
     "eslint-plugin-react": "^7.4.0",
-    "hermione": "^3.11.0",
+    "hermione": "^5.6.1",
     "hermione-global-hook": "^1.0.1",
     "hermione-headless-chrome": "0.0.2",
     "html-react-parser": "^0.4.0",
