@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="9.7.2"></a>
+## [9.7.2](https://github.com/gemini-testing/html-reporter/compare/v9.7.1...v9.7.2) (2022-12-19)
+
+
+### Bug Fixes
+
+* hide sticky-header in tinder mode ([91edf9d](https://github.com/gemini-testing/html-reporter/commit/91edf9d))
+
+
+
 <a name="9.7.1"></a>
 ## [9.7.1](https://github.com/gemini-testing/html-reporter/compare/v9.7.0...v9.7.1) (2022-12-14)
 
