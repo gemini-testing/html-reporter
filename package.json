@@ -52,6 +52,7 @@
     "debug": "^4.1.1",
     "eventemitter2": "6.4.7",
     "express": "^4.16.2",
+    "fast-glob": "^3.2.12",
     "filesize": "^8.0.6",
     "fs-extra": "^7.0.1",
     "gemini-configparser": "^1.0.0",
