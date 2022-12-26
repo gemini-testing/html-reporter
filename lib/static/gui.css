@@ -3,59 +3,79 @@
     to {opacity: 0.3;}
 }
 
-/* TODO: remove after header will be implemented */
-.report {
-    margin-top: 0;
-}
-
-.section__title:before,
-.state-title:before {
+.state-title:before,
+.bullet_type-simple:before {
     display: inline-block;
-    margin-right: 6px;
-    vertical-align: middle;
     content: '\25cf';
     color: #ccc;
+    background-image: none;
+}
 
+.state-title:before {
+    margin-right: 6px;
+    vertical-align: middle;
     width: auto;
     height: auto;
-    background-image: none;
+}
+
+.bullet_type-simple:before {
+    text-align: end;
+    line-height: 18px;
+    width: 18px;
+    height: 100%;
 }
 
 .custom-icon_retry:before {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath transform='scale(0.027,-0.027) translate(0,-448)' d=' M500.333 448H452.922C446.069 448 440.608 442.271 440.9360000000001 435.426L444.9020000000001 352.6670000000001C399.416 406.101 331.6720000000001 440 256.001 440C119.34 440 7.899 328.474 8 191.813C8.101 54.932 119.096 -56 256 -56C319.926 -56 378.202 -31.813 422.178 7.908C427.291 12.526 427.532 20.469 422.6600000000001 25.341L388.689 59.312C384.223 63.778 377.0490000000001 64.029 372.3090000000001 59.855C341.308 32.552 300.606 16 256 16C158.733 16 80 94.716 80 192C80 289.267 158.716 368 256 368C316.892 368 370.506 337.142 402.099 290.2L300.574 295.065C293.729 295.3930000000001 288 289.932 288 283.079V235.668C288 229.041 293.373 223.668 300 223.668H500.333C506.96 223.668 512.333 229.041 512.333 235.668V436C512.333 442.627 506.96 448 500.333 448z'/%3E%3C/svg%3E");
 }
 
-.section_status_success > .section__title:before,
+.section_status_success > .section__title .bullet_type-simple:before,
 .state-title_success:before {
     color: #038035;
 }
 
-.section_status_fail > .section__title:before,
-.section_status_error > .section__title:before,
+.section_status_fail > .section__title .bullet_type-simple:before,
+.section_status_error > .section__title .bullet_type-simple:before,
 .state-title_fail:before,
 .state-title_error:before {
     color: #c00;
 }
 
-.section_status_skipped > .section__title:before,
+.section_status_skipped > .section__title .bullet_type-simple:before,
 .state-title_skipped:before {
     color: #ccc;
 }
 
-.section_status_queued > .section__title::before {
-    color: #e7d700;
+.section_status_idle > .section__title .ui.checkbox label:before,
+.section_status_idle > .section__title .ui.checkbox label:after,
+.tests-group > .tests-group__title .ui.checkbox label:before,
+.tests-group > .tests-group__title .ui.checkbox label:after {
+    color: black !important;
+    border-color: black !important;
 }
 
-.section_status_running > .section__title::before {
+.section_status_queued > .section__title .bullet_type-simple:before
+.section_status_queued > .section__title .ui.checkbox label:before,
+.section_status_queued > .section__title .ui.checkbox label:after {
+    color: #e7d700 !important;
+    border-color: #e7d700 !important;
+}
+
+.section_status_running > .section__title .bullet_type-simple:before,
+.section_status_running > .section__title .ui.checkbox label:before,
+.section_status_running > .section__title .ui.checkbox label:after {
     -webkit-animation: blink 0.5s linear 0s infinite alternate;
             animation: blink 0.5s linear 0s infinite alternate;
-    color: #e7d700;
+    color: #e7d700 !important;
+    border-color: #e7d700 !important;
 }
 
 .section_status_updated > .section__title,
-.section_status_updated > .section__title::before,
-.state-title_updated:before {
-    color: #038035;
+.section_status_updated > .section__title .bullet_type-simple::before,
+.section_status_updated > .section__title .ui.checkbox label:before,
+.section_status_updated > .section__title .ui.checkbox label:after {
+    color: #038035 !important;
+    border-color: #038035 !important;
 }
 
 .report_show-only-errors .section_status_updated {
@@ -99,10 +119,6 @@
 .button_blink {
     -webkit-animation: blink 0.5s linear 0s infinite alternate;
             animation: blink 0.5s linear 0s infinite alternate;
-}
-
-.section_collapsed .section__title:before {
-    transform: none;
 }
 
 .ui.modal > .content {

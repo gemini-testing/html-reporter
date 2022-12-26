@@ -1,4 +1,5 @@
 import {SUCCESS, FAIL, ERROR, UPDATED} from 'lib/constants/test-statuses';
+import {CHECKED, UNCHECKED, INDETERMINATE} from 'lib/constants/checked-statuses';
 import reducer from 'lib/static/modules/reducers/tree';
 import actionNames from 'lib/static/modules/action-names';
 import viewModes from 'lib/constants/view-modes';
@@ -86,8 +87,8 @@ describe('lib/static/modules/reducers/tree', () => {
                                 payload: {tree}
                             });
 
-                            assert.isTrue(newState.tree.suites.stateById.s1.shouldBeShown);
-                            assert.isTrue(newState.tree.suites.stateById.s2.shouldBeShown);
+                            assert.equal(newState.tree.suites.stateById.s1.shouldBeShown, CHECKED);
+                            assert.equal(newState.tree.suites.stateById.s2.shouldBeShown, CHECKED);
                         });
 
                         it('test name is matched on test filter', () => {
@@ -104,8 +105,8 @@ describe('lib/static/modules/reducers/tree', () => {
                                 payload: {tree}
                             });
 
-                            assert.isTrue(newState.tree.suites.stateById.s1.shouldBeShown);
-                            assert.isTrue(newState.tree.suites.stateById.s2.shouldBeShown);
+                            assert.equal(newState.tree.suites.stateById.s1.shouldBeShown, CHECKED);
+                            assert.equal(newState.tree.suites.stateById.s2.shouldBeShown, CHECKED);
                         });
 
                         it('child browser is shown by view mode but browsers from child suites not', () => {
@@ -301,6 +302,33 @@ describe('lib/static/modules/reducers/tree', () => {
 
                             assert.isFalse(newState.tree.suites.stateById.s1.shouldBeOpened);
                         });
+                    });
+                });
+
+                describe('"checkStatus"', () => {
+                    it('should be unchecked', () => {
+                        const suitesById = {
+                            ...mkSuite({id: 's1', suiteIds: ['s2'], status: SUCCESS}),
+                            ...mkSuite({id: 's2', browserIds: ['b1', 'b2'], parentId: 's1', status: SUCCESS})
+                        };
+                        const browsersById = {
+                            ...mkBrowser({id: 'b1', parentId: 's2', resultIds: ['r1']}),
+                            ...mkBrowser({id: 'b2', parentId: 's2', resultIds: ['r2']})
+                        };
+                        const resultsById = {
+                            ...mkResult({id: 'r1', status: SUCCESS}),
+                            ...mkResult({id: 'r2', status: SUCCESS})
+                        };
+                        const tree = mkStateTree({suitesById, browsersById, resultsById});
+                        const view = mkStateView();
+
+                        const newState = reducer({view}, {
+                            type: actionName,
+                            payload: {tree}
+                        });
+
+                        assert.equal(newState.tree.suites.stateById.s1.checkStatus, UNCHECKED);
+                        assert.equal(newState.tree.suites.stateById.s2.checkStatus, UNCHECKED);
                     });
                 });
             });
@@ -552,6 +580,33 @@ describe('lib/static/modules/reducers/tree', () => {
                                 assert.isFalse(newState.tree.browsers.stateById.b1.shouldBeOpened);
                             });
                         });
+                    });
+                });
+
+                describe('"checkStatus"', () => {
+                    it('should be unchecked', () => {
+                        const suitesById = {
+                            ...mkSuite({id: 's1', suiteIds: ['s2']}),
+                            ...mkSuite({id: 's2', browserIds: ['b1', 'b2'], parentId: 's1'})
+                        };
+                        const browsersById = {
+                            ...mkBrowser({id: 'b1', parentId: 's2', resultIds: ['r1']}),
+                            ...mkBrowser({id: 'b2', parentId: 's2', resultIds: ['r2']})
+                        };
+                        const resultsById = {
+                            ...mkResult({id: 'r1', status: SUCCESS}),
+                            ...mkResult({id: 'r2', status: SUCCESS})
+                        };
+                        const tree = mkStateTree({suitesById, browsersById, resultsById});
+                        const view = mkStateView();
+
+                        const newState = reducer({view}, {
+                            type: actionName,
+                            payload: {tree}
+                        });
+
+                        assert.equal(newState.tree.browsers.stateById.b1.checkStatus, UNCHECKED);
+                        assert.equal(newState.tree.browsers.stateById.b2.checkStatus, UNCHECKED);
                     });
                 });
             });
@@ -888,7 +943,8 @@ describe('lib/static/modules/reducers/tree', () => {
             };
             const browsersById = mkBrowser({id: 'b1', name: 'yabro', parentId: 's2', resultIds: ['r1']});
             const resultsById = mkResult({id: 'r1', parentId: 'b1', status: ERROR});
-            const tree = mkStateTree({suitesById, browsersById, resultsById});
+            const browsersStateById = {'b1': {checkStatus: UNCHECKED}};
+            const tree = mkStateTree({suitesById, browsersById, resultsById, browsersStateById});
 
             const filteredBrowsers = [{id: 'yabro', versions: []}];
             const view = mkStateView({filteredBrowsers});
@@ -915,7 +971,8 @@ describe('lib/static/modules/reducers/tree', () => {
                 ...mkResult({id: 'r1', parentId: 'b1', status: FAIL}),
                 ...mkResult({id: 'r2', parentId: 'b2', status: ERROR})
             };
-            const tree = mkStateTree({suitesById, browsersById, resultsById});
+            const browsersStateById = {'b1': {checkStatus: UNCHECKED}};
+            const tree = mkStateTree({suitesById, browsersById, resultsById, browsersStateById});
 
             const filteredBrowsers = [{id: 'yabro-1', versions: []}];
             const view = mkStateView({filteredBrowsers});
@@ -1056,7 +1113,8 @@ describe('lib/static/modules/reducers/tree', () => {
                     const browsersById = {...mkBrowser({id: 'b1', resultIds: ['r1']})};
                     const resultsById = {...mkResult({id: 'r1', status: SUCCESS})};
                     const resultsStateById = {r1: {}, r2: {}};
-                    const tree = mkStateTree({browsersById, resultsById, resultsStateById});
+                    const browsersStateById = {'b1': {checkStatus: UNCHECKED}};
+                    const tree = mkStateTree({browsersById, resultsById, resultsStateById, browsersStateById});
 
                     const newState = reducer({tree, view: mkStateView()}, {
                         type: actionNames.TOGGLE_TESTS_GROUP,
@@ -1072,7 +1130,8 @@ describe('lib/static/modules/reducers/tree', () => {
                     const browsersById = {...mkBrowser({id: 'b1', resultIds: ['r1', 'r2']})};
                     const resultsById = {...mkResult({id: 'r1', status: SUCCESS}), ...mkResult({id: 'r2', status: SUCCESS})};
                     const resultsStateById = {r1: {}, r2: {}};
-                    const tree = mkStateTree({browsersById, resultsById, resultsStateById});
+                    const browsersStateById = {'b1': {checkStatus: UNCHECKED}};
+                    const tree = mkStateTree({browsersById, resultsById, resultsStateById, browsersStateById});
 
                     const newState = reducer({tree, view: mkStateView()}, {
                         type: actionNames.TOGGLE_TESTS_GROUP,
@@ -1091,7 +1150,8 @@ describe('lib/static/modules/reducers/tree', () => {
                     ...mkResult({id: 'r2', status: SUCCESS}),
                     ...mkResult({id: 'r3', status: SUCCESS})
                 };
-                const tree = mkStateTree({browsersById, resultsById});
+                const browsersStateById = {'b1': {checkStatus: UNCHECKED}};
+                const tree = mkStateTree({browsersById, resultsById, browsersStateById});
 
                 const newState = reducer({tree, view: mkStateView()}, {
                     type: actionNames.TOGGLE_TESTS_GROUP,
@@ -1287,6 +1347,383 @@ describe('lib/static/modules/reducers/tree', () => {
             });
 
             assert.equal(state, newState);
+        });
+    });
+
+    describe(`${actionNames.TOGGLE_BROWSER_CHECKBOX} action`, () => {
+        [CHECKED, UNCHECKED].forEach(checkStatus => {
+            it(`should set browser checkbox to ${checkStatus ? '' : 'un'}checked state`, () => {
+                const suitesById = mkSuite({id: 's1', browserIds: ['b1']});
+                const browsersById = mkBrowser({id: 'b1', parentId: 's1'});
+                const suitesStateById = {s1: {shouldBeShown: true, checkStatus: Number(!checkStatus)}};
+                const browsersStateById = {b1: {shouldBeShown: true, checkStatus: Number(!checkStatus)}};
+                const tree = mkStateTree({suitesById, suitesStateById, browsersById, browsersStateById});
+                const view = mkStateView({keyToGroupTestsBy: ''});
+
+                const newState = reducer({tree, view}, {
+                    type: actionNames.TOGGLE_BROWSER_CHECKBOX,
+                    payload: {suiteBrowserId: 'b1', checkStatus}
+                });
+
+                assert.equal(newState.tree.browsers.stateById.b1.checkStatus, checkStatus);
+            });
+
+            it(`should not change ${checkStatus ? '' : 'un'}checked state`, () => {
+                const suitesById = mkSuite({id: 's1', browserIds: ['b1']});
+                const browsersById = mkBrowser({id: 'b1', parentId: 's1'});
+                const suitesStateById = {s1: {shouldBeShown: true, checkStatus}};
+                const browsersStateById = {b1: {shouldBeShown: true, checkStatus}};
+                const tree = mkStateTree({suitesById, suitesStateById, browsersById, browsersStateById});
+                const view = mkStateView({keyToGroupTestsBy: ''});
+
+                const newState = reducer({tree, view}, {
+                    type: actionNames.TOGGLE_BROWSER_CHECKBOX,
+                    payload: {suiteBrowserId: 'b1', checkStatus}
+                });
+
+                assert.equal(newState.tree.browsers.stateById.b1.checkStatus, checkStatus);
+            });
+
+            it(`should update parents to ${checkStatus ? '' : 'un'}checked state`, () => {
+                const suitesById = {
+                    ...mkSuite({id: 's0', suiteIds: ['s1']}),
+                    ...mkSuite({id: 's1', browserIds: ['b1'], parentId: 's0'})
+                };
+                const browsersById = mkBrowser({id: 'b1', parentId: 's1'});
+                const suitesStateById = {
+                    s0: {shouldBeShown: true, checkStatus: Number(!checkStatus)},
+                    s1: {shouldBeShown: true, checkStatus: Number(!checkStatus)}
+                };
+                const browsersStateById = {b1: {shouldBeShown: true, checkStatus: Number(!checkStatus)}};
+                const tree = mkStateTree({suitesById, suitesStateById, browsersById, browsersStateById});
+                const view = mkStateView({keyToGroupTestsBy: ''});
+
+                const newState = reducer({tree, view}, {
+                    type: actionNames.TOGGLE_BROWSER_CHECKBOX,
+                    payload: {suiteBrowserId: 'b1', checkStatus}
+                });
+
+                assert.equal(newState.tree.suites.stateById.s1.checkStatus, checkStatus);
+                assert.equal(newState.tree.suites.stateById.s0.checkStatus, checkStatus);
+            });
+
+            it(`should update parents to indeterminate from ${checkStatus ? '' : 'un'}checked state`, () => {
+                const suitesById = {
+                    ...mkSuite({id: 's0', suiteIds: ['s1']}),
+                    ...mkSuite({id: 's1', browserIds: ['b1', 'b2'], parentId: 's0'})
+                };
+                const browsersById = {
+                    ...mkBrowser({id: 'b1', parentId: 's1'}),
+                    ...mkBrowser({id: 'b2', parentId: 's1'})
+                };
+                const suitesStateById = {
+                    s0: {shouldBeShown: true, checkStatus},
+                    s1: {shouldBeShown: true, checkStatus}
+                };
+                const browsersStateById = {
+                    b1: {shouldBeShown: true, checkStatus},
+                    b2: {shouldBeShown: true, checkStatus}
+                };
+                const tree = mkStateTree({suitesById, suitesStateById, browsersById, browsersStateById});
+                const view = mkStateView({keyToGroupTestsBy: ''});
+
+                const newState = reducer({tree, view}, {
+                    type: actionNames.TOGGLE_BROWSER_CHECKBOX,
+                    payload: {suiteBrowserId: 'b1', checkStatus: Number(!checkStatus)}
+                });
+
+                assert.equal(newState.tree.suites.stateById.s1.checkStatus, INDETERMINATE);
+                assert.equal(newState.tree.suites.stateById.s0.checkStatus, INDETERMINATE);
+            });
+        });
+    });
+
+    describe(`${actionNames.TOGGLE_SUITE_CHECKBOX} action`, () => {
+        [CHECKED, UNCHECKED].forEach(checkStatus => {
+            it(`should set suite checkbox to ${checkStatus ? '' : 'un'}checked state`, () => {
+                const suitesById = mkSuite({id: 's1', browserIds: ['b1']});
+                const browsersById = mkBrowser({id: 'b1', parentId: 's1'});
+                const suitesStateById = {s1: {shouldBeShown: true, checkStatus: Number(!checkStatus)}};
+                const browsersStateById = {b1: {shouldBeShown: true, checkStatus: Number(!checkStatus)}};
+                const tree = mkStateTree({suitesById, suitesStateById, browsersById, browsersStateById});
+                const view = mkStateView({keyToGroupTestsBy: ''});
+
+                const newState = reducer({tree, view}, {
+                    type: actionNames.TOGGLE_SUITE_CHECKBOX,
+                    payload: {suiteId: 's1', checkStatus}
+                });
+
+                assert.equal(newState.tree.suites.stateById.s1.checkStatus, checkStatus);
+            });
+
+            it(`should not change ${checkStatus ? '' : 'un'}checked state`, () => {
+                const suitesById = mkSuite({id: 's1', browserIds: ['b1']});
+                const browsersById = mkBrowser({id: 'b1', parentId: 's1'});
+                const suitesStateById = {s1: {shouldBeShown: true, checkStatus}};
+                const browsersStateById = {b1: {shouldBeShown: true, checkStatus}};
+                const tree = mkStateTree({suitesById, suitesStateById, browsersById, browsersStateById});
+                const view = mkStateView({keyToGroupTestsBy: ''});
+
+                const newState = reducer({tree, view}, {
+                    type: actionNames.TOGGLE_SUITE_CHECKBOX,
+                    payload: {suiteId: 's1', checkStatus}
+                });
+
+                assert.equal(newState.tree.suites.stateById.s1.checkStatus, checkStatus);
+                assert.equal(newState.tree.browsers.stateById.b1.checkStatus, checkStatus);
+            });
+
+            it(`should set child browser checkbox to ${checkStatus ? '' : 'un'}checked state`, () => {
+                const suitesById = mkSuite({id: 's1', browserIds: ['b1']});
+                const browsersById = mkBrowser({id: 'b1', parentId: 's1'});
+                const suitesStateById = {s1: {shouldBeShown: true, checkStatus: Number(!checkStatus)}};
+                const browsersStateById = {b1: {shouldBeShown: true, checkStatus: Number(!checkStatus)}};
+                const tree = mkStateTree({suitesById, suitesStateById, browsersById, browsersStateById});
+                const view = mkStateView({keyToGroupTestsBy: ''});
+
+                const newState = reducer({tree, view}, {
+                    type: actionNames.TOGGLE_SUITE_CHECKBOX,
+                    payload: {suiteId: 's1', checkStatus}
+                });
+
+                assert.equal(newState.tree.browsers.stateById.b1.checkStatus, checkStatus);
+            });
+
+            it(`should set child suite checkbox to ${checkStatus ? '' : 'un'}checked state`, () => {
+                const suitesById = {
+                    ...mkSuite({id: 's0', suiteIds: ['s1']}),
+                    ...mkSuite({id: 's1', browserIds: ['b1'], parentId: 's0'})
+                };
+                const browsersById = mkBrowser({id: 'b1', parentId: 's1'});
+                const suitesStateById = {
+                    s0: {shouldBeShown: true, checkStatus: Number(!checkStatus)},
+                    s1: {shouldBeShown: true, checkStatus: Number(!checkStatus)}
+                };
+                const browsersStateById = {b1: {shouldBeShown: true, checkStatus: Number(!checkStatus)}};
+                const tree = mkStateTree({suitesById, suitesStateById, browsersById, browsersStateById});
+                const view = mkStateView({keyToGroupTestsBy: ''});
+
+                const newState = reducer({tree, view}, {
+                    type: actionNames.TOGGLE_SUITE_CHECKBOX,
+                    payload: {suiteId: 's0', checkStatus}
+                });
+
+                assert.equal(newState.tree.suites.stateById.s1.checkStatus, checkStatus);
+            });
+
+            it(`should update parents to ${checkStatus ? '' : 'un'}checked state`, () => {
+                const suitesById = {
+                    ...mkSuite({id: 's0', suiteIds: ['s1']}),
+                    ...mkSuite({id: 's1', suiteIds: ['s2'], parentId: 's0'}),
+                    ...mkSuite({id: 's2', browserIds: ['b1'], parentId: 's1'})
+                };
+                const browsersById = mkBrowser({id: 'b1', parentId: 's2'});
+                const suitesStateById = {
+                    s0: {shouldBeShown: true, checkStatus: Number(!checkStatus)},
+                    s1: {shouldBeShown: true, checkStatus: Number(!checkStatus)},
+                    s2: {shouldBeShown: true, checkStatus: Number(!checkStatus)}
+                };
+                const browsersStateById = {b1: {shouldBeShown: true, checkStatus: Number(!checkStatus)}};
+                const tree = mkStateTree({suitesById, suitesStateById, browsersById, browsersStateById});
+                const view = mkStateView({keyToGroupTestsBy: ''});
+
+                const newState = reducer({tree, view}, {
+                    type: actionNames.TOGGLE_SUITE_CHECKBOX,
+                    payload: {suiteId: 's2', checkStatus}
+                });
+
+                assert.equal(newState.tree.suites.stateById.s1.checkStatus, checkStatus);
+                assert.equal(newState.tree.suites.stateById.s0.checkStatus, checkStatus);
+            });
+
+            it(`should update parents to indeterminate from ${checkStatus ? '' : 'un'}checked state`, () => {
+                const suitesById = {
+                    ...mkSuite({id: 's0', suiteIds: ['s1']}),
+                    ...mkSuite({id: 's1', suiteIds: ['s2', 's3'], parentId: 's0'}),
+                    ...mkSuite({id: 's2', browserIds: ['b1'], parentId: 's1'}),
+                    ...mkSuite({id: 's3', browserIds: ['b2'], parentId: 's1'})
+                };
+                const browsersById = {
+                    ...mkBrowser({id: 'b1', parentId: 's2'}),
+                    ...mkBrowser({id: 'b2', parentId: 's3'})
+                };
+                const suitesStateById = {
+                    s0: {shouldBeShown: true, checkStatus},
+                    s1: {shouldBeShown: true, checkStatus},
+                    s2: {shouldBeShown: true, checkStatus},
+                    s3: {shouldBeShown: true, checkStatus}
+                };
+                const browsersStateById = {
+                    b1: {shouldBeShown: true, checkStatus},
+                    b2: {shouldBeShown: true, checkStatus}
+                };
+                const tree = mkStateTree({suitesById, suitesStateById, browsersById, browsersStateById});
+                const view = mkStateView({keyToGroupTestsBy: ''});
+
+                const newState = reducer({tree, view}, {
+                    type: actionNames.TOGGLE_SUITE_CHECKBOX,
+                    payload: {suiteId: 's2', checkStatus: Number(!checkStatus)}
+                });
+
+                assert.equal(newState.tree.suites.stateById.s1.checkStatus, INDETERMINATE);
+                assert.equal(newState.tree.suites.stateById.s0.checkStatus, INDETERMINATE);
+            });
+        });
+    });
+
+    describe(`${actionNames.TOGGLE_GROUP_CHECKBOX} action`, () => {
+        const mkState = ({checkStatus}) => {
+            const suitesById = mkSuite({id: 's1', browserIds: ['b1']});
+            const browsersById = mkBrowser({id: 'b1', parentId: 's1'});
+            const suitesStateById = {s1: {shouldBeShown: true, checkStatus}};
+            const browsersStateById = {b1: {shouldBeShown: true, checkStatus}};
+            const tree = mkStateTree({suitesById, suitesStateById, browsersById, browsersStateById});
+            const view = mkStateView({keyToGroupTestsBy: ''});
+
+            return {tree, view};
+        };
+
+        [CHECKED, UNCHECKED].forEach(checkStatus => {
+            it(`should not change ${checkStatus ? '' : 'un'}checked state`, () => {
+                const state = mkState({checkStatus});
+
+                const newState = reducer(state, {
+                    type: actionNames.TOGGLE_GROUP_CHECKBOX,
+                    payload: {browserIds: ['b1'], checkStatus}
+                });
+
+                assert.equal(newState.tree.browsers.stateById.b1.checkStatus, checkStatus);
+            });
+
+            it(`should set browsers checkbox to ${checkStatus ? '' : 'un'}checked state`, () => {
+                const state = mkState({checkStatus: Number(!checkStatus)});
+
+                const newState = reducer(state, {
+                    type: actionNames.TOGGLE_GROUP_CHECKBOX,
+                    payload: {browserIds: ['b1'], checkStatus}
+                });
+
+                assert.equal(newState.tree.browsers.stateById.b1.checkStatus, checkStatus);
+            });
+
+            it(`should set child suite checkbox to ${checkStatus ? '' : 'un'}checked state`, () => {
+                const state = mkState({checkStatus: Number(!checkStatus)});
+
+                const newState = reducer(state, {
+                    type: actionNames.TOGGLE_GROUP_CHECKBOX,
+                    payload: {browserIds: ['b1'], checkStatus}
+                });
+
+                assert.equal(newState.tree.suites.stateById.s1.checkStatus, checkStatus);
+            });
+        });
+    });
+
+    [
+        actionNames.BROWSERS_SELECTED,
+        actionNames.CHANGE_VIEW_MODE,
+        actionNames.VIEW_UPDATE_FILTER_BY_NAME,
+        actionNames.VIEW_SET_STRICT_MATCH_FILTER
+    ].forEach(actionName => {
+        describe(`${actionName} action`, () => {
+            const mkActionStateView = ({viewMode, testNameFilter, strictMatchFilter, filteredBrowsers}) => {
+                const actionToMkView = {
+                    [actionNames.CHANGE_VIEW_MODE]: () => mkStateView({viewMode}),
+                    [actionNames.VIEW_UPDATE_FILTER_BY_NAME]: () => mkStateView({testNameFilter}),
+                    [actionNames.VIEW_SET_STRICT_MATCH_FILTER]: () => mkStateView({testNameFilter, strictMatchFilter}),
+                    [actionNames.BROWSERS_SELECTED]: () => mkStateView({filteredBrowsers})
+                };
+
+                return actionToMkView[actionName]();
+            };
+
+            it('should uncheck unshown tests', () => {
+                const browsersById = {
+                    ...mkBrowser({id: 'b1', name: 'b1', resultIds: ['r1'], parentId: 's1'}),
+                    ...mkBrowser({id: 'b2', name: 'b2', resultIds: ['r2'], parentId: 's1'})
+                };
+                const resultsById = {
+                    ...mkResult({id: 'r1', status: SUCCESS}),
+                    ...mkResult({id: 'r2', status: SUCCESS})
+                };
+                const browsersStateById = {
+                    b1: {checkStatus: CHECKED, shouldBeShown: true},
+                    d1: {checkStatus: CHECKED, shouldBeShown: true}
+                };
+                const suitesById = mkSuite({id: 's1', browserIds: ['b1', 'b2'], parentId: null, root: true});
+                const suitesStateById = {'s1': {checkStatus: CHECKED, shouldBeShown: true, shouldBeOpened: true}};
+                const suitesAllRootIds = ['s1'];
+                const tree = mkStateTree({suitesById, browsersById, resultsById, suitesStateById, browsersStateById, suitesAllRootIds});
+                const view = mkActionStateView({
+                    viewMode: viewModes.FAILED,
+                    testNameFilter: 's2',
+                    strictMatchFilter: true,
+                    filteredBrowsers: [{id: 'c1', versions: []}]
+                });
+
+                const newState = reducer({tree, view}, {type: actionName});
+
+                assert.equal(newState.tree.browsers.stateById.b1.checkStatus, UNCHECKED);
+                assert.equal(newState.tree.browsers.stateById.b2.checkStatus, UNCHECKED);
+            });
+
+            it('should save check on shown tests', () => {
+                const browsersById = mkBrowser({id: 'b1', name: 'b1', resultIds: ['r1'], parentId: 's1'});
+                const resultsById = mkResult({id: 'r1', status: FAIL});
+                const browsersStateById = {b1: {checkStatus: CHECKED, shouldBeShown: true}};
+                const suitesById = mkSuite({id: 's1', browserIds: ['b1'], parentId: null, root: true});
+                const suitesStateById = {s1: {checkStatus: CHECKED, shouldBeShown: true, shouldBeOpened: true}};
+                const suitesAllRootIds = ['s1'];
+                const tree = mkStateTree({suitesById, browsersById, resultsById, suitesStateById, browsersStateById, suitesAllRootIds});
+                const view = mkActionStateView({
+                    viewMode: viewModes.FAILED,
+                    testNameFilter: 's1',
+                    strictMatchFilter: true,
+                    filteredBrowsers: [{id: 'b1', versions: []}]
+                });
+
+                const newState = reducer({tree, view}, {type: actionName});
+
+                assert.equal(newState.tree.browsers.stateById.b1.checkStatus, CHECKED);
+            });
+
+            it('should update parent suite', () => {
+                const browsersById = {
+                    ...mkBrowser({id: 'b1', name: 'b1', resultIds: ['r1'], parentId: 's1'}),
+                    ...mkBrowser({id: 'd1', name: 'd1', resultIds: ['r2'], parentId: 's2'})
+                };
+                const resultsById = {
+                    ...mkResult({id: 'r1', status: FAIL}),
+                    ...mkResult({id: 'r2', status: SUCCESS})
+                };
+                const browsersStateById = {
+                    b1: {checkStatus: CHECKED, shouldBeShown: true},
+                    d1: {checkStatus: UNCHECKED, shouldBeShown: true}
+                };
+                const suitesById = {
+                    ...mkSuite({id: 's0', suiteIds: ['s1', 's2'], parentId: null, root: true}),
+                    ...mkSuite({id: 's1', browserIds: ['b1'], parentId: 's0'}),
+                    ...mkSuite({id: 's2', browserIds: ['d1'], parentId: 's0'})
+                };
+                const suitesStateById = {
+                    s0: {checkStatus: INDETERMINATE, shouldBeShown: true, shouldBeOpened: true},
+                    s1: {checkStatus: CHECKED, shouldBeShown: true, shouldBeOpened: true},
+                    s2: {checkStatus: UNCHECKED, shouldBeShown: false, shouldBeOpened: false}
+                };
+                const suitesAllRootIds = ['s1'];
+                const tree = mkStateTree({suitesById, browsersById, resultsById, suitesStateById, browsersStateById, suitesAllRootIds});
+                const view = mkActionStateView({
+                    viewMode: viewModes.FAILED,
+                    testNameFilter: 's1',
+                    strictMatchFilter: true,
+                    filteredBrowsers: [{id: 'b1', versions: []}]
+                });
+
+                const newState = reducer({tree, view}, {type: actionName});
+
+                assert.equal(newState.tree.suites.stateById.s0.checkStatus, CHECKED);
+                assert.equal(newState.tree.suites.stateById.s1.checkStatus, CHECKED);
+            });
         });
     });
 });

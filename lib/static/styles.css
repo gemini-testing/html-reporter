@@ -52,25 +52,25 @@ main.container {
     color: #000;
 }
 
-.strict-match-filter {
+.toggle-control {
     display: inline-block;
     height: 25px;
     line-height: 21px;
 }
 
-.strict-match-filter .ui.checkbox label {
+.toggle-control .ui.checkbox label {
     padding-left: 55px;
 }
 
-.strict-match-filter .ui.toggle.checkbox input:focus:checked~.box:before,
-.strict-match-filter .ui.toggle.checkbox input:focus:checked~label:before,
-.strict-match-filter .ui.toggle.checkbox input:checked~.box:before,
-.strict-match-filter .ui.toggle.checkbox input:checked~label:before {
+.toggle-control .ui.toggle.checkbox input:focus:checked~.box:before,
+.toggle-control .ui.toggle.checkbox input:focus:checked~label:before,
+.toggle-control .ui.toggle.checkbox input:checked~.box:before,
+.toggle-control .ui.toggle.checkbox input:checked~label:before {
     background-color: #ffeb9f!important;
 }
 
-.strict-match-filter .ui.checkbox .box,
-.strict-match-filter .ui.checkbox label {
+.toggle-control .ui.checkbox .box,
+.toggle-control .ui.checkbox label {
     font-size: 11px;
     font-family: inherit;
 }
@@ -275,6 +275,34 @@ main.container {
     user-select: none;
 }
 
+.ui.checkbox.indeterminate label:after {
+    margin-top: 0.5px;
+}
+
+.section__title .ui.checkbox,
+.tests-group__title .ui.checkbox {
+    vertical-align: bottom;
+    margin-right: 5px;
+    
+    width: 18px;
+    height: 18px;
+}
+
+.section__title .ui.checkbox label:before,
+.tests-group__title .ui.checkbox label:before {
+    width: 14px;
+    height: 14px;
+    border-width: 1.5px;
+}
+
+.section__title .ui.checkbox label:after,
+.tests-group__title .ui.checkbox label:after {
+    width: 14px;
+    height: 14px;
+    font-size: 14px;
+    line-height: 14px;
+}
+
 .section__body .section__title {
     font-size: 15px;
     line-height: 20px;
@@ -284,14 +312,14 @@ main.container {
     font-weight: normal;
 }
 
-.section__title:before,
-.tests-group__title:before,
+.section__title .bullet_type-simple:before,
+.tests-group__title .bullet_type-simple.tests-group__bullet:before,
 .state-title:after,
 .details__summary:after,
 .error .details__summary:before,
 .sticky-header__wrap:before {
     content: '';
-    width: 16px;
+    width: 18px;
     height: 16px;
     display: inline-block;
     margin-right: 5px;
@@ -317,7 +345,7 @@ main.container {
     background-image: url("data:image/svg+xml,%3Csvg width='16px' height='16px' viewBox='0 0 64 64' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M35 0 C31 0 27 2 24 5 C22 7 21 8 20 11 C18 15 18 22 19 27 C20 29 21 31 22 33 C23 34 25 36 27 37 C27 37 28 37 28 37 C28 37 26 42 23 48 C20 55 17 60 17 62 L16 64 L20 63 L24 63 L35 39 L38 39 L41 39 L41 64 L47 64 L47 0 L42 0 C38 0 35 0 35 0 ZM41 19 L41 33 L38 33 C36 33 34 33 34 33 C31 32 28 30 27 27 C25 23 26 16 27 12 C28 9 31 6 34 6 C35 6 35 5 35 5 C36 5 37 5 38 5 L41 5 ZM41 19'/%3E%3C/svg%3E%0A");
 }
 
-.tests-group__title:before {
+.tests-group__title .bullet_type-simple.tests-group__bullet:before {
     flex-shrink: 0;
 }
 
@@ -347,14 +375,20 @@ details[open] > .details__summary:before {
     content: none;
 }
 
-.section_collapsed .section__title:before,
-.tests-group_collapsed .tests-group__title:before,
+.section_collapsed .section__title .bullet_type-simple:before,
+.tests-group_collapsed .tests-group__title .tests-group__bullet:before,
 .state-title_collapsed.state-title:after {
     transform: rotate(180deg);
 }
 
 .section_status_skipped > .section__title {
     color: #8c8c8c;
+}
+
+.section_status_skipped > .section__title .ui.checkbox label:before,
+.section_status_skipped > .section__title .ui.checkbox label:after {
+    color: #8c8c8c !important;
+    border-color: #8c8c8c !important;
 }
 
 .section_status_skipped > .section__title:hover {
@@ -384,6 +418,14 @@ details[open] > .details__summary:before {
     color: #038035;
 }
 
+.section_status_success > .section__title .ui.checkbox label:before,
+.section_status_success > .section__title .ui.checkbox label:after,
+.section_status_updated > .section__title .ui.checkbox label:before,
+.section_status_updated > .section__title .ui.checkbox label:after {
+    color: #038035 !important;
+    border-color: #038035 !important;
+}
+
 .section_status_success > .section__title:hover,
 .state-title_success:hover,
 .state-title_updated:hover {
@@ -395,6 +437,14 @@ details[open] > .details__summary:before {
 .state-title_fail,
 .state-title_error {
     color: #c00;
+}
+
+.section_status_fail > .section__title .ui.checkbox label:before,
+.section_status_fail > .section__title .ui.checkbox label:after,
+.section_status_error > .section__title .ui.checkbox label:before,
+.section_status_error > .section__title .ui.checkbox label:after {
+    color: #c00 !important;
+    border-color: #c00 !important;
 }
 
 .section_status_fail > .section__title:hover,

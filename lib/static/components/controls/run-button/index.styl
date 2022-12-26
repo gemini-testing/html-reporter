@@ -1,0 +1,49 @@
+.run-button {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    width: 143px;
+    font-size: 11px;
+    line-height: 11px;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    background-color: #ffeba0;
+
+    .btn {
+        flex-grow: 1;
+        height: 100%;
+        background-color: #ffeba0;
+        cursor: pointer;
+        border: none;
+    }
+
+    .run-button__dropdown {
+        font-family: Dropdown;
+
+        &::before {
+            content: '\f0d7';
+            padding: 5px;
+            border-left: 1px solid #ccc;
+        }
+    }
+
+    .popup__content {
+        padding: 0;
+    }
+
+    .run-mode {
+        padding: 0;
+
+        .run-mode__item {
+            font-size: 13px;
+            padding: 5px 10px;
+            list-style: none;
+            user-select: none;
+
+            &.run-mode__item_disabled {
+                color: #939393;
+                cursor: auto;
+            }
+        }
+    }
+}
