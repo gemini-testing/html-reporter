@@ -340,6 +340,22 @@ describe('<ScreenshotAccepterHeader/>', () => {
         });
     });
 
+    describe('"Show meta" button', () => {
+        const metaSelector = '[label="Show meta"]';
+
+        it('should be disabled if there are no images to accept', () => {
+            const component = mkHeaderComponent({images: []});
+
+            assert.isTrue(component.find(metaSelector).prop('isDisabled'));
+        });
+
+        it('should be enabled if passed not empty "images" array', () => {
+            const component = mkHeaderComponent({images: [{id: 'img-1', parentId: 'res-1'}]});
+
+            assert.isFalse(component.find(metaSelector).prop('isDisabled'));
+        });
+    });
+
     describe('"Close screenshot accepting mode" button', () => {
         it('should call "onClose" handler on click', () => {
             const onClose = sandbox.stub();
