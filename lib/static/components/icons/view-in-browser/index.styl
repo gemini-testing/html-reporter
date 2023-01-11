@@ -1,0 +1,28 @@
+.view-in-browser {
+    display: inline-block;
+    width: 16px;
+    height: 19px;
+    vertical-align: middle;
+    margin-left: 4px;
+    margin-right: 0;
+    padding: 0 2px;
+    border: none;
+    color: black;
+    opacity: 0.3;
+
+    &:visited {
+        color: black;
+    }
+
+    &:active,
+    &:hover {
+        &.view-in-browser_active {
+            opacity: 1;
+            cursor: pointer;
+        }
+
+        &.view-in-browser_disabled {
+            cursor: default;
+        }
+    }
+}
