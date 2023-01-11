@@ -202,7 +202,7 @@ describe('<ScreenshotAccepter/>', () => {
                 ScreenshotAccepterMeta,
                 {
                     showMeta: false,
-                    resultId: 'res-1'
+                    image
                 }
             );
         });

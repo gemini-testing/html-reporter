@@ -142,6 +142,10 @@ main.container {
     border-color: #cebe7d;
 }
 
+.button_checked[disabled] {
+    border-color: #ccc;
+}
+
 .button.button_type_action {
     background: #ffde5a;
 }
