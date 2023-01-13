@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="9.7.5"></a>
+## [9.7.5](https://github.com/gemini-testing/html-reporter/compare/v9.7.4...v9.7.5) (2023-01-13)
+
+
+### Bug Fixes
+
+* add inactive ViewInBrowser icon ([8282985](https://github.com/gemini-testing/html-reporter/commit/8282985))
+
+
+
 <a name="9.7.4"></a>
 ## [9.7.4](https://github.com/gemini-testing/html-reporter/compare/v9.7.3...v9.7.4) (2023-01-11)
 
