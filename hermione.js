@@ -55,19 +55,23 @@ async function prepare(hermione, reportBuilder, pluginConfig) {
 
         hermione.on(hermione.events.TEST_PASS, testResult => {
             promises.push(queue.add(async () => {
-                const formattedResult = reportBuilder.format(testResult);
-                await formattedResult.saveTestImages(reportPath, workers);
+                try {
+                    const formattedResult = reportBuilder.format(testResult);
+                    await formattedResult.saveTestImages(reportPath, workers);
 
-                return reportBuilder.addSuccess(formattedResult);
-            }).catch(reject));
+                    return reportBuilder.addSuccess(formattedResult);
+                } catch (e) {
+                    reject(e);
+                }
+            }));
         });
 
         hermione.on(hermione.events.RETRY, testResult => {
-            promises.push(queue.add(() => failHandler(testResult).then(addFail)).catch(reject));
+            promises.push(queue.add(() => failHandler(testResult).then(addFail).catch(reject)));
         });
 
         hermione.on(hermione.events.TEST_FAIL, testResult => {
-            promises.push(queue.add(() => failHandler(testResult).then(addFail)).catch(reject));
+            promises.push(queue.add(() => failHandler(testResult).then(addFail).catch(reject)));
         });
 
         hermione.on(hermione.events.TEST_PENDING, testResult => {
