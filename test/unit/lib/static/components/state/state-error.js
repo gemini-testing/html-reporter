@@ -38,14 +38,13 @@ describe('<StateError/> component', () => {
     afterEach(() => sandbox.restore());
 
     describe('"errorPatterns" is not specified', () => {
-        it('should render error "message", "stack" and "history" if "errorPatterns" is empty', () => {
-            const error = {message: 'some-msg', stack: 'some-stack', history: 'some-history'};
+        it('should render error "message" and "stack" if "errorPatterns" is empty', () => {
+            const error = {message: 'some-msg', stack: 'some-stack'};
 
             const component = mkStateErrorComponent({result: {error}}, {config: {errorPatterns: []}});
 
             assert.equal(component.find('.error__item').at(0).text(), 'message: some-msg');
             assert.equal(component.find('.error__item').at(1).text(), 'stack: some-stack');
-            assert.equal(component.find('.error__item').at(2).text(), 'history: some-history');
         });
 
         it('should break error fields by line break', () => {

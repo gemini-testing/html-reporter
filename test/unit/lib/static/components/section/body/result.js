@@ -1,12 +1,12 @@
 import React from 'react';
 import proxyquire from 'proxyquire';
-import {defaults} from 'lodash';
+import {defaults, set} from 'lodash';
 import {FAIL, SUCCESS} from 'lib/constants/test-statuses';
 import {mkConnectedComponent} from '../../utils';
 
 describe('<Result />', () => {
     const sandbox = sinon.sandbox.create();
-    let Result, MetaInfo, Description, Tabs;
+    let Result, MetaInfo, History, Description, Tabs;
 
     const mkResult = (props = {}, initialState = {}) => {
         props = defaults(props, {
@@ -20,7 +20,8 @@ describe('<Result />', () => {
                     byId: {
                         'default-id': {
                             status: SUCCESS,
-                            imageIds: []
+                            imageIds: [],
+                            history: []
                         }
                     }
                 }
@@ -33,10 +34,12 @@ describe('<Result />', () => {
     beforeEach(() => {
         MetaInfo = sinon.stub().returns(null);
         Description = sinon.stub().returns(null);
+        History = sinon.stub().returns(null);
         Tabs = sinon.stub().returns(null);
 
         Result = proxyquire('lib/static/components/section/body/result', {
             './meta-info': {default: MetaInfo},
+            './history': {default: History},
             './description': {default: Description},
             './tabs': {default: Tabs}
         }).default;
@@ -47,19 +50,22 @@ describe('<Result />', () => {
     describe('"MetaInfo" component', () => {
         it('should render with result and test name props', () => {
             const result = {status: FAIL, imageIds: ['image-1']};
-            const initialState = {
-                tree: {
-                    results: {
-                        byId: {
-                            'result-1': result
-                        }
-                    }
-                }
-            };
+            const initialState = set({}, 'tree.results.byId.result-1', result);
 
             mkResult({resultId: 'result-1', testName: 'test-name'}, initialState);
 
             assert.calledOnceWith(MetaInfo, {resultId: 'result-1'});
+        });
+    });
+
+    describe('"History" component', () => {
+        it('should render with resultId prop', () => {
+            const result = {status: FAIL, imageIds: ['image-1'], history: []};
+            const initialState = set({}, 'tree.results.byId.result-1', result);
+
+            mkResult({resultId: 'result-1', testName: 'test-name'}, initialState);
+
+            assert.calledOnceWith(History, {resultId: 'result-1'});
         });
     });
 
