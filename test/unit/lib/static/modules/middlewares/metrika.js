@@ -334,6 +334,7 @@ describe('lib/static/modules/middlewares/metrika', () => {
         actionNames.VIEW_UPDATE_BASE_HOST,
         actionNames.VIEW_THREE_UP_DIFF,
         actionNames.VIEW_THREE_UP_SCALED_DIFF,
+        actionNames.VIEW_THREE_UP_SCALED_TO_FIT_DIFF,
         actionNames.VIEW_ONLY_DIFF,
         actionNames.VIEW_SWITCH_DIFF,
         actionNames.VIEW_SWIPE_DIFF,
