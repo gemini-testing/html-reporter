@@ -40,14 +40,15 @@ describe('lib/sqlite-adapter', () => {
             {cid: 2, name: 'name', type: 'TEXT'},
             {cid: 3, name: 'suiteUrl', type: 'TEXT'},
             {cid: 4, name: 'metaInfo', type: 'TEXT'},
-            {cid: 5, name: 'description', type: 'TEXT'},
-            {cid: 6, name: 'error', type: 'TEXT'},
-            {cid: 7, name: 'skipReason', type: 'TEXT'},
-            {cid: 8, name: 'imagesInfo', type: 'TEXT'},
-            {cid: 9, name: 'screenshot', type: 'INT'},
-            {cid: 10, name: 'multipleTabs', type: 'INT'},
-            {cid: 11, name: 'status', type: 'TEXT'},
-            {cid: 12, name: 'timestamp', type: 'INT'}
+            {cid: 5, name: 'history', type: 'TEXT'},
+            {cid: 6, name: 'description', type: 'TEXT'},
+            {cid: 7, name: 'error', type: 'TEXT'},
+            {cid: 8, name: 'skipReason', type: 'TEXT'},
+            {cid: 9, name: 'imagesInfo', type: 'TEXT'},
+            {cid: 10, name: 'screenshot', type: 'INT'},
+            {cid: 11, name: 'multipleTabs', type: 'INT'},
+            {cid: 12, name: 'status', type: 'TEXT'},
+            {cid: 13, name: 'timestamp', type: 'INT'}
         ];
 
         const columns = db.prepare('PRAGMA table_info(suites);').all();

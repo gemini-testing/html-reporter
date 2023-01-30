@@ -17,7 +17,7 @@ describe('hermione test adapter', () => {
     class NoRefImageError extends Error {}
 
     const mkHermioneTestResultAdapter = (testResult, {
-        toolOpts = {}, pluginConfig = {}, htmlReporter = {}, status
+        toolOpts = {}, htmlReporter = {}, status
     } = {}) => {
         const config = _.defaults(toolOpts.config, {
             browsers: {
@@ -36,7 +36,7 @@ describe('hermione test adapter', () => {
             }, htmlReporter)
         );
 
-        return new HermioneTestResultAdapter(testResult, tool, pluginConfig, status);
+        return new HermioneTestResultAdapter(testResult, tool, status);
     };
 
     const mkTestResult_ = (result) => _.defaults(result, {
@@ -92,7 +92,7 @@ describe('hermione test adapter', () => {
         assert.equal(result.attempt, 0);
     });
 
-    it('should return test error with "message", "stack", "history" and "stateName"', () => {
+    it('should return test error with "message", "stack" and "stateName"', () => {
         getCommandsHistory.withArgs([{name: 'foo'}], ['foo']).returns(['some-history']);
         const testResult = mkTestResult_({
             file: 'bar',
@@ -105,18 +105,31 @@ describe('hermione test adapter', () => {
             }
         });
 
-        const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {
-            pluginConfig: {
-                commandsWithShortHistory: ['foo']
-            }
-        });
+        const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
 
         assert.deepEqual(hermioneTestAdapter.error, {
             message: 'some-message',
             stack: 'some-stack',
-            history: ['some-history'],
             stateName: 'some-test'
         });
+    });
+
+    it('should return test history', () => {
+        getCommandsHistory.withArgs([{name: 'foo'}]).returns(['some-history']);
+        const testResult = mkTestResult_({
+            file: 'bar',
+            history: [{name: 'foo'}],
+            err: {
+                message: 'some-message',
+                stack: 'some-stack',
+                stateName: 'some-test',
+                foo: 'bar'
+            }
+        });
+
+        const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+
+        assert.deepEqual(hermioneTestAdapter.history, ['some-history']);
     });
 
     it('should return test state', () => {

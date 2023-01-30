@@ -12,7 +12,7 @@ describe('history-utils', () => {
 
         afterEach(() => sandbox.restore());
 
-        it('should return commands executed in test file and all sub commands of the last command', async () => {
+        it('should return commands executed in test file', () => {
             const allHistory = [
                 {n: 'foo', a: ['foo-arg'], d: 10, c: []},
                 {n: 'baz', a: ['baz-arg'], d: 1, c: []},
@@ -23,28 +23,43 @@ describe('history-utils', () => {
                 ]}
             ];
 
-            const history = await getCommandsHistory(allHistory);
+            const history = getCommandsHistory(allHistory);
 
             assert.deepEqual(history, [
-                '\tfoo("foo-arg") <- 10ms\n',
-                '\tbaz("baz-arg") <- 1ms\n',
-                '\tbar("bar-arg") <- 3ms\n',
-                '\tqux("qux-arg") <- 4ms\n',
-                '\t\tqux("qux-arg") <- 4ms\n',
-                '\t\tbaz("bar-arg") <- 3ms\n'
+                'foo("foo-arg") <- 10ms\n',
+                'baz("baz-arg") <- 1ms\n',
+                'bar("bar-arg") <- 3ms\n',
+                'qux("qux-arg") <- 4ms\n'
             ]);
         });
 
-        it('should return undefined if all history is not given', async () => {
-            const history = await getCommandsHistory(undefined);
+        it('should return commands executed in test file and all sub commands of the failed command', () => {
+            const allHistory = [
+                {n: 'foo', a: ['foo-arg'], d: 10, c: []},
+                {n: 'baz', a: ['baz-arg'], d: 1, c: []},
+                {n: 'bar', a: ['bar-arg'], d: 3, c: []},
+                {n: 'qux', a: ['qux-arg'], d: 4, f: true, c: [
+                    {n: 'qux', a: ['qux-arg'], d: 4, c: []},
+                    {n: 'baz', a: ['bar-arg'], d: 3, f: true, c: []}
+                ]}
+            ];
 
-            assert.isUndefined(history);
+            const history = getCommandsHistory(allHistory);
+
+            assert.deepEqual(history, [
+                'foo("foo-arg") <- 10ms\n',
+                'baz("baz-arg") <- 1ms\n',
+                'bar("bar-arg") <- 3ms\n',
+                'qux("qux-arg") <- 4ms\n',
+                '\tqux("qux-arg") <- 4ms\n',
+                '\tbaz("bar-arg") <- 3ms\n'
+            ]);
         });
 
-        it('should return failure message in case of exception', async () => {
-            const history = await getCommandsHistory([{}]);
+        it('should return undefined if all history is not given', () => {
+            const history = getCommandsHistory(undefined);
 
-            assert.match(history, /failed to get command history: .*/);
+            assert.isUndefined(history);
         });
     });
 });
