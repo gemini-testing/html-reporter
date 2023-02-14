@@ -94,6 +94,8 @@ describe('<ScreenshotAccepter/>', () => {
                     retryIndex: 0,
                     activeImageIndex: 0,
                     showMeta: false,
+                    acceptedImages: 0,
+                    totalImages: 1,
                     onClose: sinon.match.func,
                     onRetryChange: sinon.match.func,
                     onActiveImageChange: sinon.match.func,

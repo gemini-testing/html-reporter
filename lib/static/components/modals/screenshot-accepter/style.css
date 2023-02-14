@@ -15,6 +15,17 @@
     background-color: #fff;
 }
 
+.screenshot-accepter__controls.state-controls .progress-bar {
+    margin-left: auto;
+    margin-bottom: 20px;
+}
+
+.screenshot-accepter__controls.state-controls .progress-bar::after {
+    content: "Accepted: " attr(data-content);
+    font-size: 13px;
+    line-height: 18px;
+}
+
 .state-controls.screenshot-accepter__controls {
     display: flex;
     flex-wrap: wrap;

@@ -1,0 +1,24 @@
+.progress-bar {
+    position: relative;
+    display: flex;
+    outline: 1px solid #ccc;
+    border-radius: 5px;
+
+    &__container {
+        position: absolute;
+        height: 100%;
+        z-index: -1;
+        background-color: #fc0;
+        transition: width .25s ease-in-out,
+                    margin-right .25s ease-in-out;
+    }
+
+    &::after {
+        box-sizing: border-box;
+        width: 100%;
+        padding-left: 10px;
+        padding-right: 10px;
+        text-align: center;
+        align-self: center;
+    }
+}

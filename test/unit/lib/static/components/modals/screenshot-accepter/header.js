@@ -13,6 +13,8 @@ describe('<ScreenshotAccepterHeader/>', () => {
 
     const mkHeaderComponent = (props = {}) => {
         props = defaults(props, {
+            totalImages: 2,
+            acceptedImages: 0,
             images: [{
                 id: 'default-image-id',
                 parentId: 'default-result-id'
