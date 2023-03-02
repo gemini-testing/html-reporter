@@ -423,6 +423,7 @@ details[open] > .details__summary:before {
     border: none;
     opacity: 0.3;
     cursor: pointer;
+    background: transparent;
 }
 
 .section_root > .section__title > .custom-icon {
@@ -456,6 +457,8 @@ details[open] > .details__summary:before {
 }
 
 .meta-info__item {
+    display: flex;
+    gap: 4px;
     word-wrap: break-word;
     margin-bottom: 5px;
 }
@@ -466,6 +469,23 @@ details[open] > .details__summary:before {
 
 .meta-info__item-key {
     font-weight: bold;
+}
+
+.meta-info__item-key:after {
+    content: ":";
+    font-weight: 400;
+}
+
+.meta-info__item-value {
+    display: flex;
+}
+
+.custom-icon_view-local{
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: 300px;
 }
 
 .error {
