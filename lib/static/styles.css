@@ -471,11 +471,6 @@ details[open] > .details__summary:before {
     font-weight: bold;
 }
 
-.meta-info__item-key:after {
-    content: ":";
-    font-weight: 400;
-}
-
 .meta-info__item-value {
     display: flex;
 }
