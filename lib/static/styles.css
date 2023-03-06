@@ -458,7 +458,6 @@ details[open] > .details__summary:before {
 
 .meta-info__item {
     display: flex;
-    gap: 4px;
     word-wrap: break-word;
     margin-bottom: 5px;
 }
@@ -468,11 +467,14 @@ details[open] > .details__summary:before {
 }
 
 .meta-info__item-key {
+    white-space: pre;
     font-weight: bold;
+    flex-shrink: 0;
 }
 
 .meta-info__item-value {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(2, auto);
 }
 
 .custom-icon_view-local{
@@ -480,7 +482,6 @@ details[open] > .details__summary:before {
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    max-width: 300px;
 }
 
 .error {
