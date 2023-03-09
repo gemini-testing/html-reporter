@@ -7,7 +7,7 @@ import {mkConnectedComponent} from '../../utils';
 
 describe('<ScreenshotAccepter/>', () => {
     const sandbox = sinon.sandbox.create();
-    let ScreenshotAccepter, ScreenshotAccepterHeader, ScreenshotAccepterMeta, ScreenshotAccepterBody, actions, selectors, parentNode;
+    let ScreenshotAccepter, ScreenshotAccepterHeader, ScreenshotAccepterMeta, ScreenshotAccepterBody, actionsStub, selectors, parentNode;
 
     const mkResult = (opts) => {
         const result = defaults(opts, {
@@ -47,8 +47,9 @@ describe('<ScreenshotAccepter/>', () => {
     };
 
     beforeEach(() => {
-        actions = {
-            acceptTest: sandbox.stub().returns({type: 'some-type'})
+        actionsStub = {
+            screenshotAccepterAccept: sandbox.stub().returns({type: 'some-type'}),
+            applyDelayedTestResults: sandbox.stub().returns({type: 'some-type'})
         };
 
         selectors = {
@@ -69,7 +70,7 @@ describe('<ScreenshotAccepter/>', () => {
             './header': {default: ScreenshotAccepterHeader},
             './meta': {default: ScreenshotAccepterMeta},
             './body': {default: ScreenshotAccepterBody},
-            '../../../modules/actions': actions,
+            '../../../modules/actions': actionsStub,
             '../../../modules/selectors/tree': selectors
         }).default;
     });
@@ -157,7 +158,7 @@ describe('<ScreenshotAccepter/>', () => {
         });
 
         describe('"onScreenshotAccept" handler', () => {
-            it('should "acceptTest" action', () => {
+            it('should call "screenshotAccepterAccept" action', () => {
                 const image = mkImage({id: 'img-1', parentId: 'res-1', stateName: 'plain'});
                 const resultsById = mkResult({id: 'res-1', parentId: 'bro-1', imageIds: ['img-1']});
                 const tree = mkStateTree({resultsById});
@@ -166,7 +167,7 @@ describe('<ScreenshotAccepter/>', () => {
                 mkScreenshotAccepterComponent({image}, {tree});
                 ScreenshotAccepterHeader.firstCall.args[0].onScreenshotAccept('img-1');
 
-                assert.calledOnceWith(actions.acceptTest, 'img-1');
+                assert.calledOnceWith(actionsStub.screenshotAccepterAccept, 'img-1');
             });
         });
 
@@ -253,6 +254,31 @@ describe('<ScreenshotAccepter/>', () => {
                 assert.calledWithMatch(ScreenshotAccepterBody.firstCall, {image: image1});
                 assert.calledWithMatch(ScreenshotAccepterBody.secondCall, {image: image2});
             });
+        });
+    });
+
+    describe('onClose', () => {
+        beforeEach(() => {
+            const image = mkImage({id: 'img-1', parentId: 'res-1', stateName: 'plain'});
+            const resultsById = mkResult({id: 'res-1', parentId: 'bro-1', imageIds: ['img-1']});
+            const tree = mkStateTree({resultsById});
+            selectors.getAcceptableImagesByStateName.returns({'bro-1 plain': [image]});
+
+            mkScreenshotAccepterComponent({image}, {tree});
+        });
+
+        it('should not apply delayed test result, if no screens were accepted', () => {
+            ScreenshotAccepterHeader.firstCall.args[0].onClose();
+
+            assert.notCalled(actionsStub.applyDelayedTestResults);
+        });
+
+        it('should apply delayed test result, if some screens were accepted', async () => {
+            await ScreenshotAccepterHeader.firstCall.args[0].onScreenshotAccept('img-1');
+
+            ScreenshotAccepterHeader.firstCall.args[0].onClose();
+
+            assert.calledOnce(actionsStub.applyDelayedTestResults);
         });
     });
 });

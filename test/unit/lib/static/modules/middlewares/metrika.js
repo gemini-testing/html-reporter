@@ -347,7 +347,8 @@ describe('lib/static/modules/middlewares/metrika', () => {
         actionNames.COPY_TEST_LINK,
         actionNames.TOGGLE_SUITE_SECTION,
         actionNames.TOGGLE_BROWSER_SECTION,
-        actionNames.GROUP_TESTS_BY_KEY
+        actionNames.GROUP_TESTS_BY_KEY,
+        actionNames.APPLY_DELAYED_TEST_RESULTS
     ].forEach((eventName) => {
         describe(`"${eventName}" event`, () => {
             it('should not send counter id if metrika is not inited', () => {
