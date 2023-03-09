@@ -5,6 +5,7 @@ const fs = require('fs-extra');
 const HermioneReporter = require('../../hermione');
 const PluginAdapter = require('lib/plugin-adapter');
 const StaticReportBuilder = require('lib/report-builder/static');
+const SqliteAdapter = require('lib/sqlite-adapter');
 const utils = require('lib/server-utils');
 const {logger} = require('lib/common-utils');
 const {stubTool} = require('./utils');
@@ -65,6 +66,7 @@ describe('lib/hermione', () => {
         return _.defaultsDeep(options, {
             fullTitle: () => 'default-title',
             id: () => 'some-id',
+            root: true,
             err: {
                 type: options.diff && 'ImageDiffError',
                 stateName: options.stateName
@@ -109,6 +111,8 @@ describe('lib/hermione', () => {
         sandbox.stub(StaticReportBuilder.prototype, 'finalize');
 
         sandbox.stub(StaticReportBuilder.prototype, 'init');
+
+        sandbox.stub(SqliteAdapter.prototype, 'query');
 
         sandbox.stub(fs, 'readFile').resolves(Buffer.from(''));
     });

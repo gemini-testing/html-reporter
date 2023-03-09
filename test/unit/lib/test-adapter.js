@@ -3,15 +3,16 @@
 const _ = require('lodash');
 const utils = require('lib/server-utils');
 const {logger} = require('lib/common-utils');
-const {SUCCESS, UPDATED, SKIPPED} = require('lib/constants/test-statuses');
+const {SUCCESS, UPDATED, SKIPPED, FAIL} = require('lib/constants/test-statuses');
 const {ERROR_DETAILS_PATH} = require('lib/constants/paths');
 const {stubTool, stubConfig} = require('../utils');
+const SqliteAdapter = require('lib/sqlite-adapter');
 const proxyquire = require('proxyquire');
 const fs = require('fs-extra');
 
 describe('hermione test adapter', () => {
     const sandbox = sinon.sandbox.create();
-    let tmp, HermioneTestResultAdapter, err, getSuitePath, getCommandsHistory;
+    let tmp, HermioneTestResultAdapter, err, getSuitePath, getCommandsHistory, sqliteAdapter;
 
     class ImageDiffError extends Error {}
     class NoRefImageError extends Error {}
@@ -25,7 +26,7 @@ describe('hermione test adapter', () => {
             }
         });
 
-        const tool = stubTool(
+        const hermione = stubTool(
             stubConfig(config),
             {},
             {ImageDiffError, NoRefImageError},
@@ -36,7 +37,7 @@ describe('hermione test adapter', () => {
             }, htmlReporter)
         );
 
-        return new HermioneTestResultAdapter(testResult, tool, status);
+        return new HermioneTestResultAdapter(testResult, {hermione, sqliteAdapter, status});
     };
 
     const mkTestResult_ = (result) => _.defaults(result, {
@@ -58,6 +59,7 @@ describe('hermione test adapter', () => {
         tmp = {tmpdir: 'default/dir'};
         getSuitePath = sandbox.stub();
         getCommandsHistory = sandbox.stub();
+        sqliteAdapter = sandbox.createStubInstance(SqliteAdapter);
 
         HermioneTestResultAdapter = proxyquire('../../../lib/test-adapter', {
             tmp,
@@ -603,6 +605,82 @@ describe('hermione test adapter', () => {
 
             const {expectedImg} = hermioneTestAdapter.getImagesFor(UPDATED);
             assert.equal(expectedImg.path, 'some/ref.png');
+        });
+
+        describe('expected path', () => {
+            let lastImageInfo;
+
+            beforeEach(() => {
+                lastImageInfo = [{
+                    stateName: 'plain',
+                    expectedImg: {
+                        path: 'expectedImgPath'
+                    }
+                }];
+            });
+
+            it('should be pulled from the database if exists', async () => {
+                sqliteAdapter.query.withArgs({
+                    select: 'imagesInfo',
+                    where: 'suitePath = ? AND name = ?',
+                    orderBy: 'timestamp',
+                    orderDescending: true
+                }).returns({imagesInfo: JSON.stringify(lastImageInfo)});
+
+                const testResult = mkTestResult_({
+                    fullTitle: () => 'some-title',
+                    assertViewResults: [mkErrStub()],
+                    imagesInfo: []
+                });
+                const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {status: FAIL});
+
+                hermioneTestAdapter.getImagesFor(FAIL, 'plain');
+
+                assert.notCalled(utils.getReferencePath);
+            });
+
+            it('should be generated if does not exist in sqlite', async () => {
+                sqliteAdapter.query.returns(null);
+                const testResult = mkTestResult_({
+                    fullTitle: () => 'some-title',
+                    assertViewResults: [mkErrStub()],
+                    imagesInfo: []
+                });
+                const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {status: FAIL});
+
+                hermioneTestAdapter.getImagesFor(FAIL, 'plain');
+
+                assert.calledOnce(utils.getReferencePath);
+            });
+
+            it('should be generated on update', async () => {
+                sqliteAdapter.query.returns({imagesInfo: JSON.stringify(lastImageInfo)});
+                const testResult = mkTestResult_({
+                    fullTitle: () => 'some-title',
+                    assertViewResults: [mkErrStub()],
+                    imagesInfo: []
+                });
+                const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {status: FAIL});
+
+                hermioneTestAdapter.getImagesFor(UPDATED, 'plain');
+
+                assert.calledOnce(utils.getReferencePath);
+            });
+
+            it('should be queried from the database once per state', async () => {
+                sqliteAdapter.query.returns({imagesInfo: JSON.stringify(lastImageInfo)});
+                const testResult = mkTestResult_({
+                    fullTitle: () => 'some-title',
+                    assertViewResults: [mkErrStub()],
+                    imagesInfo: []
+                });
+                const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {status: FAIL});
+
+                hermioneTestAdapter.getImagesFor(FAIL, 'plain');
+                hermioneTestAdapter.getImagesFor(FAIL, 'plain');
+
+                assert.calledOnce(sqliteAdapter.query);
+            });
         });
     });
 
