@@ -423,6 +423,7 @@ details[open] > .details__summary:before {
     border: none;
     opacity: 0.3;
     cursor: pointer;
+    background: transparent;
 }
 
 .section_root > .section__title > .custom-icon {
@@ -456,6 +457,7 @@ details[open] > .details__summary:before {
 }
 
 .meta-info__item {
+    display: flex;
     word-wrap: break-word;
     margin-bottom: 5px;
 }
@@ -465,7 +467,21 @@ details[open] > .details__summary:before {
 }
 
 .meta-info__item-key {
+    white-space: pre;
     font-weight: bold;
+    flex-shrink: 0;
+}
+
+.meta-info__item-value {
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+}
+
+.custom-icon_view-local{
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 .error {
