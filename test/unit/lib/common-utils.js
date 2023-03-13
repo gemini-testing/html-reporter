@@ -1,6 +1,6 @@
 'use strict';
 
-const {determineStatus} = require('lib/common-utils');
+const {determineStatus, buildUrl} = require('lib/common-utils');
 const {RUNNING, QUEUED, ERROR, FAIL, UPDATED, SUCCESS, IDLE, SKIPPED} = require('lib/constants/test-statuses');
 
 describe('common-utils', () => {
@@ -93,6 +93,24 @@ describe('common-utils', () => {
 
                 assert.equal(status, SKIPPED);
             });
+        });
+    });
+    describe('buildUrl', () => {
+        it('should return href as is if host is not provided', () => {
+            const href = 'https://example.com';
+
+            const url = buildUrl(href);
+
+            assert.equal(url, href);
+        });
+
+        it('should return url with specified host if it is provided', () => {
+            const href = 'https://oldhost.com/path';
+            const host = 'newhost.com';
+
+            const url = buildUrl(href, host);
+
+            assert.equal(url, 'https://newhost.com/path');
         });
     });
 });
