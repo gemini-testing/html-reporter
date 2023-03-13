@@ -1196,4 +1196,97 @@ describe('lib/static/modules/reducers/tree', () => {
             });
         });
     });
+
+    describe(`${actionNames.UNDO_ACCEPT_IMAGES} action`, () => {
+        const mkTree_ = () => mkStateTree({
+            suitesById: mkSuite({id: 's', status: SUCCESS, browserIds: ['b']}),
+            browsersById: mkBrowser({id: 'b', name: 'yabro', parentId: 's', resultIds: ['r1']}),
+            browsersStateById: {'b': {retryIndex: 1}},
+            imagesStateById: {'i1': {shouldBeOpened: false}, 'i2': {shouldBeOpened: false}},
+            resultsById: {
+                ...mkResult({id: 'r1', parentId: 'b', status: SUCCESS, imageIds: ['i1']}),
+                ...mkResult({id: 'r2', parentId: 'b', status: SUCCESS, imageIds: ['i2']})
+            },
+            imagesById: {
+                ...mkImage({id: 'i1', parentId: 'r1', status: UPDATED}),
+                ...mkImage({id: 'i2', parentId: 'r2', status: UPDATED})
+            }
+        });
+
+        it('should update image', () => {
+            const tree = mkTree_();
+            const view = mkStateView();
+            const updatedImage = {id: 'i1', parentId: 'r1', status: FAIL};
+
+            const {tree: newTree} = reducer({tree, view}, {
+                type: actionNames.UNDO_ACCEPT_IMAGES,
+                payload: {updatedImages: [updatedImage]}
+            });
+
+            assert.equal(newTree.images.byId['i1'].status, FAIL);
+        });
+
+        it('should expand updated image', () => {
+            const tree = mkTree_();
+            const view = mkStateView();
+            const updatedImage = {id: 'i1', parentId: 'r1', status: FAIL};
+
+            const {tree: newTree} = reducer({tree, view}, {
+                type: actionNames.UNDO_ACCEPT_IMAGES,
+                payload: {updatedImages: [updatedImage]}
+            });
+
+            assert.isTrue(newTree.images.stateById['i1'].shouldBeOpened);
+        });
+
+        it('should remove result', () => {
+            const tree = mkTree_();
+            const view = mkStateView();
+
+            const {tree: newTree} = reducer({tree, view}, {
+                type: actionNames.UNDO_ACCEPT_IMAGES,
+                payload: {removedResults: ['r2']}
+            });
+
+            assert.deepEqual(newTree.results.allIds, ['r1']);
+            assert.deepEqual(Object.keys(newTree.results.byId), ['r1']);
+            assert.deepEqual(newTree.browsers.byId.b.resultIds, ['r1']);
+
+            assert.deepEqual(Object.keys(newTree.images.byId), ['i1']);
+            assert.deepEqual(Object.keys(newTree.images.stateById), ['i1']);
+            assert.deepEqual(newTree.images.allIds, ['i1']);
+
+            assert.equal(newTree.browsers.stateById.b.retryIndex, 0);
+        });
+
+        it('should mark suite as failed', () => {
+            const tree = mkTree_();
+            const view = mkStateView();
+            const updatedImage = {id: 'i1', parentId: 'r1', status: FAIL};
+
+            const {tree: newTree} = reducer({tree, view}, {
+                type: actionNames.UNDO_ACCEPT_IMAGES,
+                payload: {updatedImages: [updatedImage]}
+            });
+
+            assert.equal(newTree.suites.byId.s.status, FAIL);
+            assert.deepEqual(newTree.suites.failedRootIds, ['s']);
+        });
+
+        it('should not modify state if "skipTreeUpdate" is set', () => {
+            const state = {tree: mkTree_(), view: mkStateView()};
+            const updatedImage = {id: 'i1', status: FAIL};
+
+            const newState = reducer(state, {
+                type: actionNames.UNDO_ACCEPT_IMAGES,
+                payload: {
+                    updatedImages: [updatedImage],
+                    removedResults: ['r2'],
+                    skipTreeUpdate: true
+                }
+            });
+
+            assert.equal(state, newState);
+        });
+    });
 });

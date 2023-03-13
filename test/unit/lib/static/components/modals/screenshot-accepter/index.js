@@ -49,6 +49,7 @@ describe('<ScreenshotAccepter/>', () => {
     beforeEach(() => {
         actionsStub = {
             screenshotAccepterAccept: sandbox.stub().returns({type: 'some-type'}),
+            undoAcceptImage: sandbox.stub().returns({type: 'some-type'}),
             applyDelayedTestResults: sandbox.stub().returns({type: 'some-type'})
         };
 
@@ -100,6 +101,7 @@ describe('<ScreenshotAccepter/>', () => {
                     onRetryChange: sinon.match.func,
                     onActiveImageChange: sinon.match.func,
                     onScreenshotAccept: sinon.match.func,
+                    onScreenshotUndo: sinon.match.func,
                     onShowMeta: sinon.match.func
                 }
             );
@@ -160,14 +162,14 @@ describe('<ScreenshotAccepter/>', () => {
         });
 
         describe('"onScreenshotAccept" handler', () => {
-            it('should call "screenshotAccepterAccept" action', () => {
+            it('should call "screenshotAccepterAccept" action', async () => {
                 const image = mkImage({id: 'img-1', parentId: 'res-1', stateName: 'plain'});
                 const resultsById = mkResult({id: 'res-1', parentId: 'bro-1', imageIds: ['img-1']});
                 const tree = mkStateTree({resultsById});
                 selectors.getAcceptableImagesByStateName.returns({'bro-1 plain': [image]});
 
                 mkScreenshotAccepterComponent({image}, {tree});
-                ScreenshotAccepterHeader.firstCall.args[0].onScreenshotAccept('img-1');
+                await ScreenshotAccepterHeader.firstCall.args[0].onScreenshotAccept('img-1');
 
                 assert.calledOnceWith(actionsStub.screenshotAccepterAccept, 'img-1');
             });
@@ -188,6 +190,21 @@ describe('<ScreenshotAccepter/>', () => {
                 assert.calledWith(ScreenshotAccepterHeader.secondCall, sinon.match({
                     showMeta: true
                 }));
+            });
+        });
+
+        describe('"onScreenshotUndo" handler', () => {
+            it('should call "undoAcceptImages" action', async () => {
+                const image = mkImage({id: 'img-1', parentId: 'res-1', stateName: 'plain'});
+                const resultsById = mkResult({id: 'res-1', parentId: 'bro-1', imageIds: ['img-1']});
+                const tree = mkStateTree({resultsById});
+                selectors.getAcceptableImagesByStateName.returns({'bro-1 plain': [image]});
+                mkScreenshotAccepterComponent({image}, {tree});
+                await ScreenshotAccepterHeader.firstCall.args[0].onScreenshotAccept('img-1');
+
+                await ScreenshotAccepterHeader.firstCall.args[0].onScreenshotUndo();
+
+                assert.calledOnceWith(actionsStub.undoAcceptImage, sinon.match.any, {skipTreeUpdate: true});
             });
         });
     });
@@ -281,6 +298,15 @@ describe('<ScreenshotAccepter/>', () => {
             ScreenshotAccepterHeader.firstCall.args[0].onClose();
 
             assert.calledOnce(actionsStub.applyDelayedTestResults);
+        });
+
+        it('should not apply delayed test result, if it is cancelled by "Undo"', async () => {
+            await ScreenshotAccepterHeader.firstCall.args[0].onScreenshotAccept('img-1');
+            await ScreenshotAccepterHeader.firstCall.args[0].onScreenshotUndo();
+
+            ScreenshotAccepterHeader.firstCall.args[0].onClose();
+
+            assert.notCalled(actionsStub.applyDelayedTestResults);
         });
     });
 });

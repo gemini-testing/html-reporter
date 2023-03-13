@@ -432,7 +432,7 @@ describe('hermione test adapter', () => {
                 const testResult = mkTestResult_({assertViewResults: [error], browserId: 'browser-id'});
                 utils.getReferencePath.returns('ref/report/path');
                 const imagesSaver = {saveImg: sandbox.stub()};
-                const cacheExpectedPaths = new Map([['some-id/browser-id/plain', 'ref/report/path']]);
+                const cacheExpectedPaths = new Map([['da89771#plain', 'ref/report/path']]);
                 const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {
                     htmlReporter: {
                         imagesSaver

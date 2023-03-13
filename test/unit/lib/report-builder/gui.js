@@ -2,9 +2,11 @@
 
 const fs = require('fs-extra');
 const _ = require('lodash');
+const path = require('path');
 const proxyquire = require('proxyquire');
 const serverUtils = require('lib/server-utils');
 const TestAdapter = require('lib/test-adapter');
+const SqliteAdapter = require('lib/sqlite-adapter');
 const GuiTestsTreeBuilder = require('lib/tests-tree-builder/gui');
 const PluginApi = require('lib/plugin-api');
 const {SUCCESS, FAIL, ERROR, SKIPPED, IDLE, RUNNING, UPDATED} = require('lib/constants/test-statuses');
@@ -16,7 +18,7 @@ const TEST_DB_PATH = `${TEST_REPORT_PATH}/${LOCAL_DATABASE_NAME}`;
 
 describe('GuiReportBuilder', () => {
     const sandbox = sinon.sandbox.create();
-    let hasImage, GuiReportBuilder;
+    let hasImage, deleteFile, GuiReportBuilder;
 
     const mkGuiReportBuilder_ = async ({toolConfig, pluginConfig} = {}) => {
         toolConfig = _.defaults(toolConfig || {}, {getAbsoluteUrl: _.noop});
@@ -75,8 +77,9 @@ describe('GuiReportBuilder', () => {
         sandbox.stub(serverUtils, 'prepareCommonJSData');
 
         hasImage = sandbox.stub().returns(true);
+        deleteFile = sandbox.stub().resolves();
         GuiReportBuilder = proxyquire('lib/report-builder/gui', {
-            '../server-utils': {hasImage}
+            '../server-utils': {hasImage, deleteFile}
         });
 
         sandbox.stub(GuiTestsTreeBuilder, 'create').returns(Object.create(GuiTestsTreeBuilder.prototype));
@@ -89,6 +92,9 @@ describe('GuiReportBuilder', () => {
         sandbox.stub(GuiTestsTreeBuilder.prototype, 'getLastResult').returns({});
         sandbox.stub(GuiTestsTreeBuilder.prototype, 'getResultByOrigAttempt').returns({});
         sandbox.stub(GuiTestsTreeBuilder.prototype, 'addTestResult').returns({});
+        sandbox.stub(GuiTestsTreeBuilder.prototype, 'getResultDataToUnacceptImage').returns({});
+        sandbox.stub(GuiTestsTreeBuilder.prototype, 'updateImageInfo').returns({});
+        sandbox.stub(GuiTestsTreeBuilder.prototype, 'removeTestResult');
     });
 
     afterEach(() => {
@@ -356,6 +362,193 @@ describe('GuiReportBuilder', () => {
 
                 assert.equal(currAttempt, formattedResult.attempt + 1);
             });
+        });
+    });
+
+    describe('"undoAcceptImages"', () => {
+        let reportBuilder;
+
+        function stubResultData_(imageId, result) {
+            const res = _.defaultsDeep(result, {
+                suitePath: ['suite', 'path'],
+                browserName: 'browser-name',
+                stateName: 'state-name',
+                status: UPDATED,
+                timestamp: 100500,
+                image: {expectedImg: {path: 'img-expected-path'}},
+                previousImage: {
+                    expectedImg: {path: 'previous-expected-path'},
+                    refImg: {path: 'previous-reference-path', size: null}
+                }
+            });
+
+            GuiTestsTreeBuilder.prototype.getResultDataToUnacceptImage.withArgs(imageId).returns(res);
+        }
+
+        beforeEach(async () => {
+            reportBuilder = await mkGuiReportBuilder_();
+
+            sandbox.stub(TestAdapter, 'updateCacheExpectedPath');
+            sandbox.stub(TestAdapter, 'decreaseAttemptNumber');
+            sandbox.stub(SqliteAdapter.prototype, 'delete');
+        });
+
+        it('should get result data to unaccept image for each image', async () => {
+            await reportBuilder.undoAcceptImages(['foo', 'bar'], 'baz');
+
+            assert.calledWith(GuiTestsTreeBuilder.prototype.getResultDataToUnacceptImage, 'foo');
+            assert.calledWith(GuiTestsTreeBuilder.prototype.getResultDataToUnacceptImage, 'bar');
+        });
+
+        describe('if image status is not "updated"', () => {
+            const tryUndoFailedImage_ = async () => {
+                stubResultData_('foo', {status: FAIL});
+
+                await reportBuilder.undoAcceptImages(['foo'], 'baz');
+            };
+
+            it('should not remove image from report', async () => {
+                await tryUndoFailedImage_();
+
+                assert.notCalled(deleteFile);
+            });
+
+            it('should not update test expected path', async () => {
+                await tryUndoFailedImage_();
+
+                assert.notCalled(TestAdapter.updateCacheExpectedPath);
+            });
+
+            it('should not update image info', async () => {
+                await tryUndoFailedImage_();
+
+                assert.notCalled(GuiTestsTreeBuilder.prototype.updateImageInfo);
+            });
+
+            it('should not delete test from db', async () => {
+                await tryUndoFailedImage_();
+
+                assert.notCalled(SqliteAdapter.prototype.delete);
+            });
+        });
+
+        it('should remove image from report', async () => {
+            stubResultData_('imgId', _.set({}, 'image.expectedImg.path', 'img-path'));
+            sandbox.stub(path, 'resolve')
+                .withArgs(sinon.match.string, 'report-path', 'img-path')
+                .returns('image-absolute-path');
+
+            await reportBuilder.undoAcceptImages(['imgId'], 'report-path');
+
+            assert.calledOnceWith(deleteFile, 'image-absolute-path');
+        });
+
+        it('should update test expected path', async () => {
+            stubResultData_('imgId', {
+                suitePath: ['s', 'p'],
+                browserName: 'bro-name',
+                stateName: 's-name',
+                ..._.set({}, 'previousImage.expectedImg.path', 'foo')
+            });
+
+            await reportBuilder.undoAcceptImages(['imgId'], 'report-path');
+
+            assert.calledOnceWith(TestAdapter.updateCacheExpectedPath, 's p', 'bro-name', 's-name', 'foo');
+        });
+
+        it('should remove result from tree, if "resultIdToRemove" is provided', async () => {
+            stubResultData_('imgId', {resultIdToRemove: 'result-id'});
+
+            await reportBuilder.undoAcceptImages(['imgId'], 'report-path');
+
+            assert.calledOnceWith(GuiTestsTreeBuilder.prototype.removeTestResult, 'result-id');
+        });
+
+        it('should decrease test attempt number after deleting result', async () => {
+            stubResultData_('imgId', {
+                resultIdToRemove: 'result-id',
+                suitePath: ['s', 'p'],
+                browserName: 'b-name'
+            });
+
+            await reportBuilder.undoAcceptImages(['imgId'], 'report-path');
+
+            assert.calledOnceWith(TestAdapter.decreaseAttemptNumber, 's p', 'b-name');
+        });
+
+        it('should resolve removed result id', async () => {
+            stubResultData_('imgId', {resultIdToRemove: 'result-id'});
+
+            const {removedResults} = await reportBuilder.undoAcceptImages(['imgId'], 'report-path');
+
+            assert.deepEqual(removedResults, ['result-id']);
+        });
+
+        it('should update image info if "resultIdToRemove" is not provided', async () => {
+            const previousImage = {
+                expectedImg: {path: 'previous-expected-path'},
+                refImg: {path: 'previous-reference-path', size: null}
+            };
+            stubResultData_('imgId', {previousImage});
+
+            await reportBuilder.undoAcceptImages(['imgId'], 'report-path');
+
+            assert.calledOnceWith(GuiTestsTreeBuilder.prototype.updateImageInfo, 'imgId', previousImage);
+        });
+
+        it('should resolve updated image info if "resultIdToRemove" is not provided', async () => {
+            const previousImage = {
+                expectedImg: {path: 'previous-expected-path'},
+                refImg: {path: 'previous-reference-path', size: null}
+            };
+            const updatedImage = {
+                id: 'updated-img-id',
+                parentId: 'parent-id'
+            };
+            stubResultData_('imgId', {previousImage});
+            GuiTestsTreeBuilder.prototype.updateImageInfo.withArgs('imgId', previousImage).returns(updatedImage);
+
+            const {updatedImages} = await reportBuilder.undoAcceptImages(['imgId'], 'report-path');
+
+            assert.deepEqual(updatedImages, [updatedImage]);
+        });
+
+        it('should delete test result from db', async () => {
+            stubResultData_('imgId', {
+                suitePath: ['s', 'p'],
+                browserName: 'bro-name',
+                status: UPDATED,
+                timestamp: 100500,
+                stateName: 'plain'
+            });
+
+            await reportBuilder.undoAcceptImages(['imgId'], 'report-path');
+
+            assert.calledOnceWith(
+                SqliteAdapter.prototype.delete,
+                sinon.match.any,
+                '["s","p"]',
+                'bro-name',
+                UPDATED,
+                100500,
+                'plain'
+            );
+        });
+
+        it('should resolve reference to remove, if previous image did not have a reference', async () => {
+            stubResultData_('imgId', _.set({}, 'previousImage.refImg', {path: 'ref-path', size: null}));
+
+            const {referencesToRemove} = await reportBuilder.undoAcceptImages(['imgId'], 'report-path');
+
+            assert.deepEqual(referencesToRemove, ['ref-path']);
+        });
+
+        it('should not resolve reference to remove, if previous image had a reference', async () => {
+            stubResultData_('imgId', _.set({}, 'previousImage.refImg.size', {width: 100500, height: 500100}));
+
+            const {referencesToRemove} = await reportBuilder.undoAcceptImages(['imgId'], 'report-path');
+
+            assert.deepEqual(referencesToRemove, []);
         });
     });
 
