@@ -33,6 +33,14 @@ describe('history-utils', () => {
             ]);
         });
 
+        it('should not display parenthesis on command groups', () => {
+            const allHistory = [{n: 'foo', g: true, d: 10, c: []}];
+
+            const history = getCommandsHistory(allHistory);
+
+            assert.deepEqual(history, ['foo <- 10ms\n']);
+        });
+
         it('should return commands executed in test file and all sub commands of the failed command', () => {
             const allHistory = [
                 {n: 'foo', a: ['foo-arg'], d: 10, c: []},
