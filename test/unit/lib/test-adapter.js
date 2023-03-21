@@ -41,7 +41,7 @@ describe('hermione test adapter', () => {
     };
 
     const mkTestResult_ = (result) => _.defaults(result, {
-        id: () => 'some-id',
+        id: 'some-id',
         fullTitle: () => 'default-title'
     });
 
@@ -276,7 +276,6 @@ describe('hermione test adapter', () => {
         it('should build diff to tmp dir', async () => {
             tmp.tmpdir = 'tmp/dir';
             const testResult = mkTestResult_({
-                id: () => '',
                 assertViewResults: [err]
             });
             utils.getDiffPath.returns('diff/report/path');
@@ -291,7 +290,6 @@ describe('hermione test adapter', () => {
         it('should save diff in report from tmp dir using external storage', async () => {
             tmp.tmpdir = 'tmp/dir';
             const testResult = mkTestResult_({
-                id: () => '',
                 assertViewResults: [err]
             });
             utils.getDiffPath.returns('diff/report/path');
@@ -314,7 +312,6 @@ describe('hermione test adapter', () => {
         it('should emit TEST_SCREENSHOTS_SAVED event', async () => {
             tmp.tmpdir = 'tmp/dir';
             const testResult = mkTestResult_({
-                id: () => '',
                 browserId: 'chrome',
                 assertViewResults: [err]
             });
@@ -431,7 +428,7 @@ describe('hermione test adapter', () => {
     });
 
     it('should return image dir', () => {
-        const testResult = mkTestResult_({id: () => 'some-id'});
+        const testResult = mkTestResult_({id: 'some-id'});
 
         const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
 
