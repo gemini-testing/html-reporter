@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="9.8.0"></a>
+# [9.8.0](https://github.com/gemini-testing/html-reporter/compare/v9.7.6...v9.8.0) (2023-03-31)
+
+
+### Bug Fixes
+
+* avoid saved test extension ([574111f](https://github.com/gemini-testing/html-reporter/commit/574111f))
+* change determination logic ([0d29828](https://github.com/gemini-testing/html-reporter/commit/0d29828))
+* dont save equal references ([2f1e800](https://github.com/gemini-testing/html-reporter/commit/2f1e800))
+* support "id" field from test for old hermione versions ([e9f2365](https://github.com/gemini-testing/html-reporter/commit/e9f2365))
+* test objects should be cloned with clone method if exists ([239555b](https://github.com/gemini-testing/html-reporter/commit/239555b))
+
+
+### Features
+
+* fix: refresh url in meta if host in input was changed ([#465](https://github.com/gemini-testing/html-reporter/issues/465)) ([294625f](https://github.com/gemini-testing/html-reporter/commit/294625f))
+* make urls in meta shorter, add copy-to-clipboard icon ([#464](https://github.com/gemini-testing/html-reporter/issues/464)) ([5c60cfd](https://github.com/gemini-testing/html-reporter/commit/5c60cfd))
+* screenshot-accepter progress bar ([461647c](https://github.com/gemini-testing/html-reporter/commit/461647c))
+* use test object id property instead of id() method ([dd51714](https://github.com/gemini-testing/html-reporter/commit/dd51714))
+
+
+### Performance Improvements
+
+* increase screenshot-accepter performance ([dfe5b2a](https://github.com/gemini-testing/html-reporter/commit/dfe5b2a))
+
+
+
 <a name="9.7.6"></a>
 ## [9.7.6](https://github.com/gemini-testing/html-reporter/compare/v9.7.5...v9.7.6) (2023-01-30)
 
