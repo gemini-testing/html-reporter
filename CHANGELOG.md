@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="9.8.1"></a>
+## [9.8.1](https://github.com/gemini-testing/html-reporter/compare/v9.8.0...v9.8.1) (2023-04-05)
+
+
+### Bug Fixes
+
+* do not load redux-logger in production env ([8bed4ea](https://github.com/gemini-testing/html-reporter/commit/8bed4ea))
+
+
+
 <a name="9.8.0"></a>
 # [9.8.0](https://github.com/gemini-testing/html-reporter/compare/v9.7.6...v9.8.0) (2023-03-31)
 
