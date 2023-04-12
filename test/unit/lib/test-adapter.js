@@ -605,16 +605,19 @@ describe('hermione test adapter', () => {
         });
 
         describe('expected path', () => {
-            let lastImageInfo;
-
-            beforeEach(() => {
-                lastImageInfo = [{
+            const mkLastImageInfo_ = (opts = {}) => {
+                const {stateName, expectedImgPath} = _.defaults(opts, {
                     stateName: 'plain',
+                    expectedImgPath: 'default/expected/img/path.png'
+                });
+
+                return [{
+                    stateName,
                     expectedImg: {
-                        path: 'expectedImgPath'
+                        path: expectedImgPath
                     }
                 }];
-            });
+            };
 
             it('should be pulled from the database if exists', async () => {
                 sqliteAdapter.query.withArgs({
@@ -622,7 +625,7 @@ describe('hermione test adapter', () => {
                     where: 'suitePath = ? AND name = ?',
                     orderBy: 'timestamp',
                     orderDescending: true
-                }).returns({imagesInfo: JSON.stringify(lastImageInfo)});
+                }).returns({imagesInfo: JSON.stringify(mkLastImageInfo_())});
 
                 const testResult = mkTestResult_({
                     fullTitle: () => 'some-title',
@@ -651,7 +654,7 @@ describe('hermione test adapter', () => {
             });
 
             it('should be generated on update', async () => {
-                sqliteAdapter.query.returns({imagesInfo: JSON.stringify(lastImageInfo)});
+                sqliteAdapter.query.returns({imagesInfo: JSON.stringify(mkLastImageInfo_())});
                 const testResult = mkTestResult_({
                     fullTitle: () => 'some-title',
                     assertViewResults: [mkErrStub()],
@@ -664,8 +667,20 @@ describe('hermione test adapter', () => {
                 assert.calledOnce(utils.getReferencePath);
             });
 
+            it('should be queried from the database for each browser', async () => {
+                const chromeTestResult = mkTestResult_({browserId: 'chrome'});
+                const firefoxTestResult = mkTestResult_({browserId: 'firefox'});
+
+                mkHermioneTestResultAdapter(chromeTestResult, {status: FAIL}).getImagesFor(FAIL, 'plain');
+                mkHermioneTestResultAdapter(firefoxTestResult, {status: FAIL}).getImagesFor(FAIL, 'plain');
+
+                assert.calledTwice(sqliteAdapter.query);
+                assert.calledWith(sqliteAdapter.query.firstCall, sinon.match.any, sinon.match.any, 'chrome');
+                assert.calledWith(sqliteAdapter.query.secondCall, sinon.match.any, sinon.match.any, 'firefox');
+            });
+
             it('should be queried from the database once per state', async () => {
-                sqliteAdapter.query.returns({imagesInfo: JSON.stringify(lastImageInfo)});
+                sqliteAdapter.query.returns({imagesInfo: JSON.stringify(mkLastImageInfo_())});
                 const testResult = mkTestResult_({
                     fullTitle: () => 'some-title',
                     assertViewResults: [mkErrStub()],
