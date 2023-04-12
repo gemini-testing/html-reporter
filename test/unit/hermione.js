@@ -6,6 +6,7 @@ const HermioneReporter = require('../../hermione');
 const PluginAdapter = require('lib/plugin-adapter');
 const StaticReportBuilder = require('lib/report-builder/static');
 const SqliteAdapter = require('lib/sqlite-adapter');
+const TestAdapter = require('lib/test-adapter');
 const utils = require('lib/server-utils');
 const {logger} = require('lib/common-utils');
 const {stubTool} = require('./utils');
@@ -113,6 +114,11 @@ describe('lib/hermione', () => {
         sandbox.stub(StaticReportBuilder.prototype, 'init');
 
         sandbox.stub(SqliteAdapter.prototype, 'query');
+
+        const saveTestImagesImplementation = TestAdapter.prototype.saveTestImages;
+        sandbox.stub(TestAdapter.prototype, 'saveTestImages').callsFake(function(...args) {
+            return saveTestImagesImplementation.call(this, ...args, new Map()); // disable expectedPath cache
+        });
 
         sandbox.stub(fs, 'readFile').resolves(Buffer.from(''));
     });
