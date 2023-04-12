@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="9.8.2"></a>
+## [9.8.2](https://github.com/gemini-testing/html-reporter/compare/v9.8.1...v9.8.2) (2023-04-12)
+
+
+### Bug Fixes
+
+* do not reuse reference images from another browser ([cb0467e](https://github.com/gemini-testing/html-reporter/commit/cb0467e))
+
+
+
 <a name="9.8.1"></a>
 ## [9.8.1](https://github.com/gemini-testing/html-reporter/compare/v9.8.0...v9.8.1) (2023-04-05)
 
