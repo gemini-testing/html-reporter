@@ -45,12 +45,12 @@ describe('hermione test adapter', () => {
         fullTitle: () => 'default-title'
     });
 
-    const mkErrStub = (ErrType = ImageDiffError) => {
+    const mkErrStub = (ErrType = ImageDiffError, {stateName, currImg, refImg} = {}) => {
         const err = new ErrType();
 
-        err.stateName = 'plain';
-        err.currImg = {path: 'curr/path'};
-        err.refImg = {path: 'ref/path'};
+        err.stateName = stateName || 'plain';
+        err.currImg = currImg || {path: 'curr/path'};
+        err.refImg = refImg || {path: 'ref/path'};
 
         return err;
     };
@@ -68,6 +68,7 @@ describe('hermione test adapter', () => {
         });
         sandbox.stub(utils, 'getCurrentPath').returns('');
         sandbox.stub(utils, 'getDiffPath').returns('');
+        sandbox.stub(utils, 'getReferencePath').returns('');
         sandbox.stub(fs, 'readFile').resolves(Buffer.from(''));
         sandbox.stub(fs, 'copy').resolves();
         err = mkErrStub();
@@ -399,6 +400,57 @@ describe('hermione test adapter', () => {
                 assert.calledWith(imagesSaver.saveImg, sinon.match('dest/path'), {destPath: 'dest/path', reportDir: 'report/path'});
             });
         });
+
+        describe('saving reference image', () => {
+            it('should save reference, if it is not reused', async () => {
+                tmp.tmpdir = 'tmp/dir';
+                const testResult = mkTestResult_({assertViewResults: [err]});
+                utils.getReferencePath.returns('ref/report/path');
+                const imagesSaver = {saveImg: sandbox.stub()};
+                const cacheExpectedPaths = new Map();
+                const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {
+                    htmlReporter: {
+                        imagesSaver
+                    }
+                });
+
+                await hermioneTestAdapter.saveTestImages(
+                    'html-report/path',
+                    {saveDiffTo: sandbox.stub()},
+                    cacheExpectedPaths
+                );
+
+                assert.calledWith(
+                    imagesSaver.saveImg, 'ref/path',
+                    {destPath: 'ref/report/path', reportDir: 'html-report/path'}
+                );
+            });
+
+            it('should not save reference, if it is reused', async () => {
+                tmp.tmpdir = 'tmp/dir';
+                const error = mkErrStub(ImageDiffError, {stateName: 'plain'});
+                const testResult = mkTestResult_({assertViewResults: [error], browserId: 'browser-id'});
+                utils.getReferencePath.returns('ref/report/path');
+                const imagesSaver = {saveImg: sandbox.stub()};
+                const cacheExpectedPaths = new Map([['some-id/browser-id/plain', 'ref/report/path']]);
+                const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {
+                    htmlReporter: {
+                        imagesSaver
+                    }
+                });
+
+                await hermioneTestAdapter.saveTestImages(
+                    'html-report/path',
+                    {saveDiffTo: sandbox.stub()},
+                    cacheExpectedPaths
+                );
+
+                assert.neverCalledWith(
+                    imagesSaver.saveImg, 'ref/path',
+                    {destPath: 'ref/report/path', reportDir: 'html-report/path'}
+                );
+            });
+        });
     });
 
     describe('hasDiff()', () => {
@@ -510,7 +562,7 @@ describe('hermione test adapter', () => {
     describe('getImagesInfo()', () => {
         beforeEach(() => {
             sandbox.stub(utils, 'copyFileAsync');
-            sandbox.stub(utils, 'getReferencePath').returns('some/ref.png');
+            utils.getReferencePath.returns('some/ref.png');
         });
 
         it('should not reinit "imagesInfo"', () => {
