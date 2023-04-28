@@ -7,7 +7,8 @@ import {mkConnectedComponent} from '../../utils';
 
 describe('<ScreenshotAccepter/>', () => {
     const sandbox = sinon.sandbox.create();
-    let ScreenshotAccepter, ScreenshotAccepterHeader, ScreenshotAccepterMeta, ScreenshotAccepterBody, actionsStub, selectors, parentNode;
+    let ScreenshotAccepter, ScreenshotAccepterHeader, ScreenshotAccepterMeta, ScreenshotAccepterBody;
+    let actionsStub, selectors, parentNode, preloadImageStub;
 
     const mkResult = (opts) => {
         const result = defaults(opts, {
@@ -36,7 +37,7 @@ describe('<ScreenshotAccepter/>', () => {
     const mkScreenshotAccepterComponent = (props = {}, initialState = {}) => {
         props = defaults(props, {
             image: mkImage(),
-            onClose: sinon.stub()
+            onClose: sandbox.stub()
         });
         initialState = defaults(initialState, {
             tree: mkStateTree(),
@@ -58,21 +59,23 @@ describe('<ScreenshotAccepter/>', () => {
         };
 
         parentNode = {
-            scrollTo: sinon.stub()
+            scrollTo: sandbox.stub()
         };
 
-        ScreenshotAccepterHeader = sinon.stub().returns(null);
-        ScreenshotAccepterMeta = sinon.stub().returns(null);
-        ScreenshotAccepterBody = sinon.stub().returns(null);
+        ScreenshotAccepterHeader = sandbox.stub().returns(null);
+        ScreenshotAccepterMeta = sandbox.stub().returns(null);
+        ScreenshotAccepterBody = sandbox.stub().returns(null);
 
         sandbox.stub(ReactDOM, 'findDOMNode').returns({parentNode});
+        preloadImageStub = sandbox.stub();
 
         ScreenshotAccepter = proxyquire('lib/static/components/modals/screenshot-accepter', {
             './header': {default: ScreenshotAccepterHeader},
             './meta': {default: ScreenshotAccepterMeta},
             './body': {default: ScreenshotAccepterBody},
             '../../../modules/actions': actionsStub,
-            '../../../modules/selectors/tree': selectors
+            '../../../modules/selectors/tree': selectors,
+            '../../../modules/utils': {preloadImage: preloadImageStub}
         }).default;
     });
 
@@ -307,6 +310,87 @@ describe('<ScreenshotAccepter/>', () => {
             ScreenshotAccepterHeader.firstCall.args[0].onClose();
 
             assert.notCalled(actionsStub.applyDelayedTestResults);
+        });
+    });
+
+    describe('should preload images', () => {
+        const mkImgPath_ = (label, imageId) => `${label}-${imageId}`;
+        const mkBrowserId_ = (fullName, browserName) => `${fullName} ${browserName}`;
+        const mkStateName_ = (browserId, stateName) => `${browserId} ${stateName}`;
+        const mkImgId_ = (browserId, retry, state) => `${browserId} ${retry} ${state}`;
+        const mkImg_ = (label, imageId) => ({path: mkImgPath_(label, imageId)});
+
+        const mkImgs_ = (id) => ({
+            id,
+            actualImg: mkImg_('actual', id),
+            expectedImg: mkImg_('expected', id),
+            diffImg: mkImg_('diff', id)
+        });
+
+        const eachLabel_ = (cb) => ['expected', 'actual', 'diff'].forEach(cb);
+
+        beforeEach(() => {
+            const browserIds = Array(10).fill(0).map((_, ind) => mkBrowserId_(`test-${ind + 1}`, 'bro-1'));
+            const image = mkImage({id: 'img-2', parentId: 'res-1', stateName: 'plain'});
+            const resultsById = mkResult({id: 'res-1', parentId: mkBrowserId_('test-2', 'bro-1'), imageIds: ['img-2']});
+            const tree = mkStateTree({resultsById});
+            selectors.getAcceptableImagesByStateName.returns(browserIds.reduce((acc, browserId) => {
+                const stateName = mkStateName_(browserId, 'plain');
+                const images = [1, 2].map(retry => mkImgs_(mkImgId_(browserId, retry, 'plain')));
+
+                acc[stateName] = images;
+
+                return acc;
+            }, {}));
+
+            mkScreenshotAccepterComponent({image}, {tree});
+        });
+
+        it('from adjacent screens', () => {
+            [9, 10, 1, 3, 4, 5].forEach(ind => {
+                eachLabel_(label => {
+                    const browserId = mkBrowserId_(`test-${ind}`, 'bro-1');
+                    const imageId = mkImgId_(browserId, 2, 'plain');
+                    const imagePath = mkImgPath_(label, imageId);
+
+                    assert.calledWith(preloadImageStub, imagePath);
+                });
+            });
+        });
+
+        it('only from last retry', () => {
+            eachLabel_(label => {
+                const browserId = mkBrowserId_(`test-${3}`, 'bro-1');
+                const firstImageId = mkImgId_(browserId, 1, 'plain');
+                const secondImageId = mkImgId_(browserId, 2, 'plain');
+
+                assert.neverCalledWith(preloadImageStub, mkImgPath_(label, firstImageId));
+                assert.calledWith(preloadImageStub, mkImgPath_(label, secondImageId));
+            });
+        });
+
+        it('on active image change', () => {
+            const browserId = mkBrowserId_('test-6', 'bro-1');
+            const imageId = mkImgId_(browserId, 2, 'plain');
+
+            eachLabel_(label => assert.neverCalledWith(preloadImageStub, mkImgPath_(label, imageId)));
+
+            ScreenshotAccepterHeader.firstCall.args[0].onActiveImageChange(2);
+
+            eachLabel_(label => assert.calledWith(preloadImageStub, mkImgPath_(label, imageId)));
+        });
+
+        it('on image accept', async () => {
+            const preloadingBrowserId = mkBrowserId_('test-6', 'bro-1');
+            const preloadingImageId = mkImgId_(preloadingBrowserId, 2, 'plain');
+            const acceptingBrowserId = mkBrowserId_('test-2', 'bro-1');
+            const acceptingImageId = mkImgId_(acceptingBrowserId, 2, 'plain');
+
+            eachLabel_(label => assert.neverCalledWith(preloadImageStub, mkImgPath_(label, preloadingImageId)));
+
+            await ScreenshotAccepterHeader.firstCall.args[0].onScreenshotAccept(acceptingImageId);
+
+            eachLabel_(label => assert.calledWith(preloadImageStub, mkImgPath_(label, preloadingImageId)));
         });
     });
 });
