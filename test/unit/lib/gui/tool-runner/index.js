@@ -18,6 +18,8 @@ describe('lib/gui/tool-runner/index', () => {
     let hermione;
     let getTestsTreeFromDatabase;
     let looksSame;
+    let removeReferenceImage;
+    let overwriteReferenceImage;
 
     const mkTestCollection_ = (testsTree = {}) => {
         return {
@@ -56,6 +58,8 @@ describe('lib/gui/tool-runner/index', () => {
         reportBuilder = sinon.createStubInstance(GuiReportBuilder);
         reportSubscriber = sandbox.stub().named('reportSubscriber').resolves();
         looksSame = sandbox.stub().named('looksSame').resolves({equal: true});
+        removeReferenceImage = sandbox.stub().resolves();
+        overwriteReferenceImage = sandbox.stub().resolves();
 
         sandbox.stub(GuiReportBuilder, 'create').returns(reportBuilder);
         reportBuilder.format.returns({prepareTestResult: sandbox.stub()});
@@ -68,7 +72,11 @@ describe('lib/gui/tool-runner/index', () => {
             './report-subscriber': reportSubscriber,
             './utils': {findTestResult: sandbox.stub()},
             '../../db-utils/server': {getTestsTreeFromDatabase},
-            '../../reporter-helpers': {updateReferenceImage: sandbox.stub().resolves()}
+            '../../reporter-helpers': {
+                updateReferenceImage: sandbox.stub().resolves(),
+                removeReferenceImage,
+                overwriteReferenceImage
+            }
         });
 
         sandbox.stub(logger, 'warn');
@@ -303,6 +311,41 @@ describe('lib/gui/tool-runner/index', () => {
             await gui.updateReferenceImage(tests);
 
             assert.calledOnceWith(reportBuilder.addUpdated, sinon.match({origAttempt: 10}));
+        });
+    });
+
+    describe('undoAcceptImages', () => {
+        it('should remove references, resolved from ReportBuilder.undoAcceptImages', async () => {
+            reportBuilder.undoAcceptImages.withArgs(['imageIds']).resolves({referencesToRemove: ['ref1', 'ref2']});
+            const gui = initGuiReporter(hermione);
+            await gui.initialize();
+
+            await gui.undoAcceptImages(['imageIds']);
+
+            assert.calledOnceWith(removeReferenceImage, ['ref1', 'ref2']);
+        });
+
+        it('should overwrite references, resolved from ReportBuilder.undoAcceptImages', async () => {
+            reportBuilder.undoAcceptImages.withArgs(['imageIds']).resolves({referencesToUpdate: [
+                {source: 'a', path: 'b'},
+                {source: 'c', path: 'd'}
+            ]});
+            const gui = initGuiReporter(hermione);
+            await gui.initialize();
+
+            await gui.undoAcceptImages(['imageIds']);
+
+            assert.calledOnceWith(overwriteReferenceImage, [{source: 'a', path: 'b'}, {source: 'c', path: 'd'}]);
+        });
+
+        it('should resolve object without "referencesToRemove" property', async () => {
+            reportBuilder.undoAcceptImages.withArgs(['imageIds']).resolves({referencesToRemove: ['ref1'], foo: 'bar'});
+            const gui = initGuiReporter(hermione);
+            await gui.initialize();
+
+            const result = await gui.undoAcceptImages(['imageIds']);
+
+            assert.deepEqual(result, {foo: 'bar'});
         });
     });
 

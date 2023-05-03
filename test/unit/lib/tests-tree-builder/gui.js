@@ -2,7 +2,7 @@
 
 const _ = require('lodash');
 const GuiResultsTreeBuilder = require('lib/tests-tree-builder/gui');
-const {FAIL, SUCCESS, IDLE} = require('lib/constants/test-statuses');
+const {FAIL, SUCCESS, IDLE, UPDATED} = require('lib/constants/test-statuses');
 
 describe('GuiResultsTreeBuilder', () => {
     let builder;
@@ -258,7 +258,7 @@ describe('GuiResultsTreeBuilder', () => {
         });
     });
 
-    describe('getTestBranch', () => {
+    describe('"getTestBranch" method', () => {
         it('should return "suites" as array for root suite', () => {
             builder.addTestResult(
                 mkTestResult_({status: IDLE}),
@@ -268,6 +268,32 @@ describe('GuiResultsTreeBuilder', () => {
             const {suites} = builder.getTestBranch('s b 0');
 
             assert.deepEqual(suites, [{id: 's', status: IDLE}]);
+        });
+    });
+
+    describe('"getResultDataToUnacceptImage" method', () => {
+        it('should return "resultIdToRemove" if it is the only updated image in result', () => {
+            const formattedRes1 = mkFormattedResult_({testPath: ['s'], browserId: 'b', attempt: 0});
+            const formattedRes2 = mkFormattedResult_({testPath: ['s'], browserId: 'b', attempt: 1});
+            builder.addTestResult(mkTestResult_({imagesInfo: [{stateName: 'foo', status: FAIL}]}), formattedRes1);
+            builder.addTestResult(mkTestResult_({imagesInfo: [{stateName: 'foo', status: UPDATED}]}), formattedRes2);
+
+            const {resultIdToRemove} = builder.getResultDataToUnacceptImage('s b 1 foo');
+
+            assert.equal(resultIdToRemove, 's b 1');
+        });
+
+        it('should not return "resultIdToRemove" if it is not the only updated image in result', () => {
+            const imagesInfo1 = [{stateName: 'foo', status: FAIL}, {stateName: 'bar', status: FAIL}];
+            const imagesInfo2 = [{stateName: 'foo', status: UPDATED}, {stateName: 'bar', status: UPDATED}];
+            const formattedRes1 = mkFormattedResult_({testPath: ['s'], browserId: 'b', attempt: 0});
+            const formattedRes2 = mkFormattedResult_({testPath: ['s'], browserId: 'b', attempt: 1});
+            builder.addTestResult(mkTestResult_({imagesInfo: imagesInfo1}), formattedRes1);
+            builder.addTestResult(mkTestResult_({imagesInfo: imagesInfo2}), formattedRes2);
+
+            const {resultIdToRemove} = builder.getResultDataToUnacceptImage('s b 1 foo');
+
+            assert.equal(resultIdToRemove, null);
         });
     });
 });

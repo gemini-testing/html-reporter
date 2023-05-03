@@ -1,7 +1,7 @@
 import axios from 'axios';
 import proxyquire from 'proxyquire';
 import {POSITIONS} from 'reapop';
-import {acceptOpened, retryTest, runFailedTests} from 'lib/static/modules/actions';
+import {acceptOpened, undoAcceptImages, retryTest, runFailedTests} from 'lib/static/modules/actions';
 import actionNames from 'lib/static/modules/action-names';
 import StaticTestsTreeBuilder from 'lib/tests-tree-builder/static';
 import {LOCAL_DATABASE_NAME} from 'lib/constants/database';
@@ -106,6 +106,35 @@ describe('lib/static/modules/actions', () => {
 
             assert.calledWith(axios.post.firstCall, '/get-update-reference-data', imageIds);
             assert.calledWith(axios.post.secondCall, '/update-reference', images);
+        });
+    });
+
+    describe('undoAcceptImages', () => {
+        it('should cancel update of accepted image', async () => {
+            const imageIds = ['img-id-1', 'img-id-2'];
+            const data = {updatedImages: [{id: 'img-id-1'}], removedResults: ['img-id-2']};
+            axios.post.withArgs('/undo-accept-images', imageIds).returns({data});
+
+            await undoAcceptImages(imageIds)(dispatch);
+
+            assert.calledOnceWith(axios.post, '/undo-accept-images', imageIds);
+            assert.calledWith(dispatch, {
+                type: actionNames.UNDO_ACCEPT_IMAGES,
+                payload: {...data, skipTreeUpdate: false}
+            });
+        });
+
+        it('should skip tree update, if specified', async () => {
+            const imageIds = ['img-id-1', 'img-id-2'];
+            const data = {foo: 'bar'};
+            axios.post.withArgs('/undo-accept-images', imageIds).returns({data});
+
+            await undoAcceptImages(imageIds, {skipTreeUpdate: true})(dispatch);
+
+            assert.calledWith(dispatch, {
+                type: actionNames.UNDO_ACCEPT_IMAGES,
+                payload: {...data, skipTreeUpdate: true}
+            });
         });
     });
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import proxyquire from 'proxyquire';
-import {defaults, defaultsDeep} from 'lodash';
-import {SUCCESS, FAIL, ERROR} from 'lib/constants/test-statuses';
+import {set, defaults, defaultsDeep} from 'lodash';
+import {SUCCESS, FAIL, ERROR, UPDATED} from 'lib/constants/test-statuses';
 import {EXPAND_ALL} from 'lib/constants/expand-modes';
 import {types as modalTypes} from 'lib/static/components/modals';
 import {mkConnectedComponent} from '../utils';
@@ -12,24 +12,15 @@ describe('<State/>', () => {
 
     const mkStateComponent = (props = {}, initialState = {}) => {
         props = defaults(props, {
-            result: {status: SUCCESS},
+            result: {id: 'result-id', parentId: 'browser-id', status: SUCCESS},
             imageId: 'default-img-id'
         });
 
         initialState = defaultsDeep(initialState, {
             tree: {
-                images: {
-                    byId: {
-                        'default-img-id': {
-                            stateName: 'default-state',
-                            expectedImg: {},
-                            status: SUCCESS
-                        }
-                    },
-                    stateById: {
-                        'default-img-id': {shouldBeOpened: false}
-                    }
-                }
+                ...set({}, `browsers.byId[${props.result.parentId}]`, {resultIds: [props.result.id]}),
+                ...set({}, `images.byId[${props.imageId}]`, {stateName: 'default-state', expectedImg: {}, status: SUCCESS}),
+                ...set({}, `images.stateById[${props.imageId}]`, {shouldBeOpened: false})
             },
             view: {expand: EXPAND_ALL}
         });
@@ -43,6 +34,7 @@ describe('<State/>', () => {
         actionsStub = {
             toggleStateResult: sandbox.stub().returns({type: 'some-type'}),
             acceptTest: sandbox.stub().returns({type: 'some-type'}),
+            undoAcceptImage: sandbox.stub().returns({type: 'some-type'}),
             openModal: sandbox.stub().returns({type: 'some-type'})
         };
 
@@ -143,6 +135,58 @@ describe('<State/>', () => {
             stateComponent.find('[label="✔ Accept"]').simulate('click');
 
             assert.calledOnceWith(actionsStub.acceptTest, 'img-id');
+        });
+    });
+
+    describe('"Undo" button', () => {
+        it('should not exist, if image status is not "UPDATED"', () => {
+            const image = {stateName: 'some-name', status: FAIL};
+            const initialState = {
+                gui: true,
+                tree: {
+                    images: {
+                        byId: {'img-id': image},
+                        stateById: {'img-id': {shouldBeOpened: true}}
+                    }
+                }
+            };
+            const stateComponent = mkStateComponent({imageId: 'img-id'}, initialState);
+
+            assert.isFalse(stateComponent.find('[label="⎌ Undo"]').exists());
+        });
+
+        it('should not exist, if not gui', () => {
+            const image = {stateName: 'some-name', status: UPDATED};
+            const initialState = set({}, 'tree.images', {
+                gui: false,
+                tree: {
+                    images: {
+                        byId: {'img-id': image},
+                        stateById: {'img-id': {shouldBeOpened: true}}
+                    }
+                }
+            });
+            const stateComponent = mkStateComponent({imageId: 'img-id'}, initialState);
+
+            assert.isFalse(stateComponent.find('[label="⎌ Undo"]').exists());
+        });
+
+        it('should call "undoAcceptImages" action on button click', () => {
+            const image = {stateName: 'some-name', status: UPDATED};
+            const initialState = {
+                gui: true,
+                tree: {
+                    images: {
+                        byId: {'img-id': image},
+                        stateById: {'img-id': {shouldBeOpened: true}}
+                    }
+                }
+            };
+            const stateComponent = mkStateComponent({imageId: 'img-id'}, initialState);
+
+            stateComponent.find('[label="⎌ Undo"]').simulate('click');
+
+            assert.calledOnceWith(actionsStub.undoAcceptImage, 'img-id');
         });
     });
 

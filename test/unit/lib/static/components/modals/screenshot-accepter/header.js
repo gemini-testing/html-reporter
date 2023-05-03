@@ -21,11 +21,14 @@ describe('<ScreenshotAccepterHeader/>', () => {
             }],
             stateNameImageIds: ['default-browser default-state-name'],
             retryIndex: 0,
+            showMeta: false,
             activeImageIndex: 0,
+            onShowMeta: () => {},
             onClose: () => {},
             onRetryChange: () => {},
             onActiveImageChange: () => {},
-            onScreenshotAccept: () => {}
+            onScreenshotAccept: () => {},
+            onScreenshotUndo: () => {}
         });
 
         return mkConnectedComponent(<ScreenshotAccepterHeader {...props} />);
@@ -355,6 +358,23 @@ describe('<ScreenshotAccepterHeader/>', () => {
             const component = mkHeaderComponent({images: [{id: 'img-1', parentId: 'res-1'}]});
 
             assert.isFalse(component.find(metaSelector).prop('isDisabled'));
+        });
+    });
+
+    describe('"Undo" button', () => {
+        it('should be disabled if no screenshotes were accepted', () => {
+            const component = mkHeaderComponent({acceptedImages: 0});
+
+            assert.isTrue(component.find('.screenshot-accepter__undo-btn').prop('disabled'));
+        });
+
+        it('should call "onScreenshotUndo" handler on click', () => {
+            const onScreenshotUndo = sandbox.stub();
+            const component = mkHeaderComponent({onScreenshotUndo, acceptedImages: 1});
+
+            component.find('[label="⎌ Undo"]').simulate('click');
+
+            assert.calledOnce(onScreenshotUndo);
         });
     });
 

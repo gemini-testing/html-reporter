@@ -92,9 +92,9 @@ describe('lib/sqlite-adapter', () => {
             });
 
             it('if called with "select", "where", "order" and "orderDescending"', () => {
-                sqliteAdapter.query({select: 'foo', where: 'bar', orderBy: 'baz', orderDescending: true});
+                sqliteAdapter.query({select: 'foo', where: 'bar', orderBy: 'baz', orderDescending: true, limit: 42});
 
-                assert.calledOnceWith(prepareStub, 'SELECT foo FROM suites WHERE bar ORDER BY baz DESC');
+                assert.calledOnceWith(prepareStub, 'SELECT foo FROM suites WHERE bar ORDER BY baz DESC LIMIT 42');
             });
 
             it('if "orderDescending" is not specified', () => {
@@ -136,6 +136,40 @@ describe('lib/sqlite-adapter', () => {
             sqliteAdapter.query({select: 'foo', where: 'bar = ?'}, 'qux');
 
             assert.calledTwice(getStub);
+        });
+    });
+
+    describe('delete', () => {
+        let runStub, prepareStub, sqliteAdapter;
+
+        beforeEach(async () => {
+            runStub = sandbox.stub();
+            prepareStub = sandbox.stub(Database.prototype, 'prepare').returns({run: runStub});
+            sqliteAdapter = proxyquire('lib/sqlite-adapter', {
+                './db-utils/server': {createTablesQuery: () => []}
+            }).create({hermione, reportPath: 'test'});
+
+            await sqliteAdapter.init();
+        });
+
+        describe('should create valid sentence string', () => {
+            it('if called with no query params', () => {
+                sqliteAdapter.delete();
+
+                assert.calledOnceWith(prepareStub, 'DELETE FROM suites');
+            });
+
+            it('if called with "select", "where", "order" and "orderDescending"', () => {
+                sqliteAdapter.delete({where: 'bar', orderBy: 'baz', orderDescending: true, limit: 42});
+
+                assert.calledOnceWith(prepareStub, 'DELETE FROM suites WHERE bar ORDER BY baz DESC LIMIT 42');
+            });
+        });
+
+        it('should apply delete arguments', () => {
+            sqliteAdapter.delete({}, 'foo', 'bar');
+
+            assert.calledOnceWith(runStub, 'foo', 'bar');
         });
     });
 });
