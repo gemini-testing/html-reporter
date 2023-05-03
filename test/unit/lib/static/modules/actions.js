@@ -380,6 +380,7 @@ describe('lib/static/modules/actions', () => {
         [
             {mode: diffModes.THREE_UP.id, actionType: actionNames.VIEW_THREE_UP_DIFF},
             {mode: diffModes.THREE_UP_SCALED.id, actionType: actionNames.VIEW_THREE_UP_SCALED_DIFF},
+            {mode: diffModes.THREE_UP_SCALED_TO_FIT.id, actionType: actionNames.VIEW_THREE_UP_SCALED_TO_FIT_DIFF},
             {mode: diffModes.ONLY_DIFF.id, actionType: actionNames.VIEW_ONLY_DIFF},
             {mode: diffModes.SWITCH.id, actionType: actionNames.VIEW_SWITCH_DIFF},
             {mode: diffModes.SWIPE.id, actionType: actionNames.VIEW_SWIPE_DIFF},
