@@ -112,15 +112,16 @@ describe('lib/static/modules/actions', () => {
     describe('undoAcceptImages', () => {
         it('should cancel update of accepted image', async () => {
             const imageIds = ['img-id-1', 'img-id-2'];
-            const data = {updatedImages: [{id: 'img-id-1'}], removedResults: ['img-id-2']};
-            axios.post.withArgs('/undo-accept-images', imageIds).returns({data});
+            const images = [{id: 'img-id-1'}, {id: 'img-id-2'}];
+            axios.post.withArgs('/get-update-reference-data', imageIds).returns({data: images});
 
             await undoAcceptImages(imageIds)(dispatch);
 
-            assert.calledOnceWith(axios.post, '/undo-accept-images', imageIds);
+            assert.calledWith(axios.post.firstCall, '/get-update-reference-data', imageIds);
+            assert.calledWith(axios.post.secondCall, '/undo-accept-images', images);
             assert.calledWith(dispatch, {
                 type: actionNames.UNDO_ACCEPT_IMAGES,
-                payload: {...data, skipTreeUpdate: false}
+                payload: {skipTreeUpdate: false}
             });
         });
 
@@ -133,7 +134,7 @@ describe('lib/static/modules/actions', () => {
 
             assert.calledWith(dispatch, {
                 type: actionNames.UNDO_ACCEPT_IMAGES,
-                payload: {...data, skipTreeUpdate: true}
+                payload: {skipTreeUpdate: true}
             });
         });
     });

@@ -19,7 +19,7 @@ describe('lib/gui/tool-runner/index', () => {
     let getTestsTreeFromDatabase;
     let looksSame;
     let removeReferenceImage;
-    let overwriteReferenceImage;
+    let revertReferenceImage;
 
     const mkTestCollection_ = (testsTree = {}) => {
         return {
@@ -41,6 +41,14 @@ describe('lib/gui/tool-runner/index', () => {
         return {pluginConfig};
     };
 
+    const mkHermione_ = (config) => {
+        const hermione = stubTool(config, {UPDATE_REFERENCE: 'updateReference'});
+        sandbox.stub(hermione, 'emit');
+        hermione.readTests.resolves(mkTestCollection_());
+
+        return hermione;
+    };
+
     const initGuiReporter = (hermione, opts = {}) => {
         opts = _.defaults(opts, {
             paths: [],
@@ -59,7 +67,7 @@ describe('lib/gui/tool-runner/index', () => {
         reportSubscriber = sandbox.stub().named('reportSubscriber').resolves();
         looksSame = sandbox.stub().named('looksSame').resolves({equal: true});
         removeReferenceImage = sandbox.stub().resolves();
-        overwriteReferenceImage = sandbox.stub().resolves();
+        revertReferenceImage = sandbox.stub().resolves();
 
         sandbox.stub(GuiReportBuilder, 'create').returns(reportBuilder);
         reportBuilder.format.returns({prepareTestResult: sandbox.stub()});
@@ -75,7 +83,7 @@ describe('lib/gui/tool-runner/index', () => {
             '../../reporter-helpers': {
                 updateReferenceImage: sandbox.stub().resolves(),
                 removeReferenceImage,
-                overwriteReferenceImage
+                revertReferenceImage
             }
         });
 
@@ -202,14 +210,6 @@ describe('lib/gui/tool-runner/index', () => {
     });
 
     describe('updateReferenceImage', () => {
-        const mkHermione_ = (config) => {
-            const hermione = stubTool(config, {UPDATE_REFERENCE: 'updateReference'});
-            sandbox.stub(hermione, 'emit');
-            hermione.readTests.resolves(mkTestCollection_());
-
-            return hermione;
-        };
-
         describe('should emit "UPDATE_REFERENCE" event', () => {
             it('should emit "UPDATE_REFERENCE" event with state and reference data', async () => {
                 const getScreenshotPath = sandbox.stub().returns('/ref/path1');
@@ -315,37 +315,64 @@ describe('lib/gui/tool-runner/index', () => {
     });
 
     describe('undoAcceptImages', () => {
-        it('should remove references, resolved from ReportBuilder.undoAcceptImages', async () => {
-            reportBuilder.undoAcceptImages.withArgs(['imageIds']).resolves({referencesToRemove: ['ref1', 'ref2']});
+        const mkUndoTestData_ = async (stubResult, {stateName = 'plain'} = {}) => {
+            const formattedResult = {
+                updateCacheExpectedPath: sandbox.stub()
+            };
+            reportBuilder.format.withArgs(sinon.match.object).returns(formattedResult);
+            reportBuilder.undoAcceptImage.withArgs(formattedResult, 'plain').resolves(stubResult);
+            const getScreenshotPath = sandbox.stub().returns('/ref/path1');
+            const config = stubConfig({
+                browsers: {yabro: {getScreenshotPath}}
+            });
+            const hermione = mkHermione_(config);
             const gui = initGuiReporter(hermione);
             await gui.initialize();
 
-            await gui.undoAcceptImages(['imageIds']);
+            const tests = [{
+                browserId: 'yabro',
+                suite: {path: ['suite1']},
+                state: {},
+                metaInfo: {},
+                imagesInfo: [
+                    mkImagesInfo({
+                        stateName,
+                        actualImg: {
+                            size: {height: 100, width: 200}
+                        }
+                    })
+                ]
+            }];
 
-            assert.calledOnceWith(removeReferenceImage, ['ref1', 'ref2']);
+            return {formattedResult, gui, tests};
+        };
+
+        it('should remove reference, if ReportBuilder.undoAcceptImages resolved "shouldRemoveReference"', async () => {
+            const stateName = 'plain';
+            const {formattedResult, gui, tests} = await mkUndoTestData_({shouldRemoveReference: true}, {stateName});
+
+            await gui.undoAcceptImages(tests);
+
+            assert.calledOnceWith(removeReferenceImage, formattedResult, 'plain');
         });
 
-        it('should overwrite references, resolved from ReportBuilder.undoAcceptImages', async () => {
-            reportBuilder.undoAcceptImages.withArgs(['imageIds']).resolves({referencesToUpdate: [
-                {source: 'a', path: 'b'},
-                {source: 'c', path: 'd'}
-            ]});
-            const gui = initGuiReporter(hermione);
-            await gui.initialize();
+        it('should revert reference, if ReportBuilder.undoAcceptImages resolved "shouldRevertReference"', async () => {
+            const stateName = 'plain';
+            const {formattedResult, gui, tests} = await mkUndoTestData_({shouldRevertReference: true}, {stateName});
 
-            await gui.undoAcceptImages(['imageIds']);
+            await gui.undoAcceptImages(tests);
 
-            assert.calledOnceWith(overwriteReferenceImage, [{source: 'a', path: 'b'}, {source: 'c', path: 'd'}]);
+            assert.calledOnceWith(revertReferenceImage, formattedResult, 'plain');
         });
 
-        it('should resolve object without "referencesToRemove" property', async () => {
-            reportBuilder.undoAcceptImages.withArgs(['imageIds']).resolves({referencesToRemove: ['ref1'], foo: 'bar'});
-            const gui = initGuiReporter(hermione);
-            await gui.initialize();
+        it('should update expected path', async () => {
+            const stateName = 'plain';
+            const previousExpectedPath = 'previousExpectedPath';
+            const {formattedResult, gui, tests} = await mkUndoTestData_({previousExpectedPath}, {stateName});
 
-            const result = await gui.undoAcceptImages(['imageIds']);
+            await gui.undoAcceptImages(tests);
 
-            assert.deepEqual(result, {foo: 'bar'});
+            assert.calledOnceWith(formattedResult.updateCacheExpectedPath, stateName, previousExpectedPath);
         });
     });
 

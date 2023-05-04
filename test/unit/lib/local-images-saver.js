@@ -15,7 +15,7 @@ describe('local-images-saver', () => {
     it('should save image', async () => {
         await imagesSaver.saveImg('local/path/img.png', {destPath: 'dest/path/img.png', reportDir: 'rep/dir'});
 
-        assert.calledWith(utils.copyFileAsync, 'local/path/img.png', 'dest/path/img.png', 'rep/dir');
+        assert.calledWith(utils.copyFileAsync, 'local/path/img.png', 'dest/path/img.png', {reportDir: 'rep/dir'});
     });
 
     it('should return dest path', async () => {
