@@ -112,7 +112,7 @@ describe('server-utils', () => {
             const toPath = 'to/image.png';
             const pathToReport = '/report-dir';
 
-            return utils.copyFileAsync(fromPath, toPath, pathToReport)
+            return utils.copyFileAsync(fromPath, toPath, {reportDir: pathToReport})
                 .then(() => {
                     assert.calledWith(fs.mkdirs, '/report-dir/to');
                     assert.calledWithMatch(fs.copy, fromPath, toPath);

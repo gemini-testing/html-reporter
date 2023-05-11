@@ -222,7 +222,7 @@ describe('lib/hermione', () => {
         hermione.emit(events.TEST_PASS, testData);
         await hermione.emitAsync(events.RUNNER_END);
 
-        assert.calledOnceWith(utils.copyFileAsync, 'ref/path', 'report/plain', '/absolute');
+        assert.calledOnceWith(utils.copyFileAsync, 'ref/path', 'report/plain', {reportDir: '/absolute'});
     });
 
     it('should save image from assert view error', async () => {
@@ -235,7 +235,7 @@ describe('lib/hermione', () => {
         hermione.emit(events.RETRY, mkStubResult_({assertViewResults: [err]}));
         await hermione.emitAsync(events.RUNNER_END);
 
-        assert.calledOnceWith(utils.copyFileAsync, 'current/path', 'report/plain', '/absolute');
+        assert.calledOnceWith(utils.copyFileAsync, 'current/path', 'report/plain', {reportDir: '/absolute'});
     });
 
     it('should save reference image from assert view fail', async () => {
@@ -250,7 +250,7 @@ describe('lib/hermione', () => {
         hermione.emit(events.TEST_FAIL, mkStubResult_({assertViewResults: [err]}));
         await hermione.emitAsync(events.RUNNER_END);
 
-        assert.calledWith(utils.copyFileAsync, 'reference/path', 'report/plain', '/absolute');
+        assert.calledWith(utils.copyFileAsync, 'reference/path', 'report/plain', {reportDir: '/absolute'});
     });
 
     it('should save current image from assert view fail', async () => {
@@ -268,7 +268,7 @@ describe('lib/hermione', () => {
         hermione.emit(events.TEST_FAIL, mkStubResult_({assertViewResults: [err]}));
         await hermione.emitAsync(events.RUNNER_END);
 
-        assert.calledWith(utils.copyFileAsync, 'current/path', 'report/plain', '/absolute');
+        assert.calledWith(utils.copyFileAsync, 'current/path', 'report/plain', {reportDir: '/absolute'});
     });
 
     it('should save current diff image from assert view fail', async () => {
