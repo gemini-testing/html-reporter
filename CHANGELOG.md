@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="9.9.0"></a>
+# [9.9.0](https://github.com/gemini-testing/html-reporter/compare/v9.8.3...v9.9.0) (2023-05-11)
+
+
+### Bug Fixes
+
+* undo with remote images ([ba56a47](https://github.com/gemini-testing/html-reporter/commit/ba56a47))
+
+
+### Features
+
+* add diff mode '3-up scaled to fit' ([75624cd](https://github.com/gemini-testing/html-reporter/commit/75624cd))
+* undo screen accept ([312e0eb](https://github.com/gemini-testing/html-reporter/commit/312e0eb))
+
+
+### Performance Improvements
+
+* preload images in screenshot-accepter mode ([126037d](https://github.com/gemini-testing/html-reporter/commit/126037d))
+
+
+
 <a name="9.8.3"></a>
 ## [9.8.3](https://github.com/gemini-testing/html-reporter/compare/v9.8.2...v9.8.3) (2023-04-13)
 
