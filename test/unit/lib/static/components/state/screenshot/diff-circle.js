@@ -10,7 +10,8 @@ describe('DiffCircle component', () => {
     it('should set "debounce" option', () => {
         const stateComponent = mkConnectedComponent(
             <DiffCircle
-                diffTarget = {{offsetWidth: 10, style: {width: 10}, getBoundingClientRect: () => ({left: 10, top: 10})}}
+                originalImageWidth = {10}
+                diffTarget = {{offsetWidth: 10, getBoundingClientRect: () => ({left: 10, top: 10})}}
                 diffBounds = {{left: 5, top: 5, right: 5, bottom: 5}}
                 display = {true}
                 toggleDiff = {() => {}}
@@ -26,7 +27,8 @@ describe('DiffCircle component', () => {
         const toggleDiff = sandbox.stub();
         const stateComponent = mkConnectedComponent(
             <DiffCircle
-                diffTarget = {{offsetWidth: 30, style: {width: 10}, getBoundingClientRect: () => ({left: 10, top: 10})}}
+                originalImageWidth = {10}
+                diffTarget = {{offsetWidth: 30, getBoundingClientRect: () => ({left: 10, top: 10})}}
                 diffBounds = {{left: 5, top: 5, right: 5, bottom: 5}}
                 display = {true}
                 toggleDiff = {toggleDiff}
