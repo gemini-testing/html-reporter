@@ -7,7 +7,9 @@ import ProgressBar from '../../progress-bar';
 import Arrow from '../../icons/arrow';
 import ArrowsClose from '../../icons/arrows-close';
 import ControlButton from '../../controls/control-button';
+import ControlSelect from '../../controls/selects/control';
 import RetrySwitcher from '../../retry-switcher';
+import diffModes from '../../../../constants/diff-modes';
 
 export default class ScreenshotAccepterHeader extends Component {
     static propTypes = {
@@ -106,7 +108,7 @@ export default class ScreenshotAccepterHeader extends Component {
     };
 
     render() {
-        const {images, stateNameImageIds, retryIndex,
+        const {actions, view, images, stateNameImageIds, retryIndex,
             showMeta, onClose, onRetryChange, onShowMeta,
             totalImages, acceptedImages
         } = this.props;
@@ -143,6 +145,14 @@ export default class ScreenshotAccepterHeader extends Component {
                             handler={this.handleScreenshotAccept}
                         />
                         <ControlButton
+                            label="⎌ Undo"
+                            title="Revert last updated screenshot"
+                            isDisabled={!acceptedImages}
+                            isSuiteControl={true}
+                            extendClassNames="screenshot-accepter__undo-btn"
+                            handler={this.handleScreenUndo}
+                        />
+                        <ControlButton
                             label="Show meta"
                             title="Show test meta info"
                             isActive={showMeta}
@@ -150,6 +160,15 @@ export default class ScreenshotAccepterHeader extends Component {
                             isSuiteControl={true}
                             extendClassNames="screenshot-accepter__show-meta-btn"
                             handler={onShowMeta}
+                        />
+                        <ControlSelect
+                            label="Diff mode"
+                            value={view.diffMode}
+                            handler={actions.changeDiffMode}
+                            options = {Object.values(diffModes).map((dm) => {
+                                return {value: dm.id, text: dm.title};
+                            })}
+                            extendClassNames="screenshot-accepter__diff-mode-select"
                         />
                         <RetrySwitcher
                             title="Switch to selected attempt (left: ←,a; right: →,d)"
@@ -166,14 +185,6 @@ export default class ScreenshotAccepterHeader extends Component {
                             isSuiteControl={true}
                             extendClassNames="screenshot-accepter__arrows-close-btn"
                             handler={onClose}
-                        />
-                        <ControlButton
-                            label="⎌ Undo"
-                            title="Revert last updated screenshot"
-                            isDisabled={!acceptedImages}
-                            isSuiteControl={true}
-                            extendClassNames="screenshot-accepter__undo-btn"
-                            handler={this.handleScreenUndo}
                         />
                         <ProgressBar done={acceptedImages} total={totalImages}/>
                     </div>
