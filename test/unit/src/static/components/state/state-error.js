@@ -1,7 +1,7 @@
 import React from 'react';
 import {defaults} from 'lodash';
 import proxyquire from 'proxyquire';
-import {ERROR_TITLE_TEXT_LENGTH} from 'lib/constants/errors';
+import {ERROR_TITLE_TEXT_LENGTH} from 'src/constants/errors';
 import {mkConnectedComponent} from '../utils';
 
 describe('<StateError/> component', () => {
@@ -29,7 +29,7 @@ describe('<StateError/> component', () => {
             togglePageScreenshot: sandbox.stub().returns({type: 'some-type'})
         };
 
-        StateError = proxyquire('lib/static/components/state/state-error', {
+        StateError = proxyquire('src/static/components/state/state-error', {
             './screenshot/resized': {default: ResizedScreenshot},
             '../../modules/actions': actionsStub
         }).default;

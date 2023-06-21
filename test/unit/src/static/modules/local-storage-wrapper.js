@@ -1,7 +1,7 @@
-import * as localStorageWrapper from 'lib/static/modules/local-storage-wrapper';
+import * as localStorageWrapper from 'src/static/modules/local-storage-wrapper';
 import {mkStorage} from '../../../utils';
 
-describe('lib/static/modules/local-storage-wrapper', () => {
+describe('src/static/modules/local-storage-wrapper', () => {
     const prefix = 'html-reporter';
 
     beforeEach(() => {

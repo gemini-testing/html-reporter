@@ -1,7 +1,7 @@
 import React from 'react';
 import proxyquire from 'proxyquire';
 import {defaultsDeep} from 'lodash';
-import {ERROR, SUCCESS} from 'lib/constants/test-statuses';
+import {ERROR, SUCCESS} from 'src/constants/test-statuses';
 
 describe('<Tabs />', () => {
     const sandbox = sinon.sandbox.create();
@@ -24,7 +24,7 @@ describe('<Tabs />', () => {
     beforeEach(() => {
         State = sinon.stub().returns(null);
 
-        Tabs = proxyquire('lib/static/components/section/body/tabs', {
+        Tabs = proxyquire('src/static/components/section/body/tabs', {
             '../../state': {default: State}
         }).default;
     });

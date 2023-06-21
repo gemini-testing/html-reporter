@@ -1,5 +1,5 @@
 import React from 'react';
-import Details from 'lib/static/components/details';
+import Details from 'src/static/components/details';
 
 describe('<Details />', () => {
     const sandbox = sinon.sandbox.create();

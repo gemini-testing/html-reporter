@@ -3,13 +3,13 @@
 const fs = require('fs-extra');
 const _ = require('lodash');
 const proxyquire = require('proxyquire');
-const serverUtils = require('lib/server-utils');
-const TestAdapter = require('lib/test-adapter');
-const SqliteAdapter = require('lib/sqlite-adapter');
-const GuiTestsTreeBuilder = require('lib/tests-tree-builder/gui');
-const PluginApi = require('lib/plugin-api');
-const {SUCCESS, FAIL, ERROR, SKIPPED, IDLE, RUNNING, UPDATED} = require('lib/constants/test-statuses');
-const {LOCAL_DATABASE_NAME} = require('lib/constants/database');
+const serverUtils = require('src/server-utils');
+const TestAdapter = require('src/test-adapter');
+const SqliteAdapter = require('src/sqlite-adapter');
+const GuiTestsTreeBuilder = require('src/tests-tree-builder/gui');
+const PluginApi = require('src/plugin-api');
+const {SUCCESS, FAIL, ERROR, SKIPPED, IDLE, RUNNING, UPDATED} = require('src/constants/test-statuses');
+const {LOCAL_DATABASE_NAME} = require('src/constants/database');
 const {mkFormattedTest} = require('../../utils');
 
 const TEST_REPORT_PATH = 'test';
@@ -77,7 +77,7 @@ describe('GuiReportBuilder', () => {
 
         hasImage = sandbox.stub().returns(true);
         deleteFile = sandbox.stub().resolves();
-        GuiReportBuilder = proxyquire('lib/report-builder/gui', {
+        GuiReportBuilder = proxyquire('src/report-builder/gui', {
             '../server-utils': {hasImage, deleteFile}
         });
 

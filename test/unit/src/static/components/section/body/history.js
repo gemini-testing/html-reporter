@@ -10,7 +10,7 @@ describe('<History />', () => {
     beforeEach(() => {
         Details = sinon.stub().returns(null);
 
-        History = proxyquire('lib/static/components/section/body/history', {
+        History = proxyquire('src/static/components/section/body/history', {
             '../../../details': {default: Details}
         }).default;
     });

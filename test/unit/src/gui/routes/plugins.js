@@ -2,7 +2,7 @@
 
 const proxyquire = require('proxyquire');
 
-describe('lib/gui/routes/plugins', () => {
+describe('src/gui/routes/plugins', () => {
     const sandbox = sinon.createSandbox();
     let initPluginRoutes;
     let routerStub;
@@ -21,7 +21,7 @@ describe('lib/gui/routes/plugins', () => {
         pluginsRouterStubs = [];
 
         getPluginMiddlewareStub = sandbox.stub();
-        initPluginRoutes = proxyquire('lib/gui/routes/plugins', {
+        initPluginRoutes = proxyquire('src/gui/routes/plugins', {
             '../../server-utils': {
                 getPluginMiddleware: getPluginMiddlewareStub
             },

@@ -1,5 +1,5 @@
 const looksSame = require('looks-same');
-const worker = require('lib/workers/worker');
+const worker = require('src/workers/worker');
 
 describe('worker', () => {
     const sandbox = sinon.createSandbox();

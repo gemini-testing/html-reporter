@@ -14,7 +14,7 @@ describe('<StrictMatchFilterInput />', () => {
             setStrictMatchFilter: sandbox.stub().returns({type: 'some-type'})
         };
 
-        StrictMatchFilterInput = proxyquire('lib/static/components/controls/strict-match-filter-input', {
+        StrictMatchFilterInput = proxyquire('src/static/components/controls/strict-match-filter-input', {
             '../../modules/actions': actionsStub
         }).default;
     });

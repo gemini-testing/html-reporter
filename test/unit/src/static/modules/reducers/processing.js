@@ -1,7 +1,7 @@
-import reducer from 'lib/static/modules/reducers/processing';
-import actionNames from 'lib/static/modules/action-names';
+import reducer from 'src/static/modules/reducers/processing';
+import actionNames from 'src/static/modules/action-names';
 
-describe('lib/static/modules/reducers/processing', () => {
+describe('src/static/modules/reducers/processing', () => {
     [
         actionNames.RUN_ALL_TESTS,
         actionNames.RUN_FAILED_TESTS,

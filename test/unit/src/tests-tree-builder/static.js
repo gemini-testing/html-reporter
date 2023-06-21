@@ -1,9 +1,9 @@
 'use strict';
 
 const _ = require('lodash');
-const StaticResultsTreeBuilder = require('lib/tests-tree-builder/static');
-const {SUCCESS} = require('lib/constants/test-statuses');
-const {versions: browserVersions} = require('lib/constants/browser');
+const StaticResultsTreeBuilder = require('src/tests-tree-builder/static');
+const {SUCCESS} = require('src/constants/test-statuses');
+const {versions: browserVersions} = require('src/constants/browser');
 
 describe('StaticResultsTreeBuilder', () => {
     const sandbox = sinon.sandbox.create();

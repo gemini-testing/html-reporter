@@ -1,10 +1,10 @@
 'use strict';
 
-const utils = require('lib/static/modules/utils');
-const {IDLE, FAIL, ERROR, SKIPPED, SUCCESS} = require('lib/constants/test-statuses');
-const viewModes = require('lib/constants/view-modes');
-const {SECTIONS, RESULT_KEYS, KEY_DELIMITER} = require('lib/constants/group-tests');
-const {NO_REF_IMAGE_ERROR} = require('lib/constants/errors').getCommonErrors();
+const utils = require('src/static/modules/utils');
+const {IDLE, FAIL, ERROR, SKIPPED, SUCCESS} = require('src/constants/test-statuses');
+const viewModes = require('src/constants/view-modes');
+const {SECTIONS, RESULT_KEYS, KEY_DELIMITER} = require('src/constants/group-tests');
+const {NO_REF_IMAGE_ERROR} = require('src/constants/errors').getCommonErrors();
 
 const {mkBrowser, mkResult} = require('../../static/state-utils');
 

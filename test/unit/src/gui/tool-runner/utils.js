@@ -1,8 +1,8 @@
 'use strict';
 
-const {mkFullTitle} = require('lib/gui/tool-runner/utils');
+const {mkFullTitle} = require('src/gui/tool-runner/utils');
 
-describe('lib/gui/tool-runner/utils', () => {
+describe('src/gui/tool-runner/utils', () => {
     describe('mkFullTitle', () => {
         it('should build title if array with path is not empty', () => {
             const suite = {path: ['p1', 'p2']};

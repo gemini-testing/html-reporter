@@ -1,7 +1,7 @@
 import React from 'react';
 import {defaults} from 'lodash';
 import proxyquire from 'proxyquire';
-import {FAIL, SUCCESS} from 'lib/constants/test-statuses';
+import {FAIL, SUCCESS} from 'src/constants/test-statuses';
 import {mkConnectedComponent} from '../utils';
 import {mkSuite, mkStateTree} from '../../state-utils';
 
@@ -25,7 +25,7 @@ describe('<SectionCommon/>', () => {
         Title = sandbox.stub().returns(null);
         actionsStub = {toggleSuiteSection: sandbox.stub().returns({type: 'some-type'})};
 
-        SectionCommon = proxyquire('lib/static/components/section/section-common', {
+        SectionCommon = proxyquire('src/static/components/section/section-common', {
             '../../modules/actions': actionsStub,
             './section-browser': {default: SectionBrowser},
             './title/simple': {default: Title}

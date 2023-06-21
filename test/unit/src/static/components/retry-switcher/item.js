@@ -1,8 +1,8 @@
 import React from 'react';
 import {defaults} from 'lodash';
-import RetrySwitcherItem from 'lib/static/components/retry-switcher/item';
-import {FAIL, ERROR, SUCCESS} from 'lib/constants/test-statuses';
-import errors from 'lib/constants/errors';
+import RetrySwitcherItem from 'src/static/components/retry-switcher/item';
+import {FAIL, ERROR, SUCCESS} from 'src/constants/test-statuses';
+import errors from 'src/constants/errors';
 import {mkConnectedComponent} from '../utils';
 
 const {NO_REF_IMAGE_ERROR, ASSERT_VIEW_ERROR} = errors.getCommonErrors();

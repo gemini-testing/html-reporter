@@ -2,8 +2,8 @@
 
 const _ = require('lodash');
 const proxyquire = require('proxyquire');
-const {FAIL, ERROR, SUCCESS} = require('lib/constants/test-statuses');
-const {versions: browserVersions} = require('lib/constants/browser');
+const {FAIL, ERROR, SUCCESS} = require('src/constants/test-statuses');
+const {versions: browserVersions} = require('src/constants/browser');
 
 describe('ResultsTreeBuilder', () => {
     const sandbox = sinon.sandbox.create();
@@ -23,7 +23,7 @@ describe('ResultsTreeBuilder', () => {
 
     beforeEach(() => {
         determineStatus = sandbox.stub().returns(SUCCESS);
-        ResultsTreeBuilder = proxyquire('lib/tests-tree-builder/base', {
+        ResultsTreeBuilder = proxyquire('src/tests-tree-builder/base', {
             '../common-utils': {determineStatus}
         });
 

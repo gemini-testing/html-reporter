@@ -1,12 +1,12 @@
-import reducer from 'lib/static/modules/reducers/view';
-import actionNames from 'lib/static/modules/action-names';
-import defaultState from 'lib/static/modules/default-state';
-import {appendQuery, encodeBrowsers} from 'lib/static/modules/query-params';
-import viewModes from 'lib/constants/view-modes';
-import {EXPAND_ALL, EXPAND_ERRORS} from 'lib/constants/expand-modes';
+import reducer from 'src/static/modules/reducers/view';
+import actionNames from 'src/static/modules/action-names';
+import defaultState from 'src/static/modules/default-state';
+import {appendQuery, encodeBrowsers} from 'src/static/modules/query-params';
+import viewModes from 'src/constants/view-modes';
+import {EXPAND_ALL, EXPAND_ERRORS} from 'src/constants/expand-modes';
 import {mkStorage} from '../../../../utils';
 
-describe('lib/static/modules/reducers/view', () => {
+describe('src/static/modules/reducers/view', () => {
     let baseUrl;
 
     beforeEach(() => {

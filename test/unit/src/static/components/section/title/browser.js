@@ -1,12 +1,12 @@
 import React from 'react';
 import {defaults} from 'lodash';
 import proxyquire from 'proxyquire';
-import {mkConnectedComponent} from 'test/unit/lib/static/components/utils';
-import {mkBrowser, mkResult, mkStateTree} from 'test/unit/lib/static/state-utils';
-import {SKIPPED} from 'lib/constants/test-statuses';
-import actionNames from 'lib/static/modules/action-names';
-import viewModes from 'lib/constants/view-modes';
-import {EXPAND_ALL} from 'lib/constants/expand-modes';
+import {mkConnectedComponent} from 'test/unit/src/static/components/utils';
+import {mkBrowser, mkResult, mkStateTree} from 'test/unit/src/static/state-utils';
+import {SKIPPED} from 'src/constants/test-statuses';
+import actionNames from 'src/static/modules/action-names';
+import viewModes from 'src/constants/view-modes';
+import {EXPAND_ALL} from 'src/constants/expand-modes';
 
 describe('<BrowserTitle/>', () => {
     const sandbox = sinon.sandbox.create();
@@ -36,7 +36,7 @@ describe('<BrowserTitle/>', () => {
             appendQuery: sandbox.stub().returns(null)
         };
 
-        BrowserTitle = proxyquire('lib/static/components/section/title/browser', {
+        BrowserTitle = proxyquire('src/static/components/section/title/browser', {
             '../../../modules/actions': actionsStub,
             '../../../modules/query-params': queryParams
         }).default;

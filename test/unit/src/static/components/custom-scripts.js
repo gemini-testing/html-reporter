@@ -1,5 +1,5 @@
 import React from 'react';
-import CustomScripts from 'lib/static/components/custom-scripts';
+import CustomScripts from 'src/static/components/custom-scripts';
 
 describe('<CustomScripts />', () => {
     it('should render component for scripts', () => {

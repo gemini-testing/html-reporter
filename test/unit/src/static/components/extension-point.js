@@ -34,7 +34,7 @@ describe('<ExtensionPoint />', () => {
                 {name: 'plugin', component: 'WrapComponent', point: 'example', position: 'wrap'}
             ]
         };
-        ExtensionPoint = proxyquire('lib/static/components/extension-point', {
+        ExtensionPoint = proxyquire('src/static/components/extension-point', {
             '../modules/plugins': pluginsStub
         }).default;
     });

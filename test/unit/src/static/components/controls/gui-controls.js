@@ -1,5 +1,5 @@
 import React from 'react';
-import RunButton from 'lib/static/components/controls/run-button';
+import RunButton from 'src/static/components/controls/run-button';
 import proxyquire from 'proxyquire';
 import {mkState, mkConnectedComponent} from '../utils';
 
@@ -20,7 +20,7 @@ describe('<GuiControls />', () => {
             getFailedTests: sandbox.stub().returns([])
         };
 
-        GuiControls = proxyquire('lib/static/components/controls/gui-controls', {
+        GuiControls = proxyquire('src/static/components/controls/gui-controls', {
             './accept-opened-button': {default: AcceptOpenedButton},
             './common-controls': {default: CommonControls},
             '../../modules/actions': actionsStub,

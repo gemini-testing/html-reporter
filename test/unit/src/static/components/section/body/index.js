@@ -28,7 +28,7 @@ describe('<Body />', () => {
         Result = sinon.stub().returns(null);
         RetrySwitcher = sinon.stub().returns(null);
 
-        Body = proxyquire('lib/static/components/section/body', {
+        Body = proxyquire('src/static/components/section/body', {
             '../../../modules/actions': actionsStub,
             './result': {default: Result},
             '../../retry-switcher': {default: RetrySwitcher}

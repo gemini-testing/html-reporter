@@ -1,13 +1,13 @@
 import axios from 'axios';
 import proxyquire from 'proxyquire';
 import {POSITIONS} from 'reapop';
-import {acceptOpened, undoAcceptImages, retryTest, runFailedTests} from 'lib/static/modules/actions';
-import actionNames from 'lib/static/modules/action-names';
-import StaticTestsTreeBuilder from 'lib/tests-tree-builder/static';
-import {LOCAL_DATABASE_NAME} from 'lib/constants/database';
-import diffModes from 'lib/constants/diff-modes';
+import {acceptOpened, undoAcceptImages, retryTest, runFailedTests} from 'src/static/modules/actions';
+import actionNames from 'src/static/modules/action-names';
+import StaticTestsTreeBuilder from 'src/tests-tree-builder/static';
+import {LOCAL_DATABASE_NAME} from 'src/constants/database';
+import diffModes from 'src/constants/diff-modes';
 
-describe('lib/static/modules/actions', () => {
+describe('src/static/modules/actions', () => {
     const sandbox = sinon.sandbox.create();
     let dispatch, actions, notify, getSuitesTableRows, getMainDatabaseUrl, connectToDatabaseStub, pluginsStub;
 
@@ -23,7 +23,7 @@ describe('lib/static/modules/actions', () => {
         sandbox.stub(StaticTestsTreeBuilder, 'create').returns(Object.create(StaticTestsTreeBuilder.prototype));
         sandbox.stub(StaticTestsTreeBuilder.prototype, 'build').returns({});
 
-        actions = proxyquire('lib/static/modules/actions', {
+        actions = proxyquire('src/static/modules/actions', {
             'reapop': {notify},
             './database-utils': {getSuitesTableRows},
             '../../db-utils/client': {getMainDatabaseUrl, connectToDatabase: connectToDatabaseStub},
@@ -179,7 +179,7 @@ describe('lib/static/modules/actions', () => {
                 }
             };
 
-            actions = proxyquire('lib/static/modules/actions', {
+            actions = proxyquire('src/static/modules/actions', {
                 '../../db-utils/client': {
                     fetchDataFromDatabases: fetchDataFromDatabasesStub,
                     mergeDatabases: mergeDatabasesStub

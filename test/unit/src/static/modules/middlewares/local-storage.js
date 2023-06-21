@@ -1,11 +1,11 @@
 import proxyquire from 'proxyquire';
-import actionNames from 'lib/static/modules/action-names';
-import defaultState from 'lib/static/modules/default-state';
-import viewModes from 'lib/constants/view-modes';
-import diffModes from 'lib/constants/diff-modes';
-import {EXPAND_ERRORS} from 'lib/constants/expand-modes';
+import actionNames from 'src/static/modules/action-names';
+import defaultState from 'src/static/modules/default-state';
+import viewModes from 'src/constants/view-modes';
+import diffModes from 'src/constants/diff-modes';
+import {EXPAND_ERRORS} from 'src/constants/expand-modes';
 
-describe('lib/static/modules/middlewares/local-storage', () => {
+describe('src/static/modules/middlewares/local-storage', () => {
     const sandbox = sinon.sandbox.create();
     let next, localStorageWrapper;
 
@@ -16,7 +16,7 @@ describe('lib/static/modules/middlewares/local-storage', () => {
     };
 
     const mkMiddleware_ = () => {
-        return proxyquire('lib/static/modules/middlewares/local-storage', {
+        return proxyquire('src/static/modules/middlewares/local-storage', {
             '../local-storage-wrapper': localStorageWrapper
         }).default;
     };

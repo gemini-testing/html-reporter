@@ -1,7 +1,7 @@
-import reducer from 'lib/static/modules/reducers/bottom-progress-bar';
-import actionNames from 'lib/static/modules/action-names';
+import reducer from 'src/static/modules/reducers/bottom-progress-bar';
+import actionNames from 'src/static/modules/action-names';
 
-describe('lib/static/modules/reducers/bottom-progress-bar', () => {
+describe('src/static/modules/reducers/bottom-progress-bar', () => {
     it('should update "currentRootSuiteId"', () => {
         const action = {type: actionNames.UPDATE_BOTTOM_PROGRESS_BAR, payload: {currentRootSuiteId: 'some-id'}};
         const newState = reducer({}, action);

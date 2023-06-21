@@ -1,5 +1,5 @@
 import * as webVitals from 'web-vitals';
-import {measurePerformance} from 'lib/static/modules/web-vitals';
+import {measurePerformance} from 'src/static/modules/web-vitals';
 
 describe('WebVitals', () => {
     const sandbox = sinon.createSandbox();

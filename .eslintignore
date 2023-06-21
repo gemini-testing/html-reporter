@@ -1,9 +1,9 @@
 **/.*
 node_modules
 hot
-/lib/static/*.min.js
-/lib/static/data.js
-/lib/static/sql-wasm.js
+/src/static/*.min.js
+/src/static/data.js
+/src/static/sql-wasm.js
 /test/func/fixtures/report
 /test/func/html-reporter-plugins/*/plugin.js
 /hermione-report

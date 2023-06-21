@@ -7,7 +7,7 @@ const TerserPlugin = require('terser-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const HtmlWebpackIncludeAssetsPlugin = require('html-webpack-include-assets-plugin');
 
-const staticPath = path.resolve(__dirname, 'lib', 'static');
+const staticPath = path.resolve(__dirname, 'src', 'static');
 
 module.exports = {
     entry: {

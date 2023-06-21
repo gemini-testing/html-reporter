@@ -1,7 +1,7 @@
 'use strict';
 
-const utils = require('lib/server-utils');
-const imagesSaver = require('lib/local-images-saver');
+const utils = require('src/server-utils');
+const imagesSaver = require('src/local-images-saver');
 
 describe('local-images-saver', () => {
     const sandbox = sinon.createSandbox();

@@ -4,9 +4,9 @@ const fs = require('fs-extra');
 const _ = require('lodash');
 const Database = require('better-sqlite3');
 const proxyquire = require('proxyquire');
-const PluginApi = require('lib/plugin-api');
-const {SUCCESS, FAIL, ERROR, SKIPPED} = require('lib/constants/test-statuses');
-const {LOCAL_DATABASE_NAME} = require('lib/constants/database');
+const PluginApi = require('src/plugin-api');
+const {SUCCESS, FAIL, ERROR, SKIPPED} = require('src/constants/test-statuses');
+const {LOCAL_DATABASE_NAME} = require('src/constants/database');
 const {mkFormattedTest} = require('../../utils');
 
 const TEST_REPORT_PATH = 'test';
@@ -61,7 +61,7 @@ describe('StaticReportBuilder', () => {
     beforeEach(() => {
         hasImage = sandbox.stub().returns(true);
 
-        StaticReportBuilder = proxyquire('lib/report-builder/static', {
+        StaticReportBuilder = proxyquire('src/report-builder/static', {
             '../server-utils': {hasImage}
         });
     });

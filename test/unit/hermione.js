@@ -3,15 +3,15 @@
 const _ = require('lodash');
 const fs = require('fs-extra');
 const HermioneReporter = require('../../hermione');
-const PluginAdapter = require('lib/plugin-adapter');
-const StaticReportBuilder = require('lib/report-builder/static');
-const SqliteAdapter = require('lib/sqlite-adapter');
-const TestAdapter = require('lib/test-adapter');
-const utils = require('lib/server-utils');
-const {logger} = require('lib/common-utils');
+const PluginAdapter = require('src/plugin-adapter');
+const StaticReportBuilder = require('src/report-builder/static');
+const SqliteAdapter = require('src/sqlite-adapter');
+const TestAdapter = require('src/test-adapter');
+const utils = require('src/server-utils');
+const {logger} = require('src/common-utils');
 const {stubTool} = require('./utils');
 
-describe('lib/hermione', () => {
+describe('src/hermione', () => {
     const sandbox = sinon.createSandbox();
     let hermione;
 

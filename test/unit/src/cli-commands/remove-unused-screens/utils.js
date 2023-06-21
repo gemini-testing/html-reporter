@@ -5,10 +5,10 @@ const fs = require('fs-extra');
 const proxyquire = require('proxyquire');
 const inquirer = require('inquirer');
 
-const {SUCCESS, ERROR} = require('lib/constants/test-statuses');
+const {SUCCESS, ERROR} = require('src/constants/test-statuses');
 const {stubTool, stubConfig, mkState} = require('test/unit/utils');
 
-describe('lib/cli-commands/remove-unused-screens/utils', () => {
+describe('src/cli-commands/remove-unused-screens/utils', () => {
     const sandbox = sinon.sandbox.create();
     let utils, fgMock;
 
@@ -52,7 +52,7 @@ describe('lib/cli-commands/remove-unused-screens/utils', () => {
 
         fgMock = sandbox.stub().resolves([]);
 
-        utils = proxyquire('lib/cli-commands/remove-unused-screens/utils', {
+        utils = proxyquire('src/cli-commands/remove-unused-screens/utils', {
             'fast-glob': fgMock
         });
     });

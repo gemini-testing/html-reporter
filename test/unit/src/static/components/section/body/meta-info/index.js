@@ -14,7 +14,7 @@ describe('<MetaInfo />', () => {
 
         MetaInfoContent = sinon.stub().returns(null);
 
-        MetaInfo = proxyquire('lib/static/components/section/body/meta-info', {
+        MetaInfo = proxyquire('src/static/components/section/body/meta-info', {
             './content': {default: MetaInfoContent},
             '../../../../modules/actions': actionsStub
         }).default;

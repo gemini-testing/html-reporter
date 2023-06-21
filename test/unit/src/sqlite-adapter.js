@@ -4,10 +4,10 @@ const fs = require('fs-extra');
 const proxyquire = require('proxyquire');
 const Database = require('better-sqlite3');
 
-const SqliteAdapter = require('lib/sqlite-adapter');
-const PluginApi = require('lib/plugin-api');
+const SqliteAdapter = require('src/sqlite-adapter');
+const PluginApi = require('src/plugin-api');
 
-describe('lib/sqlite-adapter', () => {
+describe('src/sqlite-adapter', () => {
     const sandbox = sinon.createSandbox();
     let hermione;
 
@@ -77,7 +77,7 @@ describe('lib/sqlite-adapter', () => {
         beforeEach(async () => {
             getStub = sandbox.stub();
             prepareStub = sandbox.stub(Database.prototype, 'prepare').returns({get: getStub});
-            sqliteAdapter = proxyquire('lib/sqlite-adapter', {
+            sqliteAdapter = proxyquire('src/sqlite-adapter', {
                 './db-utils/server': {createTablesQuery: () => []}
             }).create({hermione, reportPath: 'test'});
 
@@ -145,7 +145,7 @@ describe('lib/sqlite-adapter', () => {
         beforeEach(async () => {
             runStub = sandbox.stub();
             prepareStub = sandbox.stub(Database.prototype, 'prepare').returns({run: runStub});
-            sqliteAdapter = proxyquire('lib/sqlite-adapter', {
+            sqliteAdapter = proxyquire('src/sqlite-adapter', {
                 './db-utils/server': {createTablesQuery: () => []}
             }).create({hermione, reportPath: 'test'});
 

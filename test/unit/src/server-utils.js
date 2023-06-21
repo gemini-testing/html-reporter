@@ -3,9 +3,9 @@
 const path = require('path');
 const fs = require('fs-extra');
 const Promise = require('bluebird');
-const utils = require('lib/server-utils');
-const {IMAGES_PATH} = require('lib/constants/paths');
-const testStatuses = require('lib/constants/test-statuses');
+const utils = require('src/server-utils');
+const {IMAGES_PATH} = require('src/constants/paths');
+const testStatuses = require('src/constants/test-statuses');
 
 describe('server-utils', () => {
     const sandbox = sinon.sandbox.create();

@@ -1,6 +1,6 @@
 import React from 'react';
 import {defaultsDeep} from 'lodash';
-import MetaInfoContent from 'lib/static/components/section/body/meta-info/content';
+import MetaInfoContent from 'src/static/components/section/body/meta-info/content';
 import {mkConnectedComponent} from '../../../utils';
 
 describe('<MetaInfoContent />', () => {

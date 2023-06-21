@@ -4,13 +4,13 @@ const path = require('path');
 const fs = require('fs-extra');
 const _ = require('lodash');
 const proxyquire = require('proxyquire');
-const GuiReportBuilder = require('lib/report-builder/gui');
-const {LOCAL_DATABASE_NAME} = require('lib/constants/database');
-const {logger} = require('lib/common-utils');
-const Runner = require('lib/gui/tool-runner/runner');
+const GuiReportBuilder = require('src/report-builder/gui');
+const {LOCAL_DATABASE_NAME} = require('src/constants/database');
+const {logger} = require('src/common-utils');
+const Runner = require('src/gui/tool-runner/runner');
 const {stubTool, stubConfig, mkImagesInfo, mkState, mkSuite} = require('test/unit/utils');
 
-describe('lib/gui/tool-runner/index', () => {
+describe('src/gui/tool-runner/index', () => {
     const sandbox = sinon.createSandbox();
     let reportBuilder;
     let ToolGuiReporter;
@@ -75,7 +75,7 @@ describe('lib/gui/tool-runner/index', () => {
 
         getTestsTreeFromDatabase = sandbox.stub().returns({});
 
-        ToolGuiReporter = proxyquire(`lib/gui/tool-runner`, {
+        ToolGuiReporter = proxyquire(`src/gui/tool-runner`, {
             'looks-same': looksSame,
             './report-subscriber': reportSubscriber,
             './utils': {findTestResult: sandbox.stub()},

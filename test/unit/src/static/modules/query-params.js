@@ -1,8 +1,8 @@
-import {parseQuery, appendQuery} from 'lib/static/modules/query-params';
-import viewModes from 'lib/constants/view-modes';
-import {COLLAPSE_ALL} from 'lib/constants/expand-modes';
+import {parseQuery, appendQuery} from 'src/static/modules/query-params';
+import viewModes from 'src/constants/view-modes';
+import {COLLAPSE_ALL} from 'src/constants/expand-modes';
 
-describe('lib/static/modules/query-params', () => {
+describe('src/static/modules/query-params', () => {
     describe('parseQuery', () => {
         it('should return empty query object when no query params exist', () => {
             const query = parseQuery('');

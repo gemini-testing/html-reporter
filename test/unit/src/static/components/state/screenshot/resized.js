@@ -1,5 +1,5 @@
 import React from 'react';
-import ResizedScreenshot from 'lib/static/components/state/screenshot/resized';
+import ResizedScreenshot from 'src/static/components/state/screenshot/resized';
 
 describe('"ResizedScreenshot" component', () => {
     it('should encode symbols in path', () => {

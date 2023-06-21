@@ -13,7 +13,7 @@ describe('<ScreenshotAccepterMeta/>', () => {
     beforeEach(() => {
         MetaInfoContent = sandbox.stub().returns(null);
 
-        ScreenshotAccepterMeta = proxyquire('lib/static/components/modals/screenshot-accepter/meta', {
+        ScreenshotAccepterMeta = proxyquire('src/static/components/modals/screenshot-accepter/meta', {
             '../../section/body/meta-info/content': {default: MetaInfoContent}
         }).default;
     });

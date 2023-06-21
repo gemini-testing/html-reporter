@@ -1,6 +1,6 @@
 'use strict';
 
-const {getCommandsHistory} = require('lib/history-utils');
+const {getCommandsHistory} = require('src/history-utils');
 
 describe('history-utils', () => {
     describe('getCommandsHistory', () => {

@@ -1,5 +1,5 @@
 import React from 'react';
-import Label from '../../../../../../../lib/static/components/controls/browser-list/label';
+import Label from '../../../../../../../src/static/components/controls/browser-list/label';
 
 describe('<Label />', () => {
     const sandbox = sinon.sandbox.create();

@@ -16,7 +16,7 @@ describe('<CustomGuiControls />', () => {
             runCustomGuiAction: sandbox.stub().returns({type: 'some-type'})
         };
 
-        CustomGuiControls = proxyquire('lib/static/components/controls/custom-gui-controls', {
+        CustomGuiControls = proxyquire('src/static/components/controls/custom-gui-controls', {
             '../../modules/actions': actionsStub
         }).default;
     });

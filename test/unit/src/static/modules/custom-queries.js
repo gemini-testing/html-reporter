@@ -1,9 +1,9 @@
 'use strict';
-import {getViewQuery} from 'lib/static/modules/custom-queries';
-import viewModes from 'lib/constants/view-modes';
-import {COLLAPSE_ALL} from 'lib/constants/expand-modes';
+import {getViewQuery} from 'src/static/modules/custom-queries';
+import viewModes from 'src/constants/view-modes';
+import {COLLAPSE_ALL} from 'src/constants/expand-modes';
 
-describe('lib/static/modules/query-params', () => {
+describe('src/static/modules/query-params', () => {
     describe('getViewQuery', () => {
         it('returns initial query object when no query params exist', () => {
             const query = getViewQuery('');

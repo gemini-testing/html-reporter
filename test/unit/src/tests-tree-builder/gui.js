@@ -1,8 +1,8 @@
 'use strict';
 
 const _ = require('lodash');
-const GuiResultsTreeBuilder = require('lib/tests-tree-builder/gui');
-const {FAIL, SUCCESS, IDLE, UPDATED} = require('lib/constants/test-statuses');
+const GuiResultsTreeBuilder = require('src/tests-tree-builder/gui');
+const {FAIL, SUCCESS, IDLE, UPDATED} = require('src/constants/test-statuses');
 
 describe('GuiResultsTreeBuilder', () => {
     let builder;

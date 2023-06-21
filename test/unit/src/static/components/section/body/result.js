@@ -1,7 +1,7 @@
 import React from 'react';
 import proxyquire from 'proxyquire';
 import {defaults, set} from 'lodash';
-import {FAIL, SUCCESS} from 'lib/constants/test-statuses';
+import {FAIL, SUCCESS} from 'src/constants/test-statuses';
 import {mkConnectedComponent} from '../../utils';
 
 describe('<Result />', () => {
@@ -37,7 +37,7 @@ describe('<Result />', () => {
         History = sinon.stub().returns(null);
         Tabs = sinon.stub().returns(null);
 
-        Result = proxyquire('lib/static/components/section/body/result', {
+        Result = proxyquire('src/static/components/section/body/result', {
             './meta-info': {default: MetaInfo},
             './history': {default: History},
             './description': {default: Description},

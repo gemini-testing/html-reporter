@@ -4,7 +4,7 @@ import {defaultsDeep} from 'lodash';
 import {List} from 'react-virtualized';
 
 import {mkConnectedComponent} from './utils';
-import viewModes from 'lib/constants/view-modes';
+import viewModes from 'src/constants/view-modes';
 
 describe('<Suites/>', () => {
     const sandbox = sinon.sandbox.create();
@@ -24,7 +24,7 @@ describe('<Suites/>', () => {
         SectionCommon = sinon.stub().returns(null);
         getVisibleRootSuiteIds = sinon.stub().returns([]);
 
-        Suites = proxyquire('lib/static/components/suites', {
+        Suites = proxyquire('src/static/components/suites', {
             './section/section-common': {default: SectionCommon},
             '../modules/selectors/tree': {getVisibleRootSuiteIds}
         }).default;

@@ -1,8 +1,8 @@
-import YandexMetrika from 'lib/static/modules/yandex-metrika';
-import actionNames from 'lib/static/modules/action-names';
-import webVitals from 'lib/static/modules/web-vitals';
+import YandexMetrika from 'src/static/modules/yandex-metrika';
+import actionNames from 'src/static/modules/action-names';
+import webVitals from 'src/static/modules/web-vitals';
 
-describe('lib/static/modules/middlewares/metrika', () => {
+describe('src/static/modules/middlewares/metrika', () => {
     const sandbox = sinon.sandbox.create();
     let next, metrikaMiddleware;
 
@@ -29,7 +29,7 @@ describe('lib/static/modules/middlewares/metrika', () => {
     beforeEach(() => {
         next = sandbox.stub();
 
-        metrikaMiddleware = requireUncached_('lib/static/modules/middlewares/metrika');
+        metrikaMiddleware = requireUncached_('src/static/modules/middlewares/metrika');
 
         sandbox.stub(YandexMetrika, 'create').returns(Object.create(YandexMetrika.prototype));
         sandbox.stub(YandexMetrika.prototype, 'acceptScreenshot');

@@ -58,7 +58,7 @@ describe('<ScreenshotAccepterBody/>', () => {
         StateFail = sandbox.stub().returns(null);
         isNoRefImageError = sandbox.stub().returns(false);
 
-        ScreenshotAccepterBody = proxyquire('lib/static/components/modals/screenshot-accepter/body', {
+        ScreenshotAccepterBody = proxyquire('src/static/components/modals/screenshot-accepter/body', {
             '../../state/screenshot/resized': {default: ResizedScreenshot},
             '../../state/state-fail': {default: StateFail},
             '../../../modules/utils': {isNoRefImageError}

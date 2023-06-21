@@ -13,7 +13,7 @@ describe('<AcceptOpenedButton />', () => {
         actionsStub = {acceptOpened: sandbox.stub().returns({type: 'some-type'})};
         selectors = {getAcceptableOpenedImageIds: sandbox.stub().returns([])};
 
-        AcceptOpenedButton = proxyquire('lib/static/components/controls/accept-opened-button', {
+        AcceptOpenedButton = proxyquire('src/static/components/controls/accept-opened-button', {
             '../../modules/actions': actionsStub,
             '../../modules/selectors/tree': selectors
         }).default;

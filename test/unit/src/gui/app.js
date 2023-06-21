@@ -4,10 +4,10 @@ const _ = require('lodash');
 const proxyquire = require('proxyquire');
 const Promise = require('bluebird');
 
-const ToolRunner = require('lib/gui/tool-runner');
+const ToolRunner = require('src/gui/tool-runner');
 const {stubTool, stubConfig} = require('../../utils');
 
-describe('lib/gui/app', () => {
+describe('src/gui/app', () => {
     const sandbox = sinon.createSandbox().usingPromise(Promise);
 
     let App;
@@ -46,7 +46,7 @@ describe('lib/gui/app', () => {
         toolRunner = mkToolRunner_(tool);
         looksSame = sandbox.stub().named('looksSame').resolves({equal: true});
 
-        App = proxyquire('lib/gui/app', {
+        App = proxyquire('src/gui/app', {
             'looks-same': looksSame
         });
 

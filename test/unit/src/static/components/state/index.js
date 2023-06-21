@@ -1,9 +1,9 @@
 import React from 'react';
 import proxyquire from 'proxyquire';
 import {set, defaults, defaultsDeep} from 'lodash';
-import {SUCCESS, FAIL, ERROR, UPDATED} from 'lib/constants/test-statuses';
-import {EXPAND_ALL} from 'lib/constants/expand-modes';
-import {types as modalTypes} from 'lib/static/components/modals';
+import {SUCCESS, FAIL, ERROR, UPDATED} from 'src/constants/test-statuses';
+import {EXPAND_ALL} from 'src/constants/expand-modes';
+import {types as modalTypes} from 'src/static/components/modals';
 import {mkConnectedComponent} from '../utils';
 
 describe('<State/>', () => {
@@ -48,7 +48,7 @@ describe('<State/>', () => {
         StateFail = sinon.stub().returns(null);
         FindSameDiffsButton = sinon.stub().returns(null);
 
-        State = proxyquire('lib/static/components/state', {
+        State = proxyquire('src/static/components/state', {
             './state-error': {default: StateError},
             './state-success': {default: StateSuccess},
             './state-fail': {default: StateFail},

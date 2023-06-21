@@ -1,8 +1,8 @@
 'use strict';
 
 const EventEmitter2 = require('eventemitter2');
-const guiEvents = require('lib/gui/constants/gui-events');
-const Api = require('lib/gui/api');
+const guiEvents = require('src/gui/constants/gui-events');
+const Api = require('src/gui/api');
 const {stubTool} = require('../../../utils');
 
 describe('lig/gui/api', () => {

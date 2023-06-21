@@ -43,7 +43,7 @@ describe('<ScreenshotAccepterHeader/>', () => {
         RetrySwitcher = sandbox.stub().returns(null);
         GlobalHotKeys = sandbox.stub().returns(null);
 
-        ScreenshotAccepterHeader = proxyquire('lib/static/components/modals/screenshot-accepter/header', {
+        ScreenshotAccepterHeader = proxyquire('src/static/components/modals/screenshot-accepter/header', {
             'react-hotkeys': {GlobalHotKeys},
             '../../retry-switcher': {default: RetrySwitcher}
         }).default;

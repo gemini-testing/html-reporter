@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {defaults} from 'lodash';
 import proxyquire from 'proxyquire';
-import {EXPAND_ALL} from 'lib/constants/expand-modes';
+import {EXPAND_ALL} from 'src/constants/expand-modes';
 import {mkConnectedComponent} from '../../utils';
 
 describe('<ScreenshotAccepter/>', () => {
@@ -69,7 +69,7 @@ describe('<ScreenshotAccepter/>', () => {
         sandbox.stub(ReactDOM, 'findDOMNode').returns({parentNode});
         preloadImageStub = sandbox.stub();
 
-        ScreenshotAccepter = proxyquire('lib/static/components/modals/screenshot-accepter', {
+        ScreenshotAccepter = proxyquire('src/static/components/modals/screenshot-accepter', {
             './header': {default: ScreenshotAccepterHeader},
             './meta': {default: ScreenshotAccepterMeta},
             './body': {default: ScreenshotAccepterBody},

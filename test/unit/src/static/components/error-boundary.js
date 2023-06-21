@@ -1,5 +1,5 @@
 import React from 'react';
-import ErrorBoundary from 'lib/static/components/error-boundary';
+import ErrorBoundary from 'src/static/components/error-boundary';
 
 describe('<ErrorBoundary />', () => {
     const sandbox = sinon.sandbox.create();

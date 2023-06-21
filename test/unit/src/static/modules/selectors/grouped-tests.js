@@ -1,5 +1,5 @@
 import proxyquire from 'proxyquire';
-import {SECTIONS, ERROR_KEY, KEY_DELIMITER} from 'lib/constants/group-tests';
+import {SECTIONS, ERROR_KEY, KEY_DELIMITER} from 'src/constants/group-tests';
 
 describe('grouped-tests selectors', () => {
     const sandbox = sinon.sandbox.create();
@@ -8,7 +8,7 @@ describe('grouped-tests selectors', () => {
     beforeEach(() => {
         parseKeyToGroupTestsBy = sandbox.stub().named('parseKeyToGroupTestsBy').returns([]);
 
-        selector = proxyquire('lib/static/modules/selectors/grouped-tests', {
+        selector = proxyquire('src/static/modules/selectors/grouped-tests', {
             '../utils': {parseKeyToGroupTestsBy}
         });
     });

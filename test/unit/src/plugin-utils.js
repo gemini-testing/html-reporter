@@ -1,6 +1,6 @@
 'use strict';
 
-const {getSuitePath} = require('lib/plugin-utils').getHermioneUtils();
+const {getSuitePath} = require('src/plugin-utils').getHermioneUtils();
 
 describe('getHermioneUtils', () => {
     describe('getSuitePath', () => {

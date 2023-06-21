@@ -1,5 +1,5 @@
 import React from 'react';
-import FullScreenshot from 'lib/static/components/state/screenshot/full';
+import FullScreenshot from 'src/static/components/state/screenshot/full';
 
 describe('"FullScreenshot" component', () => {
     it('should encode symbols in path', () => {

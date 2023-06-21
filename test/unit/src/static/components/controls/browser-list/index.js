@@ -1,5 +1,5 @@
 import React from 'react';
-import BrowserList from '../../../../../../../lib/static/components/controls/browser-list';
+import BrowserList from '../../../../../../../src/static/components/controls/browser-list';
 
 describe('<BrowserList />', () => {
     const sandbox = sinon.sandbox.create();

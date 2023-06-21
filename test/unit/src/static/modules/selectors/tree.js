@@ -1,4 +1,4 @@
-import {SUCCESS, FAIL, IDLE} from 'lib/constants/test-statuses';
+import {SUCCESS, FAIL, IDLE} from 'src/constants/test-statuses';
 import {
     getAcceptableImagesByStateName,
     getAcceptableOpenedImageIds,
@@ -6,7 +6,7 @@ import {
     areAllRootSuitesIdle,
     getFailedTests,
     getFailedSuiteResults
-} from 'lib/static/modules/selectors/tree';
+} from 'src/static/modules/selectors/tree';
 import {mkSuite, mkBrowser, mkResult, mkImage, mkStateTree, mkStateView} from '../../state-utils';
 
 describe('tree selectors', () => {

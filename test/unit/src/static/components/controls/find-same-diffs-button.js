@@ -36,7 +36,7 @@ describe('<FindSameDiffsButton />', () => {
         actionsStub = {findSameDiffs: sandbox.stub().returns({type: 'some-type'})};
         selectors = {getFailedOpenedImageIds: sandbox.stub().returns([])};
 
-        FindSameDiffsButton = proxyquire('lib/static/components/controls/find-same-diffs-button', {
+        FindSameDiffsButton = proxyquire('src/static/components/controls/find-same-diffs-button', {
             '../../modules/actions': actionsStub,
             '../../modules/selectors/tree': selectors
         }).default;

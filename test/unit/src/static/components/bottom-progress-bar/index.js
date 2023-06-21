@@ -14,7 +14,7 @@ describe('<BottomProgressBar/> component', () => {
     };
 
     beforeEach(() => {
-        BottomProgressBar = proxyquire('lib/static/components/bottom-progress-bar', {
+        BottomProgressBar = proxyquire('src/static/components/bottom-progress-bar', {
             '../../modules/selectors/tree': {
                 getVisibleRootSuiteIds: getVisibleRootSuiteIdsStub
             }

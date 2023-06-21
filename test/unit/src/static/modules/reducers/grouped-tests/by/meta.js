@@ -1,6 +1,6 @@
 import proxyquire from 'proxyquire';
 
-describe('lib/static/modules/reducers/grouped-tests/by/meta', () => {
+describe('src/static/modules/reducers/grouped-tests/by/meta', () => {
     const sandbox = sinon.sandbox.create();
     let module, handleActiveResults, addGroupItem, sortGroupValues;
 
@@ -10,7 +10,7 @@ describe('lib/static/modules/reducers/grouped-tests/by/meta', () => {
         addGroupItem = sandbox.stub().named('addGroupItem').returns(undefined);
         sortGroupValues = sandbox.stub().named('sortGroupValues').returns([]);
 
-        module = proxyquire('lib/static/modules/reducers/grouped-tests/by/meta', {
+        module = proxyquire('src/static/modules/reducers/grouped-tests/by/meta', {
             '../helpers': {handleActiveResults, addGroupItem, sortGroupValues}
         });
     });

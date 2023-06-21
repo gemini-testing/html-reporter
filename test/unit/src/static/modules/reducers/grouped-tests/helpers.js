@@ -1,8 +1,8 @@
 import proxyquire from 'proxyquire';
-const viewModes = require('lib/constants/view-modes');
+const viewModes = require('src/constants/view-modes');
 import {mkBrowser, mkResult, mkStateTree} from '../../../state-utils';
 
-describe('lib/static/modules/reducers/grouped-tests/helpers', () => {
+describe('src/static/modules/reducers/grouped-tests/helpers', () => {
     const sandbox = sinon.sandbox.create();
     let module, getFailedSuiteResults, isTestNameMatchFilters, shouldShowBrowser;
 
@@ -11,7 +11,7 @@ describe('lib/static/modules/reducers/grouped-tests/helpers', () => {
         isTestNameMatchFilters = sandbox.stub().named('isTestNameMatchFilters').returns(true);
         shouldShowBrowser = sandbox.stub().named('shouldShowBrowser').returns(true);
 
-        module = proxyquire('lib/static/modules/reducers/grouped-tests/helpers', {
+        module = proxyquire('src/static/modules/reducers/grouped-tests/helpers', {
             '../../selectors/tree': {getFailedSuiteResults},
             '../../utils': {isTestNameMatchFilters, shouldShowBrowser}
         });

@@ -2,10 +2,10 @@
 
 const _ = require('lodash');
 const {stubTool, stubConfig} = require('../../utils');
-const mergeReports = require('lib/merge-reports');
-const serverUtils = require('lib/server-utils');
+const mergeReports = require('src/merge-reports');
+const serverUtils = require('src/server-utils');
 
-describe('lib/merge-reports', () => {
+describe('src/merge-reports', () => {
     const sandbox = sinon.sandbox.create();
     let htmlReporter;
 

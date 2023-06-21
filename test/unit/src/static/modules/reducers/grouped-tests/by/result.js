@@ -1,8 +1,8 @@
 import proxyquire from 'proxyquire';
-import {ERROR_KEY, RESULT_KEYS} from 'lib/constants/group-tests';
+import {ERROR_KEY, RESULT_KEYS} from 'src/constants/group-tests';
 import {mkImage, mkStateTree} from '../../../../state-utils';
 
-describe('lib/static/modules/reducers/grouped-tests/by/result', () => {
+describe('src/static/modules/reducers/grouped-tests/by/result', () => {
     const sandbox = sinon.sandbox.create();
     let module, handleActiveResults, addGroupItem, sortGroupValues, isAssertViewError;
 
@@ -13,7 +13,7 @@ describe('lib/static/modules/reducers/grouped-tests/by/result', () => {
         sortGroupValues = sandbox.stub().named('sortGroupValues').returns([]);
         isAssertViewError = sandbox.stub().named('isAssertViewError').returns(false);
 
-        module = proxyquire('lib/static/modules/reducers/grouped-tests/by/result', {
+        module = proxyquire('src/static/modules/reducers/grouped-tests/by/result', {
             '../helpers': {handleActiveResults, addGroupItem, sortGroupValues},
             '../../../utils': {isAssertViewError}
         });

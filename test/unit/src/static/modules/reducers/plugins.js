@@ -1,15 +1,15 @@
-import actionNames from 'lib/static/modules/action-names';
+import actionNames from 'src/static/modules/action-names';
 
 const proxyquire = require('proxyquire');
 
-describe('lib/static/modules/reducers/plugins', () => {
+describe('src/static/modules/reducers/plugins', () => {
     const sandbox = sinon.sandbox.create();
     let reducer;
     let forEachStub;
 
     beforeEach(() => {
         forEachStub = sandbox.stub();
-        reducer = proxyquire('lib/static/modules/reducers/plugins', {
+        reducer = proxyquire('src/static/modules/reducers/plugins', {
             '../plugins': {forEach: forEachStub}
         }).default;
 

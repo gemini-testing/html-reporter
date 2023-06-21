@@ -1,13 +1,13 @@
 'use strict';
 
 const {isEmpty} = require('lodash');
-const parseConfig = require('lib/config');
-const {config: configDefaults} = require('lib/constants/defaults');
-const viewModes = require('lib/constants/view-modes');
-const diffModes = require('lib/constants/diff-modes');
-const saveFormats = require('lib/constants/save-formats');
-const SUPPORTED_CONTROL_TYPES = Object.values(require('lib/gui/constants/custom-gui-control-types'));
-const {logger} = require('lib/common-utils');
+const parseConfig = require('src/config');
+const {config: configDefaults} = require('src/constants/defaults');
+const viewModes = require('src/constants/view-modes');
+const diffModes = require('src/constants/diff-modes');
+const saveFormats = require('src/constants/save-formats');
+const SUPPORTED_CONTROL_TYPES = Object.values(require('src/gui/constants/custom-gui-control-types'));
+const {logger} = require('src/common-utils');
 
 describe('config', () => {
     const sandbox = sinon.createSandbox();

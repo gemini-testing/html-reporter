@@ -1,6 +1,6 @@
 'use strict';
 
-const SuiteAdapter = require('lib/suite-adapter');
+const SuiteAdapter = require('src/suite-adapter');
 
 describe('suite adapter', () => {
     it('should return suite skip reason', () => {

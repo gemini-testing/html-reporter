@@ -1,12 +1,12 @@
 import proxyquire from 'proxyquire';
 import {defaults} from 'lodash';
-import actionNames from 'lib/static/modules/action-names';
-import defaultState from 'lib/static/modules/default-state';
-import viewModes from 'lib/constants/view-modes';
-import {SECTIONS, ERROR_KEY, KEY_DELIMITER} from 'lib/constants/group-tests';
+import actionNames from 'src/static/modules/action-names';
+import defaultState from 'src/static/modules/default-state';
+import viewModes from 'src/constants/view-modes';
+import {SECTIONS, ERROR_KEY, KEY_DELIMITER} from 'src/constants/group-tests';
 import {mkStateTree, mkStateView} from '../../../state-utils';
 
-describe('lib/static/modules/reducers/grouped-tests', () => {
+describe('src/static/modules/reducers/grouped-tests', () => {
     const sandbox = sinon.sandbox.create();
     let reducer, groupResult, groupMeta;
 
@@ -14,7 +14,7 @@ describe('lib/static/modules/reducers/grouped-tests', () => {
         groupResult = sandbox.stub().named('groupResult').returns(undefined);
         groupMeta = sandbox.stub().named('groupMeta').returns(undefined);
 
-        reducer = proxyquire('lib/static/modules/reducers/grouped-tests', {
+        reducer = proxyquire('src/static/modules/reducers/grouped-tests', {
             './by/result': {groupResult},
             './by/meta': {groupMeta},
             'immer': {produce: sandbox.stub().callsFake(cb => cb)}

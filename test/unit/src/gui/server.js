@@ -2,10 +2,10 @@
 
 const _ = require('lodash');
 const proxyquire = require('proxyquire');
-const App = require('lib/gui/app');
+const App = require('src/gui/app');
 const {stubTool} = require('../../utils');
 
-describe('lib/gui/server', () => {
+describe('src/gui/server', () => {
     const sandbox = sinon.createSandbox();
     let server;
     let expressStub;
@@ -54,7 +54,7 @@ describe('lib/gui/server', () => {
         bodyParserStub = {json: sandbox.stub()};
         initPluginRoutesStub = sandbox.stub();
 
-        server = proxyquire('lib/gui/server', {
+        server = proxyquire('src/gui/server', {
             express: Object.assign(() => expressStub, {
                 static: staticMiddleware,
                 Router: () => RouterStub

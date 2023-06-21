@@ -1,7 +1,7 @@
 import React from 'react';
 import {defaults} from 'lodash';
 import proxyquire from 'proxyquire';
-import {SUCCESS, SKIPPED, ERROR} from 'lib/constants/test-statuses';
+import {SUCCESS, SKIPPED, ERROR} from 'src/constants/test-statuses';
 import {mkConnectedComponent} from '../utils';
 import {mkBrowser, mkResult, mkStateTree} from '../../state-utils';
 
@@ -24,7 +24,7 @@ describe('<SectionBrowser/>', () => {
         Body = sandbox.stub().returns(null);
         actionsStub = {toggleBrowserSection: sandbox.stub().returns({type: 'some-type'})};
 
-        SectionBrowser = proxyquire('lib/static/components/section/section-browser', {
+        SectionBrowser = proxyquire('src/static/components/section/section-browser', {
             '../../modules/actions': actionsStub,
             './body': {default: Body}
         }).default;
@@ -160,7 +160,7 @@ describe('<SectionBrowser/>', () => {
 
         beforeEach(() => {
             BrowserTitle = sandbox.stub().returns(null);
-            SectionBrowser = proxyquire('lib/static/components/section/section-browser', {
+            SectionBrowser = proxyquire('src/static/components/section/section-browser', {
                 './title/browser': {default: BrowserTitle}
             }).default;
         });

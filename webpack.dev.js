@@ -14,7 +14,7 @@ module.exports = merge(
         },
         devtool: 'eval-source-map',
         devServer: {
-            contentBase: './lib/static',
+            contentBase: './src/static',
             inline: true,
             hot: true
         },

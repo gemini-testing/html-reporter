@@ -2,13 +2,13 @@
 
 const {EventEmitter} = require('events');
 const Promise = require('bluebird');
-const reportSubscriber = require('lib/gui/tool-runner/report-subscriber');
-const GuiReportBuilder = require('lib/report-builder/gui');
-const clientEvents = require('lib/gui/constants/client-events');
-const {RUNNING} = require('lib/constants/test-statuses');
+const reportSubscriber = require('src/gui/tool-runner/report-subscriber');
+const GuiReportBuilder = require('src/report-builder/gui');
+const clientEvents = require('src/gui/constants/client-events');
+const {RUNNING} = require('src/constants/test-statuses');
 const {stubTool, stubConfig} = require('test/unit/utils');
 
-describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
+describe('src/gui/tool-runner/hermione/report-subscriber', () => {
     const sandbox = sinon.createSandbox();
     let reportBuilder;
     let client;

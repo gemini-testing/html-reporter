@@ -1,11 +1,11 @@
-import {SUCCESS, FAIL, ERROR, UPDATED} from 'lib/constants/test-statuses';
-import reducer from 'lib/static/modules/reducers/tree';
-import actionNames from 'lib/static/modules/action-names';
-import viewModes from 'lib/constants/view-modes';
-import {EXPAND_ALL, EXPAND_ERRORS, EXPAND_RETRIES} from 'lib/constants/expand-modes';
+import {SUCCESS, FAIL, ERROR, UPDATED} from 'src/constants/test-statuses';
+import reducer from 'src/static/modules/reducers/tree';
+import actionNames from 'src/static/modules/action-names';
+import viewModes from 'src/constants/view-modes';
+import {EXPAND_ALL, EXPAND_ERRORS, EXPAND_RETRIES} from 'src/constants/expand-modes';
 import {mkSuite, mkBrowser, mkResult, mkImage, mkStateTree, mkStateView} from '../../../state-utils';
 
-describe('lib/static/modules/reducers/tree', () => {
+describe('src/static/modules/reducers/tree', () => {
     [actionNames.INIT_GUI_REPORT, actionNames.INIT_STATIC_REPORT].forEach((actionName) => {
         describe(`${actionName} action`, () => {
             it('should set status from filtered browsers to parent suites', () => {

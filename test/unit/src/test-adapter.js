@@ -1,12 +1,12 @@
 'use strict';
 
 const _ = require('lodash');
-const utils = require('lib/server-utils');
-const {logger} = require('lib/common-utils');
-const {SUCCESS, UPDATED, SKIPPED, FAIL} = require('lib/constants/test-statuses');
-const {ERROR_DETAILS_PATH} = require('lib/constants/paths');
+const utils = require('src/server-utils');
+const {logger} = require('src/common-utils');
+const {SUCCESS, UPDATED, SKIPPED, FAIL} = require('src/constants/test-statuses');
+const {ERROR_DETAILS_PATH} = require('src/constants/paths');
 const {stubTool, stubConfig} = require('../utils');
-const SqliteAdapter = require('lib/sqlite-adapter');
+const SqliteAdapter = require('src/sqlite-adapter');
 const proxyquire = require('proxyquire');
 const fs = require('fs-extra');
 
@@ -61,7 +61,7 @@ describe('hermione test adapter', () => {
         getCommandsHistory = sandbox.stub();
         sqliteAdapter = sandbox.createStubInstance(SqliteAdapter);
 
-        HermioneTestResultAdapter = proxyquire('../../../lib/test-adapter', {
+        HermioneTestResultAdapter = proxyquire('../../../src/test-adapter', {
             tmp,
             './plugin-utils': {getHermioneUtils: () => ({getSuitePath})},
             './history-utils': {getCommandsHistory}

@@ -1,4 +1,4 @@
-import {getStatsFilteredByBrowsers} from 'lib/static/modules/selectors/stats';
+import {getStatsFilteredByBrowsers} from 'src/static/modules/selectors/stats';
 
 describe('stats selectors', () => {
     describe('getStatsFilteredByBrowsers', () => {

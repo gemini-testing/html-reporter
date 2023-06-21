@@ -1,8 +1,8 @@
-import reducer from 'lib/static/modules/reducers/modals';
-import actionNames from 'lib/static/modules/action-names';
-import defaultState from 'lib/static/modules/default-state';
+import reducer from 'src/static/modules/reducers/modals';
+import actionNames from 'src/static/modules/action-names';
+import defaultState from 'src/static/modules/default-state';
 
-describe('lib/static/modules/reducers/modals', () => {
+describe('src/static/modules/reducers/modals', () => {
     describe(`"${actionNames.OPEN_MODAL}" action`, () => {
         it('should add modal', () => {
             const action = {type: actionNames.OPEN_MODAL, payload: {id: 'first'}};

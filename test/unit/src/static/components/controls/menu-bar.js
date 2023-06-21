@@ -1,6 +1,6 @@
 import React from 'react';
 import {mkConnectedComponent} from '../utils';
-import MenuBar from 'lib/static/components/controls/common-controls';
+import MenuBar from 'src/static/components/controls/common-controls';
 
 describe('<MenuBar />', () => {
     it('should show passed items as links in dropdown menu', () => {

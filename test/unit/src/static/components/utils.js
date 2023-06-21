@@ -2,7 +2,7 @@ import React from 'react';
 import _ from 'lodash';
 import configureStore from 'redux-mock-store';
 import {Provider} from 'react-redux';
-import defaultState from 'lib/static/modules/default-state';
+import defaultState from 'src/static/modules/default-state';
 
 exports.mkState = ({initialState} = {}) => {
     return _.defaultsDeep(initialState, defaultState);

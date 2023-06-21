@@ -19,7 +19,7 @@ describe('<RetrySwitcher >', () => {
     beforeEach(() => {
         RetrySwitcherItem = sinon.stub().returns(null);
 
-        RetrySwitcher = proxyquire('lib/static/components/retry-switcher', {
+        RetrySwitcher = proxyquire('src/static/components/retry-switcher', {
             './item': {default: RetrySwitcherItem}
         }).default;
     });

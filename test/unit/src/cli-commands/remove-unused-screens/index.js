@@ -5,11 +5,11 @@ const _ = require('lodash');
 const fs = require('fs-extra');
 const proxyquire = require('proxyquire');
 const chalk = require('chalk');
-const {DATABASE_URLS_JSON_NAME, LOCAL_DATABASE_NAME} = require('lib/constants/database');
+const {DATABASE_URLS_JSON_NAME, LOCAL_DATABASE_NAME} = require('src/constants/database');
 const {stubTool} = require('test/unit/utils');
-const {logger} = require('lib/common-utils');
+const {logger} = require('src/common-utils');
 
-describe('lib/cli-commands/remove-unused-screens', () => {
+describe('src/cli-commands/remove-unused-screens', () => {
     const sandbox = sinon.sandbox.create();
     let actionPromise, removeUnusedScreens, getTestsFromFs, findScreens, askQuestion;
     let identifyOutdatedScreens, identifyUnusedScreens, removeScreens, filesizeMock;
@@ -71,7 +71,7 @@ describe('lib/cli-commands/remove-unused-screens', () => {
 
         filesizeMock = sandbox.stub().returns('12345');
 
-        removeUnusedScreens = proxyquire('lib/cli-commands/remove-unused-screens', {
+        removeUnusedScreens = proxyquire('src/cli-commands/remove-unused-screens', {
             ora: () => ({start: sandbox.stub(), succeed: sandbox.stub()}),
             filesize: filesizeMock,
             './utils': {getTestsFromFs, findScreens, askQuestion, identifyOutdatedScreens, identifyUnusedScreens, removeScreens}
