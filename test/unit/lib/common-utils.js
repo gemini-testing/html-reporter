@@ -106,9 +106,9 @@ describe('common-utils', () => {
 
         it('should return url with specified host if it is provided', () => {
             const href = 'https://oldhost.com/path';
-            const host = 'newhost.com';
+            const parsedHost = {host: 'newhost.com'};
 
-            const url = buildUrl(href, host);
+            const url = buildUrl(href, parsedHost);
 
             assert.equal(url, 'https://newhost.com/path');
         });
