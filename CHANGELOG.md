@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="9.9.2"></a>
+## [9.9.2](https://github.com/gemini-testing/html-reporter/compare/v9.9.1...v9.9.2) (2023-06-28)
+
+
+### Bug Fixes
+
+* update local storage on CHANGE_VIEW_MODE ([a0db7d5](https://github.com/gemini-testing/html-reporter/commit/a0db7d5))
+* **host-input:** broken test links on host change ([b34dfed](https://github.com/gemini-testing/html-reporter/commit/b34dfed))
+
+
+
 <a name="9.9.1"></a>
 ## [9.9.1](https://github.com/gemini-testing/html-reporter/compare/v9.9.0...v9.9.1) (2023-05-30)
 
