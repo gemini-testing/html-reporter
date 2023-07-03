@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="9.10.0"></a>
+# [9.10.0](https://github.com/gemini-testing/html-reporter/compare/v9.9.2...v9.10.0) (2023-07-03)
+
+
+### Features
+
+* retry tests with checkboxes ([d3190c1](https://github.com/gemini-testing/html-reporter/commit/d3190c1))
+
+
+
 <a name="9.9.2"></a>
 ## [9.9.2](https://github.com/gemini-testing/html-reporter/compare/v9.9.1...v9.9.2) (2023-06-28)
 
