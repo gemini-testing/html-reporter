@@ -1,31 +1,37 @@
 import React from 'react';
-import {defaults} from 'lodash';
+import {defaults, set} from 'lodash';
 import proxyquire from 'proxyquire';
 import {SUCCESS, SKIPPED, ERROR} from 'lib/constants/test-statuses';
+import {UNCHECKED} from 'lib/constants/checked-statuses';
 import {mkConnectedComponent} from '../utils';
 import {mkBrowser, mkResult, mkStateTree} from '../../state-utils';
 
 describe('<SectionBrowser/>', () => {
     const sandbox = sinon.sandbox.create();
-    let SectionBrowser, Body, actionsStub;
+    let SectionBrowser, Body, BrowserTitle, BrowserSkippedTitle, actionsStub;
 
     const mkSectionBrowserComponent = (props = {}, initialState = {}) => {
         props = defaults(props, {
             browserId: 'default-bro-id'
         });
         initialState = defaults(initialState, {
-            tree: mkStateTree()
+            tree: mkStateTree(),
+            checkStatus: UNCHECKED
         });
 
         return mkConnectedComponent(<SectionBrowser {...props} />, {initialState});
     };
 
     beforeEach(() => {
+        BrowserSkippedTitle = sandbox.stub().returns(null);
+        BrowserTitle = sandbox.stub().returns(null);
         Body = sandbox.stub().returns(null);
         actionsStub = {toggleBrowserSection: sandbox.stub().returns({type: 'some-type'})};
 
         SectionBrowser = proxyquire('lib/static/components/section/section-browser', {
             '../../modules/actions': actionsStub,
+            './title/browser-skipped': {default: BrowserSkippedTitle},
+            './title/browser': {default: BrowserTitle},
             './body': {default: Body}
         }).default;
     });
@@ -33,28 +39,31 @@ describe('<SectionBrowser/>', () => {
     afterEach(() => sandbox.restore());
 
     describe('skipped test', () => {
-        it('should render "[skipped]" tag in title', () => {
+        it('should pass "[skipped]" tag in title', () => {
             const browsersById = mkBrowser({id: 'yabro-1', name: 'yabro', resultIds: ['res'], parentId: 'test'});
             const browsersStateById = {'yabro-1': {shouldBeShown: true, shouldBeOpened: false}};
             const resultsById = mkResult({id: 'res', status: SKIPPED});
             const tree = mkStateTree({browsersById, browsersStateById, resultsById});
 
-            const component = mkSectionBrowserComponent({browserId: 'yabro-1'}, {tree});
+            mkSectionBrowserComponent({browserId: 'yabro-1'}, {tree});
 
-            assert.equal(component.find('.section__title_skipped').first().text(), `[${SKIPPED}] yabro`);
+            assert.calledWithMatch(
+                BrowserSkippedTitle,
+                set({}, 'title.props.children', [`[${SKIPPED}] `, 'yabro', undefined, undefined])
+            );
         });
 
-        it('should render skip reason', () => {
+        it('should pass skip reason', () => {
             const browsersById = mkBrowser({id: 'yabro-1', name: 'yabro', resultIds: ['res'], parentId: 'test'});
             const browsersStateById = {'yabro-1': {shouldBeShown: true, shouldBeOpened: false}};
             const resultsById = mkResult({id: 'res', status: SKIPPED, skipReason: 'some-reason'});
             const tree = mkStateTree({browsersById, browsersStateById, resultsById});
 
-            const component = mkSectionBrowserComponent({browserId: 'yabro-1'}, {tree});
+            mkSectionBrowserComponent({browserId: 'yabro-1'}, {tree});
 
-            assert.equal(
-                component.find('.section__title_skipped').first().text(),
-                `[${SKIPPED}] yabro, reason: some-reason`
+            assert.calledWithMatch(
+                BrowserSkippedTitle,
+                set({}, 'title.props.children', [`[${SKIPPED}] `, 'yabro', ', reason: ', 'some-reason'])
             );
         });
 
@@ -80,13 +89,14 @@ describe('<SectionBrowser/>', () => {
                 ...mkResult({id: 'res-1', status: ERROR, error: {}}),
                 ...mkResult({id: 'res-2', status: SKIPPED, skipReason: 'some-reason'})
             };
-
             const tree = mkStateTree({browsersById, browsersStateById, resultsById});
 
-            const component = mkSectionBrowserComponent({browserId: 'yabro-1'}, {tree});
+            mkSectionBrowserComponent({browserId: 'yabro-1'}, {tree});
 
-            assert.equal(component.find('.section__title').first().text(), `[${SKIPPED}] yabro, reason: some-reason`);
-            assert.isFalse(component.find('.section__title').exists('.section__title_skipped'));
+            assert.calledWithMatch(
+                BrowserTitle,
+                set({}, 'title.props.children', [`[${SKIPPED}] `, 'yabro', ', reason: ', 'some-reason'])
+            );
         });
 
         it('should render body if browser in opened state', () => {
@@ -140,44 +150,17 @@ describe('<SectionBrowser/>', () => {
         });
     });
 
-    describe('"toggleBrowserSection" action', () => {
-        it('should call on click in browser title of not skipped test', () => {
-            const browsersById = mkBrowser({id: 'yabro-1', name: 'yabro', resultIds: ['res-1'], parentId: 'test'});
-            const browsersStateById = {'yabro-1': {shouldBeShown: true, shouldBeOpened: false}};
-            const resultsById = mkResult({id: 'res-1', status: SUCCESS});
+    it('should render "BrowserTitle" with "browserName" for correctly working clipboard button', () => {
+        const browsersById = mkBrowser({id: 'yabro', name: 'yabro', resultIds: ['res']});
+        const browsersStateById = {'yabro': {shouldBeShown: true, shouldBeOpened: false}};
+        const resultsById = mkResult({id: 'res', status: SUCCESS});
+        const tree = mkStateTree({browsersById, browsersStateById, resultsById});
 
-            const tree = mkStateTree({browsersById, browsersStateById, resultsById});
+        mkSectionBrowserComponent({browserId: 'yabro'}, {tree});
 
-            const component = mkSectionBrowserComponent({browserId: 'yabro-1'}, {tree});
-            component.find('.section__title').simulate('click');
-
-            assert.calledOnceWith(actionsStub.toggleBrowserSection, {browserId: 'yabro-1', shouldBeOpened: true});
-        });
-    });
-
-    describe('<ClipboardButton/>', () => {
-        let BrowserTitle;
-
-        beforeEach(() => {
-            BrowserTitle = sandbox.stub().returns(null);
-            SectionBrowser = proxyquire('lib/static/components/section/section-browser', {
-                './title/browser': {default: BrowserTitle}
-            }).default;
-        });
-
-        it('should render "BrowserTitle" with "browserName" for correctly working clipboard button', () => {
-            const browsersById = mkBrowser({id: 'yabro', name: 'yabro', resultIds: ['res']});
-            const browsersStateById = {'yabro': {shouldBeShown: true, shouldBeOpened: false}};
-            const resultsById = mkResult({id: 'res', status: SUCCESS});
-            const tree = mkStateTree({browsersById, browsersStateById, resultsById});
-
-            mkSectionBrowserComponent({browserId: 'yabro'}, {tree});
-
-            assert.calledOnceWith(BrowserTitle, {
-                browserId: 'yabro', browserName: 'yabro', handler: sinon.match.any,
-                lastResultId: 'res', title: 'yabro'
-            });
+        assert.calledOnceWith(BrowserTitle, {
+            browserId: 'yabro', browserName: 'yabro', handler: sinon.match.any,
+            lastResultId: 'res', title: 'yabro'
         });
     });
 });
-
