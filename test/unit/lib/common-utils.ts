@@ -1,7 +1,5 @@
-'use strict';
-
-const {determineStatus, buildUrl} = require('lib/common-utils');
-const {RUNNING, QUEUED, ERROR, FAIL, UPDATED, SUCCESS, IDLE, SKIPPED} = require('lib/constants/test-statuses');
+import {determineStatus, buildUrl} from 'lib/common-utils';
+import {RUNNING, QUEUED, ERROR, FAIL, UPDATED, SUCCESS, IDLE, SKIPPED} from 'lib/constants/test-statuses';
 
 describe('common-utils', () => {
     describe('determineStatus', () => {

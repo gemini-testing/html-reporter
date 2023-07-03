@@ -1,33 +1,12 @@
 {
     "plugins": [
-        ["transform-runtime", {"polyfill": false}],
-        ["babel-plugin-transform-builtin-extend", {"globals": ["Error", "Array"]}]
+        ["@babel/plugin-transform-runtime"]
     ],
-    "env": {
-        "test": {
-            "presets": [
-                [
-                    "env",
-                    {"exclude": ["transform-es2015-classes"]}
-                ],
-                "react",
-                "stage-0"
-            ],
-            "plugins": ["dynamic-import-node"]
-        },
-        "production": {
-            "presets": [
-                "env",
-                "react",
-                "stage-0"
-            ]
-        },
-        "development": {
-            "presets": [
-                "env",
-                "react",
-                "stage-0"
-            ]
-        }
-    }
+    "presets": [
+        "@babel/preset-react",
+        ["@babel/preset-env", { "modules": "commonjs"}],
+        "@babel/preset-typescript"
+    ],
+    "sourceMaps": true,
+    "retainLines": true
 }

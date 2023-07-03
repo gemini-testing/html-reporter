@@ -1,10 +1,21 @@
-'use strict';
-
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
-export default class ControlButton extends Component {
+interface ControlButtonProps {
+    label: string | Component;
+    title?: string;
+    handler: () => void;
+    isActive?: boolean;
+    isAction?: boolean;
+    isSuiteControl?: boolean;
+    isControlGroup?: boolean;
+    isDisabled?: boolean;
+    isRunning?: boolean;
+    extendClassNames?: string | string[];
+}
+
+export default class ControlButton extends Component<ControlButtonProps> {
     static propTypes = {
         label: PropTypes.oneOfType([PropTypes.string, PropTypes.object]).isRequired,
         title: PropTypes.string,
@@ -16,9 +27,9 @@ export default class ControlButton extends Component {
         isControlGroup: PropTypes.bool,
         isRunning: PropTypes.bool,
         extendClassNames: PropTypes.oneOfType([PropTypes.array, PropTypes.string])
-    }
+    };
 
-    render() {
+    render(): JSX.Element {
         const {
             label,
             title,
