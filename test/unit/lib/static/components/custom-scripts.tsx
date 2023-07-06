@@ -4,7 +4,7 @@ import CustomScripts from 'lib/static/components/custom-scripts';
 describe('<CustomScripts />', () => {
     it('should render component for scripts', () => {
         const props = {
-            scripts: [function() {}]
+            scripts: [function(): void {}]
         };
 
         const component = mount(<CustomScripts {...props} />);
@@ -26,7 +26,7 @@ describe('<CustomScripts />', () => {
 
     it('should wrap function with IIFE', () => {
         const props = {
-            scripts: [function foo() {}]
+            scripts: [function foo(): void {}]
         };
 
         const component = mount(<CustomScripts {...props} />);
@@ -38,8 +38,8 @@ describe('<CustomScripts />', () => {
     it('should split each function with ";"', () => {
         const props = {
             scripts: [
-                function foo() {},
-                function bar() {}
+                function foo(): void {},
+                function bar(): void {}
             ]
         };
 

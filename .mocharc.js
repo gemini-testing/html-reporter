@@ -2,5 +2,5 @@
 
 module.exports = {
     recursive: true,
-    require: ["./test/ts-node", "jsdom-global/register", "./test/setup", "./test/assert-ext"],
+    require: ["./test/ts-node", "./test/setup", "./test/assert-ext", "jsdom-global/register"],
 };

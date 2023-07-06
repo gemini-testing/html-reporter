@@ -1,6 +1,5 @@
 module.exports = {
-    // TODO: add 'plugin:react/recommended'
-    extends: ['gemini-testing', 'plugin:@typescript-eslint/recommended'],
+    extends: ['gemini-testing', 'plugin:@typescript-eslint/recommended', 'plugin:react/recommended'],
     parser: '@typescript-eslint/parser',
     plugins: ['@typescript-eslint', 'react'],
     root: true,
@@ -9,7 +8,7 @@ module.exports = {
     },
     overrides: [
         {
-            files: ['*.ts'],
+            files: ['*.ts', '*.tsx'],
             rules: {
                 '@typescript-eslint/explicit-function-return-type': 'error'
             }
