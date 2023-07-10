@@ -1,20 +1,26 @@
 'use strict';
 
 const path = require('path');
+const readline = require('readline');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const HtmlWebpackIncludeAssetsPlugin = require('html-webpack-include-assets-plugin');
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+const {ProgressPlugin} = require('webpack');
 
-const staticPath = path.resolve(__dirname, 'lib', 'static');
+const staticPath = path.resolve(__dirname, 'build', 'lib', 'static');
 
 module.exports = {
     entry: {
-        report: ['./index.js', './styles.css'],
-        gui: ['./gui.js', './styles.css', './gui.css']
+        report: ['./index.jsx', './styles.css'],
+        gui: ['./gui.jsx', './styles.css', './gui.css']
     },
-    context: staticPath,
+    resolve: {
+        extensions: ['.js', '.jsx', '.ts', '.tsx']
+    },
+    context: path.resolve(__dirname, 'lib', 'static'),
     output: {
         path: staticPath,
         filename: '[name].min.js',
@@ -36,7 +42,7 @@ module.exports = {
                 use: [MiniCssExtractPlugin.loader, 'css-loader', 'stylus-loader']
             },
             {
-                test: /\.js$/,
+                test: /\.[jt]sx?$/,
                 use: 'babel-loader',
                 exclude: /node_modules/
             },
@@ -47,7 +53,23 @@ module.exports = {
         ]
     },
     plugins: [
+        new ProgressPlugin((percentage, msg, args) => {
+            if (percentage < 1) {
+                readline.clearLine(process.stdout, 0);
+                readline.cursorTo(process.stdout, 0);
+                process.stdout.write(`${Math.round(percentage * 100)}% ${msg} ${args}`);
+            } else {
+                process.stdout.write('\n');
+                process.stdout.write(msg);
+            }
+        }),
         new MiniCssExtractPlugin({filename: '[name].min.css'}),
+        new ForkTsCheckerWebpackPlugin({
+            typescript: {
+                // Points to lib/static/tsconfig.json
+                configFile: './tsconfig.json'
+            }
+        }),
         new HtmlWebpackPlugin({
             title: 'HTML report',
             filename: 'index.html',
