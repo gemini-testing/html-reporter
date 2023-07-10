@@ -54,7 +54,7 @@
   "homepage": "https://github.com/gemini-testing/html-reporter#readme",
   "license": "MIT",
   "peerDependencies": {
-    "hermione": ">=6.0.0"
+    "hermione": ">=6.0.0 || ^8.0.0-beta"
   },
   "dependencies": {
     "@babel/runtime": "^7.22.5",
