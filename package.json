@@ -1,6 +1,6 @@
 {
   "name": "html-reporter",
-  "version": "9.10.0",
+  "version": "9.10.1",
   "description": "Plugin for hermione which is intended to aggregate the results of tests running into html report",
   "files": [
     "build"

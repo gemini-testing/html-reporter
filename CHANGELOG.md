@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="9.10.1"></a>
+## [9.10.1](https://github.com/gemini-testing/html-reporter/compare/v9.10.0...v9.10.1) (2023-07-10)
+
+
+### Bug Fixes
+
+* rename js extension to jsx for files using jsx ([9423a00](https://github.com/gemini-testing/html-reporter/commit/9423a00))
+* various minor test fixes ([c98c45b](https://github.com/gemini-testing/html-reporter/commit/c98c45b))
+
+
+
 <a name="9.10.0"></a>
 # [9.10.0](https://github.com/gemini-testing/html-reporter/compare/v9.9.2...v9.10.0) (2023-07-03)
 
