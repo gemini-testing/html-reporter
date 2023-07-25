@@ -133,7 +133,7 @@ const StateFail = ({image, diffMode: diffModeProp, isScreenshotAccepterOpened}) 
 
     return (
         <Fragment>
-            {renderDiffModeItems()}
+            {!isScreenshotAccepterOpened && renderDiffModeItems()}
             {renderImages()}
         </Fragment>
     );

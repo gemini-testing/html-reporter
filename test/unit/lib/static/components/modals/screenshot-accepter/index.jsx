@@ -49,6 +49,7 @@ describe('<ScreenshotAccepter/>', () => {
 
     beforeEach(() => {
         actionsStub = {
+            changeDiffMode: sandbox.stub().returns({type: 'some-type'}),
             screenshotAccepterAccept: sandbox.stub().returns({type: 'some-type'}),
             undoAcceptImage: sandbox.stub().returns({type: 'some-type'}),
             applyDelayedTestResults: sandbox.stub().returns({type: 'some-type'})
@@ -90,9 +91,15 @@ describe('<ScreenshotAccepter/>', () => {
 
             mkScreenshotAccepterComponent({image}, {tree});
 
-            assert.calledOnceWith(
+            assert.calledWithMatch(
                 ScreenshotAccepterHeader,
                 {
+                    actions: {
+                        changeDiffMode: sinon.match.func
+                    },
+                    view: {
+                        diffMode: '3-up'
+                    },
                     images: [image],
                     stateNameImageIds: ['bro-1 plain'],
                     retryIndex: 0,

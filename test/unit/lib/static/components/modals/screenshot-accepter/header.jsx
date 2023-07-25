@@ -2,6 +2,7 @@ import React from 'react';
 import {defaults} from 'lodash';
 import proxyquire from 'proxyquire';
 import {mkConnectedComponent} from '../../utils';
+import diffModes from '../../../../../../../lib/constants/diff-modes';
 
 describe('<ScreenshotAccepterHeader/>', () => {
     const sandbox = sinon.sandbox.create();
@@ -13,6 +14,8 @@ describe('<ScreenshotAccepterHeader/>', () => {
 
     const mkHeaderComponent = (props = {}) => {
         props = defaults(props, {
+            view: {diffMode: diffModes.THREE_UP_SCALED},
+            actions: {changeDiffMode: sinon.stub().returns({type: 'some-type'})},
             totalImages: 2,
             acceptedImages: 0,
             images: [{

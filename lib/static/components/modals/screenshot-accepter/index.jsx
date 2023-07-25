@@ -177,6 +177,7 @@ class ScreenshotAccepter extends Component {
     }
 
     render() {
+        const {actions, view} = this.props;
         const {retryIndex, stateNameImageIds, activeImageIndex, showMeta} = this.state;
         const images = this._getActiveImages();
         const currImage = isNumber(retryIndex) ? images[retryIndex] : null;
@@ -185,6 +186,8 @@ class ScreenshotAccepter extends Component {
         return (
             <Fragment>
                 <ScreenshotAccepterHeader
+                    actions={actions}
+                    view={view}
                     images={images}
                     stateNameImageIds={stateNameImageIds}
                     retryIndex={retryIndex}
@@ -219,6 +222,7 @@ export default connect(
         const activeImageIndex = stateNameImageIds.indexOf(stateNameImageId);
 
         return {
+            view: state.view,
             imagesByStateName,
             stateNameImageIds,
             activeImageIndex

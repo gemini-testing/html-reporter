@@ -22,6 +22,12 @@
 
 .screenshot-accepter__controls.state-controls .progress-bar::after {
     content: "Accepted: " attr(data-content);
+}
+
+.screenshot-accepter__controls.state-controls .tab-switcher::before,
+.screenshot-accepter__controls.state-controls .progress-bar::after,
+.screenshot-accepter__controls .select__label,
+.screenshot-accepter__controls .select__dropdown.ui.dropdown {
     font-size: 13px;
     line-height: 18px;
 }
@@ -33,7 +39,8 @@
 }
 
 .screenshot-accepter__controls .button,
-.screenshot-accepter__controls .tab-switcher {
+.screenshot-accepter__controls .tab-switcher,
+.screenshot-accepter__controls .select {
     margin-right: 20px;
     margin-bottom: 20px;
 }
@@ -54,6 +61,22 @@
     padding-left: 7px;
     padding-right: 7px;
     border-radius: 2px;
+}
+
+.screenshot-accepter__controls .select__label {
+    line-height: 30px !important;
+    margin-right: 7px;
+    vertical-align: middle;
+    background-color: white;
+    color: black;
+    font-family: YS Text, Helvetica Neue, Arial, sans-serif;
+    font-weight: normal;
+}
+
+.screenshot-accepter__controls .select__dropdown.ui.dropdown {
+    min-height: 30px;
+    border-radius: 5px;
+    padding-left: 10px;
 }
 
 .button.screenshot-accepter__arrow-up-btn {
