@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="9.10.2"></a>
+## [9.10.2](https://github.com/gemini-testing/html-reporter/compare/v9.10.1...v9.10.2) (2023-07-25)
+
+
+### Bug Fixes
+
+* move diff-mode select to header for tinder-mode ([79aa80a](https://github.com/gemini-testing/html-reporter/commit/79aa80a))
+
+
+
 <a name="9.10.1"></a>
 ## [9.10.1](https://github.com/gemini-testing/html-reporter/compare/v9.10.0...v9.10.1) (2023-07-10)
 
