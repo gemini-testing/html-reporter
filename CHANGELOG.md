@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="9.10.3"></a>
+## [9.10.3](https://github.com/gemini-testing/html-reporter/compare/v9.10.2...v9.10.3) (2023-08-01)
+
+
+### Bug Fixes
+
+* add a delay before hiding burger menu ([85cdd87](https://github.com/gemini-testing/html-reporter/commit/85cdd87))
+
+
+
 <a name="9.10.2"></a>
 ## [9.10.2](https://github.com/gemini-testing/html-reporter/compare/v9.10.1...v9.10.2) (2023-07-25)
 
