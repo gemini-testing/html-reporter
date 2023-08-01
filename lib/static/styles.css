@@ -88,6 +88,21 @@ main.container {
     height: 25px;
 }
 
+.menu-bar>.ui.dropdown .menu {
+    height: auto;
+    width: auto;
+    top: 100% !important;
+    transition: visibility 0.1s, opacity 0.1s linear;
+    transition-delay: 0.3s;
+    visibility: hidden;
+}
+
+.menu-bar>.ui.dropdown:hover .menu {
+    visibility: visible;
+    opacity: 1;
+    transition-delay: 0s;
+}
+
 .menu-bar .icon {
     margin: 0;
 }
@@ -283,7 +298,7 @@ main.container {
 .tests-group__title .ui.checkbox {
     vertical-align: bottom;
     margin-right: 5px;
-    
+
     width: 18px;
     height: 18px;
 }
