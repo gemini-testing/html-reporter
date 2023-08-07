@@ -501,6 +501,14 @@ export class TestAdapter {
     protected async _saveDiffInWorker(imageDiffError: ImageDiffError, destPath: string, workers: typeof Workers, cacheDiffImages = globalCacheDiffImages): Promise<void> {
         await utils.makeDirFor(destPath);
 
+        if (imageDiffError.diffBuffer) { // new versions of hermione provide `diffBuffer`
+            const pngBuffer = Buffer.from(imageDiffError.diffBuffer);
+
+            await fs.writeFile(destPath, pngBuffer);
+
+            return;
+        }
+
         const currPath = imageDiffError.currImg.path;
         const refPath = imageDiffError.refImg.path;
 
