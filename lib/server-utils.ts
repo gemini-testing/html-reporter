@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 'use strict';
 
 const path = require('path');
@@ -267,7 +269,7 @@ function mapPlugins(plugins, callback) {
     return result;
 }
 
-module.exports = {
+export = {
     getDetailsFileName,
 
     getReferencePath,
