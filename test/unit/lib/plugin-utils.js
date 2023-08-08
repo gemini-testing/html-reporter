@@ -1,36 +1,34 @@
 'use strict';
 
-const {getSuitePath} = require('lib/plugin-utils').getHermioneUtils();
+const {getSuitePath} = require('lib/plugin-utils');
 
-describe('getHermioneUtils', () => {
-    describe('getSuitePath', () => {
-        it('should return correct path for simple suite', () => {
-            const suite = {
+describe('getSuitePath', () => {
+    it('should return correct path for simple suite', () => {
+        const suite = {
+            parent: {
+                root: true
+            },
+            title: 'some-title'
+        };
+
+        const suitePath = getSuitePath(suite);
+
+        assert.deepEqual(suitePath, ['some-title']);
+    });
+
+    it('should return correct path for nested suite', () => {
+        const suite = {
+            parent: {
                 parent: {
                     root: true
                 },
-                title: 'some-title'
-            };
+                title: 'root-title'
+            },
+            title: 'some-title'
+        };
 
-            const suitePath = getSuitePath(suite);
+        const suitePath = getSuitePath(suite);
 
-            assert.deepEqual(suitePath, ['some-title']);
-        });
-
-        it('should return correct path for nested suite', () => {
-            const suite = {
-                parent: {
-                    parent: {
-                        root: true
-                    },
-                    title: 'root-title'
-                },
-                title: 'some-title'
-            };
-
-            const suitePath = getSuitePath(suite);
-
-            assert.deepEqual(suitePath, ['root-title', 'some-title']);
-        });
+        assert.deepEqual(suitePath, ['root-title', 'some-title']);
     });
 });

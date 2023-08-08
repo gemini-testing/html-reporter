@@ -63,7 +63,7 @@ describe('hermione test adapter', () => {
 
         HermioneTestResultAdapter = proxyquire('../../../lib/test-adapter', {
             tmp,
-            './plugin-utils': {getHermioneUtils: () => ({getSuitePath})},
+            './plugin-utils': {getSuitePath},
             './history-utils': {getCommandsHistory}
         });
         sandbox.stub(utils, 'getCurrentPath').returns('');
