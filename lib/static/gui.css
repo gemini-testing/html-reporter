@@ -31,14 +31,14 @@
 
 .section_status_success > .section__title .bullet_type-simple:before,
 .state-title_success:before {
-    color: #038035;
+    color: var(--report-color-success);
 }
 
 .section_status_fail > .section__title .bullet_type-simple:before,
 .section_status_error > .section__title .bullet_type-simple:before,
 .state-title_fail:before,
 .state-title_error:before {
-    color: #c00;
+    color: var(--report-color-fail);
 }
 
 .section_status_skipped > .section__title .bullet_type-simple:before,
@@ -74,8 +74,8 @@
 .section_status_updated > .section__title .bullet_type-simple::before,
 .section_status_updated > .section__title .ui.checkbox label:before,
 .section_status_updated > .section__title .ui.checkbox label:after {
-    color: #038035 !important;
-    border-color: #038035 !important;
+    color: var(--report-color-success) !important;
+    border-color: var(--report-color-success) !important;
 }
 
 .report_show-only-errors .section_status_updated {

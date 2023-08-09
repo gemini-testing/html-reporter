@@ -14,8 +14,8 @@ const staticPath = path.resolve(__dirname, 'build', 'lib', 'static');
 
 module.exports = {
     entry: {
-        report: ['./index.jsx', './styles.css'],
-        gui: ['./gui.jsx', './styles.css', './gui.css']
+        report: ['./index.jsx', './variables.css', './styles.css'],
+        gui: ['./gui.jsx', './variables.css', './styles.css', './gui.css']
     },
     resolve: {
         extensions: ['.js', '.jsx', '.ts', '.tsx']
