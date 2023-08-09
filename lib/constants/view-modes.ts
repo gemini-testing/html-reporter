@@ -1,9 +1,7 @@
-'use strict';
-
-module.exports = {
-    ALL: 'all',
-    PASSED: 'passed',
-    FAILED: 'failed',
-    RETRIED: 'retried',
-    SKIPPED: 'skipped'
-};
+export enum ViewMode {
+    ALL = 'all',
+    PASSED = 'passed',
+    FAILED = 'failed',
+    RETRIED = 'retried',
+    SKIPPED = 'skipped',
+}

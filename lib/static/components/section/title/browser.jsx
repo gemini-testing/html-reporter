@@ -6,7 +6,7 @@ import {bindActionCreators} from 'redux';
 import {get} from 'lodash';
 import * as actions from '../../../modules/actions';
 import {appendQuery} from '../../../modules/query-params';
-import viewModes from '../../../../constants/view-modes';
+import {ViewMode} from '../../../../constants/view-modes';
 import {EXPAND_ALL} from '../../../../constants/expand-modes';
 import {getToggledCheckboxState} from '../../../../common-utils';
 import ViewInBrowserIcon from '../../icons/view-in-browser';
@@ -19,7 +19,7 @@ const BrowserTitle = (props) => {
             testNameFilter: props.testName,
             strictMatchFilter: true,
             retryIndex: props.retryIndex,
-            viewModes: viewModes.ALL,
+            viewModes: ViewMode.ALL,
             expand: EXPAND_ALL
         });
     };

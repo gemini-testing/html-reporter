@@ -4,7 +4,7 @@ import proxyquire from 'proxyquire';
 import {mkConnectedComponent} from 'test/unit/lib/static/components/utils';
 import {mkBrowser, mkResult, mkStateTree} from 'test/unit/lib/static/state-utils';
 import {SUCCESS} from 'lib/constants/test-statuses';
-import viewModes from 'lib/constants/view-modes';
+import {ViewMode} from 'lib/constants/view-modes';
 import {EXPAND_ALL} from 'lib/constants/expand-modes';
 import {CHECKED, UNCHECKED} from 'lib/constants/checked-statuses';
 
@@ -114,7 +114,7 @@ describe('<BrowserTitle/>', () => {
                 testNameFilter: 'test',
                 strictMatchFilter: true,
                 retryIndex: 0,
-                viewModes: viewModes.ALL,
+                viewModes: ViewMode.ALL,
                 expand: EXPAND_ALL
             });
         });

@@ -2,7 +2,7 @@
 
 const utils = require('lib/static/modules/utils');
 const {IDLE, FAIL, ERROR, SKIPPED, SUCCESS} = require('lib/constants/test-statuses');
-const viewModes = require('lib/constants/view-modes');
+const {ViewMode} = require('lib/constants/view-modes');
 const {SECTIONS, RESULT_KEYS, KEY_DELIMITER} = require('lib/constants/group-tests');
 const {NO_REF_IMAGE_ERROR} = require('lib/constants/errors').getCommonErrors();
 
@@ -141,24 +141,24 @@ describe('static/modules/utils', () => {
     describe('"isBrowserMatchViewMode"', () => {
         describe('should return "true" if', () => {
             [SUCCESS, ERROR, FAIL, SKIPPED].forEach((status) => {
-                it(`viewMode is "${viewModes.ALL}" and node status is "${status}"`, () => {
+                it(`viewMode is "${ViewMode.ALL}" and node status is "${status}"`, () => {
                     const browsersById = mkBrowser({id: 'browser1', resultIds: ['result1']});
                     const resultsById = mkResult({id: 'result1', status});
 
-                    assert.isTrue(utils.isBrowserMatchViewMode(browsersById.browser1, resultsById.result1, viewModes.ALL));
+                    assert.isTrue(utils.isBrowserMatchViewMode(browsersById.browser1, resultsById.result1, ViewMode.ALL));
                 });
             });
 
             [ERROR, FAIL].forEach((status) => {
-                it(`viewMode is "${viewModes.FAILED}" and node status is "${status}"`, () => {
+                it(`viewMode is "${ViewMode.FAILED}" and node status is "${status}"`, () => {
                     const browsersById = mkBrowser({id: 'browser1', resultIds: ['result1']});
                     const resultsById = mkResult({id: 'result1', status});
 
-                    assert.isTrue(utils.isBrowserMatchViewMode(browsersById.browser1, resultsById.result1, viewModes.FAILED));
+                    assert.isTrue(utils.isBrowserMatchViewMode(browsersById.browser1, resultsById.result1, ViewMode.FAILED));
                 });
             });
 
-            [[viewModes.PASSED, SUCCESS], [viewModes.SKIPPED, SKIPPED]].forEach(([viewMode, status]) => {
+            [[ViewMode.PASSED, SUCCESS], [ViewMode.SKIPPED, SKIPPED]].forEach(([viewMode, status]) => {
                 it(`viewMode is "${viewMode}" and node status is "${status}"`, () => {
                     const browsersById = mkBrowser({id: 'browser1', resultIds: ['result1']});
                     const resultsById = mkResult({id: 'result1', status});
@@ -167,29 +167,29 @@ describe('static/modules/utils', () => {
                 });
             });
 
-            it(`viewMode is "${viewModes.RETRIED}" and browser has one or more retries`, () => {
+            it(`viewMode is "${ViewMode.RETRIED}" and browser has one or more retries`, () => {
                 const browsersById = mkBrowser({id: 'browser1', resultIds: ['result1', 'result2']});
                 const resultsById = mkResult({id: 'result2', status: IDLE});
 
-                assert.isTrue(utils.isBrowserMatchViewMode(browsersById.browser1, resultsById.result2, viewModes.RETRIED));
+                assert.isTrue(utils.isBrowserMatchViewMode(browsersById.browser1, resultsById.result2, ViewMode.RETRIED));
             });
         });
 
         describe('should return "false" if', () => {
             [SUCCESS, SKIPPED].forEach((status) => {
-                it(`viewMode is "${viewModes.FAILED}" and node status is "${status}"`, () => {
+                it(`viewMode is "${ViewMode.FAILED}" and node status is "${status}"`, () => {
                     const browsersById = mkBrowser({id: 'browser1', resultIds: ['result1']});
                     const resultsById = mkResult({id: 'result1', status});
 
-                    assert.isFalse(utils.isBrowserMatchViewMode(browsersById.browser1, resultsById.result1, viewModes.FAILED));
+                    assert.isFalse(utils.isBrowserMatchViewMode(browsersById.browser1, resultsById.result1, ViewMode.FAILED));
                 });
             });
 
-            it(`viewMode is "${viewModes.RETRIED}" and browser has zero retries`, () => {
+            it(`viewMode is "${ViewMode.RETRIED}" and browser has zero retries`, () => {
                 const browsersById = mkBrowser({id: 'browser1', resultIds: ['result1']});
                 const resultsById = mkResult({id: 'result1', status: IDLE});
 
-                assert.isFalse(utils.isBrowserMatchViewMode(browsersById.browser1, resultsById.result1, viewModes.RETRIED));
+                assert.isFalse(utils.isBrowserMatchViewMode(browsersById.browser1, resultsById.result1, ViewMode.RETRIED));
             });
         });
     });

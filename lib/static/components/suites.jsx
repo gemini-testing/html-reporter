@@ -8,7 +8,7 @@ import {bindActionCreators} from 'redux';
 
 import * as actions from '../modules/actions';
 import SectionCommon from './section/section-common';
-import viewModes from '../../constants/view-modes';
+import {ViewMode} from '../../constants/view-modes';
 import {getVisibleRootSuiteIds} from '../modules/selectors/tree';
 
 class Suites extends Component {
@@ -89,7 +89,7 @@ class Suites extends Component {
             msgs.push(`test name should match to "${testNameFilter}" ${strictMatchFilter ? '' : 'not '}strictly;`);
         }
 
-        if (viewMode !== viewModes.ALL) {
+        if (viewMode !== ViewMode.ALL) {
             msgs.push(`test should be ${viewMode} due to selected view mode;`);
         }
 

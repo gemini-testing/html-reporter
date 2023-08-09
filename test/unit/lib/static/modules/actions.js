@@ -5,7 +5,7 @@ import {acceptOpened, undoAcceptImages, retryTest, runFailedTests} from 'lib/sta
 import actionNames from 'lib/static/modules/action-names';
 import StaticTestsTreeBuilder from 'lib/tests-tree-builder/static';
 import {LOCAL_DATABASE_NAME} from 'lib/constants/database';
-import diffModes from 'lib/constants/diff-modes';
+import {DiffModes} from 'lib/constants/diff-modes';
 
 describe('lib/static/modules/actions', () => {
     const sandbox = sinon.sandbox.create();
@@ -408,13 +408,13 @@ describe('lib/static/modules/actions', () => {
 
     describe('changeDiffMode', () => {
         [
-            {mode: diffModes.THREE_UP.id, actionType: actionNames.VIEW_THREE_UP_DIFF},
-            {mode: diffModes.THREE_UP_SCALED.id, actionType: actionNames.VIEW_THREE_UP_SCALED_DIFF},
-            {mode: diffModes.THREE_UP_SCALED_TO_FIT.id, actionType: actionNames.VIEW_THREE_UP_SCALED_TO_FIT_DIFF},
-            {mode: diffModes.ONLY_DIFF.id, actionType: actionNames.VIEW_ONLY_DIFF},
-            {mode: diffModes.SWITCH.id, actionType: actionNames.VIEW_SWITCH_DIFF},
-            {mode: diffModes.SWIPE.id, actionType: actionNames.VIEW_SWIPE_DIFF},
-            {mode: diffModes.ONION_SKIN.id, actionType: actionNames.VIEW_ONION_SKIN_DIFF},
+            {mode: DiffModes.THREE_UP.id, actionType: actionNames.VIEW_THREE_UP_DIFF},
+            {mode: DiffModes.THREE_UP_SCALED.id, actionType: actionNames.VIEW_THREE_UP_SCALED_DIFF},
+            {mode: DiffModes.THREE_UP_SCALED_TO_FIT.id, actionType: actionNames.VIEW_THREE_UP_SCALED_TO_FIT_DIFF},
+            {mode: DiffModes.ONLY_DIFF.id, actionType: actionNames.VIEW_ONLY_DIFF},
+            {mode: DiffModes.SWITCH.id, actionType: actionNames.VIEW_SWITCH_DIFF},
+            {mode: DiffModes.SWIPE.id, actionType: actionNames.VIEW_SWIPE_DIFF},
+            {mode: DiffModes.ONION_SKIN.id, actionType: actionNames.VIEW_ONION_SKIN_DIFF},
             {mode: 'UNKNOWN_MODE', actionType: actionNames.VIEW_THREE_UP_DIFF}
         ].forEach(({mode, actionType}) => {
             it(`should dispatch "${actionType}" action`, () => {

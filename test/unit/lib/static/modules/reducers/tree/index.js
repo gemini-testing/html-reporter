@@ -2,7 +2,7 @@ import {SUCCESS, FAIL, ERROR, UPDATED} from 'lib/constants/test-statuses';
 import {CHECKED, UNCHECKED, INDETERMINATE} from 'lib/constants/checked-statuses';
 import reducer from 'lib/static/modules/reducers/tree';
 import actionNames from 'lib/static/modules/action-names';
-import viewModes from 'lib/constants/view-modes';
+import {ViewMode} from 'lib/constants/view-modes';
 import {EXPAND_ALL, EXPAND_ERRORS, EXPAND_RETRIES} from 'lib/constants/expand-modes';
 import {mkSuite, mkBrowser, mkResult, mkImage, mkStateTree, mkStateView} from '../../../state-utils';
 
@@ -80,7 +80,7 @@ describe('lib/static/modules/reducers/tree', () => {
                             };
 
                             const tree = mkStateTree({suitesById, browsersById, resultsById});
-                            const state = {view: mkStateView({viewMode: viewModes.FAILED})};
+                            const state = {view: mkStateView({viewMode: ViewMode.FAILED})};
 
                             const newState = reducer(state, {
                                 type: actionName,
@@ -124,7 +124,7 @@ describe('lib/static/modules/reducers/tree', () => {
                             };
 
                             const tree = mkStateTree({suitesById, browsersById, resultsById});
-                            const state = {view: mkStateView({viewMode: viewModes.FAILED})};
+                            const state = {view: mkStateView({viewMode: ViewMode.FAILED})};
 
                             const newState = reducer(state, {
                                 type: actionName,
@@ -144,7 +144,7 @@ describe('lib/static/modules/reducers/tree', () => {
                             };
 
                             const tree = mkStateTree({suitesById, browsersById, resultsById});
-                            const state = {view: mkStateView({viewMode: viewModes.FAILED})};
+                            const state = {view: mkStateView({viewMode: ViewMode.FAILED})};
 
                             const newState = reducer(state, {
                                 type: actionName,
@@ -366,7 +366,7 @@ describe('lib/static/modules/reducers/tree', () => {
                             const resultsById = {...mkResult({id: 'r1', parentId: 'b1', status: ERROR})};
 
                             const tree = mkStateTree({suitesById, browsersById, resultsById});
-                            const state = {view: mkStateView({viewMode: viewModes.FAILED})};
+                            const state = {view: mkStateView({viewMode: ViewMode.FAILED})};
 
                             const newState = reducer(state, {
                                 type: actionName,
@@ -417,7 +417,7 @@ describe('lib/static/modules/reducers/tree', () => {
                             const resultsById = {...mkResult({id: 'r1', parentId: 'b1', status: SUCCESS})};
 
                             const tree = mkStateTree({suitesById, browsersById, resultsById});
-                            const state = {view: mkStateView({viewMode: viewModes.FAILED})};
+                            const state = {view: mkStateView({viewMode: ViewMode.FAILED})};
 
                             const newState = reducer(state, {
                                 type: actionName,
@@ -1081,7 +1081,7 @@ describe('lib/static/modules/reducers/tree', () => {
                 const resultsById = {...mkResult({id: 'r1', status: SUCCESS}), ...mkResult({id: 'r2', status: SUCCESS})};
                 const resultsStateById = {r1: {}, r2: {}};
                 const tree = mkStateTree({browsersById, resultsById, resultsStateById});
-                const view = mkStateView({viewMode: viewModes.FAILED});
+                const view = mkStateView({viewMode: ViewMode.FAILED});
 
                 const newState = reducer({tree, view}, {
                     type: actionNames.TOGGLE_TESTS_GROUP,
@@ -1655,7 +1655,7 @@ describe('lib/static/modules/reducers/tree', () => {
                 const suitesAllRootIds = ['s1'];
                 const tree = mkStateTree({suitesById, browsersById, resultsById, suitesStateById, browsersStateById, suitesAllRootIds});
                 const view = mkActionStateView({
-                    viewMode: viewModes.FAILED,
+                    viewMode: ViewMode.FAILED,
                     testNameFilter: 's2',
                     strictMatchFilter: true,
                     filteredBrowsers: [{id: 'c1', versions: []}]
@@ -1676,7 +1676,7 @@ describe('lib/static/modules/reducers/tree', () => {
                 const suitesAllRootIds = ['s1'];
                 const tree = mkStateTree({suitesById, browsersById, resultsById, suitesStateById, browsersStateById, suitesAllRootIds});
                 const view = mkActionStateView({
-                    viewMode: viewModes.FAILED,
+                    viewMode: ViewMode.FAILED,
                     testNameFilter: 's1',
                     strictMatchFilter: true,
                     filteredBrowsers: [{id: 'b1', versions: []}]
@@ -1713,7 +1713,7 @@ describe('lib/static/modules/reducers/tree', () => {
                 const suitesAllRootIds = ['s1'];
                 const tree = mkStateTree({suitesById, browsersById, resultsById, suitesStateById, browsersStateById, suitesAllRootIds});
                 const view = mkActionStateView({
-                    viewMode: viewModes.FAILED,
+                    viewMode: ViewMode.FAILED,
                     testNameFilter: 's1',
                     strictMatchFilter: true,
                     filteredBrowsers: [{id: 'b1', versions: []}]

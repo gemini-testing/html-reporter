@@ -1,5 +1,5 @@
 import proxyquire from 'proxyquire';
-const viewModes = require('lib/constants/view-modes');
+const {ViewMode} = require('lib/constants/view-modes');
 import {mkBrowser, mkResult, mkStateTree} from '../../../state-utils';
 
 describe('lib/static/modules/reducers/grouped-tests/helpers', () => {
@@ -27,7 +27,7 @@ describe('lib/static/modules/reducers/grouped-tests/helpers', () => {
             );
         });
 
-        it(`should handle results from all tests if viewMode is "${viewModes.ALL}"`, () => {
+        it(`should handle results from all tests if viewMode is "${ViewMode.ALL}"`, () => {
             const browsersById = {
                 ...mkBrowser({id: 'yabro-1', parentId: 'test-1'}),
                 ...mkBrowser({id: 'yabro-2', parentId: 'test-2'})
@@ -39,14 +39,14 @@ describe('lib/static/modules/reducers/grouped-tests/helpers', () => {
             const tree = mkStateTree({browsersById, resultsById});
             const resultCb = sinon.spy().named('onResultCb');
 
-            module.handleActiveResults({tree, resultCb, viewMode: viewModes.ALL});
+            module.handleActiveResults({tree, resultCb, viewMode: ViewMode.ALL});
 
             assert.calledTwice(resultCb);
             assert.calledWith(resultCb.firstCall, tree.results.byId['res-1']);
             assert.calledWith(resultCb.secondCall, tree.results.byId['res-2']);
         });
 
-        it(`should handle results only from failed tests if viewMode is "${viewModes.FAILED}"`, () => {
+        it(`should handle results only from failed tests if viewMode is "${ViewMode.FAILED}"`, () => {
             const browsersById = {
                 ...mkBrowser({id: 'yabro-1', parentId: 'test-1'}),
                 ...mkBrowser({id: 'yabro-2', parentId: 'test-2'})
@@ -59,7 +59,7 @@ describe('lib/static/modules/reducers/grouped-tests/helpers', () => {
             const resultCb = sinon.spy().named('onResultCb');
             getFailedSuiteResults.withArgs(tree).returns([tree.results.byId['res-1']]);
 
-            module.handleActiveResults({tree, resultCb, viewMode: viewModes.FAILED});
+            module.handleActiveResults({tree, resultCb, viewMode: ViewMode.FAILED});
 
             assert.calledOnceWith(resultCb, tree.results.byId['res-1']);
         });

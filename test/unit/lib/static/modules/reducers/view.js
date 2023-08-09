@@ -2,7 +2,7 @@ import reducer from 'lib/static/modules/reducers/view';
 import actionNames from 'lib/static/modules/action-names';
 import defaultState from 'lib/static/modules/default-state';
 import {appendQuery, encodeBrowsers} from 'lib/static/modules/query-params';
-import viewModes from 'lib/constants/view-modes';
+import {ViewMode} from 'lib/constants/view-modes';
 import {EXPAND_ALL, EXPAND_ERRORS} from 'lib/constants/expand-modes';
 import {mkStorage} from '../../../../utils';
 
@@ -163,7 +163,7 @@ describe('lib/static/modules/reducers/view', () => {
 
                         const newState = reducer(defaultState, action);
 
-                        assert.deepStrictEqual(newState.view.viewMode, viewModes.ALL);
+                        assert.deepStrictEqual(newState.view.viewMode, ViewMode.ALL);
                     });
 
                     it('should set "viewMode" property to "passed" value', () => {
@@ -173,7 +173,7 @@ describe('lib/static/modules/reducers/view', () => {
 
                         const newState = reducer(defaultState, action);
 
-                        assert.deepStrictEqual(newState.view.viewMode, viewModes.PASSED);
+                        assert.deepStrictEqual(newState.view.viewMode, ViewMode.PASSED);
                     });
 
                     it('should set "viewMode" property to "failed" value', () => {
@@ -183,7 +183,7 @@ describe('lib/static/modules/reducers/view', () => {
 
                         const newState = reducer(defaultState, action);
 
-                        assert.deepStrictEqual(newState.view.viewMode, viewModes.FAILED);
+                        assert.deepStrictEqual(newState.view.viewMode, ViewMode.FAILED);
                     });
 
                     it('should set "viewMode" property to "retried" value', () => {
@@ -193,7 +193,7 @@ describe('lib/static/modules/reducers/view', () => {
 
                         const newState = reducer(defaultState, action);
 
-                        assert.deepStrictEqual(newState.view.viewMode, viewModes.RETRIED);
+                        assert.deepStrictEqual(newState.view.viewMode, ViewMode.RETRIED);
                     });
 
                     it('should set "viewMode" property to "skipped" value', () => {
@@ -203,7 +203,7 @@ describe('lib/static/modules/reducers/view', () => {
 
                         const newState = reducer(defaultState, action);
 
-                        assert.deepStrictEqual(newState.view.viewMode, viewModes.SKIPPED);
+                        assert.deepStrictEqual(newState.view.viewMode, ViewMode.SKIPPED);
                     });
                 });
 
@@ -230,13 +230,13 @@ describe('lib/static/modules/reducers/view', () => {
     });
 
     describe(`"${actionNames.CHANGE_VIEW_MODE}" action`, () => {
-        Object.keys(viewModes).forEach(((viewModeKey) => {
+        Object.keys(ViewMode).forEach(((viewModeKey) => {
             it(`should change "viewMode" field to selected ${viewModeKey} value`, () => {
-                const action = {type: actionNames.CHANGE_VIEW_MODE, payload: viewModes[viewModeKey]};
+                const action = {type: actionNames.CHANGE_VIEW_MODE, payload: ViewMode[viewModeKey]};
 
                 const newState = reducer(defaultState, action);
 
-                assert.equal(newState.view.viewMode, viewModes[viewModeKey]);
+                assert.equal(newState.view.viewMode, ViewMode[viewModeKey]);
             });
         }));
     });

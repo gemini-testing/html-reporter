@@ -1,5 +1,5 @@
 import {parseQuery, appendQuery} from 'lib/static/modules/query-params';
-import viewModes from 'lib/constants/view-modes';
+import {ViewMode} from 'lib/constants/view-modes';
 import {COLLAPSE_ALL} from 'lib/constants/expand-modes';
 
 describe('lib/static/modules/query-params', () => {
@@ -25,7 +25,7 @@ describe('lib/static/modules/query-params', () => {
                 browser: ['safari', 'firefox'],
                 testNameFilter: 'test',
                 retryIndex: 10,
-                viewMode: viewModes.ALL,
+                viewMode: ViewMode.ALL,
                 expand: COLLAPSE_ALL,
                 abc: 111
             });
@@ -48,7 +48,7 @@ describe('lib/static/modules/query-params', () => {
                 browser: ['safari', 'firefox'],
                 testNameFilter: 'test',
                 retryIndex: 10,
-                viewMode: viewModes.ALL,
+                viewMode: ViewMode.ALL,
                 expand: COLLAPSE_ALL
             });
 
@@ -60,7 +60,7 @@ describe('lib/static/modules/query-params', () => {
                 browser: ['safari', 'firefox'],
                 testNameFilter: 'test',
                 retryIndex: 10,
-                viewMode: viewModes.ALL,
+                viewMode: ViewMode.ALL,
                 expand: COLLAPSE_ALL,
                 abc: 111
             });
@@ -93,7 +93,7 @@ describe('lib/static/modules/query-params', () => {
                 browser: ['safari', 'firefox'],
                 testNameFilter: 'test',
                 retryIndex: 10,
-                viewMode: viewModes.ALL,
+                viewMode: ViewMode.ALL,
                 expand: COLLAPSE_ALL
             });
 
@@ -102,7 +102,7 @@ describe('lib/static/modules/query-params', () => {
                 'browser=firefox',
                 'testNameFilter=test',
                 'retryIndex=10',
-                `viewMode=${viewModes.ALL}`,
+                `viewMode=${ViewMode.ALL}`,
                 `expand=${COLLAPSE_ALL}`
             ].join('&'));
         });

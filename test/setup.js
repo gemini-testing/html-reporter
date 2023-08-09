@@ -14,6 +14,7 @@ global.mount = Enzyme.mount;
 
 require.extensions['.styl'] = () => {};
 require.extensions['.css'] = () => {};
+require.extensions['.less'] = () => {};
 
 chai.use(require('chai-as-promised'));
 sinon.assert.expose(chai.assert, {prefix: ''});

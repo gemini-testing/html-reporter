@@ -4,7 +4,7 @@ import {defaultsDeep} from 'lodash';
 import {List} from 'react-virtualized';
 
 import {mkConnectedComponent} from './utils';
-import viewModes from 'lib/constants/view-modes';
+import {ViewMode} from 'lib/constants/view-modes';
 
 describe('<Suites/>', () => {
     const sandbox = sinon.sandbox.create();
@@ -13,7 +13,7 @@ describe('<Suites/>', () => {
     const mkSuitesComponent = (initialState = {}) => {
         initialState = defaultsDeep(initialState, {
             view: {
-                viewMode: viewModes.ALL
+                viewMode: ViewMode.ALL
             }
         });
 

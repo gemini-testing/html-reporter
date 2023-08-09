@@ -1,5 +1,5 @@
 import {defaults} from 'lodash';
-import viewModes from 'lib/constants/view-modes';
+import {ViewMode} from 'lib/constants/view-modes';
 import {SUCCESS} from 'lib/constants/test-statuses';
 import {groupedTests} from 'lib/static/modules/default-state';
 
@@ -77,7 +77,7 @@ exports.mkStateTree = (
 
 exports.mkStateView = (opts = {}) => {
     return defaults(opts, {
-        viewMode: viewModes.ALL,
+        viewMode: ViewMode.ALL,
         testNameFilter: '',
         strictMatchFilter: false,
         filteredBrowsers: [],

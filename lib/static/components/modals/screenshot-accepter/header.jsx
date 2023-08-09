@@ -9,7 +9,7 @@ import ArrowsClose from '../../icons/arrows-close';
 import ControlButton from '../../controls/control-button';
 import ControlSelect from '../../controls/selects/control';
 import RetrySwitcher from '../../retry-switcher';
-import diffModes from '../../../../constants/diff-modes';
+import {DiffModes} from '../../../../constants/diff-modes';
 
 export default class ScreenshotAccepterHeader extends Component {
     static propTypes = {
@@ -165,7 +165,7 @@ export default class ScreenshotAccepterHeader extends Component {
                             label="Diff mode"
                             value={view.diffMode}
                             handler={actions.changeDiffMode}
-                            options = {Object.values(diffModes).map((dm) => {
+                            options = {Object.values(DiffModes).map((dm) => {
                                 return {value: dm.id, text: dm.title};
                             })}
                             extendClassNames="screenshot-accepter__diff-mode-select"

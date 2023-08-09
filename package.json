@@ -167,6 +167,7 @@
     "stylus": "^0.57.0",
     "stylus-loader": "^3.0.2",
     "ts-node": "^10.9.1",
+    "type-fest": "^3.13.1",
     "typescript": "^5.0.4",
     "url-loader": "^1.1.2",
     "web-vitals": "^1.1.2",
