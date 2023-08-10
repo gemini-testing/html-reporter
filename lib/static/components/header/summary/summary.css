@@ -13,11 +13,11 @@
 }
 
 .summary__key_passed {
-    color: #169737;
+    color: var(--report-color-success);
 }
 
 .summary__key_failed {
-    color: #cf0c3d;
+    color: var(--report-color-fail);
 }
 
 .summary__key_retries {
@@ -25,7 +25,7 @@
 }
 
 .summary__key_skipped {
-    color: #8c8c8c;
+    color: var(--report-color-skip);
 }
 
 .summary__value {
@@ -54,7 +54,7 @@
 }
 
 .ui.db-info.db-info_failed {
-    color: #cf0c3d !important;
+    color: var(--report-color-fail) !important;
 }
 
 .ui.basic.db-info.db-info_failed:hover {
@@ -67,11 +67,11 @@
 }
 
 .db-info__row_success {
-    color: #038035;
+    color: var(--report-color-success);
     font-weight: bold;
 }
 
 .db-info__row_fail {
-    color: #c00;
+    color: var(--report-color-fail);
     font-weight: bold;
 }

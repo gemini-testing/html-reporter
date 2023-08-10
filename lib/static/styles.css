@@ -398,13 +398,13 @@ details[open] > .details__summary:before {
 }
 
 .section_status_skipped > .section__title {
-    color: #8c8c8c;
+    color: var(--report-color-skip);
 }
 
 .section_status_skipped > .section__title .ui.checkbox label:before,
 .section_status_skipped > .section__title .ui.checkbox label:after {
-    color: #8c8c8c !important;
-    border-color: #8c8c8c !important;
+    color: var(--report-color-skip) !important;
+    border-color: var(--report-color-skip) !important;
 }
 
 .section_status_skipped > .section__title:hover {
@@ -412,7 +412,7 @@ details[open] > .details__summary:before {
 }
 
 .section__title_skipped {
-    color: #8c8c8c;
+    color: var(--report-color-skip);
     cursor: default;
     margin-left: 5px;
     font-weight: normal;
@@ -421,7 +421,7 @@ details[open] > .details__summary:before {
 }
 
 .section__title.section__title_skipped:hover {
-    color: #8c8c8c;
+    color: var(--report-color-skip);
 }
 
 .section__title_skipped:before {
@@ -431,15 +431,15 @@ details[open] > .details__summary:before {
 .section_status_success > .section__title,
 .state-title_success,
 .state-title_updated {
-    color: #038035;
+    color: var(--report-color-success);
 }
 
 .section_status_success > .section__title .ui.checkbox label:before,
 .section_status_success > .section__title .ui.checkbox label:after,
 .section_status_updated > .section__title .ui.checkbox label:before,
 .section_status_updated > .section__title .ui.checkbox label:after {
-    color: #038035 !important;
-    border-color: #038035 !important;
+    color: var(--report-color-success) !important;
+    border-color: var(--report-color-success) !important;
 }
 
 .section_status_success > .section__title:hover,
@@ -452,15 +452,15 @@ details[open] > .details__summary:before {
 .section_status_error > .section__title,
 .state-title_fail,
 .state-title_error {
-    color: #c00;
+    color: var(--report-color-fail);
 }
 
 .section_status_fail > .section__title .ui.checkbox label:before,
 .section_status_fail > .section__title .ui.checkbox label:after,
 .section_status_error > .section__title .ui.checkbox label:before,
 .section_status_error > .section__title .ui.checkbox label:after {
-    color: #c00 !important;
-    border-color: #c00 !important;
+    color: var(--report-color-fail) !important;
+    border-color: var(--report-color-fail) !important;
 }
 
 .section_status_fail > .section__title:hover,
@@ -668,7 +668,7 @@ details[open] > .details__summary:before {
 
 .skipped__list {
     margin: 10px 0;
-    color: #8c8c8c;
+    color: var(--report-color-skip);
 }
 
 .skipped-test__title {
