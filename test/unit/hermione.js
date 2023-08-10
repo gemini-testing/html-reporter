@@ -25,7 +25,7 @@ describe('lib/hermione', () => {
     });
     const utils = _.clone(originalUtils);
 
-    const SqliteAdapter = proxyquire('lib/sqlite-adapter', {
+    const {SqliteAdapter} = proxyquire('lib/sqlite-adapter', {
         'fs-extra': fs,
         'better-sqlite3': sinon.stub().returns(mkSqliteDb())
     });
@@ -37,7 +37,7 @@ describe('lib/hermione', () => {
 
     const StaticReportBuilder = proxyquire('lib/report-builder/static', {
         '../server-utils': utils,
-        '../sqlite-adapter': SqliteAdapter,
+        '../sqlite-adapter': {SqliteAdapter},
         '../test-adapter': TestAdapter
     });
 
@@ -153,8 +153,7 @@ describe('lib/hermione', () => {
         sandbox.stub(StaticReportBuilder.prototype, 'saveStaticFiles');
         sandbox.stub(StaticReportBuilder.prototype, 'finalize');
 
-        sandbox.stub(StaticReportBuilder.prototype, 'init');
-
+        sandbox.stub(SqliteAdapter.prototype, 'init').resolves({});
         sandbox.stub(SqliteAdapter.prototype, 'query');
 
         const saveTestImagesImplementation = TestAdapter.prototype.saveTestImages;

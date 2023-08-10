@@ -5,7 +5,7 @@ const {logger} = require('lib/common-utils');
 const {SUCCESS, UPDATED, SKIPPED, FAIL} = require('lib/constants/test-statuses');
 const {ERROR_DETAILS_PATH} = require('lib/constants/paths');
 const {stubTool, stubConfig} = require('../utils');
-const SqliteAdapter = require('lib/sqlite-adapter');
+const {SqliteAdapter} = require('lib/sqlite-adapter');
 const proxyquire = require('proxyquire');
 const fsOriginal = require('fs-extra');
 

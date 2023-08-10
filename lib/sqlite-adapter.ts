@@ -1,23 +1,82 @@
-/* eslint-disable */
-// @ts-nocheck
-'use strict';
+import path from 'path';
+import fs from 'fs-extra';
+import Database from 'better-sqlite3';
+import debug from 'debug';
+import type EventEmitter2 from 'eventemitter2';
+import type Hermione from 'hermione';
+import NestedError from 'nested-error-stacks';
+import {createTablesQuery} from './db-utils/server';
+import {getShortMD5} from './common-utils';
+import {DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS, LOCAL_DATABASE_NAME, DATABASE_URLS_JSON_NAME} from './constants/database';
+import type {HtmlReporterApi} from './types';
+import {TestStatus} from './constants';
 
-const path = require('path');
-const fs = require('fs-extra');
-const Database = require('better-sqlite3');
-const NestedError = require('nested-error-stacks');
-const debug = require('debug')('html-reporter:sqlite-adapter');
+interface QueryParams {
+    select?: string;
+    where?: string;
+    orderBy?: string;
+    orderDescending?: boolean;
+    limit?: number;
+    noCache?: boolean;
+}
 
-const {getShortMD5} = require('./common-utils');
-const {createTablesQuery} = require('./db-utils/server');
-const {DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS, LOCAL_DATABASE_NAME, DATABASE_URLS_JSON_NAME} = require('./constants/database');
+interface DeleteParams {
+    where?: string;
+    orderBy?: string;
+    orderDescending?: boolean;
+    limit?: number;
+}
 
-module.exports = class SqliteAdapter {
-    static create(...args) {
-        return new SqliteAdapter(...args);
+export interface PreparedTestResult {
+    name: string;
+    suiteUrl: string;
+    metaInfo: Record<string, unknown>;
+    history: string[];
+    description: unknown;
+    error: Error;
+    skipReason?: string;
+    imagesInfo: unknown[];
+    screenshot: boolean;
+    multipleTabs: boolean;
+    status: TestStatus;
+    timestamp?: number;
+}
+
+interface ParseTestResultParams {
+    suiteName: string;
+    suitePath: string[];
+    testResult: PreparedTestResult;
+}
+
+interface ParsedTestResult extends PreparedTestResult {
+    suiteName: ParseTestResultParams['suiteName'];
+    suitePath: ParseTestResultParams['suitePath'];
+}
+
+interface SqliteAdapterOptions {
+    hermione: Hermione & HtmlReporterApi;
+    reportPath: string;
+    reuse?: boolean;
+}
+
+export class DbNotInitializedError extends Error {
+    constructor() {
+        super('Database must be initialized before use');
+    }
+}
+
+export class SqliteAdapter {
+    private _hermione: Hermione & HtmlReporterApi;
+    private _reportPath: string;
+    private _reuse: boolean;
+    private _db: null | Database.Database;
+    private _queryCache: Map<string, unknown>;
+
+    static create<T extends SqliteAdapter>(this: new (options: SqliteAdapterOptions) => T, options: SqliteAdapterOptions): T {
+        return new this(options);
     }
 
-    constructor({hermione, reportPath, reuse = false}) {
+    constructor({hermione, reportPath, reuse = false}: SqliteAdapterOptions) {
         this._hermione = hermione;
         this._reportPath = reportPath;
         this._reuse = reuse;
@@ -25,7 +84,7 @@ module.exports = class SqliteAdapter {
         this._queryCache = new Map();
     }
 
-    async init() {
+    async init(): Promise<void> {
         const dbPath = path.resolve(this._reportPath, LOCAL_DATABASE_NAME);
         const dbUrlsJsonPath = path.resolve(this._reportPath, DATABASE_URLS_JSON_NAME);
 
@@ -42,37 +101,35 @@ module.exports = class SqliteAdapter {
             this._db = new Database(dbPath);
             debug('db connection opened');
 
-            createTablesQuery().forEach((query) => this._db.prepare(query).run());
+            createTablesQuery().forEach((query) => this._db?.prepare(query).run());
 
-            this._hermione.htmlReporter.emit(this._hermione.htmlReporter.events.DATABASE_CREATED, this._db);
-        } catch (err) {
+            (this._hermione.htmlReporter as unknown as EventEmitter2).emit(this._hermione.htmlReporter.events.DATABASE_CREATED, this._db);
+        } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
             throw new NestedError(`Error creating database at "${dbPath}"`, err);
         }
     }
 
-    close() {
+    close(): void {
+        if (!this._db) {
+            throw new DbNotInitializedError();
+        }
+
         this._db.prepare('VACUUM').run();
 
         debug('db connection closed');
-        return this._db.close();
+        this._db.close();
     }
 
-    /**
-     * Query database
-     * @param {Object} queryParams
-     * @param {string} queryParams.select - `SELECT ${select}`
-     * @param {string} queryParams.where - `WHERE ${where}`
-     * @param {string} queryParams.orderBy - `ORDER BY ${orderBy}`
-     * @param {boolean} queryParams.orderDescending - ASCending / DESCending
-     * @param {number} queryParams.limit - `LIMIT ${limit}`
-     * @param {boolean} queryParams.noCache - disables caching for equal queries
-     * @param {...string} queryArgs
-     */
-    query({select, where, orderBy, orderDescending, limit, noCache = false} = {}, ...queryArgs) {
-        const cacheKey = !noCache && getShortMD5(`${select}#${where}#${orderBy}${orderDescending}${queryArgs.join('#')}`);
+    query<T = unknown>(queryParams: QueryParams = {}, ...queryArgs: string[]): T {
+        if (!this._db) {
+            throw new DbNotInitializedError();
+        }
+
+        const {select, where, orderBy, orderDescending, limit, noCache = false} = queryParams;
+        const cacheKey = (!noCache && getShortMD5(`${select}#${where}#${orderBy}${orderDescending}${queryArgs.join('#')}`)) as string;
 
         if (!noCache && this._queryCache.has(cacheKey)) {
-            return this._queryCache.get(cacheKey);
+            return this._queryCache.get(cacheKey) as T;
         }
 
         const sentence = `SELECT ${select || '*'} FROM ${DB_SUITES_TABLE_NAME}`
@@ -84,10 +141,14 @@ module.exports = class SqliteAdapter {
             this._queryCache.set(cacheKey, result);
         }
 
-        return result;
+        return result as T;
     }
 
-    write(testResult) {
+    write(testResult: ParseTestResultParams): void {
+        if (!this._db) {
+            throw new DbNotInitializedError();
+        }
+
         const testResultObj = this._parseTestResult(testResult);
         const values = this._createValuesArray(testResultObj);
 
@@ -95,41 +156,36 @@ module.exports = class SqliteAdapter {
         this._db.prepare(`INSERT INTO ${DB_SUITES_TABLE_NAME} VALUES (${placeholders})`).run(...values);
     }
 
-    /**
-     * Delete records from database
-     * @param {Object} deleteParams
-     * @param {string} deleteParams.where - `WHERE ${where}`
-     * @param {string} deleteParams.orderBy - `ORDER BY ${orderBy}`
-     * @param {boolean} deleteParams.orderDescending - ASCending / DESCending
-     * @param {number} deleteParams.limit - `LIMIT ${limit}`
-     * @param {...string} deleteArgs
-     */
-    delete({where, orderBy, orderDescending, limit} = {}, ...deleteArgs) {
+    delete(deleteParams: DeleteParams = {}, ...deleteArgs: string[]): void {
+        if (!this._db) {
+            throw new DbNotInitializedError();
+        }
+
         const sentence = `DELETE FROM ${DB_SUITES_TABLE_NAME}`
-            + this._createSentence({where, orderBy, orderDescending, limit});
+            + this._createSentence(deleteParams);
 
         this._db.prepare(sentence).run(...deleteArgs);
     }
 
-    _createSentence({where, orderBy, orderDescending, limit}) {
+    private _createSentence(params: { where?: string; orderBy?: string; orderDescending?: boolean; limit?: number }): string {
         let sentence = '';
 
-        if (where) {
-            sentence += ` WHERE ${where}`;
+        if (params.where) {
+            sentence += ` WHERE ${params.where}`;
         }
 
-        if (orderBy) {
-            sentence += ` ORDER BY ${orderBy} ${orderDescending ? 'DESC' : 'ASC'}`;
+        if (params.orderBy) {
+            sentence += ` ORDER BY ${params.orderBy} ${params.orderDescending ? 'DESC' : 'ASC'}`;
         }
 
-        if (limit) {
-            sentence += ` LIMIT ${limit}`;
+        if (params.limit) {
+            sentence += ` LIMIT ${params.limit}`;
         }
 
         return sentence;
     }
 
-    _parseTestResult({suitePath, suiteName, testResult}) {
+    _parseTestResult({suitePath, suiteName, testResult}: ParseTestResultParams): ParsedTestResult {
         const {
             name,
             suiteUrl,
@@ -163,9 +219,9 @@ module.exports = class SqliteAdapter {
         };
     }
 
-    _createValuesArray(testResult) {
-        return SUITES_TABLE_COLUMNS.reduce((acc, {name}) => {
-            const value = testResult[name];
+    private _createValuesArray(testResult: PreparedTestResult): (string | number | null)[] {
+        return SUITES_TABLE_COLUMNS.reduce<(string | number | null)[]>((acc, {name}) => {
+            const value = testResult[name as keyof PreparedTestResult];
             if (value === undefined || value === null) {
                 acc.push(null);
                 return acc;
@@ -179,9 +235,9 @@ module.exports = class SqliteAdapter {
                     acc.push(value ? 1 : 0);
                     break;
                 default:
-                    acc.push(value);
+                    acc.push(value as string | number);
             }
             return acc;
         }, []);
     }
-};
+}
