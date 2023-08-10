@@ -1,6 +1,2 @@
-'use strict';
-
-module.exports = {
-    IMAGES_PATH: 'images',
-    ERROR_DETAILS_PATH: 'error-details'
-};
+export const IMAGES_PATH = 'images';
+export const ERROR_DETAILS_PATH = 'error-details';

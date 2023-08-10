@@ -1,19 +1,59 @@
 'use strict';
 
 const _ = require('lodash');
-const fs = require('fs-extra');
-const HermioneReporter = require('../../hermione');
-const PluginAdapter = require('lib/plugin-adapter');
-const StaticReportBuilder = require('lib/report-builder/static');
-const SqliteAdapter = require('lib/sqlite-adapter');
-const TestAdapter = require('lib/test-adapter');
-const utils = require('lib/server-utils');
+const Database = require('better-sqlite3');
+const fsOriginal = require('fs-extra');
+const proxyquire = require('proxyquire').noPreserveCache();
 const {logger} = require('lib/common-utils');
 const {stubTool} = require('./utils');
+
+const mkSqliteDb = () => {
+    const instance = sinon.createStubInstance(Database);
+
+    instance.prepare = sinon.stub().returns({run: sinon.stub()});
+
+    return instance;
+};
 
 describe('lib/hermione', () => {
     const sandbox = sinon.createSandbox();
     let hermione;
+
+    const fs = _.clone(fsOriginal);
+    const originalUtils = proxyquire('lib/server-utils', {
+        'fs-extra': fs
+    });
+    const utils = _.clone(originalUtils);
+
+    const SqliteAdapter = proxyquire('lib/sqlite-adapter', {
+        'fs-extra': fs,
+        'better-sqlite3': sinon.stub().returns(mkSqliteDb())
+    });
+
+    const TestAdapter = proxyquire('lib/test-adapter', {
+        'fs-extra': fs,
+        './server-utils': utils
+    });
+
+    const StaticReportBuilder = proxyquire('lib/report-builder/static', {
+        '../server-utils': utils,
+        '../sqlite-adapter': SqliteAdapter,
+        '../test-adapter': TestAdapter
+    });
+
+    const PluginAdapter = proxyquire('lib/plugin-adapter', {
+        './server-utils': utils,
+        './report-builder/static': StaticReportBuilder,
+        './plugin-api': proxyquire('lib/plugin-api', {
+            './local-images-saver': proxyquire('lib/local-images-saver', {
+                './server-utils': utils
+            })
+        })
+    });
+
+    const HermioneReporter = proxyquire('../../hermione', {
+        './lib/plugin-adapter': PluginAdapter
+    });
 
     const events = {
         INIT: 'init',
@@ -66,6 +106,7 @@ describe('lib/hermione', () => {
     function mkStubResult_(options = {}) {
         return _.defaultsDeep(options, {
             fullTitle: () => 'default-title',
+            file: 'some-file',
             id: () => 'some-id',
             root: true,
             err: {
@@ -90,8 +131,9 @@ describe('lib/hermione', () => {
         sandbox.spy(PluginAdapter.prototype, 'addCliCommands');
         sandbox.spy(PluginAdapter.prototype, 'init');
 
-        sandbox.stub(fs, 'mkdirs').resolves();
+        sandbox.stub(fs, 'ensureDir').resolves();
         sandbox.stub(fs, 'writeFile').resolves();
+        sandbox.stub(fs, 'writeJson').resolves();
         sandbox.stub(fs, 'copy').resolves();
 
         sandbox.stub(utils, 'getCurrentPath');

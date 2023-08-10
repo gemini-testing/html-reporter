@@ -1,13 +1,20 @@
 'use strict';
 
-const utils = require('lib/server-utils');
-const imagesSaver = require('lib/local-images-saver');
+const _ = require('lodash');
+const proxyquire = require('proxyquire');
+const originalUtils = require('lib/server-utils');
 
 describe('local-images-saver', () => {
+    let imagesSaver, utils;
     const sandbox = sinon.createSandbox();
 
     beforeEach(() => {
+        utils = _.clone(originalUtils);
         sandbox.stub(utils, 'copyFileAsync');
+
+        imagesSaver = proxyquire('lib/local-images-saver', {
+            './server-utils': utils
+        });
     });
 
     afterEach(() => sandbox.restore());

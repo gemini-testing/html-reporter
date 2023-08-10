@@ -1,35 +1,34 @@
-/* eslint-disable */
-// @ts-nocheck
-'use strict';
+import path from 'path';
+import url from 'url';
+import chalk from 'chalk';
+import _ from 'lodash';
+import fs from 'fs-extra';
+import {logger} from './common-utils';
+import {UPDATED, RUNNING, IDLE, SKIPPED, IMAGES_PATH, TestStatus} from './constants';
+import type HtmlReporter from './plugin-api';
+import type TestAdapter from './test-adapter';
+import {CustomGuiItem, HtmlReporterApi, ReporterConfig} from './types';
+import type Hermione from 'hermione';
 
-const path = require('path');
-const url = require('url');
-const chalk = require('chalk');
-const _ = require('lodash');
-const fs = require('fs-extra');
-
-const {logger} = require('./common-utils');
-const {ERROR, UPDATED, RUNNING, IDLE, SKIPPED} = require('./constants/test-statuses');
-const {IMAGES_PATH} = require('./constants/paths');
 const DATA_FILE_NAME = 'data.js';
 
-const getReferencePath = (testResult, stateName) => createPath('ref', testResult, stateName);
-const getCurrentPath = (testResult, stateName) => createPath('current', testResult, stateName);
-const getDiffPath = (testResult, stateName) => createPath('diff', testResult, stateName);
+export const getReferencePath = (testResult: TestAdapter, stateName: string): string => createPath('ref', testResult, stateName);
+export const getCurrentPath = (testResult: TestAdapter, stateName: string): string => createPath('current', testResult, stateName);
+export const getDiffPath = (testResult: TestAdapter, stateName: string): string => createPath('diff', testResult, stateName);
 
-const getReferenceAbsolutePath = (testResult, reportDir, stateName) => {
+export const getReferenceAbsolutePath = (testResult: TestAdapter, reportDir: string, stateName: string): string => {
     const referenceImagePath = getReferencePath(testResult, stateName);
 
     return path.resolve(reportDir, referenceImagePath);
 };
 
-const getCurrentAbsolutePath = (testResult, reportDir, stateName) => {
+export const getCurrentAbsolutePath = (testResult: TestAdapter, reportDir: string, stateName: string): string => {
     const currentImagePath = getCurrentPath(testResult, stateName);
 
     return path.resolve(reportDir, currentImagePath);
 };
 
-const getDiffAbsolutePath = (testResult, reportDir, stateName) => {
+export const getDiffAbsolutePath = (testResult: TestAdapter, reportDir: string, stateName: string): string => {
     const diffImagePath = getDiffPath(testResult, stateName);
 
     return path.resolve(reportDir, diffImagePath);
@@ -37,61 +36,59 @@ const getDiffAbsolutePath = (testResult, reportDir, stateName) => {
 
 /**
  * @param {String} kind - одно из значений 'ref', 'current', 'diff'
- * @param {StateResult} result
+ * @param {TestAdapter} result
  * @param {String} stateName - имя стэйта для теста
  * @returns {String}
  */
-function createPath(kind, result, stateName) {
-    const attempt = result.attempt || 0;
+export function createPath(kind: string, result: TestAdapter, stateName: string): string {
+    const attempt: number = result.attempt || 0;
     const imageDir = _.compact([IMAGES_PATH, result.imageDir, stateName]);
     const components = imageDir.concat(`${result.browserId}~${kind}_${attempt}.png`);
 
-    return path.join.apply(null, components);
+    return path.join(...components);
 }
 
-function copyFileAsync(srcPath, destPath, {reportDir = '', overwrite = true} = {}) {
+export interface CopyFileAsyncOptions {
+    reportDir: string;
+    overwrite: boolean
+}
+
+export function copyFileAsync(srcPath: string, destPath: string, {reportDir = '', overwrite = true}: Partial<CopyFileAsyncOptions> = {}): Promise<void> {
     const resolvedDestPath = path.resolve(reportDir, destPath);
     return makeDirFor(resolvedDestPath).then(() => fs.copy(srcPath, resolvedDestPath, {overwrite}));
 }
 
-/**
- * @param {String} filePath
- * @returns {Promise}
- */
-function deleteFile(filePath) {
+export function deleteFile(filePath: string): Promise<void> {
     return fs.remove(filePath);
 }
 
-/**
- * @param {String} destPath
- */
-function makeDirFor(destPath) {
+export function makeDirFor(destPath: string): Promise<void> {
     return fs.mkdirs(path.dirname(destPath));
 }
 
-function fileExists(path) {
+export function fileExists(path: string): boolean {
     return fs.existsSync(path);
 }
 
-function logPathToHtmlReport(pluginConfig) {
+export function logPathToHtmlReport(pluginConfig: ReporterConfig): void {
     const reportPath = `file://${path.resolve(pluginConfig.path, 'index.html')}`;
 
     logger.log(`Your HTML report is here: ${chalk.yellow(reportPath)}`);
     logger.log(`To open it use: ${chalk.yellow('npx hermione gui')} or ${chalk.yellow(`npx http-server ${pluginConfig.path}`)}`);
 }
 
-function logError(e) {
+export function logError(e: Error): void {
     logger.error(`Html-reporter runtime error: ${e.stack}`);
 }
 
-function hasImage(formattedResult) {
-    return !!formattedResult.getImagesInfo(ERROR).length ||
+export function hasImage(formattedResult: TestAdapter): boolean {
+    return !!formattedResult.getImagesInfo().length ||
         !!formattedResult.getCurrImg().path ||
         !!formattedResult.screenshot;
 }
 
-function prepareCommonJSData(data) {
-    const stringifiedData = JSON.stringify(data, (key, val) => {
+export function prepareCommonJSData(data: unknown): string {
+    const stringifiedData = JSON.stringify(data, (_key, val) => {
         return typeof val === 'function' ? val.toString() : val;
     });
 
@@ -101,15 +98,15 @@ function prepareCommonJSData(data) {
     ].join('\n');
 }
 
-function shouldUpdateAttempt(status) {
+export function shouldUpdateAttempt(status: TestStatus): boolean {
     return ![SKIPPED, UPDATED, RUNNING, IDLE].includes(status);
 }
 
-function getDetailsFileName(testId, browserId, attempt) {
+export function getDetailsFileName(testId: string, browserId: string, attempt: number): string {
     return `${testId}-${browserId}_${Number(attempt) + 1}_${Date.now()}.json`;
 }
 
-async function saveStaticFilesToReportDir(hermione, pluginConfig, destPath) {
+export async function saveStaticFilesToReportDir(hermione: Hermione & HtmlReporterApi, pluginConfig: ReporterConfig, destPath: string): Promise<void> {
     const staticFolder = path.resolve(__dirname, './static');
     await fs.ensureDir(destPath);
     await Promise.all([
@@ -121,28 +118,26 @@ async function saveStaticFilesToReportDir(hermione, pluginConfig, destPath) {
         copyToReportDir(destPath, ['report.min.js', 'report.min.css'], staticFolder),
         fs.copy(path.resolve(staticFolder, 'index.html'), path.resolve(destPath, 'index.html')),
         fs.copy(path.resolve(staticFolder, 'icons'), path.resolve(destPath, 'icons')),
-        // as soon as the pull request to sql.js will be accepted, we will switch to using the original package
         fs.copy(require.resolve('@gemini-testing/sql.js'), path.resolve(destPath, 'sql-wasm.js')),
         copyPlugins(pluginConfig, destPath)
     ]);
 }
 
-async function copyPlugins({plugins, pluginsEnabled}, destPath) {
-    if (!pluginsEnabled || !plugins.length) {
+export async function copyPlugins({plugins, pluginsEnabled}: ReporterConfig, destPath: string): Promise<void> {
+    if (!pluginsEnabled || !plugins?.length) {
         return;
     }
 
     try {
         const pluginsPath = path.resolve(destPath, 'plugins');
         await fs.ensureDir(pluginsPath);
-
         await Promise.all(mapPlugins(plugins, pluginName => copyPlugin(pluginName, pluginsPath)));
-    } catch (e) {
+    } catch (e: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
         logError(e);
     }
 }
 
-async function copyPlugin(pluginName, pluginsPath) {
+export async function copyPlugin(pluginName: string, pluginsPath: string): Promise<void> {
     const pluginPath = getPluginClientScriptPath(pluginName);
     if (!pluginPath) {
         return;
@@ -152,15 +147,15 @@ async function copyPlugin(pluginName, pluginsPath) {
     await fs.copy(pluginPath, destPluginPath);
 }
 
-function urlPathNameEndsWith(currentUrl, searchString) {
+export function urlPathNameEndsWith(currentUrl: string, searchString: string): boolean {
     try {
-        return url.parse(currentUrl).pathname.endsWith(searchString);
+        return url.parse(currentUrl).pathname?.endsWith(searchString) || false;
     } catch (e) {
         return false;
     }
 }
 
-async function writeDatabaseUrlsFile(destPath, srcPaths) {
+export async function writeDatabaseUrlsFile(destPath: string, srcPaths: string[]): Promise<void> {
     const jsonUrls = srcPaths.filter(p => urlPathNameEndsWith(p, '.json'));
     const dbUrls = srcPaths.filter(p => urlPathNameEndsWith(p, '.db'));
 
@@ -172,7 +167,7 @@ async function writeDatabaseUrlsFile(destPath, srcPaths) {
     await fs.writeJson(path.resolve(destPath, 'databaseUrls.json'), data);
 }
 
-function copyToReportDir(destPath, files, sourceDirectory) {
+export function copyToReportDir(destPath: string, files: string[], sourceDirectory: string): Promise<void[]> {
     return Promise.all(files.map(fileName => {
         const from = path.resolve(sourceDirectory, fileName);
         const to = path.resolve(destPath, fileName);
@@ -180,43 +175,64 @@ function copyToReportDir(destPath, files, sourceDirectory) {
     }));
 }
 
-function getDataForStaticFile(hermione, pluginConfig) {
+export type ConfigForStaticFile = Pick<ReporterConfig, 'defaultView' |
+    'diffMode' |
+    'baseHost' |
+    'errorPatterns' |
+    'metaInfoBaseUrls' |
+    'customScripts' |
+    'yandexMetrika' |
+    'pluginsEnabled' |
+    'plugins'>;
+
+export function getConfigForStaticFile(pluginConfig: ReporterConfig): ConfigForStaticFile {
+    return _.pick(pluginConfig, [
+        'defaultView',
+        'diffMode',
+        'baseHost',
+        'errorPatterns',
+        'metaInfoBaseUrls',
+        'customScripts',
+        'yandexMetrika',
+        'pluginsEnabled',
+        'plugins'
+    ]);
+}
+
+export interface DataForStaticFile {
+    skips: object[];
+    config: ConfigForStaticFile;
+    apiValues: HtmlReporter['values'];
+    date: string;
+}
+
+export function getDataForStaticFile(hermione: Hermione & HtmlReporterApi, pluginConfig: ReporterConfig): DataForStaticFile {
+    const htmlReporter = hermione.htmlReporter;
+
     return {
         skips: [],
         config: getConfigForStaticFile(pluginConfig),
-        apiValues: hermione.htmlReporter.values,
+        apiValues: htmlReporter.values,
         date: new Date().toString()
     };
 }
 
-function getConfigForStaticFile(pluginConfig) {
-    return _.pick(
-        pluginConfig,
-        [
-            'defaultView',
-            'diffMode',
-            'baseHost',
-            'errorPatterns',
-            'metaInfoBaseUrls',
-            'customScripts',
-            'yandexMetrika',
-            'pluginsEnabled',
-            'plugins'
-        ]
-    );
-}
-
-async function initializeCustomGui(hermione, {customGui}) {
+export async function initializeCustomGui(hermione: Hermione, {customGui}: ReporterConfig): Promise<void> {
     await Promise.all(
         _(customGui)
-            .flatMap()
-            .filter(({initialize}) => _.isFunction(initialize))
-            .map((ctx) => ctx.initialize({hermione, ctx}))
+            .flatMap<CustomGuiItem>(_.identity)
+            .map((ctx) => ctx.initialize?.({hermione, ctx}))
             .value()
     );
 }
 
-async function runCustomGuiAction(hermione, {customGui}, payload) {
+export interface CustomGuiActionPayload {
+    sectionName: string;
+    groupIndex: number;
+    controlIndex: number;
+}
+
+export async function runCustomGuiAction(hermione: Hermione, {customGui}: ReporterConfig, payload: CustomGuiActionPayload): Promise<void> {
     const {sectionName, groupIndex, controlIndex} = payload;
     const ctx = customGui[sectionName][groupIndex];
     const control = ctx.controls[controlIndex];
@@ -224,19 +240,19 @@ async function runCustomGuiAction(hermione, {customGui}, payload) {
     await ctx.action({hermione, control, ctx});
 }
 
-function getPluginClientScriptPath(pluginName) {
+export function getPluginClientScriptPath(pluginName: string): string | null {
     try {
         return require.resolve(`${pluginName}/plugin.js`);
-    } catch (e) {
+    } catch (e: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
         logError(e);
         return null;
     }
 }
 
-function getPluginMiddleware(pluginName) {
+export function getPluginMiddleware(pluginName: string): unknown | null {
     try {
         return require(`${pluginName}/middleware.js`);
-    } catch (e) {
+    } catch (e: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
         if (e.code !== 'MODULE_NOT_FOUND') {
             logError(e);
         }
@@ -244,7 +260,7 @@ function getPluginMiddleware(pluginName) {
     }
 }
 
-function isUnexpectedPlugin(plugins, pluginName) {
+export function isUnexpectedPlugin(plugins: ReporterConfig['plugins'], pluginName: string): boolean {
     for (const {name} of plugins) {
         if (name === pluginName) {
             return false;
@@ -253,7 +269,7 @@ function isUnexpectedPlugin(plugins, pluginName) {
     return true;
 }
 
-function forEachPlugin(plugins, callback) {
+export function forEachPlugin(plugins: ReporterConfig['plugins'], callback: (name: string) => void): void {
     const seen = new Set();
     for (const plugin of plugins) {
         if (!seen.has(plugin.name)) {
@@ -263,46 +279,8 @@ function forEachPlugin(plugins, callback) {
     }
 }
 
-function mapPlugins(plugins, callback) {
-    const result = [];
+export function mapPlugins<T>(plugins: ReporterConfig['plugins'], callback: (name: string) => T): T[] {
+    const result: T[] = [];
     forEachPlugin(plugins, pluginName => result.push(callback(pluginName)));
     return result;
 }
-
-export = {
-    getDetailsFileName,
-
-    getReferencePath,
-    getCurrentPath,
-    getDiffPath,
-    hasImage,
-
-    getReferenceAbsolutePath,
-    getCurrentAbsolutePath,
-    getDiffAbsolutePath,
-
-    copyFileAsync,
-    deleteFile,
-    makeDirFor,
-    fileExists,
-
-    logPathToHtmlReport,
-    logError,
-
-    require,
-    prepareCommonJSData,
-    shouldUpdateAttempt,
-    saveStaticFilesToReportDir,
-    copyToReportDir,
-    writeDatabaseUrlsFile,
-    getConfigForStaticFile,
-
-    getPluginClientScriptPath,
-    getPluginMiddleware,
-    isUnexpectedPlugin,
-    forEachPlugin,
-    mapPlugins,
-
-    initializeCustomGui,
-    runCustomGuiAction
-};
