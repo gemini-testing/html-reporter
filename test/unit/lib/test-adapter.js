@@ -1,18 +1,17 @@
 'use strict';
 
 const _ = require('lodash');
-const utils = require('lib/server-utils');
 const {logger} = require('lib/common-utils');
 const {SUCCESS, UPDATED, SKIPPED, FAIL} = require('lib/constants/test-statuses');
 const {ERROR_DETAILS_PATH} = require('lib/constants/paths');
 const {stubTool, stubConfig} = require('../utils');
 const SqliteAdapter = require('lib/sqlite-adapter');
 const proxyquire = require('proxyquire');
-const fs = require('fs-extra');
+const fsOriginal = require('fs-extra');
 
 describe('hermione test adapter', () => {
     const sandbox = sinon.sandbox.create();
-    let tmp, HermioneTestResultAdapter, err, getSuitePath, getCommandsHistory, sqliteAdapter;
+    let fs, tmp, HermioneTestResultAdapter, err, getSuitePath, getCommandsHistory, sqliteAdapter, utils;
 
     class ImageDiffError extends Error {}
     class NoRefImageError extends Error {}
@@ -57,20 +56,28 @@ describe('hermione test adapter', () => {
 
     beforeEach(() => {
         tmp = {tmpdir: 'default/dir'};
+        fs = sinon.stub(_.clone(fsOriginal));
         getSuitePath = sandbox.stub();
         getCommandsHistory = sandbox.stub();
         sqliteAdapter = sandbox.createStubInstance(SqliteAdapter);
 
-        HermioneTestResultAdapter = proxyquire('../../../lib/test-adapter', {
+        const originalUtils = proxyquire('lib/server-utils', {
+            'fs-extra': fs
+        });
+        utils = _.clone(originalUtils);
+
+        HermioneTestResultAdapter = proxyquire('lib/test-adapter', {
             tmp,
-            './plugin-utils': {getHermioneUtils: () => ({getSuitePath})},
-            './history-utils': {getCommandsHistory}
+            'fs-extra': fs,
+            './plugin-utils': {getSuitePath},
+            './history-utils': {getCommandsHistory},
+            './server-utils': utils
         });
         sandbox.stub(utils, 'getCurrentPath').returns('');
         sandbox.stub(utils, 'getDiffPath').returns('');
         sandbox.stub(utils, 'getReferencePath').returns('');
-        sandbox.stub(fs, 'readFile').resolves(Buffer.from(''));
-        sandbox.stub(fs, 'copy').resolves();
+        fs.readFile.resolves(Buffer.from(''));
+        fs.copy.resolves();
         err = mkErrStub();
     });
 
@@ -230,7 +237,7 @@ describe('hermione test adapter', () => {
             sandbox.stub(utils, 'makeDirFor').resolves();
             sandbox.stub(utils, 'getDetailsFileName').returns('md5-bro-n-time');
 
-            fsWriteFile = sandbox.stub(fs, 'writeFile').resolves();
+            fsWriteFile = fs.writeFile.resolves();
         });
 
         it('should do nothing if no error details are available', async () => {
@@ -340,7 +347,7 @@ describe('hermione test adapter', () => {
             beforeEach(() => {
                 sandbox.stub(logger, 'warn');
                 sandbox.stub(utils, 'makeDirFor').resolves();
-                sandbox.stub(fs, 'writeFile').resolves();
+                fs.writeFile.resolves();
                 sandbox.stub(utils, 'copyFileAsync');
             });
 

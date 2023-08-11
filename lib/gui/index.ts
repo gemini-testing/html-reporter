@@ -2,7 +2,9 @@ import chalk from 'chalk';
 import opener from 'opener';
 import server from './server';
 import {logger} from '../common-utils';
-import {logError} from '../server-utils';
+import * as utils from '../server-utils';
+
+const {logError} = utils;
 
 interface ServerArgs {
     paths: string[];

@@ -3,8 +3,8 @@
 const {isEmpty} = require('lodash');
 const parseConfig = require('lib/config');
 const {config: configDefaults} = require('lib/constants/defaults');
-const viewModes = require('lib/constants/view-modes');
-const diffModes = require('lib/constants/diff-modes');
+const {ViewMode} = require('lib/constants/view-modes');
+const {DiffModes} = require('lib/constants/diff-modes');
 const saveFormats = require('lib/constants/save-formats');
 const SUPPORTED_CONTROL_TYPES = Object.values(require('lib/gui/constants/custom-gui-control-types'));
 const {logger} = require('lib/common-utils');
@@ -141,7 +141,7 @@ describe('config', () => {
 
     describe('"defaultView" option', () => {
         it('should show all suites by default', () => {
-            assert.equal(parseConfig({}).defaultView, viewModes.ALL);
+            assert.equal(parseConfig({}).defaultView, ViewMode.ALL);
         });
 
         it('should set from configuration file', () => {
@@ -165,25 +165,25 @@ describe('config', () => {
 
     describe('"diffMode" option', () => {
         it('should show images in column by default', () => {
-            assert.equal(parseConfig({}).diffMode, diffModes.THREE_UP.id);
+            assert.equal(parseConfig({}).diffMode, DiffModes.THREE_UP.id);
         });
 
         it('should set from configuration file', () => {
-            const config = parseConfig({diffMode: diffModes.SWIPE.id});
+            const config = parseConfig({diffMode: DiffModes.SWIPE.id});
 
-            assert.equal(config.diffMode, diffModes.SWIPE.id);
+            assert.equal(config.diffMode, DiffModes.SWIPE.id);
         });
 
         it('should set from environment variable', () => {
-            process.env['html_reporter_diff_mode'] = diffModes.ONLY_DIFF.id;
+            process.env['html_reporter_diff_mode'] = DiffModes.ONLY_DIFF.id;
 
-            assert.equal(parseConfig({}).diffMode, diffModes.ONLY_DIFF.id);
+            assert.equal(parseConfig({}).diffMode, DiffModes.ONLY_DIFF.id);
         });
 
         it('should set from cli', () => {
-            process.argv = process.argv.concat('--html-reporter-diff-mode', diffModes.ONION_SKIN.id);
+            process.argv = process.argv.concat('--html-reporter-diff-mode', DiffModes.ONION_SKIN.id);
 
-            assert.equal(parseConfig({}).diffMode, diffModes.ONION_SKIN.id);
+            assert.equal(parseConfig({}).diffMode, DiffModes.ONION_SKIN.id);
         });
     });
 

@@ -1,6 +1,6 @@
 'use strict';
 import {getViewQuery} from 'lib/static/modules/custom-queries';
-import viewModes from 'lib/constants/view-modes';
+import {ViewMode} from 'lib/constants/view-modes';
 import {COLLAPSE_ALL} from 'lib/constants/expand-modes';
 
 describe('lib/static/modules/query-params', () => {
@@ -31,7 +31,7 @@ describe('lib/static/modules/query-params', () => {
                 ],
                 testNameFilter: 'test name',
                 retryIndex: 10,
-                viewMode: viewModes.ALL,
+                viewMode: ViewMode.ALL,
                 expand: COLLAPSE_ALL
             });
         });

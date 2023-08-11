@@ -9,8 +9,8 @@ import GroupTestsSelect from './selects/group-tests';
 import BaseHostInput from './base-host-input';
 import MenuBar from './menu-bar';
 import ReportInfo from './report-info';
-import viewModes from '../../../constants/view-modes';
-import diffModes from '../../../constants/diff-modes';
+import {ViewMode} from '../../../constants/view-modes';
+import {DiffModes} from '../../../constants/diff-modes';
 import {EXPAND_ALL, COLLAPSE_ALL, EXPAND_ERRORS, EXPAND_RETRIES} from '../../../constants/expand-modes';
 
 class ControlButtons extends Component {
@@ -23,7 +23,7 @@ class ControlButtons extends Component {
                     label="Show tests"
                     value={view.viewMode}
                     handler={actions.changeViewMode}
-                    options = {Object.values(viewModes).map((value) => ({value, text: capitalize(value)}))}
+                    options = {Object.values(ViewMode).map((value) => ({value, text: capitalize(value)}))}
                 />
                 <div className="control-group">
                     <ControlButton
@@ -56,7 +56,7 @@ class ControlButtons extends Component {
                     label="Diff mode"
                     value={view.diffMode}
                     handler={actions.changeDiffMode}
-                    options = {Object.values(diffModes).map((dm) => {
+                    options = {Object.values(DiffModes).map((dm) => {
                         return {value: dm.id, text: dm.title};
                     })}
                     extendClassNames="diff-mode"

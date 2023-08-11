@@ -8,7 +8,7 @@ import ResizedScreenshot from '../screenshot/resized';
 import SwipeDiff from './swipe-diff';
 import SwitchDiff from './switch-diff';
 import OnionSkinDiff from './onion-skin-diff';
-import diffModes from '../../../../constants/diff-modes';
+import {DiffModes} from '../../../../constants/diff-modes';
 import {types} from '../../modals';
 import useFitImages from './useFitImages';
 
@@ -41,7 +41,7 @@ const StateFail = ({image, diffMode: diffModeProp, isScreenshotAccepterOpened}) 
     };
 
     const renderDiffModeItems = () => {
-        const diffModeItems = Object.values(diffModes).map(renderDiffModeItem);
+        const diffModeItems = Object.values(DiffModes).map(renderDiffModeItem);
 
         return (
             <ul className="diff-modes">
@@ -103,29 +103,29 @@ const StateFail = ({image, diffMode: diffModeProp, isScreenshotAccepterOpened}) 
         const {expectedImg, actualImg} = image;
 
         switch (diffMode) {
-            case diffModes.ONLY_DIFF.id:
+            case DiffModes.ONLY_DIFF.id:
                 return renderOnlyDiff();
 
-            case diffModes.SWITCH.id:
+            case DiffModes.SWITCH.id:
                 return <SwitchDiff image1={expectedImg} image2={actualImg} />;
 
-            case diffModes.SWIPE.id:
+            case DiffModes.SWIPE.id:
                 return <SwipeDiff image1={expectedImg} image2={actualImg} />;
 
-            case diffModes.ONION_SKIN.id:
+            case DiffModes.ONION_SKIN.id:
                 return <OnionSkinDiff image1={expectedImg} image2={actualImg} />;
 
-            case diffModes.THREE_UP_SCALED.id:
+            case DiffModes.THREE_UP_SCALED.id:
                 return <div className="image-box__scaled">
                     {renderThreeImages()}
                 </div>;
 
-            case diffModes.THREE_UP_SCALED_TO_FIT.id:
+            case DiffModes.THREE_UP_SCALED_TO_FIT.id:
                 return <div className="image-box__scaled">
                     {renderThreeImages(fitWidths)}
                 </div>;
 
-            case diffModes.THREE_UP.id:
+            case DiffModes.THREE_UP.id:
             default:
                 return renderThreeImages();
         }

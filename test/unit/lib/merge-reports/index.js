@@ -1,13 +1,13 @@
 'use strict';
 
 const _ = require('lodash');
+const proxyquire = require('proxyquire');
 const {stubTool, stubConfig} = require('../../utils');
-const mergeReports = require('lib/merge-reports');
-const serverUtils = require('lib/server-utils');
+const originalServerUtils = require('lib/server-utils');
 
 describe('lib/merge-reports', () => {
     const sandbox = sinon.sandbox.create();
-    let htmlReporter;
+    let htmlReporter, serverUtils, mergeReports;
 
     const execMergeReports_ = async ({pluginConfig = stubConfig(), hermione = stubTool(stubConfig()), paths = [], opts = {}}) => {
         opts = _.defaults(opts, {destination: 'default-dest-report/path'});
@@ -16,12 +16,18 @@ describe('lib/merge-reports', () => {
     };
 
     beforeEach(() => {
+        serverUtils = _.clone(originalServerUtils);
+
         sandbox.stub(serverUtils, 'saveStaticFilesToReportDir').resolves();
         sandbox.stub(serverUtils, 'writeDatabaseUrlsFile').resolves();
 
         htmlReporter = sinon.stub();
         htmlReporter.events = {REPORT_SAVED: 'reportSaved'};
         htmlReporter.emitAsync = sinon.stub();
+
+        mergeReports = proxyquire('lib/merge-reports', {
+            '../server-utils': serverUtils
+        });
     });
 
     afterEach(() => sandbox.restore());

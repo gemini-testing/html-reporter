@@ -3,7 +3,7 @@ import proxyquire from 'proxyquire';
 import {defaultsDeep, set} from 'lodash';
 import {Checkbox} from 'semantic-ui-react';
 import {CHECKED, UNCHECKED, INDETERMINATE} from 'lib/constants/checked-statuses';
-import {isCheckboxChecked} from 'lib/common-utils.js';
+import {isCheckboxChecked} from 'lib/common-utils';
 import {mkConnectedComponent} from 'test/unit/lib/static/components/utils';
 import {mkStateTree} from 'test/unit/lib/static/state-utils';
 

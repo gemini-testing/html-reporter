@@ -1,4 +1,6 @@
-module.exports = {
+import {ValueOf} from 'type-fest';
+
+export const DiffModes = {
     THREE_UP: {
         id: '3-up',
         title: '3-up',
@@ -34,4 +36,8 @@ module.exports = {
         title: 'Onion skin',
         description: 'move slider'
     }
-};
+} as const;
+
+export type DiffModes = typeof DiffModes;
+
+export type DiffMode = ValueOf<DiffModes>;

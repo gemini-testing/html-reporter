@@ -2,7 +2,7 @@ import proxyquire from 'proxyquire';
 import {defaults} from 'lodash';
 import actionNames from 'lib/static/modules/action-names';
 import defaultState from 'lib/static/modules/default-state';
-import viewModes from 'lib/constants/view-modes';
+import {ViewMode} from 'lib/constants/view-modes';
 import {SECTIONS, ERROR_KEY, KEY_DELIMITER} from 'lib/constants/group-tests';
 import {mkStateTree, mkStateView} from '../../../state-utils';
 
@@ -25,7 +25,7 @@ describe('lib/static/modules/reducers/grouped-tests', () => {
 
     const mkViewArgs_ = (opts = {}) => {
         return defaults(opts, {
-            viewMode: viewModes.ALL,
+            viewMode: ViewMode.ALL,
             testNameFilter: '',
             strictMatchFilter: false,
             filteredBrowsers: []
