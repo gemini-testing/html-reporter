@@ -1,7 +1,8 @@
-'use strict';
+import type {ValueOf} from 'type-fest';
 
-const DB_TYPES = {int: 'INT', text: 'TEXT'};
-const DB_COLUMNS = {
+// TODO: change to enums
+export const DB_TYPES = {int: 'INT', text: 'TEXT'} as const;
+export const DB_COLUMNS = {
     SUITE_PATH: 'suitePath',
     SUITE_NAME: 'suiteName',
     NAME: 'name',
@@ -16,9 +17,14 @@ const DB_COLUMNS = {
     MULTIPLE_TABS: 'multipleTabs',
     STATUS: 'status',
     TIMESTAMP: 'timestamp'
-};
+} as const;
 
-const SUITES_TABLE_COLUMNS = [
+type DbColumn = {
+    name: ValueOf<typeof DB_COLUMNS>;
+    type: ValueOf<typeof DB_TYPES>;
+}
+
+export const SUITES_TABLE_COLUMNS: DbColumn[] = [
     {name: DB_COLUMNS.SUITE_PATH, type: DB_TYPES.text},
     {name: DB_COLUMNS.SUITE_NAME, type: DB_TYPES.text},
     {name: DB_COLUMNS.NAME, type: DB_TYPES.text},
@@ -35,15 +41,11 @@ const SUITES_TABLE_COLUMNS = [
     {name: DB_COLUMNS.TIMESTAMP, type: DB_TYPES.int}
 ];
 
-module.exports = {
-    DB_MAX_AVAILABLE_PAGE_SIZE: 65536, // helps to speed up queries
-    DB_SUITES_TABLE_NAME: 'suites',
-    DB_COLUMNS,
-    SUITES_TABLE_COLUMNS,
-    LOCAL_DATABASE_NAME: 'sqlite.db',
-    DATABASE_URLS_JSON_NAME: 'databaseUrls.json',
-    DB_COLUMN_INDEXES: SUITES_TABLE_COLUMNS.reduce((acc, {name}, index) => {
-        acc[name] = index;
-        return acc;
-    }, {})
-};
+export const DB_MAX_AVAILABLE_PAGE_SIZE = 65536; // helps to speed up queries
+export const DB_SUITES_TABLE_NAME = 'suites';
+export const LOCAL_DATABASE_NAME = 'sqlite.db';
+export const DATABASE_URLS_JSON_NAME = 'databaseUrls.json';
+export const DB_COLUMN_INDEXES = SUITES_TABLE_COLUMNS.reduce((acc: Record<string, number>, {name}, index) => {
+    acc[name] = index;
+    return acc;
+}, {});
