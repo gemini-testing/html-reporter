@@ -1,17 +1,8 @@
-/* eslint-disable */
-// @ts-nocheck
-'use strict';
+import looksSame from 'looks-same';
+import type {ImageDiffError} from '../types';
 
-const looksSame = require('looks-same');
+export function saveDiffTo(imageDiffError: ImageDiffError, diffPath: string): Promise<null> {
+    const {diffColor: highlightColor, ...otherOpts} = imageDiffError.diffOpts;
 
-module.exports = {
-    /**
-     * @param {Object} imageDiffError
-     * @param {String} diffPath
-     */
-    saveDiffTo: function(imageDiffError, diffPath) {
-        const {diffColor: highlightColor, ...otherOpts} = imageDiffError.diffOpts;
-
-        return looksSame.createDiff({diff: diffPath, highlightColor, ...otherOpts});
-    }
-};
+    return looksSame.createDiff({diff: diffPath, highlightColor, ...otherOpts});
+}

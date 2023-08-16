@@ -1,40 +1,75 @@
-/* eslint-disable */
-// @ts-nocheck
-'use strict';
+import _ from 'lodash';
+import fs from 'fs-extra';
+import path from 'path';
+import tmp from 'tmp';
+import crypto from 'crypto';
+import type {default as Hermione} from 'hermione';
 
-const _ = require('lodash');
-const fs = require('fs-extra');
-const path = require('path');
-const tmp = require('tmp');
-const crypto = require('crypto');
+import SuiteAdapter from './suite-adapter';
+import {DB_COLUMNS} from './constants/database';
+import {getSuitePath} from './plugin-utils';
+import {getCommandsHistory} from './history-utils';
+import {ERROR, ERROR_DETAILS_PATH, FAIL, SUCCESS, TestStatus, UPDATED} from './constants';
+import {getShortMD5, logger} from './common-utils';
+import * as utils from './server-utils';
+import {
+    ErrorDetails,
+    ImageInfoFail,
+    HtmlReporterApi,
+    ImageInfo,
+    ImagesSaver,
+    SuitesRow,
+    TestResult,
+    ImageData,
+    ImageInfoFull, ImageDiffError, AssertViewResult, ImageInfoError,
+    ImageBase64
+} from './types';
+import type {SqliteAdapter} from './sqlite-adapter';
+import EventEmitter2 from 'eventemitter2';
+import type HtmlReporter from './plugin-api';
+import type * as Workers from './workers/worker';
 
-const SuiteAdapter = require('./suite-adapter');
-const {DB_COLUMNS} = require('./constants/database');
-const {getSuitePath} = require('./plugin-utils');
-const {getCommandsHistory} = require('./history-utils');
-const {SUCCESS, FAIL, ERROR, UPDATED} = require('./constants/test-statuses');
-const {ERROR_DETAILS_PATH} = require('./constants/paths');
-const {logger, getShortMD5} = require('./common-utils');
-const utils = require('./server-utils');
+interface PrepareTestResultData {
+    name: string;
+    suitePath: string[];
+    browserId: string;
+}
 
-const globalCacheAllImages = new Map();
-const globalCacheExpectedPaths = new Map();
-const globalCacheDiffImages = new Map();
-const testsAttempts = new Map();
+const globalCacheAllImages: Map<string, string> = new Map();
+const globalCacheExpectedPaths: Map<string, string> = new Map();
+const globalCacheDiffImages: Map<string, string> = new Map();
+const testsAttempts: Map<string, number> = new Map();
 
-function createHash(buffer) {
+function createHash(buffer: Buffer): string {
     return crypto
         .createHash('sha1')
         .update(buffer)
         .digest('base64');
 }
 
-module.exports = class TestAdapter {
-    static create(testResult = {}, {hermione, sqliteAdapter, status}) {
+export interface TestAdapterOptions {
+    hermione: Hermione & HtmlReporterApi;
+    sqliteAdapter: SqliteAdapter;
+    status: TestStatus;
+}
+
+export class TestAdapter {
+    private _testResult: TestResult;
+    private _hermione: Hermione & HtmlReporterApi;
+    private _sqliteAdapter: SqliteAdapter;
+    private _errors: Hermione['errors'];
+    private _suite: SuiteAdapter;
+    private _imagesSaver: ImagesSaver;
+    private _testId: string;
+    private _errorDetails: ErrorDetails | null;
+    private _timestamp: number;
+    private _attempt: number;
+
+    static create<T extends TestAdapter>(this: new (testResult: TestResult, options: TestAdapterOptions) => T, testResult: TestResult, {hermione, sqliteAdapter, status}: TestAdapterOptions): T {
         return new this(testResult, {hermione, sqliteAdapter, status});
     }
 
-    constructor(testResult, {hermione, sqliteAdapter, status}) {
+    constructor(testResult: TestResult, {hermione, sqliteAdapter, status}: TestAdapterOptions) {
         this._testResult = testResult;
         this._hermione = hermione;
         this._sqliteAdapter = sqliteAdapter;
@@ -42,7 +77,7 @@ module.exports = class TestAdapter {
         this._suite = SuiteAdapter.create(this._testResult);
         this._imagesSaver = this._hermione.htmlReporter.imagesSaver;
         this._testId = this._mkTestId();
-        this._errorDetails = undefined;
+        this._errorDetails = null;
         this._timestamp = this._testResult.timestamp;
 
         const browserVersion = _.get(this._testResult, 'meta.browserVersion', this._testResult.browserVersion);
@@ -50,54 +85,54 @@ module.exports = class TestAdapter {
         _.set(this._testResult, 'meta.browserVersion', browserVersion);
 
         if (utils.shouldUpdateAttempt(status)) {
-            testsAttempts.set(this._testId, _.isUndefined(testsAttempts.get(this._testId)) ? 0 : testsAttempts.get(this._testId) + 1);
+            testsAttempts.set(this._testId, _.isUndefined(testsAttempts.get(this._testId)) ? 0 : testsAttempts.get(this._testId) as number + 1);
         }
 
         this._attempt = testsAttempts.get(this._testId) || 0;
     }
 
-    get suite() {
+    get suite(): SuiteAdapter {
         return this._suite;
     }
 
-    get sessionId() {
+    get sessionId(): string {
         return this._testResult.sessionId || 'unknown session id';
     }
 
-    get browserId() {
+    get browserId(): string {
         return this._testResult.browserId;
     }
 
-    get imagesInfo() {
+    get imagesInfo(): ImageInfoFull[] | undefined {
         return this._testResult.imagesInfo;
     }
 
-    set imagesInfo(imagesInfo) {
+    set imagesInfo(imagesInfo: ImageInfoFull[]) {
         this._testResult.imagesInfo = imagesInfo;
     }
 
-    _getImgFromStorage(imgPath) {
+    protected _getImgFromStorage(imgPath: string): string {
         // fallback for updating image in gui mode
         return globalCacheAllImages.get(imgPath) || imgPath;
     }
 
-    _getLastImageInfoFromDb(stateName) {
+    protected _getLastImageInfoFromDb(stateName?: string): ImageInfo | undefined {
         const browserName = this._testResult.browserId;
         const suitePath = getSuitePath(this._testResult);
         const suitePathString = JSON.stringify(suitePath);
 
-        const imagesInfoResult = this._sqliteAdapter.query({
+        const imagesInfoResult = this._sqliteAdapter.query<Pick<SuitesRow, 'imagesInfo'> | undefined>({
             select: DB_COLUMNS.IMAGES_INFO,
             where: `${DB_COLUMNS.SUITE_PATH} = ? AND ${DB_COLUMNS.NAME} = ?`,
             orderBy: DB_COLUMNS.TIMESTAMP,
             orderDescending: true
         }, suitePathString, browserName);
 
-        const imagesInfo = imagesInfoResult && JSON.parse(imagesInfoResult[DB_COLUMNS.IMAGES_INFO]) || [];
+        const imagesInfo: ImageInfoFull[] = imagesInfoResult && JSON.parse(imagesInfoResult[DB_COLUMNS.IMAGES_INFO as keyof SuitesRow]) || [];
         return imagesInfo.find(info => info.stateName === stateName);
     }
 
-    _getExpectedPath(stateName, status, cacheExpectedPaths) {
+    protected _getExpectedPath(stateName: string | undefined, status: TestStatus | undefined, cacheExpectedPaths: Map<string, string>): {path: string, reused: boolean} {
         const key = this._getExpectedKey(stateName);
 
         if (status === UPDATED) {
@@ -108,13 +143,13 @@ module.exports = class TestAdapter {
         }
 
         if (cacheExpectedPaths.has(key)) {
-            return {path: cacheExpectedPaths.get(key), reused: true};
+            return {path: cacheExpectedPaths.get(key) as string, reused: true};
         }
 
         const imageInfo = this._getLastImageInfoFromDb(stateName);
 
-        if (imageInfo && imageInfo.expectedImg) {
-            const expectedPath = imageInfo.expectedImg.path;
+        if (imageInfo && (imageInfo as ImageInfoFail).expectedImg) {
+            const expectedPath = (imageInfo as ImageInfoFail).expectedImg.path;
 
             cacheExpectedPaths.set(key, expectedPath);
 
@@ -128,7 +163,7 @@ module.exports = class TestAdapter {
         return {path: expectedPath, reused: false};
     }
 
-    getImagesFor(status, stateName) {
+    getImagesFor(status: TestStatus, stateName?: string): ImageInfo | undefined {
         const refImg = this.getRefImg(stateName);
         const currImg = this.getCurrImg(stateName);
         const errImg = this.getErrImg();
@@ -137,11 +172,11 @@ module.exports = class TestAdapter {
         const currPath = utils.getCurrentPath(this, stateName);
         const diffPath = utils.getDiffPath(this, stateName);
 
-        if (status === SUCCESS || status === UPDATED) {
+        if ((status === SUCCESS || status === UPDATED) && refImg) {
             return {expectedImg: {path: this._getImgFromStorage(refPath), size: refImg.size}};
         }
 
-        if (status === FAIL) {
+        if (status === FAIL && refImg && currImg) {
             return {
                 expectedImg: {
                     path: this._getImgFromStorage(refPath),
@@ -154,14 +189,14 @@ module.exports = class TestAdapter {
                 diffImg: {
                     path: this._getImgFromStorage(diffPath),
                     size: {
-                        width: _.max([_.get(refImg, 'size.width'), _.get(currImg, 'size.width')]),
-                        height: _.max([_.get(refImg, 'size.height'), _.get(currImg, 'size.height')])
+                        width: _.max([_.get(refImg, 'size.width'), _.get(currImg, 'size.width')]) as number,
+                        height: _.max([_.get(refImg, 'size.height'), _.get(currImg, 'size.height')]) as number
                     }
                 }
             };
         }
 
-        if (status === ERROR) {
+        if (status === ERROR && currImg && errImg) {
             return {
                 actualImg: {
                     path: this.state ? this._getImgFromStorage(currPath) : '',
@@ -170,11 +205,11 @@ module.exports = class TestAdapter {
             };
         }
 
-        return {};
+        return;
     }
 
-    async _saveErrorScreenshot(reportPath) {
-        if (!this.screenshot.base64) {
+    protected async _saveErrorScreenshot(reportPath: string): Promise<void> {
+        if (!this.screenshot?.base64) {
             logger.warn('Cannot save screenshot on reject');
 
             return Promise.resolve();
@@ -185,12 +220,12 @@ module.exports = class TestAdapter {
         await utils.makeDirFor(localPath);
         await fs.writeFile(localPath, new Buffer(this.screenshot.base64, 'base64'), 'base64');
 
-        return this._saveImg(localPath, currPath, reportPath);
+        await this._saveImg(localPath, currPath, reportPath);
     }
 
-    async _saveImg(localPath, destPath, reportDir) {
+    protected async _saveImg(localPath: string | undefined, destPath: string, reportDir: string): Promise<string | undefined> {
         if (!localPath) {
-            return Promise.resolve();
+            return Promise.resolve(undefined);
         }
 
         const res = await this._imagesSaver.saveImg(localPath, {destPath, reportDir});
@@ -199,41 +234,41 @@ module.exports = class TestAdapter {
         return res;
     }
 
-    get origAttempt() {
+    get origAttempt(): number | undefined {
         return this._testResult.origAttempt;
     }
 
-    get attempt() {
+    get attempt(): number {
         return this._attempt;
     }
 
-    set attempt(attemptNum) {
+    set attempt(attemptNum: number) {
         testsAttempts.set(this._testId, attemptNum);
         this._attempt = attemptNum;
     }
 
-    hasDiff() {
+    hasDiff(): boolean {
         return this.assertViewResults.some((result) => this.isImageDiffError(result));
     }
 
-    get assertViewResults() {
+    get assertViewResults(): AssertViewResult[] {
         return this._testResult.assertViewResults || [];
     }
 
-    isImageDiffError(assertResult) {
+    isImageDiffError(assertResult: AssertViewResult): boolean {
         return assertResult instanceof this._errors.ImageDiffError;
     }
 
-    isNoRefImageError(assertResult) {
+    isNoRefImageError(assertResult: AssertViewResult): boolean {
         return assertResult instanceof this._errors.NoRefImageError;
     }
 
-    getImagesInfo() {
+    getImagesInfo(): ImageInfoFull[] {
         if (!_.isEmpty(this.imagesInfo)) {
-            return this.imagesInfo;
+            return this.imagesInfo as ImageInfoFull[];
         }
 
-        this.imagesInfo = this.assertViewResults.map((assertResult) => {
+        this.imagesInfo = this.assertViewResults.map((assertResult): ImageInfoFull => {
             let status, error;
 
             if (!(assertResult instanceof Error)) {
@@ -252,9 +287,9 @@ module.exports = class TestAdapter {
             const {stateName, refImg, diffClusters} = assertResult;
 
             return _.extend(
-                {stateName, refImg, status, error, diffClusters},
-                this.getImagesFor(status, stateName)
-            );
+                {stateName, refImg, status: status, error, diffClusters},
+                this.getImagesFor(status as TestStatus, stateName)
+            ) as ImageInfoFull;
         });
 
         // common screenshot on test fail
@@ -262,53 +297,54 @@ module.exports = class TestAdapter {
             const errorImage = _.extend(
                 {status: ERROR, error: this.error},
                 this.getImagesFor(ERROR)
-            );
+            ) as ImageInfoError;
 
-            this.imagesInfo.push(errorImage);
+            (this.imagesInfo as ImageInfoFull[]).push(errorImage);
         }
 
         return this.imagesInfo;
     }
 
-    get history() {
-        return getCommandsHistory(this._testResult.history);
+    get history(): string[] {
+        return getCommandsHistory(this._testResult.history) as string[];
     }
 
-    get error() {
+    get error(): undefined | {message?: string; stack?: string; stateName?: string} {
+        // TODO: return undefined or null if there's no err
         return _.pick(this._testResult.err, ['message', 'stack', 'stateName']);
     }
 
-    get imageDir() {
+    get imageDir(): string {
         // TODO: remove toString after publish major version
         return this._testResult.id.toString();
     }
 
-    get state() {
+    get state(): {name: string} {
         return {name: this._testResult.title};
     }
 
-    get testPath() {
+    get testPath(): string[] {
         return this._suite.path.concat(this._testResult.title);
     }
 
-    get id() {
-        return this.testPath.concat(this.browserId, this.attempt).join(' ');
+    get id(): string {
+        return this.testPath.concat(this.browserId, this.attempt.toString()).join(' ');
     }
 
-    get screenshot() {
+    get screenshot(): ImageBase64 | undefined {
         return _.get(this._testResult, 'err.screenshot');
     }
 
-    get description() {
+    get description(): string | undefined {
         return this._testResult.description;
     }
 
-    get meta() {
+    get meta(): Record<string, unknown> {
         return this._testResult.meta;
     }
 
-    get errorDetails() {
-        if (!_.isUndefined(this._errorDetails)) {
+    get errorDetails(): ErrorDetails | null {
+        if (!_.isNil(this._errorDetails)) {
             return this._errorDetails;
         }
 
@@ -329,30 +365,30 @@ module.exports = class TestAdapter {
         return this._errorDetails;
     }
 
-    getRefImg(stateName) {
-        return _.get(_.find(this.assertViewResults, {stateName}), 'refImg', {});
+    getRefImg(stateName?: string): ImageData | undefined {
+        return _.get(_.find(this.assertViewResults, {stateName}), 'refImg');
     }
 
-    getCurrImg(stateName) {
-        return _.get(_.find(this.assertViewResults, {stateName}), 'currImg', {});
+    getCurrImg(stateName?: string): ImageData | undefined {
+        return _.get(_.find(this.assertViewResults, {stateName}), 'currImg');
     }
 
-    getErrImg() {
-        return this.screenshot || {};
+    getErrImg(): ImageBase64 | undefined {
+        return this.screenshot;
     }
 
-    prepareTestResult() {
+    prepareTestResult(): PrepareTestResultData {
         const {title: name, browserId} = this._testResult;
         const suitePath = getSuitePath(this._testResult);
 
         return {name, suitePath, browserId};
     }
 
-    get multipleTabs() {
+    get multipleTabs(): boolean {
         return true;
     }
 
-    get timestamp() {
+    get timestamp(): number {
         return this._timestamp;
     }
 
@@ -362,7 +398,7 @@ module.exports = class TestAdapter {
         }
     }
 
-    async saveErrorDetails(reportPath) {
+    async saveErrorDetails(reportPath: string): Promise<void> {
         if (!this.errorDetails) {
             return;
         }
@@ -376,18 +412,20 @@ module.exports = class TestAdapter {
         await fs.writeFile(detailsFilePath, detailsData);
     }
 
-    async saveTestImages(reportPath, workers, cacheExpectedPaths = globalCacheExpectedPaths) {
+    async saveTestImages(reportPath: string, workers: typeof Workers, cacheExpectedPaths = globalCacheExpectedPaths): Promise<unknown[]> {
         const result = await Promise.all(this.assertViewResults.map(async (assertResult) => {
             const {stateName} = assertResult;
             const {path: destRefPath, reused: reusedReference} = this._getExpectedPath(stateName, undefined, cacheExpectedPaths);
-            const srcRefPath = this.getRefImg(stateName).path;
+            const srcRefPath = this.getRefImg(stateName)?.path;
 
             const destCurrPath = utils.getCurrentPath(this, stateName);
-            const srcCurrPath = this.getCurrImg(stateName).path || this.getErrImg().path;
+            // TODO: getErrImg returns base64, but here we mistakenly try to get its path
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const srcCurrPath = this.getCurrImg(stateName)?.path || (this.getErrImg() as any)?.path;
 
             const dstCurrPath = utils.getDiffPath(this, stateName);
             const srcDiffPath = path.resolve(tmp.tmpdir, dstCurrPath);
-            const actions = [];
+            const actions: unknown[] = [];
 
             if (!(assertResult instanceof Error)) {
                 actions.push(this._saveImg(srcRefPath, destRefPath, reportPath));
@@ -417,7 +455,7 @@ module.exports = class TestAdapter {
             await this._saveErrorScreenshot(reportPath);
         }
 
-        const htmlReporter = this._hermione.htmlReporter;
+        const htmlReporter = this._hermione.htmlReporter as HtmlReporter & EventEmitter2;
         await htmlReporter.emitAsync(htmlReporter.events.TEST_SCREENSHOTS_SAVED, {
             testId: this._testId,
             attempt: this.attempt,
@@ -427,7 +465,7 @@ module.exports = class TestAdapter {
         return result;
     }
 
-    updateCacheExpectedPath(stateName, expectedPath) {
+    updateCacheExpectedPath(stateName: string, expectedPath: string): void {
         const key = this._getExpectedKey(stateName);
 
         if (expectedPath) {
@@ -437,9 +475,9 @@ module.exports = class TestAdapter {
         }
     }
 
-    decreaseAttemptNumber() {
+    decreaseAttemptNumber(): void {
         const testId = this._mkTestId();
-        const currentTestAttempt = testsAttempts.get(testId);
+        const currentTestAttempt = testsAttempts.get(testId) as number;
         const previousTestAttempt = currentTestAttempt - 1;
 
         if (previousTestAttempt) {
@@ -449,18 +487,18 @@ module.exports = class TestAdapter {
         }
     }
 
-    _mkTestId() {
+    protected _mkTestId(): string {
         return this._testResult.fullTitle() + '.' + this._testResult.browserId;
     }
 
-    _getExpectedKey(stateName) {
+    protected _getExpectedKey(stateName?: string): string {
         const shortTestId = getShortMD5(this._mkTestId());
 
         return shortTestId + '#' + stateName;
     }
 
     //parallelize and cache of 'looks-same.createDiff' (because it is very slow)
-    async _saveDiffInWorker(imageDiffError, destPath, workers, cacheDiffImages = globalCacheDiffImages) {
+    protected async _saveDiffInWorker(imageDiffError: ImageDiffError, destPath: string, workers: typeof Workers, cacheDiffImages = globalCacheDiffImages): Promise<void> {
         await utils.makeDirFor(destPath);
 
         const currPath = imageDiffError.currImg.path;
@@ -474,7 +512,7 @@ module.exports = class TestAdapter {
         const hash = createHash(currBuffer) + createHash(refBuffer);
 
         if (cacheDiffImages.has(hash)) {
-            const cachedDiffPath = cacheDiffImages.get(hash);
+            const cachedDiffPath = cacheDiffImages.get(hash) as string;
 
             await fs.copy(cachedDiffPath, destPath);
             return;
@@ -484,4 +522,4 @@ module.exports = class TestAdapter {
 
         cacheDiffImages.set(hash, destPath);
     }
-};
+}

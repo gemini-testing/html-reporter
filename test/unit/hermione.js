@@ -30,7 +30,7 @@ describe('lib/hermione', () => {
         'better-sqlite3': sinon.stub().returns(mkSqliteDb())
     });
 
-    const TestAdapter = proxyquire('lib/test-adapter', {
+    const {TestAdapter} = proxyquire('lib/test-adapter', {
         'fs-extra': fs,
         './server-utils': utils
     });
@@ -38,7 +38,7 @@ describe('lib/hermione', () => {
     const StaticReportBuilder = proxyquire('lib/report-builder/static', {
         '../server-utils': utils,
         '../sqlite-adapter': {SqliteAdapter},
-        '../test-adapter': TestAdapter
+        '../test-adapter': {TestAdapter}
     });
 
     const PluginAdapter = proxyquire('lib/plugin-adapter', {
