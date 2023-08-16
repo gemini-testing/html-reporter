@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 'use strict';
 
 const looksSame = require('looks-same');
