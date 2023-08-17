@@ -1,7 +1,7 @@
-import {Suite} from './types';
+import {Suite, TestResult} from './types';
 
-export const getSuitePath = (suite: Suite): string[] => {
-    return suite.root ?
+export const getSuitePath = (suite: TestResult | Suite): string[] => {
+    return (suite as Suite).root ?
         [] :
         ([] as string[]).concat(getSuitePath(suite.parent as Suite)).concat(suite.title);
 };

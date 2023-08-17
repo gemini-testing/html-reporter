@@ -5,7 +5,7 @@ const {logger} = require('lib/common-utils');
 const {SUCCESS, UPDATED, SKIPPED, FAIL} = require('lib/constants/test-statuses');
 const {ERROR_DETAILS_PATH} = require('lib/constants/paths');
 const {stubTool, stubConfig} = require('../utils');
-const SqliteAdapter = require('lib/sqlite-adapter');
+const {SqliteAdapter} = require('lib/sqlite-adapter');
 const proxyquire = require('proxyquire');
 const fsOriginal = require('fs-extra');
 
@@ -72,7 +72,7 @@ describe('hermione test adapter', () => {
             './plugin-utils': {getSuitePath},
             './history-utils': {getCommandsHistory},
             './server-utils': utils
-        });
+        }).TestAdapter;
         sandbox.stub(utils, 'getCurrentPath').returns('');
         sandbox.stub(utils, 'getDiffPath').returns('');
         sandbox.stub(utils, 'getReferencePath').returns('');
@@ -619,7 +619,7 @@ describe('hermione test adapter', () => {
 
             await hermioneTestAdapter.saveTestImages('some/rep', workers);
 
-            const {expectedImg} = hermioneTestAdapter.getImagesFor(SUCCESS);
+            const {expectedImg} = hermioneTestAdapter.getImagesFor(SUCCESS, 'plain');
             assert.equal(expectedImg.path, 'saved/ref.png');
         });
 
@@ -639,7 +639,7 @@ describe('hermione test adapter', () => {
 
             await hermioneTestAdapter.saveTestImages('some/rep', workers);
 
-            const {expectedImg} = hermioneTestAdapter.getImagesFor(SUCCESS);
+            const {expectedImg} = hermioneTestAdapter.getImagesFor(SUCCESS, 'plain');
             assert.equal(expectedImg.path, 'some/ref.png');
         });
 
@@ -659,7 +659,7 @@ describe('hermione test adapter', () => {
 
             await hermioneTestAdapter.saveTestImages('some/rep', workers);
 
-            const {expectedImg} = hermioneTestAdapter.getImagesFor(UPDATED);
+            const {expectedImg} = hermioneTestAdapter.getImagesFor(UPDATED, 'plain');
             assert.equal(expectedImg.path, 'some/ref.png');
         });
 

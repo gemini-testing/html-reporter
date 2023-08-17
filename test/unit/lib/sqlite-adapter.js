@@ -4,7 +4,7 @@ const fs = require('fs-extra');
 const proxyquire = require('proxyquire');
 const Database = require('better-sqlite3');
 
-const SqliteAdapter = require('lib/sqlite-adapter');
+const {SqliteAdapter} = require('lib/sqlite-adapter');
 const PluginApi = require('lib/plugin-api');
 
 describe('lib/sqlite-adapter', () => {
@@ -79,7 +79,7 @@ describe('lib/sqlite-adapter', () => {
             prepareStub = sandbox.stub(Database.prototype, 'prepare').returns({get: getStub});
             sqliteAdapter = proxyquire('lib/sqlite-adapter', {
                 './db-utils/server': {createTablesQuery: () => []}
-            }).create({hermione, reportPath: 'test'});
+            }).SqliteAdapter.create({hermione, reportPath: 'test'});
 
             await sqliteAdapter.init();
         });
@@ -147,7 +147,7 @@ describe('lib/sqlite-adapter', () => {
             prepareStub = sandbox.stub(Database.prototype, 'prepare').returns({run: runStub});
             sqliteAdapter = proxyquire('lib/sqlite-adapter', {
                 './db-utils/server': {createTablesQuery: () => []}
-            }).create({hermione, reportPath: 'test'});
+            }).SqliteAdapter.create({hermione, reportPath: 'test'});
 
             await sqliteAdapter.init();
         });

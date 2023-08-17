@@ -6,15 +6,15 @@ import fs from 'fs-extra';
 import {logger} from './common-utils';
 import {UPDATED, RUNNING, IDLE, SKIPPED, IMAGES_PATH, TestStatus} from './constants';
 import type HtmlReporter from './plugin-api';
-import type TestAdapter from './test-adapter';
+import type {TestAdapter} from './test-adapter';
 import {CustomGuiItem, HtmlReporterApi, ReporterConfig} from './types';
 import type Hermione from 'hermione';
 
 const DATA_FILE_NAME = 'data.js';
 
-export const getReferencePath = (testResult: TestAdapter, stateName: string): string => createPath('ref', testResult, stateName);
-export const getCurrentPath = (testResult: TestAdapter, stateName: string): string => createPath('current', testResult, stateName);
-export const getDiffPath = (testResult: TestAdapter, stateName: string): string => createPath('diff', testResult, stateName);
+export const getReferencePath = (testResult: TestAdapter, stateName?: string): string => createPath('ref', testResult, stateName);
+export const getCurrentPath = (testResult: TestAdapter, stateName?: string): string => createPath('current', testResult, stateName);
+export const getDiffPath = (testResult: TestAdapter, stateName?: string): string => createPath('diff', testResult, stateName);
 
 export const getReferenceAbsolutePath = (testResult: TestAdapter, reportDir: string, stateName: string): string => {
     const referenceImagePath = getReferencePath(testResult, stateName);
@@ -40,7 +40,7 @@ export const getDiffAbsolutePath = (testResult: TestAdapter, reportDir: string, 
  * @param {String} stateName - имя стэйта для теста
  * @returns {String}
  */
-export function createPath(kind: string, result: TestAdapter, stateName: string): string {
+export function createPath(kind: string, result: TestAdapter, stateName?: string): string {
     const attempt: number = result.attempt || 0;
     const imageDir = _.compact([IMAGES_PATH, result.imageDir, stateName]);
     const components = imageDir.concat(`${result.browserId}~${kind}_${attempt}.png`);
@@ -83,7 +83,7 @@ export function logError(e: Error): void {
 
 export function hasImage(formattedResult: TestAdapter): boolean {
     return !!formattedResult.getImagesInfo().length ||
-        !!formattedResult.getCurrImg().path ||
+        !!formattedResult.getCurrImg()?.path ||
         !!formattedResult.screenshot;
 }
 
