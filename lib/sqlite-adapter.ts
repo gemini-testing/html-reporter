@@ -1,15 +1,19 @@
 import path from 'path';
-import fs from 'fs-extra';
 import Database from 'better-sqlite3';
-import debug from 'debug';
+import makeDebug from 'debug';
 import type EventEmitter2 from 'eventemitter2';
+import fs from 'fs-extra';
 import type Hermione from 'hermione';
 import NestedError from 'nested-error-stacks';
-import {createTablesQuery} from './db-utils/server';
+
 import {getShortMD5} from './common-utils';
-import {DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS, LOCAL_DATABASE_NAME, DATABASE_URLS_JSON_NAME} from './constants/database';
-import type {HtmlReporterApi} from './types';
 import {TestStatus} from './constants';
+import {DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS, LOCAL_DATABASE_NAME, DATABASE_URLS_JSON_NAME} from './constants/database';
+import {createTablesQuery} from './db-utils/server';
+import {DbNotInitializedError} from './errors/db-not-initialized-error';
+import type {HtmlReporterApi, ImageInfoFull} from './types';
+
+const debug = makeDebug('html-reporter:sqlite-adapter');
 
 interface QueryParams {
     select?: string;
@@ -35,7 +39,7 @@ export interface PreparedTestResult {
     description: unknown;
     error: Error;
     skipReason?: string;
-    imagesInfo: unknown[];
+    imagesInfo: ImageInfoFull[];
     screenshot: boolean;
     multipleTabs: boolean;
     status: TestStatus;
@@ -57,12 +61,6 @@ interface SqliteAdapterOptions {
     hermione: Hermione & HtmlReporterApi;
     reportPath: string;
     reuse?: boolean;
-}
-
-export class DbNotInitializedError extends Error {
-    constructor() {
-        super('Database must be initialized before use');
-    }
 }
 
 export class SqliteAdapter {
