@@ -14,7 +14,7 @@ describe('local-images-saver', () => {
 
         imagesSaver = proxyquire('lib/local-images-saver', {
             './server-utils': utils
-        });
+        }).LocalImagesSaver;
     });
 
     afterEach(() => sandbox.restore());
