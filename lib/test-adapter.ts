@@ -18,7 +18,7 @@ import {
     HtmlReporterApi,
     ImageInfo,
     ImagesSaver,
-    SuitesRow,
+    RawSuitesRow,
     TestResult,
     ImageData,
     ImageInfoFull, ImageDiffError, AssertViewResult, ImageInfoError,
@@ -121,14 +121,14 @@ export class TestAdapter {
         const suitePath = getSuitePath(this._testResult);
         const suitePathString = JSON.stringify(suitePath);
 
-        const imagesInfoResult = this._sqliteAdapter.query<Pick<SuitesRow, 'imagesInfo'> | undefined>({
+        const imagesInfoResult = this._sqliteAdapter.query<Pick<RawSuitesRow, 'imagesInfo'> | undefined>({
             select: DB_COLUMNS.IMAGES_INFO,
             where: `${DB_COLUMNS.SUITE_PATH} = ? AND ${DB_COLUMNS.NAME} = ?`,
             orderBy: DB_COLUMNS.TIMESTAMP,
             orderDescending: true
         }, suitePathString, browserName);
 
-        const imagesInfo: ImageInfoFull[] = imagesInfoResult && JSON.parse(imagesInfoResult[DB_COLUMNS.IMAGES_INFO as keyof SuitesRow]) || [];
+        const imagesInfo: ImageInfoFull[] = imagesInfoResult && JSON.parse(imagesInfoResult[DB_COLUMNS.IMAGES_INFO as keyof RawSuitesRow]) || [];
         return imagesInfo.find(info => info.stateName === stateName);
     }
 

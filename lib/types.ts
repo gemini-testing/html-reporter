@@ -112,8 +112,14 @@ export interface TestResult {
     parent: Suite;
 }
 
-export interface SuitesRow {
+export interface RawSuitesRow {
     imagesInfo: string;
+}
+
+export interface ParsedSuitesRow {
+    status: TestStatus;
+    imagesInfo: ImageInfoFull[];
+    metaInfo: Record<string, unknown>;
 }
 
 export interface HtmlReporterApi {

@@ -25,7 +25,7 @@ describe('ResultsTreeBuilder', () => {
         determineStatus = sandbox.stub().returns(SUCCESS);
         ResultsTreeBuilder = proxyquire('lib/tests-tree-builder/base', {
             '../common-utils': {determineStatus}
-        });
+        }).BaseTestsTreeBuilder;
 
         builder = ResultsTreeBuilder.create();
     });
