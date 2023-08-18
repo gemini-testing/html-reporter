@@ -1,7 +1,7 @@
 'use strict';
 
 const PluginApi = require('lib/plugin-api');
-const PluginEvents = require('lib/constants/plugin-events');
+const {PluginEvents} = require('lib/constants/plugin-events');
 
 describe('plugin api', () => {
     it('should store extra items', () => {
