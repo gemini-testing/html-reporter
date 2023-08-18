@@ -3,7 +3,7 @@
 const _ = require('lodash');
 const StaticResultsTreeBuilder = require('lib/tests-tree-builder/static');
 const {SUCCESS} = require('lib/constants/test-statuses');
-const {versions: browserVersions} = require('lib/constants/browser');
+const {BrowserVersions} = require('lib/constants/browser');
 
 describe('StaticResultsTreeBuilder', () => {
     const sandbox = sinon.sandbox.create();
@@ -150,7 +150,7 @@ describe('StaticResultsTreeBuilder', () => {
 
                 const {browsers} = builder.build(rows);
 
-                assert.deepEqual(browsers, [{id: 'yabro', versions: [browserVersions.UNKNOWN]}]);
+                assert.deepEqual(browsers, [{id: 'yabro', versions: [BrowserVersions.UNKNOWN]}]);
             });
 
             it('with a few versions for the same browser', () => {

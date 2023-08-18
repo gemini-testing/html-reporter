@@ -1,3 +1,4 @@
+export * from './browser';
 export * from './database';
 export * from './diff-modes';
 export * from './paths';

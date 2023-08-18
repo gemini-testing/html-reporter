@@ -3,7 +3,7 @@
 const _ = require('lodash');
 const proxyquire = require('proxyquire');
 const {FAIL, ERROR, SUCCESS} = require('lib/constants/test-statuses');
-const {versions: browserVersions} = require('lib/constants/browser');
+const {BrowserVersions} = require('lib/constants/browser');
 
 describe('ResultsTreeBuilder', () => {
     const sandbox = sinon.sandbox.create();
@@ -132,7 +132,7 @@ describe('ResultsTreeBuilder', () => {
                         name: 'b1',
                         parentId: 's1',
                         resultIds: ['s1 b1 0'],
-                        version: browserVersions.UNKNOWN
+                        version: BrowserVersions.UNKNOWN
                     }
                 );
             });
