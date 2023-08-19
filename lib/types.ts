@@ -114,9 +114,10 @@ export interface TestResult {
 
 export interface LabeledSuitesRow {
     imagesInfo: string;
+    timestamp: number;
 }
 
-export type RawSuitesRow = LabeledSuitesRow[keyof LabeledSuitesRow];
+export type RawSuitesRow = LabeledSuitesRow[keyof LabeledSuitesRow][];
 
 export interface ParsedSuitesRow {
     description: string | null;
@@ -169,4 +170,9 @@ export interface ReporterConfig {
     plugins: PluginDescription[];
     pluginsEnabled: boolean;
     yandexMetrika: { counterNumber: null | number };
+}
+
+export interface DbUrlsJsonData {
+    dbUrls: string[];
+    jsonUrls: string[];
 }

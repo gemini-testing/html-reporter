@@ -128,7 +128,7 @@ export class TestAdapter {
             orderDescending: true
         }, suitePathString, browserName);
 
-        const imagesInfo: ImageInfoFull[] = imagesInfoResult && JSON.parse(imagesInfoResult[DB_COLUMNS.IMAGES_INFO as keyof LabeledSuitesRow]) || [];
+        const imagesInfo: ImageInfoFull[] = imagesInfoResult && JSON.parse(imagesInfoResult[DB_COLUMNS.IMAGES_INFO as keyof Pick<LabeledSuitesRow, 'imagesInfo'>]) || [];
         return imagesInfo.find(info => info.stateName === stateName);
     }
 

@@ -1,23 +1,32 @@
-/* eslint-disable */
-// @ts-nocheck
-'use strict';
+import _ from 'lodash';
+import {logger} from '../common-utils';
+import {DB_MAX_AVAILABLE_PAGE_SIZE, DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS, DB_COLUMN_INDEXES} from '../constants';
+import {DbUrlsJsonData, RawSuitesRow} from '../types';
+import type {Database, Statement} from 'better-sqlite3';
 
-const _ = require('lodash');
-const {logger} = require('../common-utils');
-const {DB_MAX_AVAILABLE_PAGE_SIZE, DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS, DB_COLUMN_INDEXES} = require('../constants/database');
+export const selectAllQuery = (tableName: string): string => `SELECT * FROM ${tableName}`;
+export const selectAllSuitesQuery = (): string => selectAllQuery(DB_SUITES_TABLE_NAME);
 
-exports.selectAllQuery = (tableName) => `SELECT * FROM ${tableName}`;
-exports.selectAllSuitesQuery = () => exports.selectAllQuery(DB_SUITES_TABLE_NAME);
-
-exports.createTablesQuery = () => [
+export const createTablesQuery = (): string[] => [
     createTableQuery(DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS)
 ];
 
-exports.compareDatabaseRowsByTimestamp = (row1, row2) => {
-    return row1[DB_COLUMN_INDEXES.timestamp] - row2[DB_COLUMN_INDEXES.timestamp];
+export const compareDatabaseRowsByTimestamp = (row1: RawSuitesRow, row2: RawSuitesRow): number => {
+    return (row1[DB_COLUMN_INDEXES.timestamp] as number) - (row2[DB_COLUMN_INDEXES.timestamp] as number);
 };
 
-exports.handleDatabases = async (dbJsonUrls, opts = {}) => {
+export interface DbLoadResult {
+    url: string; status: string; data: null | unknown
+}
+
+export interface HandleDatabasesOptions {
+    loadDbJsonUrl: (dbJsonUrl: string) => Promise<{data: DbUrlsJsonData; status: string}>;
+    formatData?: (dbJsonUrl: string, status: string) => DbLoadResult;
+    prepareUrls: (dbUrls: string[], baseUrls: string) => string[];
+    loadDbUrl: (dbUrl: string, opts: unknown) => Promise<DbLoadResult | string>;
+}
+
+export const handleDatabases = async (dbJsonUrls: string[], opts: HandleDatabasesOptions): Promise<(string | DbLoadResult)[]> => {
     return _.flattenDeep(
         await Promise.all(
             dbJsonUrls.map(async dbJsonUrl => {
@@ -30,34 +39,31 @@ exports.handleDatabases = async (dbJsonUrls, opts = {}) => {
                         return opts.formatData ? opts.formatData(dbJsonUrl, currentJsonResponse.status) : [];
                     }
 
-                    // JSON format declare at lib/static/modules/actions.js
                     const {dbUrls, jsonUrls} = currentJsonResponse.data;
-
-                    // paths from databaseUrls.json may be relative or absolute
                     const preparedDbUrls = opts.prepareUrls(dbUrls, dbJsonUrl);
                     const preparedDbJsonUrls = opts.prepareUrls(jsonUrls, dbJsonUrl);
 
                     return await Promise.all([
-                        exports.handleDatabases(preparedDbJsonUrls, opts),
-                        ...preparedDbUrls.map(dbUrl => opts.loadDbUrl(dbUrl, opts))
+                        handleDatabases(preparedDbJsonUrls, opts),
+                        ...preparedDbUrls.map((dbUrl: string) => opts.loadDbUrl(dbUrl, opts))
                     ]);
                 } catch (e) {
                     logger.warn(`Error while downloading databases from ${dbJsonUrl}`, e);
 
-                    return opts.formatData ? opts.formatData(dbJsonUrl) : [];
+                    return opts.formatData ? opts.formatData(dbJsonUrl, 'error') : [];
                 }
             })
         )
     );
 };
 
-exports.mergeTables = ({db, dbPaths, getExistingTables = () => {}}) => {
+export const mergeTables = ({db, dbPaths, getExistingTables = (): string[] => []}: { db: Database, dbPaths: string[], getExistingTables?: (getTablesStatement: Statement<string[]>) => string[] }): void => {
     db.prepare(`PRAGMA page_size = ${DB_MAX_AVAILABLE_PAGE_SIZE}`).run();
 
     for (const dbPath of dbPaths) {
         db.prepare(`ATTACH DATABASE '${dbPath}' AS attached`).run();
 
-        const getTablesStatement = db.prepare(`SELECT name FROM attached.sqlite_master WHERE type='table'`);
+        const getTablesStatement = db.prepare<string[]>(`SELECT name FROM attached.sqlite_master WHERE type='table'`);
         const tables = getExistingTables(getTablesStatement);
 
         for (const tableName of tables) {
@@ -69,7 +75,7 @@ exports.mergeTables = ({db, dbPaths, getExistingTables = () => {}}) => {
     }
 };
 
-function createTableQuery(tableName, columns) {
+function createTableQuery(tableName: string, columns: { name: string, type: string }[]): string {
     const formattedColumns = columns
         .map(({name, type}) => `${name} ${type}`)
         .join(', ');

@@ -9,7 +9,7 @@ import NestedError from 'nested-error-stacks';
 import {getShortMD5} from './common-utils';
 import {TestStatus} from './constants';
 import {DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS, LOCAL_DATABASE_NAME, DATABASE_URLS_JSON_NAME} from './constants/database';
-import {createTablesQuery} from './db-utils/server';
+import {createTablesQuery} from './db-utils/common';
 import {DbNotInitializedError} from './errors/db-not-initialized-error';
 import type {HtmlReporterApi, ImageInfoFull} from './types';
 

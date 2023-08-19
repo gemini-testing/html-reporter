@@ -78,7 +78,7 @@ describe('lib/sqlite-adapter', () => {
             getStub = sandbox.stub();
             prepareStub = sandbox.stub(Database.prototype, 'prepare').returns({get: getStub});
             sqliteAdapter = proxyquire('lib/sqlite-adapter', {
-                './db-utils/server': {createTablesQuery: () => []}
+                './db-utils/common': {createTablesQuery: () => []}
             }).SqliteAdapter.create({hermione, reportPath: 'test'});
 
             await sqliteAdapter.init();
@@ -146,7 +146,7 @@ describe('lib/sqlite-adapter', () => {
             runStub = sandbox.stub();
             prepareStub = sandbox.stub(Database.prototype, 'prepare').returns({run: runStub});
             sqliteAdapter = proxyquire('lib/sqlite-adapter', {
-                './db-utils/server': {createTablesQuery: () => []}
+                './db-utils/common': {createTablesQuery: () => []}
             }).SqliteAdapter.create({hermione, reportPath: 'test'});
 
             await sqliteAdapter.init();

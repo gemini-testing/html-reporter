@@ -53,8 +53,8 @@ export class StaticTestsTreeBuilder extends BaseTestsTreeBuilder {
         const browsers: Record<string, Set<string>> = {};
 
         for (const row of rows) {
-            const testPath: string[] = JSON.parse(row[DB_COLUMN_INDEXES.suitePath]);
-            const browserName: string = row[DB_COLUMN_INDEXES.name];
+            const testPath: string[] = JSON.parse(row[DB_COLUMN_INDEXES.suitePath] as string);
+            const browserName = row[DB_COLUMN_INDEXES.name] as string;
 
             const testId = this._buildId(testPath);
             const browserId = this._buildId(testId, browserName);
@@ -179,17 +179,17 @@ function initStats(): Stats {
 
 function mkTestResult(row: RawSuitesRow, data: {attempt: number}): ParsedSuitesRow & Attempt {
     return {
-        description: row[DB_COLUMN_INDEXES.description],
-        imagesInfo: JSON.parse(row[DB_COLUMN_INDEXES.imagesInfo]),
-        metaInfo: JSON.parse(row[DB_COLUMN_INDEXES.metaInfo]),
-        history: JSON.parse(row[DB_COLUMN_INDEXES.history]),
+        description: row[DB_COLUMN_INDEXES.description] as string | null,
+        imagesInfo: JSON.parse(row[DB_COLUMN_INDEXES.imagesInfo] as string),
+        metaInfo: JSON.parse(row[DB_COLUMN_INDEXES.metaInfo] as string),
+        history: JSON.parse(row[DB_COLUMN_INDEXES.history] as string),
         multipleTabs: Boolean(row[DB_COLUMN_INDEXES.multipleTabs]),
-        name: row[DB_COLUMN_INDEXES.name],
+        name: row[DB_COLUMN_INDEXES.name] as string,
         screenshot: Boolean(row[DB_COLUMN_INDEXES.screenshot]),
         status: row[DB_COLUMN_INDEXES.status] as TestStatus,
-        suiteUrl: row[DB_COLUMN_INDEXES.suiteUrl],
-        skipReason: row[DB_COLUMN_INDEXES.skipReason],
-        error: JSON.parse(row[DB_COLUMN_INDEXES.error]),
+        suiteUrl: row[DB_COLUMN_INDEXES.suiteUrl] as string,
+        skipReason: row[DB_COLUMN_INDEXES.skipReason] as string,
+        error: JSON.parse(row[DB_COLUMN_INDEXES.error] as string),
         ...data
     };
 }
