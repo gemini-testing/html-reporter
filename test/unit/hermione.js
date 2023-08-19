@@ -35,7 +35,8 @@ describe('lib/hermione', () => {
         './server-utils': utils
     });
 
-    const StaticReportBuilder = proxyquire('lib/report-builder/static', {
+    const {StaticReportBuilder} = proxyquire('lib/report-builder/static', {
+        'fs-extra': fs,
         '../server-utils': utils,
         '../sqlite-adapter': {SqliteAdapter},
         '../test-adapter': {TestAdapter}
@@ -43,7 +44,7 @@ describe('lib/hermione', () => {
 
     const PluginAdapter = proxyquire('lib/plugin-adapter', {
         './server-utils': utils,
-        './report-builder/static': StaticReportBuilder,
+        './report-builder/static': {StaticReportBuilder},
         './plugin-api': proxyquire('lib/plugin-api', {
             './local-images-saver': proxyquire('lib/local-images-saver', {
                 './server-utils': utils

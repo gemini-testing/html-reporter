@@ -91,6 +91,8 @@ export class TestAdapter {
         this._attempt = testsAttempts.get(this._testId) || 0;
     }
 
+    image?: boolean;
+
     get suite(): SuiteAdapter {
         return this._suite;
     }

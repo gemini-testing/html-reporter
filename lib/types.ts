@@ -23,7 +23,7 @@ export interface ReportsSaver {
 
 export interface ErrorDetails {
     title: string;
-    data: unknown;
+    data?: unknown;
     filePath: string;
 }
 
@@ -174,6 +174,7 @@ export interface ReporterConfig {
     plugins: PluginDescription[];
     pluginsEnabled: boolean;
     yandexMetrika: { counterNumber: null | number };
+    saveErrorDetails: boolean;
 }
 
 export interface DbUrlsJsonData {
