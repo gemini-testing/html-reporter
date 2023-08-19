@@ -112,14 +112,34 @@ export interface TestResult {
     parent: Suite;
 }
 
-export interface RawSuitesRow {
+export interface LabeledSuitesRow {
     imagesInfo: string;
 }
 
+export type RawSuitesRow = LabeledSuitesRow[keyof LabeledSuitesRow];
+
 export interface ParsedSuitesRow {
-    status: TestStatus;
+    description: string | null;
+    error: {
+        message: string;
+        stack: string;
+    };
+    history: unknown;
     imagesInfo: ImageInfoFull[];
-    metaInfo: Record<string, unknown>;
+    metaInfo: {
+        browserVersion?: string;
+        [key: string]: unknown;
+    };
+    multipleTabs: boolean;
+    name: string;
+    screenshot: boolean;
+    skipReason: string;
+    status: TestStatus;
+    suiteUrl: string;
+}
+
+export interface Attempt {
+    attempt: number;
 }
 
 export interface HtmlReporterApi {

@@ -1,14 +1,41 @@
-/* eslint-disable */
-// @ts-nocheck
-'use strict';
+import _ from 'lodash';
+import {BaseTestsTreeBuilder, Tree} from './base';
+import {BrowserVersions, DB_COLUMN_INDEXES, TestStatus} from '../constants';
+import {Attempt, ParsedSuitesRow, RawSuitesRow} from '../types';
 
-const _ = require('lodash');
-const {BaseTestsTreeBuilder} = require('./base');
-const testStatus = require('../constants/test-statuses');
-const {BrowserVersions} = require('../constants/browser');
-const {DB_COLUMN_INDEXES} = require('../constants/database');
+interface Stats {
+    total: number;
+    passed: number;
+    failed: number;
+    skipped: number;
+    retries: number;
+}
 
-module.exports = class StaticTestsTreeBuilder extends BaseTestsTreeBuilder {
+type FinalStats = Stats & {
+    perBrowser: {
+        [browserName: string]: {
+            [browserVersion: string]: Stats
+        }
+    }
+}
+
+interface SkipItem {
+    browser: string;
+    suite: string;
+    comment: string;
+}
+
+interface BrowserItem {
+    id: string;
+    versions: string[];
+}
+
+export class StaticTestsTreeBuilder extends BaseTestsTreeBuilder {
+    protected _stats: FinalStats;
+    protected _skips: SkipItem[];
+    protected _failedBrowserIds: { [key: string]: boolean };
+    protected _passedBrowserIds: { [key: string]: boolean };
+
     constructor() {
         super();
 
@@ -21,20 +48,19 @@ module.exports = class StaticTestsTreeBuilder extends BaseTestsTreeBuilder {
         this._passedBrowserIds = {};
     }
 
-    build(rows = []) {
-        // in order to sync attempts between gui tree and static tree
-        const attemptsMap = new Map();
-        const browsers = {};
+    build(rows: RawSuitesRow[] = []): { tree: Tree; stats: FinalStats; skips: SkipItem[]; browsers: BrowserItem[] } {
+        const attemptsMap = new Map<string, number>();
+        const browsers: Record<string, Set<string>> = {};
 
         for (const row of rows) {
-            const testPath = JSON.parse(row[DB_COLUMN_INDEXES.suitePath]);
-            const browserName = row[DB_COLUMN_INDEXES.name];
+            const testPath: string[] = JSON.parse(row[DB_COLUMN_INDEXES.suitePath]);
+            const browserName: string = row[DB_COLUMN_INDEXES.name];
 
             const testId = this._buildId(testPath);
             const browserId = this._buildId(testId, browserName);
 
-            attemptsMap.set(browserId, attemptsMap.has(browserId) ? attemptsMap.get(browserId) + 1 : 0);
-            const attempt = attemptsMap.get(browserId);
+            attemptsMap.set(browserId, attemptsMap.has(browserId) ? attemptsMap.get(browserId) as number + 1 : 0);
+            const attempt = attemptsMap.get(browserId) as number;
 
             const testResult = mkTestResult(row, {attempt});
             const formattedResult = {browserId: browserName, testPath, attempt};
@@ -55,11 +81,11 @@ module.exports = class StaticTestsTreeBuilder extends BaseTestsTreeBuilder {
         };
     }
 
-    _addResultIdToBrowser(browserId, testResultId) {
+    protected _addResultIdToBrowser(browserId: string, testResultId: string): void {
         this._tree.browsers.byId[browserId].resultIds.push(testResultId);
     }
 
-    _calcStats(testResult, {testId, browserId, browserName}) {
+    protected _calcStats(testResult: ParsedSuitesRow, {testId, browserId, browserName}: { testId: string; browserId: string; browserName: string }): void {
         const {status} = testResult;
         const {browserVersion} = testResult.metaInfo;
         const version = browserVersion || BrowserVersions.UNKNOWN;
@@ -73,8 +99,8 @@ module.exports = class StaticTestsTreeBuilder extends BaseTestsTreeBuilder {
         }
 
         switch (status) {
-            case testStatus.FAIL:
-            case testStatus.ERROR: {
+            case TestStatus.FAIL:
+            case TestStatus.ERROR: {
                 if (this._failedBrowserIds[browserId]) {
                     this._stats.retries++;
                     this._stats.perBrowser[browserName][version].retries++;
@@ -89,7 +115,7 @@ module.exports = class StaticTestsTreeBuilder extends BaseTestsTreeBuilder {
                 return;
             }
 
-            case testStatus.SUCCESS: {
+            case TestStatus.SUCCESS: {
                 if (this._passedBrowserIds[browserId]) {
                     this._stats.retries++;
                     this._stats.perBrowser[browserName][version].retries++;
@@ -117,7 +143,7 @@ module.exports = class StaticTestsTreeBuilder extends BaseTestsTreeBuilder {
                 return;
             }
 
-            case testStatus.SKIPPED: {
+            case TestStatus.SKIPPED: {
                 this._skips.push({
                     browser: browserName,
                     suite: testId,
@@ -139,9 +165,9 @@ module.exports = class StaticTestsTreeBuilder extends BaseTestsTreeBuilder {
             }
         }
     }
-};
+}
 
-function initStats() {
+function initStats(): Stats {
     return {
         total: 0,
         passed: 0,
@@ -151,7 +177,7 @@ function initStats() {
     };
 }
 
-function mkTestResult(row, data = {}) {
+function mkTestResult(row: RawSuitesRow, data: {attempt: number}): ParsedSuitesRow & Attempt {
     return {
         description: row[DB_COLUMN_INDEXES.description],
         imagesInfo: JSON.parse(row[DB_COLUMN_INDEXES.imagesInfo]),
@@ -160,7 +186,7 @@ function mkTestResult(row, data = {}) {
         multipleTabs: Boolean(row[DB_COLUMN_INDEXES.multipleTabs]),
         name: row[DB_COLUMN_INDEXES.name],
         screenshot: Boolean(row[DB_COLUMN_INDEXES.screenshot]),
-        status: row[DB_COLUMN_INDEXES.status],
+        status: row[DB_COLUMN_INDEXES.status] as TestStatus,
         suiteUrl: row[DB_COLUMN_INDEXES.suiteUrl],
         skipReason: row[DB_COLUMN_INDEXES.skipReason],
         error: JSON.parse(row[DB_COLUMN_INDEXES.error]),
@@ -168,7 +194,7 @@ function mkTestResult(row, data = {}) {
     };
 }
 
-function addBrowserVersion(browsers, testResult) {
+function addBrowserVersion(browsers: Record<string, Set<string>>, testResult: ParsedSuitesRow): void {
     const browserId = testResult.name;
 
     if (!browsers[browserId]) {
