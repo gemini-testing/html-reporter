@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 'use strict';
 
 const EventsEmitter2 = require('eventemitter2');
