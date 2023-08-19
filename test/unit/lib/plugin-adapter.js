@@ -7,7 +7,7 @@ const {logger} = require('lib/common-utils');
 const {StaticReportBuilder} = require('lib/report-builder/static');
 const {HtmlReporter} = require('lib/plugin-api');
 const {stubTool, stubConfig} = require('../utils');
-const {GUI, MERGE_REPORTS, REMOVE_UNUSED_SCREENS} = require('lib/cli-commands');
+const {GUI, MERGE_REPORTS, REMOVE_UNUSED_SCREENS} = require('lib/cli-commands').cliCommands;
 
 describe('lib/plugin-adapter', () => {
     const sandbox = sinon.createSandbox();
