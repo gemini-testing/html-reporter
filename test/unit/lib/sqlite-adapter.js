@@ -5,7 +5,7 @@ const proxyquire = require('proxyquire');
 const Database = require('better-sqlite3');
 
 const {SqliteAdapter} = require('lib/sqlite-adapter');
-const PluginApi = require('lib/plugin-api');
+const {HtmlReporter} = require('lib/plugin-api');
 
 describe('lib/sqlite-adapter', () => {
     const sandbox = sinon.createSandbox();
@@ -18,7 +18,7 @@ describe('lib/sqlite-adapter', () => {
     };
 
     beforeEach(() => {
-        hermione = {htmlReporter: PluginApi.create()};
+        hermione = {htmlReporter: HtmlReporter.create()};
     });
 
     afterEach(() => {

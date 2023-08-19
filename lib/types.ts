@@ -1,7 +1,7 @@
 import type {LooksSameOptions, CoordBounds} from 'looks-same';
 import type {default as Hermione} from 'hermione';
 import {DiffMode, TestStatus, ViewMode} from './constants';
-import type HtmlReporter from './plugin-api';
+import type {HtmlReporter} from './plugin-api';
 
 declare module 'tmp' {
     export const tmpdir: string;
@@ -15,6 +15,10 @@ export interface Suite {
 
 export interface ImagesSaver {
     saveImg: (localFilePath: string, options: {destPath: string; reportDir: string}) => string | Promise<string>;
+}
+
+export interface ReportsSaver {
+    saveReportData: (localDbPath: string, options: {destPath: string; reportDir: string}) => string | Promise<string>;
 }
 
 export interface ErrorDetails {

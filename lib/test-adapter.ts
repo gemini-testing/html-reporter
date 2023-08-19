@@ -26,7 +26,7 @@ import {
 } from './types';
 import type {SqliteAdapter} from './sqlite-adapter';
 import EventEmitter2 from 'eventemitter2';
-import type HtmlReporter from './plugin-api';
+import type {HtmlReporter} from './plugin-api';
 import type * as Workers from './workers/worker';
 
 interface PrepareTestResultData {

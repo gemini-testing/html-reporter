@@ -7,7 +7,7 @@ const serverUtils = require('lib/server-utils');
 const {TestAdapter} = require('lib/test-adapter');
 const {SqliteAdapter} = require('lib/sqlite-adapter');
 const GuiTestsTreeBuilder = require('lib/tests-tree-builder/gui');
-const PluginApi = require('lib/plugin-api');
+const {HtmlReporter} = require('lib/plugin-api');
 const {SUCCESS, FAIL, ERROR, SKIPPED, IDLE, RUNNING, UPDATED} = require('lib/constants/test-statuses');
 const {LOCAL_DATABASE_NAME} = require('lib/constants/database');
 const {mkFormattedTest} = require('../../utils');
@@ -26,7 +26,7 @@ describe('GuiReportBuilder', () => {
         const browserConfigStub = {getAbsoluteUrl: toolConfig.getAbsoluteUrl};
         const hermione = {
             forBrowser: sandbox.stub().returns(browserConfigStub),
-            htmlReporter: PluginApi.create()
+            htmlReporter: HtmlReporter.create()
         };
 
         TestAdapter.create = (obj) => obj;

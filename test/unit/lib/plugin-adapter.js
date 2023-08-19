@@ -5,7 +5,7 @@ const _ = require('lodash');
 const proxyquire = require('proxyquire');
 const {logger} = require('lib/common-utils');
 const StaticReportBuilder = require('lib/report-builder/static');
-const PluginApi = require('lib/plugin-api');
+const {HtmlReporter} = require('lib/plugin-api');
 const {stubTool, stubConfig} = require('../utils');
 const {GUI, MERGE_REPORTS, REMOVE_UNUSED_SCREENS} = require('lib/cli-commands');
 
@@ -133,7 +133,7 @@ describe('lib/plugin-adapter', () => {
                 const plugin = toolReporter.create(tool, opts);
 
                 assert.deepEqual(plugin.addApi(), plugin);
-                assert.instanceOf(tool.htmlReporter, PluginApi);
+                assert.instanceOf(tool.htmlReporter, HtmlReporter);
             });
 
             it(`should not register command if hermione called via API`, () => {

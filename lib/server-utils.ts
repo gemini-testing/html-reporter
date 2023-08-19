@@ -5,7 +5,7 @@ import _ from 'lodash';
 import fs from 'fs-extra';
 import {logger} from './common-utils';
 import {UPDATED, RUNNING, IDLE, SKIPPED, IMAGES_PATH, TestStatus} from './constants';
-import type HtmlReporter from './plugin-api';
+import type {HtmlReporter} from './plugin-api';
 import type {TestAdapter} from './test-adapter';
 import {CustomGuiItem, HtmlReporterApi, ReporterConfig} from './types';
 import type Hermione from 'hermione';
