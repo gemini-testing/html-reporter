@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import {logger} from '../common-utils';
 import {DB_MAX_AVAILABLE_PAGE_SIZE, DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS, DB_COLUMN_INDEXES} from '../constants';
-import {DbUrlsJsonData, RawSuitesRow} from '../types';
+import {DbUrlsJsonData, RawSuitesRow, ReporterConfig} from '../types';
 import type {Database, Statement} from 'better-sqlite3';
 
 export const selectAllQuery = (tableName: string): string => `SELECT * FROM ${tableName}`;
@@ -20,10 +20,11 @@ export interface DbLoadResult {
 }
 
 export interface HandleDatabasesOptions {
-    loadDbJsonUrl: (dbJsonUrl: string) => Promise<{data: DbUrlsJsonData; status: string}>;
-    formatData?: (dbJsonUrl: string, status: string) => DbLoadResult;
+    pluginConfig: ReporterConfig;
+    loadDbJsonUrl: (dbJsonUrl: string) => Promise<{data: DbUrlsJsonData | null; status?: string}>;
+    formatData?: (dbJsonUrl: string, status?: string) => DbLoadResult;
     prepareUrls: (dbUrls: string[], baseUrls: string) => string[];
-    loadDbUrl: (dbUrl: string, opts: unknown) => Promise<DbLoadResult | string>;
+    loadDbUrl: (dbUrl: string, opts: HandleDatabasesOptions) => Promise<DbLoadResult | string>;
 }
 
 export const handleDatabases = async (dbJsonUrls: string[], opts: HandleDatabasesOptions): Promise<(string | DbLoadResult)[]> => {
@@ -50,20 +51,20 @@ export const handleDatabases = async (dbJsonUrls: string[], opts: HandleDatabase
                 } catch (e) {
                     logger.warn(`Error while downloading databases from ${dbJsonUrl}`, e);
 
-                    return opts.formatData ? opts.formatData(dbJsonUrl, 'error') : [];
+                    return opts.formatData ? opts.formatData(dbJsonUrl) : [];
                 }
             })
         )
     );
 };
 
-export const mergeTables = ({db, dbPaths, getExistingTables = (): string[] => []}: { db: Database, dbPaths: string[], getExistingTables?: (getTablesStatement: Statement<string[]>) => string[] }): void => {
+export const mergeTables = ({db, dbPaths, getExistingTables = (): string[] => []}: { db: Database, dbPaths: string[], getExistingTables?: (getTablesStatement: Statement<[]>) => string[] }): void => {
     db.prepare(`PRAGMA page_size = ${DB_MAX_AVAILABLE_PAGE_SIZE}`).run();
 
     for (const dbPath of dbPaths) {
         db.prepare(`ATTACH DATABASE '${dbPath}' AS attached`).run();
 
-        const getTablesStatement = db.prepare<string[]>(`SELECT name FROM attached.sqlite_master WHERE type='table'`);
+        const getTablesStatement = db.prepare<[]>(`SELECT name FROM attached.sqlite_master WHERE type='table'`);
         const tables = getExistingTables(getTablesStatement);
 
         for (const tableName of tables) {

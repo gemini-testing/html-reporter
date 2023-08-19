@@ -1,24 +1,23 @@
-/* eslint-disable */
-// @ts-nocheck
-'use strict';
+import path from 'path';
+import crypto from 'crypto';
+import axios from 'axios';
+import fs from 'fs-extra';
+import Database from 'better-sqlite3';
+import chalk from 'chalk';
+import NestedError from 'nested-error-stacks';
 
-const path = require('path');
-const crypto = require('crypto');
-const axios = require('axios');
-const fs = require('fs-extra');
-const Database = require('better-sqlite3');
-const chalk = require('chalk');
-const NestedError = require('nested-error-stacks');
+import {StaticTestsTreeBuilder} from '../tests-tree-builder/static';
+import * as commonSqliteUtils from './common';
+import {isUrl, fetchFile, normalizeUrls, logger} from '../common-utils';
+import {DATABASE_URLS_JSON_NAME, LOCAL_DATABASE_NAME} from '../constants';
+import {DbLoadResult, HandleDatabasesOptions} from './common';
+import {DbUrlsJsonData, RawSuitesRow, ReporterConfig} from '../types';
+import {Tree} from '../tests-tree-builder/base';
 
-const {StaticTestsTreeBuilder} = require('../tests-tree-builder/static');
-/** @type Record<string, (...args: unknown[]) => unknown> */
-const commonSqliteUtils = require('./common');
-const {isUrl, fetchFile, normalizeUrls, logger} = require('../common-utils');
+export * from './common';
 
-const {DATABASE_URLS_JSON_NAME, LOCAL_DATABASE_NAME} = require('../constants/database');
-
-function downloadDatabases(dbJsonUrls, opts) {
-    const loadDbJsonUrl = async (dbJsonUrl) => {
+export async function downloadDatabases(dbJsonUrls: string[], opts: HandleDatabasesOptions): Promise<(string | DbLoadResult)[]> {
+    const loadDbJsonUrl = async (dbJsonUrl: string): Promise<{data: DbUrlsJsonData | null}> => {
         if (isUrl(dbJsonUrl)) {
             return fetchFile(dbJsonUrl);
         }
@@ -27,20 +26,20 @@ function downloadDatabases(dbJsonUrls, opts) {
         return {data};
     };
 
-    const prepareUrls = (urls, baseUrl) => isUrl(baseUrl) ? normalizeUrls(urls, baseUrl) : urls;
-    const loadDbUrl = (dbUrl, opts) => downloadSingleDatabase(dbUrl, opts);
+    const prepareUrls = (urls: string[], baseUrl: string): string[] => isUrl(baseUrl) ? normalizeUrls(urls, baseUrl) : urls;
+    const loadDbUrl = (dbUrl: string, opts: HandleDatabasesOptions): Promise<string> => downloadSingleDatabase(dbUrl, opts);
 
     return commonSqliteUtils.handleDatabases(dbJsonUrls, {...opts, loadDbJsonUrl, prepareUrls, loadDbUrl});
 }
 
-async function mergeDatabases(srcDbPaths, reportPath) {
+export async function mergeDatabases(srcDbPaths: string[], reportPath: string): Promise<void> {
     try {
         const mainDatabaseUrls = path.resolve(reportPath, DATABASE_URLS_JSON_NAME);
         const mergedDbPath = path.resolve(reportPath, LOCAL_DATABASE_NAME);
         const mergedDb = new Database(mergedDbPath);
 
         commonSqliteUtils.mergeTables({db: mergedDb, dbPaths: srcDbPaths, getExistingTables: (statement) => {
-            return statement.all().map((table) => table.name);
+            return statement.all().map((table) => (table as {name: string}).name);
         }});
 
         for (const dbPath of srcDbPaths) {
@@ -50,31 +49,31 @@ async function mergeDatabases(srcDbPaths, reportPath) {
         await rewriteDatabaseUrls([mergedDbPath], mainDatabaseUrls, reportPath);
 
         mergedDb.close();
-    } catch (err) {
+    } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
         throw new NestedError('Error while merging databases', err);
     }
 }
 
-function getTestsTreeFromDatabase(dbPath) {
+export function getTestsTreeFromDatabase(dbPath: string): Tree {
     try {
         const db = new Database(dbPath, {readonly: true, fileMustExist: true});
         const testsTreeBuilder = StaticTestsTreeBuilder.create();
 
-        const suitesRows = db.prepare(commonSqliteUtils.selectAllSuitesQuery())
+        const suitesRows = (db.prepare(commonSqliteUtils.selectAllSuitesQuery())
             .raw()
-            .all()
+            .all() as RawSuitesRow[])
             .sort(commonSqliteUtils.compareDatabaseRowsByTimestamp);
         const {tree} = testsTreeBuilder.build(suitesRows);
 
         db.close();
 
         return tree;
-    } catch (err) {
+    } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
         throw new NestedError('Error while getting data from database', err);
     }
 }
 
-async function downloadSingleDatabase(dbUrl, {pluginConfig} = {}) {
+async function downloadSingleDatabase(dbUrl: string, {pluginConfig}: {pluginConfig: ReporterConfig}): Promise<string> {
     if (!isUrl(dbUrl)) {
         return path.resolve(pluginConfig.path, dbUrl);
     }
@@ -100,7 +99,7 @@ async function downloadSingleDatabase(dbUrl, {pluginConfig} = {}) {
     return dest;
 }
 
-function getUniqueFileNameForLink(link) {
+function getUniqueFileNameForLink(link: string): string {
     const fileName = crypto
         .createHash('sha256')
         .update(link)
@@ -110,7 +109,7 @@ function getUniqueFileNameForLink(link) {
     return `${fileName}${fileExt}`;
 }
 
-async function rewriteDatabaseUrls(dbPaths, mainDatabaseUrls, reportPath) {
+async function rewriteDatabaseUrls(dbPaths: string[], mainDatabaseUrls: string, reportPath: string): Promise<void> {
     const dbUrls = dbPaths.map(p => path.relative(reportPath, p));
 
     await fs.writeJson(mainDatabaseUrls, {
@@ -118,10 +117,3 @@ async function rewriteDatabaseUrls(dbPaths, mainDatabaseUrls, reportPath) {
         jsonUrls: []
     });
 }
-
-module.exports = {
-    ...commonSqliteUtils,
-    downloadDatabases,
-    mergeDatabases,
-    getTestsTreeFromDatabase
-};
