@@ -1,5 +1,6 @@
 export * from './browser';
 export * from './database';
+export * from './defaults';
 export * from './diff-modes';
 export * from './paths';
 export * from './plugin-events';

@@ -2,7 +2,7 @@
 
 const {isEmpty} = require('lodash');
 const parseConfig = require('lib/config');
-const {config: configDefaults} = require('lib/constants/defaults');
+const {configDefaults} = require('lib/constants/defaults');
 const {ViewMode} = require('lib/constants/view-modes');
 const {DiffModes} = require('lib/constants/diff-modes');
 const saveFormats = require('lib/constants/save-formats');
