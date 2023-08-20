@@ -1,10 +1,9 @@
-'use strict';
+import {isUndefined, isArray, isEmpty, isFunction, isPlainObject, isString} from 'lodash';
+import CustomGuiControlTypes from '../gui/constants/custom-gui-control-types';
 
-const {isUndefined, isArray, isEmpty, isFunction, isPlainObject, isString} = require('lodash');
+const SUPPORTED_CONTROL_TYPES: string[] = Object.values(CustomGuiControlTypes);
 
-const SUPPORTED_CONTROL_TYPES = Object.values(require('../gui/constants/custom-gui-control-types'));
-
-const assertSectionGroupType = (context, type) => {
+const assertSectionGroupType = (context: string, type: unknown): void => {
     if (isUndefined(type)) {
         throw new Error(`${context} must contain field "type"`);
     }
@@ -16,7 +15,7 @@ const assertSectionGroupType = (context, type) => {
     }
 };
 
-const assertSectionGroupControls = (context, controls) => {
+const assertSectionGroupControls = (context: string, controls: unknown): void => {
     if (isUndefined(controls)) {
         throw new Error(`${context} must contain field "controls"`);
     }
@@ -26,14 +25,14 @@ const assertSectionGroupControls = (context, controls) => {
     if (isEmpty(controls)) {
         throw new Error(`${context} must contain non-empty array in the field "controls"`);
     }
-    controls.forEach((control) => {
+    controls.forEach((control: unknown) => {
         if (!isPlainObject(control)) {
             throw new Error(`${context} must contain objects in the array "controls"`);
         }
     });
 };
 
-const assertSectionGroupAction = (context, action) => {
+const assertSectionGroupAction = (context: string, action: unknown): void => {
     if (isUndefined(action)) {
         throw new Error(`${context} must contain field "action"`);
     }
@@ -42,34 +41,35 @@ const assertSectionGroupAction = (context, action) => {
     }
 };
 
-const assertSectionGroup = (sectionName, group, groupIndex) => {
+const assertSectionGroup = (sectionName: string, group: unknown, groupIndex: number): void => {
     const context = `customGui["${sectionName}"][${groupIndex}]`;
 
     if (!isPlainObject(group)) {
         throw new Error(`${context} must be plain object, but got ${typeof group}`);
     }
 
-    assertSectionGroupType(context, group.type);
-    assertSectionGroupControls(context, group.controls);
-    assertSectionGroupAction(context, group.action);
+    const groupObj = group as Record<string, unknown>;
+
+    assertSectionGroupType(context, groupObj.type);
+    assertSectionGroupControls(context, groupObj.controls);
+    assertSectionGroupAction(context, groupObj.action);
 };
 
-const assertSection = (section, sectionName) => {
+const assertSection = (section: unknown, sectionName: string): void => {
     if (!isArray(section)) {
         throw new Error(`customGui["${sectionName}"] must be an array, but got ${typeof section}`);
     }
-    section.forEach((group, groupIndex) => assertSectionGroup(sectionName, group, groupIndex));
+    section.forEach((group: unknown, groupIndex: number) => assertSectionGroup(sectionName, group, groupIndex));
 };
 
-const assertCustomGui = (customGui) => {
+export const assertCustomGui = (customGui: unknown): void => {
     if (!isPlainObject(customGui)) {
         throw new Error(`"customGui" option must be plain object, but got ${typeof customGui}`);
     }
-    for (const sectionName in customGui) {
-        assertSection(customGui[sectionName], sectionName);
-    }
-};
 
-module.exports = {
-    assertCustomGui
+    const customGuiObj = customGui as Record<string, unknown>;
+
+    for (const sectionName in customGuiObj) {
+        assertSection(customGuiObj[sectionName], sectionName);
+    }
 };
