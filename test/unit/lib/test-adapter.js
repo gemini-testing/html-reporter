@@ -44,12 +44,13 @@ describe('hermione test adapter', () => {
         fullTitle: () => 'default-title'
     });
 
-    const mkErrStub = (ErrType = ImageDiffError, {stateName, currImg, refImg} = {}) => {
+    const mkErrStub = (ErrType = ImageDiffError, {stateName, currImg, refImg, diffBuffer} = {}) => {
         const err = new ErrType();
 
         err.stateName = stateName || 'plain';
         err.currImg = currImg || {path: 'curr/path'};
         err.refImg = refImg || {path: 'ref/path'};
+        err.diffBuffer = diffBuffer;
 
         return err;
     };
@@ -76,8 +77,11 @@ describe('hermione test adapter', () => {
         sandbox.stub(utils, 'getCurrentPath').returns('');
         sandbox.stub(utils, 'getDiffPath').returns('');
         sandbox.stub(utils, 'getReferencePath').returns('');
+
         fs.readFile.resolves(Buffer.from(''));
+        fs.writeFile.resolves();
         fs.copy.resolves();
+
         err = mkErrStub();
     });
 
@@ -231,13 +235,9 @@ describe('hermione test adapter', () => {
     });
 
     describe('saveErrorDetails', () => {
-        let fsWriteFile;
-
         beforeEach(() => {
             sandbox.stub(utils, 'makeDirFor').resolves();
             sandbox.stub(utils, 'getDetailsFileName').returns('md5-bro-n-time');
-
-            fsWriteFile = fs.writeFile.resolves();
         });
 
         it('should do nothing if no error details are available', async () => {
@@ -245,7 +245,7 @@ describe('hermione test adapter', () => {
 
             await hermioneTestAdapter.saveErrorDetails();
 
-            assert.notCalled(fsWriteFile);
+            assert.notCalled(fs.writeFile);
         });
 
         it('should save error details to correct path', async () => {
@@ -257,7 +257,7 @@ describe('hermione test adapter', () => {
 
             await hermioneTestAdapter.saveErrorDetails('report-path');
 
-            assert.calledWithMatch(fsWriteFile, `report-path/${filePath}`, sinon.match.any);
+            assert.calledWithMatch(fs.writeFile, `report-path/${filePath}`, sinon.match.any);
         });
 
         it('should create directory for error details', async () => {
@@ -276,7 +276,7 @@ describe('hermione test adapter', () => {
 
             await hermioneTestAdapter.saveErrorDetails('');
 
-            assert.calledWith(fsWriteFile, sinon.match.any, JSON.stringify(data, null, 2));
+            assert.calledWith(fs.writeFile, sinon.match.any, JSON.stringify(data, null, 2));
         });
     });
 
@@ -347,7 +347,6 @@ describe('hermione test adapter', () => {
             beforeEach(() => {
                 sandbox.stub(logger, 'warn');
                 sandbox.stub(utils, 'makeDirFor').resolves();
-                fs.writeFile.resolves();
                 sandbox.stub(utils, 'copyFileAsync');
             });
 
@@ -456,6 +455,19 @@ describe('hermione test adapter', () => {
                     imagesSaver.saveImg, 'ref/path',
                     {destPath: 'ref/report/path', reportDir: 'html-report/path'}
                 );
+            });
+
+            it('should save png buffer, if it is passed', async () => {
+                const error = mkErrStub(ImageDiffError, {stateName: 'plain', diffBuffer: 'foo'});
+                const testResult = mkTestResult_({assertViewResults: [error]});
+                utils.getDiffPath.returns('diff/report/path');
+
+                const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+                const workers = {saveDiffTo: sandbox.stub()};
+                await hermioneTestAdapter.saveTestImages('', workers);
+
+                assert.calledOnceWith(fs.writeFile, sinon.match('diff/report/path'), Buffer.from('foo'));
+                assert.notCalled(workers.saveDiffTo);
             });
         });
     });

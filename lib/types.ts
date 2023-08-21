@@ -84,6 +84,7 @@ export interface ImageDiffError {
     currImg: ImageData;
     refImg: ImageData;
     diffClusters: CoordBounds[];
+    diffBuffer?: ArrayBuffer;
 }
 
 export type AssertViewResult = ImageDiffError;

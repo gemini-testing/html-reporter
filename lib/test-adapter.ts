@@ -365,16 +365,16 @@ export class TestAdapter {
         return this._errorDetails;
     }
 
-    getRefImg(stateName?: string): ImageData | undefined {
-        return _.get(_.find(this.assertViewResults, {stateName}), 'refImg');
+    getRefImg(stateName?: string): ImageData | Record<string, never> {
+        return _.get(_.find(this.assertViewResults, {stateName}), 'refImg', {});
     }
 
-    getCurrImg(stateName?: string): ImageData | undefined {
-        return _.get(_.find(this.assertViewResults, {stateName}), 'currImg');
+    getCurrImg(stateName?: string): ImageData | Record<string, never> {
+        return _.get(_.find(this.assertViewResults, {stateName}), 'currImg', {});
     }
 
-    getErrImg(): ImageBase64 | undefined {
-        return this.screenshot;
+    getErrImg(): ImageBase64 | Record<string, never> {
+        return this.screenshot || {};
     }
 
     prepareTestResult(): PrepareTestResultData {
@@ -500,6 +500,14 @@ export class TestAdapter {
     //parallelize and cache of 'looks-same.createDiff' (because it is very slow)
     protected async _saveDiffInWorker(imageDiffError: ImageDiffError, destPath: string, workers: typeof Workers, cacheDiffImages = globalCacheDiffImages): Promise<void> {
         await utils.makeDirFor(destPath);
+
+        if (imageDiffError.diffBuffer) { // new versions of hermione provide `diffBuffer`
+            const pngBuffer = Buffer.from(imageDiffError.diffBuffer);
+
+            await fs.writeFile(destPath, pngBuffer);
+
+            return;
+        }
 
         const currPath = imageDiffError.currImg.path;
         const refPath = imageDiffError.refImg.path;
