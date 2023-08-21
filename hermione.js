@@ -2,7 +2,7 @@
 
 const os = require('os');
 const PQueue = require('p-queue');
-const PluginAdapter = require('./lib/plugin-adapter');
+const {PluginAdapter} = require('./lib/plugin-adapter');
 const {createWorkers} = require('./lib/workers/create-workers');
 
 let workers;

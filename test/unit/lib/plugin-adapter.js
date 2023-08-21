@@ -80,7 +80,7 @@ describe('lib/plugin-adapter', () => {
             [`./cli-commands/${GUI}`]: cliCommands[GUI],
             [`./cli-commands/${MERGE_REPORTS}`]: cliCommands[MERGE_REPORTS],
             [`./cli-commands/${REMOVE_UNUSED_SCREENS}`]: cliCommands[REMOVE_UNUSED_SCREENS]
-        });
+        }).PluginAdapter;
     });
 
     afterEach(() => sandbox.restore());

@@ -42,7 +42,7 @@ describe('lib/hermione', () => {
         '../test-adapter': {TestAdapter}
     });
 
-    const PluginAdapter = proxyquire('lib/plugin-adapter', {
+    const {PluginAdapter} = proxyquire('lib/plugin-adapter', {
         './server-utils': utils,
         './report-builder/static': {StaticReportBuilder},
         './plugin-api': proxyquire('lib/plugin-api', {
@@ -53,7 +53,7 @@ describe('lib/hermione', () => {
     });
 
     const HermioneReporter = proxyquire('../../hermione', {
-        './lib/plugin-adapter': PluginAdapter
+        './lib/plugin-adapter': {PluginAdapter}
     });
 
     const events = {
