@@ -41,3 +41,5 @@ export const DiffModes = {
 export type DiffModes = typeof DiffModes;
 
 export type DiffMode = ValueOf<DiffModes>;
+
+export type DiffModeId = DiffModes[keyof DiffModes]['id'];

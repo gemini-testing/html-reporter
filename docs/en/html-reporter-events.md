@@ -29,7 +29,7 @@ A database instance is passed to the event handler.
 ### Usage example
 
 ```javascript
-const parseConfig = require('./config');
+const {parseConfig} = require('./config');
 
 module.exports = (hermione, opts) => {
     const pluginConfig = parseConfig(opts);

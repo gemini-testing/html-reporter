@@ -76,7 +76,7 @@ describe('lib/plugin-adapter', () => {
         cliCommands[REMOVE_UNUSED_SCREENS] = sandbox.stub();
 
         toolReporter = proxyquire('lib/plugin-adapter', {
-            './config': parseConfig,
+            './config': {parseConfig},
             [`./cli-commands/${GUI}`]: cliCommands[GUI],
             [`./cli-commands/${MERGE_REPORTS}`]: cliCommands[MERGE_REPORTS],
             [`./cli-commands/${REMOVE_UNUSED_SCREENS}`]: cliCommands[REMOVE_UNUSED_SCREENS]

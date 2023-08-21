@@ -1,6 +1,6 @@
 import type {LooksSameOptions, CoordBounds} from 'looks-same';
 import type {default as Hermione} from 'hermione';
-import {DiffMode, TestStatus, ViewMode} from './constants';
+import {DiffModeId, SaveFormat, TestStatus, ViewMode} from './constants';
 import type {HtmlReporter} from './plugin-api';
 
 declare module 'tmp' {
@@ -151,8 +151,17 @@ export interface HtmlReporterApi {
     htmlReporter: HtmlReporter;
 }
 
+export interface ErrorPattern {
+    name: string;
+    pattern: string;
+}
+
 export interface PluginDescription {
     name: string;
+    component: string;
+    point?: string;
+    position?: 'after' | 'before' | 'wrap';
+    config?: Record<string, unknown>;
 }
 
 export interface CustomGuiItem {
@@ -164,18 +173,24 @@ export interface CustomGuiItem {
 
 export interface ReporterConfig {
     baseHost: string;
-    defaultView: ViewMode;
+    commandsWithShortHistory: string[];
     customGui: Record<string, CustomGuiItem[]>;
-    customScripts: object[];
-    diffMode: DiffMode;
-    errorPatterns: object[];
+    customScripts: (() => void)[];
+    defaultView: ViewMode;
+    diffMode: DiffModeId;
+    enabled: boolean;
+    errorPatterns: ErrorPattern[];
+    lazyLoadOffset: number | null;
     metaInfoBaseUrls: Record<string, string>;
     path: string;
     plugins: PluginDescription[];
     pluginsEnabled: boolean;
-    yandexMetrika: { counterNumber: null | number };
     saveErrorDetails: boolean;
+    saveFormat: SaveFormat;
+    yandexMetrika: { counterNumber: null | number };
 }
+
+export type ReporterOptions = Omit<ReporterConfig, 'errorPatterns'> & {errorPatterns: (string | ErrorPattern)[]};
 
 export interface DbUrlsJsonData {
     dbUrls: string[];

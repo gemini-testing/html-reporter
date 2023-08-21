@@ -1,7 +1,7 @@
 'use strict';
 
 const {isEmpty} = require('lodash');
-const parseConfig = require('lib/config');
+const {parseConfig} = require('lib/config');
 const {configDefaults} = require('lib/constants/defaults');
 const {ViewMode} = require('lib/constants/view-modes');
 const {DiffModes} = require('lib/constants/diff-modes');
