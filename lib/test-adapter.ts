@@ -5,7 +5,7 @@ import tmp from 'tmp';
 import crypto from 'crypto';
 import type {default as Hermione} from 'hermione';
 
-import SuiteAdapter from './suite-adapter';
+import {SuiteAdapter} from './suite-adapter';
 import {DB_COLUMNS} from './constants/database';
 import {getSuitePath} from './plugin-utils';
 import {getCommandsHistory} from './history-utils';

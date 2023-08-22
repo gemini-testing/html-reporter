@@ -7,7 +7,15 @@ declare module 'tmp' {
     export const tmpdir: string;
 }
 
-export interface Suite {
+interface ConfigurableTestObject {
+    browserId: string;
+    browserVersion?: string;
+    id: string;
+    file: string;
+    skipReason: string;
+}
+
+export interface Suite extends ConfigurableTestObject {
     readonly root: boolean;
     readonly title: string;
     parent: Suite | null;
@@ -93,7 +101,7 @@ export interface ImageDiffError {
 
 export type AssertViewResult = ImageDiffError;
 
-export interface TestResult {
+export interface TestResult extends ConfigurableTestObject {
     assertViewResults: AssertViewResult[];
     description?: string;
     err?: {
@@ -103,11 +111,8 @@ export interface TestResult {
         details: ErrorDetails
     };
     fullTitle(): string;
-    id: string;
     title: string;
     meta: Record<string, unknown>
-    browserId: string;
-    browserVersion?: string;
     sessionId: string;
     timestamp: number;
     imagesInfo: ImageInfoFull[];

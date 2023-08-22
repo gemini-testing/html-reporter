@@ -130,7 +130,7 @@ export class StaticReportBuilder {
         } = result;
 
         const {baseHost, saveErrorDetails} = this._pluginConfig;
-        const suiteUrl: string = suite.getUrl({browserId, baseHost});
+        const suiteUrl: string = suite.getUrl({baseHost});
         const metaInfo = _.merge(_.cloneDeep(result.meta), {url: suite.fullUrl, file: suite.file, sessionId});
 
         const testResult: PreparedTestResult = Object.assign({
