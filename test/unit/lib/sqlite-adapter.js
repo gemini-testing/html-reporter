@@ -12,7 +12,7 @@ describe('lib/sqlite-adapter', () => {
     let hermione;
 
     const makeSqliteAdapter_ = async () => {
-        const sqliteAdapter = SqliteAdapter.create({hermione, reportPath: 'test'});
+        const sqliteAdapter = SqliteAdapter.create({htmlReporter: hermione.htmlReporter, reportPath: 'test'});
         await sqliteAdapter.init();
         return sqliteAdapter;
     };
@@ -79,7 +79,7 @@ describe('lib/sqlite-adapter', () => {
             prepareStub = sandbox.stub(Database.prototype, 'prepare').returns({get: getStub});
             sqliteAdapter = proxyquire('lib/sqlite-adapter', {
                 './db-utils/common': {createTablesQuery: () => []}
-            }).SqliteAdapter.create({hermione, reportPath: 'test'});
+            }).SqliteAdapter.create({htmlReporter: hermione.htmlReporter, reportPath: 'test'});
 
             await sqliteAdapter.init();
         });
@@ -147,7 +147,7 @@ describe('lib/sqlite-adapter', () => {
             prepareStub = sandbox.stub(Database.prototype, 'prepare').returns({run: runStub});
             sqliteAdapter = proxyquire('lib/sqlite-adapter', {
                 './db-utils/common': {createTablesQuery: () => []}
-            }).SqliteAdapter.create({hermione, reportPath: 'test'});
+            }).SqliteAdapter.create({htmlReporter: hermione.htmlReporter, reportPath: 'test'});
 
             await sqliteAdapter.init();
         });

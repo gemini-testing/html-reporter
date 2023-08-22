@@ -35,7 +35,7 @@ export class StaticReportBuilder {
         this._pluginConfig = pluginConfig;
 
         this._sqliteAdapter = SqliteAdapter.create({
-            hermione: this._hermione,
+            htmlReporter: this._hermione.htmlReporter,
             reportPath: this._pluginConfig.path,
             reuse
         });

@@ -1,9 +1,7 @@
 import path from 'path';
 import Database from 'better-sqlite3';
 import makeDebug from 'debug';
-import type EventEmitter2 from 'eventemitter2';
 import fs from 'fs-extra';
-import type Hermione from 'hermione';
 import NestedError from 'nested-error-stacks';
 
 import {getShortMD5} from './common-utils';
@@ -11,7 +9,8 @@ import {TestStatus} from './constants';
 import {DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS, LOCAL_DATABASE_NAME, DATABASE_URLS_JSON_NAME} from './constants/database';
 import {createTablesQuery} from './db-utils/common';
 import {DbNotInitializedError} from './errors/db-not-initialized-error';
-import type {ErrorDetails, HtmlReporterApi, ImageInfoFull} from './types';
+import type {ErrorDetails, ImageInfoFull} from './types';
+import {HtmlReporter} from './plugin-api';
 
 const debug = makeDebug('html-reporter:sqlite-adapter');
 
@@ -59,13 +58,13 @@ interface ParsedTestResult extends PreparedTestResult {
 }
 
 interface SqliteAdapterOptions {
-    hermione: Hermione & HtmlReporterApi;
+    htmlReporter: HtmlReporter;
     reportPath: string;
     reuse?: boolean;
 }
 
 export class SqliteAdapter {
-    private _hermione: Hermione & HtmlReporterApi;
+    private _htmlReporter: HtmlReporter;
     private _reportPath: string;
     private _reuse: boolean;
     private _db: null | Database.Database;
@@ -75,8 +74,8 @@ export class SqliteAdapter {
         return new this(options);
     }
 
-    constructor({hermione, reportPath, reuse = false}: SqliteAdapterOptions) {
-        this._hermione = hermione;
+    constructor({htmlReporter, reportPath, reuse = false}: SqliteAdapterOptions) {
+        this._htmlReporter = htmlReporter;
         this._reportPath = reportPath;
         this._reuse = reuse;
         this._db = null;
@@ -102,7 +101,7 @@ export class SqliteAdapter {
 
             createTablesQuery().forEach((query) => this._db?.prepare(query).run());
 
-            (this._hermione.htmlReporter as unknown as EventEmitter2).emit(this._hermione.htmlReporter.events.DATABASE_CREATED, this._db);
+            this._htmlReporter.emit(this._htmlReporter.events.DATABASE_CREATED, this._db);
         } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
             throw new NestedError(`Error creating database at "${dbPath}"`, err);
         }
