@@ -38,7 +38,7 @@ describe('StaticReportBuilder', () => {
             })
         };
 
-        const reportBuilder = StaticReportBuilder.create(hermione, pluginConfig);
+        const reportBuilder = StaticReportBuilder.create(hermione.htmlReporter, pluginConfig);
         await reportBuilder.init();
 
         return reportBuilder;

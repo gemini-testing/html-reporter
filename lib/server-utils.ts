@@ -7,7 +7,7 @@ import {logger} from './common-utils';
 import {UPDATED, RUNNING, IDLE, SKIPPED, IMAGES_PATH, TestStatus} from './constants';
 import type {HtmlReporter} from './plugin-api';
 import type {TestAdapter} from './test-adapter';
-import {CustomGuiItem, HtmlReporterApi, ReporterConfig} from './types';
+import {CustomGuiItem, ReporterConfig} from './types';
 import type Hermione from 'hermione';
 
 const DATA_FILE_NAME = 'data.js';
@@ -106,13 +106,13 @@ export function getDetailsFileName(testId: string, browserId: string, attempt: n
     return `${testId}-${browserId}_${Number(attempt) + 1}_${Date.now()}.json`;
 }
 
-export async function saveStaticFilesToReportDir(hermione: Hermione & HtmlReporterApi, pluginConfig: ReporterConfig, destPath: string): Promise<void> {
+export async function saveStaticFilesToReportDir(htmlReporter: HtmlReporter, pluginConfig: ReporterConfig, destPath: string): Promise<void> {
     const staticFolder = path.resolve(__dirname, './static');
     await fs.ensureDir(destPath);
     await Promise.all([
         fs.writeFile(
             path.resolve(destPath, DATA_FILE_NAME),
-            prepareCommonJSData(getDataForStaticFile(hermione, pluginConfig)),
+            prepareCommonJSData(getDataForStaticFile(htmlReporter, pluginConfig)),
             'utf8'
         ),
         copyToReportDir(destPath, ['report.min.js', 'report.min.css'], staticFolder),
@@ -206,9 +206,7 @@ export interface DataForStaticFile {
     date: string;
 }
 
-export function getDataForStaticFile(hermione: Hermione & HtmlReporterApi, pluginConfig: ReporterConfig): DataForStaticFile {
-    const htmlReporter = hermione.htmlReporter;
-
+export function getDataForStaticFile(htmlReporter: HtmlReporter, pluginConfig: ReporterConfig): DataForStaticFile {
     return {
         skips: [],
         config: getConfigForStaticFile(pluginConfig),

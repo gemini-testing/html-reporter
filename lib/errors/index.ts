@@ -15,6 +15,7 @@ export interface ImageDiffError {
     currImg: ImageData;
     refImg: ImageData;
     diffClusters: CoordBounds[];
+    diffBuffer?: ArrayBuffer;
 }
 
 export interface NoRefImageError {
