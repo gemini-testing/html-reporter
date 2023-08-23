@@ -68,6 +68,7 @@ describe('lib/hermione', () => {
     };
 
     class ImageDiffError extends Error {
+        name = 'ImageDiffError';
         constructor() {
             super();
             this.stateName = '';
@@ -80,7 +81,9 @@ describe('lib/hermione', () => {
         }
     }
 
-    class NoRefImageError extends Error {}
+    class NoRefImageError extends Error {
+        name = 'NoRefImageError';
+    }
 
     function mkHermione_() {
         return stubTool({

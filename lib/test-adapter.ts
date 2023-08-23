@@ -3,31 +3,30 @@ import fs from 'fs-extra';
 import path from 'path';
 import tmp from 'tmp';
 import crypto from 'crypto';
-import type {default as Hermione} from 'hermione';
 
 import {SuiteAdapter} from './suite-adapter';
-import {DB_COLUMNS} from './constants/database';
 import {getSuitePath} from './plugin-utils';
 import {getCommandsHistory} from './history-utils';
-import {ERROR, ERROR_DETAILS_PATH, FAIL, SUCCESS, TestStatus, UPDATED} from './constants';
+import {ERROR, ERROR_DETAILS_PATH, FAIL, SUCCESS, TestStatus, UPDATED, DB_COLUMNS} from './constants';
 import {getShortMD5, logger} from './common-utils';
 import * as utils from './server-utils';
 import {
+    AssertViewResult,
     ErrorDetails,
-    ImageInfoFail,
-    HtmlReporterApi,
+    ImageBase64,
+    ImageData,
     ImageInfo,
+    ImageInfoError,
+    ImageInfoFail,
+    ImageInfoFull,
     ImagesSaver,
     LabeledSuitesRow,
-    TestResult,
-    ImageData,
-    ImageInfoFull, ImageDiffError, AssertViewResult, ImageInfoError,
-    ImageBase64
+    TestResult
 } from './types';
 import type {SqliteAdapter} from './sqlite-adapter';
-import EventEmitter2 from 'eventemitter2';
 import type {HtmlReporter} from './plugin-api';
 import type * as Workers from './workers/worker';
+import {ErrorName, ImageDiffError, NoRefImageError} from './errors';
 
 interface PrepareTestResultData {
     name: string;
@@ -48,16 +47,15 @@ function createHash(buffer: Buffer): string {
 }
 
 export interface TestAdapterOptions {
-    hermione: Hermione & HtmlReporterApi;
+    htmlReporter: HtmlReporter;
     sqliteAdapter: SqliteAdapter;
     status: TestStatus;
 }
 
 export class TestAdapter {
     private _testResult: TestResult;
-    private _hermione: Hermione & HtmlReporterApi;
+    private _htmlReporter: HtmlReporter;
     private _sqliteAdapter: SqliteAdapter;
-    private _errors: Hermione['errors'];
     private _suite: SuiteAdapter;
     private _imagesSaver: ImagesSaver;
     private _testId: string;
@@ -65,17 +63,16 @@ export class TestAdapter {
     private _timestamp: number;
     private _attempt: number;
 
-    static create<T extends TestAdapter>(this: new (testResult: TestResult, options: TestAdapterOptions) => T, testResult: TestResult, {hermione, sqliteAdapter, status}: TestAdapterOptions): T {
-        return new this(testResult, {hermione, sqliteAdapter, status});
+    static create<T extends TestAdapter>(this: new (testResult: TestResult, options: TestAdapterOptions) => T, testResult: TestResult, {htmlReporter, sqliteAdapter, status}: TestAdapterOptions): T {
+        return new this(testResult, {htmlReporter, sqliteAdapter, status});
     }
 
-    constructor(testResult: TestResult, {hermione, sqliteAdapter, status}: TestAdapterOptions) {
+    constructor(testResult: TestResult, {htmlReporter, sqliteAdapter, status}: TestAdapterOptions) {
         this._testResult = testResult;
-        this._hermione = hermione;
+        this._htmlReporter = htmlReporter;
         this._sqliteAdapter = sqliteAdapter;
-        this._errors = this._hermione.errors;
         this._suite = SuiteAdapter.create(this._testResult);
-        this._imagesSaver = this._hermione.htmlReporter.imagesSaver;
+        this._imagesSaver = this._htmlReporter.imagesSaver;
         this._testId = this._mkTestId();
         this._errorDetails = null;
         this._timestamp = this._testResult.timestamp;
@@ -257,12 +254,12 @@ export class TestAdapter {
         return this._testResult.assertViewResults || [];
     }
 
-    isImageDiffError(assertResult: AssertViewResult): boolean {
-        return assertResult instanceof this._errors.ImageDiffError;
+    isImageDiffError(assertResult: AssertViewResult): assertResult is ImageDiffError {
+        return assertResult.name === ErrorName.IMAGE_DIFF;
     }
 
-    isNoRefImageError(assertResult: AssertViewResult): boolean {
-        return assertResult instanceof this._errors.NoRefImageError;
+    isNoRefImageError(assertResult: AssertViewResult): assertResult is NoRefImageError {
+        return assertResult.name === ErrorName.NO_REF_IMAGE;
     }
 
     getImagesInfo(): ImageInfoFull[] {
@@ -271,7 +268,7 @@ export class TestAdapter {
         }
 
         this.imagesInfo = this.assertViewResults.map((assertResult): ImageInfoFull => {
-            let status, error;
+            let status: TestStatus | undefined, error: {message: string; stack: string;} | undefined;
 
             if (!(assertResult instanceof Error)) {
                 status = SUCCESS;
@@ -286,7 +283,8 @@ export class TestAdapter {
                 error = _.pick(assertResult, ['message', 'stack']);
             }
 
-            const {stateName, refImg, diffClusters} = assertResult;
+            const {stateName, refImg} = assertResult;
+            const diffClusters = (assertResult as ImageDiffError).diffClusters;
 
             return _.extend(
                 {stateName, refImg, status: status, error, diffClusters},
@@ -457,8 +455,7 @@ export class TestAdapter {
             await this._saveErrorScreenshot(reportPath);
         }
 
-        const htmlReporter = this._hermione.htmlReporter as HtmlReporter & EventEmitter2;
-        await htmlReporter.emitAsync(htmlReporter.events.TEST_SCREENSHOTS_SAVED, {
+        await this._htmlReporter.emitAsync(this._htmlReporter.events.TEST_SCREENSHOTS_SAVED, {
             testId: this._testId,
             attempt: this.attempt,
             imagesInfo: this.getImagesInfo()

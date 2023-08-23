@@ -51,7 +51,7 @@ export class StaticReportBuilder {
         return result instanceof TestAdapter
             ? result
             : TestAdapter.create(result, {
-                hermione: this._hermione,
+                htmlReporter: this._hermione.htmlReporter,
                 sqliteAdapter: this._sqliteAdapter,
                 status
             });

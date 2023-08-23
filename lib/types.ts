@@ -2,6 +2,7 @@ import type {LooksSameOptions, CoordBounds} from 'looks-same';
 import type {default as Hermione} from 'hermione';
 import {DiffModeId, SaveFormat, TestStatus, ViewMode} from './constants';
 import type {HtmlReporter} from './plugin-api';
+import {ImageDiffError, NoRefImageError} from './errors';
 
 declare module 'tmp' {
     export const tmpdir: string;
@@ -90,16 +91,7 @@ export type ImageInfo =
     | Omit<ImageInfoSuccess, 'status' | 'stateName'>
     | Omit<ImageInfoError, 'status' | 'stateName'>;
 
-export interface ImageDiffError {
-    stateName: string;
-    diffOpts: DiffOptions;
-    currImg: ImageData;
-    refImg: ImageData;
-    diffClusters: CoordBounds[];
-    diffBuffer?: ArrayBuffer;
-}
-
-export type AssertViewResult = ImageDiffError;
+export type AssertViewResult = ImageDiffError | NoRefImageError;
 
 export interface TestResult extends ConfigurableTestObject {
     assertViewResults: AssertViewResult[];

@@ -13,8 +13,12 @@ describe('hermione test adapter', () => {
     const sandbox = sinon.sandbox.create();
     let fs, tmp, HermioneTestResultAdapter, err, getSuitePath, getCommandsHistory, sqliteAdapter, utils;
 
-    class ImageDiffError extends Error {}
-    class NoRefImageError extends Error {}
+    class ImageDiffError extends Error {
+        name = 'ImageDiffError';
+    }
+    class NoRefImageError extends Error {
+        name = 'NoRefImageError';
+    }
 
     const mkHermioneTestResultAdapter = (testResult, {
         toolOpts = {}, htmlReporter = {}, status
@@ -36,7 +40,7 @@ describe('hermione test adapter', () => {
             }, htmlReporter)
         );
 
-        return new HermioneTestResultAdapter(testResult, {hermione, sqliteAdapter, status});
+        return new HermioneTestResultAdapter(testResult, {htmlReporter: hermione.htmlReporter, sqliteAdapter, status});
     };
 
     const mkTestResult_ = (result) => _.defaults(result, {
