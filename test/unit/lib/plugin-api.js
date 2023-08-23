@@ -1,11 +1,11 @@
 'use strict';
 
-const PluginApi = require('lib/plugin-api');
-const PluginEvents = require('lib/constants/plugin-events');
+const {HtmlReporter} = require('lib/plugin-api');
+const {PluginEvents} = require('lib/constants/plugin-events');
 
 describe('plugin api', () => {
     it('should store extra items', () => {
-        const pluginApi = PluginApi.create();
+        const pluginApi = HtmlReporter.create();
 
         pluginApi.addExtraItem('some', 'item');
 
@@ -13,7 +13,7 @@ describe('plugin api', () => {
     });
 
     it('should store meta info extenders', () => {
-        const pluginApi = PluginApi.create();
+        const pluginApi = HtmlReporter.create();
 
         pluginApi.addMetaInfoExtender('name', 'value');
 
@@ -21,7 +21,7 @@ describe('plugin api', () => {
     });
 
     it('should return all stored values', () => {
-        const pluginApi = PluginApi.create();
+        const pluginApi = HtmlReporter.create();
 
         pluginApi.addExtraItem('key1', 'value1');
         pluginApi.addMetaInfoExtender('key2', 'value2');
@@ -38,14 +38,14 @@ describe('plugin api', () => {
 
     describe('should provide access to', () => {
         it('plugin events', () => {
-            const pluginApi = PluginApi.create();
+            const pluginApi = HtmlReporter.create();
 
             assert.deepEqual(pluginApi.events, PluginEvents);
         });
 
         it('plugin config', () => {
             const pluginConfig = {path: 'some-path'};
-            const pluginApi = PluginApi.create(pluginConfig);
+            const pluginApi = HtmlReporter.create(pluginConfig);
 
             assert.deepEqual(pluginApi.config, pluginConfig);
         });

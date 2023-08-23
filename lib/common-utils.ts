@@ -2,14 +2,14 @@ import crypto from 'crypto';
 import {pick} from 'lodash';
 import url from 'url';
 import axios, {AxiosRequestConfig} from 'axios';
-import {SUCCESS, FAIL, ERROR, SKIPPED, UPDATED, IDLE, RUNNING, QUEUED} from './constants/test-statuses';
+import {SUCCESS, FAIL, ERROR, SKIPPED, UPDATED, IDLE, RUNNING, QUEUED, TestStatus} from './constants';
 
 import {UNCHECKED, INDETERMINATE, CHECKED} from './constants/checked-statuses';
 export const getShortMD5 = (str: string): string => {
     return crypto.createHash('md5').update(str, 'ascii').digest('hex').substr(0, 7);
 };
 
-const statusPriority: string[] = [
+const statusPriority: TestStatus[] = [
     // non-final
     RUNNING, QUEUED,
 
@@ -19,15 +19,15 @@ const statusPriority: string[] = [
 
 export const logger = pick(console, ['log', 'warn', 'error']);
 
-export const isSuccessStatus = (status: string): boolean => status === SUCCESS;
-export const isFailStatus = (status: string): boolean => status === FAIL;
-export const isIdleStatus = (status: string): boolean => status === IDLE;
-export const isRunningStatus = (status: string): boolean => status === RUNNING;
-export const isErroredStatus = (status: string): boolean => status === ERROR;
-export const isSkippedStatus = (status: string): boolean => status === SKIPPED;
-export const isUpdatedStatus = (status: string): boolean => status === UPDATED;
+export const isSuccessStatus = (status: TestStatus): boolean => status === SUCCESS;
+export const isFailStatus = (status: TestStatus): boolean => status === FAIL;
+export const isIdleStatus = (status: TestStatus): boolean => status === IDLE;
+export const isRunningStatus = (status: TestStatus): boolean => status === RUNNING;
+export const isErroredStatus = (status: TestStatus): boolean => status === ERROR;
+export const isSkippedStatus = (status: TestStatus): boolean => status === SKIPPED;
+export const isUpdatedStatus = (status: TestStatus): boolean => status === UPDATED;
 
-export const determineStatus = (statuses: string[]): string | null => {
+export const determineStatus = (statuses: TestStatus[]): TestStatus | null => {
     if (!statuses.length) {
         return SUCCESS;
     }

@@ -4,10 +4,10 @@ const {EventEmitter} = require('events');
 const _ = require('lodash');
 const proxyquire = require('proxyquire');
 const {logger} = require('lib/common-utils');
-const StaticReportBuilder = require('lib/report-builder/static');
-const PluginApi = require('lib/plugin-api');
+const {StaticReportBuilder} = require('lib/report-builder/static');
+const {HtmlReporter} = require('lib/plugin-api');
 const {stubTool, stubConfig} = require('../utils');
-const {GUI, MERGE_REPORTS, REMOVE_UNUSED_SCREENS} = require('lib/cli-commands');
+const {GUI, MERGE_REPORTS, REMOVE_UNUSED_SCREENS} = require('lib/cli-commands').cliCommands;
 
 describe('lib/plugin-adapter', () => {
     const sandbox = sinon.createSandbox();
@@ -76,11 +76,11 @@ describe('lib/plugin-adapter', () => {
         cliCommands[REMOVE_UNUSED_SCREENS] = sandbox.stub();
 
         toolReporter = proxyquire('lib/plugin-adapter', {
-            './config': parseConfig,
+            './config': {parseConfig},
             [`./cli-commands/${GUI}`]: cliCommands[GUI],
             [`./cli-commands/${MERGE_REPORTS}`]: cliCommands[MERGE_REPORTS],
             [`./cli-commands/${REMOVE_UNUSED_SCREENS}`]: cliCommands[REMOVE_UNUSED_SCREENS]
-        });
+        }).PluginAdapter;
     });
 
     afterEach(() => sandbox.restore());
@@ -133,7 +133,7 @@ describe('lib/plugin-adapter', () => {
                 const plugin = toolReporter.create(tool, opts);
 
                 assert.deepEqual(plugin.addApi(), plugin);
-                assert.instanceOf(tool.htmlReporter, PluginApi);
+                assert.instanceOf(tool.htmlReporter, HtmlReporter);
             });
 
             it(`should not register command if hermione called via API`, () => {

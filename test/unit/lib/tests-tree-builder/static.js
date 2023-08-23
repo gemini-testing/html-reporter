@@ -1,9 +1,9 @@
 'use strict';
 
 const _ = require('lodash');
-const StaticResultsTreeBuilder = require('lib/tests-tree-builder/static');
+const {StaticTestsTreeBuilder} = require('lib/tests-tree-builder/static');
 const {SUCCESS} = require('lib/constants/test-statuses');
-const {versions: browserVersions} = require('lib/constants/browser');
+const {BrowserVersions} = require('lib/constants/browser');
 
 describe('StaticResultsTreeBuilder', () => {
     const sandbox = sinon.sandbox.create();
@@ -65,10 +65,10 @@ describe('StaticResultsTreeBuilder', () => {
     };
 
     beforeEach(() => {
-        sandbox.stub(StaticResultsTreeBuilder.prototype, 'addTestResult');
-        sandbox.stub(StaticResultsTreeBuilder.prototype, 'sortTree');
+        sandbox.stub(StaticTestsTreeBuilder.prototype, 'addTestResult');
+        sandbox.stub(StaticTestsTreeBuilder.prototype, 'sortTree');
 
-        builder = StaticResultsTreeBuilder.create();
+        builder = StaticTestsTreeBuilder.create();
     });
 
     afterEach(() => sandbox.restore());
@@ -83,12 +83,12 @@ describe('StaticResultsTreeBuilder', () => {
                 builder.build(rows);
 
                 assert.calledWith(
-                    StaticResultsTreeBuilder.prototype.addTestResult.firstCall,
+                    StaticTestsTreeBuilder.prototype.addTestResult.firstCall,
                     formatToTestResult(dataFromDb1, {attempt: 0}),
                     {browserId: 'yabro', testPath: ['s1'], attempt: 0}
                 );
                 assert.calledWith(
-                    StaticResultsTreeBuilder.prototype.addTestResult.secondCall,
+                    StaticTestsTreeBuilder.prototype.addTestResult.secondCall,
                     formatToTestResult(dataFromDb2, {attempt: 0}),
                     {browserId: 'yabro', testPath: ['s2'], attempt: 0}
                 );
@@ -102,12 +102,12 @@ describe('StaticResultsTreeBuilder', () => {
                 builder.build(rows);
 
                 assert.calledWith(
-                    StaticResultsTreeBuilder.prototype.addTestResult.firstCall,
+                    StaticTestsTreeBuilder.prototype.addTestResult.firstCall,
                     formatToTestResult(dataFromDb1, {attempt: 0}),
                     {browserId: 'yabro', testPath: ['s1'], attempt: 0}
                 );
                 assert.calledWith(
-                    StaticResultsTreeBuilder.prototype.addTestResult.secondCall,
+                    StaticTestsTreeBuilder.prototype.addTestResult.secondCall,
                     formatToTestResult(dataFromDb1, {attempt: 1}),
                     {browserId: 'yabro', testPath: ['s1'], attempt: 1}
                 );
@@ -121,8 +121,8 @@ describe('StaticResultsTreeBuilder', () => {
                 builder.build(rows);
 
                 assert.callOrder(
-                    StaticResultsTreeBuilder.prototype.addTestResult,
-                    StaticResultsTreeBuilder.prototype.sortTree
+                    StaticTestsTreeBuilder.prototype.addTestResult,
+                    StaticTestsTreeBuilder.prototype.sortTree
                 );
             });
 
@@ -131,12 +131,12 @@ describe('StaticResultsTreeBuilder', () => {
 
                 builder.build(rows);
 
-                assert.calledOnce(StaticResultsTreeBuilder.prototype.sortTree);
+                assert.calledOnce(StaticTestsTreeBuilder.prototype.sortTree);
             });
         });
 
         it('should return tests tree', () => {
-            sandbox.stub(StaticResultsTreeBuilder.prototype, 'tree').get(() => 'tree');
+            sandbox.stub(StaticTestsTreeBuilder.prototype, 'tree').get(() => 'tree');
 
             const {tree} = builder.build([]);
 
@@ -150,7 +150,7 @@ describe('StaticResultsTreeBuilder', () => {
 
                 const {browsers} = builder.build(rows);
 
-                assert.deepEqual(browsers, [{id: 'yabro', versions: [browserVersions.UNKNOWN]}]);
+                assert.deepEqual(browsers, [{id: 'yabro', versions: [BrowserVersions.UNKNOWN]}]);
             });
 
             it('with a few versions for the same browser', () => {

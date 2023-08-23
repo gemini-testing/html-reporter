@@ -1,11 +1,82 @@
-'use strict';
+import _ from 'lodash';
+import {determineStatus} from '../common-utils';
+import {TestStatus, BrowserVersions} from '../constants';
+import {TestAdapter} from '../test-adapter';
+import {ImageInfoFull, ParsedSuitesRow} from '../types';
 
-const _ = require('lodash');
-const {determineStatus} = require('../common-utils');
-const {versions: browserVersions} = require('../constants/browser');
+type TreeResult = {
+    id: string;
+    parentId: string;
+    status: TestStatus;
+    imageIds: string[];
+} & Omit<ParsedSuitesRow, 'imagesInfo'>;
 
-module.exports = class ResultsTreeBuilder {
-    static create() {
+interface TreeBrowser {
+    id: string;
+    name: string;
+    parentId: string;
+    resultIds: string[];
+    version: string;
+}
+
+interface TreeSuite {
+    status?: TestStatus;
+    id: string;
+    parentId: string | null;
+    name: string;
+    suitePath: string[];
+    root: boolean;
+    suiteIds?: string[];
+    browserIds?: string[];
+}
+
+type TreeImages = {
+    id: string;
+    parentId: string;
+} & ImageInfoFull;
+
+export interface Tree {
+    suites: {
+        byId: Record<string, TreeSuite>,
+        allIds: string[],
+        allRootIds: string[]
+    },
+    browsers: {
+        byId: Record<string, TreeBrowser>,
+        allIds: string[]
+    },
+    results: {
+        byId: Record<string, TreeResult>,
+        allIds: string[]
+    },
+    images: {
+        byId: Record<string, TreeImages>,
+        allIds: string[]
+    }
+}
+
+interface ResultPayload {
+    id: string;
+    parentId: string;
+    result: ParsedSuitesRow;
+}
+
+interface BrowserPayload {
+    id: string;
+    name: string;
+    parentId: string;
+    version: string;
+}
+
+interface ImagesPayload {
+    imagesInfo: ImageInfoFull[];
+    parentId: string;
+}
+
+export class BaseTestsTreeBuilder {
+    protected _tree: Tree;
+
+    static create<T extends BaseTestsTreeBuilder>(this: new () => T): T {
         return new this();
     }
 
@@ -18,12 +89,12 @@ module.exports = class ResultsTreeBuilder {
         };
     }
 
-    get tree() {
+    get tree(): Tree {
         return this._tree;
     }
 
-    sortTree() {
-        const sortChildSuites = (suiteId) => {
+    sortTree(): void {
+        const sortChildSuites = (suiteId: string): void => {
             const childSuite = this._tree.suites.byId[suiteId];
 
             if (childSuite.suiteIds) {
@@ -38,16 +109,16 @@ module.exports = class ResultsTreeBuilder {
         this._tree.suites.allRootIds.sort().forEach(sortChildSuites);
     }
 
-    addTestResult(testResult, formattedResult) {
+    addTestResult(testResult: ParsedSuitesRow, formattedResult: Pick<TestAdapter, 'testPath' | 'browserId' | 'attempt'>): void {
         const {testPath, browserId: browserName, attempt} = formattedResult;
         const {imagesInfo} = testResult;
-        const {browserVersion = browserVersions.UNKNOWN} = testResult.metaInfo;
+        const {browserVersion = BrowserVersions.UNKNOWN} = testResult.metaInfo as {browserVersion: string};
 
         const suiteId = this._buildId(testPath);
         const browserId = this._buildId(suiteId, browserName);
-        const testResultId = this._buildId(browserId, attempt);
+        const testResultId = this._buildId(browserId, attempt.toString());
         const imageIds = imagesInfo
-            .map((image, i) => this._buildId(testResultId, image.stateName || `${image.status}_${i}`));
+            .map((image: ImageInfoFull, i: number) => this._buildId(testResultId, image.stateName || `${image.status}_${i}`));
 
         this._addSuites(testPath, browserId);
         this._addBrowser({id: browserId, parentId: suiteId, name: browserName, version: browserVersion}, testResultId, attempt);
@@ -57,11 +128,11 @@ module.exports = class ResultsTreeBuilder {
         this._setStatusForBranch(testPath);
     }
 
-    _buildId(parentId = [], name = []) {
-        return [].concat(parentId, name).join(' ');
+    protected _buildId(parentId: string | string[] = [], name: string | string[] = []): string {
+        return ([] as string[]).concat(parentId, name).join(' ');
     }
 
-    _addSuites(testPath, browserId) {
+    protected _addSuites(testPath: string[], browserId: string): void {
         testPath.reduce((suites, name, ind, arr) => {
             const isRoot = ind === 0;
             const suitePath = isRoot ? [name] : arr.slice(0, ind + 1);
@@ -69,7 +140,7 @@ module.exports = class ResultsTreeBuilder {
 
             if (!suites.byId[id]) {
                 const parentId = isRoot ? null : this._buildId(suitePath.slice(0, -1));
-                const suite = {id, parentId, name, suitePath, root: isRoot};
+                const suite: TreeSuite = {id, parentId, name, suitePath, root: isRoot};
 
                 this._addSuite(suite);
             }
@@ -85,7 +156,7 @@ module.exports = class ResultsTreeBuilder {
         }, this._tree.suites);
     }
 
-    _addSuite(suite) {
+    protected _addSuite(suite: TreeSuite): void {
         const {suites} = this._tree;
 
         suites.byId[suite.id] = suite;
@@ -96,7 +167,7 @@ module.exports = class ResultsTreeBuilder {
         }
     }
 
-    _addNodeId(parentSuiteId, nodeId, {fieldName}) {
+    protected _addNodeId(parentSuiteId: string, nodeId: string, {fieldName}: {fieldName: 'browserIds' | 'suiteIds'}): void {
         const {suites} = this._tree;
 
         if (!suites.byId[parentSuiteId][fieldName]) {
@@ -105,15 +176,15 @@ module.exports = class ResultsTreeBuilder {
         }
 
         if (!this._isNodeIdExists(parentSuiteId, nodeId, {fieldName})) {
-            suites.byId[parentSuiteId][fieldName].push(nodeId);
+            suites.byId[parentSuiteId][fieldName]?.push(nodeId);
         }
     }
 
-    _isNodeIdExists(parentSuiteId, nodeId, {fieldName}) {
+    protected _isNodeIdExists(parentSuiteId: string, nodeId: string, {fieldName}: {fieldName: 'browserIds' | 'suiteIds'}): boolean {
         return _.includes(this._tree.suites.byId[parentSuiteId][fieldName], nodeId);
     }
 
-    _addBrowser({id, parentId, name, version}, testResultId, attempt) {
+    protected _addBrowser({id, parentId, name, version}: BrowserPayload, testResultId: string, attempt: number): void {
         const {browsers} = this._tree;
 
         if (!browsers.byId[id]) {
@@ -124,11 +195,11 @@ module.exports = class ResultsTreeBuilder {
         this._addResultIdToBrowser(id, testResultId, attempt);
     }
 
-    _addResultIdToBrowser(browserId, testResultId, attempt) {
+    protected _addResultIdToBrowser(browserId: string, testResultId: string, attempt: number): void {
         this._tree.browsers.byId[browserId].resultIds[attempt] = testResultId;
     }
 
-    _addResult({id, parentId, result}, imageIds) {
+    protected _addResult({id, parentId, result}: ResultPayload, imageIds: string[]): void {
         const resultWithoutImagesInfo = _.omit(result, 'imagesInfo');
 
         if (!this._tree.results.byId[id]) {
@@ -138,14 +209,14 @@ module.exports = class ResultsTreeBuilder {
         this._tree.results.byId[id] = {id, parentId, ...resultWithoutImagesInfo, imageIds};
     }
 
-    _addImages(imageIds, {imagesInfo, parentId}) {
+    protected _addImages(imageIds: string[], {imagesInfo, parentId}: ImagesPayload): void {
         imageIds.forEach((id, ind) => {
             this._tree.images.byId[id] = {...imagesInfo[ind], id, parentId};
             this._tree.images.allIds.push(id);
         });
     }
 
-    _setStatusForBranch(testPath = []) {
+    protected _setStatusForBranch(testPath: string[] = []): void {
         const suiteId = this._buildId(testPath);
 
         if (!suiteId) {
@@ -154,25 +225,25 @@ module.exports = class ResultsTreeBuilder {
 
         const suite = this._tree.suites.byId[suiteId];
 
-        const resultStatuses = _.compact([].concat(suite.browserIds))
-            .map((browserId) => {
+        const resultStatuses = _.compact(([] as (string | undefined)[]).concat(suite.browserIds))
+            .map((browserId: string) => {
                 const browser = this._tree.browsers.byId[browserId];
-                const lastResultId = _.last(browser.resultIds);
+                const lastResultId = _.last(browser.resultIds) as string;
 
                 return this._tree.results.byId[lastResultId].status;
             });
 
-        const childrenSuiteStatuses = _.compact([].concat(suite.suiteIds))
-            .map((childSuiteId) => this._tree.suites.byId[childSuiteId].status);
+        const childrenSuiteStatuses = _.compact(([] as (string | undefined)[]).concat(suite.suiteIds))
+            .map((childSuiteId: string) => this._tree.suites.byId[childSuiteId].status);
 
-        const status = determineStatus([...resultStatuses, ...childrenSuiteStatuses]);
+        const status = determineStatus(_.compact([...resultStatuses, ...childrenSuiteStatuses]));
 
         // if newly determined status is the same as current status, do nothing
         if (suite.status === status) {
             return;
         }
 
-        suite.status = status;
+        suite.status = status || undefined;
         this._setStatusForBranch(testPath.slice(0, -1));
     }
-};
+}

@@ -5,7 +5,7 @@ import tmp from 'tmp';
 import crypto from 'crypto';
 import type {default as Hermione} from 'hermione';
 
-import SuiteAdapter from './suite-adapter';
+import {SuiteAdapter} from './suite-adapter';
 import {DB_COLUMNS} from './constants/database';
 import {getSuitePath} from './plugin-utils';
 import {getCommandsHistory} from './history-utils';
@@ -18,7 +18,7 @@ import {
     HtmlReporterApi,
     ImageInfo,
     ImagesSaver,
-    SuitesRow,
+    LabeledSuitesRow,
     TestResult,
     ImageData,
     ImageInfoFull, ImageDiffError, AssertViewResult, ImageInfoError,
@@ -26,7 +26,7 @@ import {
 } from './types';
 import type {SqliteAdapter} from './sqlite-adapter';
 import EventEmitter2 from 'eventemitter2';
-import type HtmlReporter from './plugin-api';
+import type {HtmlReporter} from './plugin-api';
 import type * as Workers from './workers/worker';
 
 interface PrepareTestResultData {
@@ -91,6 +91,8 @@ export class TestAdapter {
         this._attempt = testsAttempts.get(this._testId) || 0;
     }
 
+    image?: boolean;
+
     get suite(): SuiteAdapter {
         return this._suite;
     }
@@ -121,14 +123,14 @@ export class TestAdapter {
         const suitePath = getSuitePath(this._testResult);
         const suitePathString = JSON.stringify(suitePath);
 
-        const imagesInfoResult = this._sqliteAdapter.query<Pick<SuitesRow, 'imagesInfo'> | undefined>({
+        const imagesInfoResult = this._sqliteAdapter.query<Pick<LabeledSuitesRow, 'imagesInfo'> | undefined>({
             select: DB_COLUMNS.IMAGES_INFO,
             where: `${DB_COLUMNS.SUITE_PATH} = ? AND ${DB_COLUMNS.NAME} = ?`,
             orderBy: DB_COLUMNS.TIMESTAMP,
             orderDescending: true
         }, suitePathString, browserName);
 
-        const imagesInfo: ImageInfoFull[] = imagesInfoResult && JSON.parse(imagesInfoResult[DB_COLUMNS.IMAGES_INFO as keyof SuitesRow]) || [];
+        const imagesInfo: ImageInfoFull[] = imagesInfoResult && JSON.parse(imagesInfoResult[DB_COLUMNS.IMAGES_INFO as keyof Pick<LabeledSuitesRow, 'imagesInfo'>]) || [];
         return imagesInfo.find(info => info.stateName === stateName);
     }
 

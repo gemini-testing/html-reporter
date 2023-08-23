@@ -29,7 +29,7 @@ hermione.htmlReporter.on(hermione.htmlReporter.events.DATABASE_CREATED, (db) => 
 ### Пример использования
 
 ```javascript
-const parseConfig = require('./config');
+const {parseConfig} = require('./config');
 
 module.exports = (hermione, opts) => {
     const pluginConfig = parseConfig(opts);

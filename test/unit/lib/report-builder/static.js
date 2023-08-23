@@ -1,10 +1,10 @@
 'use strict';
 
-const fs = require('fs-extra');
+const fsOriginal = require('fs-extra');
 const _ = require('lodash');
 const Database = require('better-sqlite3');
 const proxyquire = require('proxyquire');
-const PluginApi = require('lib/plugin-api');
+const {HtmlReporter} = require('lib/plugin-api');
 const {SUCCESS, FAIL, ERROR, SKIPPED} = require('lib/constants/test-statuses');
 const {LOCAL_DATABASE_NAME} = require('lib/constants/database');
 const {mkFormattedTest} = require('../../utils');
@@ -14,7 +14,14 @@ const TEST_DB_PATH = `${TEST_REPORT_PATH}/${LOCAL_DATABASE_NAME}`;
 
 describe('StaticReportBuilder', () => {
     const sandbox = sinon.sandbox.create();
-    let hasImage, StaticReportBuilder, hermione;
+    let StaticReportBuilder, hermione;
+
+    const fs = _.clone(fsOriginal);
+
+    const originalUtils = proxyquire('lib/server-utils', {
+        'fs-extra': fs
+    });
+    const utils = _.clone(originalUtils);
 
     const mkStaticReportBuilder_ = async ({toolConfig = {}, pluginConfig} = {}) => {
         toolConfig = _.defaults(toolConfig, {getAbsoluteUrl: _.noop});
@@ -24,7 +31,7 @@ describe('StaticReportBuilder', () => {
         hermione = {
             forBrowser: sandbox.stub().returns(browserConfigStub),
             on: sandbox.spy(),
-            htmlReporter: _.extend(PluginApi.create(), {
+            htmlReporter: _.extend(HtmlReporter.create(), {
                 reportsSaver: {
                     saveReportData: sandbox.stub()
                 }
@@ -59,11 +66,12 @@ describe('StaticReportBuilder', () => {
     };
 
     beforeEach(() => {
-        hasImage = sandbox.stub().returns(true);
+        sandbox.stub(utils, 'hasImage').returns(true);
 
         StaticReportBuilder = proxyquire('lib/report-builder/static', {
-            '../server-utils': {hasImage}
-        });
+            'fs-extra': fs,
+            '../server-utils': utils
+        }).StaticReportBuilder;
     });
 
     afterEach(() => {

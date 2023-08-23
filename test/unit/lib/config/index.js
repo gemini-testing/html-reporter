@@ -1,11 +1,11 @@
 'use strict';
 
 const {isEmpty} = require('lodash');
-const parseConfig = require('lib/config');
-const {config: configDefaults} = require('lib/constants/defaults');
+const {parseConfig} = require('lib/config');
+const {configDefaults} = require('lib/constants/defaults');
 const {ViewMode} = require('lib/constants/view-modes');
 const {DiffModes} = require('lib/constants/diff-modes');
-const saveFormats = require('lib/constants/save-formats');
+const {SaveFormat} = require('lib/constants/save-formats');
 const SUPPORTED_CONTROL_TYPES = Object.values(require('lib/gui/constants/custom-gui-control-types'));
 const {logger} = require('lib/common-utils');
 
@@ -82,8 +82,8 @@ describe('config', () => {
     });
 
     describe('"saveFormat" option', () => {
-        it(`should be ${saveFormats.SQLITE} by default`, () => {
-            assert.equal(parseConfig({}).saveFormat, saveFormats.SQLITE);
+        it(`should be ${SaveFormat.SQLITE} by default`, () => {
+            assert.equal(parseConfig({}).saveFormat, SaveFormat.SQLITE);
         });
     });
 

@@ -1,47 +1,43 @@
-'use strict';
+import _ from 'lodash';
+import {root, section, option} from 'gemini-configparser';
+import chalk from 'chalk';
 
-const _ = require('lodash');
-const configParser = require('gemini-configparser');
-const chalk = require('chalk');
-
-const {logger} = require('../common-utils');
-const {config: configDefaults} = require('../constants/defaults');
-const {DiffModes} = require('../constants/diff-modes');
-const saveFormats = require('../constants/save-formats');
-const {assertCustomGui} = require('./custom-gui-asserts');
-
-const root = configParser.root;
-const section = configParser.section;
-const option = configParser.option;
+import {logger} from '../common-utils';
+import {configDefaults, DiffModeId, DiffModes, SaveFormat, ViewMode} from '../constants';
+import {assertCustomGui} from './custom-gui-asserts';
+import {ErrorPattern, PluginDescription, ReporterConfig, ReporterOptions} from '../types';
 
 const ENV_PREFIX = 'html_reporter_';
 const CLI_PREFIX = '--html-reporter-';
 
 const ALLOWED_PLUGIN_DESCRIPTION_FIELDS = new Set(['name', 'component', 'point', 'position', 'config']);
 
-const assertType = (name, validationFn, type) => {
-    return (v) => {
+type TypePredicateFn<T> = (value: unknown) => value is T;
+type AssertionFn<T> = (value: unknown) => asserts value is T;
+
+const assertType = <T>(name: string, validationFn: (value: unknown) => value is T, type: string): AssertionFn<T> => {
+    return (v: unknown): asserts v is T => {
         if (!validationFn(v)) {
             throw new Error(`"${name}" option must be ${type}, but got ${typeof v}`);
         }
     };
 };
-const assertString = (name) => assertType(name, _.isString, 'string');
-const assertBoolean = (name) => assertType(name, _.isBoolean, 'boolean');
-const assertNumber = (name) => assertType(name, _.isNumber, 'number');
+const assertString = (name: string): AssertionFn<string> => assertType(name, _.isString, 'string');
+const assertBoolean = (name: string): AssertionFn<boolean> => assertType(name, _.isBoolean, 'boolean');
+const assertNumber = (name: string): AssertionFn<number> => assertType(name, _.isNumber, 'number');
 
-const assertSaveFormat = saveFormat => {
-    const formats = Object.values(saveFormats);
+const assertSaveFormat = (saveFormat: unknown): asserts saveFormat is SaveFormat => {
+    const formats = Object.values(SaveFormat);
     if (!_.isString(saveFormat)) {
         throw new Error(`"saveFormat" option must be string, but got ${typeof saveFormat}`);
     }
 
-    if (!formats.includes(saveFormat)) {
+    if (!formats.includes(saveFormat as SaveFormat)) {
         throw new Error(`"saveFormat" must be "${formats.join('", "')}", but got "${saveFormat}"`);
     }
 };
 
-const assertErrorPatterns = (errorPatterns) => {
+const assertErrorPatterns = (errorPatterns: unknown): asserts errorPatterns is (string | ErrorPattern)[] => {
     if (!_.isArray(errorPatterns)) {
         throw new Error(`"errorPatterns" option must be array, but got ${typeof errorPatterns}`);
     }
@@ -59,51 +55,54 @@ const assertErrorPatterns = (errorPatterns) => {
     }
 };
 
-const assertMetaInfoBaseUrls = (metaInfoBaseUrls) => {
+const assertMetaInfoBaseUrls = (metaInfoBaseUrls: unknown): asserts metaInfoBaseUrls is Record<string, string> => {
     if (!_.isObject(metaInfoBaseUrls)) {
         throw new Error(`"metaInfoBaseUrls" option must be object, but got ${typeof metaInfoBaseUrls}`);
     }
-    for (const key in metaInfoBaseUrls) {
+    for (const keyStr in metaInfoBaseUrls) {
+        const key = keyStr as keyof typeof metaInfoBaseUrls;
         if (!_.isString(metaInfoBaseUrls[key])) {
             throw new Error(`Value of "${key}" in "metaInfoBaseUrls" option must be string, but got ${typeof metaInfoBaseUrls[key]}`);
         }
     }
 };
 
-const assertArrayOf = (itemsType, name, assertFn) => {
-    return (value) => {
+const assertArrayOf = <T>(itemsType: string, name: string, predicateFn: TypePredicateFn<T>) => {
+    return (value: unknown): asserts value is T[] => {
         if (!_.isArray(value)) {
             throw new Error(`"${name}" option must be an array, but got ${typeof value}`);
         }
         for (const item of value) {
-            if (!assertFn(item)) {
+            if (!predicateFn(item)) {
                 throw new Error(`"${name}" option must be an array of ${itemsType} but got ${typeof item} for one of items`);
             }
         }
     };
 };
 
-const assertPluginDescription = (description) => {
-    if (!_.isPlainObject(description)) {
+const assertPluginDescription = (description: unknown): description is PluginDescription => {
+    const maybeDescription = description as PluginDescription;
+
+    if (!_.isPlainObject(maybeDescription)) {
         throw new Error(`plugin description expected to be an object but got ${typeof description}`);
     }
 
-    for (const field of ['name', 'component']) {
-        if (!description[field] || !_.isString(description[field])) {
-            throw new Error(`"plugins.${field}" option must be non-empty string but got ${typeof description[field]}`);
+    for (const field of ['name', 'component'] as const) {
+        if (!maybeDescription[field] || !_.isString(maybeDescription[field])) {
+            throw new Error(`"plugins.${field}" option must be non-empty string but got ${typeof maybeDescription[field]}`);
         }
     }
 
-    if (description.point && !_.isString(description.point)) {
-        throw new Error(`"plugins.point" option must be string but got ${typeof description.point}`);
+    if (maybeDescription.point && !_.isString(maybeDescription.point)) {
+        throw new Error(`"plugins.point" option must be string but got ${typeof maybeDescription.point}`);
     }
 
-    if (description.position && !['after', 'before', 'wrap'].includes(description.position)) {
-        throw new Error(`"plugins.position" option got an unexpected value "${description.position}"`);
+    if (maybeDescription.position && !['after', 'before', 'wrap'].includes(maybeDescription.position)) {
+        throw new Error(`"plugins.position" option got an unexpected value "${maybeDescription.position}"`);
     }
 
-    if (description.config && !_.isPlainObject(description.config)) {
-        throw new Error(`plugin configuration expected to be an object but got ${typeof description.config}`);
+    if (maybeDescription.config && !_.isPlainObject(maybeDescription.config)) {
+        throw new Error(`plugin configuration expected to be an object but got ${typeof maybeDescription.config}`);
     }
 
     _.forOwn(description, (value, key) => {
@@ -115,19 +114,19 @@ const assertPluginDescription = (description) => {
     return true;
 };
 
-const assertDiffMode = (diffMode) => {
+const assertDiffMode = (diffMode: unknown): asserts diffMode is DiffModeId => {
     if (!_.isString(diffMode)) {
         throw new Error(`"diffMode" option must be a string, but got ${typeof diffMode}`);
     }
 
     const availableValues = Object.values(DiffModes).map(v => v.id);
 
-    if (!availableValues.includes(diffMode)) {
+    if (!availableValues.includes(diffMode as DiffModeId)) {
         throw new Error(`"diffMode" must be one of "${availableValues.join('", "')}", but got "${diffMode}"`);
     }
 };
 
-const mapErrorPatterns = (errorPatterns) => {
+const mapErrorPatterns = (errorPatterns: (string | ErrorPattern)[]): ErrorPattern[] => {
     return errorPatterns.map(patternInfo => {
         return _.isString(patternInfo)
             ? {name: patternInfo, pattern: patternInfo}
@@ -135,12 +134,12 @@ const mapErrorPatterns = (errorPatterns) => {
     });
 };
 
-const deprecationWarning = (name) => {
+const deprecationWarning = (name: string): void => {
     logger.warn(chalk.red(`Warning: field "${name}" is deprecated and will be removed soon from html-reporter config.`));
 };
 
-const getParser = () => {
-    return root(section({
+const getParser = (): ReturnType<typeof root<ReporterConfig>> => {
+    return root<ReporterConfig>(section<ReporterConfig>({
         enabled: option({
             defaultValue: true,
             parseEnv: JSON.parse,
@@ -152,7 +151,7 @@ const getParser = () => {
             validate: assertString('path')
         }),
         saveFormat: option({
-            defaultValue: saveFormats.SQLITE,
+            defaultValue: SaveFormat.SQLITE,
             validate: assertSaveFormat
         }),
         saveErrorDetails: option({
@@ -165,11 +164,11 @@ const getParser = () => {
             defaultValue: configDefaults.commandsWithShortHistory,
             validate: assertArrayOf('strings', 'commandsWithShortHistory', _.isString)
         }),
-        defaultView: option({
+        defaultView: option<ViewMode>({
             defaultValue: configDefaults.defaultView,
             validate: assertString('defaultView')
         }),
-        diffMode: option({
+        diffMode: option<DiffModeId>({
             defaultValue: configDefaults.diffMode,
             validate: assertDiffMode
         }),
@@ -181,7 +180,7 @@ const getParser = () => {
             defaultValue: configDefaults.lazyLoadOffset,
             validate: (value) => _.isNull(value) || deprecationWarning('lazyLoadOffset')
         }),
-        errorPatterns: option({
+        errorPatterns: option<(string | ErrorPattern)[], ErrorPattern[]>({
             defaultValue: configDefaults.errorPatterns,
             parseEnv: JSON.parse,
             validate: assertErrorPatterns,
@@ -197,7 +196,7 @@ const getParser = () => {
             defaultValue: configDefaults.customGui,
             validate: assertCustomGui
         }),
-        customScripts: option({
+        customScripts: option<(() => void)[]>({
             defaultValue: configDefaults.customScripts,
             validate: assertArrayOf('functions', 'customScripts', _.isFunction)
         }),
@@ -224,9 +223,10 @@ const getParser = () => {
     }), {envPrefix: ENV_PREFIX, cliPrefix: CLI_PREFIX});
 };
 
-module.exports = (options) => {
+export const parseConfig = (options: Partial<ReporterOptions>): ReporterConfig => {
     const env = process.env;
     const argv = process.argv;
 
-    return getParser()({options, env, argv});
+    // TODO: add support for different types of input and output in gemini-configparser
+    return getParser()({options: options as ReporterConfig, env, argv});
 };

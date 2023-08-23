@@ -9,9 +9,9 @@ import NestedError from 'nested-error-stacks';
 import {getShortMD5} from './common-utils';
 import {TestStatus} from './constants';
 import {DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS, LOCAL_DATABASE_NAME, DATABASE_URLS_JSON_NAME} from './constants/database';
-import {createTablesQuery} from './db-utils/server';
+import {createTablesQuery} from './db-utils/common';
 import {DbNotInitializedError} from './errors/db-not-initialized-error';
-import type {HtmlReporterApi, ImageInfoFull} from './types';
+import type {ErrorDetails, HtmlReporterApi, ImageInfoFull} from './types';
 
 const debug = makeDebug('html-reporter:sqlite-adapter');
 
@@ -37,13 +37,14 @@ export interface PreparedTestResult {
     metaInfo: Record<string, unknown>;
     history: string[];
     description: unknown;
-    error: Error;
+    error?: {message?: string; stack?: string; stateName?: string};
     skipReason?: string;
     imagesInfo: ImageInfoFull[];
     screenshot: boolean;
     multipleTabs: boolean;
     status: TestStatus;
     timestamp?: number;
+    errorDetails?: ErrorDetails;
 }
 
 interface ParseTestResultParams {

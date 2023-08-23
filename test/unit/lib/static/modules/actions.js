@@ -3,7 +3,7 @@ import proxyquire from 'proxyquire';
 import {POSITIONS} from 'reapop';
 import {acceptOpened, undoAcceptImages, retryTest, runFailedTests} from 'lib/static/modules/actions';
 import actionNames from 'lib/static/modules/action-names';
-import StaticTestsTreeBuilder from 'lib/tests-tree-builder/static';
+import {StaticTestsTreeBuilder} from 'lib/tests-tree-builder/static';
 import {LOCAL_DATABASE_NAME} from 'lib/constants/database';
 import {DiffModes} from 'lib/constants/diff-modes';
 
