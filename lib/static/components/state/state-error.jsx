@@ -33,7 +33,7 @@ class StateError extends Component {
     _getErrorPattern() {
         const {errorPatterns, error} = this.props;
 
-        return errorPatterns.find(({regexp}) => error.message.match(regexp));
+        return errorPatterns.find(({regexp}) => error.message?.match(regexp));
     }
 
     _drawImage() {
