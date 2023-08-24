@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="9.11.0"></a>
+# [9.11.0](https://github.com/gemini-testing/html-reporter/compare/v9.10.3...v9.11.0) (2023-08-24)
+
+
+### Bug Fixes
+
+* handle absence of error message correctly ([#490](https://github.com/gemini-testing/html-reporter/issues/490)) ([cb40edd](https://github.com/gemini-testing/html-reporter/commit/cb40edd))
+* property size of undefined while accepting screenshot ([cab7ecb](https://github.com/gemini-testing/html-reporter/commit/cab7ecb))
+* **bullet:** do not repeat bullet background ([cc372b0](https://github.com/gemini-testing/html-reporter/commit/cc372b0))
+
+
+### Features
+
+* **node:** support node[@20](https://github.com/20) ([ab867ec](https://github.com/gemini-testing/html-reporter/commit/ab867ec))
+
+
+### Performance Improvements
+
+* use diffBuffer, provided from hermione ([ad5f99e](https://github.com/gemini-testing/html-reporter/commit/ad5f99e))
+
+
+
 <a name="9.10.3"></a>
 ## [9.10.3](https://github.com/gemini-testing/html-reporter/compare/v9.10.2...v9.10.3) (2023-08-01)
 
