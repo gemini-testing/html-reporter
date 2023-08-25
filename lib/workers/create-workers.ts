@@ -4,7 +4,7 @@ type MapOfMethods<T extends ReadonlyArray<string>> = {
     [K in T[number]]: (...args: Array<unknown>) => Promise<unknown> | unknown;
 };
 
-type RegisterWorkers<T extends ReadonlyArray<string>> = EventEmitter & MapOfMethods<T>;
+export type RegisterWorkers<T extends ReadonlyArray<string>> = EventEmitter & MapOfMethods<T>;
 
 export const createWorkers = (
     runner: {registerWorkers: (workerFilePath: string, exportedMethods: string[]) => RegisterWorkers<['saveDiffTo']>}

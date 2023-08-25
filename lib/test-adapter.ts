@@ -25,8 +25,8 @@ import {
 } from './types';
 import type {SqliteAdapter} from './sqlite-adapter';
 import type {HtmlReporter} from './plugin-api';
-import type * as Workers from './workers/worker';
 import {ErrorName, ImageDiffError, NoRefImageError} from './errors';
+import {RegisterWorkers} from './workers/create-workers';
 
 interface PrepareTestResultData {
     name: string;
@@ -412,7 +412,7 @@ export class TestAdapter {
         await fs.writeFile(detailsFilePath, detailsData);
     }
 
-    async saveTestImages(reportPath: string, workers: typeof Workers, cacheExpectedPaths = globalCacheExpectedPaths): Promise<unknown[]> {
+    async saveTestImages(reportPath: string, workers: RegisterWorkers<['saveDiffTo']>, cacheExpectedPaths = globalCacheExpectedPaths): Promise<unknown[]> {
         const result = await Promise.all(this.assertViewResults.map(async (assertResult) => {
             const {stateName} = assertResult;
             const {path: destRefPath, reused: reusedReference} = this._getExpectedPath(stateName, undefined, cacheExpectedPaths);
@@ -497,7 +497,7 @@ export class TestAdapter {
     }
 
     //parallelize and cache of 'looks-same.createDiff' (because it is very slow)
-    protected async _saveDiffInWorker(imageDiffError: ImageDiffError, destPath: string, workers: typeof Workers, cacheDiffImages = globalCacheDiffImages): Promise<void> {
+    protected async _saveDiffInWorker(imageDiffError: ImageDiffError, destPath: string, workers: RegisterWorkers<['saveDiffTo']>, cacheDiffImages = globalCacheDiffImages): Promise<void> {
         await utils.makeDirFor(destPath);
 
         if (imageDiffError.diffBuffer) { // new versions of hermione provide `diffBuffer`
