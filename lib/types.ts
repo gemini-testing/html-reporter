@@ -73,6 +73,7 @@ export interface ImageInfoSuccess {
     refImg?: ImageData;
     diffClusters?: CoordBounds[];
     expectedImg: ImageData;
+    actualImg?: ImageData;
 }
 
 export interface ImageInfoError {
@@ -101,16 +102,17 @@ export interface TestResult extends ConfigurableTestObject {
         stack: string;
         stateName?: string;
         details: ErrorDetails
+        screenshot: ImageBase64
     };
     fullTitle(): string;
     title: string;
     meta: Record<string, unknown>
     sessionId: string;
     timestamp: number;
-    imagesInfo: ImageInfoFull[];
     origAttempt?: number;
     history: unknown;
     parent: Suite;
+    updated?: boolean;
 }
 
 export interface LabeledSuitesRow {

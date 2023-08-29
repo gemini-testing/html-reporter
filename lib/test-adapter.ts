@@ -1,32 +1,24 @@
 import _ from 'lodash';
 import fs from 'fs-extra';
 import path from 'path';
-import tmp from 'tmp';
-import crypto from 'crypto';
 
 import {SuiteAdapter} from './suite-adapter';
 import {getSuitePath} from './plugin-utils';
 import {getCommandsHistory} from './history-utils';
-import {ERROR, ERROR_DETAILS_PATH, FAIL, SUCCESS, TestStatus, UPDATED, DB_COLUMNS} from './constants';
-import {getShortMD5, logger} from './common-utils';
+import {ERROR_DETAILS_PATH, TestStatus} from './constants';
+import {getError, isImageDiffError, mkTestId} from './common-utils';
 import * as utils from './server-utils';
 import {
     AssertViewResult,
     ErrorDetails,
     ImageBase64,
     ImageData,
-    ImageInfo,
-    ImageInfoError,
-    ImageInfoFail,
     ImageInfoFull,
-    ImagesSaver,
-    LabeledSuitesRow,
     TestResult
 } from './types';
-import type {SqliteAdapter} from './sqlite-adapter';
-import type {HtmlReporter} from './plugin-api';
-import {ErrorName, ImageDiffError, NoRefImageError} from './errors';
-import {RegisterWorkers} from './workers/create-workers';
+import {ImagesInfoFormatter} from './image-handler';
+
+const testsAttempts: Map<string, number> = new Map();
 
 interface PrepareTestResultData {
     name: string;
@@ -34,46 +26,29 @@ interface PrepareTestResultData {
     browserId: string;
 }
 
-const globalCacheAllImages: Map<string, string> = new Map();
-const globalCacheExpectedPaths: Map<string, string> = new Map();
-const globalCacheDiffImages: Map<string, string> = new Map();
-const testsAttempts: Map<string, number> = new Map();
-
-function createHash(buffer: Buffer): string {
-    return crypto
-        .createHash('sha1')
-        .update(buffer)
-        .digest('base64');
-}
-
 export interface TestAdapterOptions {
-    htmlReporter: HtmlReporter;
-    sqliteAdapter: SqliteAdapter;
     status: TestStatus;
+    imagesInfoFormatter: ImagesInfoFormatter;
 }
 
 export class TestAdapter {
+    private _imagesInfoFormatter: ImagesInfoFormatter;
     private _testResult: TestResult;
-    private _htmlReporter: HtmlReporter;
-    private _sqliteAdapter: SqliteAdapter;
     private _suite: SuiteAdapter;
-    private _imagesSaver: ImagesSaver;
     private _testId: string;
     private _errorDetails: ErrorDetails | null;
     private _timestamp: number;
     private _attempt: number;
 
-    static create<T extends TestAdapter>(this: new (testResult: TestResult, options: TestAdapterOptions) => T, testResult: TestResult, {htmlReporter, sqliteAdapter, status}: TestAdapterOptions): T {
-        return new this(testResult, {htmlReporter, sqliteAdapter, status});
+    static create<T extends TestAdapter>(this: new (testResult: TestResult, options: TestAdapterOptions) => T, testResult: TestResult, options: TestAdapterOptions): T {
+        return new this(testResult, options);
     }
 
-    constructor(testResult: TestResult, {htmlReporter, sqliteAdapter, status}: TestAdapterOptions) {
+    constructor(testResult: TestResult, {status, imagesInfoFormatter}: TestAdapterOptions) {
+        this._imagesInfoFormatter = imagesInfoFormatter;
         this._testResult = testResult;
-        this._htmlReporter = htmlReporter;
-        this._sqliteAdapter = sqliteAdapter;
         this._suite = SuiteAdapter.create(this._testResult);
-        this._imagesSaver = this._htmlReporter.imagesSaver;
-        this._testId = this._mkTestId();
+        this._testId = mkTestId(testResult.fullTitle(), testResult.browserId);
         this._errorDetails = null;
         this._timestamp = this._testResult.timestamp;
 
@@ -103,134 +78,7 @@ export class TestAdapter {
     }
 
     get imagesInfo(): ImageInfoFull[] | undefined {
-        return this._testResult.imagesInfo;
-    }
-
-    set imagesInfo(imagesInfo: ImageInfoFull[]) {
-        this._testResult.imagesInfo = imagesInfo;
-    }
-
-    protected _getImgFromStorage(imgPath: string): string {
-        // fallback for updating image in gui mode
-        return globalCacheAllImages.get(imgPath) || imgPath;
-    }
-
-    protected _getLastImageInfoFromDb(stateName?: string): ImageInfo | undefined {
-        const browserName = this._testResult.browserId;
-        const suitePath = getSuitePath(this._testResult);
-        const suitePathString = JSON.stringify(suitePath);
-
-        const imagesInfoResult = this._sqliteAdapter.query<Pick<LabeledSuitesRow, 'imagesInfo'> | undefined>({
-            select: DB_COLUMNS.IMAGES_INFO,
-            where: `${DB_COLUMNS.SUITE_PATH} = ? AND ${DB_COLUMNS.NAME} = ?`,
-            orderBy: DB_COLUMNS.TIMESTAMP,
-            orderDescending: true
-        }, suitePathString, browserName);
-
-        const imagesInfo: ImageInfoFull[] = imagesInfoResult && JSON.parse(imagesInfoResult[DB_COLUMNS.IMAGES_INFO as keyof Pick<LabeledSuitesRow, 'imagesInfo'>]) || [];
-        return imagesInfo.find(info => info.stateName === stateName);
-    }
-
-    protected _getExpectedPath(stateName: string | undefined, status: TestStatus | undefined, cacheExpectedPaths: Map<string, string>): {path: string, reused: boolean} {
-        const key = this._getExpectedKey(stateName);
-
-        if (status === UPDATED) {
-            const expectedPath = utils.getReferencePath(this, stateName);
-            cacheExpectedPaths.set(key, expectedPath);
-
-            return {path: expectedPath, reused: false};
-        }
-
-        if (cacheExpectedPaths.has(key)) {
-            return {path: cacheExpectedPaths.get(key) as string, reused: true};
-        }
-
-        const imageInfo = this._getLastImageInfoFromDb(stateName);
-
-        if (imageInfo && (imageInfo as ImageInfoFail).expectedImg) {
-            const expectedPath = (imageInfo as ImageInfoFail).expectedImg.path;
-
-            cacheExpectedPaths.set(key, expectedPath);
-
-            return {path: expectedPath, reused: true};
-        }
-
-        const expectedPath = utils.getReferencePath(this, stateName);
-
-        cacheExpectedPaths.set(key, expectedPath);
-
-        return {path: expectedPath, reused: false};
-    }
-
-    getImagesFor(status: TestStatus, stateName?: string): ImageInfo | undefined {
-        const refImg = this.getRefImg(stateName);
-        const currImg = this.getCurrImg(stateName);
-        const errImg = this.getErrImg();
-
-        const {path: refPath} = this._getExpectedPath(stateName, status, globalCacheExpectedPaths);
-        const currPath = utils.getCurrentPath(this, stateName);
-        const diffPath = utils.getDiffPath(this, stateName);
-
-        if ((status === SUCCESS || status === UPDATED) && refImg) {
-            return {expectedImg: {path: this._getImgFromStorage(refPath), size: refImg.size}};
-        }
-
-        if (status === FAIL && refImg && currImg) {
-            return {
-                expectedImg: {
-                    path: this._getImgFromStorage(refPath),
-                    size: refImg.size
-                },
-                actualImg: {
-                    path: this._getImgFromStorage(currPath),
-                    size: currImg.size
-                },
-                diffImg: {
-                    path: this._getImgFromStorage(diffPath),
-                    size: {
-                        width: _.max([_.get(refImg, 'size.width'), _.get(currImg, 'size.width')]) as number,
-                        height: _.max([_.get(refImg, 'size.height'), _.get(currImg, 'size.height')]) as number
-                    }
-                }
-            };
-        }
-
-        if (status === ERROR && currImg && errImg) {
-            return {
-                actualImg: {
-                    path: this.state ? this._getImgFromStorage(currPath) : '',
-                    size: currImg.size || errImg.size
-                }
-            };
-        }
-
-        return;
-    }
-
-    protected async _saveErrorScreenshot(reportPath: string): Promise<void> {
-        if (!this.screenshot?.base64) {
-            logger.warn('Cannot save screenshot on reject');
-
-            return Promise.resolve();
-        }
-
-        const currPath = utils.getCurrentPath(this);
-        const localPath = path.resolve(tmp.tmpdir, currPath);
-        await utils.makeDirFor(localPath);
-        await fs.writeFile(localPath, new Buffer(this.screenshot.base64, 'base64'), 'base64');
-
-        await this._saveImg(localPath, currPath, reportPath);
-    }
-
-    protected async _saveImg(localPath: string | undefined, destPath: string, reportDir: string): Promise<string | undefined> {
-        if (!localPath) {
-            return Promise.resolve(undefined);
-        }
-
-        const res = await this._imagesSaver.saveImg(localPath, {destPath, reportDir});
-
-        globalCacheAllImages.set(destPath, res || destPath);
-        return res;
+        return this._imagesInfoFormatter.getImagesInfo(this._testResult, this.attempt);
     }
 
     get origAttempt(): number | undefined {
@@ -247,62 +95,11 @@ export class TestAdapter {
     }
 
     hasDiff(): boolean {
-        return this.assertViewResults.some((result) => this.isImageDiffError(result));
+        return this.assertViewResults.some((result) => isImageDiffError(result));
     }
 
     get assertViewResults(): AssertViewResult[] {
         return this._testResult.assertViewResults || [];
-    }
-
-    isImageDiffError(assertResult: AssertViewResult): assertResult is ImageDiffError {
-        return assertResult.name === ErrorName.IMAGE_DIFF;
-    }
-
-    isNoRefImageError(assertResult: AssertViewResult): assertResult is NoRefImageError {
-        return assertResult.name === ErrorName.NO_REF_IMAGE;
-    }
-
-    getImagesInfo(): ImageInfoFull[] {
-        if (!_.isEmpty(this.imagesInfo)) {
-            return this.imagesInfo as ImageInfoFull[];
-        }
-
-        this.imagesInfo = this.assertViewResults.map((assertResult): ImageInfoFull => {
-            let status: TestStatus | undefined, error: {message: string; stack: string;} | undefined;
-
-            if (!(assertResult instanceof Error)) {
-                status = SUCCESS;
-            }
-
-            if (this.isImageDiffError(assertResult)) {
-                status = FAIL;
-            }
-
-            if (this.isNoRefImageError(assertResult)) {
-                status = ERROR;
-                error = _.pick(assertResult, ['message', 'stack']);
-            }
-
-            const {stateName, refImg} = assertResult;
-            const diffClusters = (assertResult as ImageDiffError).diffClusters;
-
-            return _.extend(
-                {stateName, refImg, status: status, error, diffClusters},
-                this.getImagesFor(status as TestStatus, stateName)
-            ) as ImageInfoFull;
-        });
-
-        // common screenshot on test fail
-        if (this.screenshot) {
-            const errorImage = _.extend(
-                {status: ERROR, error: this.error},
-                this.getImagesFor(ERROR)
-            ) as ImageInfoError;
-
-            (this.imagesInfo as ImageInfoFull[]).push(errorImage);
-        }
-
-        return this.imagesInfo;
     }
 
     get history(): string[] {
@@ -310,8 +107,7 @@ export class TestAdapter {
     }
 
     get error(): undefined | {message?: string; stack?: string; stateName?: string} {
-        // TODO: return undefined or null if there's no err
-        return _.pick(this._testResult.err, ['message', 'stack', 'stateName']);
+        return getError(this._testResult);
     }
 
     get imageDir(): string {
@@ -365,16 +161,16 @@ export class TestAdapter {
         return this._errorDetails;
     }
 
-    getRefImg(stateName?: string): ImageData | Record<string, never> {
-        return _.get(_.find(this.assertViewResults, {stateName}), 'refImg', {});
+    getRefImg(stateName?: string): ImageData | undefined {
+        return this._imagesInfoFormatter.getRefImg(this._testResult.assertViewResults, stateName);
     }
 
-    getCurrImg(stateName?: string): ImageData | Record<string, never> {
-        return _.get(_.find(this.assertViewResults, {stateName}), 'currImg', {});
+    getCurrImg(stateName?: string): ImageData | undefined {
+        return this._imagesInfoFormatter.getCurrImg(this._testResult.assertViewResults, stateName);
     }
 
-    getErrImg(): ImageBase64 | Record<string, never> {
-        return this.screenshot || {};
+    getErrImg(): ImageBase64 | undefined {
+        return this._imagesInfoFormatter.getScreenshot(this._testResult);
     }
 
     prepareTestResult(): PrepareTestResultData {
@@ -412,70 +208,8 @@ export class TestAdapter {
         await fs.writeFile(detailsFilePath, detailsData);
     }
 
-    async saveTestImages(reportPath: string, workers: RegisterWorkers<['saveDiffTo']>, cacheExpectedPaths = globalCacheExpectedPaths): Promise<unknown[]> {
-        const result = await Promise.all(this.assertViewResults.map(async (assertResult) => {
-            const {stateName} = assertResult;
-            const {path: destRefPath, reused: reusedReference} = this._getExpectedPath(stateName, undefined, cacheExpectedPaths);
-            const srcRefPath = this.getRefImg(stateName)?.path;
-
-            const destCurrPath = utils.getCurrentPath(this, stateName);
-            // TODO: getErrImg returns base64, but here we mistakenly try to get its path
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const srcCurrPath = this.getCurrImg(stateName)?.path || (this.getErrImg() as any)?.path;
-
-            const dstCurrPath = utils.getDiffPath(this, stateName);
-            const srcDiffPath = path.resolve(tmp.tmpdir, dstCurrPath);
-            const actions: unknown[] = [];
-
-            if (!(assertResult instanceof Error)) {
-                actions.push(this._saveImg(srcRefPath, destRefPath, reportPath));
-            }
-
-            if (this.isImageDiffError(assertResult)) {
-                await this._saveDiffInWorker(assertResult, srcDiffPath, workers);
-
-                actions.push(
-                    this._saveImg(srcCurrPath, destCurrPath, reportPath),
-                    this._saveImg(srcDiffPath, dstCurrPath, reportPath)
-                );
-
-                if (!reusedReference) {
-                    actions.push(this._saveImg(srcRefPath, destRefPath, reportPath));
-                }
-            }
-
-            if (this.isNoRefImageError(assertResult)) {
-                actions.push(this._saveImg(srcCurrPath, destCurrPath, reportPath));
-            }
-
-            return Promise.all(actions);
-        }));
-
-        if (this.screenshot) {
-            await this._saveErrorScreenshot(reportPath);
-        }
-
-        await this._htmlReporter.emitAsync(this._htmlReporter.events.TEST_SCREENSHOTS_SAVED, {
-            testId: this._testId,
-            attempt: this.attempt,
-            imagesInfo: this.getImagesInfo()
-        });
-
-        return result;
-    }
-
-    updateCacheExpectedPath(stateName: string, expectedPath: string): void {
-        const key = this._getExpectedKey(stateName);
-
-        if (expectedPath) {
-            globalCacheExpectedPaths.set(key, expectedPath);
-        } else {
-            globalCacheExpectedPaths.delete(key);
-        }
-    }
-
     decreaseAttemptNumber(): void {
-        const testId = this._mkTestId();
+        const testId = mkTestId(this._testResult.fullTitle(), this.browserId);
         const currentTestAttempt = testsAttempts.get(testId) as number;
         const previousTestAttempt = currentTestAttempt - 1;
 
@@ -484,49 +218,5 @@ export class TestAdapter {
         } else {
             testsAttempts.delete(testId);
         }
-    }
-
-    protected _mkTestId(): string {
-        return this._testResult.fullTitle() + '.' + this._testResult.browserId;
-    }
-
-    protected _getExpectedKey(stateName?: string): string {
-        const shortTestId = getShortMD5(this._mkTestId());
-
-        return shortTestId + '#' + stateName;
-    }
-
-    //parallelize and cache of 'looks-same.createDiff' (because it is very slow)
-    protected async _saveDiffInWorker(imageDiffError: ImageDiffError, destPath: string, workers: RegisterWorkers<['saveDiffTo']>, cacheDiffImages = globalCacheDiffImages): Promise<void> {
-        await utils.makeDirFor(destPath);
-
-        if (imageDiffError.diffBuffer) { // new versions of hermione provide `diffBuffer`
-            const pngBuffer = Buffer.from(imageDiffError.diffBuffer);
-
-            await fs.writeFile(destPath, pngBuffer);
-
-            return;
-        }
-
-        const currPath = imageDiffError.currImg.path;
-        const refPath = imageDiffError.refImg.path;
-
-        const [currBuffer, refBuffer] = await Promise.all([
-            fs.readFile(currPath),
-            fs.readFile(refPath)
-        ]);
-
-        const hash = createHash(currBuffer) + createHash(refBuffer);
-
-        if (cacheDiffImages.has(hash)) {
-            const cachedDiffPath = cacheDiffImages.get(hash) as string;
-
-            await fs.copy(cachedDiffPath, destPath);
-            return;
-        }
-
-        await workers.saveDiffTo(imageDiffError, destPath);
-
-        cacheDiffImages.set(hash, destPath);
     }
 }

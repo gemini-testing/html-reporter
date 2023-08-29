@@ -9,16 +9,16 @@ const {HtmlReporter} = require('lib/plugin-api');
 
 describe('lib/sqlite-adapter', () => {
     const sandbox = sinon.createSandbox();
-    let hermione;
+    let htmlReporter;
 
     const makeSqliteAdapter_ = async () => {
-        const sqliteAdapter = SqliteAdapter.create({htmlReporter: hermione.htmlReporter, reportPath: 'test'});
+        const sqliteAdapter = SqliteAdapter.create({htmlReporter, reportPath: 'test'});
         await sqliteAdapter.init();
         return sqliteAdapter;
     };
 
     beforeEach(() => {
-        hermione = {htmlReporter: HtmlReporter.create()};
+        htmlReporter = HtmlReporter.create();
     });
 
     afterEach(() => {
@@ -64,7 +64,7 @@ describe('lib/sqlite-adapter', () => {
 
     it('should emit "DATABASE_CREATED" event with new database connection', async () => {
         const onDatabaseCreated = sinon.spy();
-        hermione.htmlReporter.on(hermione.htmlReporter.events.DATABASE_CREATED, onDatabaseCreated);
+        htmlReporter.on(htmlReporter.events.DATABASE_CREATED, onDatabaseCreated);
 
         await makeSqliteAdapter_();
 
@@ -79,7 +79,7 @@ describe('lib/sqlite-adapter', () => {
             prepareStub = sandbox.stub(Database.prototype, 'prepare').returns({get: getStub});
             sqliteAdapter = proxyquire('lib/sqlite-adapter', {
                 './db-utils/common': {createTablesQuery: () => []}
-            }).SqliteAdapter.create({htmlReporter: hermione.htmlReporter, reportPath: 'test'});
+            }).SqliteAdapter.create({htmlReporter, reportPath: 'test'});
 
             await sqliteAdapter.init();
         });
@@ -147,7 +147,7 @@ describe('lib/sqlite-adapter', () => {
             prepareStub = sandbox.stub(Database.prototype, 'prepare').returns({run: runStub});
             sqliteAdapter = proxyquire('lib/sqlite-adapter', {
                 './db-utils/common': {createTablesQuery: () => []}
-            }).SqliteAdapter.create({htmlReporter: hermione.htmlReporter, reportPath: 'test'});
+            }).SqliteAdapter.create({htmlReporter, reportPath: 'test'});
 
             await sqliteAdapter.init();
         });

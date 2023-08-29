@@ -1,14 +1,27 @@
-import _ from 'lodash';
 import path from 'path';
+import {GeneralEventEmitter} from 'eventemitter2';
+import _ from 'lodash';
 import fs from 'fs-extra';
 
-import {IDLE, RUNNING, SKIPPED, FAIL, ERROR, SUCCESS, TestStatus, LOCAL_DATABASE_NAME} from '../constants';
+import {
+    IDLE,
+    RUNNING,
+    SKIPPED,
+    FAIL,
+    ERROR,
+    SUCCESS,
+    TestStatus,
+    LOCAL_DATABASE_NAME,
+    PluginEvents
+} from '../constants';
 import {PreparedTestResult, SqliteAdapter} from '../sqlite-adapter';
 import {TestAdapter} from '../test-adapter';
 import {hasNoRefImageErrors} from '../static/modules/utils';
 import {hasImage, saveStaticFilesToReportDir, writeDatabaseUrlsFile} from '../server-utils';
 import {ReporterConfig, TestResult} from '../types';
 import {HtmlReporter} from '../plugin-api';
+import {ImageHandler} from '../image-handler';
+import {SqliteImageStore} from '../image-store';
 
 const ignoredStatuses = [RUNNING, IDLE];
 
@@ -20,6 +33,7 @@ export class StaticReportBuilder {
     protected _htmlReporter: HtmlReporter;
     protected _pluginConfig: ReporterConfig;
     protected _sqliteAdapter: SqliteAdapter;
+    protected _imageHandler: ImageHandler;
 
     static create<T extends StaticReportBuilder>(
         this: new (htmlReporter: HtmlReporter, pluginConfig: ReporterConfig, options?: Partial<StaticReportBuilderOptions>) => T,
@@ -39,6 +53,19 @@ export class StaticReportBuilder {
             reportPath: this._pluginConfig.path,
             reuse
         });
+
+        const imageStore = new SqliteImageStore(this._sqliteAdapter);
+        this._imageHandler = new ImageHandler(imageStore, htmlReporter.imagesSaver, {reportPath: pluginConfig.path});
+
+        this._htmlReporter.on(PluginEvents.IMAGES_SAVER_UPDATED, (newImagesSaver) => {
+            this._imageHandler.setImagesSaver(newImagesSaver);
+        });
+
+        this._htmlReporter.listenTo(this._imageHandler as unknown as GeneralEventEmitter, [PluginEvents.TEST_SCREENSHOTS_SAVED]);
+    }
+
+    get imageHandler(): ImageHandler {
+        return this._imageHandler;
     }
 
     async init(): Promise<void> {
@@ -51,9 +78,8 @@ export class StaticReportBuilder {
         return result instanceof TestAdapter
             ? result
             : TestAdapter.create(result, {
-                htmlReporter: this._htmlReporter,
-                sqliteAdapter: this._sqliteAdapter,
-                status
+                status,
+                imagesInfoFormatter: this._imageHandler
             });
     }
 

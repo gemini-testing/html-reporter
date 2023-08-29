@@ -18,6 +18,7 @@ const mkSqliteDb = () => {
 describe('lib/hermione', () => {
     const sandbox = sinon.createSandbox();
     let hermione;
+    let cacheExpectedPaths = new Map(), cacheAllImages = new Map(), cacheDiffImages = new Map();
 
     const fs = _.clone(fsOriginal);
     const originalUtils = proxyquire('lib/server-utils', {
@@ -30,6 +31,12 @@ describe('lib/hermione', () => {
         'better-sqlite3': sinon.stub().returns(mkSqliteDb())
     });
 
+    const {ImageHandler} = proxyquire('lib/image-handler', {
+        'fs-extra': fs,
+        './image-cache': {cacheExpectedPaths, cacheAllImages, cacheDiffImages},
+        './server-utils': utils
+    });
+
     const {TestAdapter} = proxyquire('lib/test-adapter', {
         'fs-extra': fs,
         './server-utils': utils
@@ -39,7 +46,8 @@ describe('lib/hermione', () => {
         'fs-extra': fs,
         '../server-utils': utils,
         '../sqlite-adapter': {SqliteAdapter},
-        '../test-adapter': {TestAdapter}
+        '../test-adapter': {TestAdapter},
+        '../image-handler': {ImageHandler}
     });
 
     const {PluginAdapter} = proxyquire('lib/plugin-adapter', {
@@ -160,15 +168,16 @@ describe('lib/hermione', () => {
         sandbox.stub(SqliteAdapter.prototype, 'init').resolves({});
         sandbox.stub(SqliteAdapter.prototype, 'query');
 
-        const saveTestImagesImplementation = TestAdapter.prototype.saveTestImages;
-        sandbox.stub(TestAdapter.prototype, 'saveTestImages').callsFake(function(...args) {
-            return saveTestImagesImplementation.call(this, ...args, new Map()); // disable expectedPath cache
-        });
-
         sandbox.stub(fs, 'readFile').resolves(Buffer.from(''));
     });
 
-    afterEach(() => sandbox.restore());
+    afterEach(() => {
+        cacheAllImages.clear();
+        cacheExpectedPaths.clear();
+        cacheDiffImages.clear();
+
+        sandbox.restore();
+    });
 
     it('should do nothing if plugin is disabled', () => {
         return initReporter_({enabled: false}).then(() => {
@@ -260,7 +269,7 @@ describe('lib/hermione', () => {
     });
 
     it('should save image from passed test', async () => {
-        utils.getReferencePath.callsFake((test, stateName) => `report/${stateName}`);
+        utils.getReferencePath.callsFake(({stateName}) => `report/${stateName}`);
 
         await initReporter_({path: '/absolute'});
         const testData = mkStubResult_({assertViewResults: [{refImg: {path: 'ref/path'}, stateName: 'plain'}]});
@@ -271,7 +280,7 @@ describe('lib/hermione', () => {
     });
 
     it('should save image from assert view error', async () => {
-        utils.getCurrentPath.callsFake((test, stateName) => `report/${stateName}`);
+        utils.getCurrentPath.callsFake(({stateName}) => `report/${stateName}`);
         await initReporter_({path: '/absolute'});
         const err = new NoRefImageError();
         err.stateName = 'plain';
@@ -284,7 +293,7 @@ describe('lib/hermione', () => {
     });
 
     it('should save reference image from assert view fail', async () => {
-        utils.getReferencePath.callsFake((test, stateName) => `report/${stateName}`);
+        utils.getReferencePath.callsFake(({stateName}) => `report/${stateName}`);
         await initReporter_({path: '/absolute'});
         await stubWorkers();
 
@@ -299,7 +308,7 @@ describe('lib/hermione', () => {
     });
 
     it('should save current image from assert view fail', async () => {
-        utils.getCurrentPath.callsFake((test, stateName) => `report/${stateName}`);
+        utils.getCurrentPath.callsFake(({stateName}) => `report/${stateName}`);
         await initReporter_({path: '/absolute'});
         await hermione.emitAsync(events.RUNNER_START, {
             registerWorkers: () => {
@@ -318,7 +327,7 @@ describe('lib/hermione', () => {
 
     it('should save current diff image from assert view fail', async () => {
         fs.readFile.resolves(Buffer.from('some-buff'));
-        utils.getDiffPath.callsFake((test, stateName) => `report/${stateName}`);
+        utils.getDiffPath.callsFake(({stateName}) => `report/${stateName}`);
         const saveDiffTo = sinon.stub().resolves();
         const err = new ImageDiffError();
         err.stateName = 'plain';

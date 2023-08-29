@@ -87,6 +87,7 @@ describe('lib/gui/tool-runner/index', () => {
             }
         });
 
+        sandbox.stub(reportBuilder, 'imageHandler').value({updateCacheExpectedPath: sinon.stub()});
         sandbox.stub(logger, 'warn');
     });
 
@@ -368,11 +369,11 @@ describe('lib/gui/tool-runner/index', () => {
         it('should update expected path', async () => {
             const stateName = 'plain';
             const previousExpectedPath = 'previousExpectedPath';
-            const {formattedResult, gui, tests} = await mkUndoTestData_({previousExpectedPath}, {stateName});
+            const {gui, tests} = await mkUndoTestData_({previousExpectedPath}, {stateName});
 
             await gui.undoAcceptImages(tests);
 
-            assert.calledOnceWith(formattedResult.updateCacheExpectedPath, stateName, previousExpectedPath);
+            assert.calledOnceWith(reportBuilder.imageHandler.updateCacheExpectedPath, sinon.match.any, stateName, previousExpectedPath);
         });
     });
 

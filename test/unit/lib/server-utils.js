@@ -44,10 +44,11 @@ describe('server-utils', () => {
             it('should add state name to the path if it was passed', () => {
                 const test = {
                     imageDir: 'some/dir',
-                    browserId: 'bro'
+                    browserId: 'bro',
+                    stateName: 'plain'
                 };
 
-                const resultPath = utils[`get${testData.name}Path`](test, 'plain');
+                const resultPath = utils[`get${testData.name}Path`](test);
 
                 assert.equal(resultPath, path.join(IMAGES_PATH, 'some', 'dir', `plain/bro~${testData.prefix}_0.png`));
             });

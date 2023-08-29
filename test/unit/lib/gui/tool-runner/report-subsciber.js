@@ -33,6 +33,7 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
         reportBuilder = sinon.createStubInstance(GuiReportBuilder);
         sandbox.stub(GuiReportBuilder, 'create').returns(reportBuilder);
         reportBuilder.format.returns(mkTestAdapterStub_());
+        sandbox.stub(reportBuilder, 'imageHandler').value({saveTestImages: sinon.stub()});
 
         client = new EventEmitter();
         sandbox.spy(client, 'emit');
@@ -54,10 +55,10 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
             const hermione = mkHermione_();
             const testResult = 'test-result';
             const mediator = sinon.spy().named('mediator');
-            const saveTestImages = sandbox.stub().callsFake(() => Promise.delay(100).then(mediator));
 
-            const formattedResult = mkTestAdapterStub_({saveTestImages});
+            const formattedResult = mkTestAdapterStub_();
             reportBuilder.format.withArgs(testResult, hermione.events.TEST_FAIL).returns(formattedResult);
+            reportBuilder.imageHandler.saveTestImages.callsFake(() => Promise.delay(100).then(mediator));
 
             reportSubscriber(hermione, reportBuilder, client);
             hermione.emit(hermione.events.TEST_FAIL, testResult);
@@ -132,7 +133,7 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
         it('should save images before fail adding', async () => {
             const hermione = mkHermione_();
             const testData = 'test-data';
-            const formattedResult = mkTestAdapterStub_({saveTestImages: sandbox.stub()});
+            const formattedResult = mkTestAdapterStub_();
 
             reportBuilder.format.withArgs(testData, hermione.events.TEST_FAIL).returns(formattedResult);
 
@@ -140,7 +141,7 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
             hermione.emit(hermione.events.TEST_FAIL, testData);
             await hermione.emitAsync(hermione.events.RUNNER_END);
 
-            assert.callOrder(formattedResult.saveTestImages, reportBuilder.addFail);
+            assert.callOrder(reportBuilder.imageHandler.saveTestImages, reportBuilder.addFail);
         });
 
         it('should emit "TEST_RESULT" event for client with test data', async () => {

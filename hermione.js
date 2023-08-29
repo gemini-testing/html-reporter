@@ -29,10 +29,11 @@ module.exports = (hermione, opts) => {
 
 async function prepare(hermione, reportBuilder, pluginConfig) {
     const {path: reportPath} = pluginConfig;
+    const {imageHandler} = reportBuilder;
 
     const failHandler = async (testResult) => {
         const formattedResult = reportBuilder.format(testResult);
-        const actions = [formattedResult.saveTestImages(reportPath, workers)];
+        const actions = [imageHandler.saveTestImages(testResult, formattedResult.attempt, workers)];
 
         if (formattedResult.errorDetails) {
             actions.push(formattedResult.saveErrorDetails(reportPath));
@@ -56,7 +57,7 @@ async function prepare(hermione, reportBuilder, pluginConfig) {
         hermione.on(hermione.events.TEST_PASS, testResult => {
             promises.push(queue.add(async () => {
                 const formattedResult = reportBuilder.format(testResult);
-                await formattedResult.saveTestImages(reportPath, workers);
+                await imageHandler.saveTestImages(testResult, formattedResult.attempt, workers);
 
                 return reportBuilder.addSuccess(formattedResult);
             }).catch(reject));

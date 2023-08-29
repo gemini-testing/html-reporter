@@ -9,43 +9,56 @@ import type {HtmlReporter} from './plugin-api';
 import type {TestAdapter} from './test-adapter';
 import {CustomGuiItem, ReporterConfig} from './types';
 import type Hermione from 'hermione';
+import crypto from 'crypto';
 
 const DATA_FILE_NAME = 'data.js';
 
-export const getReferencePath = (testResult: TestAdapter, stateName?: string): string => createPath('ref', testResult, stateName);
-export const getCurrentPath = (testResult: TestAdapter, stateName?: string): string => createPath('current', testResult, stateName);
-export const getDiffPath = (testResult: TestAdapter, stateName?: string): string => createPath('diff', testResult, stateName);
+interface GetPathOptions {
+    stateName?: string;
+    imageDir: string;
+    attempt: number;
+    browserId: string;
+}
+
+export const getReferencePath = (options: GetPathOptions): string => createPath({kind: 'ref', ...options});
+export const getCurrentPath = (options: GetPathOptions): string => createPath({kind: 'current', ...options});
+export const getDiffPath = (options: GetPathOptions): string => createPath({kind: 'diff', ...options});
 
 export const getReferenceAbsolutePath = (testResult: TestAdapter, reportDir: string, stateName: string): string => {
-    const referenceImagePath = getReferencePath(testResult, stateName);
+    const referenceImagePath = getReferencePath({attempt: testResult.attempt, imageDir: testResult.imageDir, browserId: testResult.browserId, stateName});
 
     return path.resolve(reportDir, referenceImagePath);
 };
 
 export const getCurrentAbsolutePath = (testResult: TestAdapter, reportDir: string, stateName: string): string => {
-    const currentImagePath = getCurrentPath(testResult, stateName);
+    const currentImagePath = getCurrentPath({attempt: testResult.attempt, imageDir: testResult.imageDir, browserId: testResult.browserId, stateName});
 
     return path.resolve(reportDir, currentImagePath);
 };
 
 export const getDiffAbsolutePath = (testResult: TestAdapter, reportDir: string, stateName: string): string => {
-    const diffImagePath = getDiffPath(testResult, stateName);
+    const diffImagePath = getDiffPath({attempt: testResult.attempt, imageDir: testResult.imageDir, browserId: testResult.browserId, stateName});
 
     return path.resolve(reportDir, diffImagePath);
 };
 
-/**
- * @param {String} kind - одно из значений 'ref', 'current', 'diff'
- * @param {TestAdapter} result
- * @param {String} stateName - имя стэйта для теста
- * @returns {String}
- */
-export function createPath(kind: string, result: TestAdapter, stateName?: string): string {
-    const attempt: number = result.attempt || 0;
-    const imageDir = _.compact([IMAGES_PATH, result.imageDir, stateName]);
-    const components = imageDir.concat(`${result.browserId}~${kind}_${attempt}.png`);
+interface CreatePathOptions extends GetPathOptions {
+    kind: string;
+}
+
+export function createPath({attempt: attemptInput, imageDir: imageDirInput, browserId, kind, stateName}: CreatePathOptions): string {
+    const attempt: number = attemptInput || 0;
+    const imageDir = _.compact([IMAGES_PATH, imageDirInput, stateName]);
+    const components = imageDir.concat(`${browserId}~${kind}_${attempt}.png`);
 
     return path.join(...components);
+}
+
+export function createHash(buffer: Buffer): string {
+    return crypto
+        .createHash('sha1')
+        .update(buffer)
+        .digest('base64');
 }
 
 export interface CopyFileAsyncOptions {
@@ -82,7 +95,7 @@ export function logError(e: Error): void {
 }
 
 export function hasImage(formattedResult: TestAdapter): boolean {
-    return !!formattedResult.getImagesInfo().length ||
+    return !!formattedResult.imagesInfo?.length ||
         !!formattedResult.getCurrImg()?.path ||
         !!formattedResult.screenshot;
 }
