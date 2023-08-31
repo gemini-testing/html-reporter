@@ -133,7 +133,8 @@ export async function saveStaticFilesToReportDir(htmlReporter: HtmlReporter, plu
         copyToReportDir(destPath, ['report.min.js', 'report.min.css'], staticFolder),
         fs.copy(path.resolve(staticFolder, 'index.html'), path.resolve(destPath, 'index.html')),
         fs.copy(path.resolve(staticFolder, 'icons'), path.resolve(destPath, 'icons')),
-        fs.copy(require.resolve('@gemini-testing/sql.js'), path.resolve(destPath, 'sql-wasm.js')),
+        fs.copy(require.resolve('@gemini-testing/sql.js/dist/sql-wasm.js'), path.resolve(destPath, 'sql-wasm.js')),
+        fs.copy(require.resolve('@gemini-testing/sql.js/dist/sql-wasm.wasm'), path.resolve(destPath, 'sql-wasm.wasm')),
         copyPlugins(pluginConfig, destPath)
     ]);
 }
@@ -173,7 +174,6 @@ export function urlPathNameEndsWith(currentUrl: string, searchString: string): b
 export async function writeDatabaseUrlsFile(destPath: string, srcPaths: string[]): Promise<void> {
     const jsonUrls = srcPaths.filter(p => urlPathNameEndsWith(p, '.json'));
     const dbUrls = srcPaths.filter(p => urlPathNameEndsWith(p, '.db'));
-
     const data = {
         dbUrls,
         jsonUrls
