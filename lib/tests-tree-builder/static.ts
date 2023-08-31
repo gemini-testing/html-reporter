@@ -59,11 +59,11 @@ export class StaticTestsTreeBuilder extends BaseTestsTreeBuilder {
             const testId = this._buildId(testPath);
             const browserId = this._buildId(testId, browserName);
 
-            attemptsMap.set(browserId, attemptsMap.has(browserId) ? attemptsMap.get(browserId) as number + 1 : 0);
-            const attempt = attemptsMap.get(browserId) as number;
-
-            const testResult = mkTestResult(row, {attempt});
-            const formattedResult = {browserId: browserName, testPath, attempt};
+            const prevAttempts = attemptsMap.get(browserId);
+            const curAttempts = prevAttempts === undefined ? 0 : prevAttempts + 1;
+            attemptsMap.set(browserId, curAttempts);
+            const testResult = mkTestResult(row, {attempt: curAttempts});
+            const formattedResult = {browserId: browserName, testPath, attempt: curAttempts};
 
             addBrowserVersion(browsers, testResult);
 

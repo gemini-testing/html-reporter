@@ -58,7 +58,7 @@ export interface Tree {
 interface ResultPayload {
     id: string;
     parentId: string;
-    result: ParsedSuitesRow;
+    result: Omit<ParsedSuitesRow, 'imagesInfo'>;
 }
 
 interface BrowserPayload {
@@ -111,7 +111,7 @@ export class BaseTestsTreeBuilder {
 
     addTestResult(testResult: ParsedSuitesRow, formattedResult: Pick<ReporterTestResult, 'testPath' | 'browserId' | 'attempt'>): void {
         const {testPath, browserId: browserName, attempt} = formattedResult;
-        const {imagesInfo} = testResult;
+        const {imagesInfo, ...resultWithoutImagesInfo} = testResult;
         const {browserVersion = BrowserVersions.UNKNOWN} = testResult.metaInfo as {browserVersion: string};
 
         const suiteId = this._buildId(testPath);
@@ -122,14 +122,16 @@ export class BaseTestsTreeBuilder {
 
         this._addSuites(testPath, browserId);
         this._addBrowser({id: browserId, parentId: suiteId, name: browserName, version: browserVersion}, testResultId, attempt);
-        this._addResult({id: testResultId, parentId: browserId, result: testResult}, imageIds);
+        this._addResult({id: testResultId, parentId: browserId, result: resultWithoutImagesInfo}, imageIds);
         this._addImages(imageIds, {imagesInfo, parentId: testResultId});
 
         this._setStatusForBranch(testPath);
     }
 
     protected _buildId(parentId: string | string[] = [], name: string | string[] = []): string {
-        return ([] as string[]).concat(parentId, name).join(' ');
+        const toStr = (value: string | string[]): string => Array.isArray(value) ? value.join(' ') : value;
+
+        return name.length ? `${toStr(parentId)} ${toStr(name)}` : toStr(parentId);
     }
 
     protected _addSuites(testPath: string[], browserId: string): void {
@@ -200,13 +202,11 @@ export class BaseTestsTreeBuilder {
     }
 
     protected _addResult({id, parentId, result}: ResultPayload, imageIds: string[]): void {
-        const resultWithoutImagesInfo = _.omit(result, 'imagesInfo');
-
         if (!this._tree.results.byId[id]) {
             this._tree.results.allIds.push(id);
         }
 
-        this._tree.results.byId[id] = {id, parentId, ...resultWithoutImagesInfo, imageIds};
+        this._tree.results.byId[id] = {id, parentId, ...result, imageIds};
     }
 
     protected _addImages(imageIds: string[], {imagesInfo, parentId}: ImagesPayload): void {
@@ -225,7 +225,7 @@ export class BaseTestsTreeBuilder {
 
         const suite = this._tree.suites.byId[suiteId];
 
-        const resultStatuses = _.compact(([] as (string | undefined)[]).concat(suite.browserIds))
+        const resultStatuses = (suite.browserIds || [])
             .map((browserId: string) => {
                 const browser = this._tree.browsers.byId[browserId];
                 const lastResultId = _.last(browser.resultIds) as string;
@@ -233,10 +233,10 @@ export class BaseTestsTreeBuilder {
                 return this._tree.results.byId[lastResultId].status;
             });
 
-        const childrenSuiteStatuses = _.compact(([] as (string | undefined)[]).concat(suite.suiteIds))
+        const childrenSuiteStatuses = (suite.suiteIds || [])
             .map((childSuiteId: string) => this._tree.suites.byId[childSuiteId].status);
 
-        const status = determineStatus(_.compact([...resultStatuses, ...childrenSuiteStatuses]));
+        const status = determineStatus([...resultStatuses, ...childrenSuiteStatuses].filter(Boolean) as TestStatus[]);
 
         // if newly determined status is the same as current status, do nothing
         if (suite.status === status) {
