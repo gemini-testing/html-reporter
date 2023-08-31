@@ -26,7 +26,8 @@ describe('lib/merge-reports', () => {
         htmlReporter.emitAsync = sinon.stub();
 
         mergeReports = proxyquire('lib/merge-reports', {
-            '../server-utils': serverUtils
+            '../server-utils': serverUtils,
+            'axios': {get: sandbox.stub().rejects()}
         });
     });
 
@@ -51,7 +52,7 @@ describe('lib/merge-reports', () => {
     it('should merge reports', async () => {
         const pluginConfig = stubConfig();
         const hermione = stubTool(pluginConfig, {}, {}, htmlReporter);
-        const paths = ['src-report/path-1', 'src-report/path-2'];
+        const paths = ['src-report/path-1.json', 'src-report/path-2.db'];
         const destination = 'dest-report/path';
 
         await execMergeReports_({pluginConfig, hermione, paths, opts: {destination}});
