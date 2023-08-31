@@ -58,7 +58,7 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.22.5",
-    "@gemini-testing/sql.js": "^1.0.1",
+    "@gemini-testing/sql.js": "^2.0.0",
     "axios": "^0.18.1",
     "better-sqlite3": "^8.5.0",
     "bluebird": "^3.5.3",
