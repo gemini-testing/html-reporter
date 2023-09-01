@@ -2,12 +2,12 @@ import _ from 'lodash';
 import fs from 'fs-extra';
 import path from 'path';
 
-import {SuiteAdapter} from './suite-adapter';
-import {getSuitePath} from './plugin-utils';
-import {getCommandsHistory} from './history-utils';
-import {ERROR_DETAILS_PATH, TestStatus} from './constants';
-import {getError, isImageDiffError, mkTestId} from './common-utils';
-import * as utils from './server-utils';
+import {SuiteAdapter} from '../suite-adapter';
+import {getSuitePath} from '../plugin-utils';
+import {getCommandsHistory} from '../history-utils';
+import {ERROR_DETAILS_PATH, TestStatus} from '../constants';
+import {getError, isImageDiffError, mkTestId} from '../common-utils';
+import * as utils from '../server-utils';
 import {
     AssertViewResult,
     ErrorDetails,
@@ -15,8 +15,8 @@ import {
     ImageData,
     ImageInfoFull,
     TestResult
-} from './types';
-import {ImagesInfoFormatter} from './image-handler';
+} from '../types';
+import {ImagesInfoFormatter} from '../image-handler';
 
 const testsAttempts: Map<string, number> = new Map();
 
