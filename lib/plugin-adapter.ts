@@ -55,7 +55,7 @@ export class PluginAdapter {
     }
 
     protected async _createStaticReportBuilder(prepareData: PrepareFn): Promise<void> {
-        const staticReportBuilder = StaticReportBuilder.create(this._hermione, this._config);
+        const staticReportBuilder = StaticReportBuilder.create(this._hermione.htmlReporter, this._config);
 
         await staticReportBuilder.init();
 

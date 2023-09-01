@@ -5,6 +5,8 @@ import axios, {AxiosRequestConfig} from 'axios';
 import {SUCCESS, FAIL, ERROR, SKIPPED, UPDATED, IDLE, RUNNING, QUEUED, TestStatus} from './constants';
 
 import {UNCHECKED, INDETERMINATE, CHECKED} from './constants/checked-statuses';
+import {AssertViewResult, TestResult} from './types';
+import {ErrorName, ImageDiffError, NoRefImageError} from './errors';
 export const getShortMD5 = (str: string): string => {
     return crypto.createHash('md5').update(str, 'ascii').digest('hex').substr(0, 7);
 };
@@ -42,6 +44,26 @@ export const determineStatus = (statuses: TestStatus[]): TestStatus | null => {
     console.error('Unknown statuses: ' + JSON.stringify(statuses));
 
     return null;
+};
+
+export const mkTestId = (fullTitle: string, browserId: string): string => {
+    return fullTitle + '.' + browserId;
+};
+
+export const isImageDiffError = (assertResult: AssertViewResult): assertResult is ImageDiffError => {
+    return assertResult.name === ErrorName.IMAGE_DIFF;
+};
+
+export const isNoRefImageError = (assertResult: AssertViewResult): assertResult is NoRefImageError => {
+    return assertResult.name === ErrorName.NO_REF_IMAGE;
+};
+
+export const getError = (testResult: TestResult): undefined | {message?: string; stack?: string; stateName?: string} => {
+    if (!testResult.err) {
+        return undefined;
+    }
+
+    return pick(testResult.err, ['message', 'stack', 'stateName']);
 };
 
 export const isUrl = (str: string): boolean => {

@@ -63,6 +63,7 @@ export class HtmlReporter extends EventsEmitter2 {
     }
 
     set imagesSaver(imagesSaver: ImagesSaver) {
+        this.emit(PluginEvents.IMAGES_SAVER_UPDATED, imagesSaver);
         this._values.imagesSaver = imagesSaver;
     }
 

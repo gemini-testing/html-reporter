@@ -1,14 +1,27 @@
-import _ from 'lodash';
 import path from 'path';
+import {GeneralEventEmitter} from 'eventemitter2';
+import _ from 'lodash';
 import fs from 'fs-extra';
-import type {default as Hermione} from 'hermione';
 
-import {IDLE, RUNNING, SKIPPED, FAIL, ERROR, SUCCESS, TestStatus, LOCAL_DATABASE_NAME} from '../constants';
+import {
+    IDLE,
+    RUNNING,
+    SKIPPED,
+    FAIL,
+    ERROR,
+    SUCCESS,
+    TestStatus,
+    LOCAL_DATABASE_NAME,
+    PluginEvents
+} from '../constants';
 import {PreparedTestResult, SqliteAdapter} from '../sqlite-adapter';
 import {TestAdapter} from '../test-adapter';
 import {hasNoRefImageErrors} from '../static/modules/utils';
 import {hasImage, saveStaticFilesToReportDir, writeDatabaseUrlsFile} from '../server-utils';
-import {HtmlReporterApi, ReporterConfig, TestResult} from '../types';
+import {ReporterConfig, TestResult} from '../types';
+import {HtmlReporter} from '../plugin-api';
+import {ImageHandler} from '../image-handler';
+import {SqliteImageStore} from '../image-store';
 
 const ignoredStatuses = [RUNNING, IDLE];
 
@@ -17,28 +30,42 @@ interface StaticReportBuilderOptions {
 }
 
 export class StaticReportBuilder {
-    protected _hermione: Hermione & HtmlReporterApi;
+    protected _htmlReporter: HtmlReporter;
     protected _pluginConfig: ReporterConfig;
     protected _sqliteAdapter: SqliteAdapter;
+    protected _imageHandler: ImageHandler;
 
     static create<T extends StaticReportBuilder>(
-        this: new (hermione: Hermione & HtmlReporterApi, pluginConfig: ReporterConfig, options?: Partial<StaticReportBuilderOptions>) => T,
-        hermione: Hermione & HtmlReporterApi,
+        this: new (htmlReporter: HtmlReporter, pluginConfig: ReporterConfig, options?: Partial<StaticReportBuilderOptions>) => T,
+        htmlReporter: HtmlReporter,
         pluginConfig: ReporterConfig,
         options?: Partial<StaticReportBuilderOptions>
     ): T {
-        return new this(hermione, pluginConfig, options);
+        return new this(htmlReporter, pluginConfig, options);
     }
 
-    constructor(hermione: Hermione & HtmlReporterApi, pluginConfig: ReporterConfig, {reuse = false}: Partial<StaticReportBuilderOptions> = {}) {
-        this._hermione = hermione;
+    constructor(htmlReporter: HtmlReporter, pluginConfig: ReporterConfig, {reuse = false}: Partial<StaticReportBuilderOptions> = {}) {
+        this._htmlReporter = htmlReporter;
         this._pluginConfig = pluginConfig;
 
         this._sqliteAdapter = SqliteAdapter.create({
-            hermione: this._hermione,
+            htmlReporter: this._htmlReporter,
             reportPath: this._pluginConfig.path,
             reuse
         });
+
+        const imageStore = new SqliteImageStore(this._sqliteAdapter);
+        this._imageHandler = new ImageHandler(imageStore, htmlReporter.imagesSaver, {reportPath: pluginConfig.path});
+
+        this._htmlReporter.on(PluginEvents.IMAGES_SAVER_UPDATED, (newImagesSaver) => {
+            this._imageHandler.setImagesSaver(newImagesSaver);
+        });
+
+        this._htmlReporter.listenTo(this._imageHandler as unknown as GeneralEventEmitter, [PluginEvents.TEST_SCREENSHOTS_SAVED]);
+    }
+
+    get imageHandler(): ImageHandler {
+        return this._imageHandler;
     }
 
     async init(): Promise<void> {
@@ -51,9 +78,8 @@ export class StaticReportBuilder {
         return result instanceof TestAdapter
             ? result
             : TestAdapter.create(result, {
-                hermione: this._hermione,
-                sqliteAdapter: this._sqliteAdapter,
-                status
+                status,
+                imagesInfoFormatter: this._imageHandler
             });
     }
 
@@ -61,7 +87,7 @@ export class StaticReportBuilder {
         const destPath = this._pluginConfig.path;
 
         await Promise.all([
-            saveStaticFilesToReportDir(this._hermione, this._pluginConfig, destPath),
+            saveStaticFilesToReportDir(this._htmlReporter, this._pluginConfig, destPath),
             writeDatabaseUrlsFile(destPath, [LOCAL_DATABASE_NAME])
         ]);
     }
@@ -160,7 +186,7 @@ export class StaticReportBuilder {
     async finalize(): Promise<void> {
         this._sqliteAdapter.close();
 
-        const reportsSaver = this._hermione.htmlReporter.reportsSaver;
+        const reportsSaver = this._htmlReporter.reportsSaver;
 
         if (reportsSaver) {
             const reportDir = this._pluginConfig.path;

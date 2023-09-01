@@ -31,7 +31,7 @@ describe('GuiReportBuilder', () => {
 
         TestAdapter.create = (obj) => obj;
 
-        const reportBuilder = GuiReportBuilder.create(hermione, pluginConfig);
+        const reportBuilder = GuiReportBuilder.create(hermione.htmlReporter, pluginConfig);
         await reportBuilder.init();
 
         return reportBuilder;

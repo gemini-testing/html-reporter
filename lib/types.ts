@@ -2,6 +2,7 @@ import type {LooksSameOptions, CoordBounds} from 'looks-same';
 import type {default as Hermione} from 'hermione';
 import {DiffModeId, SaveFormat, TestStatus, ViewMode} from './constants';
 import type {HtmlReporter} from './plugin-api';
+import {ImageDiffError, NoRefImageError} from './errors';
 
 declare module 'tmp' {
     export const tmpdir: string;
@@ -72,6 +73,7 @@ export interface ImageInfoSuccess {
     refImg?: ImageData;
     diffClusters?: CoordBounds[];
     expectedImg: ImageData;
+    actualImg?: ImageData;
 }
 
 export interface ImageInfoError {
@@ -90,16 +92,7 @@ export type ImageInfo =
     | Omit<ImageInfoSuccess, 'status' | 'stateName'>
     | Omit<ImageInfoError, 'status' | 'stateName'>;
 
-export interface ImageDiffError {
-    stateName: string;
-    diffOpts: DiffOptions;
-    currImg: ImageData;
-    refImg: ImageData;
-    diffClusters: CoordBounds[];
-    diffBuffer?: ArrayBuffer;
-}
-
-export type AssertViewResult = ImageDiffError;
+export type AssertViewResult = ImageDiffError | NoRefImageError;
 
 export interface TestResult extends ConfigurableTestObject {
     assertViewResults: AssertViewResult[];
@@ -109,16 +102,17 @@ export interface TestResult extends ConfigurableTestObject {
         stack: string;
         stateName?: string;
         details: ErrorDetails
+        screenshot: ImageBase64
     };
     fullTitle(): string;
     title: string;
     meta: Record<string, unknown>
     sessionId: string;
     timestamp: number;
-    imagesInfo: ImageInfoFull[];
     origAttempt?: number;
     history: unknown;
     parent: Suite;
+    updated?: boolean;
 }
 
 export interface LabeledSuitesRow {
