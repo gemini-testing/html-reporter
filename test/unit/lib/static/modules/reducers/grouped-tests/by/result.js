@@ -52,11 +52,11 @@ describe('lib/static/modules/reducers/grouped-tests/by/result', () => {
             assert.calledTwice(addGroupItem);
             assert.calledWith(
                 addGroupItem.firstCall,
-                {group: sinon.match.object, result: results[0], value: 'err-1', patterns: []}
+                {group: sinon.match.object, diff: {}, result: results[0], value: 'err-1', patterns: []}
             );
             assert.calledWith(
                 addGroupItem.secondCall,
-                {group: sinon.match.object, result: results[1], value: 'err-2', patterns: []}
+                {group: sinon.match.object, diff: {}, result: results[1], value: 'err-2', patterns: []}
             );
         });
 
@@ -74,11 +74,11 @@ describe('lib/static/modules/reducers/grouped-tests/by/result', () => {
             assert.calledTwice(addGroupItem);
             assert.calledWith(
                 addGroupItem.firstCall,
-                {group: sinon.match.object, result: results[0], value: 'img-err', patterns: []}
+                {group: sinon.match.object, diff: {}, result: results[0], value: 'img-err', patterns: []}
             );
             assert.calledWith(
                 addGroupItem.secondCall,
-                {group: sinon.match.object, result: results[0], value: 'err-1', patterns: []}
+                {group: sinon.match.object, diff: {}, result: results[0], value: 'err-1', patterns: []}
             );
         });
 
@@ -96,7 +96,7 @@ describe('lib/static/modules/reducers/grouped-tests/by/result', () => {
 
             assert.calledOnceWith(
                 addGroupItem,
-                {group: sinon.match.object, result: results[0], value: 'img-err', patterns: []}
+                {group: sinon.match.object, diff: {}, result: results[0], value: 'img-err', patterns: []}
             );
         });
 
@@ -111,7 +111,7 @@ describe('lib/static/modules/reducers/grouped-tests/by/result', () => {
 
             assert.calledOnceWith(
                 addGroupItem,
-                {group: sinon.match.object, result: results[0], value: 'image comparison failed', patterns: []}
+                {group: sinon.match.object, diff: {}, result: results[0], value: 'image comparison failed', patterns: []}
             );
         });
 
