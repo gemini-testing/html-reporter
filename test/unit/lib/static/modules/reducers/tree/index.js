@@ -985,6 +985,22 @@ describe('lib/static/modules/reducers/tree', () => {
             assert.equal(newState.tree.suites.byId.s1.status, FAIL);
             assert.equal(newState.tree.suites.byId.s2.status, SUCCESS);
         });
+
+        it('should correctly set suite status when filteredBrowsers is empty', () => {
+            const suitesById = mkSuite({id: 's1', status: FAIL, browserIds: ['b1']});
+            const browsersById = mkBrowser({id: 'b1', name: 'yabro-1', parentId: 's1', resultIds: ['r1']});
+            const resultsById = mkResult({id: 'r1', parentId: 'b1', status: FAIL});
+            const browsersStateById = {'b1': {checkStatus: UNCHECKED}};
+            const tree = mkStateTree({suitesById, browsersById, resultsById, browsersStateById});
+            const view = mkStateView({filteredBrowsers: [{id: 'yabro-1', versions: []}]});
+
+            const newState = reducer({tree, view}, {
+                type: actionNames.BROWSERS_SELECTED,
+                payload: {browsers: []}
+            });
+
+            assert.equal(newState.tree.suites.byId.s1.status, FAIL);
+        });
     });
 
     describe(`${actionNames.CHANGE_TEST_RETRY} action`, () => {
