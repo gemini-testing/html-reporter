@@ -1,5 +1,5 @@
 import type {LooksSameOptions, CoordBounds} from 'looks-same';
-import type {default as Hermione} from 'hermione';
+import type {default as Hermione, TestResult as HermioneTestResultOriginal} from 'hermione';
 import {DiffModeId, SaveFormat, TestStatus, ViewMode} from './constants';
 import type {HtmlReporter} from './plugin-api';
 import {ImageDiffError, NoRefImageError} from './errors';
@@ -8,18 +8,12 @@ declare module 'tmp' {
     export const tmpdir: string;
 }
 
-interface ConfigurableTestObject {
-    browserId: string;
-    browserVersion?: string;
-    id: string;
-    file: string;
-    skipReason: string;
-}
+export {Suite as HermioneSuite} from 'hermione';
 
-export interface Suite extends ConfigurableTestObject {
-    readonly root: boolean;
-    readonly title: string;
-    parent: Suite | null;
+export interface HermioneTestResult extends HermioneTestResultOriginal {
+    timestamp?: number;
+    updated?: boolean;
+    origAttempt?: number;
 }
 
 export interface ImagesSaver {
@@ -67,6 +61,11 @@ export interface ImageInfoFail {
     diffImg: ImageData;
 }
 
+interface AssertViewSuccess {
+    stateName: string;
+    refImg: ImageData;
+}
+
 export interface ImageInfoSuccess {
     status: TestStatus.SUCCESS | TestStatus.UPDATED;
     stateName: string;
@@ -92,27 +91,14 @@ export type ImageInfo =
     | Omit<ImageInfoSuccess, 'status' | 'stateName'>
     | Omit<ImageInfoError, 'status' | 'stateName'>;
 
-export type AssertViewResult = ImageDiffError | NoRefImageError;
+export type AssertViewResult = AssertViewSuccess | ImageDiffError | NoRefImageError;
 
-export interface TestResult extends ConfigurableTestObject {
-    assertViewResults: AssertViewResult[];
-    description?: string;
-    err?: {
-        message: string;
-        stack: string;
-        stateName?: string;
-        details: ErrorDetails
-        screenshot: ImageBase64
-    };
-    fullTitle(): string;
-    title: string;
-    meta: Record<string, unknown>
-    sessionId: string;
-    timestamp: number;
-    origAttempt?: number;
-    history: unknown;
-    parent: Suite;
-    updated?: boolean;
+export interface TestError {
+    message: string;
+    stack?: string;
+    stateName?: string;
+    details?: ErrorDetails
+    screenshot?: ImageBase64
 }
 
 export interface LabeledSuitesRow {

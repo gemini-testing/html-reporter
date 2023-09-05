@@ -1,13 +1,16 @@
 import {CoordBounds} from 'looks-same';
 import {DiffOptions, ImageData} from '../types';
+import {ValueOf} from 'type-fest';
 
-export enum ErrorName {
-    IMAGE_DIFF = 'ImageDiffError',
-    NO_REF_IMAGE = 'NoRefImageError'
-}
+export const ErrorName = {
+    IMAGE_DIFF: 'ImageDiffError',
+    NO_REF_IMAGE: 'NoRefImageError'
+} as const;
+export type ErrorName = ValueOf<typeof ErrorName>;
+export type ErrorNames = typeof ErrorName;
 
 export interface ImageDiffError {
-    name: ErrorName.IMAGE_DIFF;
+    name: ErrorNames['IMAGE_DIFF'];
     message: string;
     stack: string;
     stateName: string;
@@ -19,7 +22,7 @@ export interface ImageDiffError {
 }
 
 export interface NoRefImageError {
-    name: ErrorName.NO_REF_IMAGE;
+    name: ErrorNames['NO_REF_IMAGE'];
     stateName: string;
     message: string;
     stack: string;

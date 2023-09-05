@@ -12,16 +12,17 @@ import {
     SUCCESS,
     TestStatus,
     LOCAL_DATABASE_NAME,
-    PluginEvents
+    PluginEvents, DB_COLUMNS
 } from '../constants';
 import {PreparedTestResult, SqliteAdapter} from '../sqlite-adapter';
-import {TestAdapter} from '../test-adapter';
+import {ReporterTestResult} from '../test-adapter';
 import {hasNoRefImageErrors} from '../static/modules/utils';
 import {hasImage, saveStaticFilesToReportDir, writeDatabaseUrlsFile} from '../server-utils';
-import {ReporterConfig, TestResult} from '../types';
+import {ReporterConfig} from '../types';
 import {HtmlReporter} from '../plugin-api';
 import {ImageHandler} from '../image-handler';
 import {SqliteImageStore} from '../image-store';
+import {getAbsoluteUrl, getError, getRelativeUrl, hasDiff} from '../common-utils';
 
 const ignoredStatuses = [RUNNING, IDLE];
 
@@ -72,17 +73,6 @@ export class StaticReportBuilder {
         await this._sqliteAdapter.init();
     }
 
-    format(result: TestResult | TestAdapter, status: TestStatus): TestAdapter {
-        result.timestamp = Date.now();
-
-        return result instanceof TestAdapter
-            ? result
-            : TestAdapter.create(result, {
-                status,
-                imagesInfoFormatter: this._imageHandler
-            });
-    }
-
     async saveStaticFiles(): Promise<void> {
         const destPath = this._pluginConfig.path;
 
@@ -92,46 +82,42 @@ export class StaticReportBuilder {
         ]);
     }
 
-    addSkipped(result: TestResult | TestAdapter): TestAdapter {
-        const formattedResult = this.format(result, SKIPPED);
-
-        return this._addTestResult(formattedResult, {
+    addSkipped(result: ReporterTestResult): ReporterTestResult {
+        return this._addTestResult(result, {
             status: SKIPPED,
-            skipReason: formattedResult.suite.skipComment
+            skipReason: result.skipReason
         });
     }
 
-    addSuccess(result: TestResult | TestAdapter): TestAdapter {
-        return this._addTestResult(this.format(result, SUCCESS), {status: SUCCESS});
+    addSuccess(result: ReporterTestResult): ReporterTestResult {
+        return this._addTestResult(result, {status: SUCCESS});
     }
 
-    addFail(result: TestResult | TestAdapter): TestAdapter {
-        return this._addFailResult(this.format(result, FAIL));
+    addFail(result: ReporterTestResult): ReporterTestResult {
+        return this._addFailResult(result);
     }
 
-    addError(result: TestResult | TestAdapter): TestAdapter {
-        return this._addErrorResult(this.format(result, ERROR));
+    addError(result: ReporterTestResult): ReporterTestResult {
+        return this._addErrorResult(result);
     }
 
-    addRetry(result: TestResult | TestAdapter): TestAdapter {
-        const formattedResult = this.format(result, FAIL);
-
-        if (formattedResult.hasDiff()) {
-            return this._addFailResult(formattedResult);
+    addRetry(result: ReporterTestResult): ReporterTestResult {
+        if (hasDiff(result.assertViewResults)) {
+            return this._addFailResult(result);
         } else {
-            return this._addErrorResult(formattedResult);
+            return this._addErrorResult(result);
         }
     }
 
-    protected _addFailResult(formattedResult: TestAdapter): TestAdapter {
+    protected _addFailResult(formattedResult: ReporterTestResult): ReporterTestResult {
         return this._addTestResult(formattedResult, {status: FAIL});
     }
 
-    protected _addErrorResult(formattedResult: TestAdapter): TestAdapter {
-        return this._addTestResult(formattedResult, {status: ERROR, error: formattedResult.error});
+    protected _addErrorResult(formattedResult: ReporterTestResult): ReporterTestResult {
+        return this._addTestResult(formattedResult, {status: ERROR, error: getError(formattedResult.error)});
     }
 
-    protected _addTestResult(formattedResult: TestAdapter, props: {status: TestStatus} & Partial<PreparedTestResult>): TestAdapter {
+    protected _addTestResult(formattedResult: ReporterTestResult, props: {status: TestStatus} & Partial<PreparedTestResult>): ReporterTestResult {
         formattedResult.image = hasImage(formattedResult);
 
         const testResult = this._createTestResult(formattedResult, _.extend(props, {
@@ -142,22 +128,31 @@ export class StaticReportBuilder {
             testResult.status = FAIL;
         }
 
-        if (!ignoredStatuses.includes(testResult.status)) {
+        // To prevent skips duplication on reporter startup
+        const isPreviouslySkippedTest = testResult.status === SKIPPED && this._sqliteAdapter.query({
+            select: '*',
+            where: `${DB_COLUMNS.SUITE_PATH} = ? AND ${DB_COLUMNS.NAME} = ? AND ${DB_COLUMNS.STATUS} = ?`,
+            orderBy: DB_COLUMNS.TIMESTAMP,
+            orderDescending: true,
+            limit: 1
+        }, JSON.stringify(formattedResult.testPath), formattedResult.browserId, TestStatus.SKIPPED);
+
+        if (!ignoredStatuses.includes(testResult.status) && !isPreviouslySkippedTest) {
             this._writeTestResultToDb(testResult, formattedResult);
         }
 
         return formattedResult;
     }
 
-    _createTestResult(result: TestAdapter, props: {status: TestStatus} & Partial<PreparedTestResult>): PreparedTestResult {
+    _createTestResult(result: ReporterTestResult, props: {status: TestStatus} & Partial<PreparedTestResult>): PreparedTestResult {
         const {
-            browserId, suite, sessionId, description, history,
+            browserId, file, sessionId, description, history,
             imagesInfo = [], screenshot, multipleTabs, errorDetails
         } = result;
 
         const {baseHost, saveErrorDetails} = this._pluginConfig;
-        const suiteUrl: string = suite.getUrl({baseHost});
-        const metaInfo = _.merge(_.cloneDeep(result.meta), {url: suite.fullUrl, file: suite.file, sessionId});
+        const suiteUrl: string = getAbsoluteUrl(result.url, baseHost);
+        const metaInfo = _.merge(_.cloneDeep(result.meta), {url: getRelativeUrl(suiteUrl) ?? '', file, sessionId});
 
         const testResult: PreparedTestResult = Object.assign({
             suiteUrl, name: browserId, metaInfo, description, history,
@@ -171,10 +166,9 @@ export class StaticReportBuilder {
         return testResult;
     }
 
-    _writeTestResultToDb(testResult: PreparedTestResult, formattedResult: TestAdapter): void {
-        const {suite} = formattedResult;
+    _writeTestResultToDb(testResult: PreparedTestResult, formattedResult: ReporterTestResult): void {
         const suiteName = formattedResult.state.name;
-        const suitePath = suite.path.concat(suiteName);
+        const suitePath = formattedResult.testPath;
 
         this._sqliteAdapter.write({testResult, suitePath, suiteName});
     }
