@@ -7,14 +7,13 @@ const proxyquire = require('proxyquire');
 const {HtmlReporter} = require('lib/plugin-api');
 const {SUCCESS, FAIL, ERROR, SKIPPED} = require('lib/constants/test-statuses');
 const {LOCAL_DATABASE_NAME} = require('lib/constants/database');
-const {mkFormattedTest} = require('../../utils');
 
 const TEST_REPORT_PATH = 'test';
 const TEST_DB_PATH = `${TEST_REPORT_PATH}/${LOCAL_DATABASE_NAME}`;
 
 describe('StaticReportBuilder', () => {
     const sandbox = sinon.sandbox.create();
-    let StaticReportBuilder, hermione;
+    let StaticReportBuilder, htmlReporter;
 
     const fs = _.clone(fsOriginal);
 
@@ -23,22 +22,16 @@ describe('StaticReportBuilder', () => {
     });
     const utils = _.clone(originalUtils);
 
-    const mkStaticReportBuilder_ = async ({toolConfig = {}, pluginConfig} = {}) => {
-        toolConfig = _.defaults(toolConfig, {getAbsoluteUrl: _.noop});
+    const mkStaticReportBuilder_ = async ({pluginConfig} = {}) => {
         pluginConfig = _.defaults(pluginConfig, {baseHost: '', path: TEST_REPORT_PATH, baseTestPath: ''});
 
-        const browserConfigStub = {getAbsoluteUrl: toolConfig.getAbsoluteUrl};
-        hermione = {
-            forBrowser: sandbox.stub().returns(browserConfigStub),
-            on: sandbox.spy(),
-            htmlReporter: _.extend(HtmlReporter.create(), {
-                reportsSaver: {
-                    saveReportData: sandbox.stub()
-                }
-            })
-        };
+        htmlReporter = _.extend(HtmlReporter.create(), {
+            reportsSaver: {
+                saveReportData: sandbox.stub()
+            }
+        });
 
-        const reportBuilder = StaticReportBuilder.create(hermione.htmlReporter, pluginConfig);
+        const reportBuilder = StaticReportBuilder.create(htmlReporter, pluginConfig);
         await reportBuilder.init();
 
         return reportBuilder;
@@ -49,19 +42,8 @@ describe('StaticReportBuilder', () => {
 
         return _.defaultsDeep(opts, {
             state: {name: 'name-default'},
-            suite: {
-                path: ['suite'],
-                metaInfo: {sessionId: 'sessionId-default'},
-                file: 'default/path/file.js',
-                getUrl: () => opts.suite.url || ''
-            },
             imageDir: '',
-            imagesInfo,
-            getImagesInfo: () => imagesInfo,
-            getImagesFor: () => ({}),
-            getRefImg: () => ({}),
-            getCurrImg: () => ({}),
-            getErrImg: () => ({})
+            imagesInfo
         });
     };
 
@@ -84,7 +66,6 @@ describe('StaticReportBuilder', () => {
 
         beforeEach(async () => {
             reportBuilder = await mkStaticReportBuilder_();
-            sandbox.stub(reportBuilder, 'format').returns(mkFormattedTest());
         });
 
         it('should add skipped test', async () => {
@@ -128,10 +109,7 @@ describe('StaticReportBuilder', () => {
         });
 
         it('should use timestamp from test result when it is present', async () => {
-            reportBuilder.format.returns(_.defaults(mkFormattedTest(), {
-                timestamp: 100500
-            }));
-            await reportBuilder.addSuccess(stubTest_());
+            await reportBuilder.addSuccess(stubTest_({timestamp: 100500}));
             const db = new Database(TEST_DB_PATH);
 
             const [{timestamp}] = db.prepare('SELECT * from suites').all();
@@ -161,7 +139,7 @@ describe('StaticReportBuilder', () => {
         });
 
         it('should not resave databaseUrls file with path to sqlite db when it is not moved', async () => {
-            hermione.htmlReporter.reportsSaver = null;
+            htmlReporter.reportsSaver = null;
 
             await reportBuilder.finalize();
 
@@ -170,7 +148,7 @@ describe('StaticReportBuilder', () => {
         });
 
         it('should save databaseUrls file with custom path to sqlite db', async () => {
-            hermione.htmlReporter.reportsSaver.saveReportData.resolves('sqlite-copy.db');
+            htmlReporter.reportsSaver.saveReportData.resolves('sqlite-copy.db');
 
             await reportBuilder.finalize();
 
@@ -182,7 +160,7 @@ describe('StaticReportBuilder', () => {
         });
 
         it('should save databaseUrls file with absolute path to sqlite db', async () => {
-            hermione.htmlReporter.reportsSaver.saveReportData.resolves('/tmp/sqlite.db');
+            htmlReporter.reportsSaver.saveReportData.resolves('/tmp/sqlite.db');
 
             await reportBuilder.finalize();
 
@@ -194,7 +172,7 @@ describe('StaticReportBuilder', () => {
         });
 
         it('should save databaseUrls file with url to sqlite db', async () => {
-            hermione.htmlReporter.reportsSaver.saveReportData.resolves('https://localhost/sqlite.db');
+            htmlReporter.reportsSaver.saveReportData.resolves('https://localhost/sqlite.db');
 
             await reportBuilder.finalize();
 

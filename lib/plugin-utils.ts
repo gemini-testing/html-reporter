@@ -1,7 +1,11 @@
-import {Suite, TestResult} from './types';
+import {HermioneSuite} from './types';
 
-export const getSuitePath = (suite: TestResult | Suite): string[] => {
-    return (suite as Suite).root ?
+export const getSuitePath = (suite?: HermioneSuite): string[] => {
+    if (!suite) {
+        return [];
+    }
+
+    return (suite as HermioneSuite).root ?
         [] :
-        ([] as string[]).concat(getSuitePath(suite.parent as Suite)).concat(suite.title);
+        ([] as string[]).concat(getSuitePath(suite.parent as HermioneSuite)).concat(suite.title);
 };

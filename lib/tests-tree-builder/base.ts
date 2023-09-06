@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import {determineStatus} from '../common-utils';
 import {TestStatus, BrowserVersions} from '../constants';
-import {TestAdapter} from '../test-adapter';
+import {ReporterTestResult} from '../test-adapter';
 import {ImageInfoFull, ParsedSuitesRow} from '../types';
 
 type TreeResult = {
@@ -109,7 +109,7 @@ export class BaseTestsTreeBuilder {
         this._tree.suites.allRootIds.sort().forEach(sortChildSuites);
     }
 
-    addTestResult(testResult: ParsedSuitesRow, formattedResult: Pick<TestAdapter, 'testPath' | 'browserId' | 'attempt'>): void {
+    addTestResult(testResult: ParsedSuitesRow, formattedResult: Pick<ReporterTestResult, 'testPath' | 'browserId' | 'attempt'>): void {
         const {testPath, browserId: browserName, attempt} = formattedResult;
         const {imagesInfo} = testResult;
         const {browserVersion = BrowserVersions.UNKNOWN} = testResult.metaInfo as {browserVersion: string};

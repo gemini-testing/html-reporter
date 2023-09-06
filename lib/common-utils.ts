@@ -1,11 +1,11 @@
 import crypto from 'crypto';
-import {pick} from 'lodash';
+import {pick, isEmpty} from 'lodash';
 import url from 'url';
 import axios, {AxiosRequestConfig} from 'axios';
 import {SUCCESS, FAIL, ERROR, SKIPPED, UPDATED, IDLE, RUNNING, QUEUED, TestStatus} from './constants';
 
 import {UNCHECKED, INDETERMINATE, CHECKED} from './constants/checked-statuses';
-import {AssertViewResult, TestResult} from './types';
+import {AssertViewResult, TestError} from './types';
 import {ErrorName, ImageDiffError, NoRefImageError} from './errors';
 export const getShortMD5 = (str: string): string => {
     return crypto.createHash('md5').update(str, 'ascii').digest('hex').substr(0, 7);
@@ -46,24 +46,52 @@ export const determineStatus = (statuses: TestStatus[]): TestStatus | null => {
     return null;
 };
 
+export const getAbsoluteUrl = (url: string | undefined, baseUrl: string | undefined): string => {
+    try {
+        return new URL(url ?? '', isEmpty(baseUrl) ? undefined : baseUrl).href;
+    } catch {
+        return baseUrl || url || '';
+    }
+};
+
+export const getRelativeUrl = (absoluteUrl: string): string => {
+    try {
+        const urlObj = new URL(absoluteUrl);
+
+        return urlObj.pathname + urlObj.search;
+    } catch {
+        return absoluteUrl;
+    }
+};
+
+export const wrapLinkByTag = (text: string): string => {
+    return text.replace(/https?:\/\/[^\s]*/g, (url) => {
+        return `<a target="_blank" href="${url}">${url}</a>`;
+    });
+};
+
 export const mkTestId = (fullTitle: string, browserId: string): string => {
     return fullTitle + '.' + browserId;
 };
 
 export const isImageDiffError = (assertResult: AssertViewResult): assertResult is ImageDiffError => {
-    return assertResult.name === ErrorName.IMAGE_DIFF;
+    return (assertResult as ImageDiffError).name === ErrorName.IMAGE_DIFF;
 };
 
 export const isNoRefImageError = (assertResult: AssertViewResult): assertResult is NoRefImageError => {
-    return assertResult.name === ErrorName.NO_REF_IMAGE;
+    return (assertResult as NoRefImageError).name === ErrorName.NO_REF_IMAGE;
 };
 
-export const getError = (testResult: TestResult): undefined | {message?: string; stack?: string; stateName?: string} => {
-    if (!testResult.err) {
+export const getError = (error?: TestError): undefined | Pick<TestError, 'message' | 'stack' | 'stateName'> => {
+    if (!error) {
         return undefined;
     }
 
-    return pick(testResult.err, ['message', 'stack', 'stateName']);
+    return pick(error, ['message', 'stack', 'stateName']);
+};
+
+export const hasDiff = (assertViewResults: AssertViewResult[]): boolean => {
+    return assertViewResults.some((result) => isImageDiffError(result));
 };
 
 export const isUrl = (str: string): boolean => {

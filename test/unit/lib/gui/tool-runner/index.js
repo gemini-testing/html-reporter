@@ -20,17 +20,21 @@ describe('lib/gui/tool-runner/index', () => {
     let looksSame;
     let removeReferenceImage;
     let revertReferenceImage;
+    let toolRunnerUtils;
 
     const mkTestCollection_ = (testsTree = {}) => {
         return {
             eachTest: (cb) => {
-                Object.keys(testsTree).forEach((test) => cb(testsTree[test]));
+                Object.keys(testsTree).forEach((test) => cb(testsTree[test], testsTree[test].browserId));
             }
         };
     };
 
     const stubTest_ = (opts) => {
-        return mkState(_.defaults(opts, {id: () => 'default-id'}));
+        return mkState(_.defaults(opts, {
+            id: () => 'default-id',
+            fullTitle: () => 'some-title'
+        }));
     };
 
     const mkToolCliOpts_ = (globalCliOpts = {name: () => 'hermione'}, guiCliOpts = {}) => {
@@ -41,10 +45,10 @@ describe('lib/gui/tool-runner/index', () => {
         return {pluginConfig};
     };
 
-    const mkHermione_ = (config) => {
+    const mkHermione_ = (config, testsTree) => {
         const hermione = stubTool(config, {UPDATE_REFERENCE: 'updateReference'});
         sandbox.stub(hermione, 'emit');
-        hermione.readTests.resolves(mkTestCollection_());
+        hermione.readTests.resolves(mkTestCollection_(testsTree));
 
         return hermione;
     };
@@ -63,14 +67,20 @@ describe('lib/gui/tool-runner/index', () => {
     beforeEach(() => {
         hermione = stubTool();
 
+        toolRunnerUtils = {
+            findTestResult: sandbox.stub(),
+            formatId: sandbox.stub().returns('some-id')
+        };
+
         reportBuilder = sinon.createStubInstance(GuiReportBuilder);
+        reportBuilder.getUpdatedAttempt.returns(0);
+
         reportSubscriber = sandbox.stub().named('reportSubscriber').resolves();
         looksSame = sandbox.stub().named('looksSame').resolves({equal: true});
         removeReferenceImage = sandbox.stub().resolves();
         revertReferenceImage = sandbox.stub().resolves();
 
         sandbox.stub(GuiReportBuilder, 'create').returns(reportBuilder);
-        reportBuilder.format.returns({prepareTestResult: sandbox.stub()});
         reportBuilder.getResult.returns({});
 
         getTestsTreeFromDatabase = sandbox.stub().returns({});
@@ -78,7 +88,7 @@ describe('lib/gui/tool-runner/index', () => {
         ToolGuiReporter = proxyquire(`lib/gui/tool-runner`, {
             'looks-same': looksSame,
             './report-subscriber': reportSubscriber,
-            './utils': {findTestResult: sandbox.stub()},
+            './utils': toolRunnerUtils,
             '../../db-utils/server': {getTestsTreeFromDatabase},
             '../../reporter-helpers': {
                 updateReferenceImage: sandbox.stub().resolves(),
@@ -213,16 +223,9 @@ describe('lib/gui/tool-runner/index', () => {
     describe('updateReferenceImage', () => {
         describe('should emit "UPDATE_REFERENCE" event', () => {
             it('should emit "UPDATE_REFERENCE" event with state and reference data', async () => {
-                const getScreenshotPath = sandbox.stub().returns('/ref/path1');
-                const config = stubConfig({
-                    browsers: {yabro: {getScreenshotPath}}
-                });
-
-                const hermione = mkHermione_(config);
-                const gui = initGuiReporter(hermione);
-                await gui.initialize();
-
                 const tests = [{
+                    id: 'some-id',
+                    fullTitle: () => 'some-title',
                     browserId: 'yabro',
                     suite: {path: ['suite1']},
                     state: {},
@@ -235,6 +238,14 @@ describe('lib/gui/tool-runner/index', () => {
                     })]
                 }];
 
+                const getScreenshotPath = sandbox.stub().returns('/ref/path1');
+                const config = stubConfig({
+                    browsers: {yabro: {getScreenshotPath}}
+                });
+                const hermione = mkHermione_(config, {'some-title.yabro': tests[0]});
+                const gui = initGuiReporter(hermione);
+                await gui.initialize();
+
                 await gui.updateReferenceImage(tests);
 
                 assert.calledOnceWith(hermione.emit, 'updateReference', {
@@ -244,19 +255,9 @@ describe('lib/gui/tool-runner/index', () => {
             });
 
             it('for each image info', async () => {
-                const getScreenshotPath = sandbox.stub()
-                    .onFirstCall().returns('/ref/path1')
-                    .onSecondCall().returns('/ref/path2');
-
-                const config = stubConfig({
-                    browsers: {yabro: {getScreenshotPath}}
-                });
-
-                const hermione = mkHermione_(config);
-                const gui = initGuiReporter(hermione);
-                await gui.initialize();
-
                 const tests = [{
+                    id: 'some-id',
+                    fullTitle: () => 'some-title',
                     browserId: 'yabro',
                     suite: {path: ['suite1']},
                     state: {},
@@ -277,6 +278,18 @@ describe('lib/gui/tool-runner/index', () => {
                     ]
                 }];
 
+                const getScreenshotPath = sandbox.stub()
+                    .onFirstCall().returns('/ref/path1')
+                    .onSecondCall().returns('/ref/path2');
+
+                const config = stubConfig({
+                    browsers: {yabro: {getScreenshotPath}}
+                });
+
+                const hermione = mkHermione_(config, {'some-title.yabro': tests[0]});
+                const gui = initGuiReporter(hermione);
+                await gui.initialize();
+
                 await gui.updateReferenceImage(tests);
 
                 assert.calledTwice(hermione.emit);
@@ -292,22 +305,25 @@ describe('lib/gui/tool-runner/index', () => {
         });
 
         it('should pass "origAttempt" to the ReportBuilder.addUpdate method to be able to calculate status properly', async () => {
-            const getScreenshotPath = sandbox.stub().returns('/ref/path1');
-            const config = stubConfig({
-                browsers: {yabro: {getScreenshotPath}}
-            });
-
-            const hermione = mkHermione_(config);
-            const gui = initGuiReporter(hermione);
-            await gui.initialize();
-
             const tests = [{
+                id: 'some-id',
+                fullTitle: () => 'some-title',
+                browserId: 'yabro',
                 attempt: 10,
                 suite: {path: ['suite1']},
                 state: {},
                 metaInfo: {},
                 imagesInfo: []
             }];
+
+            const getScreenshotPath = sandbox.stub().returns('/ref/path1');
+            const config = stubConfig({
+                browsers: {yabro: {getScreenshotPath}}
+            });
+
+            const hermione = mkHermione_(config, {'some-title.yabro': tests[0]});
+            const gui = initGuiReporter(hermione);
+            await gui.initialize();
 
             await gui.updateReferenceImage(tests);
 
@@ -317,20 +333,12 @@ describe('lib/gui/tool-runner/index', () => {
 
     describe('undoAcceptImages', () => {
         const mkUndoTestData_ = async (stubResult, {stateName = 'plain'} = {}) => {
-            const formattedResult = {
-                updateCacheExpectedPath: sandbox.stub()
-            };
-            reportBuilder.format.withArgs(sinon.match.object).returns(formattedResult);
-            reportBuilder.undoAcceptImage.withArgs(formattedResult, 'plain').resolves(stubResult);
-            const getScreenshotPath = sandbox.stub().returns('/ref/path1');
-            const config = stubConfig({
-                browsers: {yabro: {getScreenshotPath}}
-            });
-            const hermione = mkHermione_(config);
-            const gui = initGuiReporter(hermione);
-            await gui.initialize();
-
+            reportBuilder.undoAcceptImage.withArgs(sinon.match({
+                fullName: 'some-title'
+            }), 'plain').resolves(stubResult);
             const tests = [{
+                id: 'some-id',
+                fullTitle: () => 'some-title',
                 browserId: 'yabro',
                 suite: {path: ['suite1']},
                 state: {},
@@ -345,25 +353,33 @@ describe('lib/gui/tool-runner/index', () => {
                 ]
             }];
 
-            return {formattedResult, gui, tests};
+            const getScreenshotPath = sandbox.stub().returns('/ref/path1');
+            const config = stubConfig({
+                browsers: {yabro: {getScreenshotPath}}
+            });
+            const hermione = mkHermione_(config, {'some-title.yabro': tests[0]});
+            const gui = initGuiReporter(hermione);
+            await gui.initialize();
+
+            return {gui, tests};
         };
 
         it('should remove reference, if ReportBuilder.undoAcceptImages resolved "shouldRemoveReference"', async () => {
             const stateName = 'plain';
-            const {formattedResult, gui, tests} = await mkUndoTestData_({shouldRemoveReference: true}, {stateName});
+            const {gui, tests} = await mkUndoTestData_({shouldRemoveReference: true}, {stateName});
 
             await gui.undoAcceptImages(tests);
 
-            assert.calledOnceWith(removeReferenceImage, formattedResult, 'plain');
+            assert.calledOnceWith(removeReferenceImage, sinon.match({fullName: 'some-title'}), 'plain');
         });
 
         it('should revert reference, if ReportBuilder.undoAcceptImages resolved "shouldRevertReference"', async () => {
             const stateName = 'plain';
-            const {formattedResult, gui, tests} = await mkUndoTestData_({shouldRevertReference: true}, {stateName});
+            const {gui, tests} = await mkUndoTestData_({shouldRevertReference: true}, {stateName});
 
             await gui.undoAcceptImages(tests);
 
-            assert.calledOnceWith(revertReferenceImage, formattedResult, 'plain');
+            assert.calledOnceWith(revertReferenceImage, sinon.match({fullName: 'some-title'}), 'plain');
         });
 
         it('should update expected path', async () => {

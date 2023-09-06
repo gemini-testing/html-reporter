@@ -1,10 +1,10 @@
 import {DB_COLUMNS} from './constants';
-import {getSuitePath} from './plugin-utils';
 import {SqliteAdapter} from './sqlite-adapter';
-import {ImageInfo, ImageInfoFull, LabeledSuitesRow, TestResult} from './types';
+import {ImageInfo, ImageInfoFull, LabeledSuitesRow} from './types';
+import {ReporterTestResultPlain} from './image-handler';
 
 export interface ImageStore {
-    getLastImageInfoFromDb(testResult: TestResult, stateName?: string): ImageInfo | undefined ;
+    getLastImageInfoFromDb(testResult: ReporterTestResultPlain, stateName?: string): ImageInfo | undefined ;
 }
 
 export class SqliteImageStore implements ImageStore {
@@ -14,9 +14,9 @@ export class SqliteImageStore implements ImageStore {
         this._sqliteAdapter = sqliteAdapter;
     }
 
-    getLastImageInfoFromDb(testResult: TestResult, stateName?: string): ImageInfo | undefined {
+    getLastImageInfoFromDb(testResult: ReporterTestResultPlain, stateName?: string): ImageInfo | undefined {
         const browserName = testResult.browserId;
-        const suitePath = getSuitePath(testResult);
+        const suitePath = testResult.testPath;
         const suitePathString = JSON.stringify(suitePath);
 
         const imagesInfoResult = this._sqliteAdapter.query<Pick<LabeledSuitesRow, 'imagesInfo'> | undefined>({

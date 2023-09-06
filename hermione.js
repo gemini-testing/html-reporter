@@ -4,6 +4,9 @@ const os = require('os');
 const PQueue = require('p-queue');
 const {PluginAdapter} = require('./lib/plugin-adapter');
 const {createWorkers} = require('./lib/workers/create-workers');
+const {FAIL, SUCCESS} = require('./lib/constants');
+const {hasDiff} = require('./lib/common-utils');
+const {formatTestResult} = require('./lib/server-utils');
 
 let workers;
 
@@ -32,8 +35,8 @@ async function prepare(hermione, reportBuilder, pluginConfig) {
     const {imageHandler} = reportBuilder;
 
     const failHandler = async (testResult) => {
-        const formattedResult = reportBuilder.format(testResult);
-        const actions = [imageHandler.saveTestImages(testResult, formattedResult.attempt, workers)];
+        const formattedResult = formatTestResult(testResult, FAIL, reportBuilder);
+        const actions = [imageHandler.saveTestImages(formattedResult, workers)];
 
         if (formattedResult.errorDetails) {
             actions.push(formattedResult.saveErrorDetails(reportPath));
@@ -45,7 +48,7 @@ async function prepare(hermione, reportBuilder, pluginConfig) {
     };
 
     const addFail = (formattedResult) => {
-        return formattedResult.hasDiff()
+        return hasDiff(formattedResult.assertViewResults)
             ? reportBuilder.addFail(formattedResult)
             : reportBuilder.addError(formattedResult);
     };
@@ -56,8 +59,8 @@ async function prepare(hermione, reportBuilder, pluginConfig) {
 
         hermione.on(hermione.events.TEST_PASS, testResult => {
             promises.push(queue.add(async () => {
-                const formattedResult = reportBuilder.format(testResult);
-                await imageHandler.saveTestImages(testResult, formattedResult.attempt, workers);
+                const formattedResult = formatTestResult(testResult, SUCCESS, reportBuilder);
+                await imageHandler.saveTestImages(formattedResult, workers);
 
                 return reportBuilder.addSuccess(formattedResult);
             }).catch(reject));

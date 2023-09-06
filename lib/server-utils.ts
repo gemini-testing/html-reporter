@@ -6,10 +6,12 @@ import fs from 'fs-extra';
 import {logger} from './common-utils';
 import {UPDATED, RUNNING, IDLE, SKIPPED, IMAGES_PATH, TestStatus} from './constants';
 import type {HtmlReporter} from './plugin-api';
-import type {TestAdapter} from './test-adapter';
-import {CustomGuiItem, ReporterConfig} from './types';
+import type {ReporterTestResult} from './test-adapter';
+import {CustomGuiItem, HermioneTestResult, ReporterConfig} from './types';
 import type Hermione from 'hermione';
 import crypto from 'crypto';
+import {ImageHandler, ImagesInfoFormatter} from './image-handler';
+import {HermioneTestAdapter} from './test-adapter';
 
 const DATA_FILE_NAME = 'data.js';
 
@@ -24,19 +26,19 @@ export const getReferencePath = (options: GetPathOptions): string => createPath(
 export const getCurrentPath = (options: GetPathOptions): string => createPath({kind: 'current', ...options});
 export const getDiffPath = (options: GetPathOptions): string => createPath({kind: 'diff', ...options});
 
-export const getReferenceAbsolutePath = (testResult: TestAdapter, reportDir: string, stateName: string): string => {
+export const getReferenceAbsolutePath = (testResult: ReporterTestResult, reportDir: string, stateName: string): string => {
     const referenceImagePath = getReferencePath({attempt: testResult.attempt, imageDir: testResult.imageDir, browserId: testResult.browserId, stateName});
 
     return path.resolve(reportDir, referenceImagePath);
 };
 
-export const getCurrentAbsolutePath = (testResult: TestAdapter, reportDir: string, stateName: string): string => {
+export const getCurrentAbsolutePath = (testResult: ReporterTestResult, reportDir: string, stateName: string): string => {
     const currentImagePath = getCurrentPath({attempt: testResult.attempt, imageDir: testResult.imageDir, browserId: testResult.browserId, stateName});
 
     return path.resolve(reportDir, currentImagePath);
 };
 
-export const getDiffAbsolutePath = (testResult: TestAdapter, reportDir: string, stateName: string): string => {
+export const getDiffAbsolutePath = (testResult: ReporterTestResult, reportDir: string, stateName: string): string => {
     const diffImagePath = getDiffPath({attempt: testResult.attempt, imageDir: testResult.imageDir, browserId: testResult.browserId, stateName});
 
     return path.resolve(reportDir, diffImagePath);
@@ -94,9 +96,9 @@ export function logError(e: Error): void {
     logger.error(`Html-reporter runtime error: ${e.stack}`);
 }
 
-export function hasImage(formattedResult: TestAdapter): boolean {
+export function hasImage(formattedResult: ReporterTestResult): boolean {
     return !!formattedResult.imagesInfo?.length ||
-        !!formattedResult.getCurrImg()?.path ||
+        !!ImageHandler.getCurrImg(formattedResult.assertViewResults)?.path ||
         !!formattedResult.screenshot;
 }
 
@@ -295,3 +297,7 @@ export function mapPlugins<T>(plugins: ReporterConfig['plugins'], callback: (nam
     forEachPlugin(plugins, pluginName => result.push(callback(pluginName)));
     return result;
 }
+
+export const formatTestResult = (rawResult: HermioneTestResult, status: TestStatus, {imageHandler}: {imageHandler: ImagesInfoFormatter}): ReporterTestResult => {
+    return new HermioneTestAdapter(rawResult, {status, imagesInfoFormatter: imageHandler});
+};

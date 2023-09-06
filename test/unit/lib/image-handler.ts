@@ -8,10 +8,11 @@ import type * as originalUtils from 'lib/server-utils';
 import {logger} from 'lib/common-utils';
 import {ImageHandler as ImageHandlerOriginal} from 'lib/image-handler';
 import {RegisterWorkers} from 'lib/workers/create-workers';
-import {AssertViewResult, ImageInfoFull, ImageInfoSuccess, ImagesSaver, TestResult} from 'lib/types';
+import {AssertViewResult, ImageInfoFull, ImageInfoSuccess, ImagesSaver} from 'lib/types';
 import {ErrorName, ImageDiffError} from 'lib/errors';
 import {ImageStore} from 'lib/image-store';
 import {FAIL, PluginEvents, SUCCESS, UPDATED} from 'lib/constants';
+import {ReporterTestResult} from 'lib/test-adapter';
 
 describe('image-handler', function() {
     const sandbox = sinon.sandbox.create();
@@ -35,16 +36,17 @@ describe('image-handler', function() {
 
     const mkImagesSaver = (): SinonStubbedInstance<ImagesSaver> => ({saveImg: sinon.stub()} as SinonStubbedInstance<ImagesSaver>);
 
-    const mkTestResult = (result: Partial<TestResult>): TestResult => _.defaults(result, {
+    const mkTestResult = (result: Partial<ReporterTestResult>): ReporterTestResult => _.defaults(result, {
         id: 'some-id',
-        fullTitle: () => 'default-title'
-    }) as TestResult;
+        attempt: 0,
+        fullName: 'default-title'
+    }) as ReporterTestResult;
 
-    const mkErrStub = (ErrType = ImageDiffErrorStub, {stateName, currImg, refImg, diffBuffer}: Partial<ImageDiffError> = {}): AssertViewResult => {
+    const mkErrStub = (ErrType: typeof ImageDiffErrorStub | typeof NoRefImageErrorStub = ImageDiffErrorStub, {stateName, currImg, refImg, diffBuffer}: Partial<ImageDiffError> = {}): AssertViewResult => {
         const err: AssertViewResult = new ErrType() as any;
 
         err.stateName = stateName || 'plain';
-        err.currImg = currImg || {path: 'curr/path'} as any;
+        (err as ImageDiffError).currImg = currImg || {path: 'curr/path'} as any;
         err.refImg = refImg || {path: 'ref/path'} as any;
         (err as ImageDiffError).diffBuffer = diffBuffer;
 
@@ -99,7 +101,7 @@ describe('image-handler', function() {
 
             const imageHandler = new ImageHandler(mkImageStore(), mkImagesSaver(), {reportPath: 'some-dir'});
             const worker = mkWorker();
-            await imageHandler.saveTestImages(testResult, 0, worker);
+            await imageHandler.saveTestImages(testResult, worker);
 
             assert.calledOnceWith(worker.saveDiffTo, err, sinon.match('tmp/dir/diff/report/path'));
         });
@@ -113,7 +115,7 @@ describe('image-handler', function() {
             const imagesSaver = mkImagesSaver();
             const imageHandler = new ImageHandler(mkImageStore(), imagesSaver, {reportPath: 'html-report/path'});
             const worker = mkWorker();
-            await imageHandler.saveTestImages(testResult, 0, worker);
+            await imageHandler.saveTestImages(testResult, worker);
 
             assert.calledWith(
                 imagesSaver.saveImg,
@@ -137,7 +139,7 @@ describe('image-handler', function() {
             const screenshotsSavedHandler = sinon.stub();
             imageHandler.on(PluginEvents.TEST_SCREENSHOTS_SAVED, screenshotsSavedHandler);
 
-            await imageHandler.saveTestImages(testResult, 0, worker);
+            await imageHandler.saveTestImages(testResult, worker);
 
             assert.calledOnceWith(screenshotsSavedHandler, {
                 attempt: 0,
@@ -156,42 +158,42 @@ describe('image-handler', function() {
             describe('if screenshot on reject does not exist', () => {
                 it('should not save screenshot', () => {
                     const testResult = mkTestResult({
-                        err: {screenshot: {base64: null}} as any,
+                        error: {screenshot: {base64: null}} as any,
                         assertViewResults: []
                     });
                     const hermioneTestAdapter = new ImageHandler(mkImageStore(), mkImagesSaver(), {reportPath: ''});
 
-                    return hermioneTestAdapter.saveTestImages(testResult, 0, mkWorker())
+                    return hermioneTestAdapter.saveTestImages(testResult, mkWorker())
                         .then(() => assert.notCalled(fs.writeFile));
                 });
 
                 it('should warn about it', () => {
                     const testResult = mkTestResult({
-                        err: {screenshot: {base64: null}} as any,
+                        error: {screenshot: {base64: null}} as any,
                         assertViewResults: []
                     });
                     const imageHandler = new ImageHandler(mkImageStore(), mkImagesSaver(), {reportPath: ''});
 
-                    return imageHandler.saveTestImages(testResult, 0, mkWorker())
+                    return imageHandler.saveTestImages(testResult, mkWorker())
                         .then(() => assert.calledWith(logger.warn as sinon.SinonStub, 'Cannot save screenshot on reject'));
                 });
             });
 
             it('should create directory for screenshot', () => {
                 const testResult = mkTestResult({
-                    err: {screenshot: {base64: 'base64-data'}} as any,
+                    error: {screenshot: {base64: 'base64-data'}} as any,
                     assertViewResults: []
                 });
                 utils.getCurrentPath.returns('dest/path');
                 const imageHandler = new ImageHandler(mkImageStore(), mkImagesSaver(), {reportPath: ''});
 
-                return imageHandler.saveTestImages(testResult, 0, mkWorker())
+                return imageHandler.saveTestImages(testResult, mkWorker())
                     .then(() => assert.calledOnceWith(utils.makeDirFor, sinon.match('dest/path')));
             });
 
             it('should save screenshot from base64 format', async () => {
                 const testResult = mkTestResult({
-                    err: {screenshot: {base64: 'base64-data'}} as any,
+                    error: {screenshot: {base64: 'base64-data'}} as any,
                     assertViewResults: []
                 });
                 utils.getCurrentPath.returns('dest/path');
@@ -199,7 +201,7 @@ describe('image-handler', function() {
                 const imagesSaver = mkImagesSaver();
                 const imageHandler = new ImageHandler(mkImageStore(), imagesSaver, {reportPath: 'report/path'});
 
-                await imageHandler.saveTestImages(testResult, 0, mkWorker());
+                await imageHandler.saveTestImages(testResult, mkWorker());
 
                 assert.calledOnceWith(fs.writeFile, sinon.match('dest/path'), bufData, 'base64');
                 assert.calledWith(imagesSaver.saveImg, sinon.match('dest/path'), {destPath: 'dest/path', reportDir: 'report/path'});
@@ -214,7 +216,7 @@ describe('image-handler', function() {
                 const imagesSaver = mkImagesSaver();
                 const imageHandler = new ImageHandler(mkImageStore(), imagesSaver, {reportPath: 'html-report/path'});
 
-                await imageHandler.saveTestImages(testResult, 0, mkWorker());
+                await imageHandler.saveTestImages(testResult, mkWorker());
 
                 assert.calledWith(
                     imagesSaver.saveImg, 'ref/path',
@@ -231,7 +233,7 @@ describe('image-handler', function() {
                 cacheExpectedPaths.set('da89771#plain', 'ref/report/path');
                 const imageHandler = new ImageHandler(mkImageStore(), imagesSaver, {reportPath: 'html-report/path'});
 
-                await imageHandler.saveTestImages(testResult, 0, mkWorker());
+                await imageHandler.saveTestImages(testResult, mkWorker());
 
                 assert.neverCalledWith(
                     imagesSaver.saveImg, 'ref/path',
@@ -246,7 +248,7 @@ describe('image-handler', function() {
 
                 const imageHandler = new ImageHandler(mkImageStore(), mkImagesSaver(), {reportPath: ''});
                 const workers = {saveDiffTo: sandbox.stub()};
-                await imageHandler.saveTestImages(testResult, 0, mkWorker());
+                await imageHandler.saveTestImages(testResult, mkWorker());
 
                 assert.calledOnceWith(fs.writeFile, sinon.match('diff/report/path'), Buffer.from('foo'));
                 assert.notCalled(workers.saveDiffTo);
@@ -263,20 +265,16 @@ describe('image-handler', function() {
                 const testResult = mkTestResult({assertViewResults: [
                         {[field]: 'some-value', stateName: 'plain'} as any]});
 
-                const imageHandler = new ImageHandler(mkImageStore(), mkImagesSaver(), {reportPath: ''});
-
-                assert.equal((imageHandler[method])(testResult.assertViewResults, 'plain'), 'some-value' as any);
+                assert.equal((ImageHandler[method])(testResult.assertViewResults, 'plain'), 'some-value' as any);
             });
         });
     });
 
     describe('getScreenshot', () => {
         it('should return error screenshot from test result', () => {
-            const testResult = mkTestResult({err: {screenshot: 'some-value'} as any});
+            const testResult = mkTestResult({error: {screenshot: 'some-value'} as any});
 
-            const hermioneTestAdapter = new ImageHandler(mkImageStore(), mkImagesSaver(), {reportPath: ''});
-
-            assert.equal(hermioneTestAdapter.getScreenshot(testResult), 'some-value' as any);
+            assert.equal(ImageHandler.getScreenshot(testResult), 'some-value' as any);
         });
     });
 
@@ -292,14 +290,15 @@ describe('image-handler', function() {
             });
             const imageHandler = new ImageHandler(mkImageStore(), mkImagesSaver(), {reportPath: ''});
 
-            const [{diffClusters}] = imageHandler.getImagesInfo(testResult, 0);
+            const [{diffClusters}] = imageHandler.getImagesInfo(testResult);
 
             assert.deepEqual(diffClusters, [{left: 0, top: 0, right: 1, bottom: 1}]);
         });
 
         it('should return saved images', async () => {
             const testResult = mkTestResult({
-                assertViewResults: [mkErrStub()]
+                assertViewResults: [mkErrStub()],
+                status: SUCCESS
             });
 
             const imagesSaver = mkImagesSaver();
@@ -310,39 +309,41 @@ describe('image-handler', function() {
             const imageHandler = new ImageHandler(mkImageStore(), imagesSaver, {reportPath: 'some/rep'});
             const workers = mkWorker();
 
-            await imageHandler.saveTestImages(testResult, 0, workers);
+            await imageHandler.saveTestImages(testResult, workers);
 
-            const {expectedImg} = imageHandler.getImagesFor(testResult, 0, SUCCESS, 'plain') as ImageInfoSuccess;
+            const {expectedImg} = imageHandler.getImagesFor(testResult, SUCCESS, 'plain') as ImageInfoSuccess;
             assert.equal(expectedImg.path, 'saved/ref.png');
         });
 
         it('should return dest image path by default', async () => {
             const testResult = mkTestResult({
-                assertViewResults: [mkErrStub()]
+                assertViewResults: [mkErrStub()],
+                status: SUCCESS
             });
 
             const imagesSaver = mkImagesSaver();
             const imageHandler = new ImageHandler(mkImageStore(), imagesSaver, {reportPath: 'some/rep'});
             const workers = mkWorker();
 
-            await imageHandler.saveTestImages(testResult, 0, workers);
+            await imageHandler.saveTestImages(testResult, workers);
 
-            const {expectedImg} = imageHandler.getImagesFor(testResult, 0, SUCCESS, 'plain') as ImageInfoSuccess;
+            const {expectedImg} = imageHandler.getImagesFor(testResult, SUCCESS, 'plain') as ImageInfoSuccess;
             assert.equal(expectedImg.path, 'some/ref.png');
         });
 
         it('should return ref image path after update image for NoRefImageError', async () => {
             const testResult = mkTestResult({
-                assertViewResults: [mkErrStub(NoRefImageErrorStub)]
+                assertViewResults: [mkErrStub(NoRefImageErrorStub)],
+                status: UPDATED
             });
 
             const imagesSaver = mkImagesSaver();
             const imageHandler = new ImageHandler(mkImageStore(), imagesSaver, {reportPath: 'some/rep'});
             const workers = mkWorker();
 
-            await imageHandler.saveTestImages(testResult, 0, workers);
+            await imageHandler.saveTestImages(testResult, workers);
 
-            const {expectedImg} = imageHandler.getImagesFor(testResult, 0, UPDATED, 'plain') as ImageInfoSuccess;
+            const {expectedImg} = imageHandler.getImagesFor(testResult, UPDATED, 'plain') as ImageInfoSuccess;
             assert.equal(expectedImg.path, 'some/ref.png');
         });
 
@@ -363,7 +364,7 @@ describe('image-handler', function() {
 
             it('should be pulled from the store if exists', async () => {
                 const testResult = mkTestResult({
-                    fullTitle: () => 'some-title',
+                    fullName: 'some-title',
                     assertViewResults: [mkErrStub()]
                 });
                 const imageStore = mkImageStore();
@@ -371,14 +372,14 @@ describe('image-handler', function() {
 
                 const imageHandler = new ImageHandler(imageStore, mkImagesSaver(), {reportPath: ''});
 
-                imageHandler.getImagesFor(testResult, 0, FAIL, 'plain');
+                imageHandler.getImagesFor(testResult, FAIL, 'plain');
 
                 assert.notCalled(utils.getReferencePath);
             });
 
             it('should be generated if does not exist in store', async () => {
                 const testResult = mkTestResult({
-                    fullTitle: () => 'some-title',
+                    fullName: 'some-title',
                     assertViewResults: [mkErrStub()]
                 });
                 const imageStore = mkImageStore();
@@ -386,21 +387,22 @@ describe('image-handler', function() {
 
                 const imageHandler = new ImageHandler(imageStore, mkImagesSaver(), {reportPath: ''});
 
-                imageHandler.getImagesFor(testResult, 0, FAIL, 'plain');
+                imageHandler.getImagesFor(testResult, FAIL, 'plain');
 
                 assert.calledOnce(utils.getReferencePath);
             });
 
             it('should be generated on update', async () => {
                 const testResult = mkTestResult({
-                    fullTitle: () => 'some-title',
-                    assertViewResults: [mkErrStub()]
+                    assertViewResults: [mkErrStub()],
+                    fullName: 'some-title',
+                    status: UPDATED
                 });
                 const imageStore = mkImageStore();
                 imageStore.getLastImageInfoFromDb.withArgs(testResult, 'plain').returns(mkLastImageInfo_());
                 const imageHandler = new ImageHandler(imageStore, mkImagesSaver(), {reportPath: ''});
 
-                imageHandler.getImagesFor(testResult, 0, UPDATED, 'plain');
+                imageHandler.getImagesFor(testResult, UPDATED, 'plain');
 
                 assert.calledOnce(utils.getReferencePath);
             });
@@ -412,8 +414,8 @@ describe('image-handler', function() {
                 const imageStore = mkImageStore();
                 const imageHandler = new ImageHandler(imageStore, mkImagesSaver(), {reportPath: ''});
 
-                imageHandler.getImagesFor(chromeTestResult, 0, FAIL, 'plain');
-                imageHandler.getImagesFor(firefoxTestResult, 0, FAIL, 'plain');
+                imageHandler.getImagesFor(chromeTestResult, FAIL, 'plain');
+                imageHandler.getImagesFor(firefoxTestResult, FAIL, 'plain');
 
                 assert.calledTwice(imageStore.getLastImageInfoFromDb);
                 assert.calledWith(imageStore.getLastImageInfoFromDb.firstCall, chromeTestResult, 'plain');
@@ -422,15 +424,15 @@ describe('image-handler', function() {
 
             it('should be queried from the database once per state', async () => {
                 const testResult = mkTestResult({
-                    fullTitle: () => 'some-title',
+                    fullName: 'some-title',
                     assertViewResults: [mkErrStub()]
                 });
                 const imageStore = mkImageStore();
                 imageStore.getLastImageInfoFromDb.returns(mkLastImageInfo_());
                 const imageHandler = new ImageHandler(imageStore, mkImagesSaver(), {reportPath: ''});
 
-                imageHandler.getImagesFor(testResult, 0, FAIL, 'plain');
-                imageHandler.getImagesFor(testResult, 0, FAIL, 'plain');
+                imageHandler.getImagesFor(testResult, FAIL, 'plain');
+                imageHandler.getImagesFor(testResult, FAIL, 'plain');
 
                 assert.calledOnce(imageStore.getLastImageInfoFromDb);
             });

@@ -1,7 +1,41 @@
-import {determineStatus, buildUrl} from 'lib/common-utils';
+import {determineStatus, buildUrl, getError, hasDiff} from 'lib/common-utils';
 import {RUNNING, QUEUED, ERROR, FAIL, UPDATED, SUCCESS, IDLE, SKIPPED} from 'lib/constants/test-statuses';
+import {ErrorName} from 'lib/errors';
 
 describe('common-utils', () => {
+    describe('getError', () => {
+        it('should return test error with "message", "stack" and "stateName"', () => {
+            const error = {
+                message: 'some-message',
+                stack: 'some-stack',
+                stateName: 'some-test',
+                foo: 'bar'
+            };
+
+            const result = getError(error);
+
+            assert.deepEqual(result, {
+                message: 'some-message',
+                stack: 'some-stack',
+                stateName: 'some-test'
+            });
+        });
+    });
+
+    describe('hasDiff', () => {
+        it('should return true if test has image diff errors', () => {
+            const assertViewResults = [{name: ErrorName.IMAGE_DIFF} as any];
+
+            assert.isTrue(hasDiff(assertViewResults));
+        });
+
+        it('should return false if test has not image diff errors', () => {
+            const assertViewResults = [new Error() as any];
+
+            assert.isFalse(hasDiff(assertViewResults));
+        });
+    });
+
     describe('determineStatus', () => {
         it(`should not rewrite suite status to "${IDLE}" if some test already has final status`, () => {
             const status = determineStatus([SUCCESS, IDLE]);

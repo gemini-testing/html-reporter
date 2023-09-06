@@ -2,55 +2,55 @@ import _ from 'lodash';
 import fs from 'fs-extra';
 import path from 'path';
 
-import {SuiteAdapter} from './suite-adapter';
-import {getSuitePath} from './plugin-utils';
-import {getCommandsHistory} from './history-utils';
-import {ERROR_DETAILS_PATH, TestStatus} from './constants';
-import {getError, isImageDiffError, mkTestId} from './common-utils';
-import * as utils from './server-utils';
+import {getCommandsHistory} from '../history-utils';
+import {ERROR_DETAILS_PATH, TestStatus} from '../constants';
+import {mkTestId, wrapLinkByTag} from '../common-utils';
+import * as utils from '../server-utils';
 import {
     AssertViewResult,
     ErrorDetails,
     ImageBase64,
-    ImageData,
     ImageInfoFull,
-    TestResult
-} from './types';
-import {ImagesInfoFormatter} from './image-handler';
+    HermioneTestResult, HermioneSuite, TestError
+} from '../types';
+import {ImagesInfoFormatter} from '../image-handler';
+import {ReporterTestResult} from './index';
+import {getSuitePath} from '../plugin-utils';
+import {testsAttempts} from './cache/hermione';
 
-const testsAttempts: Map<string, number> = new Map();
+const getSkipComment = (suite: HermioneTestResult | HermioneSuite): string | null | undefined => {
+    return suite.skipReason || suite.parent && getSkipComment(suite.parent);
+};
 
-interface PrepareTestResultData {
-    name: string;
-    suitePath: string[];
-    browserId: string;
-}
+const wrapSkipComment = (skipComment: string | null | undefined): string => {
+    return skipComment ? wrapLinkByTag(skipComment) : 'Unknown reason';
+};
 
-export interface TestAdapterOptions {
+export interface HermioneTestAdapterOptions {
     status: TestStatus;
     imagesInfoFormatter: ImagesInfoFormatter;
 }
 
-export class TestAdapter {
+export class HermioneTestAdapter implements ReporterTestResult {
     private _imagesInfoFormatter: ImagesInfoFormatter;
-    private _testResult: TestResult;
-    private _suite: SuiteAdapter;
+    private _testResult: HermioneTestResult;
     private _testId: string;
     private _errorDetails: ErrorDetails | null;
-    private _timestamp: number;
+    private _timestamp: number | undefined;
     private _attempt: number;
+    private _status: TestStatus;
 
-    static create<T extends TestAdapter>(this: new (testResult: TestResult, options: TestAdapterOptions) => T, testResult: TestResult, options: TestAdapterOptions): T {
+    static create<T extends HermioneTestAdapter>(this: new (testResult: HermioneTestResult, options: HermioneTestAdapterOptions) => T, testResult: HermioneTestResult, options: HermioneTestAdapterOptions): T {
         return new this(testResult, options);
     }
 
-    constructor(testResult: TestResult, {status, imagesInfoFormatter}: TestAdapterOptions) {
+    constructor(testResult: HermioneTestResult, {status, imagesInfoFormatter}: HermioneTestAdapterOptions) {
         this._imagesInfoFormatter = imagesInfoFormatter;
         this._testResult = testResult;
-        this._suite = SuiteAdapter.create(this._testResult);
         this._testId = mkTestId(testResult.fullTitle(), testResult.browserId);
         this._errorDetails = null;
         this._timestamp = this._testResult.timestamp;
+        this._status = status;
 
         const browserVersion = _.get(this._testResult, 'meta.browserVersion', this._testResult.browserVersion);
 
@@ -65,8 +65,16 @@ export class TestAdapter {
 
     image?: boolean;
 
-    get suite(): SuiteAdapter {
-        return this._suite;
+    get fullName(): string {
+        return this._testResult.fullTitle();
+    }
+
+    get skipReason(): string {
+        return wrapSkipComment(getSkipComment(this._testResult));
+    }
+
+    get status(): TestStatus {
+        return this._status;
     }
 
     get sessionId(): string {
@@ -78,7 +86,7 @@ export class TestAdapter {
     }
 
     get imagesInfo(): ImageInfoFull[] | undefined {
-        return this._imagesInfoFormatter.getImagesInfo(this._testResult, this.attempt);
+        return this._imagesInfoFormatter.getImagesInfo(this);
     }
 
     get origAttempt(): number | undefined {
@@ -94,10 +102,6 @@ export class TestAdapter {
         this._attempt = attemptNum;
     }
 
-    hasDiff(): boolean {
-        return this.assertViewResults.some((result) => isImageDiffError(result));
-    }
-
     get assertViewResults(): AssertViewResult[] {
         return this._testResult.assertViewResults || [];
     }
@@ -106,8 +110,8 @@ export class TestAdapter {
         return getCommandsHistory(this._testResult.history) as string[];
     }
 
-    get error(): undefined | {message?: string; stack?: string; stateName?: string} {
-        return getError(this._testResult);
+    get error(): undefined | TestError {
+        return this._testResult.err;
     }
 
     get imageDir(): string {
@@ -120,11 +124,15 @@ export class TestAdapter {
     }
 
     get testPath(): string[] {
-        return this._suite.path.concat(this._testResult.title);
+        return getSuitePath(this._testResult.parent).concat(this._testResult.title);
     }
 
     get id(): string {
         return this.testPath.concat(this.browserId, this.attempt.toString()).join(' ');
+    }
+
+    get isUpdated(): boolean | undefined {
+        return this._testResult.updated;
     }
 
     get screenshot(): ImageBase64 | undefined {
@@ -161,30 +169,19 @@ export class TestAdapter {
         return this._errorDetails;
     }
 
-    getRefImg(stateName?: string): ImageData | undefined {
-        return this._imagesInfoFormatter.getRefImg(this._testResult.assertViewResults, stateName);
+    get file(): string {
+        return path.relative(process.cwd(), this._testResult.file);
     }
 
-    getCurrImg(stateName?: string): ImageData | undefined {
-        return this._imagesInfoFormatter.getCurrImg(this._testResult.assertViewResults, stateName);
-    }
-
-    getErrImg(): ImageBase64 | undefined {
-        return this._imagesInfoFormatter.getScreenshot(this._testResult);
-    }
-
-    prepareTestResult(): PrepareTestResultData {
-        const {title: name, browserId} = this._testResult;
-        const suitePath = getSuitePath(this._testResult);
-
-        return {name, suitePath, browserId};
+    get url(): string | undefined {
+        return this._testResult.meta.url as string | undefined;
     }
 
     get multipleTabs(): boolean {
         return true;
     }
 
-    get timestamp(): number {
+    get timestamp(): number | undefined {
         return this._timestamp;
     }
 
