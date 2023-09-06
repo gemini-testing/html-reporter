@@ -4,13 +4,13 @@ const fs = require('fs-extra');
 const _ = require('lodash');
 const proxyquire = require('proxyquire');
 const serverUtils = require('lib/server-utils');
-const {TestAdapter} = require('lib/test-adapter');
+const {HermioneTestAdapter} = require('lib/test-adapter');
 const {SqliteAdapter} = require('lib/sqlite-adapter');
 const GuiTestsTreeBuilder = require('lib/tests-tree-builder/gui');
 const {HtmlReporter} = require('lib/plugin-api');
 const {SUCCESS, FAIL, ERROR, SKIPPED, IDLE, RUNNING, UPDATED} = require('lib/constants/test-statuses');
 const {LOCAL_DATABASE_NAME} = require('lib/constants/database');
-const {mkFormattedTest} = require('../../utils');
+const {ErrorName} = require('lib/errors');
 
 const TEST_REPORT_PATH = 'test';
 const TEST_DB_PATH = `${TEST_REPORT_PATH}/${LOCAL_DATABASE_NAME}`;
@@ -29,7 +29,7 @@ describe('GuiReportBuilder', () => {
             htmlReporter: HtmlReporter.create()
         };
 
-        TestAdapter.create = (obj) => obj;
+        HermioneTestAdapter.create = (obj) => obj;
 
         const reportBuilder = GuiReportBuilder.create(hermione.htmlReporter, pluginConfig);
         await reportBuilder.init();
@@ -38,7 +38,6 @@ describe('GuiReportBuilder', () => {
     };
 
     const getTestResult_ = () => GuiTestsTreeBuilder.prototype.addTestResult.firstCall.args[0];
-    const getFormattedResult_ = () => GuiTestsTreeBuilder.prototype.addTestResult.firstCall.args[1];
 
     const stubTest_ = (opts = {}) => {
         const {imagesInfo = []} = opts;
@@ -127,10 +126,8 @@ describe('GuiReportBuilder', () => {
 
             reportBuilder.addSkipped(stubTest_({
                 browserId: 'bro1',
-                suite: {
-                    skipComment: 'some skip comment',
-                    fullName: 'suite-full-name'
-                }
+                skipReason: 'some skip comment',
+                fullName: 'suite-full-name'
             }));
 
             assert.equal(getTestResult_().status, SKIPPED);
@@ -177,11 +174,11 @@ describe('GuiReportBuilder', () => {
         it('should add error test to result', async () => {
             const reportBuilder = await mkGuiReportBuilder_();
 
-            reportBuilder.addError(stubTest_({error: 'some-stack-trace'}));
+            reportBuilder.addError(stubTest_({error: {message: 'some-error-message'}}));
 
             assert.match(getTestResult_(), {
                 status: ERROR,
-                error: 'some-stack-trace'
+                error: {message: 'some-error-message'}
             });
         });
     });
@@ -190,7 +187,7 @@ describe('GuiReportBuilder', () => {
         it('should add "fail" status to result if test result has not equal images', async () => {
             const reportBuilder = await mkGuiReportBuilder_();
 
-            reportBuilder.addRetry(stubTest_({hasDiff: () => true}));
+            reportBuilder.addRetry(stubTest_({assertViewResults: [{name: ErrorName.IMAGE_DIFF}]}));
 
             assert.equal(getTestResult_().status, FAIL);
         });
@@ -198,7 +195,7 @@ describe('GuiReportBuilder', () => {
         it('should add "error" status to result if test result has no image', async () => {
             const reportBuilder = await mkGuiReportBuilder_();
 
-            reportBuilder.addRetry(stubTest_({hasDiff: () => false}));
+            reportBuilder.addRetry(stubTest_({assertViewResults: [{name: 'some-error-name'}]}));
 
             assert.equal(getTestResult_().status, ERROR);
         });
@@ -547,9 +544,7 @@ describe('GuiReportBuilder', () => {
                 const reportBuilder = await mkGuiReportBuilder_();
 
                 reportBuilder.addSuccess(stubTest_({
-                    suite: {
-                        url: 'some-url'
-                    }
+                    url: 'some-url'
                 }));
 
                 assert.equal(getTestResult_().suiteUrl, 'some-url');
@@ -568,10 +563,8 @@ describe('GuiReportBuilder', () => {
 
                 reportBuilder.addSuccess(stubTest_({
                     meta: {some: 'value', sessionId: '12345'},
-                    suite: {
-                        file: '/path/file.js',
-                        fullUrl: '/test/url'
-                    }
+                    file: '/path/file.js',
+                    url: '/test/url'
                 }));
 
                 const expectedMetaInfo = {some: 'value', sessionId: '12345', file: '/path/file.js', url: '/test/url'};
@@ -611,16 +604,6 @@ describe('GuiReportBuilder', () => {
             reportBuilder.addFail(stubTest_({errorDetails}));
 
             assert.deepEqual(getTestResult_().errorDetails, errorDetails);
-        });
-
-        it('should pass formatted result', async () => {
-            const reportBuilder = await mkGuiReportBuilder_();
-            const formattedTest = mkFormattedTest();
-            sandbox.stub(reportBuilder, 'format').returns(formattedTest);
-
-            reportBuilder.addSuccess(stubTest_());
-
-            assert.deepEqual(getFormattedResult_(), formattedTest);
         });
     });
 });

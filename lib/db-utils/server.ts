@@ -9,10 +9,12 @@ import NestedError from 'nested-error-stacks';
 import {StaticTestsTreeBuilder} from '../tests-tree-builder/static';
 import * as commonSqliteUtils from './common';
 import {isUrl, fetchFile, normalizeUrls, logger} from '../common-utils';
-import {DATABASE_URLS_JSON_NAME, LOCAL_DATABASE_NAME} from '../constants';
+import {DATABASE_URLS_JSON_NAME, DB_COLUMNS, LOCAL_DATABASE_NAME, TestStatus} from '../constants';
 import {DbLoadResult, HandleDatabasesOptions} from './common';
 import {DbUrlsJsonData, RawSuitesRow, ReporterConfig} from '../types';
 import {Tree} from '../tests-tree-builder/base';
+import {ReporterTestResult} from '../test-adapter';
+import {SqliteAdapter} from '../sqlite-adapter';
 
 export * from './common';
 
@@ -117,3 +119,13 @@ async function rewriteDatabaseUrls(dbPaths: string[], mainDatabaseUrls: string, 
         jsonUrls: []
     });
 }
+
+export const getTestFromDb = <T = unknown>(sqliteAdapter: SqliteAdapter, testResult: ReporterTestResult): T | undefined => {
+    return sqliteAdapter.query<T>({
+        select: '*',
+        where: `${DB_COLUMNS.SUITE_PATH} = ? AND ${DB_COLUMNS.NAME} = ? AND ${DB_COLUMNS.STATUS} = ?`,
+        orderBy: DB_COLUMNS.TIMESTAMP,
+        orderDescending: true,
+        limit: 1
+    }, JSON.stringify(testResult.testPath), testResult.browserId, TestStatus.SKIPPED);
+};

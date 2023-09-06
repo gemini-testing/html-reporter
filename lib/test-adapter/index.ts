@@ -26,6 +26,6 @@ export interface ReporterTestResult {
     readonly state: { name: string };
     readonly status: TestStatus;
     readonly testPath: string[];
-    timestamp: number | undefined;
+    readonly timestamp: number | undefined;
     readonly url?: string;
 }

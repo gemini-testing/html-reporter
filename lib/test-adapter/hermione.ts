@@ -16,8 +16,7 @@ import {
 import {ImagesInfoFormatter} from '../image-handler';
 import {ReporterTestResult} from './index';
 import {getSuitePath} from '../plugin-utils';
-
-const testsAttempts: Map<string, number> = new Map();
+import {testsAttempts} from './cache/hermione';
 
 const getSkipComment = (suite: HermioneTestResult | HermioneSuite): string | null | undefined => {
     return suite.skipReason || suite.parent && getSkipComment(suite.parent);

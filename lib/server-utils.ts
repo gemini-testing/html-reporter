@@ -7,10 +7,11 @@ import {logger} from './common-utils';
 import {UPDATED, RUNNING, IDLE, SKIPPED, IMAGES_PATH, TestStatus} from './constants';
 import type {HtmlReporter} from './plugin-api';
 import type {ReporterTestResult} from './test-adapter';
-import {CustomGuiItem, ReporterConfig} from './types';
+import {CustomGuiItem, HermioneTestResult, ReporterConfig} from './types';
 import type Hermione from 'hermione';
 import crypto from 'crypto';
-import {ImageHandler} from './image-handler';
+import {ImageHandler, ImagesInfoFormatter} from './image-handler';
+import {HermioneTestAdapter} from './test-adapter';
 
 const DATA_FILE_NAME = 'data.js';
 
@@ -296,3 +297,7 @@ export function mapPlugins<T>(plugins: ReporterConfig['plugins'], callback: (nam
     forEachPlugin(plugins, pluginName => result.push(callback(pluginName)));
     return result;
 }
+
+export const formatTestResult = (rawResult: HermioneTestResult, status: TestStatus, {imageHandler}: {imageHandler: ImagesInfoFormatter}): ReporterTestResult => {
+    return new HermioneTestAdapter(rawResult, {status, imagesInfoFormatter: imageHandler});
+};

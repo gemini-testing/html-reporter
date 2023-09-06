@@ -6,49 +6,42 @@ import tmpOriginal from 'tmp';
 
 import {SKIPPED, TestStatus} from 'lib/constants/test-statuses';
 import {ERROR_DETAILS_PATH} from 'lib/constants/paths';
-import {TestAdapter} from 'lib/test-adapter';
-import {ErrorDetails, Suite, TestResult} from 'lib/types';
+import {HermioneTestAdapter, HermioneTestAdapterOptions, ReporterTestResult} from 'lib/test-adapter';
+import {ErrorDetails, HermioneTestResult} from 'lib/types';
 import {ImagesInfoFormatter} from 'lib/image-handler';
 import * as originalUtils from 'lib/server-utils';
-import {ErrorName} from 'lib/errors';
 
-describe('hermione test adapter', () => {
+describe('HermioneTestAdapter', () => {
     const sandbox = sinon.sandbox.create();
 
-    let HermioneTestResultAdapter: typeof TestAdapter;
+    let HermioneTestAdapter: new (testResult: HermioneTestResult, options: HermioneTestAdapterOptions) => ReporterTestResult;
     let getCommandsHistory: sinon.SinonStub;
     let getSuitePath: sinon.SinonStub;
     let utils: sinon.SinonStubbedInstance<typeof originalUtils>;
     let fs: sinon.SinonStubbedInstance<typeof fsOriginal>;
     let tmp: typeof tmpOriginal;
-
-    class ImageDiffError extends Error {
-        name = ErrorName.IMAGE_DIFF;
-    }
+    let hermioneCache: typeof import('lib/test-adapter/cache/hermione');
 
     const mkImagesInfoFormatter = (): sinon.SinonStubbedInstance<ImagesInfoFormatter> => {
-        return {
-            getRefImg: sinon.stub(),
-            getCurrImg: sinon.stub(),
-            getScreenshot: sinon.stub()
-        } as sinon.SinonStubbedInstance<ImagesInfoFormatter>;
+        return {} as sinon.SinonStubbedInstance<ImagesInfoFormatter>;
     };
 
     const mkHermioneTestResultAdapter = (
-        testResult: TestResult,
+        testResult: HermioneTestResult,
         {status = TestStatus.SUCCESS, imagesInfoFormatter = mkImagesInfoFormatter()}: {status?: TestStatus, imagesInfoFormatter?: ImagesInfoFormatter} = {}
-    ): TestAdapter => {
-        return new HermioneTestResultAdapter(testResult, {status, imagesInfoFormatter});
+    ): HermioneTestAdapter => {
+        return new HermioneTestAdapter(testResult, {status, imagesInfoFormatter}) as HermioneTestAdapter;
     };
 
-    const mkTestResult_ = (result: Partial<TestResult>): TestResult => _.defaults(result, {
+    const mkTestResult_ = (result: Partial<HermioneTestResult>): HermioneTestResult => _.defaults(result, {
         id: 'some-id',
         fullTitle: () => 'default-title'
-    }) as TestResult;
+    }) as HermioneTestResult;
 
     beforeEach(() => {
         tmp = {tmpdir: 'default/dir'} as typeof tmpOriginal;
         fs = sinon.stub(_.clone(fsOriginal));
+        hermioneCache = {testsAttempts: new Map()};
         getSuitePath = sandbox.stub();
         getCommandsHistory = sandbox.stub();
 
@@ -57,13 +50,14 @@ describe('hermione test adapter', () => {
         });
         utils = _.clone(originalUtils);
 
-        HermioneTestResultAdapter = proxyquire('lib/test-adapter', {
+        HermioneTestAdapter = proxyquire('lib/test-adapter/hermione', {
             tmp,
             'fs-extra': fs,
-            './plugin-utils': {getSuitePath},
-            './history-utils': {getCommandsHistory},
-            './server-utils': utils
-        }).TestAdapter;
+            '../plugin-utils': {getSuitePath},
+            '../history-utils': {getCommandsHistory},
+            '../server-utils': utils,
+            './cache/hermione': hermioneCache
+        }).HermioneTestAdapter;
         sandbox.stub(utils, 'getCurrentPath').returns('');
         sandbox.stub(utils, 'getDiffPath').returns('');
         sandbox.stub(utils, 'getReferencePath').returns('');
@@ -94,11 +88,11 @@ describe('hermione test adapter', () => {
         assert.equal(result.attempt, 0);
     });
 
-    it('should return test error with "message", "stack" and "stateName"', () => {
+    it('should return full test error', () => {
         getCommandsHistory.withArgs([{name: 'foo'}], ['foo']).returns(['some-history']);
         const testResult = mkTestResult_({
             file: 'bar',
-            history: [{name: 'foo'}],
+            history: [{name: 'foo'}] as any,
             err: {
                 message: 'some-message',
                 stack: 'some-stack',
@@ -112,15 +106,16 @@ describe('hermione test adapter', () => {
         assert.deepEqual(hermioneTestAdapter.error, {
             message: 'some-message',
             stack: 'some-stack',
-            stateName: 'some-test'
-        });
+            stateName: 'some-test',
+            foo: 'bar'
+        } as any);
     });
 
     it('should return test history', () => {
         getCommandsHistory.withArgs([{name: 'foo'}]).returns(['some-history']);
         const testResult = mkTestResult_({
             file: 'bar',
-            history: [{name: 'foo'}],
+            history: [{name: 'foo'}] as any,
             err: {
                 message: 'some-message',
                 stack: 'some-stack',
@@ -268,24 +263,6 @@ describe('hermione test adapter', () => {
         });
     });
 
-    describe('hasDiff', () => {
-        it('should return true if test has image diff errors', () => {
-            const testResult = mkTestResult_({assertViewResults: [new ImageDiffError() as any]});
-
-            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
-
-            assert.isTrue(hermioneTestAdapter.hasDiff());
-        });
-
-        it('should return false if test has not image diff errors', () => {
-            const testResult = mkTestResult_({assertViewResults: [new Error() as any]});
-
-            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
-
-            assert.isFalse(hermioneTestAdapter.hasDiff());
-        });
-    });
-
     it('should return image dir', () => {
         const testResult = mkTestResult_({id: 'some-id'});
 
@@ -300,73 +277,6 @@ describe('hermione test adapter', () => {
         const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
 
         assert.deepEqual(hermioneTestAdapter.description, 'some-description');
-    });
-
-    ([
-        {field: 'refImg', method: 'getRefImg'},
-        {field: 'currImg', method: 'getCurrImg'}
-    ] as const).forEach(({field, method}) => {
-        describe(`${method}`, () => {
-            it(`should use imagesInfoFormatter to get ${field} from test result`, () => {
-                const testResult = mkTestResult_({assertViewResults: [
-                    {[field]: 'some-value', stateName: 'plain'} as any
-                ]});
-                const imagesInfoFormatter = mkImagesInfoFormatter();
-                const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {imagesInfoFormatter});
-
-                hermioneTestAdapter[method]('plain');
-
-                assert.calledOnceWith(imagesInfoFormatter[method], testResult.assertViewResults, 'plain');
-            });
-        });
-    });
-
-    describe('getErrImg', () => {
-        it('should return error screenshot from test result', () => {
-            const testResult = mkTestResult_({err: {screenshot: 'some-value'} as any});
-
-            const imagesInfoFormatter = mkImagesInfoFormatter();
-            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult, {imagesInfoFormatter});
-
-            hermioneTestAdapter.getErrImg();
-
-            assert.calledOnceWith(imagesInfoFormatter.getScreenshot, testResult);
-        });
-    });
-
-    describe('prepareTestResult', () => {
-        it('should return correct "name" field', () => {
-            const testResult = mkTestResult_({
-                title: 'some-title'
-            });
-
-            const result = mkHermioneTestResultAdapter(testResult).prepareTestResult();
-
-            assert.propertyVal(result, 'name', 'some-title');
-        });
-
-        it('should return correct "suitePath" field', () => {
-            const parentSuite = {parent: {root: true}, title: 'root-title'} as Suite;
-            const testResult = mkTestResult_({
-                parent: parentSuite,
-                title: 'some-title'
-            });
-            getSuitePath.returns(['root-title', 'some-title']);
-
-            const result = mkHermioneTestResultAdapter(testResult).prepareTestResult();
-
-            assert.deepEqual(result.suitePath, ['root-title', 'some-title']);
-        });
-
-        it('should return "browserId" field as is', () => {
-            const testResult = mkTestResult_({
-                browserId: 'bro'
-            });
-
-            const result = mkHermioneTestResultAdapter(testResult).prepareTestResult();
-
-            assert.propertyVal(result, 'browserId', 'bro');
-        });
     });
 
     describe('timestamp', () => {

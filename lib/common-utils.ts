@@ -54,11 +54,13 @@ export const getAbsoluteUrl = (url: string | undefined, baseUrl: string | undefi
     }
 };
 
-export const getRelativeUrl = (absoluteUrl: string): string | null => {
+export const getRelativeUrl = (absoluteUrl: string): string => {
     try {
-        return new URL(absoluteUrl).pathname;
+        const urlObj = new URL(absoluteUrl);
+
+        return urlObj.pathname + urlObj.search;
     } catch {
-        return null;
+        return absoluteUrl;
     }
 };
 

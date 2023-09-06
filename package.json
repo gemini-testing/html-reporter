@@ -125,7 +125,7 @@
     "eslint-config-gemini-testing": "^2.8.0",
     "eslint-plugin-react": "^7.32.2",
     "fork-ts-checker-webpack-plugin": "^6.5.3",
-    "hermione": "^8.0.0-beta.1",
+    "hermione": "^8.0.0-beta.2",
     "hermione-global-hook": "^1.0.1",
     "hermione-headless-chrome": "0.0.2",
     "html-react-parser": "^0.4.0",

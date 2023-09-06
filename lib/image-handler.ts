@@ -57,8 +57,7 @@ export class ImageHandler extends EventEmitter2 implements ImagesInfoFormatter {
         return testResult.error?.screenshot;
     }
 
-    getImagesFor(testResult: ReporterTestResultPlain, stateName?: string): ImageInfo | undefined {
-        const {status} = testResult;
+    getImagesFor(testResult: ReporterTestResultPlain, assertViewStatus: TestStatus, stateName?: string): ImageInfo | undefined {
         const refImg = ImageHandler.getRefImg(testResult.assertViewResults, stateName);
         const currImg = ImageHandler.getCurrImg(testResult.assertViewResults, stateName);
         const errImg = ImageHandler.getScreenshot(testResult);
@@ -67,7 +66,7 @@ export class ImageHandler extends EventEmitter2 implements ImagesInfoFormatter {
         const currPath = utils.getCurrentPath({attempt: testResult.attempt, browserId: testResult.browserId, imageDir: testResult.imageDir, stateName});
         const diffPath = utils.getDiffPath({attempt: testResult.attempt, browserId: testResult.browserId, imageDir: testResult.imageDir, stateName});
 
-        if ((status === SUCCESS || status === UPDATED) && refImg) {
+        if ((assertViewStatus === SUCCESS || assertViewStatus === UPDATED) && refImg) {
             const result: ImageInfo = {
                 expectedImg: {path: this._getImgFromStorage(refPath), size: refImg.size}
             };
@@ -78,7 +77,7 @@ export class ImageHandler extends EventEmitter2 implements ImagesInfoFormatter {
             return result;
         }
 
-        if (status === FAIL && refImg && currImg) {
+        if (assertViewStatus === FAIL && refImg && currImg) {
             return {
                 expectedImg: {
                     path: this._getImgFromStorage(refPath),
@@ -98,10 +97,10 @@ export class ImageHandler extends EventEmitter2 implements ImagesInfoFormatter {
             };
         }
 
-        if (status === ERROR && errImg) {
+        if (assertViewStatus === ERROR && errImg) {
             return {
                 actualImg: {
-                    path: testResult.state.name ? this._getImgFromStorage(currPath) : '',
+                    path: testResult.state?.name ? this._getImgFromStorage(currPath) : '',
                     size: currImg?.size || errImg.size
                 }
             };
@@ -112,17 +111,17 @@ export class ImageHandler extends EventEmitter2 implements ImagesInfoFormatter {
 
     getImagesInfo(testResult: ReporterTestResultPlain): ImageInfoFull[] {
         const imagesInfo: ImageInfoFull[] = testResult.assertViewResults?.map((assertResult): ImageInfoFull => {
-            let status: TestStatus | undefined, error: {message: string; stack: string;} | undefined;
+            let status: TestStatus, error: {message: string; stack: string;} | undefined;
 
             if (testResult.isUpdated === true) {
                 status = UPDATED;
-            } else if (!(assertResult instanceof Error)) {
-                status = SUCCESS;
             } else if (isImageDiffError(assertResult)) {
                 status = FAIL;
             } else if (isNoRefImageError(assertResult)) {
                 status = ERROR;
                 error = _.pick(assertResult, ['message', 'stack']);
+            } else {
+                status = SUCCESS;
             }
 
             const {stateName, refImg} = assertResult;
@@ -130,7 +129,7 @@ export class ImageHandler extends EventEmitter2 implements ImagesInfoFormatter {
 
             return _.extend(
                 {stateName, refImg, status: status, error, diffClusters},
-                this.getImagesFor(testResult, stateName)
+                this.getImagesFor(testResult, status, stateName)
             ) as ImageInfoFull;
         }) ?? [];
 
@@ -138,7 +137,7 @@ export class ImageHandler extends EventEmitter2 implements ImagesInfoFormatter {
         if (ImageHandler.getScreenshot(testResult)) {
             const errorImage = _.extend(
                 {status: ERROR, error: getError(testResult.error)},
-                this.getImagesFor(testResult)
+                this.getImagesFor(testResult, ERROR)
             ) as ImageInfoError;
 
             imagesInfo.push(errorImage);

@@ -12,7 +12,7 @@ import {
     SUCCESS,
     TestStatus,
     LOCAL_DATABASE_NAME,
-    PluginEvents, DB_COLUMNS
+    PluginEvents
 } from '../constants';
 import {PreparedTestResult, SqliteAdapter} from '../sqlite-adapter';
 import {ReporterTestResult} from '../test-adapter';
@@ -23,6 +23,7 @@ import {HtmlReporter} from '../plugin-api';
 import {ImageHandler} from '../image-handler';
 import {SqliteImageStore} from '../image-store';
 import {getAbsoluteUrl, getError, getRelativeUrl, hasDiff} from '../common-utils';
+import {getTestFromDb} from '../db-utils/server';
 
 const ignoredStatuses = [RUNNING, IDLE];
 
@@ -129,13 +130,7 @@ export class StaticReportBuilder {
         }
 
         // To prevent skips duplication on reporter startup
-        const isPreviouslySkippedTest = testResult.status === SKIPPED && this._sqliteAdapter.query({
-            select: '*',
-            where: `${DB_COLUMNS.SUITE_PATH} = ? AND ${DB_COLUMNS.NAME} = ? AND ${DB_COLUMNS.STATUS} = ?`,
-            orderBy: DB_COLUMNS.TIMESTAMP,
-            orderDescending: true,
-            limit: 1
-        }, JSON.stringify(formattedResult.testPath), formattedResult.browserId, TestStatus.SKIPPED);
+        const isPreviouslySkippedTest = testResult.status === SKIPPED && getTestFromDb(this._sqliteAdapter, formattedResult);
 
         if (!ignoredStatuses.includes(testResult.status) && !isPreviouslySkippedTest) {
             this._writeTestResultToDb(testResult, formattedResult);
@@ -144,7 +139,7 @@ export class StaticReportBuilder {
         return formattedResult;
     }
 
-    _createTestResult(result: ReporterTestResult, props: {status: TestStatus} & Partial<PreparedTestResult>): PreparedTestResult {
+    protected _createTestResult(result: ReporterTestResult, props: {status: TestStatus} & Partial<PreparedTestResult>): PreparedTestResult {
         const {
             browserId, file, sessionId, description, history,
             imagesInfo = [], screenshot, multipleTabs, errorDetails
@@ -166,14 +161,14 @@ export class StaticReportBuilder {
         return testResult;
     }
 
-    _writeTestResultToDb(testResult: PreparedTestResult, formattedResult: ReporterTestResult): void {
+    protected _writeTestResultToDb(testResult: PreparedTestResult, formattedResult: ReporterTestResult): void {
         const suiteName = formattedResult.state.name;
         const suitePath = formattedResult.testPath;
 
         this._sqliteAdapter.write({testResult, suitePath, suiteName});
     }
 
-    _deleteTestResultFromDb(...args: Parameters<typeof this._sqliteAdapter.delete>): void {
+    protected _deleteTestResultFromDb(...args: Parameters<typeof this._sqliteAdapter.delete>): void {
         this._sqliteAdapter.delete(...args);
     }
 
