@@ -2,6 +2,9 @@ import YandexMetrika from 'lib/static/modules/yandex-metrika';
 import actionNames from 'lib/static/modules/action-names';
 import webVitals from 'lib/static/modules/web-vitals';
 
+// eslint-disable-next-line
+globalThis.performance = globalThis.performance; // node v14 stub
+
 describe('lib/static/modules/middlewares/metrika', () => {
     const sandbox = sinon.sandbox.create();
     let next, metrikaMiddleware;
