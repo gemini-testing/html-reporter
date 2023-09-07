@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="9.11.1"></a>
+## [9.11.1](https://github.com/gemini-testing/html-reporter/compare/v9.11.0...v9.11.1) (2023-09-07)
+
+
+### Bug Fixes
+
+* suites state with empty picked browsers ([2fc0aff](https://github.com/gemini-testing/html-reporter/commit/2fc0aff))
+
+
+
 <a name="9.11.0"></a>
 # [9.11.0](https://github.com/gemini-testing/html-reporter/compare/v9.10.3...v9.11.0) (2023-08-24)
 
