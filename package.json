@@ -10,7 +10,7 @@
     "./hermione": "./build/hermione.js"
   },
   "scripts": {
-    "build": "npm run build:client && npm run build:server",
+    "build": "rimraf build && npm run build:client && npm run build:server",
     "build:client": "cross-env NODE_ENV=production webpack build --config=webpack.prod.js --progress && npm run copy-static",
     "build:server": "npx tsc",
     "copy-static": "copyfiles 'lib/static/icons/*' .npmignore build",
