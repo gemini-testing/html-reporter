@@ -7,6 +7,9 @@ import {StaticTestsTreeBuilder} from 'lib/tests-tree-builder/static';
 import {LOCAL_DATABASE_NAME} from 'lib/constants/database';
 import {DiffModes} from 'lib/constants/diff-modes';
 
+// eslint-disable-next-line
+globalThis.performance = globalThis.performance; // node v14 stub
+
 describe('lib/static/modules/actions', () => {
     const sandbox = sinon.sandbox.create();
     let dispatch, actions, notify, getSuitesTableRows, getMainDatabaseUrl, connectToDatabaseStub, pluginsStub;
