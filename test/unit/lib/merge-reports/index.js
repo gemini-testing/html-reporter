@@ -56,7 +56,7 @@ describe('lib/merge-reports', () => {
 
         await execMergeReports_({pluginConfig, hermione, paths, opts: {destination}});
 
-        assert.calledOnceWith(serverUtils.saveStaticFilesToReportDir, hermione, pluginConfig, destination);
+        assert.calledOnceWith(serverUtils.saveStaticFilesToReportDir, hermione.htmlReporter, pluginConfig, destination);
         assert.calledOnceWith(serverUtils.writeDatabaseUrlsFile, destination, paths);
     });
 
