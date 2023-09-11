@@ -1,7 +1,7 @@
 'use strict';
 
 import axios from 'axios';
-import loadPlugin from 'lib/static/modules/load-plugin';
+import {loadPlugin} from 'lib/static/modules/load-plugin';
 import actionNames from 'lib/static/modules/action-names';
 import * as actions from 'lib/static/modules/actions';
 import * as selectors from 'lib/static/modules/selectors';

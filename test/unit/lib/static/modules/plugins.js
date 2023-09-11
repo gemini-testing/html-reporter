@@ -10,7 +10,7 @@ describe('static/modules/plugins', () => {
     beforeEach(() => {
         loadPluginStub = sandbox.stub();
         plugins = proxyquire('lib/static/modules/plugins', {
-            './load-plugin': {default: loadPluginStub}
+            './load-plugin': {loadPlugin: loadPluginStub}
         });
     });
 
