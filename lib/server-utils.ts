@@ -171,9 +171,17 @@ export function urlPathNameEndsWith(currentUrl: string, searchString: string): b
     }
 }
 
+export function isJsonUrl(url: string): boolean {
+    return urlPathNameEndsWith(url, '.json');
+}
+
+export function isDbUrl(url: string): boolean {
+    return urlPathNameEndsWith(url, '.db');
+}
+
 export async function writeDatabaseUrlsFile(destPath: string, srcPaths: string[]): Promise<void> {
-    const jsonUrls = srcPaths.filter(p => urlPathNameEndsWith(p, '.json'));
-    const dbUrls = srcPaths.filter(p => urlPathNameEndsWith(p, '.db'));
+    const jsonUrls = srcPaths.filter(isJsonUrl);
+    const dbUrls = srcPaths.filter(isDbUrl);
     const data = {
         dbUrls,
         jsonUrls
