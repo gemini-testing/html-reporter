@@ -18,6 +18,8 @@ import {SqliteAdapter} from '../sqlite-adapter';
 
 export * from './common';
 
+export const prepareUrls = (urls: string[], baseUrl: string): string[] => isUrl(baseUrl) ? normalizeUrls(urls, baseUrl) : urls;
+
 export async function downloadDatabases(dbJsonUrls: string[], opts: HandleDatabasesOptions): Promise<(string | DbLoadResult)[]> {
     const loadDbJsonUrl = async (dbJsonUrl: string): Promise<{data: DbUrlsJsonData | null}> => {
         if (isUrl(dbJsonUrl)) {
@@ -28,7 +30,6 @@ export async function downloadDatabases(dbJsonUrls: string[], opts: HandleDataba
         return {data};
     };
 
-    const prepareUrls = (urls: string[], baseUrl: string): string[] => isUrl(baseUrl) ? normalizeUrls(urls, baseUrl) : urls;
     const loadDbUrl = (dbUrl: string, opts: HandleDatabasesOptions): Promise<string> => downloadSingleDatabase(dbUrl, opts);
 
     return commonSqliteUtils.handleDatabases(dbJsonUrls, {...opts, loadDbJsonUrl, prepareUrls, loadDbUrl});
