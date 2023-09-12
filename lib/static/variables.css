@@ -1,5 +1,5 @@
 :root {
-    --report-color-fail: rgba(255, 4, 0, 0.9);
+    --report-color-fail: #d00;
     --report-color-skip: #8c8c8c;
     --report-color-success: #169737;
 }
