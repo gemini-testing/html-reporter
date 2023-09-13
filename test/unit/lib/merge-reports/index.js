@@ -78,6 +78,20 @@ describe('lib/merge-reports', () => {
         assert.calledOnceWith(serverUtils.writeDatabaseUrlsFile, destination, ['path-1.db', 'path-2.db', 'path-3.db', 'path-4.db']);
     });
 
+    it('should normalize urls while merging reports', async () => {
+        const pluginConfig = stubConfig();
+        const hermione = stubTool(pluginConfig, {}, {}, htmlReporter);
+        const paths = ['src-report/path-1.json'];
+        const destination = 'dest-report/path';
+
+        axiosStub.get.withArgs('src-report/path-1.json').resolves({data: {jsonUrls: ['https://foo.bar/path-2.json']}});
+        axiosStub.get.withArgs('https://foo.bar/path-2.json').resolves({data: {jsonUrls: [], dbUrls: ['sqlite.db']}});
+
+        await execMergeReports_({pluginConfig, hermione, paths, opts: {destination}});
+
+        assert.calledOnceWith(serverUtils.writeDatabaseUrlsFile, destination, ['https://foo.bar/sqlite.db']);
+    });
+
     it('should fallback to json url while merging reports', async () => {
         const pluginConfig = stubConfig();
         const hermione = stubTool(pluginConfig, {}, {}, htmlReporter);
