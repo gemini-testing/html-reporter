@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="9.11.4"></a>
+## [9.11.4](https://github.com/gemini-testing/html-reporter/compare/v9.11.3...v9.11.4) (2023-09-14)
+
+
+### Bug Fixes
+
+* normalize urls while merging reports ([50bf872](https://github.com/gemini-testing/html-reporter/commit/50bf872))
+* save actual image even when errImg is not available ([#504](https://github.com/gemini-testing/html-reporter/issues/504)) ([68d6d21](https://github.com/gemini-testing/html-reporter/commit/68d6d21))
+* **css:** change color for failed tests ([b603dbf](https://github.com/gemini-testing/html-reporter/commit/b603dbf))
+
+
+### Performance Improvements
+
+* preload dbUrls, sql-wasm, plugins ([204462a](https://github.com/gemini-testing/html-reporter/commit/204462a))
+* resolve json databases while merging report ([7d9150f](https://github.com/gemini-testing/html-reporter/commit/7d9150f))
+
+
+
 <a name="9.11.3"></a>
 ## [9.11.3](https://github.com/gemini-testing/html-reporter/compare/v9.11.1...v9.11.3) (2023-09-08)
 
