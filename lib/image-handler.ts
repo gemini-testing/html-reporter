@@ -14,7 +14,8 @@ import {
     ImageInfo, ImageInfoError,
     ImageInfoFail,
     ImageInfoFull,
-    ImagesSaver
+    ImagesSaver,
+    ImageSize
 } from './types';
 import {ERROR, FAIL, PluginEvents, SUCCESS, TestStatus, UPDATED} from './constants';
 import {getError, getShortMD5, isImageDiffError, isNoRefImageError, logger, mkTestId} from './common-utils';
@@ -97,11 +98,11 @@ export class ImageHandler extends EventEmitter2 implements ImagesInfoFormatter {
             };
         }
 
-        if (assertViewStatus === ERROR && errImg) {
+        if (assertViewStatus === ERROR) {
             return {
                 actualImg: {
                     path: testResult.state?.name ? this._getImgFromStorage(currPath) : '',
-                    size: currImg?.size || errImg.size
+                    size: (currImg?.size || errImg?.size) as ImageSize
                 }
             };
         }
