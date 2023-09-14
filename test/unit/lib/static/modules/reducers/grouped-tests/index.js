@@ -55,7 +55,7 @@ describe('lib/static/modules/reducers/grouped-tests', () => {
 
                 reducer(state, {type: actionName});
 
-                assert.calledOnceWith(groupMeta, {tree: state.tree, group: state.groupedTests.meta, ...viewArgs});
+                assert.calledOnceWith(groupMeta, {tree: state.tree, group: state.groupedTests.meta, diff: {}, ...viewArgs});
                 assert.notCalled(groupResult);
             });
 
@@ -74,6 +74,7 @@ describe('lib/static/modules/reducers/grouped-tests', () => {
                 assert.calledOnceWith(groupResult, {
                     tree: state.tree,
                     group: state.groupedTests[SECTIONS.RESULT],
+                    diff: {},
                     groupKey: ERROR_KEY,
                     errorPatterns: state.config.errorPatterns,
                     ...viewArgs
@@ -97,6 +98,7 @@ describe('lib/static/modules/reducers/grouped-tests', () => {
                     tree: state.tree,
                     group: state.groupedTests[SECTIONS.META],
                     groupKey,
+                    diff: {},
                     ...viewArgs
                 });
                 assert.notCalled(groupResult);

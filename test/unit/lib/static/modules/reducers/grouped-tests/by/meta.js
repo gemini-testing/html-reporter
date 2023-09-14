@@ -79,8 +79,8 @@ describe('lib/static/modules/reducers/grouped-tests/by/meta', () => {
             module.groupMeta({group, groupKey: 'aaa'});
 
             assert.calledTwice(addGroupItem);
-            assert.calledWith(addGroupItem.firstCall, {group: sinon.match.object, result: results[0], value: 1});
-            assert.calledWith(addGroupItem.secondCall, {group: sinon.match.object, result: results[1], value: 3});
+            assert.calledWith(addGroupItem.firstCall, {group: sinon.match.object, diff: {}, result: results[0], value: 1});
+            assert.calledWith(addGroupItem.secondCall, {group: sinon.match.object, diff: {}, result: results[1], value: 3});
         });
 
         it('should sort group values by passed meta key', () => {
