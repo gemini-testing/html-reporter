@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="utf-8">
+    <title></title>
+</head>
+<style media="screen">
+.text {
+    width: 400px;
+    height: 200px;
+    border: 1px solid #000;
+    background: green;
+    margin: 20px;
+    color: beige;
+}
+
+.tag {
+    display: inline-block;
+    padding: 5px;
+    background: grey;
+    border-radius: 3px;
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+.tag:hover {
+    background: yellow;
+}
+
+.diff {
+    width: 200px;
+    height: 200px;
+    border: 1px solid red;
+}
+
+footer {
+    margin: 10px 0;
+}
+</style>
+<body>
+    <header>
+        <h1>Some header</h1>
+    </header>
+    <div class="content">
+        <div class="text">
+            Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+        </div>
+        <div class="nav">
+            <span class="tag">tag1</span>
+            <span class="tag">tag2</span>
+            <span class="tag">tag3</span>
+        </div>
+    </div>
+    <div class="diff"></div>
+    <footer>Copyright ©</footer>
+    <script type="text/javascript">
+        document.querySelector('.diff').innerHTML = Date.now();
+    </script>
+</body>
+</html>

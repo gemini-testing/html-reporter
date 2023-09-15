@@ -2,25 +2,39 @@ version: 2
 jobs:
   build:
     docker:
-      - image: cimg/node:12.18-browsers
+      - image: cimg/node:16.20-browsers
 
     steps:
-      - checkout
+      - checkout:
+          path: 'html-reporter'
 
-      - run: npm install
+      - run: cd html-reporter && npm ci
+
+      - run:
+          name: Download Chromium
+          command: >-
+            cd test/func/docker/browser-utils &&
+            npm ci &&
+            CHROME_PATH=$(node download-chromium.js |& grep '^/home') &&
+            CHROME_PATH=$(dirname $CHROME_PATH) &&
+            mkdir ~/browsers &&
+            mv $CHROME_PATH ~/browsers/chrome-linux
+            cd ~/html-reporter
 
       - run:
           name: Download Selenium
-          command: sudo npm install selenium-standalone@6.17.0 -g
+          command: npm install selenium-standalone@9.1.1 -g
       - run:
           name: Start Selenium
-          command: selenium-standalone install && selenium-standalone start
+          command: >-
+            selenium-standalone install --drivers.chrome.version=116 &&
+            selenium-standalone start --drivers.chrome.version=116
           background: true
 
       - run:
           name: Functional tests
-          command: npm run test-func
+          command: npm run e2e
 
       - store_artifacts:
-          path: hermione-report/
-          destination: /hermione-report
+          path: reports/
+          destination: /reports
