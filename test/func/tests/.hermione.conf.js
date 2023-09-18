@@ -1,5 +1,7 @@
 'use strict';
 
+const path = require('path');
+
 const chai = require('chai');
 const {GRID_URL, CHROME_BINARY_PATH} = require('../utils/constants');
 
@@ -7,21 +9,26 @@ chai.config.includeStack = true;
 chai.config.truncateThreshold = 0;
 global.assert = chai.assert;
 
-const serverPort = 8080;
+const serverHost = process.env.SERVER_HOST ?? 'host.docker.internal';
+const serverPort = process.env.SERVER_PORT ?? 8083;
 const projectUnderTest = process.env.PROJECT_UNDER_TEST;
+
+if (!projectUnderTest) {
+    throw 'Project under test was not specified';
+}
 
 module.exports = {
     gridUrl: GRID_URL,
-    baseUrl: `http://localhost:${serverPort}/test/func/fixtures/${projectUnderTest}/report/index.html`,
+    baseUrl: `http://${serverHost}:${serverPort}/fixtures/${projectUnderTest}/report/index.html`,
 
-    screenshotsDir: 'test/func/tests/screens',
+    screenshotsDir: path.resolve(__dirname, 'screens'),
 
     sets: {
-        main: {
-            files: 'test/func/tests/common/**/*.hermione.js'
+        common: {
+            files: 'common/**/*.hermione.js'
         },
         plugins: {
-            files: 'test/func/tests/plugins/**/*.hermione.js'
+            files: 'plugins/**/*.hermione.js'
         }
     },
 

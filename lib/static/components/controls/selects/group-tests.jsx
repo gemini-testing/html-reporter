@@ -69,6 +69,7 @@ class GroupTestsSelect extends Component {
                     onChange={this._groupTestsByKey}
                     placeholder="select key"
                     clearable={Boolean(selectedGroupKey)}
+                    data-test-id='group-by-dropdown'
                 >
                     <Dropdown.Menu>
                         {Object.values(SECTIONS).map((sectionName) => this._renderSection(sectionName))}

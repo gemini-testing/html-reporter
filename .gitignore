@@ -22,5 +22,6 @@ sqlite.db
 .nyc_output
 
 hermione-report
-/test/func/fixtures/report
-test/func/fixtures/plugins/html-reporter-plugins/*/plugin.js
+test/func/**/report
+test/func/**/reports
+test/func/packages/*/plugin.js

@@ -7,9 +7,8 @@ describe('Test basic plugin', function() {
             '.section .section__body'
         );
 
-        return this.browser
-            .waitForVisible(selector)
-            .assertView('basic plugins', selector);
+        await this.browser.$(selector).waitForDisplayed();
+        await this.browser.assertView('basic plugins', selector);
     });
 
     it('should change plugin basic border color on click', async function() {

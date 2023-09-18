@@ -1,20 +1,23 @@
 'use strict';
 
+const path = require('path');
+
 const {GRID_URL, CHROME_BINARY_PATH} = require('../../utils/constants');
 global.assert = require('chai').assert;
 
-const serverPort = 8080;
-const fixturesPath = 'test/func/fixtures/report';
+const serverHost = process.env.SERVER_HOST ?? 'host.docker.internal';
+const serverPort = process.env.SERVER_PORT ?? 8082;
+const fixturesPath = 'report';
 
 module.exports = {
     gridUrl: GRID_URL,
-    baseUrl: `http://localhost:${serverPort}/test/func/fixtures/plugins/index.html`,
+    baseUrl: `http://${serverHost}:${serverPort}/fixtures/plugins/index.html`,
 
-    screenshotsDir: 'test/func/fixtures/screens',
+    screenshotsDir: path.resolve(__dirname, 'screens'),
 
     sets: {
         fixtures: {
-            files: 'test/func/fixtures/plugins/**/*.hermione.js'
+            files: '**/*.hermione.js'
         }
     },
 

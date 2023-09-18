@@ -1,14 +1,14 @@
-const {mkNestedSelector} = require('../utils');
+const {mkNestedSelector} = require('../../utils');
 
 describe('Test details', function() {
     it('should show details', async function() {
-        const erroredTestSection = await this.browser.$('div*=test with long error message').$('../..');
+        await this.browser.$('div*=test with long error message').waitForDisplayed();
 
-        await erroredTestSection.waitForDisplayed();
+        const erroredTestSection = await this.browser.$('div*=test with long error message').$('../..');
 
         await erroredTestSection.$('.details__summary').click();
 
-        const fileMetaInfo = await erroredTestSection.$('div=test/func/fixtures/failed-describe.hermione.js').$('..');
+        const fileMetaInfo = await erroredTestSection.$('div*=failed-describe.hermione.js').$('..');
 
         await expect(fileMetaInfo).toBeDisplayed();
         await expect(await fileMetaInfo.$('span*=file')).toBeDisplayed();

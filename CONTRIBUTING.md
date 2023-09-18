@@ -19,13 +19,22 @@ you need to launch browsers inside a Docker container.
         - On Mac, you may use [colima](https://github.com/abiosoft/colima) as a replacement for Docker Desktop.
         - On Windows, you may use Windows Subsystem for Linux to run the Docker CLI without the Desktop application.
     </details>
-2. Run e2e tests:
+   
+2. Build and start an image with browsers:
+    ```
+    npm run e2e:build-browsers && npm run e2e:launch-browsers
+    ```
+3. Run e2e tests:
     ```bash
     npm run e2e
     ```
 
-If you want a finer-grained control over the process, the following commands are available:
-- `npm run e2e:build-browsers` — build Docker image with browsers
-- `npm run e2e:launch-browsers` — launch selenium standalone server inside Docker
-- `npm run e2e:generate-fixture-report` — generate fixture report to run tests on
-- `npm run e2e:test` — run e2e tests
+End-to-end tests are divided into multiple workspaces:
+- `test/func/packages` — packages needed for generating fixture reports, e.g. test html-reporter plugins
+- `test/func/fixtures` — packages to generate fixture reports
+- `test/func/tests` — hermione tests that run on fixture reports
+
+If you want a finer-grained control over the process, the following commands may be useful:
+- `npm run e2e:generate-fixtures` — generate fixture reports to run tests on
+- `npm run --workspace=test/func/tests gui:plugins` — launch hermione GUI for the `plugins` tests set
+- `npm run e2e:test` — run e2e tests only, without building packages or generating fixtures

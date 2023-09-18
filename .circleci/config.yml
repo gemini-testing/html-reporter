@@ -1,14 +1,14 @@
 version: 2
 jobs:
   build:
+    working_directory: ~/html-reporter
     docker:
       - image: cimg/node:16.20-browsers
 
     steps:
-      - checkout:
-          path: 'html-reporter'
+      - checkout
 
-      - run: cd html-reporter && npm ci
+      - run: npm ci
 
       - run:
           name: Download Chromium
@@ -19,7 +19,6 @@ jobs:
             CHROME_PATH=$(dirname $CHROME_PATH) &&
             mkdir ~/browsers &&
             mv $CHROME_PATH ~/browsers/chrome-linux
-            cd ~/html-reporter
 
       - run:
           name: Download Selenium
@@ -27,9 +26,11 @@ jobs:
       - run:
           name: Start Selenium
           command: >-
-            selenium-standalone install --drivers.chrome.version=116 &&
-            selenium-standalone start --drivers.chrome.version=116
+            selenium-standalone install --drivers.chrome.version=$CHROME_VERSION &&
+            selenium-standalone start --drivers.chrome.version=$CHROME_VERSION
           background: true
+          environment:
+            CHROME_VERSION: 116
 
       - run:
           name: Functional tests

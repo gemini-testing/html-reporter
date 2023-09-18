@@ -15,17 +15,14 @@ describe('Report header', function() {
 
     describe('Main menu', function() {
         it('should show creation date', async function() {
-            const mainMenu = await this.browser.$('.main-menu');
-
-            const creationLabel = await mainMenu.$('//div[contains(text(), \'Created at\')]');
+            const creationLabel = await this.browser.$('div[data-test-id="created-at-label"]');
 
             await expect(creationLabel).toBeDisplayed();
         });
 
         it('should show report version', async function() {
-            const mainMenu = await this.browser.$('.main-menu');
+            const versionLabel = await this.browser.$('div[data-test-id="version-label"]');
 
-            const versionLabel = await mainMenu.$('//div[contains(text(), \'Version\')]');
             await expect(versionLabel).toBeDisplayed();
         });
     });
