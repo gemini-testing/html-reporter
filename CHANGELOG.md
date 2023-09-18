@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="9.11.6"></a>
+## [9.11.6](https://github.com/gemini-testing/html-reporter/compare/v9.11.4...v9.11.6) (2023-09-18)
+
+
+### Bug Fixes
+
+* correctly handle baseUrl when generating test result ([#507](https://github.com/gemini-testing/html-reporter/issues/507)) ([357a415](https://github.com/gemini-testing/html-reporter/commit/357a415))
+
+
+### Performance Improvements
+
+* remove immer from static report ([43ba93f](https://github.com/gemini-testing/html-reporter/commit/43ba93f))
+
+
+
 <a name="9.11.5"></a>
 ## [9.11.5](https://github.com/gemini-testing/html-reporter/compare/v9.11.4...v9.11.5) (2023-09-14)
 
