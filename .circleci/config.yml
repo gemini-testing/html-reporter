@@ -11,6 +11,10 @@ jobs:
       - run: npm ci
 
       - run:
+          name: Build html-reporter
+          command: npm run build
+
+      - run:
           name: Download Chromium
           command: >-
             cd test/func/docker/browser-utils &&
