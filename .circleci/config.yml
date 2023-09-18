@@ -21,6 +21,8 @@ jobs:
             CHROME_PATH=$(dirname $CHROME_PATH) &&
             mkdir ~/browsers &&
             mv $CHROME_PATH ~/browsers/chrome-linux
+          environment:
+            CHROME_VERSION: 116
 
       - run:
           name: Download Selenium
