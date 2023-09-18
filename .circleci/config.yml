@@ -22,9 +22,7 @@ jobs:
           command: >-
             cd test/func/docker/browser-utils &&
             npm ci &&
-            node download-chromium.js &&
             CHROME_PATH=$(node download-chromium.js |& grep '^/home') &&
-            echo $CHROME_PATH &&
             CHROME_PATH=$(dirname $CHROME_PATH) &&
             mkdir ~/browsers &&
             mv $CHROME_PATH ~/browsers/chrome-linux
