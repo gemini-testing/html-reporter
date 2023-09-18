@@ -22,10 +22,7 @@ jobs:
           command: >-
             cd test/func/docker/browser-utils &&
             npm ci &&
-            CHROME_PATH=$(node download-chromium.js |& grep '^/home') &&
-            CHROME_PATH=$(dirname $CHROME_PATH) &&
-            mkdir ~/browsers &&
-            mv $CHROME_PATH ~/browsers/chrome-linux
+            npm run install-chromium
 
       - run:
           name: Download Selenium

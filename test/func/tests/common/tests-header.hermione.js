@@ -1,7 +1,7 @@
 describe('Report header', function() {
     describe('Summary', function() {
-        it('should show tests summary', async function() {
-            const summaryHeader = await this.browser.$('header.header');
+        it('should show tests summary', async ({browser}) => {
+            const summaryHeader = await browser.$('header.header');
             await summaryHeader.waitForDisplayed();
 
             await expect(await summaryHeader.$('dt*=Total Tests')).toBeDisplayed();
@@ -14,14 +14,14 @@ describe('Report header', function() {
     });
 
     describe('Main menu', function() {
-        it('should show creation date', async function() {
-            const creationLabel = await this.browser.$('div[data-test-id="created-at-label"]');
+        it('should show creation date', async ({browser}) => {
+            const creationLabel = await browser.$('div[data-test-id="created-at-label"]');
 
             await expect(creationLabel).toBeDisplayed();
         });
 
-        it('should show report version', async function() {
-            const versionLabel = await this.browser.$('div[data-test-id="version-label"]');
+        it('should show report version', async ({browser}) => {
+            const versionLabel = await browser.$('div[data-test-id="version-label"]');
 
             await expect(versionLabel).toBeDisplayed();
         });

@@ -1,10 +1,10 @@
 const {mkNestedSelector} = require('../../utils');
 
 describe('Test details', function() {
-    it('should show details', async function() {
-        await this.browser.$('div*=test with long error message').waitForDisplayed();
+    it('should show details', async ({browser}) => {
+        await browser.$('div*=test with long error message').waitForDisplayed();
 
-        const erroredTestSection = await this.browser.$('div*=test with long error message').$('../..');
+        const erroredTestSection = await browser.$('div*=test with long error message').$('../..');
 
         await erroredTestSection.$('.details__summary').click();
 
@@ -14,13 +14,13 @@ describe('Test details', function() {
         await expect(await fileMetaInfo.$('span*=file')).toBeDisplayed();
     });
 
-    it('should prevent details summary overflow', async function() {
+    it('should prevent details summary overflow', async ({browser}) => {
         const selector = mkNestedSelector(
             '.section .section_status_error', // TODO: make selector to test by title
             '.error .details__summary'
         );
 
-        await this.browser.$(selector).waitForDisplayed();
-        await this.browser.assertView('details summary', selector);
+        await browser.$(selector).waitForDisplayed();
+        await browser.assertView('details summary', selector);
     });
 });

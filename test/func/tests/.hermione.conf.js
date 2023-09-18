@@ -40,7 +40,6 @@ module.exports = {
                 'goog:chromeOptions': {
                     args: ['headless', 'no-sandbox'],
                     binary: CHROME_BINARY_PATH,
-                    mobileEmulation: {deviceMetrics: {pixelRatio: 1}}
                 }
             },
             waitTimeout: 3000
