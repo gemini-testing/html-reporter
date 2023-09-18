@@ -46,11 +46,24 @@ export const determineStatus = (statuses: TestStatus[]): TestStatus | null => {
     return null;
 };
 
-export const getAbsoluteUrl = (url: string | undefined, baseUrl: string | undefined): string => {
+export const getAbsoluteUrl = (url: string | undefined, base: string | undefined): string => {
     try {
-        return new URL(url ?? '', isEmpty(baseUrl) ? undefined : baseUrl).href;
+        const userUrl = new URL(url ?? '', base);
+
+        if (!isEmpty(base)) {
+            const baseUrl = new URL(base as string);
+
+            if (baseUrl.host) {
+                userUrl.host = baseUrl.host;
+            }
+            if (baseUrl.protocol) {
+                userUrl.protocol = baseUrl.protocol;
+            }
+        }
+
+        return userUrl.href;
     } catch {
-        return baseUrl || url || '';
+        return url || base || '';
     }
 };
 
