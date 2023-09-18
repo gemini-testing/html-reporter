@@ -5,6 +5,7 @@ hot
 /lib/static/*.min.js
 /lib/static/data.js
 /lib/static/sql-wasm.js
-/test/func/fixtures/report
-/test/func/html-reporter-plugins/*/plugin.js
+/test/func/**/report
+/test/func/**/reports
+/test/func/packages/*/plugin.js
 /hermione-report
