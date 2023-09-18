@@ -9,13 +9,13 @@ class ReportInfo extends Component {
 
         return (
             <div className="report-info">
-                <Label className="control-label">
+                <Label className="control-label" data-test-id='version-label'>
                     Version
                     <Label.Detail>
                         {version}
                     </Label.Detail>
                 </Label>
-                {!gui && <Label className="control-label">
+                {!gui && <Label className="control-label" data-test-id='created-at-label'>
                     Created at
                     <Label.Detail>
                         {date}

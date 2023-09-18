@@ -1,0 +1,12 @@
+{
+  "name": "html-reporter-e2e-hermione-tests",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "gui:hermione": "PROJECT_UNDER_TEST=hermione npx hermione --set common gui",
+    "gui:plugins": "PROJECT_UNDER_TEST=plugins SERVER_PORT=8084 npx hermione --set plugins gui",
+    "hermione:hermione": "PROJECT_UNDER_TEST=hermione npx hermione --set common",
+    "hermione:plugins": "PROJECT_UNDER_TEST=plugins SERVER_PORT=8084 npx hermione --set plugins",
+    "test": "conc npm:hermione:*"
+  }
+}

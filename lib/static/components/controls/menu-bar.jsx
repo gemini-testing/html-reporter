@@ -31,7 +31,7 @@ class MenuBar extends Component {
         }
 
         return (
-            <div className="menu-bar">
+            <div className="menu-bar" data-test-id='menu-bar'>
                 <Dropdown item icon="bars" simple direction="left">
                     <Dropdown.Menu>
                         <ExtensionPoint name={MENU_BAR}>

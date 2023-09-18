@@ -1,0 +1,11 @@
+{
+  "name": "browser-utils",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "install-chromium": "./install-chromium.sh"
+  },
+  "dependencies": {
+    "hermione-headless-chrome": "1.1.0"
+  }
+}
