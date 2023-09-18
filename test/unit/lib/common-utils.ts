@@ -1,8 +1,34 @@
-import {determineStatus, buildUrl, getError, hasDiff} from 'lib/common-utils';
+import {determineStatus, buildUrl, getError, hasDiff, getAbsoluteUrl} from 'lib/common-utils';
 import {RUNNING, QUEUED, ERROR, FAIL, UPDATED, SUCCESS, IDLE, SKIPPED} from 'lib/constants/test-statuses';
 import {ErrorName} from 'lib/errors';
 
 describe('common-utils', () => {
+    describe('getAbsoluteUrl', () => {
+        it('should change host of the url', () => {
+            const userUrl = 'https://example.com/test/123?a=1#hello';
+            const baseUrl = 'https://some.site.xyz';
+
+            const result = getAbsoluteUrl(userUrl, baseUrl);
+
+            assert.equal(result, 'https://some.site.xyz/test/123?a=1#hello');
+        });
+
+        it('should work with relative urls', () => {
+            const userUrl = '/test/123?a=1#hello';
+            const baseUrl = 'https://example.com';
+
+            const result = getAbsoluteUrl(userUrl, baseUrl);
+
+            assert.equal(result, 'https://example.com/test/123?a=1#hello');
+        });
+
+        it('should work without baseUrl', () => {
+            const result = getAbsoluteUrl('some-url', '');
+
+            assert.equal(result, 'some-url');
+        });
+    });
+
     describe('getError', () => {
         it('should return test error with "message", "stack" and "stateName"', () => {
             const error = {
