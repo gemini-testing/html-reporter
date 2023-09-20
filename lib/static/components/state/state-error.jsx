@@ -8,10 +8,10 @@ import {isEmpty, map, isFunction} from 'lodash';
 import ReactHtmlParser from 'react-html-parser';
 import * as actions from '../../modules/actions';
 import ResizedScreenshot from './screenshot/resized';
-import {isNoRefImageError, isAssertViewError} from '../../modules/utils';
 import ErrorDetails from './error-details';
 import Details from '../details';
 import {ERROR_TITLE_TEXT_LENGTH} from '../../../constants/errors';
+import {isAssertViewError, isImageDiffError, isNoRefImageError} from '../../../common-utils';
 
 class StateError extends Component {
     static propTypes = {
@@ -95,7 +95,7 @@ class StateError extends Component {
     }
 
     _shouldDrawErrorInfo(error) {
-        return !isAssertViewError(error);
+        return !isImageDiffError(error) && !isAssertViewError(error);
     }
 
     render() {

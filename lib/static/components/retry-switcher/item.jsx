@@ -3,9 +3,8 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
-import {isNoRefImageError, isAssertViewError} from '../../modules/utils';
-import {ERROR} from '../../../constants/test-statuses';
-import {isFailStatus} from '../../../common-utils';
+import {ERROR} from '../../../constants';
+import {isAssertViewError, isFailStatus, isImageDiffError, isNoRefImageError} from '../../../common-utils';
 
 class RetrySwitcherItem extends Component {
     static propTypes = {
@@ -51,5 +50,5 @@ export default connect(
 )(RetrySwitcherItem);
 
 function hasScreenAndAssertErrors(status, error) {
-    return isFailStatus(status) && error && !isNoRefImageError(error) && !isAssertViewError(error);
+    return isFailStatus(status) && error && !isNoRefImageError(error) && !isImageDiffError(error) && !isAssertViewError(error);
 }

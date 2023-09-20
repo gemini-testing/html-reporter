@@ -4,7 +4,8 @@ import {ValueOf} from 'type-fest';
 
 export const ErrorName = {
     IMAGE_DIFF: 'ImageDiffError',
-    NO_REF_IMAGE: 'NoRefImageError'
+    NO_REF_IMAGE: 'NoRefImageError',
+    ASSERT_VIEW: 'AssertViewError'
 } as const;
 export type ErrorName = ValueOf<typeof ErrorName>;
 export type ErrorNames = typeof ErrorName;

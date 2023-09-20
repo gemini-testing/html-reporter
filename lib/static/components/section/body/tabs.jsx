@@ -42,6 +42,7 @@ export default class Tabs extends Component {
                 ? null
                 : this._drawTab({key: errorTabId});
         }
+        console.log(result.imageIds);
 
         const tabs = result.imageIds.map((imageId) => this._drawTab({key: imageId, imageId}));
 
