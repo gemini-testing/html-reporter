@@ -1,7 +1,7 @@
 import {TestCase as PlaywrightTestCase, TestResult as PlaywrightTestResult} from '@playwright/test/reporter';
 import sizeOf from 'image-size';
 import {ReporterTestResult} from './index';
-import {TestStatus} from '../constants';
+import {FAIL, TestStatus} from '../constants';
 import {
     AssertViewResult,
     ErrorDetails,
@@ -15,7 +15,7 @@ import path from 'path';
 import * as utils from '../server-utils';
 import {testsAttempts} from './cache/playwright';
 import _ from 'lodash';
-import {getShortMD5, mkTestId} from '../common-utils';
+import {getShortMD5, isAssertViewError, isImageDiffError, isNoRefImageError, mkTestId} from '../common-utils';
 import {ImagesInfoFormatter} from '../image-handler';
 import stripAnsi from 'strip-ansi';
 import {ErrorName} from '../errors';
@@ -49,7 +49,7 @@ const getStatus = (result: PlaywrightTestResult): TestStatus => {
             result.status as PwtTestStatus
         )
     ) {
-        return TestStatus.FAIL;
+        return TestStatus.ERROR;
     }
 
     return TestStatus.SKIPPED;
@@ -115,9 +115,9 @@ export class PlaywrightTestAdapter implements ReporterTestResult {
 
     get assertViewResults(): AssertViewResult[] {
         return Object.entries(this._attachmentsByState).map(([state, attachments]): AssertViewResult | null => {
-            const refImg = getImageData(attachments.find(a => a.path?.endsWith(ImageTitleEnding.Expected)));
-            const diffImg = getImageData(attachments.find(a => a.path?.endsWith(ImageTitleEnding.Diff)));
-            const currImg = getImageData(attachments.find(a => a.path?.endsWith(ImageTitleEnding.Actual)));
+            const refImg = getImageData(attachments.find(a => a.name?.endsWith(ImageTitleEnding.Expected)));
+            const diffImg = getImageData(attachments.find(a => a.name?.endsWith(ImageTitleEnding.Diff)));
+            const currImg = getImageData(attachments.find(a => a.name?.endsWith(ImageTitleEnding.Actual)));
 
             if (this.error?.name === ErrorName.IMAGE_DIFF && refImg && diffImg && currImg) {
                 return {
@@ -218,6 +218,9 @@ export class PlaywrightTestAdapter implements ReporterTestResult {
     }
 
     get status(): TestStatus {
+        if (isNoRefImageError(this.error) || isImageDiffError(this.error) || isAssertViewError(this.error)) {
+            return FAIL;
+        }
         return getStatus(this._testResult);
     }
 
