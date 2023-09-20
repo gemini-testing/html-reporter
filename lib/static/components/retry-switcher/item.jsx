@@ -4,7 +4,12 @@ import classNames from 'classnames';
 import {connect} from 'react-redux';
 import {get} from 'lodash';
 import {ERROR} from '../../../constants';
-import {isAssertViewError, isFailStatus, isImageDiffError, isNoRefImageError} from '../../../common-utils';
+import {
+    isAssertViewError,
+    isFailStatus,
+    isImageDiffError,
+    isNoRefImageError
+} from '../../../common-utils';
 
 class RetrySwitcherItem extends Component {
     static propTypes = {
@@ -30,7 +35,7 @@ class RetrySwitcherItem extends Component {
             {'tab-switcher__button_non-matched': keyToGroupTestsBy && !matchedSelectedGroup}
         );
 
-        return <button title={title} className={className} onClick={onClick}>{attempt + 1}</button>;
+        return <button title={title} className={className} onClick={onClick} data-test-id='retry-switcher'>{attempt + 1}</button>;
     }
 }
 
@@ -41,7 +46,7 @@ export default connect(
         const {status, attempt, error} = result;
 
         return {
-            status: hasScreenAndAssertErrors(status, error) ? `${status}_${ERROR}` : status,
+            status: hasUnrelatedToScreenshotsErrors(status, error) ? `${status}_${ERROR}` : status,
             attempt,
             keyToGroupTestsBy,
             matchedSelectedGroup
@@ -49,6 +54,9 @@ export default connect(
     }
 )(RetrySwitcherItem);
 
-function hasScreenAndAssertErrors(status, error) {
-    return isFailStatus(status) && error && !isNoRefImageError(error) && !isImageDiffError(error) && !isAssertViewError(error);
+function hasUnrelatedToScreenshotsErrors(status, error) {
+    return isFailStatus(status) &&
+        !isNoRefImageError(error) &&
+        !isImageDiffError(error) &&
+        !isAssertViewError(error);
 }
