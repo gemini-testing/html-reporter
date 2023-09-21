@@ -9,3 +9,4 @@ hot
 /test/func/**/reports
 /test/func/packages/*/plugin.js
 /hermione-report
+tmp
