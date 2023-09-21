@@ -1,4 +1,4 @@
-const {mkNestedSelector} = require('../../utils');
+const {getTestSectionByName, getElementWithText} = require('../utils');
 
 describe('Test details', function() {
     it('should show details', async ({browser}) => {
@@ -15,10 +15,10 @@ describe('Test details', function() {
     });
 
     it('should prevent details summary overflow', async ({browser}) => {
-        const selector = mkNestedSelector(
-            '.section .section_status_error', // TODO: make selector to test by title
-            '.error .details__summary'
-        );
+        const selector = [
+            getTestSectionByName('test with long error message'),
+            `//summary[.${getElementWithText('span', 'message')}]`
+        ].join('');
 
         await browser.$(selector).waitForDisplayed();
         await browser.assertView('details summary', selector);

@@ -38,7 +38,7 @@ class RetrySwitcherItem extends Component {
 export default connect(
     ({tree, view: {keyToGroupTestsBy}}, {resultId}) => {
         const result = tree.results.byId[resultId];
-        const matchedSelectedGroup = get(tree.results.stateById[resultId], 'matchedSelectedGroup', false);
+        const matchedSelectedGroup = get(tree.results.stateById[resultId], 'matchedSelectedGroup', false); // everything's ok until...
         const {status, attempt, error} = result;
 
         return {

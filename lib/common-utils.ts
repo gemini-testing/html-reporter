@@ -59,6 +59,7 @@ export const getAbsoluteUrl = (url: string | undefined, base: string | undefined
             if (baseUrl.protocol) {
                 userUrl.protocol = baseUrl.protocol;
             }
+            userUrl.port = baseUrl.port;
         }
 
         return userUrl.href;
@@ -117,9 +118,9 @@ export const isUrl = (str: string): boolean => {
     return !!parsedUrl.host && !!parsedUrl.protocol;
 };
 
-export const buildUrl = (href: string, {host}: {host?: string} = {}): string => {
+export const buildUrl = (href: string, {host, protocol}: {host?: string, protocol?: string} = {}): string => {
     return host
-        ? url.format(Object.assign(url.parse(href), {host}))
+        ? url.format(Object.assign(url.parse(href), {host, protocol}))
         : href;
 };
 

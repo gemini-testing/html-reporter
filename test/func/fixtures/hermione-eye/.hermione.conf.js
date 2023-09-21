@@ -2,16 +2,18 @@
 
 const path = require('path');
 
-const {GRID_URL, CHROME_BINARY_PATH} = require('../../utils/constants');
+const PROJECT_NAME = require('./package.json').name;
+
+const {GRID_URL, CHROME_BINARY_PATH, PORTS} = require('../../utils/constants');
 global.assert = require('chai').assert;
 
 const serverHost = process.env.SERVER_HOST ?? 'host.docker.internal';
-const serverPort = process.env.SERVER_PORT ?? 8081;
+const serverPort = process.env.SERVER_PORT ?? PORTS[PROJECT_NAME].server;
 const fixturesPath = 'report';
 
 module.exports = {
     gridUrl: GRID_URL,
-    baseUrl: `http://${serverHost}:${serverPort}/fixtures/hermione/index.html`,
+    baseUrl: `http://${serverHost}:${serverPort}/fixtures/${PROJECT_NAME}/index.html`,
 
     screenshotsDir: path.resolve(__dirname, 'screens'),
 
@@ -35,10 +37,6 @@ module.exports = {
     },
 
     plugins: {
-        'hermione-test-repeater': {
-            enabled: true,
-            repeat: 1,
-        },
         'html-reporter-test-server': {
             enabled: true,
             port: serverPort
@@ -46,6 +44,7 @@ module.exports = {
         'html-reporter-tester': {
             enabled: true,
             path: fixturesPath,
+            baseHost: 'https://example.com:123'
         },
     }
 };

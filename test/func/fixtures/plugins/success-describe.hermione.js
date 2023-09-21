@@ -1,5 +1,5 @@
 describe('success describe', function() {
-    it('succesfully passed test', async ({browser}) => {
+    it('successfully passed test', async ({browser}) => {
         await browser.url(browser.options.baseUrl);
 
         assert.isTrue(true);

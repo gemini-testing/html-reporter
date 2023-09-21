@@ -27,6 +27,9 @@ module.exports = {
         common: {
             files: 'common/**/*.hermione.js'
         },
+        eye: {
+            files: 'eye/**/*.hermione.js',
+        },
         plugins: {
             files: 'plugins/**/*.hermione.js'
         }

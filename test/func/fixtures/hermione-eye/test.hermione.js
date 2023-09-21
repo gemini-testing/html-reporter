@@ -4,10 +4,4 @@ describe('success describe', function() {
 
         assert.isTrue(true);
     });
-
-    it('test with screenshot', async ({browser}) => {
-        await browser.url(browser.options.baseUrl);
-
-        await browser.assertView('header', 'header');
-    });
 });

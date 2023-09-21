@@ -14,4 +14,8 @@ describe('failed describe', function() {
     it('test with long error message', async () => {
         throw new Error(`long_error_message ${'0123456789'.repeat(20)}\n message content`);
     });
+
+    it.skip('test skipped', async ({browser}) => {
+        await browser.url(browser.options.baseUrl);
+    });
 });

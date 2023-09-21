@@ -43,6 +43,7 @@ class ViewInBrowser extends Component {
                 onClick={this.onViewInBrowser}
                 title="view in browser"
                 target="_blank"
+                data-test-id='view-in-browser'
             />
         );
     }
