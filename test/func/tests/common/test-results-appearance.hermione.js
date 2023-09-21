@@ -66,6 +66,7 @@ describe('Test results appearance', () => {
 
     describe('Test with no ref image', function() {
         it('should have pink retry selector', async ({browser}) => {
+            // TODO
             const retrySelectorButton = await browser.$('//div[contains(text(),\'test without screenshot\')]/..//button[@data-test-id="retry-switcher"]');
 
             await hideHeader(browser);
