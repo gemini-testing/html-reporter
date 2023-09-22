@@ -10,6 +10,8 @@ const {getTestSectionByNameSelector, getSpoilerByNameSelector, getElementWithTex
 
 const serverHost = process.env.SERVER_HOST ?? 'host.docker.internal';
 
+const serverHost = process.env.SERVER_HOST ?? 'host.docker.internal';
+
 const projectName = process.env.PROJECT_UNDER_TEST;
 const projectDir = path.resolve(__dirname, '../../fixtures', projectName);
 const guiUrl = `http://${serverHost}:${PORTS[projectName].gui}`;
