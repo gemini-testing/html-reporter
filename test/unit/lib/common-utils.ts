@@ -32,6 +32,7 @@ describe('common-utils', () => {
     describe('getError', () => {
         it('should return test error with "message", "stack" and "stateName"', () => {
             const error = {
+                name: 'some-name',
                 message: 'some-message',
                 stack: 'some-stack',
                 stateName: 'some-test',
@@ -41,6 +42,7 @@ describe('common-utils', () => {
             const result = getError(error);
 
             assert.deepEqual(result, {
+                name: 'some-name',
                 message: 'some-message',
                 stack: 'some-stack',
                 stateName: 'some-test'

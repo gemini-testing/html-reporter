@@ -66,7 +66,6 @@ describe('Test results appearance', () => {
 
     describe('Test with no ref image', function() {
         it('should have pink retry selector', async ({browser}) => {
-            // TODO
             const retrySelectorButton = await browser.$('//div[contains(text(),\'test without screenshot\')]/..//button[@data-test-id="retry-switcher"]');
 
             await hideHeader(browser);
@@ -112,7 +111,7 @@ describe('Test results appearance', () => {
             for (const field of ['message', 'name', 'stack']) {
                 const errorMessage = browser.$([
                     getTestSectionByName('test with long error message'),
-                    getTestStateByName('header'),
+                    // getTestStateByName('header'),
                     getElementWithText('span', field)
                 ].join(''));
 

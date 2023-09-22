@@ -45,6 +45,12 @@ export default connect(
         const matchedSelectedGroup = get(tree.results.stateById[resultId], 'matchedSelectedGroup', false); // everything's ok until...
         const {status, attempt, error} = result;
 
+        console.log(result);
+        console.log(error);
+        console.log(status);
+        console.log(hasUnrelatedToScreenshotsErrors(status, error));
+        console.log(hasUnrelatedToScreenshotsErrors(status, error) ? `${status}_${ERROR}` : status);
+
         return {
             status: hasUnrelatedToScreenshotsErrors(status, error) ? `${status}_${ERROR}` : status,
             attempt,

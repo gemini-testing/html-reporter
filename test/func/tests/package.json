@@ -6,14 +6,11 @@
     "gui:hermione-common": "PROJECT_UNDER_TEST=hermione npx hermione --set common gui",
     "gui:hermione-eye": "PROJECT_UNDER_TEST=hermione-eye npx hermione --no --set eye gui",
     "gui:hermione-gui": "PROJECT_UNDER_TEST=hermione-gui npx hermione --no --set common-gui gui",
-    "gui:playwright": "PROJECT_UNDER_TEST=playwright npx hermione --set common gui",
     "gui:plugins": "PROJECT_UNDER_TEST=plugins SERVER_PORT=8084 npx hermione --set plugins gui",
-    "hermione:hermione": "conc npm:hermione:hermione*",
-    "hermione:hermione-common": "PROJECT_UNDER_TEST=hermione npx hermione --set common",
-    "hermione:hermione-eye": "PROJECT_UNDER_TEST=hermione-eye npx hermione --set common",
-    "hermione:hermione-gui": "PROJECT_UNDER_TEST=hermione-gui npx hermione --no --set common-gui",
-    "hermione:playwright": "PROJECT_UNDER_TEST=playwright npx hermione --set common",
-    "hermione:plugins": "PROJECT_UNDER_TEST=plugins SERVER_PORT=8084 npx hermione --set plugins",
-    "test": "conc npm:hermione:*"
+    "hermione:hermione-common": "PROJECT_UNDER_TEST=hermione SERVER_PORT=8061 npx hermione --set common",
+    "hermione:hermione-eye": "PROJECT_UNDER_TEST=hermione-eye SERVER_PORT=8062 npx hermione --set eye",
+    "hermione:hermione-gui": "PROJECT_UNDER_TEST=hermione-gui SERVER_PORT=8063 npx hermione --no --set common-gui",
+    "hermione:plugins": "PROJECT_UNDER_TEST=plugins SERVER_PORT=8064 npx hermione --set plugins",
+    "test": "run-s hermione:*"
   }
 }

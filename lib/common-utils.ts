@@ -1,11 +1,11 @@
 import crypto from 'crypto';
-import {pick, isEmpty} from 'lodash';
+import {pick, isEmpty, omitBy} from 'lodash';
 import url from 'url';
 import axios, {AxiosRequestConfig} from 'axios';
 import {SUCCESS, FAIL, ERROR, SKIPPED, UPDATED, IDLE, RUNNING, QUEUED, TestStatus} from './constants';
 
 import {UNCHECKED, INDETERMINATE, CHECKED} from './constants/checked-statuses';
-import {AssertViewResult, ImageInfoFull, TestError, ImageInfoError} from './types';
+import {AssertViewResult, ImageData, ImageBase64, ImageInfoFull, TestError, ImageInfoError} from './types';
 import {ErrorName, ImageDiffError, NoRefImageError} from './errors';
 export const getShortMD5 = (str: string): string => {
     return crypto.createHash('md5').update(str, 'ascii').digest('hex').substr(0, 7);
@@ -96,8 +96,8 @@ export const isImageDiffError = (error?: unknown): error is ImageDiffError => {
     return (error as {name?: string})?.name === ErrorName.IMAGE_DIFF;
 };
 
-export const isNoRefImageError = (assertResult: AssertViewResult): assertResult is NoRefImageError => {
-    return (assertResult as NoRefImageError).name === ErrorName.NO_REF_IMAGE;
+export const isNoRefImageError = (error?: unknown): error is NoRefImageError => {
+    return (error as {name?: string})?.name === ErrorName.NO_REF_IMAGE;
 };
 
 export const hasNoRefImageErrors = ({assertViewResults = []}: {assertViewResults?: AssertViewResult[]}): boolean => {
@@ -123,7 +123,11 @@ export const getError = (error?: TestError): undefined | Pick<TestError, 'name' 
 };
 
 export const hasDiff = (assertViewResults: AssertViewResult[]): boolean => {
-    return assertViewResults.some((result) => isImageDiffError(result));
+    return assertViewResults.some((result) => isImageDiffError(result as {name?: string}));
+};
+
+export const isBase64Image = (image: ImageData | ImageBase64 | undefined): image is ImageBase64 => {
+    return Boolean((image as ImageBase64 | undefined)?.base64);
 };
 
 export const isUrl = (str: string): boolean => {
@@ -138,7 +142,7 @@ export const isUrl = (str: string): boolean => {
 
 export const buildUrl = (href: string, {host, protocol}: {host?: string, protocol?: string} = {}): string => {
     return host
-        ? url.format(Object.assign(url.parse(href), {host, protocol}))
+        ? url.format(Object.assign(url.parse(href), omitBy({host, protocol}, isEmpty)))
         : href;
 };
 

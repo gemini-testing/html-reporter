@@ -14,6 +14,7 @@ const guiUrl = `http://host.docker.internal:${PORTS[projectName].gui}`;
 
 const reportDir = path.join(projectDir, 'report');
 const reportBackupDir = path.join(projectDir, 'report-backup');
+const screensDir = path.join(projectDir, 'screens');
 
 const runGui = async () => {
     return new Promise((resolve, reject) => {
@@ -44,6 +45,26 @@ const runGui = async () => {
     });
 };
 
+const waitForFsChanges = async (dirPath, condition = (output) => output.length > 0, {timeout = 1000, interval = 50} = {}) => {
+    let isTimedOut = false;
+
+    const timeoutId = setTimeout(() => {
+        isTimedOut = true;
+        throw new Error(`Timed out while waiting for fs changes in ${dirPath} for ${timeout}ms`);
+    }, timeout);
+
+    while (!isTimedOut) {
+        const output = childProcess.execSync('git status . --porcelain=v2', {cwd: dirPath});
+
+        if (condition(output)) {
+            clearTimeout(timeoutId);
+            return;
+        }
+
+        await new Promise(resolve => setTimeout(resolve, interval));
+    }
+};
+
 // These tests should not be launched in parallel
 describe('GUI mode', () => {
     let guiProcess;
@@ -58,17 +79,17 @@ describe('GUI mode', () => {
     });
 
     afterEach(async ({browser}) => {
+        await treeKill(guiProcess.pid);
+
         await browser.execute(() => {
             window.localStorage.clear();
         });
 
-        await treeKill(guiProcess.pid);
-
         await fs.rm(reportDir, {recursive: true, force: true, maxRetries: 3});
         await fs.rename(reportBackupDir, reportDir);
 
-        childProcess.execSync('git restore .', {cwd: path.join(projectDir, 'screens')});
-        childProcess.execSync('git clean -dfx .', {cwd: path.join(projectDir, 'screens')});
+        childProcess.execSync('git restore .', {cwd: screensDir});
+        childProcess.execSync('git clean -dfx .', {cwd: screensDir});
     });
 
     describe('running tests', () => {
@@ -110,8 +131,7 @@ describe('GUI mode', () => {
 
                 await acceptButton.click();
 
-                // Waiting a bit for the GUI to save images
-                await new Promise(resolve => setTimeout(resolve, 500));
+                await waitForFsChanges(screensDir);
             });
 
             it('should create a successful retry', async ({browser}) => {
@@ -169,12 +189,11 @@ describe('GUI mode', () => {
 
                 await acceptButton.click();
 
-                // Waiting a bit for the GUI to save images
-                await new Promise(resolve => setTimeout(resolve, 500));
+                await waitForFsChanges(screensDir);
             });
 
             it('should leave project files intact', async ({browser}) => {
-                const gitDiffBeforeUndo = childProcess.execSync('git status . --porcelain=v2', {cwd: path.join(projectDir, 'screens')});
+                const gitDiffBeforeUndo = childProcess.execSync('git status . --porcelain=v2', {cwd: screensDir});
 
                 const undoButton = await browser.$([
                     getTestSectionByName(fullTestName),
@@ -183,10 +202,9 @@ describe('GUI mode', () => {
 
                 await undoButton.click();
 
-                // Waiting a bit for the GUI to save images
-                await new Promise(resolve => setTimeout(resolve, 500));
+                await waitForFsChanges(screensDir, (output) => output.length === 0);
 
-                const gitDiffAfterUndo = childProcess.execSync('git status . --porcelain=v2', {cwd: path.join(projectDir, 'screens')});
+                const gitDiffAfterUndo = childProcess.execSync('git status . --porcelain=v2', {cwd: screensDir});
 
                 expect(gitDiffBeforeUndo.length > 0).toBeTruthy();
                 expect(gitDiffAfterUndo.length === 0).toBeTruthy();

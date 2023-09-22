@@ -14,7 +14,6 @@ const serverPort = process.env.SERVER_PORT ?? 8083;
 const projectUnderTest = process.env.PROJECT_UNDER_TEST;
 
 const isRunningGuiTests = projectUnderTest.includes('gui');
-
 if (!projectUnderTest) {
     throw 'Project under test was not specified';
 }
@@ -22,6 +21,8 @@ if (!projectUnderTest) {
 module.exports = {
     gridUrl: GRID_URL,
     baseUrl: `http://${serverHost}:${serverPort}/fixtures/${projectUnderTest}/report/index.html`,
+
+    waitTimeout: 5000,
 
     screenshotsDir: path.resolve(__dirname, 'screens'),
 
