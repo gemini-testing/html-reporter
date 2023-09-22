@@ -20,9 +20,11 @@ sqlite.db
 .vscode
 .DS_Store
 .nyc_output
+tmp
 
 hermione-report
 test/func/**/report
+test/func/**/report-backup
 test/func/**/reports
 test/func/packages/*/plugin.js
 test/func/fixtures/playwright/test-results
