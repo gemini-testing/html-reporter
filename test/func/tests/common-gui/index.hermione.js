@@ -8,9 +8,11 @@ const treeKill = promisify(require('tree-kill'));
 const {PORTS} = require('../../utils/constants');
 const {getTestSectionByName} = require('../utils');
 
+const serverHost = process.env.SERVER_HOST ?? 'host.docker.internal';
+
 const projectName = process.env.PROJECT_UNDER_TEST;
 const projectDir = path.resolve(__dirname, '../../fixtures', projectName);
-const guiUrl = `http://host.docker.internal:${PORTS[projectName].gui}`;
+const guiUrl = `http://${serverHost}:${PORTS[projectName].gui}`;
 
 const reportDir = path.join(projectDir, 'report');
 const reportBackupDir = path.join(projectDir, 'report-backup');
