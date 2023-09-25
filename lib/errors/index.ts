@@ -3,6 +3,7 @@ import {DiffOptions, ImageData} from '../types';
 import {ValueOf} from 'type-fest';
 
 export const ErrorName = {
+    GENERAL_ERROR: 'Error',
     IMAGE_DIFF: 'ImageDiffError',
     NO_REF_IMAGE: 'NoRefImageError',
     ASSERT_VIEW: 'AssertViewError'

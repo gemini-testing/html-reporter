@@ -153,7 +153,7 @@ export class PlaywrightTestAdapter implements ReporterTestResult {
     get error(): TestError | undefined {
         const message = extractErrorMessage(this._testResult);
         if (message) {
-            const result: TestError = {message};
+            const result: TestError = {name: ErrorName.GENERAL_ERROR, message};
 
             const stack = extractErrorStack(this._testResult);
             if (stack) {
