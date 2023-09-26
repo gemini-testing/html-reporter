@@ -2,10 +2,8 @@ import React from 'react';
 import {defaults} from 'lodash';
 import RetrySwitcherItem from 'lib/static/components/retry-switcher/item';
 import {FAIL, ERROR, SUCCESS} from 'lib/constants/test-statuses';
-import errors from 'lib/constants/errors';
 import {mkConnectedComponent} from '../utils';
-
-const {NO_REF_IMAGE_ERROR, ASSERT_VIEW_ERROR} = errors.getCommonErrors();
+import {ErrorName} from 'lib/errors';
 
 describe('<RetrySwitcherItem />', () => {
     const sandbox = sinon.sandbox.create();
@@ -34,16 +32,16 @@ describe('<RetrySwitcherItem />', () => {
     describe('should render button', () => {
         [
             {
-                name: `with "${NO_REF_IMAGE_ERROR}"`,
-                error: {stack: NO_REF_IMAGE_ERROR}
+                name: `with "${ErrorName.NO_REF_IMAGE}"`,
+                error: {name: ErrorName.NO_REF_IMAGE, stack: ''}
             },
             {
-                name: `with "${ASSERT_VIEW_ERROR}"`,
-                error: {stack: ASSERT_VIEW_ERROR}
+                name: `with "${ErrorName.ASSERT_VIEW}"`,
+                error: {name: ErrorName.ASSERT_VIEW, stack: ''}
             },
             {
-                name: 'without error (diff)',
-                error: undefined
+                name: `with "${ErrorName.IMAGE_DIFF}"`,
+                error: {name: ErrorName.IMAGE_DIFF, stack: ''}
             }
         ].forEach(({name, error}) => {
             it(`with ${FAIL} status class name if test fails ${name}`, () => {

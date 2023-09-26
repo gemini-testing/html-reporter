@@ -5,7 +5,7 @@ import axios, {AxiosRequestConfig} from 'axios';
 import {SUCCESS, FAIL, ERROR, SKIPPED, UPDATED, IDLE, RUNNING, QUEUED, TestStatus} from './constants';
 
 import {UNCHECKED, INDETERMINATE, CHECKED} from './constants/checked-statuses';
-import {AssertViewResult, TestError} from './types';
+import {AssertViewResult, ImageData, ImageBase64, ImageInfoFull, TestError, ImageInfoError} from './types';
 import {ErrorName, ImageDiffError, NoRefImageError} from './errors';
 export const getShortMD5 = (str: string): string => {
     return crypto.createHash('md5').update(str, 'ascii').digest('hex').substr(0, 7);
@@ -25,7 +25,7 @@ export const isSuccessStatus = (status: TestStatus): boolean => status === SUCCE
 export const isFailStatus = (status: TestStatus): boolean => status === FAIL;
 export const isIdleStatus = (status: TestStatus): boolean => status === IDLE;
 export const isRunningStatus = (status: TestStatus): boolean => status === RUNNING;
-export const isErroredStatus = (status: TestStatus): boolean => status === ERROR;
+export const isErrorStatus = (status: TestStatus): boolean => status === ERROR;
 export const isSkippedStatus = (status: TestStatus): boolean => status === SKIPPED;
 export const isUpdatedStatus = (status: TestStatus): boolean => status === UPDATED;
 
@@ -46,19 +46,19 @@ export const determineStatus = (statuses: TestStatus[]): TestStatus | null => {
     return null;
 };
 
-export const getAbsoluteUrl = (url: string | undefined, base: string | undefined): string => {
+export const getUrlWithBase = (url: string | undefined, base: string | undefined): string => {
     try {
         const userUrl = new URL(url ?? '', base);
 
+        // Manually overriding properties, because if url is absolute, the above won't work
         if (!isEmpty(base)) {
             const baseUrl = new URL(base as string);
 
-            if (baseUrl.host) {
-                userUrl.host = baseUrl.host;
-            }
-            if (baseUrl.protocol) {
-                userUrl.protocol = baseUrl.protocol;
-            }
+            userUrl.host = baseUrl.host;
+            userUrl.protocol = baseUrl.protocol;
+            userUrl.port = baseUrl.port;
+            userUrl.username = baseUrl.username;
+            userUrl.password = baseUrl.password;
         }
 
         return userUrl.href;
@@ -87,24 +87,51 @@ export const mkTestId = (fullTitle: string, browserId: string): string => {
     return fullTitle + '.' + browserId;
 };
 
-export const isImageDiffError = (assertResult: AssertViewResult): assertResult is ImageDiffError => {
-    return (assertResult as ImageDiffError).name === ErrorName.IMAGE_DIFF;
+export const isAssertViewError = (error?: unknown): boolean => {
+    return (error as {name?: string})?.name === ErrorName.ASSERT_VIEW;
 };
 
-export const isNoRefImageError = (assertResult: AssertViewResult): assertResult is NoRefImageError => {
-    return (assertResult as NoRefImageError).name === ErrorName.NO_REF_IMAGE;
+export const isImageDiffError = (error?: unknown): error is ImageDiffError => {
+    return (error as {name?: string})?.name === ErrorName.IMAGE_DIFF;
 };
 
-export const getError = (error?: TestError): undefined | Pick<TestError, 'message' | 'stack' | 'stateName'> => {
+export const isNoRefImageError = (error?: unknown): error is NoRefImageError => {
+    return (error as {name?: string})?.name === ErrorName.NO_REF_IMAGE;
+};
+
+export const hasNoRefImageErrors = ({assertViewResults = []}: {assertViewResults?: AssertViewResult[]}): boolean => {
+    const noRefImageErrors = assertViewResults.filter((assertViewResult: AssertViewResult) => isNoRefImageError(assertViewResult));
+
+    return !isEmpty(noRefImageErrors);
+};
+
+const hasFailedImages = (result: {imagesInfo?: ImageInfoFull[]}): boolean => {
+    const {imagesInfo = []} = result;
+
+    return imagesInfo.some((imageInfo: ImageInfoFull) => {
+        return !isAssertViewError((imageInfo as ImageInfoError).error) &&
+            (isErrorStatus(imageInfo.status) || isFailStatus(imageInfo.status));
+    });
+};
+
+export const hasResultFails = (testResult: {status: TestStatus, imagesInfo?: ImageInfoFull[]}): boolean => {
+    return hasFailedImages(testResult) || isErrorStatus(testResult.status) || isFailStatus(testResult.status);
+};
+
+export const getError = (error?: TestError): undefined | Pick<TestError, 'name' | 'message' | 'stack' | 'stateName'> => {
     if (!error) {
         return undefined;
     }
 
-    return pick(error, ['message', 'stack', 'stateName']);
+    return pick(error, ['name', 'message', 'stack', 'stateName']);
 };
 
 export const hasDiff = (assertViewResults: AssertViewResult[]): boolean => {
-    return assertViewResults.some((result) => isImageDiffError(result));
+    return assertViewResults.some((result) => isImageDiffError(result as {name?: string}));
+};
+
+export const isBase64Image = (image: ImageData | ImageBase64 | undefined): image is ImageBase64 => {
+    return Boolean((image as ImageBase64 | undefined)?.base64);
 };
 
 export const isUrl = (str: string): boolean => {
@@ -115,12 +142,6 @@ export const isUrl = (str: string): boolean => {
     const parsedUrl = url.parse(str);
 
     return !!parsedUrl.host && !!parsedUrl.protocol;
-};
-
-export const buildUrl = (href: string, {host}: {host?: string} = {}): string => {
-    return host
-        ? url.format(Object.assign(url.parse(href), {host}))
-        : href;
 };
 
 export const fetchFile = async <T = unknown>(url: string, options?: AxiosRequestConfig) : Promise<{data: T | null, status: number}> => {

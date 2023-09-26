@@ -120,7 +120,7 @@ export class ImageHandler extends EventEmitter2 implements ImagesInfoFormatter {
                 status = FAIL;
             } else if (isNoRefImageError(assertResult)) {
                 status = ERROR;
-                error = _.pick(assertResult, ['message', 'stack']);
+                error = _.pick(assertResult, ['message', 'name', 'stack']);
             } else {
                 status = SUCCESS;
             }

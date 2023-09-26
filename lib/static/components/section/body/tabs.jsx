@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {isEmpty} from 'lodash';
 import State from '../../state';
-import {isSuccessStatus, isErroredStatus} from '../../../../common-utils';
+import {isSuccessStatus, isErrorStatus} from '../../../../common-utils';
 
 export default class Tabs extends Component {
     static propTypes = {
@@ -18,7 +18,7 @@ export default class Tabs extends Component {
     _shouldAddErrorTab() {
         const {result} = this.props;
 
-        return result.multipleTabs && isErroredStatus(result.status) && !result.screenshot;
+        return result.multipleTabs && isErrorStatus(result.status) && !result.screenshot;
     }
 
     _drawTab({key, imageId = null}) {

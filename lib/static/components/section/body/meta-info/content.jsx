@@ -4,7 +4,7 @@ import {connect} from 'react-redux';
 import ClipboardButton from 'react-clipboard.js';
 import PropTypes from 'prop-types';
 import {map, mapValues, isObject, omitBy, isEmpty} from 'lodash';
-import {isUrl, buildUrl} from '../../../../../common-utils';
+import {isUrl, getUrlWithBase} from '../../../../../common-utils';
 
 const mkLinkToUrl = (url, text = url) => {
     return <Fragment>
@@ -70,7 +70,7 @@ class MetaInfoContent extends Component {
             extraItems: PropTypes.object.isRequired,
             metaInfoExtenders: PropTypes.object.isRequired
         }).isRequired,
-        parsedHost: PropTypes.object
+        baseHost: PropTypes.string
     };
 
     getExtraMetaInfo = () => {
@@ -84,14 +84,14 @@ class MetaInfoContent extends Component {
     };
 
     render() {
-        const {result, metaInfoBaseUrls, parsedHost} = this.props;
+        const {result, metaInfoBaseUrls, baseHost} = this.props;
 
         const serializedMetaValues = serializeMetaValues(result.metaInfo);
         const extraMetaInfo = this.getExtraMetaInfo();
         const formattedMetaInfo = {
             ...serializedMetaValues,
             ...extraMetaInfo,
-            url: mkLinkToUrl(buildUrl(result.suiteUrl, parsedHost), result.metaInfo.url)
+            url: mkLinkToUrl(getUrlWithBase(result.suiteUrl, baseHost), result.metaInfo.url)
         };
 
         return metaToElements(formattedMetaInfo, metaInfoBaseUrls);
@@ -108,7 +108,7 @@ export default connect(
             testName: browser.parentId,
             metaInfoBaseUrls,
             apiValues,
-            parsedHost: view.parsedHost
+            baseHost: view.baseHost
         };
     }
 )(MetaInfoContent);

@@ -24,6 +24,7 @@ class BaseHostInput extends Component {
                 value={this.props.baseHost}
                 placeholder="change original host for view in browser"
                 onChange={this._onChange}
+                data-test-id='base-host'
             />
         );
     }

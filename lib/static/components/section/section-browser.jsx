@@ -1,5 +1,5 @@
 import React, {Component, Fragment} from 'react';
-import {last} from 'lodash';
+import {last, isEmpty} from 'lodash';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import Parser from 'html-react-parser';
@@ -25,7 +25,8 @@ class SectionBrowser extends Component {
             status: PropTypes.string.isRequired,
             error: PropTypes.object,
             imageIds: PropTypes.arrayOf(PropTypes.string).isRequired,
-            skipReason: PropTypes.string
+            skipReason: PropTypes.string,
+            history: PropTypes.arrayOf(PropTypes.string)
         }).isRequired,
         shouldBeShown: PropTypes.bool.isRequired,
         shouldBeOpened: PropTypes.bool.isRequired,
@@ -64,7 +65,7 @@ class SectionBrowser extends Component {
             : browser.name;
 
         // Detect executed test but failed and skipped
-        const isExecutedResult = hasRetries || lastResult.error || lastResult.imageIds.length > 0;
+        const isExecutedResult = hasRetries || !isEmpty(lastResult.history) || lastResult.error || lastResult.imageIds.length > 0;
         const isSkipped = isSkippedLastResult && !isExecutedResult;
 
         const body = isSkipped || !shouldBeOpened

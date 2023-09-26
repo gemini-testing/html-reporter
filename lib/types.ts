@@ -94,6 +94,7 @@ export type ImageInfo =
 export type AssertViewResult = AssertViewSuccess | ImageDiffError | NoRefImageError;
 
 export interface TestError {
+    name: string;
     message: string;
     stack?: string;
     stateName?: string;

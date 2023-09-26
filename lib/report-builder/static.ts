@@ -22,7 +22,7 @@ import {ReporterConfig} from '../types';
 import {HtmlReporter} from '../plugin-api';
 import {ImageHandler} from '../image-handler';
 import {SqliteImageStore} from '../image-store';
-import {getAbsoluteUrl, getError, getRelativeUrl, hasDiff} from '../common-utils';
+import {getUrlWithBase, getError, getRelativeUrl, hasDiff} from '../common-utils';
 import {getTestFromDb} from '../db-utils/server';
 
 const ignoredStatuses = [RUNNING, IDLE];
@@ -115,7 +115,7 @@ export class StaticReportBuilder {
     }
 
     protected _addErrorResult(formattedResult: ReporterTestResult): ReporterTestResult {
-        return this._addTestResult(formattedResult, {status: ERROR, error: getError(formattedResult.error)});
+        return this._addTestResult(formattedResult, {status: ERROR});
     }
 
     protected _addTestResult(formattedResult: ReporterTestResult, props: {status: TestStatus} & Partial<PreparedTestResult>): ReporterTestResult {
@@ -146,13 +146,19 @@ export class StaticReportBuilder {
         } = result;
 
         const {baseHost, saveErrorDetails} = this._pluginConfig;
-        const suiteUrl: string = getAbsoluteUrl(result.url, baseHost);
-        const metaInfo = _.merge(_.cloneDeep(result.meta), {url: getRelativeUrl(suiteUrl) ?? '', file, sessionId});
+        const suiteUrl: string = getUrlWithBase(result.url, baseHost);
+        const metaInfoFull = _.merge(_.cloneDeep(result.meta), {url: getRelativeUrl(suiteUrl) ?? '', file, sessionId});
+        const metaInfo = _.omitBy(metaInfoFull, _.isEmpty);
 
         const testResult: PreparedTestResult = Object.assign({
             suiteUrl, name: browserId, metaInfo, description, history,
             imagesInfo, screenshot: Boolean(screenshot), multipleTabs
         }, props);
+
+        const error = getError(result.error);
+        if (!_.isEmpty(error)) {
+            testResult.error = error;
+        }
 
         if (saveErrorDetails && errorDetails) {
             testResult.errorDetails = _.pick(errorDetails, ['title', 'filePath']);

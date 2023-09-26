@@ -1,14 +1,14 @@
-import {determineStatus, buildUrl, getError, hasDiff, getAbsoluteUrl} from 'lib/common-utils';
+import {determineStatus, getError, hasDiff, getUrlWithBase} from 'lib/common-utils';
 import {RUNNING, QUEUED, ERROR, FAIL, UPDATED, SUCCESS, IDLE, SKIPPED} from 'lib/constants/test-statuses';
 import {ErrorName} from 'lib/errors';
 
 describe('common-utils', () => {
-    describe('getAbsoluteUrl', () => {
+    describe('getUrlWithBase', () => {
         it('should change host of the url', () => {
             const userUrl = 'https://example.com/test/123?a=1#hello';
             const baseUrl = 'https://some.site.xyz';
 
-            const result = getAbsoluteUrl(userUrl, baseUrl);
+            const result = getUrlWithBase(userUrl, baseUrl);
 
             assert.equal(result, 'https://some.site.xyz/test/123?a=1#hello');
         });
@@ -17,13 +17,13 @@ describe('common-utils', () => {
             const userUrl = '/test/123?a=1#hello';
             const baseUrl = 'https://example.com';
 
-            const result = getAbsoluteUrl(userUrl, baseUrl);
+            const result = getUrlWithBase(userUrl, baseUrl);
 
             assert.equal(result, 'https://example.com/test/123?a=1#hello');
         });
 
         it('should work without baseUrl', () => {
-            const result = getAbsoluteUrl('some-url', '');
+            const result = getUrlWithBase('some-url', '');
 
             assert.equal(result, 'some-url');
         });
@@ -32,6 +32,7 @@ describe('common-utils', () => {
     describe('getError', () => {
         it('should return test error with "message", "stack" and "stateName"', () => {
             const error = {
+                name: 'some-name',
                 message: 'some-message',
                 stack: 'some-stack',
                 stateName: 'some-test',
@@ -41,6 +42,7 @@ describe('common-utils', () => {
             const result = getError(error);
 
             assert.deepEqual(result, {
+                name: 'some-name',
                 message: 'some-message',
                 stack: 'some-stack',
                 stateName: 'some-test'
@@ -151,24 +153,6 @@ describe('common-utils', () => {
 
                 assert.equal(status, SKIPPED);
             });
-        });
-    });
-    describe('buildUrl', () => {
-        it('should return href as is if host is not provided', () => {
-            const href = 'https://example.com';
-
-            const url = buildUrl(href);
-
-            assert.equal(url, href);
-        });
-
-        it('should return url with specified host if it is provided', () => {
-            const href = 'https://oldhost.com/path';
-            const parsedHost = {host: 'newhost.com'};
-
-            const url = buildUrl(href, parsedHost);
-
-            assert.equal(url, 'https://newhost.com/path');
         });
     });
 });
