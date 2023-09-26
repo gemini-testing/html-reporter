@@ -8,7 +8,7 @@ describe('Test details', function() {
 
         await erroredTestSection.$('.details__summary').click();
 
-        const fileMetaInfo = await erroredTestSection.$('div*=failed-describe.hermione.js').$('..');
+        const fileMetaInfo = await erroredTestSection.$('div*=failed-describe').$('..');
 
         await expect(fileMetaInfo).toBeDisplayed();
         await expect(await fileMetaInfo.$('span*=file')).toBeDisplayed();

@@ -22,6 +22,7 @@ sqlite.db
 .nyc_output
 tmp
 
+**/playwright-report
 hermione-report
 test/func/**/report
 test/func/**/report-backup
