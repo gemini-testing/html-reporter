@@ -20,13 +20,14 @@ export interface ImageDiffError {
     refImg: ImageData;
     diffClusters: CoordBounds[];
     diffBuffer?: ArrayBuffer;
+    diffImg?: ImageData;
 }
 
 export interface NoRefImageError {
     name: ErrorNames['NO_REF_IMAGE'];
     stateName: string;
     message: string;
-    stack: string;
+    stack?: string;
     currImg: ImageData;
-    refImg: ImageData;
+    refImg?: ImageData;
 }

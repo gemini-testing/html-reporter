@@ -99,7 +99,7 @@ export interface TestError {
     stack?: string;
     stateName?: string;
     details?: ErrorDetails
-    screenshot?: ImageBase64
+    screenshot?: ImageBase64 | ImageData
 }
 
 export interface LabeledSuitesRow {

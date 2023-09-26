@@ -90,9 +90,11 @@ class MetaInfoContent extends Component {
         const extraMetaInfo = this.getExtraMetaInfo();
         const formattedMetaInfo = {
             ...serializedMetaValues,
-            ...extraMetaInfo,
-            url: mkLinkToUrl(getUrlWithBase(result.suiteUrl, baseHost), result.metaInfo.url)
+            ...extraMetaInfo
         };
+        if (result.suiteUrl) {
+            formattedMetaInfo.url = mkLinkToUrl(buildUrl(result.suiteUrl, parsedHost), result.metaInfo.url);
+        }
 
         return metaToElements(formattedMetaInfo, metaInfoBaseUrls);
     }

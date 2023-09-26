@@ -18,7 +18,15 @@ import {
     ImageSize
 } from './types';
 import {ERROR, FAIL, PluginEvents, SUCCESS, TestStatus, UPDATED} from './constants';
-import {getError, getShortMD5, isImageDiffError, isNoRefImageError, logger, mkTestId} from './common-utils';
+import {
+    getError,
+    getShortMD5,
+    isBase64Image,
+    isImageDiffError,
+    isNoRefImageError,
+    logger,
+    mkTestId
+} from './common-utils';
 import {ImageDiffError} from './errors';
 import {cacheExpectedPaths, cacheAllImages, cacheDiffImages} from './image-cache';
 import {ReporterTestResult} from './test-adapter';
@@ -50,11 +58,15 @@ export class ImageHandler extends EventEmitter2 implements ImagesInfoFormatter {
         return _.get(_.find(assertViewResults, {stateName}), 'currImg');
     }
 
+    static getDiffImg(assertViewResults: AssertViewResult[], stateName?: string): ImageData | undefined {
+        return _.get(_.find(assertViewResults, {stateName}), 'diffImg');
+    }
+
     static getRefImg(assertViewResults: AssertViewResult[], stateName?: string): ImageData | undefined {
         return _.get(_.find(assertViewResults, {stateName}), 'refImg');
     }
 
-    static getScreenshot(testResult: ReporterTestResultPlain): ImageBase64 | undefined {
+    static getScreenshot(testResult: ReporterTestResultPlain): ImageBase64 | ImageData | undefined {
         return testResult.error?.screenshot;
     }
 
@@ -112,7 +124,7 @@ export class ImageHandler extends EventEmitter2 implements ImagesInfoFormatter {
 
     getImagesInfo(testResult: ReporterTestResultPlain): ImageInfoFull[] {
         const imagesInfo: ImageInfoFull[] = testResult.assertViewResults?.map((assertResult): ImageInfoFull => {
-            let status: TestStatus, error: {message: string; stack: string;} | undefined;
+            let status: TestStatus, error: {message: string; stack?: string;} | undefined;
 
             if (testResult.isUpdated === true) {
                 status = UPDATED;
@@ -158,8 +170,8 @@ export class ImageHandler extends EventEmitter2 implements ImagesInfoFormatter {
             const destCurrPath = utils.getCurrentPath({attempt: testResult.attempt, browserId: testResult.browserId, imageDir: testResult.imageDir, stateName});
             const srcCurrPath = ImageHandler.getCurrImg(testResult.assertViewResults, stateName)?.path;
 
-            const dstCurrPath = utils.getDiffPath({attempt: testResult.attempt, browserId: testResult.browserId, imageDir: testResult.imageDir, stateName});
-            const srcDiffPath = path.resolve(tmp.tmpdir, dstCurrPath);
+            const destDiffPath = utils.getDiffPath({attempt: testResult.attempt, browserId: testResult.browserId, imageDir: testResult.imageDir, stateName});
+            const srcDiffPath = ImageHandler.getDiffImg(assertViewResults, stateName)?.path ?? path.resolve(tmp.tmpdir, destDiffPath);
             const actions: unknown[] = [];
 
             if (!(assertResult instanceof Error)) {
@@ -167,11 +179,13 @@ export class ImageHandler extends EventEmitter2 implements ImagesInfoFormatter {
             }
 
             if (isImageDiffError(assertResult)) {
-                await this._saveDiffInWorker(assertResult, srcDiffPath, worker);
+                if (!assertResult.diffImg) {
+                    await this._saveDiffInWorker(assertResult, srcDiffPath, worker);
+                }
 
                 actions.push(
                     this._saveImg(srcCurrPath, destCurrPath),
-                    this._saveImg(srcDiffPath, dstCurrPath)
+                    this._saveImg(srcDiffPath, destDiffPath)
                 );
 
                 if (!reusedReference) {
@@ -291,16 +305,22 @@ export class ImageHandler extends EventEmitter2 implements ImagesInfoFormatter {
 
     private async _saveErrorScreenshot(testResult: ReporterTestResultPlain): Promise<void> {
         const screenshot = ImageHandler.getScreenshot(testResult);
-        if (!screenshot?.base64) {
+        if (!(screenshot as ImageBase64)?.base64 && !(screenshot as ImageData)?.path) {
             logger.warn('Cannot save screenshot on reject');
 
             return Promise.resolve();
         }
 
         const currPath = utils.getCurrentPath({attempt: testResult.attempt, browserId: testResult.browserId, imageDir: testResult.imageDir});
-        const localPath = path.resolve(tmp.tmpdir, currPath);
-        await utils.makeDirFor(localPath);
-        await fs.writeFile(localPath, new Buffer(screenshot.base64, 'base64'), 'base64');
+        let localPath: string;
+
+        if (isBase64Image(screenshot)) {
+            localPath = path.resolve(tmp.tmpdir, currPath);
+            await utils.makeDirFor(localPath);
+            await fs.writeFile(localPath, new Buffer(screenshot.base64, 'base64'), 'base64');
+        } else {
+            localPath = screenshot?.path as string;
+        }
 
         await this._saveImg(localPath, currPath);
     }
