@@ -6,8 +6,9 @@ global.assert = require('chai').assert;
 const {getCommonConfig} = require('../common.hermione.conf');
 const {PORTS} = require('../utils/constants');
 
-module.exports.getFixturesConfig = (projectDir) => {
-    const PROJECT_NAME = require(path.join(projectDir, 'package.json')).name;
+module.exports.getFixturesConfig = (projectDir, projectName) => {
+    const PROJECT_NAME = projectName ?? require(path.join(projectDir, 'package.json')).name;
+    console.log('project name: ' + PROJECT_NAME);
 
     const serverHost = process.env.SERVER_HOST ?? 'host.docker.internal';
     const serverPort = process.env.SERVER_PORT ?? PORTS[PROJECT_NAME].server;

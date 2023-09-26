@@ -51,13 +51,14 @@ const config = _.merge(getCommonConfig(__dirname), {
 });
 
 if (!isRunningGuiTests) {
-    _.set(config.plugins, ['hermione-global-hook', 'beforeEach'], async function() {
+    _.set(config.plugins, ['hermione-global-hook', 'beforeEach'], async function({browser}) {
+        await browser.url(this.browser.options.baseUrl);
+
         await browser.execute(() => {
             window.localStorage.clear();
         });
 
-        await this.browser.url(this.browser.options.baseUrl);
-        await this.browser.execute(() => {
+        await browser.execute(() => {
             document.querySelectorAll('.section').forEach((section) => {
                 const title = section.querySelector('.section__title').innerText;
                 section.setAttribute('title', title);

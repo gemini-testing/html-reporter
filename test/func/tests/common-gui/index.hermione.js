@@ -118,7 +118,7 @@ describe('GUI mode', () => {
         });
     });
 
-    for (const testName of ['diff', 'no ref']) {
+    for (const testName of ['image comparison diff', 'no reference image']) {
         const fullTestName = `test with ${testName}`;
         describe(`accepting ${fullTestName}`, () => {
             beforeEach(async ({browser}) => {
@@ -174,7 +174,7 @@ describe('GUI mode', () => {
         });
     }
 
-    for (const testName of ['diff', 'no ref']) {
+    for (const testName of ['image comparison diff', 'no reference image']) {
         const fullTestName = `test with ${testName}`;
         describe(`undo accepting ${fullTestName}`, () => {
             beforeEach(async ({browser}) => {
