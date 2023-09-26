@@ -1,10 +1,4 @@
 describe('Error grouping', function() {
-    afterEach(async ({browser}) => {
-        await browser.execute(() => {
-            window.localStorage.clear();
-        });
-    });
-
     it('should group errors', async ({browser}) => {
         const groupByDropdown = await browser.$('div[data-test-id="group-by-dropdown"]');
 

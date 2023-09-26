@@ -11,7 +11,7 @@ describe('failed describe', function() {
         await browser.assertView('header', 'header');
     });
 
-    it('test with diff', async ({browser}) => {
+    it('test with image comparison diff', async ({browser}) => {
         await browser.url(browser.options.baseUrl);
 
         await browser.assertView('header', 'header');

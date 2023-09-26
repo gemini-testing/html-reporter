@@ -1,5 +1,6 @@
 {
   "name": "hermione-eye",
+  "description": "Test project that generates html-report for testing the view in browser (eye button) feature",
   "version": "0.0.0",
   "private": true,
   "scripts": {

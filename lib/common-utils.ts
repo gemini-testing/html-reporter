@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import {pick, isEmpty, omitBy} from 'lodash';
+import {pick, isEmpty} from 'lodash';
 import url from 'url';
 import axios, {AxiosRequestConfig} from 'axios';
 import {SUCCESS, FAIL, ERROR, SKIPPED, UPDATED, IDLE, RUNNING, QUEUED, TestStatus} from './constants';
@@ -25,7 +25,7 @@ export const isSuccessStatus = (status: TestStatus): boolean => status === SUCCE
 export const isFailStatus = (status: TestStatus): boolean => status === FAIL;
 export const isIdleStatus = (status: TestStatus): boolean => status === IDLE;
 export const isRunningStatus = (status: TestStatus): boolean => status === RUNNING;
-export const isErroredStatus = (status: TestStatus): boolean => status === ERROR;
+export const isErrorStatus = (status: TestStatus): boolean => status === ERROR;
 export const isSkippedStatus = (status: TestStatus): boolean => status === SKIPPED;
 export const isUpdatedStatus = (status: TestStatus): boolean => status === UPDATED;
 
@@ -46,20 +46,19 @@ export const determineStatus = (statuses: TestStatus[]): TestStatus | null => {
     return null;
 };
 
-export const getAbsoluteUrl = (url: string | undefined, base: string | undefined): string => {
+export const getUrlWithBase = (url: string | undefined, base: string | undefined): string => {
     try {
         const userUrl = new URL(url ?? '', base);
 
+        // Manually overriding properties, because if url is absolute, the above won't work
         if (!isEmpty(base)) {
             const baseUrl = new URL(base as string);
 
-            if (baseUrl.host) {
-                userUrl.host = baseUrl.host;
-            }
-            if (baseUrl.protocol) {
-                userUrl.protocol = baseUrl.protocol;
-            }
+            userUrl.host = baseUrl.host;
+            userUrl.protocol = baseUrl.protocol;
             userUrl.port = baseUrl.port;
+            userUrl.username = baseUrl.username;
+            userUrl.password = baseUrl.password;
         }
 
         return userUrl.href;
@@ -101,17 +100,22 @@ export const isNoRefImageError = (error?: unknown): error is NoRefImageError => 
 };
 
 export const hasNoRefImageErrors = ({assertViewResults = []}: {assertViewResults?: AssertViewResult[]}): boolean => {
-    return Boolean(assertViewResults.filter((assertViewResult: AssertViewResult) => isNoRefImageError(assertViewResult)).length);
+    const noRefImageErrors = assertViewResults.filter((assertViewResult: AssertViewResult) => isNoRefImageError(assertViewResult));
+
+    return !isEmpty(noRefImageErrors);
 };
 
 const hasFailedImages = (result: {imagesInfo?: ImageInfoFull[]}): boolean => {
     const {imagesInfo = []} = result;
 
-    return imagesInfo.some((imageInfo: ImageInfoFull) => !isAssertViewError((imageInfo as ImageInfoError).error) && (isErroredStatus(imageInfo.status) || isFailStatus(imageInfo.status)));
+    return imagesInfo.some((imageInfo: ImageInfoFull) => {
+        return !isAssertViewError((imageInfo as ImageInfoError).error) &&
+            (isErrorStatus(imageInfo.status) || isFailStatus(imageInfo.status));
+    });
 };
 
 export const hasResultFails = (testResult: {status: TestStatus, imagesInfo?: ImageInfoFull[]}): boolean => {
-    return hasFailedImages(testResult) || isErroredStatus(testResult.status) || isFailStatus(testResult.status);
+    return hasFailedImages(testResult) || isErrorStatus(testResult.status) || isFailStatus(testResult.status);
 };
 
 export const getError = (error?: TestError): undefined | Pick<TestError, 'name' | 'message' | 'stack' | 'stateName'> => {
@@ -138,12 +142,6 @@ export const isUrl = (str: string): boolean => {
     const parsedUrl = url.parse(str);
 
     return !!parsedUrl.host && !!parsedUrl.protocol;
-};
-
-export const buildUrl = (href: string, {host, protocol}: {host?: string, protocol?: string} = {}): string => {
-    return host
-        ? url.format(Object.assign(url.parse(href), omitBy({host, protocol}, isEmpty)))
-        : href;
 };
 
 export const fetchFile = async <T = unknown>(url: string, options?: AxiosRequestConfig) : Promise<{data: T | null, status: number}> => {

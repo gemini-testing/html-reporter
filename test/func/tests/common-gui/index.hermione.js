@@ -6,7 +6,7 @@ const {promisify} = require('util');
 const treeKill = promisify(require('tree-kill'));
 
 const {PORTS} = require('../../utils/constants');
-const {getTestSectionByName} = require('../utils');
+const {getTestSectionByNameSelector, getSpoilerByNameSelector, getElementWithTextSelector} = require('../utils');
 
 const serverHost = process.env.SERVER_HOST ?? 'host.docker.internal';
 
@@ -22,7 +22,7 @@ const runGui = async () => {
     return new Promise((resolve, reject) => {
         const child = childProcess.spawn('npm', ['run', 'gui'], {cwd: projectDir});
 
-        let timeoutId = setTimeout(() => {
+        let processKillTimeoutId = setTimeout(() => {
             treeKill(child.pid).then(() => {
                 reject(new Error('Couldn\'t start GUI: timed out'));
             });
@@ -30,7 +30,7 @@ const runGui = async () => {
 
         child.stdout.on('data', (data) => {
             if (data.toString().includes('GUI is running at')) {
-                clearTimeout(timeoutId);
+                clearTimeout(processKillTimeoutId);
                 resolve(child);
             }
         });
@@ -47,6 +47,8 @@ const runGui = async () => {
     });
 };
 
+const getFsDiffFromVcs = (directory) => childProcess.execSync('git status . --porcelain=v2', {cwd: directory});
+
 const waitForFsChanges = async (dirPath, condition = (output) => output.length > 0, {timeout = 1000, interval = 50} = {}) => {
     let isTimedOut = false;
 
@@ -56,7 +58,7 @@ const waitForFsChanges = async (dirPath, condition = (output) => output.length >
     }, timeout);
 
     while (!isTimedOut) {
-        const output = childProcess.execSync('git status . --porcelain=v2', {cwd: dirPath});
+        const output = getFsDiffFromVcs(dirPath);
 
         if (condition(output)) {
             clearTimeout(timeoutId);
@@ -80,12 +82,8 @@ describe('GUI mode', () => {
         await browser.$('button*=Expand all').click();
     });
 
-    afterEach(async ({browser}) => {
+    afterEach(async () => {
         await treeKill(guiProcess.pid);
-
-        await browser.execute(() => {
-            window.localStorage.clear();
-        });
 
         await fs.rm(reportDir, {recursive: true, force: true, maxRetries: 3});
         await fs.rename(reportBackupDir, reportDir);
@@ -96,22 +94,22 @@ describe('GUI mode', () => {
 
     describe('running tests', () => {
         it('should run a single test', async ({browser}) => {
-            const retryButton = await browser.$([
-                getTestSectionByName('successful test'),
+            const retryButton = await browser.$(
+                getTestSectionByNameSelector('successful test') +
                 '//button[contains(text(), "Retry")]'
-            ].join(''));
+            );
 
             await retryButton.click();
             await retryButton.waitForClickable({timeout: 10000});
 
             // Should be passed
-            const testSection = await browser.$(getTestSectionByName('successful test'));
+            const testSection = await browser.$(getTestSectionByNameSelector('successful test'));
             const testSectionClassNames = (await testSection.getAttribute('class')).split(' ');
 
             expect(testSectionClassNames).toContain('section_status_success');
 
             // History should appear
-            const historySelector = [getTestSectionByName('successful test'), '//details[.//summary[contains(text(), "History")]]'].join('');
+            const historySelector = getTestSectionByNameSelector('successful test') + '//' + getSpoilerByNameSelector('History');
 
             await browser.$(historySelector).click();
             const historyText = await browser.$(historySelector + '/div').getText();
@@ -124,12 +122,12 @@ describe('GUI mode', () => {
         const fullTestName = `test with ${testName}`;
         describe(`accepting ${fullTestName}`, () => {
             beforeEach(async ({browser}) => {
-                await browser.$(getTestSectionByName(fullTestName)).scrollIntoView();
+                await browser.$(getTestSectionByNameSelector(fullTestName)).scrollIntoView();
 
-                const acceptButton = await browser.$([
-                    getTestSectionByName(fullTestName),
+                const acceptButton = await browser.$(
+                    getTestSectionByNameSelector(fullTestName) +
                     '//button[contains(text(), "Accept")]'
-                ].join(''));
+                );
 
                 await acceptButton.click();
 
@@ -137,40 +135,38 @@ describe('GUI mode', () => {
             });
 
             it('should create a successful retry', async ({browser}) => {
-                const allRetryButtonsSelector = [
-                    getTestSectionByName(fullTestName),
-                    '//button[@data-test-id="retry-switcher"]'
-                ].join('');
+                const allRetryButtonsSelector =
+                    getTestSectionByNameSelector(fullTestName) +
+                    '//button[@data-test-id="retry-switcher"]';
                 const retrySwitcher = browser.$(`(${allRetryButtonsSelector})[last()]`);
 
                 await retrySwitcher.assertView('retry-switcher');
 
-                const testSection = await browser.$(getTestSectionByName(fullTestName));
+                const testSection = await browser.$(getTestSectionByNameSelector(fullTestName));
                 const testSectionClassNames = (await testSection.getAttribute('class')).split(' ');
 
                 expect(testSectionClassNames).toContain('section_status_success');
             });
 
             it('should make the test pass on next run', async ({browser}) => {
-                const retryButton = await browser.$([
-                    getTestSectionByName(fullTestName),
-                    '//button[contains(text(), "Retry")]'
-                ].join(''));
+                const retryButton = await browser.$(
+                    getTestSectionByNameSelector(fullTestName) +
+                    getElementWithTextSelector('button', 'Retry')
+                );
 
                 await retryButton.click();
                 await retryButton.waitForClickable({timeout: 10000});
 
                 // Verify green retry button
-                const allRetryButtonsSelector = [
-                    getTestSectionByName(fullTestName),
-                    '//button[@data-test-id="retry-switcher"]'
-                ].join('');
+                const allRetryButtonsSelector =
+                    getTestSectionByNameSelector(fullTestName) +
+                    '//button[@data-test-id="retry-switcher"]';
                 const retrySwitcher = browser.$(`(${allRetryButtonsSelector})[last()]`);
 
                 await retrySwitcher.assertView('retry-switcher');
 
                 // Verify green test section
-                const testSection = await browser.$(getTestSectionByName(fullTestName));
+                const testSection = await browser.$(getTestSectionByNameSelector(fullTestName));
                 const testSectionClassNames = (await testSection.getAttribute('class')).split(' ');
 
                 expect(testSectionClassNames).toContain('section_status_success');
@@ -182,12 +178,12 @@ describe('GUI mode', () => {
         const fullTestName = `test with ${testName}`;
         describe(`undo accepting ${fullTestName}`, () => {
             beforeEach(async ({browser}) => {
-                await browser.$(getTestSectionByName(fullTestName)).scrollIntoView();
+                await browser.$(getTestSectionByNameSelector(fullTestName)).scrollIntoView();
 
-                const acceptButton = await browser.$([
-                    getTestSectionByName(fullTestName),
-                    '//button[contains(text(), "Accept")]'
-                ].join(''));
+                const acceptButton = await browser.$(
+                    getTestSectionByNameSelector(fullTestName) +
+                    getElementWithTextSelector('button', 'Accept')
+                );
 
                 await acceptButton.click();
 
@@ -195,21 +191,21 @@ describe('GUI mode', () => {
             });
 
             it('should leave project files intact', async ({browser}) => {
-                const gitDiffBeforeUndo = childProcess.execSync('git status . --porcelain=v2', {cwd: screensDir});
+                const fsDiffBeforeUndo = getFsDiffFromVcs(screensDir);
 
-                const undoButton = await browser.$([
-                    getTestSectionByName(fullTestName),
-                    '//button[contains(text(), "Undo")]'
-                ].join(''));
+                const undoButton = await browser.$(
+                    getTestSectionByNameSelector(fullTestName) +
+                    getElementWithTextSelector('button', 'Undo')
+                );
 
                 await undoButton.click();
 
                 await waitForFsChanges(screensDir, (output) => output.length === 0);
 
-                const gitDiffAfterUndo = childProcess.execSync('git status . --porcelain=v2', {cwd: screensDir});
+                const fsDiffAfterUndo = getFsDiffFromVcs(screensDir);
 
-                expect(gitDiffBeforeUndo.length > 0).toBeTruthy();
-                expect(gitDiffAfterUndo.length === 0).toBeTruthy();
+                expect(fsDiffBeforeUndo.length > 0).toBeTruthy();
+                expect(fsDiffAfterUndo.length === 0).toBeTruthy();
             });
         });
     }

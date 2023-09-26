@@ -1,4 +1,4 @@
-const {getTestSectionByName, getElementWithText} = require('../utils');
+const {getTestSectionByNameSelector, getElementWithTextSelector} = require('../utils');
 
 describe('Test details', function() {
     it('should show details', async ({browser}) => {
@@ -15,10 +15,9 @@ describe('Test details', function() {
     });
 
     it('should prevent details summary overflow', async ({browser}) => {
-        const selector = [
-            getTestSectionByName('test with long error message'),
-            `//summary[.${getElementWithText('span', 'message')}]`
-        ].join('');
+        const selector =
+            getTestSectionByNameSelector('test with long error message') +
+            `//summary[.${getElementWithTextSelector('span', 'message')}/..]`;
 
         await browser.$(selector).waitForDisplayed();
         await browser.assertView('details summary', selector);

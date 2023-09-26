@@ -1,4 +1,4 @@
-const {getTestSectionByName, getImageSection, getTestStateByName, getElementWithText} = require('../utils');
+const {getTestSectionByNameSelector, getImageSectionSelector, getTestStateByNameSelector, getElementWithTextSelector} = require('../utils');
 
 const hideHeader = async (browser) => {
     await browser.execute(() => {
@@ -11,15 +11,12 @@ describe('Test results appearance', () => {
         await browser.$('button*=Expand all').click();
     });
 
-    afterEach(async ({browser}) => {
-        await browser.execute(() => {
-            window.localStorage.clear();
-        });
-    });
-
     describe('Passed test', () => {
         it('should have green retry selector', async ({browser}) => {
-            const retrySelectorButton = await browser.$('//div[contains(text(),\'successfully passed test\')]/..//button[@data-test-id="retry-switcher"]');
+            const retrySelectorButton = await browser.$(
+                getTestSectionByNameSelector('successfully passed test') +
+                '//button[@data-test-id="retry-switcher"]'
+            );
 
             await hideHeader(browser);
 
@@ -29,7 +26,10 @@ describe('Test results appearance', () => {
 
     describe('Test with diff', function() {
         it('should have pink retry selector', async ({browser}) => {
-            const retrySelectorButton = await browser.$('//div[contains(text(),\'test with diff\')]/..//button[@data-test-id="retry-switcher"]');
+            const retrySelectorButton = await browser.$(
+                getTestSectionByNameSelector('test with image comparison diff') +
+                '//button[@data-test-id="retry-switcher"]'
+            );
 
             await hideHeader(browser);
 
@@ -38,11 +38,11 @@ describe('Test results appearance', () => {
 
         it('should display 3 images', async ({browser}) => {
             for (const imageStatus of ['Expected', 'Actual', 'Diff']) {
-                const imageElement = browser.$([
-                    getTestSectionByName('test with diff'),
-                    getImageSection(imageStatus),
+                const imageElement = browser.$(
+                    getTestSectionByNameSelector('test with image comparison diff') +
+                    getImageSectionSelector(imageStatus) +
                     '//img'
-                ].join(''));
+                );
 
                 // If the image wasn't loaded successfully, it will be displayed as broken image icon and have naturalWidth 0
                 const naturalWidth = await imageElement.getProperty('width');
@@ -53,20 +53,23 @@ describe('Test results appearance', () => {
 
         it('should not display error info', async ({browser}) => {
             for (const field of ['message', 'name', 'stack']) {
-                const errorMessage = browser.$([
-                    getTestSectionByName('test with diff'),
-                    getTestStateByName('header'),
-                    getElementWithText('span', field)
-                ].join(''));
+                const errorMessage = browser.$(
+                    getTestSectionByNameSelector('test with image comparison diff') +
+                    getTestStateByNameSelector('header') +
+                    getElementWithTextSelector('span', field) + '/..'
+                );
 
                 await expect(errorMessage).not.toBeDisplayed();
             }
         });
     });
 
-    describe('Test with no ref image', function() {
+    describe('Test with no reference image', function() {
         it('should have pink retry selector', async ({browser}) => {
-            const retrySelectorButton = await browser.$('//div[contains(text(),\'test without screenshot\')]/..//button[@data-test-id="retry-switcher"]');
+            const retrySelectorButton = await browser.$(
+                getTestSectionByNameSelector('test without screenshot') +
+                '//button[@data-test-id="retry-switcher"]'
+            );
 
             await hideHeader(browser);
 
@@ -75,22 +78,22 @@ describe('Test results appearance', () => {
 
         it('should display error message, name and stack', async ({browser}) => {
             for (const field of ['message', 'name', 'stack']) {
-                const errorMessage = browser.$([
-                    getTestSectionByName('test without screenshot'),
-                    getTestStateByName('header'),
-                    getElementWithText('span', field)
-                ].join(''));
+                const errorMessage = browser.$(
+                    getTestSectionByNameSelector('test without screenshot') +
+                    getTestStateByNameSelector('header') +
+                    getElementWithTextSelector('span', field) + '/..'
+                );
 
                 await expect(errorMessage).toBeDisplayed();
             }
         });
 
         it('should display actual screenshot', async ({browser}) => {
-            const imageElement = browser.$([
-                getTestSectionByName('test without screenshot'),
-                getTestStateByName('header'),
+            const imageElement = browser.$(
+                getTestSectionByNameSelector('test without screenshot') +
+                getTestStateByNameSelector('header') +
                 '//img'
-            ].join(''));
+            );
 
             const naturalWidth = await imageElement.getProperty('width');
 
@@ -100,7 +103,10 @@ describe('Test results appearance', () => {
 
     describe('Test with error', function() {
         it('should have red retry selector', async ({browser}) => {
-            const retrySelectorButton = await browser.$('//div[contains(text(),\'test with long error message\')]/..//button[@data-test-id="retry-switcher"]');
+            const retrySelectorButton = await browser.$(
+                getTestSectionByNameSelector('test with long error message') +
+                '//button[@data-test-id="retry-switcher"]'
+            );
 
             await hideHeader(browser);
 
@@ -109,11 +115,10 @@ describe('Test results appearance', () => {
 
         it('should display error message, name and stack', async ({browser}) => {
             for (const field of ['message', 'name', 'stack']) {
-                const errorMessage = browser.$([
-                    getTestSectionByName('test with long error message'),
-                    // getTestStateByName('header'),
-                    getElementWithText('span', field)
-                ].join(''));
+                const errorMessage = browser.$(
+                    getTestSectionByNameSelector('test with long error message') +
+                    getElementWithTextSelector('span', field) + '/..'
+                );
 
                 await expect(errorMessage).toBeDisplayed();
             }

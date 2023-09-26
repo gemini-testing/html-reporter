@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
 import * as actions from '../../../modules/actions';
-import {buildUrl} from '../../../../common-utils';
+import {getUrlWithBase} from '../../../../common-utils';
 
 import './index.styl';
 
@@ -15,7 +15,7 @@ class ViewInBrowser extends Component {
         extendClassNames: PropTypes.oneOfType([PropTypes.array, PropTypes.string]),
         // from store
         suiteUrl: PropTypes.string,
-        parsedHost: PropTypes.object
+        baseHost: PropTypes.string
     };
 
     onViewInBrowser = (e) => {
@@ -25,7 +25,7 @@ class ViewInBrowser extends Component {
     };
 
     render() {
-        const {suiteUrl, parsedHost, extendClassNames} = this.props;
+        const {suiteUrl, baseHost, extendClassNames} = this.props;
         const className = classNames(
             'fa view-in-browser',
             suiteUrl ? 'fa-eye view-in-browser_active' : 'fa-eye-slash view-in-browser_disabled',
@@ -39,7 +39,7 @@ class ViewInBrowser extends Component {
         return (
             <a
                 className={className}
-                href={buildUrl(suiteUrl, parsedHost)}
+                href={getUrlWithBase(suiteUrl, baseHost)}
                 onClick={this.onViewInBrowser}
                 title="view in browser"
                 target="_blank"
@@ -53,7 +53,7 @@ export default connect(
     ({tree, view}, {resultId}) => {
         return {
             suiteUrl: tree.results.byId[resultId].suiteUrl,
-            parsedHost: view.parsedHost
+            baseHost: view.baseHost
         };
     },
     (dispatch) => ({actions: bindActionCreators(actions, dispatch)})

@@ -22,7 +22,7 @@ import {ReporterConfig} from '../types';
 import {HtmlReporter} from '../plugin-api';
 import {ImageHandler} from '../image-handler';
 import {SqliteImageStore} from '../image-store';
-import {getAbsoluteUrl, getError, getRelativeUrl, hasDiff} from '../common-utils';
+import {getUrlWithBase, getError, getRelativeUrl, hasDiff} from '../common-utils';
 import {getTestFromDb} from '../db-utils/server';
 
 const ignoredStatuses = [RUNNING, IDLE];
@@ -146,7 +146,7 @@ export class StaticReportBuilder {
         } = result;
 
         const {baseHost, saveErrorDetails} = this._pluginConfig;
-        const suiteUrl: string = getAbsoluteUrl(result.url, baseHost);
+        const suiteUrl: string = getUrlWithBase(result.url, baseHost);
         const metaInfoFull = _.merge(_.cloneDeep(result.meta), {url: getRelativeUrl(suiteUrl) ?? '', file, sessionId});
         const metaInfo = _.omitBy(metaInfoFull, _.isEmpty);
 

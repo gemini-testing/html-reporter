@@ -14,7 +14,7 @@ import FindSameDiffsButton from '../controls/find-same-diffs-button';
 import ArrowsOpen from '../icons/arrows-open';
 import {types as modalTypes} from '../modals';
 import {isAcceptable, isNodeSuccessful, isScreenRevertable} from '../../modules/utils';
-import {isSuccessStatus, isFailStatus, isErroredStatus, isUpdatedStatus, isIdleStatus} from '../../../common-utils';
+import {isSuccessStatus, isFailStatus, isErrorStatus, isUpdatedStatus, isIdleStatus} from '../../../common-utils';
 
 class State extends Component {
     static propTypes = {
@@ -154,7 +154,7 @@ class State extends Component {
         const {status, error} = node;
         let elem = null;
 
-        if (isErroredStatus(status)) {
+        if (isErrorStatus(status)) {
             elem = <StateError result={result} image={image} />;
         } else if (isSuccessStatus(status) || isUpdatedStatus(status) || (isIdleStatus(status) && get(image.expectedImg, 'path'))) {
             elem = <StateSuccess status={status} expectedImg={image.expectedImg} />;

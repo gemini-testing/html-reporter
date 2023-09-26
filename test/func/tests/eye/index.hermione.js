@@ -5,12 +5,6 @@ describe('View in browser button behavior', () => {
         await browser.$('button*=Expand all').click();
     });
 
-    afterEach(async ({browser}) => {
-        await browser.execute(() => {
-            window.localStorage.clear();
-        });
-    });
-
     it('should be clickable', async ({browser}) => {
         const eyeElement = await browser.$('a.view-in-browser');
 

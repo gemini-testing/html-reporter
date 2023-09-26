@@ -3,7 +3,8 @@
 const path = require('path');
 
 const chai = require('chai');
-const {GRID_URL, CHROME_BINARY_PATH} = require('../utils/constants');
+const _ = require('lodash');
+const {getCommonConfig} = require('../common.hermione.conf');
 
 chai.config.includeStack = true;
 chai.config.truncateThreshold = 0;
@@ -18,13 +19,8 @@ if (!projectUnderTest) {
     throw 'Project under test was not specified';
 }
 
-module.exports = {
-    gridUrl: GRID_URL,
+const config = _.merge(getCommonConfig(__dirname), {
     baseUrl: `http://${serverHost}:${serverPort}/fixtures/${projectUnderTest}/report/index.html`,
-
-    waitTimeout: 5000,
-
-    screenshotsDir: path.resolve(__dirname, 'screens'),
 
     sets: {
         common: {
@@ -41,20 +37,6 @@ module.exports = {
         }
     },
 
-    browsers: {
-        chrome: {
-            windowSize: '1280x1024',
-            desiredCapabilities: {
-                browserName: 'chrome',
-                'goog:chromeOptions': {
-                    args: ['headless', 'no-sandbox'],
-                    binary: CHROME_BINARY_PATH,
-                }
-            },
-            waitTimeout: 3000
-        }
-    },
-
     plugins: {
         'html-reporter-test-server': {
             enabled: !isRunningGuiTests,
@@ -64,18 +46,24 @@ module.exports = {
             enabled: true,
             path: `reports/${projectUnderTest}`,
             diffMode: '3-up'
-        },
-
-        'hermione-global-hook': {
-            beforeEach: isRunningGuiTests ? undefined : async function() {
-                await this.browser.url(this.browser.options.baseUrl);
-                await this.browser.execute(() => {
-                    document.querySelectorAll('.section').forEach((section) => {
-                        const title = section.querySelector('.section__title').innerText;
-                        section.setAttribute('title', title);
-                    });
-                });
-            }
         }
     }
-};
+});
+
+if (!isRunningGuiTests) {
+    _.set(config.plugins, ['hermione-global-hook', 'beforeEach'], async function() {
+        await browser.execute(() => {
+            window.localStorage.clear();
+        });
+
+        await this.browser.url(this.browser.options.baseUrl);
+        await this.browser.execute(() => {
+            document.querySelectorAll('.section').forEach((section) => {
+                const title = section.querySelector('.section__title').innerText;
+                section.setAttribute('title', title);
+            });
+        });
+    });
+}
+
+module.exports = config;
