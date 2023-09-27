@@ -1,20 +1,13 @@
 import {promisify} from 'util';
 import _ from 'lodash';
-import type {
-    FullConfig,
-    FullResult,
-    Reporter,
-    Suite,
-    TestCase,
-    TestResult as PwtTestResult
-} from '@playwright/test/reporter';
+import type {Reporter, TestCase, TestResult as PwtTestResult} from '@playwright/test/reporter';
 import workerFarm, {Workers} from 'worker-farm';
 
 import {StaticReportBuilder} from './lib/report-builder/static';
 import {HtmlReporter} from './lib/plugin-api';
 import {ReporterConfig} from './lib/types';
 import {parseConfig} from './lib/config';
-import {TestStatus} from './lib/constants';
+import {TestStatus, ToolName} from './lib/constants';
 import {RegisterWorkers} from './lib/workers/create-workers';
 import {EventEmitter} from 'events';
 import {PlaywrightTestAdapter} from './lib/test-adapter/playwright';
@@ -53,7 +46,7 @@ class MyReporter implements Reporter {
 
     constructor(opts: Partial<ReporterConfig>) {
         this._config = parseConfig(_.omit(opts, ['configDir']));
-        this._htmlReporter = HtmlReporter.create(this._config);
+        this._htmlReporter = HtmlReporter.create(this._config, {toolName: ToolName.Playwright});
         this._staticReportBuilder = StaticReportBuilder.create(this._htmlReporter, this._config);
         this._workerFarm = workerFarm(require.resolve('./lib/workers/worker'), ['saveDiffTo']);
 
@@ -67,14 +60,6 @@ class MyReporter implements Reporter {
 
     protected _addTask(promise: Promise<void>): void {
         this._resultPromise = this._resultPromise.then(() => promise);
-    }
-
-    onBegin(config: FullConfig, suite: Suite): void {
-        console.log(`Starting the run with ${suite.allTests().length} tests, config: ${config}`);
-    }
-
-    onTestBegin(test: TestCase, result: PwtTestResult): void {
-        console.log(`Starting test ${test.title}, result: ${result}`);
     }
 
     onTestEnd(test: TestCase, result: PwtTestResult): void {
@@ -95,9 +80,7 @@ class MyReporter implements Reporter {
         }
     }
 
-    async onEnd(result: FullResult): Promise<void> {
-        console.log(`Finished the run: ${result.status}`);
-
+    async onEnd(): Promise<void> {
         this._addTask(this._staticReportBuilder.finalize());
         // TODO: emit report saved event or not?
 

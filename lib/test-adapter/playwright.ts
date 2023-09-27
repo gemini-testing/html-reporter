@@ -1,7 +1,11 @@
+import path from 'path';
 import {TestCase as PlaywrightTestCase, TestResult as PlaywrightTestResult} from '@playwright/test/reporter';
 import sizeOf from 'image-size';
+import _ from 'lodash';
+import stripAnsi from 'strip-ansi';
+
 import {ReporterTestResult} from './index';
-import {FAIL, TestStatus} from '../constants';
+import {FAIL, TestStatus, PWT_TITLE_DELIMITER} from '../constants';
 import {
     AssertViewResult,
     ErrorDetails,
@@ -11,13 +15,8 @@ import {
     ImageSize,
     TestError
 } from '../types';
-import path from 'path';
-import * as utils from '../server-utils';
-import {testsAttempts} from './cache/playwright';
-import _ from 'lodash';
-import {getShortMD5, isAssertViewError, isImageDiffError, isNoRefImageError, mkTestId} from '../common-utils';
+import {getShortMD5, isImageDiffError, isNoRefImageError} from '../common-utils';
 import {ImagesInfoFormatter} from '../image-handler';
-import stripAnsi from 'strip-ansi';
 import {ErrorName} from '../errors';
 
 export type PlaywrightAttachment = PlaywrightTestResult['attachments'][number];
@@ -97,20 +96,12 @@ export interface PlaywrightTestAdapterOptions {
 export class PlaywrightTestAdapter implements ReporterTestResult {
     private readonly _testCase: PlaywrightTestCase;
     private readonly _testResult: PlaywrightTestResult;
-    private _attempt: number;
     private _imagesInfoFormatter: ImagesInfoFormatter;
 
     constructor(testCase: PlaywrightTestCase, testResult: PlaywrightTestResult, {imagesInfoFormatter}: PlaywrightTestAdapterOptions) {
         this._testCase = testCase;
         this._testResult = testResult;
         this._imagesInfoFormatter = imagesInfoFormatter;
-
-        const testId = mkTestId(this.fullName, this.browserId);
-        if (utils.shouldUpdateAttempt(this.status)) {
-            testsAttempts.set(testId, _.isUndefined(testsAttempts.get(testId)) ? 0 : testsAttempts.get(testId) as number + 1);
-        }
-
-        this._attempt = testsAttempts.get(testId) || 0;
     }
 
     get assertViewResults(): AssertViewResult[] {
@@ -142,14 +133,17 @@ export class PlaywrightTestAdapter implements ReporterTestResult {
     }
 
     get attempt(): number {
-        return this._attempt;
+        return this._testResult.retry;
     }
+
     get browserId(): string {
         return this._testCase.parent.project()?.name as string;
     }
+
     get description(): string | undefined {
         return undefined;
     }
+
     get error(): TestError | undefined {
         const message = extractErrorMessage(this._testResult);
         if (message) {
@@ -170,30 +164,39 @@ export class PlaywrightTestAdapter implements ReporterTestResult {
         }
         return undefined;
     }
+
     get errorDetails(): ErrorDetails | null {
         return null;
     }
+
     get file(): string {
         return path.relative(process.cwd(), this._testCase.location.file);
     }
+
     get fullName(): string {
-        return this.testPath.join(' ');
+        return this.testPath.join(PWT_TITLE_DELIMITER);
     }
+
     get history(): string[] {
         return this._testResult.steps.map(step => `${step.title} <- ${step.duration}ms\n`);
     }
+
     get id(): string {
         return this.testPath.concat(this.browserId, this.attempt.toString()).join(' ');
     }
+
     get imageDir(): string {
         return getShortMD5(this.fullName);
     }
+
     get imagesInfo(): ImageInfoFull[] | undefined {
         return this._imagesInfoFormatter.getImagesInfo(this);
     }
+
     get isUpdated(): boolean {
         return false;
     }
+
     get meta(): Record<string, unknown> {
         return Object.fromEntries(this._testCase.annotations.map(a => [a.type, a.description ?? '']));
     }
@@ -205,8 +208,10 @@ export class PlaywrightTestAdapter implements ReporterTestResult {
     get screenshot(): ImageBase64 | undefined {
         return undefined;
     }
+
     get sessionId(): string {
-        return this._testCase.annotations.find(a => a.type === 'surfwax.sessionId')?.description || '';
+        // TODO: implement getting sessionId
+        return '';
     }
 
     get skipReason(): string {
@@ -218,7 +223,7 @@ export class PlaywrightTestAdapter implements ReporterTestResult {
     }
 
     get status(): TestStatus {
-        if (isNoRefImageError(this.error) || isImageDiffError(this.error) || isAssertViewError(this.error)) {
+        if (isNoRefImageError(this.error) || isImageDiffError(this.error)) {
             return FAIL;
         }
         return getStatus(this._testResult);
@@ -228,11 +233,15 @@ export class PlaywrightTestAdapter implements ReporterTestResult {
         // slicing because first entries are not actually test-name, but a file, etc.
         return this._testCase.titlePath().slice(3);
     }
+
     get timestamp(): number | undefined {
         return this._testResult.startTime.getTime();
     }
+
     get url(): string {
-        return this._testCase.annotations.find(a => a.type === 'annotations.lastOpenedUrl')?.description || '';
+        // TODO: implement this getter. One of the possible solutions would be to provide a fixture similar to
+        //       page.goto(), which would write last visited URL to test annotations
+        return '';
     }
 
     private get _attachmentsByState(): Record<string, PlaywrightAttachment[]> {

@@ -16,13 +16,12 @@ import {
 } from '../constants';
 import {PreparedTestResult, SqliteAdapter} from '../sqlite-adapter';
 import {ReporterTestResult} from '../test-adapter';
-import {hasNoRefImageErrors} from '../static/modules/utils';
 import {hasImage, saveStaticFilesToReportDir, writeDatabaseUrlsFile} from '../server-utils';
 import {ReporterConfig} from '../types';
 import {HtmlReporter} from '../plugin-api';
 import {ImageHandler} from '../image-handler';
 import {SqliteImageStore} from '../image-store';
-import {getUrlWithBase, getError, getRelativeUrl, hasDiff} from '../common-utils';
+import {getUrlWithBase, getError, getRelativeUrl, hasDiff, hasNoRefImageErrors} from '../common-utils';
 import {getTestFromDb} from '../db-utils/server';
 
 const ignoredStatuses = [RUNNING, IDLE];

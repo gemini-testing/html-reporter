@@ -1,31 +1,43 @@
 import EventsEmitter2 from 'eventemitter2';
-import {PluginEvents} from './constants';
+import {PluginEvents, ToolName} from './constants';
 import {downloadDatabases, mergeDatabases, getTestsTreeFromDatabase} from './db-utils/server';
 import {LocalImagesSaver} from './local-images-saver';
 import {version} from '../package.json';
 import {ImagesSaver, ReporterConfig, ReportsSaver} from './types';
 
 interface HtmlReporterValues {
+    toolName: ToolName;
     extraItems: Record<string, string>;
     metaInfoExtenders: Record<string, string>;
     imagesSaver: ImagesSaver;
     reportsSaver: ReportsSaver | null;
 }
 
+interface ReporterOptions {
+    toolName: ToolName;
+}
+
+type ParametersExceptFirst<F> = F extends (arg0: any, ...rest: infer R) => any ? R : never;
+
 export class HtmlReporter extends EventsEmitter2 {
     protected _config: ReporterConfig;
     protected _values: HtmlReporterValues;
     protected _version: string;
 
-    static create<T extends HtmlReporter>(this: new (config: ReporterConfig) => T, config: ReporterConfig): T {
-        return new this(config);
+    static create<T extends HtmlReporter>(
+        this: new (config: ReporterConfig, options: ReporterOptions) => T,
+        config: ReporterConfig,
+        options: ReporterOptions
+    ): T {
+        return new this(config, options);
     }
 
-    constructor(config: ReporterConfig) {
+    constructor(config: ReporterConfig, {toolName}: ReporterOptions) {
         super();
 
         this._config = config;
         this._values = {
+            toolName,
             extraItems: {},
             metaInfoExtenders: {},
             imagesSaver: LocalImagesSaver,
@@ -91,7 +103,7 @@ export class HtmlReporter extends EventsEmitter2 {
         return mergeDatabases(...args);
     }
 
-    getTestsTreeFromDatabase(...args: Parameters<typeof getTestsTreeFromDatabase>): ReturnType<typeof getTestsTreeFromDatabase> {
-        return getTestsTreeFromDatabase(...args);
+    getTestsTreeFromDatabase(...args: ParametersExceptFirst<typeof getTestsTreeFromDatabase>): ReturnType<typeof getTestsTreeFromDatabase> {
+        return getTestsTreeFromDatabase(this.values.toolName, ...args);
     }
 }

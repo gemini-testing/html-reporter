@@ -13,10 +13,9 @@ export default defineConfig({
     fullyParallel: true,
     forbidOnly: !!process.env.CI,
     retries: 2,
-    workers: process.env.CI ? 1 : undefined,
+    workers: 1,
     reporter: [
         ['html-reporter-tester/playwright', {
-            enabled: true,
             path: path.resolve(__dirname, 'report'),
             saveFormat: 'sqlite',
             defaultView: 'failed',
@@ -26,7 +25,6 @@ export default defineConfig({
     use: {
         actionTimeout: 0,
         baseURL: `http://${serverHost}:${serverPort}/fixtures/hermione/index.html`,
-        trace: 'off'
     },
 
     projects: [
