@@ -238,26 +238,31 @@ describe('PlaywrightTestAdapter', () => {
     describe('status', () => {
         it('should return SUCCESS for PASSED PwtTestStatus', () => {
             const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult({status: PwtTestStatus.PASSED}), mkAdapterOptions());
+
             assert.equal(adapter.status, TestStatus.SUCCESS);
         });
 
         it('should return FAIL for FAILED PwtTestStatus', () => {
             const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult({status: PwtTestStatus.FAILED}), mkAdapterOptions());
+
             assert.equal(adapter.status, TestStatus.FAIL);
         });
 
         it('should return FAIL for TIMED_OUT PwtTestStatus', () => {
             const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult({status: PwtTestStatus.TIMED_OUT}), mkAdapterOptions());
+
             assert.equal(adapter.status, TestStatus.FAIL);
         });
 
         it('should return FAIL for INTERRUPTED PwtTestStatus', () => {
             const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult({status: PwtTestStatus.INTERRUPTED}), mkAdapterOptions());
+
             assert.equal(adapter.status, TestStatus.FAIL);
         });
 
         it('should return SKIPPED for any other PwtTestStatus', () => {
             const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult({status: PwtTestStatus.SKIPPED}), mkAdapterOptions());
+
             assert.equal(adapter.status, TestStatus.SKIPPED);
         });
     });

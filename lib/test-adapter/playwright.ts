@@ -5,15 +5,8 @@ import _ from 'lodash';
 import stripAnsi from 'strip-ansi';
 
 import {ReporterTestResult} from './index';
-import {FAIL, TestStatus, PWT_TITLE_DELIMITER} from '../constants';
-import {
-    AssertViewResult,
-    ErrorDetails,
-    ImageData,
-    ImageInfoFull,
-    ImageSize,
-    TestError
-} from '../types';
+import {FAIL, PWT_TITLE_DELIMITER, TestStatus} from '../constants';
+import {AssertViewResult, ErrorDetails, ImageData, ImageInfoFull, ImageSize, TestError} from '../types';
 import {getShortMD5, isImageDiffError, isNoRefImageError} from '../common-utils';
 import {ImagesInfoFormatter} from '../image-handler';
 import {ErrorName} from '../errors';
@@ -37,7 +30,7 @@ export enum ImageTitleEnding {
 
 const ANY_IMAGE_ENDING_REGEXP = new RegExp(Object.values(ImageTitleEnding).map(ending => `${ending}$`).join('|'));
 
-const getStatus = (result: PlaywrightTestResult): TestStatus => {
+export const getStatus = (result: PlaywrightTestResult): TestStatus => {
     if (result.status === PwtTestStatus.PASSED) {
         return TestStatus.SUCCESS;
     }
@@ -47,7 +40,7 @@ const getStatus = (result: PlaywrightTestResult): TestStatus => {
             result.status as PwtTestStatus
         )
     ) {
-        return TestStatus.ERROR;
+        return TestStatus.FAIL;
     }
 
     return TestStatus.SKIPPED;
@@ -224,10 +217,15 @@ export class PlaywrightTestAdapter implements ReporterTestResult {
     }
 
     get status(): TestStatus {
-        if (isNoRefImageError(this.error) || isImageDiffError(this.error)) {
-            return FAIL;
+        const status = getStatus(this._testResult);
+        if (status === TestStatus.FAIL) {
+            if (isNoRefImageError(this.error) || isImageDiffError(this.error)) {
+                return FAIL;
+            }
+            return TestStatus.ERROR;
         }
-        return getStatus(this._testResult);
+
+        return status;
     }
 
     get testPath(): string[] {

@@ -10,34 +10,13 @@ import {parseConfig} from './lib/config';
 import {PluginEvents, TestStatus, ToolName} from './lib/constants';
 import {RegisterWorkers} from './lib/workers/create-workers';
 import {EventEmitter} from 'events';
-import {PlaywrightTestAdapter} from './lib/test-adapter/playwright';
+import {PlaywrightTestAdapter, getStatus} from './lib/test-adapter/playwright';
+import PQueue from 'p-queue';
 
-enum PwtTestStatus {
-    PASSED = 'passed',
-    FAILED = 'failed',
-    TIMED_OUT = 'timedOut',
-    INTERRUPTED = 'interrupted',
-    SKIPPED = 'skipped',
-}
-
-export const getStatus = (result: PwtTestResult): TestStatus => {
-    if (result.status === PwtTestStatus.PASSED) {
-        return TestStatus.SUCCESS;
-    }
-
-    if (
-        [PwtTestStatus.FAILED, PwtTestStatus.TIMED_OUT, PwtTestStatus.INTERRUPTED].includes(
-            result.status as PwtTestStatus
-        )
-    ) {
-        return TestStatus.FAIL;
-    }
-
-    return TestStatus.SKIPPED;
-};
+export {ReporterConfig} from './lib/types';
 
 class MyReporter implements Reporter {
-    protected _resultPromise: Promise<void> = Promise.resolve();
+    protected _promiseQueue: PQueue = new PQueue();
     protected _staticReportBuilder: StaticReportBuilder;
     protected _htmlReporter: HtmlReporter;
     protected _config: ReporterConfig;
@@ -55,11 +34,9 @@ class MyReporter implements Reporter {
             promisify<unknown, unknown, void>(this._workerFarm.saveDiffTo)(imageDiffError, diffPath);
         this._workers = workers;
 
-        this._addTask(this._staticReportBuilder.init().then(() => this._staticReportBuilder.saveStaticFiles()));
-    }
-
-    protected _addTask(promise: Promise<void>): void {
-        this._resultPromise = this._resultPromise.then(() => promise);
+        this._promiseQueue.add(() => this._staticReportBuilder.init()
+            .then(() => this._staticReportBuilder.saveStaticFiles())
+        );
     }
 
     onTestEnd(test: TestCase, result: PwtTestResult): void {
@@ -77,15 +54,15 @@ class MyReporter implements Reporter {
         } else if (status === TestStatus.SKIPPED) {
             this._staticReportBuilder.addSkipped(formattedResult);
         }
-        this._addTask(this._staticReportBuilder.imageHandler.saveTestImages(formattedResult, this._workers).then());
+        this._promiseQueue.add(() => this._staticReportBuilder.imageHandler.saveTestImages(formattedResult, this._workers));
     }
 
     async onEnd(): Promise<void> {
-        await this._resultPromise;
-        await this._staticReportBuilder.finalize();
-        await this._htmlReporter.emitAsync(PluginEvents.REPORT_SAVED);
+        await this._promiseQueue.onIdle();
 
-        return this._resultPromise;
+        await this._staticReportBuilder.finalize();
+
+        await this._htmlReporter.emitAsync(PluginEvents.REPORT_SAVED);
     }
 }
 

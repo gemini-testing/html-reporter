@@ -6,12 +6,13 @@ const serverPort = process.env.SERVER_PORT ?? 8085;
 
 export default defineConfig({
     testDir: './tests',
+    snapshotPathTemplate: '{testDir}/screens/{testName}/{projectName}/{arg}{ext}',
     timeout: 30 * 1000,
     expect: {
         timeout: 5000
     },
     fullyParallel: true,
-    forbidOnly: !!process.env.CI,
+    forbidOnly: true,
     retries: 2,
     workers: 1,
     reporter: [
@@ -22,9 +23,9 @@ export default defineConfig({
             saveErrorDetails: true
         }]
     ],
+
     use: {
-        actionTimeout: 0,
-        baseURL: `http://${serverHost}:${serverPort}/fixtures/hermione/index.html`,
+        baseURL: `http://${serverHost}:${serverPort}/fixtures/playwright/index.html`,
         screenshot: {
             mode: 'on',
             fullPage: true
@@ -42,7 +43,5 @@ export default defineConfig({
         command: `npx http-server ${path.resolve(__dirname, '../..')} -c-1 -p ${serverPort}`,
         port: Number(serverPort),
         stdout: 'pipe'
-    },
-
-    snapshotPathTemplate: '{testDir}/screens/{testName}/{projectName}/{arg}{ext}'
+    }
 });
