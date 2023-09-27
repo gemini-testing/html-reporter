@@ -27,6 +27,6 @@ export class SqliteImageStore implements ImageStore {
         }, suitePathString, browserName);
 
         const imagesInfo: ImageInfoFull[] = imagesInfoResult && JSON.parse(imagesInfoResult[DB_COLUMNS.IMAGES_INFO as keyof Pick<LabeledSuitesRow, 'imagesInfo'>]) || [];
-        return imagesInfo.find(info => info.stateName === stateName);
+        return imagesInfo.find(info => (info as {stateName?: string}).stateName === stateName);
     }
 }

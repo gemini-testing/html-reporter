@@ -1,17 +1,19 @@
 import React, {Component} from 'react';
+import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
 import {isEmpty} from 'lodash';
 import State from '../../state';
-import {isSuccessStatus, isErrorStatus} from '../../../../common-utils';
+import {isSuccessStatus, isErrorStatus, isSkippedStatus} from '../../../../common-utils';
 
-export default class Tabs extends Component {
+class Tabs extends Component {
     static propTypes = {
         result: PropTypes.shape({
             id: PropTypes.string.isRequired,
             status: PropTypes.string.isRequired,
             imageIds: PropTypes.array.isRequired,
             multipleTabs: PropTypes.bool.isRequired,
-            screenshot: PropTypes.bool.isRequired
+            screenshot: PropTypes.bool.isRequired,
+            error: PropTypes.object
         }).isRequired
     };
 
@@ -38,9 +40,14 @@ export default class Tabs extends Component {
         const errorTabId = `${result.id}_error`;
 
         if (isEmpty(result.imageIds)) {
-            return isSuccessStatus(result.status)
-                ? null
-                : this._drawTab({key: errorTabId});
+            if (isSuccessStatus(result.status)) {
+                return null;
+            }
+            if (isSkippedStatus(result.status) && isEmpty(result.error)) {
+                return null;
+            }
+
+            return this._drawTab({key: errorTabId});
         }
 
         const tabs = result.imageIds.map((imageId) => this._drawTab({key: imageId, imageId}));
@@ -50,3 +57,12 @@ export default class Tabs extends Component {
             : tabs;
     }
 }
+
+export default connect(
+    ({tree}, {result}) => {
+        const filteredResult = {...result};
+        filteredResult.imageIds = filteredResult.imageIds.filter(imageId => tree.images.byId[imageId].stateName);
+
+        return {result: filteredResult};
+    }
+)(Tabs);

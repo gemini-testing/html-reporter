@@ -25,6 +25,10 @@ export default defineConfig({
     use: {
         actionTimeout: 0,
         baseURL: `http://${serverHost}:${serverPort}/fixtures/hermione/index.html`,
+        screenshot: {
+            mode: 'on',
+            fullPage: true
+        }
     },
 
     projects: [

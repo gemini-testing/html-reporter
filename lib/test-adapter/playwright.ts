@@ -9,7 +9,6 @@ import {FAIL, TestStatus, PWT_TITLE_DELIMITER} from '../constants';
 import {
     AssertViewResult,
     ErrorDetails,
-    ImageBase64,
     ImageData,
     ImageInfoFull,
     ImageSize,
@@ -36,7 +35,7 @@ export enum ImageTitleEnding {
     Previous = '-previous.png'
 }
 
-const ANY_IMAGE_ENDING_REGEXP = new RegExp(Object.values(ImageTitleEnding).join('|'));
+const ANY_IMAGE_ENDING_REGEXP = new RegExp(Object.values(ImageTitleEnding).map(ending => `${ending}$`).join('|'));
 
 const getStatus = (result: PlaywrightTestResult): TestStatus => {
     if (result.status === PwtTestStatus.PASSED) {
@@ -205,8 +204,10 @@ export class PlaywrightTestAdapter implements ReporterTestResult {
         return true;
     }
 
-    get screenshot(): ImageBase64 | undefined {
-        return undefined;
+    get screenshot(): ImageData | null {
+        const pageScreenshot = this._testResult.attachments.find(a => a.contentType === 'image/png' && a.name === 'screenshot');
+
+        return getImageData(pageScreenshot);
     }
 
     get sessionId(): string {
@@ -245,7 +246,9 @@ export class PlaywrightTestAdapter implements ReporterTestResult {
     }
 
     private get _attachmentsByState(): Record<string, PlaywrightAttachment[]> {
-        const imageAttachments = this._testResult.attachments.filter(a => a.contentType === 'image/png');
+        // Filtering out only images. Page screenshots on reject are named "screenshot", we don't want them in state either.
+        const imageAttachments = this._testResult.attachments.filter(
+            a => a.contentType === 'image/png' && ANY_IMAGE_ENDING_REGEXP.test(a.name));
 
         return _.groupBy(imageAttachments, a => a.name.replace(ANY_IMAGE_ENDING_REGEXP, ''));
     }

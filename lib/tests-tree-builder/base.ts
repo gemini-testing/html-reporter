@@ -128,7 +128,8 @@ export class BaseTestsTreeBuilder {
         const browserId = this._buildId(suiteId, browserName);
         const testResultId = this._buildId(browserId, attempt.toString());
         const imageIds = imagesInfo
-            .map((image: ImageInfoFull, i: number) => this._buildId(testResultId, image.stateName || `${image.status}_${i}`));
+            .map((image: ImageInfoFull, i: number) =>
+                this._buildId(testResultId, (image as {stateName?: string}).stateName || `${image.status}_${i}`));
 
         this._addSuites(testPath, browserId);
         this._addBrowser({id: browserId, parentId: suiteId, name: browserName, version: browserVersion}, testResultId, attempt);

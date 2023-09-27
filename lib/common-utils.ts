@@ -130,7 +130,7 @@ export const hasDiff = (assertViewResults: AssertViewResult[]): boolean => {
     return assertViewResults.some((result) => isImageDiffError(result as {name?: string}));
 };
 
-export const isBase64Image = (image: ImageData | ImageBase64 | undefined): image is ImageBase64 => {
+export const isBase64Image = (image: ImageData | ImageBase64 | null | undefined): image is ImageBase64 => {
     return Boolean((image as ImageBase64 | undefined)?.base64);
 };
 

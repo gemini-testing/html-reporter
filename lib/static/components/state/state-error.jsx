@@ -39,23 +39,12 @@ class StateError extends Component {
     _drawImage() {
         const {image, error} = this.props;
 
-        if (!image.actualImg) {
-            return null;
+        if (image.actualImg && isNoRefImageError(error)) {
+            return <ResizedScreenshot image={image.actualImg} />;
         }
 
-        return isNoRefImageError(error)
-            ? <ResizedScreenshot image={image.actualImg} />
-            : <Details
-                title="Page screenshot"
-                content={() => <ResizedScreenshot image={image.actualImg} />}
-                extendClassNames="details_type_image"
-                onClick={this.onTogglePageScreenshot}
-            />;
+        return null;
     }
-
-    onTogglePageScreenshot = () => {
-        this.props.actions.togglePageScreenshot();
-    };
 
     _errorToElements(error) {
         return map(error, (value, key) => {

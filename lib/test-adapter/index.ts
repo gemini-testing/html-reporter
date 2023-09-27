@@ -1,5 +1,5 @@
 import {TestStatus} from '../constants';
-import {AssertViewResult, ErrorDetails, ImageBase64, ImageInfoFull, TestError} from '../types';
+import {AssertViewResult, ErrorDetails, ImageBase64, ImageData, ImageInfoFull, TestError} from '../types';
 
 export * from './hermione';
 
@@ -20,7 +20,7 @@ export interface ReporterTestResult {
     readonly isUpdated?: boolean;
     readonly meta: Record<string, unknown>;
     readonly multipleTabs: boolean;
-    readonly screenshot: ImageBase64 | undefined;
+    readonly screenshot: ImageBase64 | ImageData | null | undefined;
     readonly sessionId: string;
     readonly skipReason?: string;
     readonly state: { name: string };

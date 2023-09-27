@@ -7,7 +7,7 @@ import {StaticReportBuilder} from './lib/report-builder/static';
 import {HtmlReporter} from './lib/plugin-api';
 import {ReporterConfig} from './lib/types';
 import {parseConfig} from './lib/config';
-import {TestStatus, ToolName} from './lib/constants';
+import {PluginEvents, TestStatus, ToolName} from './lib/constants';
 import {RegisterWorkers} from './lib/workers/create-workers';
 import {EventEmitter} from 'events';
 import {PlaywrightTestAdapter} from './lib/test-adapter/playwright';
@@ -72,17 +72,18 @@ class MyReporter implements Reporter {
             } else {
                 this._staticReportBuilder.addError(formattedResult);
             }
-            this._addTask(this._staticReportBuilder.imageHandler.saveTestImages(formattedResult, this._workers).then());
         } else if (status === TestStatus.SUCCESS) {
             this._staticReportBuilder.addSuccess(formattedResult);
         } else if (status === TestStatus.SKIPPED) {
             this._staticReportBuilder.addSkipped(formattedResult);
         }
+        this._addTask(this._staticReportBuilder.imageHandler.saveTestImages(formattedResult, this._workers).then());
     }
 
     async onEnd(): Promise<void> {
-        this._addTask(this._staticReportBuilder.finalize());
-        // TODO: emit report saved event or not?
+        await this._resultPromise;
+        await this._staticReportBuilder.finalize();
+        await this._htmlReporter.emitAsync(PluginEvents.REPORT_SAVED);
 
         return this._resultPromise;
     }

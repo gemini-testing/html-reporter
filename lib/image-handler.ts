@@ -15,7 +15,7 @@ import {
     ImageInfoFail,
     ImageInfoFull,
     ImagesSaver,
-    ImageSize
+    ImageInfoPageSuccess
 } from './types';
 import {ERROR, FAIL, PluginEvents, SUCCESS, TestStatus, UPDATED} from './constants';
 import {
@@ -66,18 +66,29 @@ export class ImageHandler extends EventEmitter2 implements ImagesInfoFormatter {
         return _.get(_.find(assertViewResults, {stateName}), 'refImg');
     }
 
-    static getScreenshot(testResult: ReporterTestResultPlain): ImageBase64 | ImageData | undefined {
-        return testResult.error?.screenshot;
+    static getScreenshot(testResult: ReporterTestResultPlain): ImageBase64 | ImageData | null | undefined {
+        return testResult.screenshot;
     }
 
     getImagesFor(testResult: ReporterTestResultPlain, assertViewStatus: TestStatus, stateName?: string): ImageInfo | undefined {
         const refImg = ImageHandler.getRefImg(testResult.assertViewResults, stateName);
         const currImg = ImageHandler.getCurrImg(testResult.assertViewResults, stateName);
-        const errImg = ImageHandler.getScreenshot(testResult);
+
+        const pageImg = ImageHandler.getScreenshot(testResult);
 
         const {path: refPath} = this._getExpectedPath(testResult, stateName);
         const currPath = utils.getCurrentPath({attempt: testResult.attempt, browserId: testResult.browserId, imageDir: testResult.imageDir, stateName});
         const diffPath = utils.getDiffPath({attempt: testResult.attempt, browserId: testResult.browserId, imageDir: testResult.imageDir, stateName});
+
+        // Handling whole page common screenshots
+        if (!stateName && pageImg) {
+            return {
+                actualImg: {
+                    path: this._getImgFromStorage(currPath),
+                    size: pageImg.size
+                }
+            };
+        }
 
         if ((assertViewStatus === SUCCESS || assertViewStatus === UPDATED) && refImg) {
             const result: ImageInfo = {
@@ -110,11 +121,11 @@ export class ImageHandler extends EventEmitter2 implements ImagesInfoFormatter {
             };
         }
 
-        if (assertViewStatus === ERROR) {
+        if (assertViewStatus === ERROR && currImg) {
             return {
                 actualImg: {
-                    path: testResult.state?.name ? this._getImgFromStorage(currPath) : '',
-                    size: (currImg?.size || errImg?.size) as ImageSize
+                    path: this._getImgFromStorage(currPath),
+                    size: currImg.size
                 }
             };
         }
@@ -146,14 +157,21 @@ export class ImageHandler extends EventEmitter2 implements ImagesInfoFormatter {
             ) as ImageInfoFull;
         }) ?? [];
 
-        // common screenshot on test fail
+        // Common page screenshot
         if (ImageHandler.getScreenshot(testResult)) {
-            const errorImage = _.extend(
-                {status: ERROR, error: getError(testResult.error)},
-                this.getImagesFor(testResult, ERROR)
-            ) as ImageInfoError;
+            const error = getError(testResult.error);
 
-            imagesInfo.push(errorImage);
+            if (!_.isEmpty(error)) {
+                imagesInfo.push(_.extend(
+                    {status: ERROR, error},
+                    this.getImagesFor(testResult, ERROR)
+                ) as ImageInfoError);
+            } else {
+                imagesInfo.push(_.extend(
+                    {status: SUCCESS},
+                    this.getImagesFor(testResult, SUCCESS)
+                ) as ImageInfoPageSuccess);
+            }
         }
 
         return imagesInfo;
@@ -201,7 +219,7 @@ export class ImageHandler extends EventEmitter2 implements ImagesInfoFormatter {
         }));
 
         if (ImageHandler.getScreenshot(testResult)) {
-            await this._saveErrorScreenshot(testResult);
+            await this._savePageScreenshot(testResult);
         }
 
         await this.emitAsync(PluginEvents.TEST_SCREENSHOTS_SAVED, {
@@ -303,7 +321,7 @@ export class ImageHandler extends EventEmitter2 implements ImagesInfoFormatter {
         cacheDiffImages.set(hash, destPath);
     }
 
-    private async _saveErrorScreenshot(testResult: ReporterTestResultPlain): Promise<void> {
+    private async _savePageScreenshot(testResult: ReporterTestResultPlain): Promise<void> {
         const screenshot = ImageHandler.getScreenshot(testResult);
         if (!(screenshot as ImageBase64)?.base64 && !(screenshot as ImageData)?.path) {
             logger.warn('Cannot save screenshot on reject');
