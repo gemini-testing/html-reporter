@@ -13,7 +13,7 @@ export default defineConfig({
     },
     fullyParallel: true,
     forbidOnly: true,
-    retries: 2,
+    repeatEach: 2,
     workers: 1,
     reporter: [
         ['html-reporter-tester/playwright', {

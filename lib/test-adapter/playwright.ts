@@ -5,11 +5,13 @@ import _ from 'lodash';
 import stripAnsi from 'strip-ansi';
 
 import {ReporterTestResult} from './index';
+import {testsAttempts} from './cache/playwright';
+import {getShortMD5, isImageDiffError, isNoRefImageError, mkTestId} from '../common-utils';
 import {FAIL, PWT_TITLE_DELIMITER, TestStatus} from '../constants';
-import {AssertViewResult, ErrorDetails, ImageData, ImageInfoFull, ImageSize, TestError} from '../types';
-import {getShortMD5, isImageDiffError, isNoRefImageError} from '../common-utils';
-import {ImagesInfoFormatter} from '../image-handler';
 import {ErrorName} from '../errors';
+import {ImagesInfoFormatter} from '../image-handler';
+import {AssertViewResult, ErrorDetails, ImageData, ImageInfoFull, ImageSize, TestError} from '../types';
+import * as utils from '../server-utils';
 
 export type PlaywrightAttachment = PlaywrightTestResult['attachments'][number];
 
@@ -88,12 +90,20 @@ export interface PlaywrightTestAdapterOptions {
 export class PlaywrightTestAdapter implements ReporterTestResult {
     private readonly _testCase: PlaywrightTestCase;
     private readonly _testResult: PlaywrightTestResult;
+    private _attempt: number;
     private _imagesInfoFormatter: ImagesInfoFormatter;
 
     constructor(testCase: PlaywrightTestCase, testResult: PlaywrightTestResult, {imagesInfoFormatter}: PlaywrightTestAdapterOptions) {
         this._testCase = testCase;
         this._testResult = testResult;
         this._imagesInfoFormatter = imagesInfoFormatter;
+
+        const testId = mkTestId(this.fullName, this.browserId);
+        if (utils.shouldUpdateAttempt(this.status)) {
+            testsAttempts.set(testId, _.isUndefined(testsAttempts.get(testId)) ? 0 : testsAttempts.get(testId) as number + 1);
+        }
+
+        this._attempt = testsAttempts.get(testId) || 0;
     }
 
     get assertViewResults(): AssertViewResult[] {
@@ -125,7 +135,7 @@ export class PlaywrightTestAdapter implements ReporterTestResult {
     }
 
     get attempt(): number {
-        return this._testResult.retry;
+        return this._attempt;
     }
 
     get browserId(): string {
