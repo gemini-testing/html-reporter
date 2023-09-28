@@ -72,6 +72,9 @@ describe('Test results appearance', () => {
             );
 
             await hideHeader(browser);
+            await browser.execute(() =>{
+                window.scrollTo(0, 10000);
+            });
 
             await retrySelectorButton.assertView('retry-selector');
         });

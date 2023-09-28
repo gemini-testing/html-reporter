@@ -14,8 +14,7 @@ describe('Test details', function() {
         await expect(await fileMetaInfo.$('span*=file')).toBeDisplayed();
     });
 
-    // TODO: figure out why this test is flaky between different runs, hermione vs playwright fixtures
-    it.skip('should prevent details summary overflow', async ({browser}) => {
+    it('should prevent details summary overflow', async ({browser}) => {
         const selector =
             getTestSectionByNameSelector('test with long error message') +
             `//summary[.${getElementWithTextSelector('span', 'message')}/..]`;

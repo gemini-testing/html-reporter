@@ -190,7 +190,7 @@ describe('PlaywrightTestAdapter', () => {
         it('should return fullName', () => {
             const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult(), mkAdapterOptions());
 
-            assert.strictEqual(adapter.fullName, 'describe test');
+            assert.strictEqual(adapter.fullName, 'describe › test');
         });
     });
 
@@ -219,7 +219,7 @@ describe('PlaywrightTestAdapter', () => {
         it('should return imageDir', () => {
             const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult(), mkAdapterOptions());
 
-            assert.strictEqual(adapter.imageDir, '75bcb6c');
+            assert.strictEqual(adapter.imageDir, '4050de5');
         });
     });
 

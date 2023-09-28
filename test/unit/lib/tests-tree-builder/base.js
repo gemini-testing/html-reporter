@@ -4,6 +4,7 @@ const _ = require('lodash');
 const proxyquire = require('proxyquire');
 const {FAIL, ERROR, SUCCESS} = require('lib/constants/test-statuses');
 const {BrowserVersions} = require('lib/constants/browser');
+const {ToolName} = require('lib/constants');
 
 describe('ResultsTreeBuilder', () => {
     const sandbox = sinon.sandbox.create();
@@ -27,7 +28,7 @@ describe('ResultsTreeBuilder', () => {
             '../common-utils': {determineStatus}
         }).BaseTestsTreeBuilder;
 
-        builder = ResultsTreeBuilder.create();
+        builder = ResultsTreeBuilder.create({toolName: ToolName.Hermione});
     });
 
     afterEach(() => sandbox.restore());

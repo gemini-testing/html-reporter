@@ -19,7 +19,7 @@ export default defineConfig({
         ['html-reporter-tester/playwright', {
             path: path.resolve(__dirname, 'report'),
             saveFormat: 'sqlite',
-            defaultView: 'failed',
+            defaultView: 'all',
             saveErrorDetails: true
         }]
     ],

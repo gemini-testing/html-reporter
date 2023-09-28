@@ -93,7 +93,7 @@ class MetaInfoContent extends Component {
             ...extraMetaInfo
         };
         if (result.suiteUrl) {
-            formattedMetaInfo.url = mkLinkToUrl(buildUrl(result.suiteUrl, parsedHost), result.metaInfo.url);
+            formattedMetaInfo.url = mkLinkToUrl(getUrlWithBase(result.suiteUrl, baseHost), result.metaInfo.url);
         }
 
         return metaToElements(formattedMetaInfo, metaInfoBaseUrls);
