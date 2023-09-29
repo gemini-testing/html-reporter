@@ -1,6 +1,10 @@
-const {getTestSectionByNameSelector, getElementWithTextSelector} = require('../utils');
+const {getTestSectionByNameSelector, getElementWithTextSelector, hideHeader} = require('../utils');
 
 describe('Test details', function() {
+    beforeEach(async ({browser}) => {
+        await hideHeader(browser);
+    });
+
     it('should show details', async ({browser}) => {
         await browser.$('div*=test with long error message').waitForDisplayed();
 

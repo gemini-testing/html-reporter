@@ -14,10 +14,17 @@ const getElementWithTextSelector = (tagName, text) => `//${tagName}[contains(tex
 /** Returns <details> element which has summary containing name */
 const getSpoilerByNameSelector = (name) => `details[.//summary[contains(text(), "${name}")]]`;
 
+const hideHeader = async (browser) => {
+    await browser.execute(() => {
+        document.querySelector('.sticky-header').style.visibility = 'hidden';
+    });
+};
+
 module.exports = {
     getTestSectionByNameSelector,
     getTestStateByNameSelector,
     getImageSectionSelector,
     getElementWithTextSelector,
-    getSpoilerByNameSelector
+    getSpoilerByNameSelector,
+    hideHeader
 };

@@ -5,9 +5,9 @@ test.describe('success describe', () => {
         await page.goto(baseURL as string);
     });
 
-    test('test with screenshot', async ({page, baseURL}) => {
-        await page.goto(baseURL as string);
-
-        await expect(page.locator('header')).toHaveScreenshot('header.png');
-    });
+    // test('test with screenshot', async ({page, baseURL}) => {
+    //     await page.goto(baseURL as string);
+    //
+    //     await expect(page.locator('header')).toHaveScreenshot('header.png');
+    // });
 });
