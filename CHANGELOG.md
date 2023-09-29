@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="9.12.0"></a>
+# [9.12.0](https://github.com/gemini-testing/html-reporter/compare/v9.11.6...v9.12.0) (2023-09-29)
+
+
+### Bug Fixes
+
+* add more e2e tests and fix related bugs ([#508](https://github.com/gemini-testing/html-reporter/issues/508)) ([d4f9c85](https://github.com/gemini-testing/html-reporter/commit/d4f9c85))
+
+
+### Features
+
+* support generating static report for playwright ([#505](https://github.com/gemini-testing/html-reporter/issues/505)) ([d5eb9ac](https://github.com/gemini-testing/html-reporter/commit/d5eb9ac))
+
+
+
 <a name="9.11.6"></a>
 ## [9.11.6](https://github.com/gemini-testing/html-reporter/compare/v9.11.4...v9.11.6) (2023-09-18)
 
