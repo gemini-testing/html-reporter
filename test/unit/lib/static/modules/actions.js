@@ -257,7 +257,9 @@ describe('lib/static/modules/actions', () => {
         it('should build tests tree', async () => {
             const db = {};
             const suitesFromDb = ['rows-with-suites'];
-            const treeBuilderResult = {tree: {}, stats: {}, skips: {}, browsers: {}};
+            // TODO: properly test this case. This PR only fixed default state, which is now correct, but
+            //       this test never worked correctly
+            const treeBuilderResult = {tree: undefined, stats: {}, skips: [], browsers: []};
 
             mergeDatabasesStub.resolves(db);
             getSuitesTableRows.withArgs(db).returns(suitesFromDb);

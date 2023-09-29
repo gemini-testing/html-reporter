@@ -4,9 +4,9 @@ const utils = require('lib/static/modules/utils');
 const {IDLE, FAIL, ERROR, SKIPPED, SUCCESS} = require('lib/constants/test-statuses');
 const {ViewMode} = require('lib/constants/view-modes');
 const {SECTIONS, RESULT_KEYS, KEY_DELIMITER} = require('lib/constants/group-tests');
-const {NO_REF_IMAGE_ERROR} = require('lib/constants/errors').getCommonErrors();
 
 const {mkBrowser, mkResult} = require('../../static/state-utils');
+const {ErrorName} = require('lib/errors');
 
 describe('static/modules/utils', () => {
     describe('isSuiteIdle', () => {
@@ -72,7 +72,7 @@ describe('static/modules/utils', () => {
             });
 
             it('test with missing reference image', () => {
-                const error = {stack: NO_REF_IMAGE_ERROR};
+                const error = {name: ErrorName.NO_REF_IMAGE};
 
                 assert.isTrue(utils.isAcceptable({status: ERROR, error}));
             });

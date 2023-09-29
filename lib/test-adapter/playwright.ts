@@ -248,8 +248,7 @@ export class PlaywrightTestAdapter implements ReporterTestResult {
     }
 
     get url(): string {
-        // TODO: implement this getter. One of the possible solutions would be to provide a fixture similar to
-        //       page.goto(), which would write last visited URL to test annotations
+        // TODO: HERMIONE-1191
         return '';
     }
 

@@ -100,9 +100,7 @@ export const isNoRefImageError = (error?: unknown): error is NoRefImageError => 
 };
 
 export const hasNoRefImageErrors = ({assertViewResults = []}: {assertViewResults?: AssertViewResult[]}): boolean => {
-    const noRefImageErrors = assertViewResults.filter((assertViewResult: AssertViewResult) => isNoRefImageError(assertViewResult));
-
-    return !isEmpty(noRefImageErrors);
+    return assertViewResults.some((assertViewResult: AssertViewResult) => isNoRefImageError(assertViewResult));
 };
 
 const hasFailedImages = (result: {imagesInfo?: ImageInfoFull[]}): boolean => {

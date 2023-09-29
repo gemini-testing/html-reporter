@@ -2,6 +2,7 @@
 
 const {HtmlReporter} = require('lib/plugin-api');
 const {PluginEvents} = require('lib/constants/plugin-events');
+const {ToolName} = require('lib/constants');
 
 describe('plugin api', () => {
     it('should store extra items', () => {
@@ -29,6 +30,7 @@ describe('plugin api', () => {
         pluginApi.reportsSaver = {some: 'reports_saver'};
 
         assert.deepEqual(pluginApi.values, {
+            toolName: ToolName.Hermione,
             extraItems: {key1: 'value1'},
             metaInfoExtenders: {key2: 'value2'},
             imagesSaver: {some: 'images_saver'},

@@ -15,7 +15,7 @@ describe('lib/static/modules/reducers/grouped-tests/by/result', () => {
 
         module = proxyquire('lib/static/modules/reducers/grouped-tests/by/result', {
             '../helpers': {handleActiveResults, addGroupItem, sortGroupValues},
-            '../../../utils': {isAssertViewError}
+            '../../../../../common-utils': {isAssertViewError}
         });
     });
 

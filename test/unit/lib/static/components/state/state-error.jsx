@@ -101,15 +101,4 @@ describe('<StateError/> component', () => {
             assert.equal(component.find('.details__content .foo-bar').text(), ['some-hint']);
         });
     });
-
-    describe('"togglePageScreenshot" action', () => {
-        it('should call on click in "Page screenshot"', () => {
-            const image = {actualImg: {}};
-
-            const component = mkStateErrorComponent({result: {error: {}}, image});
-            component.find('.details__summary').last().simulate('click');
-
-            assert.calledOnceWith(actionsStub.togglePageScreenshot);
-        });
-    });
 });

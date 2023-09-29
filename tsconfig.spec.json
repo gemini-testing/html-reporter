@@ -1,6 +1,7 @@
 {
     "extends": "./tsconfig.common.json",
-    "include": ["lib", "test", "hermione.js", "gemini.js"],
+    "include": ["lib", "test", "hermione.js", "gemini.js", "playwright.ts"],
+    "exclude": ["test/func"],
     "compilerOptions": {
         "baseUrl": ".",
         "jsx": "react",

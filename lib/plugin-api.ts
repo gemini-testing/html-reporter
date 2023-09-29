@@ -1,6 +1,6 @@
 import EventsEmitter2 from 'eventemitter2';
 import {PluginEvents, ToolName} from './constants';
-import {downloadDatabases, mergeDatabases, getTestsTreeFromDatabase} from './db-utils/server';
+import {downloadDatabases, getTestsTreeFromDatabase, mergeDatabases} from './db-utils/server';
 import {LocalImagesSaver} from './local-images-saver';
 import {version} from '../package.json';
 import {ImagesSaver, ReporterConfig, ReportsSaver} from './types';
@@ -17,6 +17,7 @@ interface ReporterOptions {
     toolName: ToolName;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ParametersExceptFirst<F> = F extends (arg0: any, ...rest: infer R) => any ? R : never;
 
 export class HtmlReporter extends EventsEmitter2 {
@@ -25,19 +26,19 @@ export class HtmlReporter extends EventsEmitter2 {
     protected _version: string;
 
     static create<T extends HtmlReporter>(
-        this: new (config: ReporterConfig, options: ReporterOptions) => T,
+        this: new (config: ReporterConfig, options?: Partial<ReporterOptions>) => T,
         config: ReporterConfig,
-        options: ReporterOptions
+        options?: Partial<ReporterOptions>
     ): T {
         return new this(config, options);
     }
 
-    constructor(config: ReporterConfig, {toolName}: ReporterOptions) {
+    constructor(config: ReporterConfig, {toolName}: Partial<ReporterOptions> = {}) {
         super();
 
         this._config = config;
         this._values = {
-            toolName,
+            toolName: toolName ?? ToolName.Hermione,
             extraItems: {},
             metaInfoExtenders: {},
             imagesSaver: LocalImagesSaver,

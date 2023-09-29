@@ -8,7 +8,7 @@ import type * as originalUtils from 'lib/server-utils';
 import {logger} from 'lib/common-utils';
 import {ImageHandler as ImageHandlerOriginal} from 'lib/image-handler';
 import {RegisterWorkers} from 'lib/workers/create-workers';
-import {AssertViewResult, ImageInfoFull, ImageInfoSuccess, ImagesSaver} from 'lib/types';
+import {AssertViewResult, ImageInfoFail, ImageInfoFull, ImageInfoSuccess, ImagesSaver} from 'lib/types';
 import {ErrorName, ImageDiffError} from 'lib/errors';
 import {ImageStore} from 'lib/image-store';
 import {FAIL, PluginEvents, SUCCESS, UPDATED} from 'lib/constants';
@@ -169,7 +169,7 @@ describe('image-handler', function() {
 
                 it('should warn about it', () => {
                     const testResult = mkTestResult({
-                        error: {screenshot: {base64: null}} as any,
+                        screenshot: {base64: null} as any,
                         assertViewResults: []
                     });
                     const imageHandler = new ImageHandler(mkImageStore(), mkImagesSaver(), {reportPath: ''});
@@ -181,7 +181,7 @@ describe('image-handler', function() {
 
             it('should create directory for screenshot', () => {
                 const testResult = mkTestResult({
-                    error: {screenshot: {base64: 'base64-data'}} as any,
+                    screenshot: {base64: 'base64-data'} as any,
                     assertViewResults: []
                 });
                 utils.getCurrentPath.returns('dest/path');
@@ -193,7 +193,7 @@ describe('image-handler', function() {
 
             it('should save screenshot from base64 format', async () => {
                 const testResult = mkTestResult({
-                    error: {screenshot: {base64: 'base64-data'}} as any,
+                    screenshot: {base64: 'base64-data'} as any,
                     assertViewResults: []
                 });
                 utils.getCurrentPath.returns('dest/path');
@@ -272,7 +272,7 @@ describe('image-handler', function() {
 
     describe('getScreenshot', () => {
         it('should return error screenshot from test result', () => {
-            const testResult = mkTestResult({error: {screenshot: 'some-value'} as any});
+            const testResult = mkTestResult({screenshot: 'some-value'} as any);
 
             assert.equal(ImageHandler.getScreenshot(testResult), 'some-value' as any);
         });
@@ -290,7 +290,7 @@ describe('image-handler', function() {
             });
             const imageHandler = new ImageHandler(mkImageStore(), mkImagesSaver(), {reportPath: ''});
 
-            const [{diffClusters}] = imageHandler.getImagesInfo(testResult);
+            const [{diffClusters}] = imageHandler.getImagesInfo(testResult) as ImageInfoFail[];
 
             assert.deepEqual(diffClusters, [{left: 0, top: 0, right: 1, bottom: 1}]);
         });
