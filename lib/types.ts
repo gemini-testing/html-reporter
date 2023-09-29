@@ -75,6 +75,11 @@ export interface ImageInfoSuccess {
     actualImg?: ImageData;
 }
 
+export interface ImageInfoPageSuccess {
+    status: TestStatus.SUCCESS;
+    actualImg: ImageData;
+}
+
 export interface ImageInfoError {
     status: TestStatus.ERROR;
     error?: {message: string; stack: string;}
@@ -84,12 +89,13 @@ export interface ImageInfoError {
     actualImg: ImageData;
 }
 
-export type ImageInfoFull = ImageInfoFail | ImageInfoSuccess | ImageInfoError;
+export type ImageInfoFull = ImageInfoFail | ImageInfoSuccess | ImageInfoError | ImageInfoPageSuccess;
 
 export type ImageInfo =
     | Omit<ImageInfoFail, 'status' | 'stateName'>
     | Omit<ImageInfoSuccess, 'status' | 'stateName'>
-    | Omit<ImageInfoError, 'status' | 'stateName'>;
+    | Omit<ImageInfoError, 'status' | 'stateName'>
+    | Omit<ImageInfoPageSuccess, 'status' | 'stateName'>;
 
 export type AssertViewResult = AssertViewSuccess | ImageDiffError | NoRefImageError;
 
@@ -99,7 +105,7 @@ export interface TestError {
     stack?: string;
     stateName?: string;
     details?: ErrorDetails
-    screenshot?: ImageBase64
+    screenshot?: ImageBase64 | ImageData
 }
 
 export interface LabeledSuitesRow {

@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import {determineStatus} from '../common-utils';
-import {TestStatus, BrowserVersions} from '../constants';
+import {BrowserVersions, PWT_TITLE_DELIMITER, TestStatus, ToolName} from '../constants';
 import {ReporterTestResult} from '../test-adapter';
 import {ImageInfoFull, ParsedSuitesRow} from '../types';
 
@@ -73,14 +73,24 @@ interface ImagesPayload {
     parentId: string;
 }
 
+export interface BaseTestsTreeBuilderOptions {
+    toolName: ToolName;
+}
+
 export class BaseTestsTreeBuilder {
     protected _tree: Tree;
+    protected _toolName: ToolName;
 
-    static create<T extends BaseTestsTreeBuilder>(this: new () => T): T {
-        return new this();
+    static create<T extends BaseTestsTreeBuilder>(
+        this: new (options: BaseTestsTreeBuilderOptions) => T,
+        options: BaseTestsTreeBuilderOptions
+    ): T {
+        return new this(options);
     }
 
-    constructor() {
+    constructor({toolName}: BaseTestsTreeBuilderOptions) {
+        this._toolName = toolName;
+
         this._tree = {
             suites: {byId: {}, allIds: [], allRootIds: []},
             browsers: {byId: {}, allIds: []},
@@ -118,7 +128,8 @@ export class BaseTestsTreeBuilder {
         const browserId = this._buildId(suiteId, browserName);
         const testResultId = this._buildId(browserId, attempt.toString());
         const imageIds = imagesInfo
-            .map((image: ImageInfoFull, i: number) => this._buildId(testResultId, image.stateName || `${image.status}_${i}`));
+            .map((image: ImageInfoFull, i: number) =>
+                this._buildId(testResultId, (image as {stateName?: string}).stateName || `${image.status}_${i}`));
 
         this._addSuites(testPath, browserId);
         this._addBrowser({id: browserId, parentId: suiteId, name: browserName, version: browserVersion}, testResultId, attempt);
@@ -129,7 +140,12 @@ export class BaseTestsTreeBuilder {
     }
 
     protected _buildId(parentId: string | string[] = [], name: string | string[] = []): string {
-        return ([] as string[]).concat(parentId, name).join(' ');
+        let delimiter = ' ';
+        if (this._toolName === ToolName.Playwright) {
+            delimiter = PWT_TITLE_DELIMITER;
+        }
+
+        return ([] as string[]).concat(parentId, name).join(delimiter);
     }
 
     protected _addSuites(testPath: string[], browserId: string): void {

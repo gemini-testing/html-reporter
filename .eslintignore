@@ -11,3 +11,4 @@ hot
 /test/func/packages/*/plugin.js
 /hermione-report
 tmp
+**/playwright-report

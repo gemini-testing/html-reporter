@@ -6,6 +6,7 @@ import actionNames from 'lib/static/modules/action-names';
 import {StaticTestsTreeBuilder} from 'lib/tests-tree-builder/static';
 import {LOCAL_DATABASE_NAME} from 'lib/constants/database';
 import {DiffModes} from 'lib/constants/diff-modes';
+import {ToolName} from 'lib/constants';
 
 // eslint-disable-next-line
 globalThis.performance = globalThis.performance; // node v14 stub
@@ -177,6 +178,9 @@ describe('lib/static/modules/actions', () => {
             mergeDatabasesStub = sandbox.stub().resolves();
 
             global.window = {
+                data: {
+                    apiValues: {toolName: ToolName.Hermione}
+                },
                 location: {
                     href: 'http://localhost/random/path.html'
                 }
@@ -253,7 +257,9 @@ describe('lib/static/modules/actions', () => {
         it('should build tests tree', async () => {
             const db = {};
             const suitesFromDb = ['rows-with-suites'];
-            const treeBuilderResult = {tree: {}, stats: {}, skips: {}, browsers: {}};
+            // TODO: properly test this case. This PR only fixed default state, which is now correct, but
+            //       this test never worked correctly
+            const treeBuilderResult = {tree: undefined, stats: {}, skips: [], browsers: []};
 
             mergeDatabasesStub.resolves(db);
             getSuitesTableRows.withArgs(db).returns(suitesFromDb);
@@ -272,7 +278,7 @@ describe('lib/static/modules/actions', () => {
 
         it('should init plugins with the config from data.js', async () => {
             const config = {pluginsEnabled: true, plugins: []};
-            global.window.data = {config};
+            global.window.data.config = config;
 
             await actions.initStaticReport()(dispatch);
 

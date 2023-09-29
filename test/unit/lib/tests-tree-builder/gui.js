@@ -3,6 +3,7 @@
 const _ = require('lodash');
 const GuiResultsTreeBuilder = require('lib/tests-tree-builder/gui');
 const {FAIL, SUCCESS, IDLE, UPDATED} = require('lib/constants/test-statuses');
+const {ToolName} = require('lib/constants');
 
 describe('GuiResultsTreeBuilder', () => {
     let builder;
@@ -19,8 +20,10 @@ describe('GuiResultsTreeBuilder', () => {
         });
     };
 
+    const mkGuiTreeBuilder = () => GuiResultsTreeBuilder.create({toolName: ToolName.Hermione});
+
     beforeEach(() => {
-        builder = GuiResultsTreeBuilder.create();
+        builder = mkGuiTreeBuilder();
     });
 
     describe('"getLastResult" method', () => {
@@ -72,7 +75,7 @@ describe('GuiResultsTreeBuilder', () => {
     describe('"reuseTestsTree" method', () => {
         describe('reuse browsers', () => {
             it('should not reuse browser result if browser ids are not matched', () => {
-                const srcBuilder = GuiResultsTreeBuilder.create();
+                const srcBuilder = mkGuiTreeBuilder();
                 srcBuilder.addTestResult(
                     mkTestResult_(),
                     mkFormattedResult_({testPath: ['s1'], browserId: 'b1', attempt: 0})
@@ -90,7 +93,7 @@ describe('GuiResultsTreeBuilder', () => {
             });
 
             it('should reuse browser result from the passed tree if browser ids matched', () => {
-                const srcBuilder = GuiResultsTreeBuilder.create();
+                const srcBuilder = mkGuiTreeBuilder();
                 srcBuilder.addTestResult(
                     mkTestResult_(),
                     mkFormattedResult_({testPath: ['s1'], browserId: 'b1', attempt: 0})
@@ -109,7 +112,7 @@ describe('GuiResultsTreeBuilder', () => {
 
         describe('reuse test results', () => {
             it('should not reuse result if browser ids does not matched', () => {
-                const srcBuilder = GuiResultsTreeBuilder.create();
+                const srcBuilder = mkGuiTreeBuilder();
                 srcBuilder.addTestResult(
                     mkTestResult_({status: FAIL}),
                     mkFormattedResult_({testPath: ['s1'], browserId: 'b1', attempt: 0})
@@ -127,7 +130,7 @@ describe('GuiResultsTreeBuilder', () => {
             });
 
             it('should reuse all results from the passed tree if browser ids matched', () => {
-                const srcBuilder = GuiResultsTreeBuilder.create();
+                const srcBuilder = mkGuiTreeBuilder();
                 srcBuilder.addTestResult(
                     mkTestResult_({status: FAIL}),
                     mkFormattedResult_({testPath: ['s1'], browserId: 'b1', attempt: 0})
@@ -149,7 +152,7 @@ describe('GuiResultsTreeBuilder', () => {
             });
 
             it('should register reused result ids', () => {
-                const srcBuilder = GuiResultsTreeBuilder.create();
+                const srcBuilder = mkGuiTreeBuilder();
                 srcBuilder.addTestResult(
                     mkTestResult_(),
                     mkFormattedResult_({testPath: ['s1'], browserId: 'b1', attempt: 1})
@@ -168,7 +171,7 @@ describe('GuiResultsTreeBuilder', () => {
 
         describe('reuse images', () => {
             it('should not reuse images if browser ids does not matched', () => {
-                const srcBuilder = GuiResultsTreeBuilder.create();
+                const srcBuilder = mkGuiTreeBuilder();
                 srcBuilder.addTestResult(
                     mkTestResult_({imagesInfo: [{stateName: 'img1'}]}),
                     mkFormattedResult_({testPath: ['s1'], browserId: 'b1', attempt: 0})
@@ -186,7 +189,7 @@ describe('GuiResultsTreeBuilder', () => {
             });
 
             it('should reuse all images from the passed tree if browser ids matched', () => {
-                const srcBuilder = GuiResultsTreeBuilder.create();
+                const srcBuilder = mkGuiTreeBuilder();
                 srcBuilder.addTestResult(
                     mkTestResult_({imagesInfo: [{stateName: 'img1'}, {stateName: 'img2'}]}),
                     mkFormattedResult_({testPath: ['s1'], browserId: 'b1', attempt: 0})
@@ -204,7 +207,7 @@ describe('GuiResultsTreeBuilder', () => {
             });
 
             it('should register reused images ids', () => {
-                const srcBuilder = GuiResultsTreeBuilder.create();
+                const srcBuilder = mkGuiTreeBuilder();
                 srcBuilder.addTestResult(
                     mkTestResult_({imagesInfo: [{stateName: 'img1'}, {stateName: 'img2'}]}),
                     mkFormattedResult_({testPath: ['s1'], browserId: 'b1', attempt: 0})
@@ -223,7 +226,7 @@ describe('GuiResultsTreeBuilder', () => {
 
         describe('reuse suite status', () => {
             it('should not reuse suite status if browser ids does not matched', () => {
-                const srcBuilder = GuiResultsTreeBuilder.create();
+                const srcBuilder = mkGuiTreeBuilder();
                 srcBuilder.addTestResult(
                     mkTestResult_({status: FAIL}),
                     mkFormattedResult_({testPath: ['s1'], browserId: 'b1', attempt: 0})
@@ -240,7 +243,7 @@ describe('GuiResultsTreeBuilder', () => {
             });
 
             it('should reuse suite status from passed tree with if browser ids matched', () => {
-                const srcBuilder = GuiResultsTreeBuilder.create();
+                const srcBuilder = mkGuiTreeBuilder();
                 srcBuilder.addTestResult(
                     mkTestResult_({status: FAIL}),
                     mkFormattedResult_({testPath: ['s1'], browserId: 'b1', attempt: 0})

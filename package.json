@@ -7,7 +7,8 @@
   ],
   "exports": {
     "./gemini": "./build/gemini.js",
-    "./hermione": "./build/hermione.js"
+    "./hermione": "./build/hermione.js",
+    "./playwright": "./build/playwright.js"
   },
   "scripts": {
     "build": "rimraf build && npm run build:client && npm run build:server",
@@ -75,6 +76,7 @@
     "fs-extra": "^7.0.1",
     "gemini-configparser": "^1.0.0",
     "http-codes": "1.0.0",
+    "image-size": "^1.0.2",
     "inquirer": "^8.2.0",
     "json-stringify-safe": "^5.0.1",
     "lodash": "^4.17.4",
@@ -85,6 +87,7 @@
     "p-queue": "^5.0.0",
     "qs": "^6.9.1",
     "signal-exit": "^3.0.2",
+    "strip-ansi": "^6.0.1",
     "tmp": "^0.1.0",
     "worker-farm": "^1.7.0"
   },

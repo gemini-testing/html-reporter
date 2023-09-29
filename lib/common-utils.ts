@@ -100,9 +100,7 @@ export const isNoRefImageError = (error?: unknown): error is NoRefImageError => 
 };
 
 export const hasNoRefImageErrors = ({assertViewResults = []}: {assertViewResults?: AssertViewResult[]}): boolean => {
-    const noRefImageErrors = assertViewResults.filter((assertViewResult: AssertViewResult) => isNoRefImageError(assertViewResult));
-
-    return !isEmpty(noRefImageErrors);
+    return assertViewResults.some((assertViewResult: AssertViewResult) => isNoRefImageError(assertViewResult));
 };
 
 const hasFailedImages = (result: {imagesInfo?: ImageInfoFull[]}): boolean => {
@@ -130,7 +128,7 @@ export const hasDiff = (assertViewResults: AssertViewResult[]): boolean => {
     return assertViewResults.some((result) => isImageDiffError(result as {name?: string}));
 };
 
-export const isBase64Image = (image: ImageData | ImageBase64 | undefined): image is ImageBase64 => {
+export const isBase64Image = (image: ImageData | ImageBase64 | null | undefined): image is ImageBase64 => {
     return Boolean((image as ImageBase64 | undefined)?.base64);
 };
 

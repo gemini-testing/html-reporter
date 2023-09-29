@@ -4,6 +4,7 @@ const _ = require('lodash');
 const {StaticTestsTreeBuilder} = require('lib/tests-tree-builder/static');
 const {SUCCESS} = require('lib/constants/test-statuses');
 const {BrowserVersions} = require('lib/constants/browser');
+const {ToolName} = require('lib/constants');
 
 describe('StaticResultsTreeBuilder', () => {
     const sandbox = sinon.sandbox.create();
@@ -68,7 +69,7 @@ describe('StaticResultsTreeBuilder', () => {
         sandbox.stub(StaticTestsTreeBuilder.prototype, 'addTestResult');
         sandbox.stub(StaticTestsTreeBuilder.prototype, 'sortTree');
 
-        builder = StaticTestsTreeBuilder.create();
+        builder = StaticTestsTreeBuilder.create({toolName: ToolName.Hermione});
     });
 
     afterEach(() => sandbox.restore());

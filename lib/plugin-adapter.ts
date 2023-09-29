@@ -8,6 +8,7 @@ import * as utils from './server-utils';
 import {cliCommands} from './cli-commands';
 import {HtmlReporter} from './plugin-api';
 import {HtmlReporterApi, ReporterConfig, ReporterOptions} from './types';
+import {ToolName} from './constants';
 
 type PrepareFn = (hermione: Hermione & HtmlReporterApi, reportBuilder: StaticReportBuilder, config: ReporterConfig) => Promise<void>;
 
@@ -33,7 +34,7 @@ export class PluginAdapter {
     }
 
     addApi(): this {
-        this._hermione.htmlReporter = HtmlReporter.create(this._config);
+        this._hermione.htmlReporter = HtmlReporter.create(this._config, {toolName: ToolName.Hermione});
         return this;
     }
 

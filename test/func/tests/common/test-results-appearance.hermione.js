@@ -1,10 +1,4 @@
-const {getTestSectionByNameSelector, getImageSectionSelector, getTestStateByNameSelector, getElementWithTextSelector} = require('../utils');
-
-const hideHeader = async (browser) => {
-    await browser.execute(() => {
-        document.querySelector('.sticky-header').style.visibility = 'hidden';
-    });
-};
+const {getTestSectionByNameSelector, getImageSectionSelector, getTestStateByNameSelector, getElementWithTextSelector, hideHeader} = require('../utils');
 
 describe('Test results appearance', () => {
     beforeEach(async ({browser}) => {
@@ -72,6 +66,9 @@ describe('Test results appearance', () => {
             );
 
             await hideHeader(browser);
+            await browser.execute(() =>{
+                window.scrollTo(0, 10000);
+            });
 
             await retrySelectorButton.assertView('retry-selector');
         });

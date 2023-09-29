@@ -3,6 +3,7 @@ import {DiffOptions, ImageData} from '../types';
 import {ValueOf} from 'type-fest';
 
 export const ErrorName = {
+    GENERAL_ERROR: 'Error',
     IMAGE_DIFF: 'ImageDiffError',
     NO_REF_IMAGE: 'NoRefImageError',
     ASSERT_VIEW: 'AssertViewError'
@@ -20,13 +21,14 @@ export interface ImageDiffError {
     refImg: ImageData;
     diffClusters: CoordBounds[];
     diffBuffer?: ArrayBuffer;
+    diffImg?: ImageData;
 }
 
 export interface NoRefImageError {
     name: ErrorNames['NO_REF_IMAGE'];
     stateName: string;
     message: string;
-    stack: string;
+    stack?: string;
     currImg: ImageData;
-    refImg: ImageData;
+    refImg?: ImageData;
 }

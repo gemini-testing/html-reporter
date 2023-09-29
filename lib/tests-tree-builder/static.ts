@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import {BaseTestsTreeBuilder, Tree} from './base';
+import {BaseTestsTreeBuilder, BaseTestsTreeBuilderOptions, Tree} from './base';
 import {BrowserVersions, DB_COLUMN_INDEXES, TestStatus} from '../constants';
 import {Attempt, ParsedSuitesRow, RawSuitesRow} from '../types';
 
@@ -30,14 +30,17 @@ interface BrowserItem {
     versions: string[];
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface StaticTestsTreeBuilderOptions extends BaseTestsTreeBuilderOptions {}
+
 export class StaticTestsTreeBuilder extends BaseTestsTreeBuilder {
     protected _stats: FinalStats;
     protected _skips: SkipItem[];
     protected _failedBrowserIds: { [key: string]: boolean };
     protected _passedBrowserIds: { [key: string]: boolean };
 
-    constructor() {
-        super();
+    constructor(options: StaticTestsTreeBuilderOptions) {
+        super(options);
 
         this._stats = {
             ...initStats(),

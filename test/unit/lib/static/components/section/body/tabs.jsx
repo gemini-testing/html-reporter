@@ -2,12 +2,13 @@ import React from 'react';
 import proxyquire from 'proxyquire';
 import {defaultsDeep} from 'lodash';
 import {ERROR, SUCCESS} from 'lib/constants/test-statuses';
+import {mkConnectedComponent} from '../../utils';
 
 describe('<Tabs />', () => {
     const sandbox = sinon.sandbox.create();
     let Tabs, State;
 
-    const mkTabs = (props = {}) => {
+    const mkTabs = (props = {}, state) => {
         props = defaultsDeep(props, {
             result: {
                 id: 'default-result-id',
@@ -18,7 +19,20 @@ describe('<Tabs />', () => {
             }
         });
 
-        return mount(<Tabs {...props} />);
+        const initialState = defaultsDeep(state, {
+            initialState: {
+                tree: {
+                    images: {
+                        byId: {
+                            'img-1': {stateName: 'some-state'},
+                            'img-2': {stateName: 'some-state'}
+                        }
+                    }
+                }
+            }
+        });
+
+        return mkConnectedComponent(<Tabs {...props} />, initialState);
     };
 
     beforeEach(() => {
