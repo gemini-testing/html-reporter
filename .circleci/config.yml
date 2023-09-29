@@ -23,6 +23,9 @@ jobs:
             cd test/func/docker/browser-utils &&
             npm ci &&
             npm run install-chromium
+      - run:
+          name: Install Chromium for Playwright
+          command: npx playwright install chromium
 
       - run:
           name: Download Selenium
