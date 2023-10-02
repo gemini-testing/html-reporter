@@ -13,7 +13,8 @@ class ScreenshotAccepterBody extends Component {
             expectedImg: PropTypes.object,
             actualImg: PropTypes.object,
             diffImg: PropTypes.object,
-            error: PropTypes.object
+            error: PropTypes.object,
+            parentId: PropTypes.string
         }),
         // from store
         testName: PropTypes.string,
@@ -27,24 +28,26 @@ class ScreenshotAccepterBody extends Component {
             <div className='image-box__container'>
                 {
                     isNoRefImageError(image.error)
-                        ? this._renderImageBox('No reference image', image.actualImg)
+                        ? this._renderImageBox(image.actualImg)
                         : <StateFail image={image} />
                 }
             </div>
         );
     }
 
-    _renderImageBox(label, image) {
+    _renderImageBox(image) {
         return (
             <div className="image-box__image">
-                <div className="image-box__title">{label}</div>
                 <ResizedScreenshot image={image} />
             </div>
         );
     }
 
     _renderTitle() {
-        const {testName, browserName, image: {stateName, parentId: resultId}} = this.props;
+        const {testName, browserName, image: {stateName, parentId: resultId, error: imageError}} = this.props;
+        const imagesDescription = isNoRefImageError(imageError)
+            ? 'actual'
+            : 'expected, actual, diff';
 
         return (
             <div className="screenshot-accepter__title">
@@ -53,6 +56,7 @@ class ScreenshotAccepterBody extends Component {
                 <span className="screenshot-accepter__browser-name">{browserName}</span>
                 <span className="screenshot-accepter__title-divider">{'/'}</span>
                 <span className="screenshot-accepter__state-name">{stateName}</span>
+                <span className="screenshot-accepter__images-desc"> ({imagesDescription})</span>
                 <ViewInBrowserIcon extendClassNames="screenshot-accepter__icon_view-in-browser" resultId={resultId}/>
             </div>
         );

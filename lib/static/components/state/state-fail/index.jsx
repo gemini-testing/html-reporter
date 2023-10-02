@@ -64,7 +64,7 @@ const StateFail = ({image, diffMode: diffModeProp, isScreenshotAccepterOpened}) 
 
         return (
             <div className="image-box__image" style={{flex: image.size.width}}>
-                {label && <div key={titleKey} ref={ref} className="image-box__title">{titleText}</div>}
+                {label && !isScreenshotAccepterOpened && <div key={titleKey} ref={ref} className="image-box__title">{titleText}</div>}
                 <ResizedScreenshot
                     image={image}
                     diffClusters={diffClusters}
