@@ -365,7 +365,7 @@ describe('GuiReportBuilder', () => {
         let reportBuilder;
 
         function stubResultData_(result, {resultId, stateName}) {
-            const res = _.defaultsDeep(result, {
+            const res = _.defaults(result, {
                 imageId: 'imageId',
                 status: UPDATED,
                 timestamp: 100500,
@@ -475,10 +475,7 @@ describe('GuiReportBuilder', () => {
             const resultId = 'result-id';
             const stateName = 's-name';
             const formattedResult = mkFormattedResultStub_({id: resultId, stateName});
-            const previousImage = {
-                expectedImg: {path: 'previous-expected-path'},
-                refImg: {path: 'previous-reference-path', size: null}
-            };
+            const previousImage = null;
             const updatedImage = {
                 id: 'updated-img-id',
                 parentId: 'parent-id'
