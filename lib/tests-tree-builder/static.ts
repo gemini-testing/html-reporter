@@ -36,8 +36,9 @@ export interface StaticTestsTreeBuilderOptions extends BaseTestsTreeBuilderOptio
 export class StaticTestsTreeBuilder extends BaseTestsTreeBuilder {
     protected _stats: FinalStats;
     protected _skips: SkipItem[];
-    protected _failedBrowserIds: { [key: string]: boolean };
-    protected _passedBrowserIds: { [key: string]: boolean };
+    protected _failedTestIds: { [key: string]: boolean };
+    protected _passedTestIds: { [key: string]: boolean };
+    protected _skippedTestIds: { [key: string]: boolean };
 
     constructor(options: StaticTestsTreeBuilderOptions) {
         super(options);
@@ -47,8 +48,9 @@ export class StaticTestsTreeBuilder extends BaseTestsTreeBuilder {
             perBrowser: {}
         };
         this._skips = [];
-        this._failedBrowserIds = {};
-        this._passedBrowserIds = {};
+        this._failedTestIds = {};
+        this._passedTestIds = {};
+        this._skippedTestIds = {};
     }
 
     build(rows: RawSuitesRow[] = []): { tree: Tree; stats: FinalStats; skips: SkipItem[]; browsers: BrowserItem[] } {
@@ -71,7 +73,7 @@ export class StaticTestsTreeBuilder extends BaseTestsTreeBuilder {
             addBrowserVersion(browsers, testResult);
 
             this.addTestResult(testResult, formattedResult);
-            this._calcStats(testResult, {testId, browserId, browserName});
+            this._calcStats(testResult, {testId, browserName});
         }
 
         this.sortTree();
@@ -88,7 +90,8 @@ export class StaticTestsTreeBuilder extends BaseTestsTreeBuilder {
         this._tree.browsers.byId[browserId].resultIds.push(testResultId);
     }
 
-    protected _calcStats(testResult: ParsedSuitesRow, {testId, browserId, browserName}: { testId: string; browserId: string; browserName: string }): void {
+    protected _calcStats(testResult: ParsedSuitesRow, {testId, browserName}: { testId: string; browserName: string }): void {
+        const testIdWithBrowser = this._buildId(testId, browserName);
         const {status} = testResult;
         const {browserVersion} = testResult.metaInfo;
         const version = browserVersion || BrowserVersions.UNKNOWN;
@@ -104,13 +107,13 @@ export class StaticTestsTreeBuilder extends BaseTestsTreeBuilder {
         switch (status) {
             case TestStatus.FAIL:
             case TestStatus.ERROR: {
-                if (this._failedBrowserIds[browserId]) {
+                if (this._failedTestIds[testIdWithBrowser]) {
                     this._stats.retries++;
                     this._stats.perBrowser[browserName][version].retries++;
                     return;
                 }
 
-                this._failedBrowserIds[browserId] = true;
+                this._failedTestIds[testIdWithBrowser] = true;
                 this._stats.failed++;
                 this._stats.total++;
                 this._stats.perBrowser[browserName][version].failed++;
@@ -119,14 +122,14 @@ export class StaticTestsTreeBuilder extends BaseTestsTreeBuilder {
             }
 
             case TestStatus.SUCCESS: {
-                if (this._passedBrowserIds[browserId]) {
+                if (this._passedTestIds[testIdWithBrowser]) {
                     this._stats.retries++;
                     this._stats.perBrowser[browserName][version].retries++;
                     return;
                 }
 
-                if (this._failedBrowserIds[browserId]) {
-                    delete this._failedBrowserIds[browserId];
+                if (this._failedTestIds[testIdWithBrowser]) {
+                    delete this._failedTestIds[testIdWithBrowser];
                     this._stats.failed--;
                     this._stats.passed++;
                     this._stats.retries++;
@@ -137,7 +140,7 @@ export class StaticTestsTreeBuilder extends BaseTestsTreeBuilder {
                     return;
                 }
 
-                this._passedBrowserIds[browserId] = true;
+                this._passedTestIds[testIdWithBrowser] = true;
                 this._stats.passed++;
                 this._stats.total++;
                 this._stats.perBrowser[browserName][version].passed++;
@@ -147,6 +150,14 @@ export class StaticTestsTreeBuilder extends BaseTestsTreeBuilder {
             }
 
             case TestStatus.SKIPPED: {
+                if (this._skippedTestIds[testIdWithBrowser]) {
+                    this._stats.retries++;
+                    this._stats.perBrowser[browserName][version].retries++;
+                    return;
+                }
+
+                this._skippedTestIds[testIdWithBrowser] = true;
+
                 this._skips.push({
                     browser: browserName,
                     suite: testId,
@@ -156,8 +167,8 @@ export class StaticTestsTreeBuilder extends BaseTestsTreeBuilder {
                 this._stats.skipped++;
                 this._stats.perBrowser[browserName][version].skipped++;
 
-                if (this._failedBrowserIds[browserId]) {
-                    delete this._failedBrowserIds[browserId];
+                if (this._failedTestIds[testIdWithBrowser]) {
+                    delete this._failedTestIds[testIdWithBrowser];
                     this._stats.failed--;
                     this._stats.perBrowser[browserName][version].failed--;
                     return;
