@@ -3,7 +3,7 @@ import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
 import ResizedScreenshot from '../../state/screenshot/resized';
 import StateFail from '../../state/state-fail';
-import {isNoRefImageError} from '../../../modules/utils';
+import {isNoRefImageError} from '../../../../common-utils';
 import ViewInBrowserIcon from '../../icons/view-in-browser';
 
 class ScreenshotAccepterBody extends Component {

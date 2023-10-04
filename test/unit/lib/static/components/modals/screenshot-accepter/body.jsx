@@ -5,7 +5,7 @@ import {mkConnectedComponent} from '../../utils';
 
 describe('<ScreenshotAccepterBody/>', () => {
     const sandbox = sinon.sandbox.create();
-    let ScreenshotAccepterBody, ResizedScreenshot, StateFail, isNoRefImageError;
+    let ScreenshotAccepterBody, ResizedScreenshot, StateFail;
 
     const mkBrowser = (opts) => {
         const browser = defaults(opts, {
@@ -56,12 +56,10 @@ describe('<ScreenshotAccepterBody/>', () => {
     beforeEach(() => {
         ResizedScreenshot = sandbox.stub().returns(null);
         StateFail = sandbox.stub().returns(null);
-        isNoRefImageError = sandbox.stub().returns(false);
 
         ScreenshotAccepterBody = proxyquire('lib/static/components/modals/screenshot-accepter/body', {
             '../../state/screenshot/resized': {default: ResizedScreenshot},
-            '../../state/state-fail': {default: StateFail},
-            '../../../modules/utils': {isNoRefImageError}
+            '../../state/state-fail': {default: StateFail}
         }).default;
     });
 
@@ -97,13 +95,12 @@ describe('<ScreenshotAccepterBody/>', () => {
                 id: 'img',
                 parentId: 'res',
                 stateName: 'state',
-                error: {stack: 'NoRefImageError'},
+                error: {name: 'NoRefImageError'},
                 actualImg: {path: 'some/path', size: {width: 10, height: 20}}
             });
             const resultsById = mkResult({id: 'res', parentId: 'bro'});
             const browsersById = mkBrowser({id: 'bro', parentId: 'suite', name: 'yabro'});
             const tree = mkStateTree({browsersById, resultsById});
-            isNoRefImageError.withArgs(image.error).returns(true);
 
             const component = mkBodyComponent({image}, {tree});
 
@@ -121,7 +118,6 @@ describe('<ScreenshotAccepterBody/>', () => {
             const resultsById = mkResult({id: 'res', parentId: 'bro'});
             const browsersById = mkBrowser({id: 'bro', parentId: 'suite', name: 'yabro'});
             const tree = mkStateTree({browsersById, resultsById});
-            isNoRefImageError.returns(false);
 
             mkBodyComponent({image}, {tree});
 
