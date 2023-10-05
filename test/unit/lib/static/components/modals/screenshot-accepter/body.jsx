@@ -75,7 +75,7 @@ describe('<ScreenshotAccepterBody/>', () => {
         assert.isEmpty(component.find('.screenshot-accepter__title'));
     });
 
-    it('should render full title of image state', () => {
+    it('should render full title of image state with image description', () => {
         const image = mkImage({id: 'img', parentId: 'res', stateName: 'state'});
         const resultsById = mkResult({id: 'res', parentId: 'bro'});
         const browsersById = mkBrowser({id: 'bro', parentId: 'suite', name: 'yabro'});
@@ -85,19 +85,34 @@ describe('<ScreenshotAccepterBody/>', () => {
 
         assert.equal(
             component.find('.screenshot-accepter__title').text(),
-            'suite/yabro/state'
+            'suite/yabro/state (expected, actual, diff)'
         );
     });
 
     describe('no reference image error', () => {
-        it('should render screenshot with title', () => {
-            const image = mkImage({
+        let image;
+
+        beforeEach(() => {
+            image = mkImage({
                 id: 'img',
                 parentId: 'res',
                 stateName: 'state',
                 error: {name: 'NoRefImageError'},
                 actualImg: {path: 'some/path', size: {width: 10, height: 20}}
             });
+        });
+
+        it('should render screenshot', () => {
+            const resultsById = mkResult({id: 'res', parentId: 'bro'});
+            const browsersById = mkBrowser({id: 'bro', parentId: 'suite', name: 'yabro'});
+            const tree = mkStateTree({browsersById, resultsById});
+
+            mkBodyComponent({image}, {tree});
+
+            assert.calledOnceWith(ResizedScreenshot, {image: image.actualImg});
+        });
+
+        it('should contain description only for actual image', () => {
             const resultsById = mkResult({id: 'res', parentId: 'bro'});
             const browsersById = mkBrowser({id: 'bro', parentId: 'suite', name: 'yabro'});
             const tree = mkStateTree({browsersById, resultsById});
@@ -105,10 +120,9 @@ describe('<ScreenshotAccepterBody/>', () => {
             const component = mkBodyComponent({image}, {tree});
 
             assert.equal(
-                component.find('.image-box__title').text(),
-                'No reference image'
+                component.find('.screenshot-accepter__title').text(),
+                'suite/yabro/state (actual)'
             );
-            assert.calledOnceWith(ResizedScreenshot, {image: image.actualImg});
         });
     });
 
