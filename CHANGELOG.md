@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="9.13.0"></a>
+# [9.13.0](https://github.com/gemini-testing/html-reporter/compare/v9.12.0...v9.13.0) (2023-10-06)
+
+
+### Bug Fixes
+
+* **screenshot-accepter:** wrong utils import ([cffc992](https://github.com/gemini-testing/html-reporter/commit/cffc992))
+* fix skipped/total tests counters when there are retried skipped tests ([#511](https://github.com/gemini-testing/html-reporter/issues/511)) ([feeee1c](https://github.com/gemini-testing/html-reporter/commit/feeee1c))
+* **screenshot-undo:** do not fail on revert screenshot with different state name ([5c51487](https://github.com/gemini-testing/html-reporter/commit/5c51487))
+
+
+### Features
+
+* **screenshot-accepter:** add more space for screenshot view ([af01739](https://github.com/gemini-testing/html-reporter/commit/af01739))
+
+
+
 <a name="9.12.0"></a>
 # [9.12.0](https://github.com/gemini-testing/html-reporter/compare/v9.11.6...v9.12.0) (2023-09-29)
 
