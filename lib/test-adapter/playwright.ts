@@ -12,8 +12,11 @@ import {ErrorName} from '../errors';
 import {ImagesInfoFormatter} from '../image-handler';
 import {AssertViewResult, ErrorDetails, ImageData, ImageInfoFull, ImageSize, TestError} from '../types';
 import * as utils from '../server-utils';
+import type {CoordBounds} from 'looks-same';
 
 export type PlaywrightAttachment = PlaywrightTestResult['attachments'][number];
+
+export type PwtImageDiffError = TestError & {meta?: {type: string, snapshotName: string, diffClusters: CoordBounds[]}};
 
 export enum PwtTestStatus {
     PASSED = 'passed',
@@ -118,7 +121,8 @@ export class PlaywrightTestAdapter implements ReporterTestResult {
                     stateName: state,
                     refImg,
                     diffImg,
-                    currImg
+                    currImg,
+                    diffClusters: this.getDiffClusters(state)
                 };
             } else if (this.error?.name === ErrorName.NO_REF_IMAGE && currImg) {
                 return {
@@ -250,6 +254,16 @@ export class PlaywrightTestAdapter implements ReporterTestResult {
     get url(): string {
         // TODO: HERMIONE-1191
         return '';
+    }
+
+    private getDiffClusters(state: string): CoordBounds[] {
+        const snapshotName = state + '.png';
+        const errors = this._testResult.errors as PwtImageDiffError[];
+        const snapshotImageDiffError = errors.find(err => {
+            return err.meta?.type === 'ImageDiffError' && err.meta.snapshotName === snapshotName;
+        });
+
+        return snapshotImageDiffError?.meta?.diffClusters || [];
     }
 
     private get _attachmentsByState(): Record<string, PlaywrightAttachment[]> {
