@@ -2,7 +2,7 @@ import sinon from 'sinon';
 import _ from 'lodash';
 import proxyquire from 'proxyquire';
 import {TestCase, TestResult} from '@playwright/test/reporter';
-import {ImageTitleEnding, PlaywrightAttachment, PlaywrightTestAdapterOptions, PwtTestStatus} from 'lib/test-adapter/playwright';
+import {ImageTitleEnding, PlaywrightAttachment, PlaywrightTestAdapterOptions, PwtImageDiffError, PwtTestStatus} from 'lib/test-adapter/playwright';
 import {ErrorName, ImageDiffError, NoRefImageError} from 'lib/errors';
 import {TestStatus} from 'lib/constants';
 
@@ -87,6 +87,23 @@ describe('PlaywrightTestAdapter', () => {
             assert.strictEqual(results[0].name, ErrorName.NO_REF_IMAGE);
             assert.strictEqual(results[0].stateName, 'state1');
             assert.strictEqual(results[0].currImg?.path, 'state1' + ImageTitleEnding.Actual);
+        });
+
+        it('should have diff clusters', () => {
+            const testCaseStub = mkTestCase();
+            const testResultStub = mkTestResult({
+                errors: [{message: 'Screenshot comparison failed', meta: {
+                    type: 'ImageDiffError',
+                    snapshotName: 'state1.png',
+                    diffClusters: [{left: 0, top: 0, right: 1, bottom: 1}]
+                }} as PwtImageDiffError]
+            });
+
+            const adapter = new PlaywrightTestAdapter(testCaseStub, testResultStub, mkAdapterOptions());
+
+            const results = adapter.assertViewResults as ImageDiffError[];
+
+            assert.deepEqual(results[0].diffClusters, [{left: 0, top: 0, right: 1, bottom: 1}]);
         });
     });
 
