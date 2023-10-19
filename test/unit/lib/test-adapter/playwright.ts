@@ -2,7 +2,7 @@ import sinon from 'sinon';
 import _ from 'lodash';
 import proxyquire from 'proxyquire';
 import {TestCase, TestResult} from '@playwright/test/reporter';
-import {ImageTitleEnding, PlaywrightAttachment, PlaywrightTestAdapterOptions, PwtImageDiffError, PwtTestStatus} from 'lib/test-adapter/playwright';
+import {ImageTitleEnding, PlaywrightAttachment, PlaywrightTestAdapterOptions, PwtImageDiffError, PwtNoRefImageError, PwtTestStatus} from 'lib/test-adapter/playwright';
 import {ErrorName, ImageDiffError, NoRefImageError} from 'lib/errors';
 import {TestStatus} from 'lib/constants';
 
@@ -104,6 +104,42 @@ describe('PlaywrightTestAdapter', () => {
             const results = adapter.assertViewResults as ImageDiffError[];
 
             assert.deepEqual(results[0].diffClusters, [{left: 0, top: 0, right: 1, bottom: 1}]);
+        });
+
+        it('should detect multiple different errors from toMatchScreenshot', () => {
+            const testCaseStub = mkTestCase();
+            const testResultStub = mkTestResult({
+                attachments: [
+                    createAttachment('state1' + ImageTitleEnding.Expected),
+                    createAttachment('state1' + ImageTitleEnding.Diff),
+                    createAttachment('state1' + ImageTitleEnding.Actual),
+                    createAttachment('state2' + ImageTitleEnding.Actual)
+                ],
+                errors: [
+                    {
+                        message: 'Screenshot comparison failed',
+                        meta: {
+                            type: 'ImageDiffError',
+                            snapshotName: 'state1.png',
+                            diffClusters: [{left: 0, top: 0, right: 1, bottom: 1}]
+                        }
+                    } as PwtImageDiffError,
+                    {
+                        message: '',
+                        meta: {
+                            type: 'NoRefImageError',
+                            snapshotName: 'state2.png'
+                        }
+                    } as PwtNoRefImageError
+                ]
+            });
+
+            const adapter = new PlaywrightTestAdapter(testCaseStub, testResultStub, mkAdapterOptions());
+
+            const results = adapter.assertViewResults as ImageDiffError[];
+
+            assert.deepEqual(results[0].name, 'ImageDiffError');
+            assert.deepEqual(results[1].name, 'NoRefImageError');
         });
     });
 

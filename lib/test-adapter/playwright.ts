@@ -16,7 +16,11 @@ import type {CoordBounds} from 'looks-same';
 
 export type PlaywrightAttachment = PlaywrightTestResult['attachments'][number];
 
-export type PwtImageDiffError = TestError & {meta?: {type: string, snapshotName: string, diffClusters: CoordBounds[]}};
+type ExtendedError<T> = TestError & {meta?: T & {type: string}};
+
+export type PwtImageDiffError = ExtendedError<{snapshotName: string, diffClusters: CoordBounds[]}>;
+
+export type PwtNoRefImageError = ExtendedError<{snapshotName: string}>;
 
 export enum PwtTestStatus {
     PASSED = 'passed',
@@ -75,6 +79,35 @@ const extractErrorStack = (result: PlaywrightTestResult): string => {
     return JSON.stringify(result.errors.map(err => stripAnsi(err.stack || '')));
 };
 
+const extractImageError = (result: PlaywrightTestResult, {state, expectedAttachment, diffAttachment, actualAttachment} : {
+    state: string;
+    expectedAttachment?: PlaywrightAttachment;
+    diffAttachment?: PlaywrightAttachment;
+    actualAttachment?: PlaywrightAttachment;
+}): TestError & {diffClusters?: CoordBounds[]} | null => {
+    const snapshotName = state + '.png';
+
+    if (expectedAttachment && diffAttachment && actualAttachment) {
+        const errors = result.errors as PwtImageDiffError[];
+        const imageDiffError = errors.find(err => {
+            return err.meta?.type === ErrorName.IMAGE_DIFF && err.meta.snapshotName === snapshotName;
+        });
+
+        return {name: ErrorName.IMAGE_DIFF, message: '', diffClusters: imageDiffError?.meta?.diffClusters};
+    }
+
+    // only supports toMatchScreenshot
+    const errors = result.errors as PwtNoRefImageError[];
+    const noRefImageError = errors.find(err => {
+        return err.meta?.type === ErrorName.NO_REF_IMAGE && err.meta.snapshotName === snapshotName;
+    });
+
+    return noRefImageError ? {
+        name: ErrorName.NO_REF_IMAGE,
+        message: stripAnsi(noRefImageError?.message)
+    } : null;
+};
+
 const getImageData = (attachment: PlaywrightAttachment | undefined): ImageData | null => {
     if (!attachment) {
         return null;
@@ -111,24 +144,28 @@ export class PlaywrightTestAdapter implements ReporterTestResult {
 
     get assertViewResults(): AssertViewResult[] {
         return Object.entries(this._attachmentsByState).map(([state, attachments]): AssertViewResult | null => {
-            const refImg = getImageData(attachments.find(a => a.name?.endsWith(ImageTitleEnding.Expected)));
-            const diffImg = getImageData(attachments.find(a => a.name?.endsWith(ImageTitleEnding.Diff)));
-            const currImg = getImageData(attachments.find(a => a.name?.endsWith(ImageTitleEnding.Actual)));
+            const expectedAttachment = attachments.find(a => a.name?.endsWith(ImageTitleEnding.Expected));
+            const diffAttachment = attachments.find(a => a.name?.endsWith(ImageTitleEnding.Diff));
+            const actualAttachment = attachments.find(a => a.name?.endsWith(ImageTitleEnding.Actual));
 
-            if (this.error?.name === ErrorName.IMAGE_DIFF && refImg && diffImg && currImg) {
+            const [refImg, diffImg, currImg] = [expectedAttachment, diffAttachment, actualAttachment].map(getImageData);
+
+            const error = extractImageError(this._testResult, {state, expectedAttachment, diffAttachment, actualAttachment}) || this.error;
+
+            if (error?.name === ErrorName.IMAGE_DIFF && refImg && diffImg && currImg) {
                 return {
                     name: ErrorName.IMAGE_DIFF,
                     stateName: state,
                     refImg,
                     diffImg,
                     currImg,
-                    diffClusters: this.getDiffClusters(state)
+                    diffClusters: _.get(error, 'diffClusters', [])
                 };
-            } else if (this.error?.name === ErrorName.NO_REF_IMAGE && currImg) {
+            } else if (error?.name === ErrorName.NO_REF_IMAGE && currImg) {
                 return {
                     name: ErrorName.NO_REF_IMAGE,
-                    message: this.error.message,
-                    stack: this.error.stack,
+                    message: error.message,
+                    stack: error.stack,
                     stateName: state,
                     currImg
                 };
@@ -254,16 +291,6 @@ export class PlaywrightTestAdapter implements ReporterTestResult {
     get url(): string {
         // TODO: HERMIONE-1191
         return '';
-    }
-
-    private getDiffClusters(state: string): CoordBounds[] {
-        const snapshotName = state + '.png';
-        const errors = this._testResult.errors as PwtImageDiffError[];
-        const snapshotImageDiffError = errors.find(err => {
-            return err.meta?.type === 'ImageDiffError' && err.meta.snapshotName === snapshotName;
-        });
-
-        return snapshotImageDiffError?.meta?.diffClusters || [];
     }
 
     private get _attachmentsByState(): Record<string, PlaywrightAttachment[]> {
