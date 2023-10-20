@@ -155,6 +155,7 @@ describe('GUI mode', () => {
                 );
 
                 await retryButton.click();
+                await retryButton.waitForClickable({reverse: true, timeout: 10000});
                 await retryButton.waitForClickable({timeout: 10000});
 
                 // Verify green retry button

@@ -1,4 +1,10 @@
-const {getTestSectionByNameSelector, getImageSectionSelector, getTestStateByNameSelector, getElementWithTextSelector, hideHeader} = require('../utils');
+const {
+    getTestSectionByNameSelector,
+    getImageSectionSelector,
+    getTestStateByNameSelector,
+    getElementWithTextSelector,
+    hideHeader
+} = require('../utils');
 
 describe('Test results appearance', () => {
     beforeEach(async ({browser}) => {
@@ -66,7 +72,7 @@ describe('Test results appearance', () => {
             );
 
             await hideHeader(browser);
-            await browser.execute(() =>{
+            await browser.execute(() => {
                 window.scrollTo(0, 10000);
             });
 
@@ -122,7 +128,7 @@ describe('Test results appearance', () => {
         });
     });
 
-    describe('Test with successful describe and error', () => {
+    describe('Test with successful assertView and error', () => {
         it('should display error message, name and stack', async ({browser}) => {
             for (const field of ['message', 'name', 'stack']) {
                 const errorMessage = browser.$(
