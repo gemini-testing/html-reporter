@@ -34,8 +34,7 @@ test.describe('failed describe', () => {
         test.skip(true, 'foo-bar');
     });
 
-    // TODO: fix screenshot
-    test.skip('test with successful assertView and error', async ({page, baseURL}) => {
+    test('test with successful assertView and error', async ({page, baseURL}) => {
         await page.goto(baseURL as string);
 
         await expect(page.locator('header')).toHaveScreenshot('header-success.png');
