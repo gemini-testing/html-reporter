@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="9.15.0"></a>
+# [9.15.0](https://github.com/gemini-testing/html-reporter/compare/v9.13.0...v9.15.0) (2023-10-23)
+
+
+### Bug Fixes
+
+* display error details even if test has successful assertView results and fix e2e tests ([#516](https://github.com/gemini-testing/html-reporter/issues/516)) ([9c6ec25](https://github.com/gemini-testing/html-reporter/commit/9c6ec25))
+* support multiple diffs with toMatchScreenshot ([3b63080](https://github.com/gemini-testing/html-reporter/commit/3b63080))
+
+
+### Features
+
+* add pwt toMatchScreenshot diff bubbles support ([77fc722](https://github.com/gemini-testing/html-reporter/commit/77fc722))
+
+
+
 <a name="9.14.0"></a>
 # [9.14.0](https://github.com/gemini-testing/html-reporter/compare/v9.13.0...v9.14.0) (2023-10-19)
 
