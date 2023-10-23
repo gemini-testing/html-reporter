@@ -1,4 +1,10 @@
-const {getTestSectionByNameSelector, getImageSectionSelector, getTestStateByNameSelector, getElementWithTextSelector, hideHeader} = require('../utils');
+const {
+    getTestSectionByNameSelector,
+    getImageSectionSelector,
+    getTestStateByNameSelector,
+    getElementWithTextSelector,
+    hideHeader, hideScreenshots
+} = require('../utils');
 
 describe('Test results appearance', () => {
     beforeEach(async ({browser}) => {
@@ -13,6 +19,7 @@ describe('Test results appearance', () => {
             );
 
             await hideHeader(browser);
+            await hideScreenshots(browser);
 
             await retrySelectorButton.assertView('retry-selector');
         });
@@ -26,6 +33,7 @@ describe('Test results appearance', () => {
             );
 
             await hideHeader(browser);
+            await hideScreenshots(browser);
 
             await retrySelectorButton.assertView('retry-selector');
         });
@@ -66,7 +74,8 @@ describe('Test results appearance', () => {
             );
 
             await hideHeader(browser);
-            await browser.execute(() =>{
+            await hideScreenshots(browser);
+            await browser.execute(() => {
                 window.scrollTo(0, 10000);
             });
 
@@ -106,6 +115,7 @@ describe('Test results appearance', () => {
             );
 
             await hideHeader(browser);
+            await hideScreenshots(browser);
 
             await retrySelectorButton.assertView('retry-selector');
         });
@@ -114,6 +124,21 @@ describe('Test results appearance', () => {
             for (const field of ['message', 'name', 'stack']) {
                 const errorMessage = browser.$(
                     getTestSectionByNameSelector('test with long error message') +
+                    getElementWithTextSelector('span', field) + '/..'
+                );
+
+                await expect(errorMessage).toBeDisplayed();
+            }
+        });
+    });
+
+    describe('Test with successful assertView and error', () => {
+        // eslint-disable-next-line no-undef
+        hermione.only.in('chrome');
+        it('should display error message, name and stack', async ({browser}) => {
+            for (const field of ['message', 'name', 'stack']) {
+                const errorMessage = browser.$(
+                    getTestSectionByNameSelector('test with successful assertView and error') +
                     getElementWithTextSelector('span', field) + '/..'
                 );
 

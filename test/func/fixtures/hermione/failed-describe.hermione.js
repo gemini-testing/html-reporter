@@ -21,6 +21,14 @@ describe('failed describe', function() {
         throw new Error(`long_error_message ${'0123456789'.repeat(20)}\n message content`);
     });
 
+    it('test with successful assertView and error', async ({browser}) => {
+        await browser.url(browser.options.baseUrl);
+
+        await browser.assertView('header', 'header');
+
+        throw new Error('Some error');
+    });
+
     it.skip('test skipped', async ({browser}) => {
         await browser.url(browser.options.baseUrl);
     });

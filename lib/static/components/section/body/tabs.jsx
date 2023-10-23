@@ -11,7 +11,6 @@ class Tabs extends Component {
             id: PropTypes.string.isRequired,
             status: PropTypes.string.isRequired,
             imageIds: PropTypes.array.isRequired,
-            multipleTabs: PropTypes.bool.isRequired,
             screenshot: PropTypes.bool.isRequired,
             error: PropTypes.object
         }).isRequired
@@ -20,7 +19,7 @@ class Tabs extends Component {
     _shouldAddErrorTab() {
         const {result} = this.props;
 
-        return result.multipleTabs && isErrorStatus(result.status) && !result.screenshot;
+        return isErrorStatus(result.status);
     }
 
     _drawTab({key, imageId = null}) {

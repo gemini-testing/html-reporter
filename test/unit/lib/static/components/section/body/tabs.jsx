@@ -1,7 +1,7 @@
 import React from 'react';
 import proxyquire from 'proxyquire';
 import {defaultsDeep} from 'lodash';
-import {ERROR, SUCCESS} from 'lib/constants/test-statuses';
+import {ERROR, FAIL, SUCCESS} from 'lib/constants/test-statuses';
 import {mkConnectedComponent} from '../../utils';
 
 describe('<Tabs />', () => {
@@ -13,9 +13,7 @@ describe('<Tabs />', () => {
             result: {
                 id: 'default-result-id',
                 status: SUCCESS,
-                imageIds: [],
-                multipleTabs: true,
-                screenshot: true
+                imageIds: []
             }
         });
 
@@ -64,7 +62,7 @@ describe('<Tabs />', () => {
     });
 
     it('should render image tab for each image id', () => {
-        const result = {status: ERROR, imageIds: ['img-1', 'img-2']};
+        const result = {status: FAIL, imageIds: ['img-1', 'img-2']};
 
         const component = mkTabs({result});
 
@@ -75,7 +73,7 @@ describe('<Tabs />', () => {
     });
 
     it('should not render additional error tab if test errored with screenshot on reject', () => {
-        const result = {status: ERROR, imageIds: ['img-1'], screenshot: true};
+        const result = {status: FAIL, imageIds: ['img-1'], screenshot: true};
 
         const component = mkTabs({result});
 
