@@ -133,6 +133,7 @@ describe('Test results appearance', () => {
     });
 
     describe('Test with successful assertView and error', () => {
+        // eslint-disable-next-line no-undef
         hermione.only.in('chrome');
         it('should display error message, name and stack', async ({browser}) => {
             for (const field of ['message', 'name', 'stack']) {
