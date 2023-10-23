@@ -6,7 +6,7 @@ const {promisify} = require('util');
 const treeKill = promisify(require('tree-kill'));
 
 const {PORTS} = require('../../utils/constants');
-const {getTestSectionByNameSelector, getSpoilerByNameSelector, getElementWithTextSelector} = require('../utils');
+const {getTestSectionByNameSelector, getSpoilerByNameSelector, getElementWithTextSelector, hideScreenshots} = require('../utils');
 
 const serverHost = process.env.SERVER_HOST ?? 'host.docker.internal';
 
@@ -139,6 +139,7 @@ describe('GUI mode', () => {
                     getTestSectionByNameSelector(fullTestName) +
                     '//button[@data-test-id="retry-switcher"]';
                 const retrySwitcher = browser.$(`(${allRetryButtonsSelector})[last()]`);
+                await hideScreenshots(browser);
 
                 await retrySwitcher.assertView('retry-switcher');
 
@@ -163,6 +164,7 @@ describe('GUI mode', () => {
                     getTestSectionByNameSelector(fullTestName) +
                     '//button[@data-test-id="retry-switcher"]';
                 const retrySwitcher = browser.$(`(${allRetryButtonsSelector})[last()]`);
+                await hideScreenshots(browser);
 
                 await retrySwitcher.assertView('retry-switcher');
 

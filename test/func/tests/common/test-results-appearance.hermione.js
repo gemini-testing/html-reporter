@@ -3,7 +3,7 @@ const {
     getImageSectionSelector,
     getTestStateByNameSelector,
     getElementWithTextSelector,
-    hideHeader
+    hideHeader, hideScreenshots
 } = require('../utils');
 
 describe('Test results appearance', () => {
@@ -19,6 +19,7 @@ describe('Test results appearance', () => {
             );
 
             await hideHeader(browser);
+            await hideScreenshots(browser);
 
             await retrySelectorButton.assertView('retry-selector');
         });
@@ -32,6 +33,7 @@ describe('Test results appearance', () => {
             );
 
             await hideHeader(browser);
+            await hideScreenshots(browser);
 
             await retrySelectorButton.assertView('retry-selector');
         });
@@ -72,6 +74,7 @@ describe('Test results appearance', () => {
             );
 
             await hideHeader(browser);
+            await hideScreenshots(browser);
             await browser.execute(() => {
                 window.scrollTo(0, 10000);
             });
@@ -112,6 +115,7 @@ describe('Test results appearance', () => {
             );
 
             await hideHeader(browser);
+            await hideScreenshots(browser);
 
             await retrySelectorButton.assertView('retry-selector');
         });

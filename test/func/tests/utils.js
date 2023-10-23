@@ -20,11 +20,20 @@ const hideHeader = async (browser) => {
     });
 };
 
+const hideScreenshots = async (browser) => {
+    await browser.execute(() => {
+        document.querySelectorAll('.image-box__image').forEach(el => {
+            el.style.display = 'none';
+        });
+    });
+};
+
 module.exports = {
     getTestSectionByNameSelector,
     getTestStateByNameSelector,
     getImageSectionSelector,
     getElementWithTextSelector,
     getSpoilerByNameSelector,
-    hideHeader
+    hideHeader,
+    hideScreenshots
 };

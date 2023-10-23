@@ -21,7 +21,7 @@
 
 .report {
     font: 15px YS Text, Helvetica Neue, Arial, sans-serif;
-    line-height: 20px;
+    line-height: 15px;
     margin-bottom: 15px;
 }
 
@@ -320,7 +320,7 @@ main.container {
 
 .section__body .section__title {
     font-size: 15px;
-    line-height: 20px;
+    line-height: 15px;
 }
 
 .section__body .section__title.section__title_type_browser {
@@ -335,7 +335,7 @@ main.container {
 .sticky-header__wrap:before {
     content: '';
     width: 18px;
-    height: 16px;
+    height: 18px;
     display: inline-block;
     margin-right: 5px;
     vertical-align: middle;
