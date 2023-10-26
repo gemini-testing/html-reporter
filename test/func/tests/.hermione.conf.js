@@ -24,26 +24,20 @@ const commonConfig = getCommonConfig(__dirname);
 const config = _.merge(commonConfig, {
     baseUrl: `http://${serverHost}:${serverPort}/fixtures/${projectUnderTest}/report/index.html`,
 
-    browsers: {
-        // TODO: this is a hack to be able to have 2 sets of screenshots, for hermione-based report and pwt-based report
-        //       currently, those have weird tiny diffs. Would be nice to figure out the cause and have common screenshots.
-        'chrome-pwt': {...commonConfig.browsers.chrome}
-    },
-
     sets: {
         common: {
             files: 'common/**/*.hermione.js'
         },
         'common-gui': {
-            browsers: ['chrome'],
             files: 'common-gui/**/*.hermione.js'
         },
+        'common-tinder': {
+            files: 'common-tinder/**/*.hermione.js'
+        },
         eye: {
-            browsers: ['chrome'],
             files: 'eye/**/*.hermione.js',
         },
         plugins: {
-            browsers: ['chrome'],
             files: 'plugins/**/*.hermione.js'
         }
     },

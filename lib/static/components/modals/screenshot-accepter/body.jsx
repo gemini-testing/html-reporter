@@ -51,7 +51,7 @@ class ScreenshotAccepterBody extends Component {
 
         return (
             <div className="screenshot-accepter__title">
-                <span className="screenshot-accepter__test-name">{testName}</span>
+                <span className="screenshot-accepter__test-name" data-test-id="screenshot-accepter-test-name">{testName}</span>
                 <span className="screenshot-accepter__title-divider">{'/'}</span>
                 <span className="screenshot-accepter__browser-name">{browserName}</span>
                 <span className="screenshot-accepter__title-divider">{'/'}</span>

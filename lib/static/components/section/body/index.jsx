@@ -67,6 +67,7 @@ class Body extends Component {
                         isSuiteControl={true}
                         isDisabled={running}
                         handler={this.onTestRetry}
+                        dataTestId="test-retry"
                     />
                 </div>
             )

@@ -23,6 +23,7 @@ const StrictMatchFilterInput = ({strictMatchFilter, actions}) => {
                 label="Strict match"
                 onChange={onChange}
                 checked={checked}
+                data-test-id="header-strict-match"
             />
         </div>
     );

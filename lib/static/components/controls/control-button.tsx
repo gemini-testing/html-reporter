@@ -13,6 +13,7 @@ interface ControlButtonProps {
     isDisabled?: boolean;
     isRunning?: boolean;
     extendClassNames?: string | string[];
+    dataTestId?: string | number;
 }
 
 export default class ControlButton extends Component<ControlButtonProps> {
@@ -26,7 +27,8 @@ export default class ControlButton extends Component<ControlButtonProps> {
         isSuiteControl: PropTypes.bool,
         isControlGroup: PropTypes.bool,
         isRunning: PropTypes.bool,
-        extendClassNames: PropTypes.oneOfType([PropTypes.array, PropTypes.string])
+        extendClassNames: PropTypes.oneOfType([PropTypes.array, PropTypes.string]),
+        dataTestId: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
     };
 
     render(): JSX.Element {
@@ -40,7 +42,8 @@ export default class ControlButton extends Component<ControlButtonProps> {
             isControlGroup,
             isDisabled = false,
             isRunning = false,
-            extendClassNames
+            extendClassNames,
+            dataTestId
         } = this.props;
 
         const className = classNames(
@@ -58,6 +61,7 @@ export default class ControlButton extends Component<ControlButtonProps> {
             onClick={handler}
             className={className}
             disabled={isDisabled}
+            data-test-id={dataTestId}
         >
             {label}
         </button>;

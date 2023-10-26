@@ -27,6 +27,7 @@ const TestNameFilterInput = ({actions, testNameFilter: testNameFilterProp}) => {
             value={testNameFilter}
             placeholder="filter by test name"
             onChange={onChange}
+            data-test-id="header-test-name-filter"
         />
     );
 };
