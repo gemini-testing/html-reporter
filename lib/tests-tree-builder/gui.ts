@@ -1,55 +1,104 @@
-'use strict';
+import _ from 'lodash';
+import {BaseTestsTreeBuilder, Tree, TreeImage, TreeResult, TreeSuite} from './base';
+import {TestStatus, UPDATED} from '../constants';
+import {isUpdatedStatus} from '../common-utils';
+import {ReporterTestResult} from '../test-adapter';
+import {ImageInfoFail, ImageInfoWithState} from '../types';
 
-const _ = require('lodash');
-const {BaseTestsTreeBuilder} = require('./base');
-const {UPDATED} = require('../constants/test-statuses');
-const {isUpdatedStatus} = require('../common-utils');
+interface SuiteBranch {
+    id: string;
+    status?: TestStatus;
+}
 
-module.exports = class GuiTestsTreeBuilder extends BaseTestsTreeBuilder {
-    getLastResult(formattedResult) {
+interface TestBranch {
+    result: TreeResult;
+    images: TreeImage[];
+    suites: SuiteBranch[];
+}
+
+interface TestRefUpdateData {
+    suite: {path: string[]};
+    state: {name: string};
+    browserId: string;
+    metaInfo: TreeResult['metaInfo'];
+    imagesInfo: {
+        stateName: ImageInfoWithState['stateName'];
+        actualImg: ImageInfoWithState['actualImg'];
+        status: TestStatus;
+    }[];
+    attempt: number;
+}
+
+type TestEqualDiffsData = TreeImage & { browserName: string };
+
+interface TestUndoRefUpdateData {
+    imageId: string;
+    status: TestStatus;
+    timestamp: number;
+    previousImage: TreeImage | null;
+    previousImageId: string | null;
+    shouldRemoveResult: boolean;
+}
+
+export class GuiTestsTreeBuilder extends BaseTestsTreeBuilder {
+    getLastResult(formattedResult: ReporterTestResult): TreeResult | undefined {
         const browserId = this._buildBrowserId(formattedResult);
         const browser = this._tree.browsers.byId[browserId];
         const testResultId = _.last(browser.resultIds);
 
-        return this._tree.results.byId[testResultId];
-    }
-
-    getResultByOrigAttempt(formattedResult) {
-        const testResultId = this._buildTestResultId(formattedResult);
+        if (!testResultId) {
+            return;
+        }
 
         return this._tree.results.byId[testResultId];
     }
 
-    getImagesInfo(testId) {
+    getLastActualResult(formattedResult: ReporterTestResult): TreeResult | undefined {
+        let attempt = formattedResult.attempt;
+        while (attempt >= 0) {
+            const resultId = this._buildResultId(formattedResult, attempt);
+
+            if (!this._tree.results.byId[resultId].isSynthetic) {
+                break;
+            }
+
+            attempt -= 1;
+        }
+
+        const resultId = this._buildResultId(formattedResult, attempt);
+
+        return this._tree.results.byId[resultId];
+    }
+
+    getImagesInfo(testId: string): TreeImage[] {
         return this._tree.results.byId[testId].imageIds.map((imageId) => {
             return this._tree.images.byId[imageId];
         });
     }
 
-    getTestBranch(id) {
-        const getSuites = (suite) => {
+    getTestBranch(id: string): TestBranch {
+        const getSuites = (suite: TreeSuite): SuiteBranch[] => {
             if (suite.root) {
                 return [{id: suite.id, status: suite.status}];
             }
 
             return _.flatten([
-                getSuites(this._tree.suites.byId[suite.parentId]),
+                getSuites(this._tree.suites.byId[suite.parentId as string]),
                 {id: suite.id, status: suite.status}
             ]);
         };
 
         const result = this._tree.results.byId[id];
-        const images = result.imageIds.map((imgId) => this._tree.images.byId[imgId]);
+        const images = result.imageIds.map((imgId): TreeImage => this._tree.images.byId[imgId]);
         const browser = this._tree.browsers.byId[result.parentId];
         const suites = getSuites(this._tree.suites.byId[browser.parentId]);
 
         return {result, images, suites};
     }
 
-    getTestsDataToUpdateRefs(imageIds) {
-        const imagesById = [].concat(imageIds).reduce((acc, imgId) => {
+    getTestsDataToUpdateRefs(imageIds: string[]): TestRefUpdateData[] {
+        const imagesById = ([] as string[]).concat(imageIds).reduce<Record<string, TreeImage>>((acc, imgId) => {
             acc[imgId] = this._tree.images.byId[imgId];
-
             return acc;
         }, {});
 
@@ -61,7 +110,12 @@ module.exports = class GuiTestsTreeBuilder extends BaseTestsTreeBuilder {
             const suite = this._tree.suites.byId[browser.parentId];
 
             const imagesInfo = imagesByResultId[resultId]
-                .map(({stateName, actualImg}) => ({stateName, actualImg, status: UPDATED}));
+                .filter(treeImage => (treeImage as ImageInfoFail).stateName)
+                .map((treeImage) => ({
+                    stateName: (treeImage as ImageInfoWithState).stateName,
+                    actualImg: treeImage.actualImg,
+                    status: UPDATED
+                }));
 
             return {
                 suite: {path: suite.suitePath.slice(0, -1)},
@@ -70,11 +124,11 @@ module.exports = class GuiTestsTreeBuilder extends BaseTestsTreeBuilder {
                 metaInfo: result.metaInfo,
                 imagesInfo,
                 attempt: result.attempt
-            };
+            } satisfies TestRefUpdateData;
         });
     }
 
-    getImageDataToFindEqualDiffs(imageIds) {
+    getImageDataToFindEqualDiffs(imageIds: string[]): TestEqualDiffsData[] {
         return imageIds.map((imageId) => {
             const image = this._tree.images.byId[imageId];
             const result = this._tree.results.byId[image.parentId];
@@ -84,10 +138,15 @@ module.exports = class GuiTestsTreeBuilder extends BaseTestsTreeBuilder {
         });
     }
 
-    getResultDataToUnacceptImage(resultId, stateName) {
+    getResultDataToUnacceptImage(resultId: string, stateName: string): TestUndoRefUpdateData | null {
         const imageId = this._tree.results.byId[resultId].imageIds.find(imageId => {
-            return this._tree.images.byId[imageId].stateName === stateName;
+            return (this._tree.images.byId[imageId] as ImageInfoWithState).stateName === stateName;
         });
+
+        if (!imageId) {
+            return null;
+        }
+
         const image = this._tree.images.byId[imageId];
         const result = this._tree.results.byId[image.parentId];
         const browser = this._tree.browsers.byId[result.parentId];
@@ -96,14 +155,16 @@ module.exports = class GuiTestsTreeBuilder extends BaseTestsTreeBuilder {
         const previousResult = previousResultId ? this._tree.results.byId[previousResultId] : null;
 
         const previousImageId = previousResult
-            ? previousResult.imageIds.find(imageId => this._tree.images.byId[imageId].stateName === image.stateName)
+            ? previousResult.imageIds.find(imageId =>
+                (this._tree.images.byId[imageId] as ImageInfoWithState).stateName ===
+                (image as ImageInfoWithState).stateName) as string
             : null;
         const previousImage = previousImageId
             ? this._tree.images.byId[previousImageId]
             : null;
 
         const countUpdated = result.imageIds.reduce((acc, currImageId) => {
-            return acc + isUpdatedStatus(this._tree.images.byId[currImageId].status);
+            return acc + Number(isUpdatedStatus(this._tree.images.byId[currImageId].status));
         }, 0);
         const shouldRemoveResult = isUpdatedStatus(image.status) && countUpdated === 1;
 
@@ -117,13 +178,13 @@ module.exports = class GuiTestsTreeBuilder extends BaseTestsTreeBuilder {
         };
     }
 
-    reuseTestsTree(testsTree) {
+    reuseTestsTree(testsTree: Tree): void {
         this._tree.browsers.allIds.forEach((browserId) => this._reuseBrowser(testsTree, browserId));
     }
 
-    updateImageInfo(imageId, imageInfo) {
+    updateImageInfo(imageId: string, imageInfo: TreeImage): TreeImage {
         const currentImage = this._tree.images.byId[imageId];
-        const updatedImage = {
+        const updatedImage: TreeImage = {
             ...imageInfo,
             id: currentImage.id,
             parentId: currentImage.parentId
@@ -134,7 +195,7 @@ module.exports = class GuiTestsTreeBuilder extends BaseTestsTreeBuilder {
         return updatedImage;
     }
 
-    removeTestResult(resultId) {
+    removeTestResult(resultId: string): void {
         const result = this._tree.results.byId[resultId];
 
         this._removeImagesById(result.imageIds);
@@ -147,7 +208,7 @@ module.exports = class GuiTestsTreeBuilder extends BaseTestsTreeBuilder {
         delete this._tree.results.byId[resultId];
     }
 
-    _removeImagesById(imageIds) {
+    private _removeImagesById(imageIds: string[]): void {
         this._tree.images.allIds = this._tree.images.allIds.filter(id => !imageIds.includes(id));
 
         imageIds.forEach(imageId => {
@@ -155,7 +216,7 @@ module.exports = class GuiTestsTreeBuilder extends BaseTestsTreeBuilder {
         });
     }
 
-    _reuseBrowser(testsTree, browserId) {
+    private _reuseBrowser(testsTree: Tree, browserId: string): void {
         const reuseBrowser = testsTree.browsers.byId[browserId];
 
         if (!reuseBrowser) {
@@ -168,7 +229,7 @@ module.exports = class GuiTestsTreeBuilder extends BaseTestsTreeBuilder {
         this._reuseSuiteStatus(testsTree, this._tree.browsers.byId[browserId].parentId);
     }
 
-    _reuseResults(testsTree, resultId) {
+    private _reuseResults(testsTree: Tree, resultId: string): void {
         const reuseResult = testsTree.results.byId[resultId];
 
         if (!this._tree.results.byId[resultId]) {
@@ -180,7 +241,7 @@ module.exports = class GuiTestsTreeBuilder extends BaseTestsTreeBuilder {
         reuseResult.imageIds.forEach((imageId) => this._reuseImages(testsTree, imageId));
     }
 
-    _reuseImages(testsTree, imageId) {
+    private _reuseImages(testsTree: Tree, imageId: string): void {
         const reuseImage = testsTree.images.byId[imageId];
 
         if (!this._tree.images.byId[imageId]) {
@@ -190,7 +251,7 @@ module.exports = class GuiTestsTreeBuilder extends BaseTestsTreeBuilder {
         this._tree.images.byId[imageId] = reuseImage;
     }
 
-    _reuseSuiteStatus(testsTree, suiteId) {
+    _reuseSuiteStatus(testsTree: Tree, suiteId?: string | null): void {
         if (!suiteId) {
             return;
         }
@@ -201,7 +262,7 @@ module.exports = class GuiTestsTreeBuilder extends BaseTestsTreeBuilder {
         this._reuseSuiteStatus(testsTree, suite.parentId);
     }
 
-    _buildBrowserId(formattedResult) {
+    protected _buildBrowserId(formattedResult: Pick<ReporterTestResult, 'testPath' | 'browserId'>): string {
         const {testPath, browserId: browserName} = formattedResult;
         const suiteId = this._buildId(testPath);
         const browserId = this._buildId(suiteId, browserName);
@@ -209,9 +270,9 @@ module.exports = class GuiTestsTreeBuilder extends BaseTestsTreeBuilder {
         return browserId;
     }
 
-    _buildTestResultId(formattedResult) {
+    protected _buildResultId(formattedResult: ReporterTestResult, attempt: number): string {
         const browserId = this._buildBrowserId(formattedResult);
 
-        return `${browserId} ${formattedResult.origAttempt}`;
+        return `${browserId} ${attempt}`;
     }
-};
+}

@@ -13,7 +13,6 @@ export {Suite as HermioneSuite} from 'hermione';
 export interface HermioneTestResult extends HermioneTestResultOriginal {
     timestamp?: number;
     updated?: boolean;
-    origAttempt?: number;
 }
 
 export interface ImagesSaver {
@@ -89,6 +88,8 @@ export interface ImageInfoError {
     actualImg: ImageData;
 }
 
+export type ImageInfoWithState = ImageInfoFail | ImageInfoSuccess | ImageInfoError;
+
 export type ImageInfoFull = ImageInfoFail | ImageInfoSuccess | ImageInfoError | ImageInfoPageSuccess;
 
 export type ImageInfo =
@@ -133,6 +134,7 @@ export interface ParsedSuitesRow {
     skipReason: string;
     status: TestStatus;
     suiteUrl: string;
+    timestamp: number;
 }
 
 export interface Attempt {

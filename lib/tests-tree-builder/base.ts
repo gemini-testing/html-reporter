@@ -4,11 +4,14 @@ import {BrowserVersions, PWT_TITLE_DELIMITER, TestStatus, ToolName} from '../con
 import {ReporterTestResult} from '../test-adapter';
 import {ImageInfoFull, ParsedSuitesRow} from '../types';
 
-type TreeResult = {
+export type TreeResult = {
+    attempt: number;
     id: string;
     parentId: string;
     status: TestStatus;
     imageIds: string[];
+    /* Used to distinguish actual test results after run from results generated after accepting screenshots, etc. */
+    isSynthetic?: boolean;
 } & Omit<ParsedSuitesRow, 'imagesInfo'>;
 
 interface TreeBrowser {
@@ -19,7 +22,7 @@ interface TreeBrowser {
     version: string;
 }
 
-interface TreeSuite {
+export interface TreeSuite {
     status?: TestStatus;
     id: string;
     parentId: string | null;
@@ -30,7 +33,7 @@ interface TreeSuite {
     browserIds?: string[];
 }
 
-type TreeImages = {
+export type TreeImage = {
     id: string;
     parentId: string;
 } & ImageInfoFull;
@@ -50,7 +53,7 @@ export interface Tree {
         allIds: string[]
     },
     images: {
-        byId: Record<string, TreeImages>,
+        byId: Record<string, TreeImage>,
         allIds: string[]
     }
 }
@@ -222,7 +225,7 @@ export class BaseTestsTreeBuilder {
             this._tree.results.allIds.push(id);
         }
 
-        this._tree.results.byId[id] = {id, parentId, ...resultWithoutImagesInfo, imageIds};
+        this._tree.results.byId[id] = {attempt: 0, id, parentId, ...resultWithoutImagesInfo, imageIds};
     }
 
     protected _addImages(imageIds: string[], {imagesInfo, parentId}: ImagesPayload): void {

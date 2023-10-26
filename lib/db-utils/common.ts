@@ -3,6 +3,7 @@ import {logger} from '../common-utils';
 import {DB_MAX_AVAILABLE_PAGE_SIZE, DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS, DB_COLUMN_INDEXES} from '../constants';
 import {DbUrlsJsonData, RawSuitesRow, ReporterConfig} from '../types';
 import type {Database, Statement} from 'better-sqlite3';
+import {ReadonlyDeep} from 'type-fest';
 
 export const selectAllQuery = (tableName: string): string => `SELECT * FROM ${tableName}`;
 export const selectAllSuitesQuery = (): string => selectAllQuery(DB_SUITES_TABLE_NAME);
@@ -76,7 +77,7 @@ export const mergeTables = ({db, dbPaths, getExistingTables = (): string[] => []
     }
 };
 
-function createTableQuery(tableName: string, columns: { name: string, type: string }[]): string {
+function createTableQuery(tableName: string, columns: ReadonlyDeep<{name: string, readonly type: string }[]>): string {
     const formattedColumns = columns
         .map(({name, type}) => `${name} ${type}`)
         .join(', ');

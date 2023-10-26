@@ -204,6 +204,7 @@ function mkTestResult(row: RawSuitesRow, data: {attempt: number}): ParsedSuitesR
         suiteUrl: row[DB_COLUMN_INDEXES.suiteUrl] as string,
         skipReason: row[DB_COLUMN_INDEXES.skipReason] as string,
         error: JSON.parse(row[DB_COLUMN_INDEXES.error] as string),
+        timestamp: Number(row[DB_COLUMN_INDEXES.timestamp]),
         ...data
     };
 }

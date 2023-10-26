@@ -89,10 +89,6 @@ export class HermioneTestAdapter implements ReporterTestResult {
         return this._imagesInfoFormatter.getImagesInfo(this);
     }
 
-    get origAttempt(): number | undefined {
-        return this._testResult.origAttempt;
-    }
-
     get attempt(): number {
         return this._attempt;
     }
