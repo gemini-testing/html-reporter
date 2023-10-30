@@ -6,7 +6,15 @@ const {promisify} = require('util');
 const treeKill = promisify(require('tree-kill'));
 
 const {PORTS} = require('../../utils/constants');
-const {getTestSectionByNameSelector, getSpoilerByNameSelector, getElementWithTextSelector, hideScreenshots} = require('../utils');
+const {
+    getTestSectionByNameSelector,
+    getSpoilerByNameSelector,
+    getElementWithTextSelector,
+    hideScreenshots,
+    runGui,
+    waitForFsChanges,
+    getFsDiffFromVcs
+} = require('../utils');
 
 const serverHost = process.env.SERVER_HOST ?? 'host.docker.internal';
 
@@ -18,57 +26,6 @@ const reportDir = path.join(projectDir, 'report');
 const reportBackupDir = path.join(projectDir, 'report-backup');
 const screensDir = path.join(projectDir, 'screens');
 
-const runGui = async () => {
-    return new Promise((resolve, reject) => {
-        const child = childProcess.spawn('npm', ['run', 'gui'], {cwd: projectDir});
-
-        let processKillTimeoutId = setTimeout(() => {
-            treeKill(child.pid).then(() => {
-                reject(new Error('Couldn\'t start GUI: timed out'));
-            });
-        }, 3000);
-
-        child.stdout.on('data', (data) => {
-            if (data.toString().includes('GUI is running at')) {
-                clearTimeout(processKillTimeoutId);
-                resolve(child);
-            }
-        });
-
-        child.stderr.on('data', (data) => {
-            console.error(`stderr: ${data}`);
-        });
-
-        child.on('close', (code) => {
-            if (code !== 0) {
-                reject(new Error(`GUI process exited with code ${code}`));
-            }
-        });
-    });
-};
-
-const getFsDiffFromVcs = (directory) => childProcess.execSync('git status . --porcelain=v2', {cwd: directory});
-
-const waitForFsChanges = async (dirPath, condition = (output) => output.length > 0, {timeout = 1000, interval = 50} = {}) => {
-    let isTimedOut = false;
-
-    const timeoutId = setTimeout(() => {
-        isTimedOut = true;
-        throw new Error(`Timed out while waiting for fs changes in ${dirPath} for ${timeout}ms`);
-    }, timeout);
-
-    while (!isTimedOut) {
-        const output = getFsDiffFromVcs(dirPath);
-
-        if (condition(output)) {
-            clearTimeout(timeoutId);
-            return;
-        }
-
-        await new Promise(resolve => setTimeout(resolve, interval));
-    }
-};
-
 // These tests should not be launched in parallel
 describe('GUI mode', () => {
     let guiProcess;
@@ -76,7 +33,7 @@ describe('GUI mode', () => {
     beforeEach(async ({browser}) => {
         await fs.cp(reportDir, reportBackupDir, {recursive: true});
 
-        guiProcess = await runGui();
+        guiProcess = await runGui(projectDir);
 
         await browser.url(guiUrl);
         await browser.$('button*=Expand all').click();

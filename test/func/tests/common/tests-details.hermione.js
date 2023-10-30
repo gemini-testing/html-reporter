@@ -21,7 +21,7 @@ describe('Test details', function() {
     it('should prevent details summary overflow', async ({browser}) => {
         const selector =
             getTestSectionByNameSelector('test with long error message') +
-            `//summary[.${getElementWithTextSelector('span', 'message')}/..]`;
+            `//summary[.${getElementWithTextSelector('span', 'stack')}/..]`;
 
         await browser.$(selector).waitForDisplayed();
         await browser.assertView('details summary', selector);

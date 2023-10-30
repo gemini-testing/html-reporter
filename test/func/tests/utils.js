@@ -1,3 +1,7 @@
+const childProcess = require('child_process');
+const {promisify} = require('util');
+const treeKill = promisify(require('tree-kill'));
+
 /** Returns a div, which wraps the whole test section with specified name */
 const getTestSectionByNameSelector = (testName) => `//div[contains(text(),'${testName}')]/..`;
 
@@ -28,6 +32,57 @@ const hideScreenshots = async (browser) => {
     });
 };
 
+const runGui = async (projectDir) => {
+    return new Promise((resolve, reject) => {
+        const child = childProcess.spawn('npm', ['run', 'gui'], {cwd: projectDir});
+
+        let processKillTimeoutId = setTimeout(() => {
+            treeKill(child.pid).then(() => {
+                reject(new Error('Couldn\'t start GUI: timed out'));
+            });
+        }, 3000);
+
+        child.stdout.on('data', (data) => {
+            if (data.toString().includes('GUI is running at')) {
+                clearTimeout(processKillTimeoutId);
+                resolve(child);
+            }
+        });
+
+        child.stderr.on('data', (data) => {
+            console.error(`stderr: ${data}`);
+        });
+
+        child.on('close', (code) => {
+            if (code !== 0) {
+                reject(new Error(`GUI process exited with code ${code}`));
+            }
+        });
+    });
+};
+
+const getFsDiffFromVcs = (directory) => childProcess.execSync('git status . --porcelain=v2', {cwd: directory});
+
+const waitForFsChanges = async (dirPath, condition = (output) => output.length > 0, {timeout = 1000, interval = 50} = {}) => {
+    let isTimedOut = false;
+
+    const timeoutId = setTimeout(() => {
+        isTimedOut = true;
+        throw new Error(`Timed out while waiting for fs changes in ${dirPath} for ${timeout}ms`);
+    }, timeout);
+
+    while (!isTimedOut) {
+        const output = getFsDiffFromVcs(dirPath);
+
+        if (condition(output)) {
+            clearTimeout(timeoutId);
+            return;
+        }
+
+        await new Promise(resolve => setTimeout(resolve, interval));
+    }
+};
+
 module.exports = {
     getTestSectionByNameSelector,
     getTestStateByNameSelector,
@@ -35,5 +90,8 @@ module.exports = {
     getElementWithTextSelector,
     getSpoilerByNameSelector,
     hideHeader,
-    hideScreenshots
+    hideScreenshots,
+    runGui,
+    getFsDiffFromVcs,
+    waitForFsChanges
 };

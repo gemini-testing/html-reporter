@@ -143,6 +143,7 @@ export default class ScreenshotAccepterHeader extends Component {
                             isDisabled={images.length === 0}
                             extendClassNames="screenshot-accepter__accept-btn"
                             handler={this.handleScreenshotAccept}
+                            dataTestId="screenshot-accepter-accept"
                         />
                         <ControlButton
                             label="⎌ Undo"
@@ -151,6 +152,7 @@ export default class ScreenshotAccepterHeader extends Component {
                             isSuiteControl={true}
                             extendClassNames="screenshot-accepter__undo-btn"
                             handler={this.handleScreenUndo}
+                            dataTestId="screenshot-accepter-undo"
                         />
                         <ControlButton
                             label="Show meta"
@@ -185,8 +187,9 @@ export default class ScreenshotAccepterHeader extends Component {
                             isSuiteControl={true}
                             extendClassNames="screenshot-accepter__arrows-close-btn"
                             handler={onClose}
+                            dataTestId="screenshot-accepter-switch-accept-mode"
                         />
-                        <ProgressBar done={acceptedImages} total={totalImages}/>
+                        <ProgressBar done={acceptedImages} total={totalImages} dataTestId="screenshot-accepter-progress-bar"/>
                     </div>
                 </header>
             </Fragment>
