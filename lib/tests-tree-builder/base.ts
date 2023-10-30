@@ -10,8 +10,6 @@ export type TreeResult = {
     parentId: string;
     status: TestStatus;
     imageIds: string[];
-    /* Used to distinguish actual test results after run from results generated after accepting screenshots, etc. */
-    isSynthetic?: boolean;
 } & Omit<ParsedSuitesRow, 'imagesInfo'>;
 
 interface TreeBrowser {

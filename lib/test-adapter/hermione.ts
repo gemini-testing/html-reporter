@@ -200,16 +200,4 @@ export class HermioneTestAdapter implements ReporterTestResult {
         await utils.makeDirFor(detailsFilePath);
         await fs.writeFile(detailsFilePath, detailsData);
     }
-
-    decreaseAttemptNumber(): void {
-        const testId = mkTestId(this._testResult.fullTitle(), this.browserId);
-        const currentTestAttempt = testsAttempts.get(testId) as number;
-        const previousTestAttempt = currentTestAttempt - 1;
-
-        if (previousTestAttempt) {
-            testsAttempts.set(testId, previousTestAttempt);
-        } else {
-            testsAttempts.delete(testId);
-        }
-    }
 }

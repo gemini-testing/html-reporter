@@ -35,14 +35,14 @@ export interface PreparedTestResult {
     suiteUrl: string;
     metaInfo: Record<string, unknown>;
     history: string[];
-    description: unknown;
+    description?: string | null;
     error?: {message?: string; stack?: string; stateName?: string};
     skipReason?: string;
     imagesInfo: ImageInfoFull[];
     screenshot: boolean;
     multipleTabs: boolean;
     status: TestStatus;
-    timestamp?: number;
+    timestamp: number;
     errorDetails?: ErrorDetails;
 }
 

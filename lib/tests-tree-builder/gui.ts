@@ -10,16 +10,17 @@ interface SuiteBranch {
     status?: TestStatus;
 }
 
-interface TestBranch {
+export interface TestBranch {
     result: TreeResult;
     images: TreeImage[];
     suites: SuiteBranch[];
 }
 
-interface TestRefUpdateData {
+export interface TestRefUpdateData {
+    browserId: string;
+    error?: TreeResult['error'];
     suite: {path: string[]};
     state: {name: string};
-    browserId: string;
     metaInfo: TreeResult['metaInfo'];
     imagesInfo: {
         stateName: ImageInfoWithState['stateName'];
@@ -29,7 +30,7 @@ interface TestRefUpdateData {
     attempt: number;
 }
 
-type TestEqualDiffsData = TreeImage & { browserName: string };
+export type TestEqualDiffsData = TreeImage & { browserName: string };
 
 interface TestUndoRefUpdateData {
     imageId: string;
@@ -54,11 +55,11 @@ export class GuiTestsTreeBuilder extends BaseTestsTreeBuilder {
     }
 
     getLastActualResult(formattedResult: ReporterTestResult): TreeResult | undefined {
-        let attempt = formattedResult.attempt;
+        let attempt = formattedResult.attempt - 1;
         while (attempt >= 0) {
             const resultId = this._buildResultId(formattedResult, attempt);
 
-            if (!this._tree.results.byId[resultId].isSynthetic) {
+            if (![TestStatus.RUNNING, TestStatus.UPDATED].includes(this._tree.results.byId[resultId].status)) {
                 break;
             }
 
@@ -121,6 +122,7 @@ export class GuiTestsTreeBuilder extends BaseTestsTreeBuilder {
                 suite: {path: suite.suitePath.slice(0, -1)},
                 state: {name: suite.name},
                 browserId: browser.name,
+                error: result.error,
                 metaInfo: result.metaInfo,
                 imagesInfo,
                 attempt: result.attempt

@@ -5,7 +5,7 @@ import {LocalImagesSaver} from './local-images-saver';
 import {version} from '../package.json';
 import {ImagesSaver, ReporterConfig, ReportsSaver} from './types';
 
-interface HtmlReporterValues {
+export interface HtmlReporterValues {
     toolName: ToolName;
     extraItems: Record<string, string>;
     metaInfoExtenders: Record<string, string>;

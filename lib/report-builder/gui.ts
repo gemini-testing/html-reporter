@@ -1,38 +1,55 @@
-'use strict';
+import * as _ from 'lodash';
+import {StaticReportBuilder} from './static';
+import {GuiTestsTreeBuilder, TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../tests-tree-builder/gui';
+import {
+    IDLE, RUNNING, SKIPPED, FAIL, SUCCESS, UPDATED, TestStatus, DB_COLUMNS, ToolName, ERROR
+} from '../constants';
+import {ConfigForStaticFile, getConfigForStaticFile} from '../server-utils';
+import {ReporterTestResult} from '../test-adapter';
+import {PreparedTestResult} from '../sqlite-adapter';
+import {Tree, TreeImage, TreeResult} from '../tests-tree-builder/base';
+import {ImageInfoWithState, ReporterConfig} from '../types';
+import {hasDiff, hasNoRefImageErrors, hasResultFails, isSkippedStatus, isUpdatedStatus} from '../common-utils';
+import {HtmlReporterValues} from '../plugin-api';
+import {SkipItem} from '../tests-tree-builder/static';
 
-const _ = require('lodash');
-const path = require('path');
+interface UndoAcceptImageResult {
+    updatedImage: TreeImage | undefined;
+    removedResult: string | undefined;
+    previousExpectedPath: string | null;
+    shouldRemoveReference: boolean;
+    shouldRevertReference: boolean;
+}
 
-const {StaticReportBuilder} = require('./static');
-const GuiTestsTreeBuilder = require('../tests-tree-builder/gui');
-const {IDLE, RUNNING, SKIPPED, FAIL, SUCCESS, UPDATED} = require('../constants/test-statuses');
-const {isSkippedStatus, isUpdatedStatus, hasNoRefImageErrors, hasResultFails} = require('../common-utils');
-const {getConfigForStaticFile, deleteFile} = require('../server-utils');
-const {DB_COLUMNS} = require('../constants/database');
-const {ToolName} = require('../constants');
+interface GuiReportBuilderResult {
+    tree: Tree;
+    skips: SkipItem[];
+    config: ConfigForStaticFile & {customGui: ReporterConfig['customGui']};
+    date: string;
+    apiValues?: HtmlReporterValues;
+}
 
-module.exports = class GuiReportBuilder extends StaticReportBuilder {
-    static create(...args) {
-        return new this(...args);
-    }
+export class GuiReportBuilder extends StaticReportBuilder {
+    private _testsTree: GuiTestsTreeBuilder;
+    private _skips: SkipItem[];
+    private _apiValues?: HtmlReporterValues;
 
-    constructor(...args) {
+    constructor(...args: ConstructorParameters<typeof StaticReportBuilder>) {
         super(...args);
 
         this._testsTree = GuiTestsTreeBuilder.create({toolName: ToolName.Hermione});
         this._skips = [];
-        this._apiValues = {};
     }
 
-    addIdle(result) {
+    addIdle(result: ReporterTestResult): ReporterTestResult {
         return this._addTestResult(result, {status: IDLE});
     }
 
-    addRunning(result) {
+    addRunning(result: ReporterTestResult): ReporterTestResult {
         return this._addTestResult(result, {status: RUNNING});
     }
 
-    addSkipped(result) {
+    addSkipped(result: ReporterTestResult): ReporterTestResult {
         const formattedResult = super.addSkipped(result);
         const {
             fullName: suite,
@@ -41,23 +58,24 @@ module.exports = class GuiReportBuilder extends StaticReportBuilder {
         } = formattedResult;
 
         this._skips.push({suite, browser, comment});
+
+        return formattedResult;
     }
 
-    addUpdated(result, failResultId) {
+    addUpdated(result: ReporterTestResult, failResultId: string): ReporterTestResult {
         return this._addTestResult(result, {status: UPDATED}, {failResultId});
     }
 
-    setApiValues(values) {
+    setApiValues(values: HtmlReporterValues): this {
         this._apiValues = values;
-
         return this;
     }
 
-    reuseTestsTree(testsTree) {
-        this._testsTree.reuseTestsTree(testsTree);
+    reuseTestsTree(tree: Tree): void {
+        this._testsTree.reuseTestsTree(tree);
     }
 
-    getResult() {
+    getResult(): GuiReportBuilderResult {
         const {customGui} = this._pluginConfig;
         const config = {...getConfigForStaticFile(this._pluginConfig), customGui};
 
@@ -72,47 +90,56 @@ module.exports = class GuiReportBuilder extends StaticReportBuilder {
         };
     }
 
-    getTestBranch(id) {
+    getTestBranch(id: string): TestBranch {
         return this._testsTree.getTestBranch(id);
     }
 
-    getTestsDataToUpdateRefs(imageIds) {
+    getTestsDataToUpdateRefs(imageIds: string[]): TestRefUpdateData[] {
         return this._testsTree.getTestsDataToUpdateRefs(imageIds);
     }
 
-    getImageDataToFindEqualDiffs(imageId) {
-        return this._testsTree.getImageDataToFindEqualDiffs(imageId);
+    getImageDataToFindEqualDiffs(imageIds: string[]): TestEqualDiffsData[] {
+        return this._testsTree.getImageDataToFindEqualDiffs(imageIds);
     }
 
-    getCurrAttempt(formattedResult) {
-        const {status, attempt} = this._testsTree.getLastResult(formattedResult);
+    getCurrAttempt(formattedResult: ReporterTestResult): number {
+        const lastResult = this._testsTree.getLastResult(formattedResult);
+        this._checkResult(lastResult, formattedResult);
+
+        const {status, attempt} = lastResult;
 
         return [IDLE, RUNNING, SKIPPED].includes(status) ? attempt : attempt + 1;
     }
 
-    getUpdatedAttempt(formattedResult) {
-        const {attempt} = this._testsTree.getLastResult(formattedResult);
+    getUpdatedAttempt(formattedResult: ReporterTestResult): number {
+        const lastResult = this._testsTree.getLastResult(formattedResult);
+        this._checkResult(lastResult, formattedResult);
+
+        const {attempt} = lastResult;
+
         const imagesInfo = this._testsTree.getImagesInfo(formattedResult.id);
         const isUpdated = imagesInfo.some((image) => image.status === UPDATED);
 
         return isUpdated ? attempt : attempt + 1;
     }
 
-    async undoAcceptImage(formattedResult, stateName) {
+    async undoAcceptImage(formattedResult: ReporterTestResult, stateName: string): Promise<UndoAcceptImageResult | null> {
         const resultId = formattedResult.id;
         const suitePath = formattedResult.testPath;
         const browserName = formattedResult.browserId;
+        const resultData = this._testsTree.getResultDataToUnacceptImage(resultId, stateName);
+
+        if (!resultData || !isUpdatedStatus(resultData.status)) {
+            return null;
+        }
+
         const {
             imageId,
             status,
             timestamp,
             previousImage,
             shouldRemoveResult
-        } = this._testsTree.getResultDataToUnacceptImage(resultId, stateName);
-
-        if (!isUpdatedStatus(status)) {
-            return {};
-        }
+        } = resultData;
 
         const previousExpectedPath = _.get(previousImage, 'expectedImg.path', null);
         const previousImageRefImgSize = _.get(previousImage, 'refImg.size', null);
@@ -123,10 +150,10 @@ module.exports = class GuiReportBuilder extends StaticReportBuilder {
 
         if (shouldRemoveResult) {
             this._testsTree.removeTestResult(resultId);
-            formattedResult.decreaseAttemptNumber();
+            formattedResult.attempt = formattedResult.attempt - 1;
 
             removedResult = resultId;
-        } else {
+        } else if (previousImage) {
             updatedImage = this._testsTree.updateImageInfo(imageId, previousImage);
         }
 
@@ -136,15 +163,19 @@ module.exports = class GuiReportBuilder extends StaticReportBuilder {
             `${DB_COLUMNS.STATUS} = ?`,
             `${DB_COLUMNS.TIMESTAMP} = ?`,
             `json_extract(${DB_COLUMNS.IMAGES_INFO}, '$[0].stateName') = ?`
-        ].join(' AND ')}, JSON.stringify(suitePath), browserName, status, timestamp, stateName);
+        ].join(' AND ')}, JSON.stringify(suitePath), browserName, status, timestamp.toString(), stateName);
 
         return {updatedImage, removedResult, previousExpectedPath, shouldRemoveReference, shouldRevertReference};
     }
 
-    _addTestResult(formattedResult, props, opts = {}) {
+    protected override _addTestResult(formattedResult: ReporterTestResult, props: {status: TestStatus} & Partial<PreparedTestResult>, opts: {failResultId?: string} = {}): ReporterTestResult {
         super._addTestResult(formattedResult, props);
 
-        const testResult = this._createTestResult(formattedResult, {...props, attempt: formattedResult.attempt});
+        const testResult = this._createTestResult(formattedResult, {
+            ...props,
+            timestamp: formattedResult.timestamp ?? 0,
+            attempt: formattedResult.attempt
+        });
 
         this._extendTestWithImagePaths(testResult, formattedResult, opts);
 
@@ -157,47 +188,55 @@ module.exports = class GuiReportBuilder extends StaticReportBuilder {
         return formattedResult;
     }
 
-    _updateTestResultStatus(testResult, formattedResult) {
+    protected _checkResult(result: TreeResult | undefined, formattedResult: ReporterTestResult): asserts result is TreeResult {
+        if (!result) {
+            const filteredTestTreeResults = _.pickBy(
+                this._testsTree.tree.results.byId,
+                (_result, resultId) => resultId.startsWith(formattedResult.fullName));
+
+            throw new Error('Failed to get last result for test:\n' +
+                `fullName = ${formattedResult.fullName}; browserId = ${formattedResult.browserId}\n` +
+                `Related testsTree results: ${JSON.stringify(filteredTestTreeResults)}\n`);
+        }
+    }
+
+    private _updateTestResultStatus(testResult: PreparedTestResult, formattedResult: ReporterTestResult): void {
         if (!hasResultFails(testResult) && !isSkippedStatus(testResult.status)) {
             testResult.status = SUCCESS;
             return;
         }
 
-        if (hasNoRefImageErrors(formattedResult)) {
+        const imageErrors = testResult.imagesInfo.map(imagesInfo => (imagesInfo as {error: {name?: string}}).error ?? {});
+        if (hasDiff(imageErrors) || hasNoRefImageErrors({assertViewResults: imageErrors})) {
             testResult.status = FAIL;
             return;
         }
 
-        if (testResult.status === UPDATED) {
-            const {status: prevStatus} = this._testsTree.getLastActualResult(formattedResult);
-            testResult.status = prevStatus;
+        if (!_.isEmpty(formattedResult.error)) {
+            testResult.status = ERROR;
+            return;
         }
     }
 
-    _extendTestWithImagePaths(test, formattedResult, opts = {}) {
+    private _extendTestWithImagePaths(testResult: PreparedTestResult, formattedResult: ReporterTestResult, opts: {failResultId?: string} = {}): void {
         const newImagesInfo = formattedResult.imagesInfo;
 
-        if (test.status !== UPDATED) {
-            return _.set(test, 'imagesInfo', newImagesInfo);
+        if (testResult.status !== UPDATED) {
+            _.set(testResult, 'imagesInfo', newImagesInfo);
+            return;
         }
 
-        const failImagesInfo = this._testsTree.getImagesInfo(opts.failResultId);
+        const failImagesInfo = opts.failResultId ? this._testsTree.getImagesInfo(opts.failResultId) : [];
 
         if (failImagesInfo.length) {
-            test.imagesInfo = _.clone(failImagesInfo);
+            testResult.imagesInfo = _.clone(failImagesInfo);
 
-            newImagesInfo.forEach((imageInfo) => {
-                const {stateName} = imageInfo;
-                let index = _.findIndex(test.imagesInfo, {stateName});
-                index = index >= 0 ? index : _.findLastIndex(test.imagesInfo);
-                test.imagesInfo[index] = imageInfo;
+            newImagesInfo?.forEach((imageInfo) => {
+                const {stateName} = imageInfo as ImageInfoWithState;
+                let index = _.findIndex(testResult.imagesInfo, {stateName});
+                index = index >= 0 ? index : _.findLastIndex(testResult.imagesInfo);
+                testResult.imagesInfo[index] = imageInfo;
             });
         }
     }
-
-    async _removeImageFromReport(reportPath, imgPath) {
-        const imageAbsolutePath = path.resolve(process.cwd(), reportPath, imgPath);
-
-        await deleteFile(imageAbsolutePath);
-    }
-};
+}

@@ -5,7 +5,7 @@ import axios, {AxiosRequestConfig} from 'axios';
 import {SUCCESS, FAIL, ERROR, SKIPPED, UPDATED, IDLE, RUNNING, QUEUED, TestStatus} from './constants';
 
 import {UNCHECKED, INDETERMINATE, CHECKED} from './constants/checked-statuses';
-import {AssertViewResult, ImageData, ImageBase64, ImageInfoFull, TestError, ImageInfoError} from './types';
+import {ImageData, ImageBase64, ImageInfoFull, TestError, ImageInfoError} from './types';
 import {ErrorName, ImageDiffError, NoRefImageError} from './errors';
 export const getShortMD5 = (str: string): string => {
     return crypto.createHash('md5').update(str, 'ascii').digest('hex').substr(0, 7);
@@ -99,8 +99,8 @@ export const isNoRefImageError = (error?: unknown): error is NoRefImageError => 
     return (error as {name?: string})?.name === ErrorName.NO_REF_IMAGE;
 };
 
-export const hasNoRefImageErrors = ({assertViewResults = []}: {assertViewResults?: AssertViewResult[]}): boolean => {
-    return assertViewResults.some((assertViewResult: AssertViewResult) => isNoRefImageError(assertViewResult));
+export const hasNoRefImageErrors = ({assertViewResults = []}: {assertViewResults?: {name?: string}[]}): boolean => {
+    return assertViewResults.some((assertViewResult) => isNoRefImageError(assertViewResult));
 };
 
 const hasFailedImages = (result: {imagesInfo?: ImageInfoFull[]}): boolean => {
@@ -124,7 +124,7 @@ export const getError = (error?: TestError): undefined | Pick<TestError, 'name' 
     return pick(error, ['name', 'message', 'stack', 'stateName']);
 };
 
-export const hasDiff = (assertViewResults: AssertViewResult[]): boolean => {
+export const hasDiff = (assertViewResults: {name?: string}[]): boolean => {
     return assertViewResults.some((result) => isImageDiffError(result as {name?: string}));
 };
 

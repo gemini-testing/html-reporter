@@ -23,6 +23,7 @@ import {ImageHandler} from '../image-handler';
 import {SqliteImageStore} from '../image-store';
 import {getUrlWithBase, getError, getRelativeUrl, hasDiff, hasNoRefImageErrors} from '../common-utils';
 import {getTestFromDb} from '../db-utils/server';
+import {ImageDiffError} from '../errors';
 
 const ignoredStatuses = [RUNNING, IDLE];
 
@@ -102,7 +103,7 @@ export class StaticReportBuilder {
     }
 
     addRetry(result: ReporterTestResult): ReporterTestResult {
-        if (hasDiff(result.assertViewResults)) {
+        if (hasDiff(result.assertViewResults as ImageDiffError[])) {
             return this._addFailResult(result);
         } else {
             return this._addErrorResult(result);
@@ -121,10 +122,10 @@ export class StaticReportBuilder {
         formattedResult.image = hasImage(formattedResult);
 
         const testResult = this._createTestResult(formattedResult, _.extend(props, {
-            timestamp: formattedResult.timestamp
+            timestamp: formattedResult.timestamp ?? 0
         }));
 
-        if (hasNoRefImageErrors(formattedResult)) {
+        if (hasNoRefImageErrors(formattedResult as {assertViewResults: ImageDiffError[]})) {
             testResult.status = FAIL;
         }
 
@@ -138,7 +139,7 @@ export class StaticReportBuilder {
         return formattedResult;
     }
 
-    protected _createTestResult(result: ReporterTestResult, props: {status: TestStatus} & Partial<PreparedTestResult>): PreparedTestResult {
+    protected _createTestResult(result: ReporterTestResult, props: {attempt?: number, status: TestStatus, timestamp: number;} & Partial<PreparedTestResult>): PreparedTestResult {
         const {
             browserId, file, sessionId, description, history,
             imagesInfo = [], screenshot, multipleTabs, errorDetails

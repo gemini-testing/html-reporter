@@ -117,10 +117,10 @@ export interface LabeledSuitesRow {
 export type RawSuitesRow = LabeledSuitesRow[keyof LabeledSuitesRow][];
 
 export interface ParsedSuitesRow {
-    description: string | null;
-    error: {
-        message: string;
-        stack: string;
+    description?: string | null;
+    error?: {
+        message?: string;
+        stack?: string;
     };
     history: unknown;
     imagesInfo: ImageInfoFull[];
@@ -131,7 +131,7 @@ export interface ParsedSuitesRow {
     multipleTabs: boolean;
     name: string;
     screenshot: boolean;
-    skipReason: string;
+    skipReason?: string;
     status: TestStatus;
     suiteUrl: string;
     timestamp: number;

@@ -19,10 +19,10 @@ type FinalStats = Stats & {
     }
 }
 
-interface SkipItem {
+export interface SkipItem {
     browser: string;
     suite: string;
-    comment: string;
+    comment?: string;
 }
 
 interface BrowserItem {
