@@ -33,7 +33,7 @@ describe('GUI mode', () => {
     beforeEach(async ({browser}) => {
         await fs.cp(reportDir, reportBackupDir, {recursive: true});
 
-        guiProcess = await runGui();
+        guiProcess = await runGui(projectDir);
 
         await browser.url(guiUrl);
         await browser.$('button*=Expand all').click();

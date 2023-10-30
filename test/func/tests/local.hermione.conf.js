@@ -11,24 +11,21 @@ const _ = require('lodash');
 
 const mainConfig = require('./.hermione.conf.js');
 
-// Make sure to adjust chromium binary path to a desired Chromium location.
-const CHROME_BINARY_PATH = '/Applications/Chromium.app/Contents/MacOS/Chromium';
-
 const config = _.merge(mainConfig, {
-    // Default chromedriver host and port. Adjust to your needs.
-    gridUrl: 'http://localhost:9515/',
-
     browsers: {
         chrome: {
+            automationProtocol: 'devtools',
             desiredCapabilities: {
                 'goog:chromeOptions': {
                     args: ['no-sandbox', 'hide-scrollbars'],
-                    binary: CHROME_BINARY_PATH
                 }
             },
             waitTimeout: 3000
         }
     }
 });
+
+delete config.gridUrl;
+delete config.browsers.chrome.desiredCapabilities['goog:chromeOptions'].binary;
 
 module.exports = config;
