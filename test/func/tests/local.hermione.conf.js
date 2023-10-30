@@ -17,7 +17,7 @@ const config = _.merge(mainConfig, {
             automationProtocol: 'devtools',
             desiredCapabilities: {
                 'goog:chromeOptions': {
-                    args: ['no-sandbox', 'hide-scrollbars'],
+                    args: ['no-sandbox', 'hide-scrollbars']
                 }
             },
             waitTimeout: 3000
