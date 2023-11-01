@@ -11,7 +11,7 @@ import Loading from './loading';
 import ModalContainer from '../containers/modal';
 import MainTree from './main-tree';
 import CustomScripts from './custom-scripts';
-import clientEvents from '../../gui/constants/client-events';
+import {ClientEvents} from '../../gui/constants/client-events';
 import FaviconChanger from './favicon-changer';
 import ExtensionPoint from './extension-point';
 import BottomProgressBar from './bottom-progress-bar';
@@ -40,24 +40,24 @@ class Gui extends Component {
         const {actions} = this.props;
         const eventSource = new EventSource('/events');
 
-        eventSource.addEventListener(clientEvents.BEGIN_SUITE, (e) => {
+        eventSource.addEventListener(ClientEvents.BEGIN_SUITE, (e) => {
             const data = JSON.parse(e.data);
             actions.suiteBegin(data);
         });
 
-        eventSource.addEventListener(clientEvents.BEGIN_STATE, (e) => {
+        eventSource.addEventListener(ClientEvents.BEGIN_STATE, (e) => {
             const data = JSON.parse(e.data);
             actions.testBegin(data);
         });
 
-        [clientEvents.TEST_RESULT, clientEvents.ERROR].forEach((eventName) => {
+        [ClientEvents.TEST_RESULT, ClientEvents.ERROR].forEach((eventName) => {
             eventSource.addEventListener(eventName, (e) => {
                 const data = JSON.parse(e.data);
                 actions.testResult(data);
             });
         });
 
-        eventSource.addEventListener(clientEvents.END, () => {
+        eventSource.addEventListener(ClientEvents.END, () => {
             actions.testsEnd();
         });
     }

@@ -1,7 +1,7 @@
 'use strict';
 
 const EventEmitter2 = require('eventemitter2');
-const guiEvents = require('lib/gui/constants/gui-events');
+const {GuiEvents} = require('lib/gui/constants/gui-events');
 const Api = require('lib/gui/api');
 const {stubTool} = require('../../../utils');
 
@@ -20,7 +20,7 @@ describe('lig/gui/api', () => {
 
             Api.create(tool);
 
-            assert.deepEqual(tool.gui.events, guiEvents);
+            assert.deepEqual(tool.gui.events, GuiEvents);
         });
     });
 
@@ -29,7 +29,7 @@ describe('lig/gui/api', () => {
             const tool = stubTool();
             const api = Api.create(tool);
             const onServerInit = sinon.spy().named('onServerInit');
-            tool.gui.on(guiEvents.SERVER_INIT, onServerInit);
+            tool.gui.on(GuiEvents.SERVER_INIT, onServerInit);
 
             api.initServer({foo: 'bar'});
 
@@ -42,7 +42,7 @@ describe('lig/gui/api', () => {
             const tool = stubTool();
             const api = Api.create(tool);
             const onServerReady = sinon.spy().named('onServerReady');
-            tool.gui.on(guiEvents.SERVER_READY, onServerReady);
+            tool.gui.on(GuiEvents.SERVER_READY, onServerReady);
 
             api.serverReady({url: 'http://my.server'});
 
