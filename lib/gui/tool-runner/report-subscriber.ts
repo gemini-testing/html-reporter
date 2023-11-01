@@ -1,32 +1,38 @@
-'use strict';
+import os from 'os';
+import PQueue from 'p-queue';
+import Hermione from 'hermione';
+import {ClientEvents} from '../constants';
+import {getSuitePath} from '../../plugin-utils';
+import {createWorkers} from '../../workers/create-workers';
+import {logError, formatTestResult} from '../../server-utils';
+import {hasDiff} from '../../common-utils';
+import {TestStatus, RUNNING, SUCCESS, SKIPPED} from '../../constants';
+import {GuiReportBuilder} from '../../report-builder/gui';
+import {EventSource} from '../event-source';
+import {HermioneTestResult} from '../../types';
+import {HermioneTestAdapter, ReporterTestResult} from '../../test-adapter';
+import {ImageDiffError} from '../../errors';
 
-const os = require('os');
-const PQueue = require('p-queue');
-const {ClientEvents} = require('../constants/client-events');
-const {getSuitePath} = require('../../plugin-utils');
-const {createWorkers} = require('../../workers/create-workers');
-const {logError, formatTestResult} = require('../../server-utils');
-const {hasDiff} = require('../../common-utils');
-const {TestStatus, RUNNING, SUCCESS, SKIPPED} = require('../../constants');
+let workers: ReturnType<typeof createWorkers>;
 
-let workers;
+type CreateWorkersRunner = Parameters<typeof createWorkers>[0];
 
-module.exports = (hermione, reportBuilder, client, reportPath) => {
+export const subscribeOnToolEvents = (hermione: Hermione, reportBuilder: GuiReportBuilder, client: EventSource, reportPath: string): void => {
     const queue = new PQueue({concurrency: os.cpus().length});
     const {imageHandler} = reportBuilder;
 
-    function failHandler(testResult, formattedResult) {
-        const actions = [imageHandler.saveTestImages(formattedResult, workers)];
+    async function failHandler(formattedResult: ReporterTestResult): Promise<void> {
+        const actions: Promise<unknown>[] = [imageHandler.saveTestImages(formattedResult, workers)];
 
         if (formattedResult.errorDetails) {
-            actions.push(formattedResult.saveErrorDetails(reportPath));
+            actions.push((formattedResult as HermioneTestAdapter).saveErrorDetails(reportPath));
         }
 
-        return Promise.all(actions);
+        await Promise.all(actions);
     }
 
     hermione.on(hermione.events.RUNNER_START, (runner) => {
-        workers = createWorkers(runner);
+        workers = createWorkers(runner as unknown as CreateWorkersRunner);
     });
 
     hermione.on(hermione.events.SUITE_BEGIN, (suite) => {
@@ -41,7 +47,7 @@ module.exports = (hermione, reportBuilder, client, reportPath) => {
     });
 
     hermione.on(hermione.events.TEST_BEGIN, (data) => {
-        const formattedResult = formatTestResult(data, RUNNING, reportBuilder);
+        const formattedResult = formatTestResult(data as HermioneTestResult, RUNNING, reportBuilder);
         formattedResult.attempt = reportBuilder.getCurrAttempt(formattedResult);
 
         reportBuilder.addRunning(formattedResult);
@@ -65,11 +71,11 @@ module.exports = (hermione, reportBuilder, client, reportPath) => {
 
     hermione.on(hermione.events.RETRY, (testResult) => {
         queue.add(async () => {
-            const status = hasDiff(testResult.assertViewResults) ? TestStatus.FAIL : TestStatus.ERROR;
+            const status = hasDiff(testResult.assertViewResults as ImageDiffError[]) ? TestStatus.FAIL : TestStatus.ERROR;
             const formattedResult = formatTestResult(testResult, status, reportBuilder);
             formattedResult.attempt = reportBuilder.getCurrAttempt(formattedResult);
 
-            await failHandler(testResult, formattedResult);
+            await failHandler(formattedResult);
             reportBuilder.addRetry(formattedResult);
 
             const testBranch = reportBuilder.getTestBranch(formattedResult.id);
@@ -79,11 +85,11 @@ module.exports = (hermione, reportBuilder, client, reportPath) => {
 
     hermione.on(hermione.events.TEST_FAIL, (testResult) => {
         queue.add(async () => {
-            const status = hasDiff(testResult.assertViewResults) ? TestStatus.FAIL : TestStatus.ERROR;
+            const status = hasDiff(testResult.assertViewResults as ImageDiffError[]) ? TestStatus.FAIL : TestStatus.ERROR;
             const formattedResult = formatTestResult(testResult, status, reportBuilder);
             formattedResult.attempt = reportBuilder.getCurrAttempt(formattedResult);
 
-            await failHandler(testResult, formattedResult);
+            await failHandler(formattedResult);
             status === TestStatus.FAIL
                 ? reportBuilder.addFail(formattedResult)
                 : reportBuilder.addError(formattedResult);
@@ -95,10 +101,10 @@ module.exports = (hermione, reportBuilder, client, reportPath) => {
 
     hermione.on(hermione.events.TEST_PENDING, async (testResult) => {
         queue.add(async () => {
-            const formattedResult = formatTestResult(testResult, SKIPPED, reportBuilder);
+            const formattedResult = formatTestResult(testResult as HermioneTestResult, SKIPPED, reportBuilder);
             formattedResult.attempt = reportBuilder.getCurrAttempt(formattedResult);
 
-            await failHandler(testResult, formattedResult);
+            await failHandler(formattedResult);
             reportBuilder.addSkipped(formattedResult);
 
             const testBranch = reportBuilder.getTestBranch(formattedResult.id);
@@ -110,7 +116,7 @@ module.exports = (hermione, reportBuilder, client, reportPath) => {
         try {
             await queue.onIdle();
             client.emit(ClientEvents.END);
-        } catch (err) {
+        } catch (err: any) {
             logError(err);
         }
     });

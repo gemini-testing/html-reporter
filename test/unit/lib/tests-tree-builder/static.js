@@ -61,6 +61,7 @@ describe('StaticResultsTreeBuilder', () => {
             suiteUrl: result.suiteUrl,
             skipReason: result.skipReason,
             error: result.error,
+            timestamp: result.timestamp,
             ...data
         };
     };
@@ -109,7 +110,7 @@ describe('StaticResultsTreeBuilder', () => {
                 );
                 assert.calledWith(
                     StaticTestsTreeBuilder.prototype.addTestResult.secondCall,
-                    formatToTestResult(dataFromDb1, {attempt: 1}),
+                    formatToTestResult(dataFromDb2, {attempt: 1}),
                     {browserId: 'yabro', testPath: ['s1'], attempt: 1}
                 );
             });

@@ -153,7 +153,7 @@ export class GuiReportBuilder extends StaticReportBuilder {
             formattedResult.attempt = formattedResult.attempt - 1;
 
             removedResult = resultId;
-        } else if (previousImage) {
+        } else {
             updatedImage = this._testsTree.updateImageInfo(imageId, previousImage);
         }
 

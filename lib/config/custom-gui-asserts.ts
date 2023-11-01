@@ -1,5 +1,5 @@
 import {isUndefined, isArray, isEmpty, isFunction, isPlainObject, isString} from 'lodash';
-import CustomGuiControlTypes from '../gui/constants/custom-gui-control-types';
+import * as CustomGuiControlTypes from '../gui/constants/custom-gui-control-types';
 
 const SUPPORTED_CONTROL_TYPES: string[] = Object.values(CustomGuiControlTypes);
 

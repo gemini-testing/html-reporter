@@ -4,23 +4,23 @@ const path = require('path');
 const fs = require('fs-extra');
 const _ = require('lodash');
 const proxyquire = require('proxyquire');
-const GuiReportBuilder = require('lib/report-builder/gui');
+const {GuiReportBuilder} = require('lib/report-builder/gui');
 const {LOCAL_DATABASE_NAME} = require('lib/constants/database');
 const {logger} = require('lib/common-utils');
-const Runner = require('lib/gui/tool-runner/runner');
 const {stubTool, stubConfig, mkImagesInfo, mkState, mkSuite} = require('test/unit/utils');
 
 describe('lib/gui/tool-runner/index', () => {
     const sandbox = sinon.createSandbox();
     let reportBuilder;
     let ToolGuiReporter;
-    let reportSubscriber;
+    let subscribeOnToolEvents;
     let hermione;
     let getTestsTreeFromDatabase;
     let looksSame;
     let removeReferenceImage;
     let revertReferenceImage;
     let toolRunnerUtils;
+    let createTestRunner;
 
     const mkTestCollection_ = (testsTree = {}) => {
         return {
@@ -67,6 +67,8 @@ describe('lib/gui/tool-runner/index', () => {
     beforeEach(() => {
         hermione = stubTool();
 
+        createTestRunner = sinon.stub();
+
         toolRunnerUtils = {
             findTestResult: sandbox.stub(),
             formatId: sandbox.stub().returns('some-id')
@@ -75,7 +77,7 @@ describe('lib/gui/tool-runner/index', () => {
         reportBuilder = sinon.createStubInstance(GuiReportBuilder);
         reportBuilder.getUpdatedAttempt.returns(0);
 
-        reportSubscriber = sandbox.stub().named('reportSubscriber').resolves();
+        subscribeOnToolEvents = sandbox.stub().named('reportSubscriber').resolves();
         looksSame = sandbox.stub().named('looksSame').resolves({equal: true});
         removeReferenceImage = sandbox.stub().resolves();
         revertReferenceImage = sandbox.stub().resolves();
@@ -87,7 +89,8 @@ describe('lib/gui/tool-runner/index', () => {
 
         ToolGuiReporter = proxyquire(`lib/gui/tool-runner`, {
             'looks-same': looksSame,
-            './report-subscriber': reportSubscriber,
+            './runner': {createTestRunner},
+            './report-subscriber': {subscribeOnToolEvents},
             './utils': toolRunnerUtils,
             '../../db-utils/server': {getTestsTreeFromDatabase},
             '../../reporter-helpers': {
@@ -206,7 +209,7 @@ describe('lib/gui/tool-runner/index', () => {
             const gui = initGuiReporter(hermione, {paths: ['foo']});
 
             return gui.initialize()
-                .then(() => assert.callOrder(reportSubscriber, hermione.readTests));
+                .then(() => assert.callOrder(subscribeOnToolEvents, hermione.readTests));
         });
 
         it('should initialize report builder after read tests for the correct order of events', async () => {
@@ -302,32 +305,6 @@ describe('lib/gui/tool-runner/index', () => {
                     state: 'plain2'
                 });
             });
-        });
-
-        it('should pass "origAttempt" to the ReportBuilder.addUpdate method to be able to calculate status properly', async () => {
-            const tests = [{
-                id: 'some-id',
-                fullTitle: () => 'some-title',
-                browserId: 'yabro',
-                attempt: 10,
-                suite: {path: ['suite1']},
-                state: {},
-                metaInfo: {},
-                imagesInfo: []
-            }];
-
-            const getScreenshotPath = sandbox.stub().returns('/ref/path1');
-            const config = stubConfig({
-                browsers: {yabro: {getScreenshotPath}}
-            });
-
-            const hermione = mkHermione_(config, {'some-title.yabro': tests[0]});
-            const gui = initGuiReporter(hermione);
-            await gui.initialize();
-
-            await gui.updateReferenceImage(tests);
-
-            assert.calledOnceWith(reportBuilder.addUpdated, sinon.match({origAttempt: 10}));
         });
     });
 
@@ -502,7 +479,7 @@ describe('lib/gui/tool-runner/index', () => {
         beforeEach(() => {
             runner = {run: sandbox.stub().resolves()};
             collection = mkTestCollection_();
-            sandbox.stub(Runner, 'create').withArgs(collection).returns(runner);
+            createTestRunner.withArgs(collection).returns(runner);
             hermione.readTests.resolves(collection);
         });
 

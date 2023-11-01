@@ -184,13 +184,14 @@ export class GuiTestsTreeBuilder extends BaseTestsTreeBuilder {
         this._tree.browsers.allIds.forEach((browserId) => this._reuseBrowser(testsTree, browserId));
     }
 
-    updateImageInfo(imageId: string, imageInfo: TreeImage): TreeImage {
+    updateImageInfo(imageId: string, imageInfo?: TreeImage | null): TreeImage {
         const currentImage = this._tree.images.byId[imageId];
+        // TODO: check TreeImage type. Is it correct to let it consist of id and parentId?
         const updatedImage: TreeImage = {
             ...imageInfo,
             id: currentImage.id,
             parentId: currentImage.parentId
-        };
+        } as TreeImage;
 
         this._tree.images.byId[imageId] = updatedImage;
 

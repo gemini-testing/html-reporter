@@ -6,7 +6,7 @@ const proxyquire = require('proxyquire');
 const serverUtils = require('lib/server-utils');
 const {HermioneTestAdapter} = require('lib/test-adapter');
 const {SqliteAdapter} = require('lib/sqlite-adapter');
-const GuiTestsTreeBuilder = require('lib/tests-tree-builder/gui');
+const {GuiTestsTreeBuilder} = require('lib/tests-tree-builder/gui');
 const {HtmlReporter} = require('lib/plugin-api');
 const {SUCCESS, FAIL, ERROR, SKIPPED, IDLE, RUNNING, UPDATED} = require('lib/constants/test-statuses');
 const {LOCAL_DATABASE_NAME} = require('lib/constants/database');
@@ -77,8 +77,13 @@ describe('GuiReportBuilder', () => {
         hasImage = sandbox.stub().returns(true);
         deleteFile = sandbox.stub().resolves();
         GuiReportBuilder = proxyquire('lib/report-builder/gui', {
+            './static': {
+                StaticReportBuilder: proxyquire('lib/report-builder/static', {
+                    '../sqlite-adapter': {SqliteAdapter}
+                }).StaticReportBuilder
+            },
             '../server-utils': {hasImage, deleteFile}
-        });
+        }).GuiReportBuilder;
 
         sandbox.stub(GuiTestsTreeBuilder, 'create').returns(Object.create(GuiTestsTreeBuilder.prototype));
         sandbox.stub(GuiTestsTreeBuilder.prototype, 'sortTree').returns({});
@@ -88,7 +93,6 @@ describe('GuiReportBuilder', () => {
         sandbox.stub(GuiTestsTreeBuilder.prototype, 'getImageDataToFindEqualDiffs').returns({});
         sandbox.stub(GuiTestsTreeBuilder.prototype, 'getImagesInfo').returns([]);
         sandbox.stub(GuiTestsTreeBuilder.prototype, 'getLastResult').returns({});
-        sandbox.stub(GuiTestsTreeBuilder.prototype, 'getResultByOrigAttempt').returns({});
         sandbox.stub(GuiTestsTreeBuilder.prototype, 'addTestResult').returns({});
         sandbox.stub(GuiTestsTreeBuilder.prototype, 'getResultDataToUnacceptImage').returns({});
         sandbox.stub(GuiTestsTreeBuilder.prototype, 'updateImageInfo').returns({});
@@ -210,21 +214,16 @@ describe('GuiReportBuilder', () => {
             assert.equal(getTestResult_().status, SUCCESS);
         });
 
-        it(`should corectly determine the status based on a previous result`, async () => {
+        it(`should correctly determine the status based on current result`, async () => {
             const reportBuilder = await mkGuiReportBuilder_();
 
-            GuiTestsTreeBuilder.prototype.getResultByOrigAttempt.returns({status: FAIL});
-
             reportBuilder.addUpdated(stubTest_({
+                error: {name: 'some-error', message: 'some-message'},
                 imagesInfo: [{status: FAIL}],
-                attempt: 4,
-                origAttempt: 2
+                attempt: 4
             }));
 
-            assert.equal(getTestResult_().status, FAIL);
-            assert.calledOnceWith(GuiTestsTreeBuilder.prototype.getResultByOrigAttempt, sinon.match({
-                origAttempt: 2
-            }));
+            assert.equal(getTestResult_().status, ERROR);
         });
 
         it('should update test image for current state name', async () => {
@@ -239,7 +238,8 @@ describe('GuiReportBuilder', () => {
 
             const updatedTest = stubTest_({
                 imagesInfo: [
-                    {stateName: 'plain1', status: UPDATED}
+                    {stateName: 'plain1', status: UPDATED},
+                    {stateName: 'plain2', status: FAIL}
                 ]
             });
 
@@ -271,7 +271,7 @@ describe('GuiReportBuilder', () => {
 
             reportBuilder.addFail(failedTest);
             GuiTestsTreeBuilder.prototype.getImagesInfo.returns(failedTest.imagesInfo);
-            reportBuilder.addUpdated(updatedTest);
+            reportBuilder.addUpdated(updatedTest, 'result-2');
 
             const {imagesInfo} = GuiTestsTreeBuilder.prototype.addTestResult.secondCall.args[0];
 
@@ -434,17 +434,6 @@ describe('GuiReportBuilder', () => {
             assert.calledOnceWith(GuiTestsTreeBuilder.prototype.removeTestResult, 'result-id');
         });
 
-        it('should decrease test attempt number after deleting result', async () => {
-            const resultId = 'id';
-            const stateName = 's-name';
-            const formattedResult = mkFormattedResultStub_({id: resultId, stateName});
-            stubResultData_({shouldRemoveResult: true}, {resultId, stateName});
-
-            await reportBuilder.undoAcceptImage(formattedResult, stateName);
-
-            assert.calledOnceWith(formattedResult.decreaseAttemptNumber);
-        });
-
         it('should resolve removed result id', async () => {
             const resultId = 'result-id';
             const stateName = 's-name';
@@ -507,7 +496,7 @@ describe('GuiReportBuilder', () => {
                 '["s","p"]',
                 'bro-name',
                 UPDATED,
-                100500,
+                '100500',
                 'plain'
             );
         });
