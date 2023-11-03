@@ -112,12 +112,12 @@ module.exports = {
             new CssMinimizerPlugin(),
             new TerserPlugin({
                 parallel: true,
+                minify: TerserPlugin.uglifyJsMinify,
                 terserOptions: {
-                    compress: true,
-                    mangle: true,
-                    format: {
+                    output: {
                         comments: false
-                    }
+                    },
+                    annotations: false
                 },
                 extractComments: false
             })

@@ -1,35 +1,11 @@
-const path = require('path');
+const merge = require('webpack-merge');
+const commonConfig = require('../webpack.common');
 
-module.exports = {
+module.exports = merge(commonConfig, {
     entry: {
         plugin: './lib/menu-bar-item.jsx'
     },
-    module: {
-        rules: [
-            {
-                test: /\.css$/,
-                use: [
-                    'style-loader',
-                    'css-loader'
-                ]
-            },
-            {
-                test: /\.jsx$/,
-                loader: 'babel-loader',
-                exclude: /node_modules/,
-                options: {
-                    configFile: path.resolve(__dirname, '../../../../.babelrc')
-                }
-            }
-        ]
-    },
     output: {
-        filename: '[name].js',
-        path: __dirname,
-        library: '__hermione_html_reporter_register_plugin__',
-        libraryTarget: 'jsonp'
-    },
-    optimization: {
-        minimize: true
+        path: __dirname
     }
-};
+});
