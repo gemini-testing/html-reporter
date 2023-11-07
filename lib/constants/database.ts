@@ -1,4 +1,4 @@
-import type {ValueOf} from 'type-fest';
+import {ValueOf} from 'type-fest';
 
 // TODO: change to enums
 export const DB_TYPES = {int: 'INT', text: 'TEXT'} as const;
@@ -19,12 +19,7 @@ export const DB_COLUMNS = {
     TIMESTAMP: 'timestamp'
 } as const;
 
-type DbColumn = {
-    name: ValueOf<typeof DB_COLUMNS>;
-    type: ValueOf<typeof DB_TYPES>;
-}
-
-export const SUITES_TABLE_COLUMNS: DbColumn[] = [
+export const SUITES_TABLE_COLUMNS = [
     {name: DB_COLUMNS.SUITE_PATH, type: DB_TYPES.text},
     {name: DB_COLUMNS.SUITE_NAME, type: DB_TYPES.text},
     {name: DB_COLUMNS.NAME, type: DB_TYPES.text},
@@ -39,7 +34,7 @@ export const SUITES_TABLE_COLUMNS: DbColumn[] = [
     {name: DB_COLUMNS.MULTIPLE_TABS, type: DB_TYPES.int}, //boolean - 0 or 1
     {name: DB_COLUMNS.STATUS, type: DB_TYPES.text},
     {name: DB_COLUMNS.TIMESTAMP, type: DB_TYPES.int}
-];
+] as const;
 
 export const DB_MAX_AVAILABLE_PAGE_SIZE = 65536; // helps to speed up queries
 export const DB_SUITES_TABLE_NAME = 'suites';
@@ -48,4 +43,4 @@ export const DATABASE_URLS_JSON_NAME = 'databaseUrls.json';
 export const DB_COLUMN_INDEXES = SUITES_TABLE_COLUMNS.reduce((acc: Record<string, number>, {name}, index) => {
     acc[name] = index;
     return acc;
-}, {});
+}, {}) as { [K in ValueOf<typeof DB_COLUMNS>]: number };

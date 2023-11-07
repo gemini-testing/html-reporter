@@ -1,7 +1,7 @@
 'use strict';
 
 const _ = require('lodash');
-const GuiResultsTreeBuilder = require('lib/tests-tree-builder/gui');
+const {GuiTestsTreeBuilder} = require('lib/tests-tree-builder/gui');
 const {FAIL, SUCCESS, IDLE, UPDATED} = require('lib/constants/test-statuses');
 const {ToolName} = require('lib/constants');
 
@@ -20,7 +20,7 @@ describe('GuiResultsTreeBuilder', () => {
         });
     };
 
-    const mkGuiTreeBuilder = () => GuiResultsTreeBuilder.create({toolName: ToolName.Hermione});
+    const mkGuiTreeBuilder = () => GuiTestsTreeBuilder.create({toolName: ToolName.Hermione});
 
     beforeEach(() => {
         builder = mkGuiTreeBuilder();
@@ -39,7 +39,7 @@ describe('GuiResultsTreeBuilder', () => {
         });
     });
 
-    describe('"getResultByOrigAttempt" method', () => {
+    describe('"getLastActualResult" method', () => {
         it('should return previous result from tree', () => {
             const formattedRes1 = mkFormattedResult_({testPath: ['s'], browserId: 'b', attempt: 0});
             const formattedRes2 = mkFormattedResult_({testPath: ['s'], browserId: 'b', attempt: 1});
@@ -48,9 +48,9 @@ describe('GuiResultsTreeBuilder', () => {
             builder.addTestResult(mkTestResult_(), formattedRes2);
             builder.addTestResult(mkTestResult_(), formattedRes3);
 
-            const lastResult = builder.getResultByOrigAttempt({testPath: ['s'], browserId: 'b', origAttempt: 1});
+            const lastResult = builder.getLastActualResult({testPath: ['s'], browserId: 'b', attempt: 1});
 
-            assert.deepEqual(lastResult, builder.tree.results.byId['s b 1']);
+            assert.deepEqual(lastResult, builder.tree.results.byId['s b 0']);
         });
     });
 

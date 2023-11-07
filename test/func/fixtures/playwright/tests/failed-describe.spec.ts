@@ -34,6 +34,7 @@ test.describe('failed describe', () => {
         test.skip(true, 'foo-bar');
     });
 
+    // Warning: this test may fail unless launched inside docker container
     test('test with successful assertView and error', async ({page, baseURL}) => {
         await page.goto(baseURL as string);
 

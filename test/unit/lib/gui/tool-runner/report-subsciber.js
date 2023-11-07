@@ -3,9 +3,9 @@
 const {EventEmitter} = require('events');
 const Promise = require('bluebird');
 const _ = require('lodash');
-const reportSubscriber = require('lib/gui/tool-runner/report-subscriber');
-const GuiReportBuilder = require('lib/report-builder/gui');
-const clientEvents = require('lib/gui/constants/client-events');
+const {subscribeOnToolEvents} = require('lib/gui/tool-runner/report-subscriber');
+const {GuiReportBuilder} = require('lib/report-builder/gui');
+const {ClientEvents} = require('lib/gui/constants');
 const {stubTool, stubConfig} = require('test/unit/utils');
 const {HermioneTestAdapter} = require('lib/test-adapter');
 const {ErrorName} = require('lib/errors');
@@ -50,10 +50,10 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
         it('should emit "END" event for client', () => {
             const hermione = mkHermione_();
 
-            reportSubscriber(hermione, reportBuilder, client);
+            subscribeOnToolEvents(hermione, reportBuilder, client);
 
             return hermione.emitAsync(hermione.events.RUNNER_END)
-                .then(() => assert.calledOnceWith(client.emit, clientEvents.END));
+                .then(() => assert.calledOnceWith(client.emit, ClientEvents.END));
         });
 
         it('should emit "END" event after all promises are resolved', async () => {
@@ -63,11 +63,11 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
 
             reportBuilder.imageHandler.saveTestImages.callsFake(() => Promise.delay(100).then(mediator));
 
-            reportSubscriber(hermione, reportBuilder, client);
+            subscribeOnToolEvents(hermione, reportBuilder, client);
             hermione.emit(hermione.events.TEST_FAIL, testResult);
             await hermione.emitAsync(hermione.events.RUNNER_END);
 
-            assert.callOrder(mediator, client.emit.withArgs(clientEvents.END));
+            assert.callOrder(mediator, client.emit.withArgs(ClientEvents.END));
         });
     });
 
@@ -78,10 +78,10 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
 
             reportBuilder.getTestBranch.withArgs('some-id').returns('test-tree-branch');
 
-            reportSubscriber(hermione, reportBuilder, client);
+            subscribeOnToolEvents(hermione, reportBuilder, client);
             hermione.emit(hermione.events.TEST_BEGIN, testResult);
 
-            assert.calledOnceWith(client.emit, clientEvents.BEGIN_STATE, 'test-tree-branch');
+            assert.calledOnceWith(client.emit, ClientEvents.BEGIN_STATE, 'test-tree-branch');
         });
     });
 
@@ -90,7 +90,7 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
             const hermione = mkHermione_();
             const testResult = mkHermioneTestResult();
 
-            reportSubscriber(hermione, reportBuilder, client);
+            subscribeOnToolEvents(hermione, reportBuilder, client);
             await hermione.emitAsync(hermione.events.TEST_PENDING, testResult);
             await hermione.emitAsync(hermione.events.RUNNER_END);
 
@@ -107,11 +107,11 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
 
             reportBuilder.getTestBranch.withArgs('some-id').returns('test-tree-branch');
 
-            reportSubscriber(hermione, reportBuilder, client);
+            subscribeOnToolEvents(hermione, reportBuilder, client);
             await hermione.emitAsync(hermione.events.TEST_PENDING, testResult);
             await hermione.emitAsync(hermione.events.RUNNER_END);
 
-            assert.calledWith(client.emit, clientEvents.TEST_RESULT, 'test-tree-branch');
+            assert.calledWith(client.emit, ClientEvents.TEST_RESULT, 'test-tree-branch');
         });
     });
 
@@ -122,7 +122,7 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
 
             reportBuilder.getCurrAttempt.returns(1);
 
-            reportSubscriber(hermione, reportBuilder, client);
+            subscribeOnToolEvents(hermione, reportBuilder, client);
             hermione.emit(hermione.events.TEST_FAIL, testResult);
             await hermione.emitAsync(hermione.events.RUNNER_END);
 
@@ -133,7 +133,7 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
             const hermione = mkHermione_();
             const testResult = mkHermioneTestResult({assertViewResults: [{name: ErrorName.IMAGE_DIFF}]});
 
-            reportSubscriber(hermione, reportBuilder, client);
+            subscribeOnToolEvents(hermione, reportBuilder, client);
             hermione.emit(hermione.events.TEST_FAIL, testResult);
             await hermione.emitAsync(hermione.events.RUNNER_END);
 
@@ -146,11 +146,11 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
 
             reportBuilder.getTestBranch.withArgs('some-id').returns('test-tree-branch');
 
-            reportSubscriber(hermione, reportBuilder, client);
+            subscribeOnToolEvents(hermione, reportBuilder, client);
             hermione.emit(hermione.events.TEST_FAIL, testResult);
             await hermione.emitAsync(hermione.events.RUNNER_END);
 
-            assert.calledWith(client.emit, clientEvents.TEST_RESULT, 'test-tree-branch');
+            assert.calledWith(client.emit, ClientEvents.TEST_RESULT, 'test-tree-branch');
         });
     });
 });

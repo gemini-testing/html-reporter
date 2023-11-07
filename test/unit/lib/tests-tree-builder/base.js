@@ -184,6 +184,7 @@ describe('ResultsTreeBuilder', () => {
                 assert.deepEqual(
                     builder.tree.results.byId['s1 b1 0'],
                     {
+                        attempt: 0,
                         id: 's1 b1 0',
                         parentId: 's1 b1',
                         imageIds: [],

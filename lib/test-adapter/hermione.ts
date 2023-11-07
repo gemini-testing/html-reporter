@@ -49,7 +49,7 @@ export class HermioneTestAdapter implements ReporterTestResult {
         this._testResult = testResult;
         this._testId = mkTestId(testResult.fullTitle(), testResult.browserId);
         this._errorDetails = null;
-        this._timestamp = this._testResult.timestamp;
+        this._timestamp = this._testResult.timestamp ?? this._testResult.startTime ?? Date.now();
         this._status = status;
 
         const browserVersion = _.get(this._testResult, 'meta.browserVersion', this._testResult.browserVersion);
@@ -87,10 +87,6 @@ export class HermioneTestAdapter implements ReporterTestResult {
 
     get imagesInfo(): ImageInfoFull[] | undefined {
         return this._imagesInfoFormatter.getImagesInfo(this);
-    }
-
-    get origAttempt(): number | undefined {
-        return this._testResult.origAttempt;
     }
 
     get attempt(): number {
@@ -203,17 +199,5 @@ export class HermioneTestAdapter implements ReporterTestResult {
 
         await utils.makeDirFor(detailsFilePath);
         await fs.writeFile(detailsFilePath, detailsData);
-    }
-
-    decreaseAttemptNumber(): void {
-        const testId = mkTestId(this._testResult.fullTitle(), this.browserId);
-        const currentTestAttempt = testsAttempts.get(testId) as number;
-        const previousTestAttempt = currentTestAttempt - 1;
-
-        if (previousTestAttempt) {
-            testsAttempts.set(testId, previousTestAttempt);
-        } else {
-            testsAttempts.delete(testId);
-        }
     }
 }
