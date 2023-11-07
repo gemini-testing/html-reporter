@@ -13,11 +13,6 @@ module.exports = merge(
             minimize: false
         },
         devtool: 'eval-source-map',
-        devServer: {
-            contentBase: './lib/static',
-            inline: true,
-            hot: true
-        },
         plugins: [
             new webpack.HotModuleReplacementPlugin()
         ]

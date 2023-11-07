@@ -6,7 +6,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const HtmlWebpackIncludeAssetsPlugin = require('html-webpack-include-assets-plugin');
+const HtmlWebpackTagsPlugin = require('html-webpack-tags-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const {ProgressPlugin} = require('webpack');
 
@@ -18,7 +18,12 @@ module.exports = {
         gui: ['./gui.jsx', './variables.css', './styles.css', './gui.css']
     },
     resolve: {
-        extensions: ['.js', '.jsx', '.ts', '.tsx']
+        extensions: ['.js', '.jsx', '.ts', '.tsx'],
+        fallback: {
+            crypto: require.resolve('crypto-browserify'),
+            path: require.resolve('path-browserify'),
+            stream: require.resolve('stream-browserify')
+        }
     },
     context: path.resolve(__dirname, 'lib', 'static'),
     output: {
@@ -48,8 +53,17 @@ module.exports = {
             },
             {
                 test: /\.(png|woff|woff2|eot|ttf|svg)$/,
-                loader: 'url-loader'
+                type: 'asset',
+                parser: {
+                    dataUrlCondition: {
+                        maxSize: 4 * 1024 // 4kb
+                    }
+                },
+                generator: {
+                    filename: path.resolve(__dirname, 'lib', 'static', 'assets', '[contenthash][ext][query]')
+                }
             }
+
         ]
     },
     plugins: [
@@ -76,9 +90,9 @@ module.exports = {
             template: 'template.html',
             chunks: ['report']
         }),
-        new HtmlWebpackIncludeAssetsPlugin({
+        new HtmlWebpackTagsPlugin({
             files: ['index.html'],
-            assets: ['data.js', 'sql-wasm.js'],
+            scripts: ['data.js', 'sql-wasm.js'],
             append: false
         }),
         new HtmlWebpackPlugin({
@@ -87,9 +101,9 @@ module.exports = {
             template: 'template.html',
             chunks: ['gui']
         }),
-        new HtmlWebpackIncludeAssetsPlugin({
+        new HtmlWebpackTagsPlugin({
             files: ['gui.html'],
-            assets: ['sql-wasm.js'],
+            scripts: ['sql-wasm.js'],
             append: false
         })
     ],
@@ -100,11 +114,10 @@ module.exports = {
                 parallel: true,
                 minify: TerserPlugin.uglifyJsMinify,
                 terserOptions: {
-                    compress: true,
-                    mangle: true,
-                    format: {
+                    output: {
                         comments: false
-                    }
+                    },
+                    annotations: false
                 },
                 extractComments: false
             })
