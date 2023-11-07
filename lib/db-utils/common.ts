@@ -77,7 +77,7 @@ export const mergeTables = ({db, dbPaths, getExistingTables = (): string[] => []
     }
 };
 
-function createTableQuery(tableName: string, columns: ReadonlyDeep<{name: string, readonly type: string }[]>): string {
+function createTableQuery(tableName: string, columns: ReadonlyDeep<{name: string, type: string }[]>): string {
     const formattedColumns = columns
         .map(({name, type}) => `${name} ${type}`)
         .join(', ');

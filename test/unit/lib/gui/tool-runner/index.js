@@ -352,11 +352,13 @@ describe('lib/gui/tool-runner/index', () => {
 
         it('should revert reference, if ReportBuilder.undoAcceptImages resolved "shouldRevertReference"', async () => {
             const stateName = 'plain';
-            const {gui, tests} = await mkUndoTestData_({shouldRevertReference: true}, {stateName});
+            const {gui, tests} = await mkUndoTestData_({
+                shouldRevertReference: true, removedResult: 'some-result'
+            }, {stateName});
 
             await gui.undoAcceptImages(tests);
 
-            assert.calledOnceWith(revertReferenceImage, sinon.match({fullName: 'some-title'}), 'plain');
+            assert.calledOnceWith(revertReferenceImage, 'some-result', sinon.match({fullName: 'some-title'}), 'plain');
         });
 
         it('should update expected path', async () => {

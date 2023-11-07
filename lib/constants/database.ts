@@ -1,3 +1,5 @@
+import {ValueOf} from 'type-fest';
+
 // TODO: change to enums
 export const DB_TYPES = {int: 'INT', text: 'TEXT'} as const;
 export const DB_COLUMNS = {
@@ -41,4 +43,4 @@ export const DATABASE_URLS_JSON_NAME = 'databaseUrls.json';
 export const DB_COLUMN_INDEXES = SUITES_TABLE_COLUMNS.reduce((acc: Record<string, number>, {name}, index) => {
     acc[name] = index;
     return acc;
-}, {}) as { [K in (typeof SUITES_TABLE_COLUMNS)[number]['name']]: number };
+}, {}) as { [K in ValueOf<typeof DB_COLUMNS>]: number };

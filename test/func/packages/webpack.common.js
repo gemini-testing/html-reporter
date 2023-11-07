@@ -17,7 +17,7 @@ module.exports = {
                 loader: 'babel-loader',
                 exclude: /node_modules/,
                 options: {
-                    configFile: path.resolve(__dirname, '../../../.babelrc')
+                    configFile: path.resolve(__dirname, '../../../babel.config.json')
                 }
             }
         ]
