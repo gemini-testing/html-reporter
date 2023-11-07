@@ -116,8 +116,8 @@ export const subscribeOnToolEvents = (hermione: Hermione, reportBuilder: GuiRepo
         try {
             await queue.onIdle();
             client.emit(ClientEvents.END);
-        } catch (err: any) {
-            logError(err);
+        } catch (err: unknown) {
+            logError(err as Error);
         }
     });
 };

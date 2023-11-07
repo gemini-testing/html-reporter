@@ -123,7 +123,7 @@ export class GuiReportBuilder extends StaticReportBuilder {
         return isUpdated ? attempt : attempt + 1;
     }
 
-    async undoAcceptImage(formattedResult: ReporterTestResult, stateName: string): Promise<UndoAcceptImageResult | null> {
+    undoAcceptImage(formattedResult: ReporterTestResult, stateName: string): UndoAcceptImageResult | null {
         const resultId = formattedResult.id;
         const suitePath = formattedResult.testPath;
         const browserName = formattedResult.browserId;
