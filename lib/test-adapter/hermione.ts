@@ -49,7 +49,7 @@ export class HermioneTestAdapter implements ReporterTestResult {
         this._testResult = testResult;
         this._testId = mkTestId(testResult.fullTitle(), testResult.browserId);
         this._errorDetails = null;
-        this._timestamp = this._testResult.timestamp;
+        this._timestamp = this._testResult.timestamp ?? this._testResult.startTime ?? Date.now();
         this._status = status;
 
         const browserVersion = _.get(this._testResult, 'meta.browserVersion', this._testResult.browserVersion);
