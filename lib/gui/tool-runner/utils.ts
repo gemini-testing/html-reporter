@@ -50,15 +50,14 @@ export const mergeDatabasesForReuse = async (reportPath: string): Promise<void> 
     await Promise.all(dbPaths.map(p => fs.remove(p)));
 };
 
-export const filterByEqualDiffSizes = (imagesInfo: TestEqualDiffsData[], refDiffClusters: CoordBounds[]): TestEqualDiffsData[] => {
-    if (_.isEmpty(refDiffClusters)) {
+export const filterByEqualDiffSizes = (imagesInfo: TestEqualDiffsData[], refDiffClusters?: CoordBounds[]): TestEqualDiffsData[] => {
+    if (!refDiffClusters || _.isEmpty(refDiffClusters)) {
         return [];
     }
 
     const refDiffSizes = refDiffClusters.map(getDiffClusterSizes);
 
     return _.filter(imagesInfo, (imageInfo) => {
-        // TODO: get rid of type assertion here
         const imageInfoFail = imageInfo as ImageInfoFail;
 
         const imageDiffSizes = imageInfoFail.diffClusters?.map(getDiffClusterSizes) ?? [];

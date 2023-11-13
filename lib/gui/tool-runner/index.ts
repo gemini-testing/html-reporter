@@ -1,33 +1,80 @@
-'use strict';
+import path from 'path';
 
-const _ = require('lodash');
-const fs = require('fs-extra');
-const path = require('path');
-const chalk = require('chalk');
-const Promise = require('bluebird');
-const looksSame = require('looks-same');
+import {CommanderStatic} from '@gemini-testing/commander';
+import chalk from 'chalk';
+import fs from 'fs-extra';
+import type Hermione from 'hermione';
+import type {TestCollection, Test as HermioneTest, Config as HermioneConfig} from 'hermione';
+import _ from 'lodash';
+import looksSame, {CoordBounds} from 'looks-same';
 
-const {createTestRunner} = require('./runner');
-const {subscribeOnToolEvents} = require('./report-subscriber');
-const {GuiReportBuilder} = require('../../report-builder/gui');
-const {EventSource} = require('../event-source');
-const {logger} = require('../../common-utils');
-const reporterHelper = require('../../reporter-helpers');
-const {UPDATED, SKIPPED, IDLE} = require('../../constants/test-statuses');
-const {DATABASE_URLS_JSON_NAME, LOCAL_DATABASE_NAME} = require('../../constants/database');
-const {getShortMD5} = require('../../common-utils');
-const {formatId, mkFullTitle, mergeDatabasesForReuse, filterByEqualDiffSizes} = require('./utils');
-const {getTestsTreeFromDatabase} = require('../../db-utils/server');
-const {formatTestResult} = require('../../server-utils');
-const {ToolName} = require('../../constants');
+import {createTestRunner} from './runner';
+import {subscribeOnToolEvents} from './report-subscriber';
+import {GuiReportBuilder, GuiReportBuilderResult} from '../../report-builder/gui';
+import {EventSource} from '../event-source';
+import {logger, getShortMD5} from '../../common-utils';
+import * as reporterHelper from '../../reporter-helpers';
+import {UPDATED, SKIPPED, IDLE, TestStatus, ToolName, DATABASE_URLS_JSON_NAME, LOCAL_DATABASE_NAME} from '../../constants';
+import {formatId, mkFullTitle, mergeDatabasesForReuse, filterByEqualDiffSizes} from './utils';
+import {getTestsTreeFromDatabase} from '../../db-utils/server';
+import {formatTestResult} from '../../server-utils';
+import {
+    AssertViewResult,
+    HermioneTestResult,
+    HtmlReporterApi,
+    ImageData,
+    ImageInfoFail,
+    ReporterConfig
+} from '../../types';
+import {GuiCliOptions, GuiConfigs} from '../index';
+import {Tree, TreeImage} from '../../tests-tree-builder/base';
+import {TestSpec} from './runner/runner';
+import {Response} from 'express';
+import {TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../../tests-tree-builder/gui';
+import {ReporterTestResult} from '../../test-adapter';
+import {ImagesInfoFormatter} from '../../image-handler';
 
-module.exports = class ToolRunner {
-    static create(paths, hermione, configs) {
-        return new this(paths, hermione, configs);
+type ToolRunnerArgs = [paths: string[], hermione: Hermione & HtmlReporterApi, configs: GuiConfigs];
+
+type ToolRunnerTree = GuiReportBuilderResult & Pick<GuiCliOptions, 'autoRun'>;
+
+interface HermioneTestExtended extends HermioneTest {
+    assertViewResults: {stateName: string, refImg: ImageData, currImg: ImageData};
+    attempt: number;
+    imagesInfo: Pick<ImageInfoFail, 'status' | 'stateName' | 'actualImg' | 'expectedImg'>[];
+}
+
+type HermioneTestPlain = Pick<HermioneTestExtended & HermioneTestResult, 'assertViewResults' | 'imagesInfo' | 'sessionId' | 'attempt' | 'meta' | 'updated'>;
+
+interface UndoAcceptImagesResult {
+    updatedImages: TreeImage[];
+    removedResults: string[];
+}
+
+// TODO: get rid of this function. It allows to format raw test, but is type-unsafe.
+const formatTestResultUnsafe = (test: HermioneTest | HermioneTestExtended | HermioneTestPlain, status: TestStatus, {imageHandler}: {imageHandler: ImagesInfoFormatter}): ReporterTestResult => {
+    return formatTestResult(test as HermioneTestResult, status, {imageHandler});
+};
+
+export class ToolRunner {
+    private _testFiles: string[];
+    private _hermione: Hermione & HtmlReporterApi;
+    private _tree: ToolRunnerTree | null;
+    protected _collection: TestCollection | null;
+    private _globalOpts: CommanderStatic;
+    private _guiOpts: GuiCliOptions;
+    private _reportPath: string;
+    private _pluginConfig: ReporterConfig;
+    private _eventSource: EventSource;
+    protected _reportBuilder: GuiReportBuilder | null;
+    private _tests: Record<string, HermioneTest>;
+
+    static create<T extends ToolRunner>(this: new (...args: ToolRunnerArgs) => T, ...args: ToolRunnerArgs): T {
+        return new this(...args);
     }
 
-    constructor(paths, hermione, {program: globalOpts, pluginConfig, options: guiOpts}) {
-        this._testFiles = [].concat(paths);
+    constructor(...[paths, hermione, {program: globalOpts, pluginConfig, options: guiOpts}]: ToolRunnerArgs) {
+        this._testFiles = ([] as string[]).concat(paths);
         this._hermione = hermione;
         this._tree = null;
         this._collection = null;
@@ -43,15 +90,15 @@ module.exports = class ToolRunner {
         this._tests = {};
     }
 
-    get config() {
+    get config(): HermioneConfig {
         return this._hermione.config;
     }
 
-    get tree() {
+    get tree(): ToolRunnerTree | null {
         return this._tree;
     }
 
-    async initialize() {
+    async initialize(): Promise<void> {
         await mergeDatabasesForReuse(this._reportPath);
 
         this._reportBuilder = GuiReportBuilder.create(this._hermione.htmlReporter, this._pluginConfig, {reuse: true});
@@ -66,81 +113,104 @@ module.exports = class ToolRunner {
         await this._handleRunnableCollection();
     }
 
-    async _readTests() {
-        const {grep, set: sets, browser: browsers} = this._globalOpts;
-
-        return await this._hermione.readTests(this._testFiles, {grep, sets, browsers});
+    private _assertInitialized(): asserts this is {_reportBuilder: GuiReportBuilder; _collection: TestCollection} {
+        if (!this._reportBuilder || !this._collection) {
+            throw new Error('ToolRunner has to be initialized before usage');
+        }
     }
 
-    finalize() {
+    async _readTests(): Promise<TestCollection> {
+        const {grep, set: sets, browser: browsers} = this._globalOpts;
+
+        return this._hermione.readTests(this._testFiles, {grep, sets, browsers});
+    }
+
+    async finalize(): Promise<void> {
+        this._assertInitialized();
+
         return this._reportBuilder.finalize();
     }
 
-    addClient(connection) {
+    addClient(connection: Response): void {
         this._eventSource.addConnection(connection);
     }
 
-    sendClientEvent(event, data) {
+    sendClientEvent(event: string, data: unknown): void {
         this._eventSource.emit(event, data);
     }
 
-    getTestsDataToUpdateRefs(imageIds) {
+    getTestsDataToUpdateRefs(imageIds: string[]): TestRefUpdateData[] {
+        this._assertInitialized();
+
         return this._reportBuilder.getTestsDataToUpdateRefs(imageIds);
     }
 
-    getImageDataToFindEqualDiffs(imageIds) {
+    getImageDataToFindEqualDiffs(imageIds: string[]): TestEqualDiffsData[] {
+        this._assertInitialized();
+
         const [selectedImage, ...comparedImages] = this._reportBuilder.getImageDataToFindEqualDiffs(imageIds);
 
         const imagesWithEqualBrowserName = comparedImages.filter((image) => image.browserName === selectedImage.browserName);
-        const imagesWithEqualDiffSizes = filterByEqualDiffSizes(imagesWithEqualBrowserName, selectedImage.diffClusters);
+        const imagesWithEqualDiffSizes = filterByEqualDiffSizes(imagesWithEqualBrowserName, (selectedImage as ImageInfoFail).diffClusters);
 
         return _.isEmpty(imagesWithEqualDiffSizes) ? [] : [selectedImage].concat(imagesWithEqualDiffSizes);
     }
 
-    updateReferenceImage(tests) {
-        return Promise.map(tests, (test) => {
+    async updateReferenceImage(tests: TestRefUpdateData[]): Promise<TestBranch[]> {
+        return Promise.all(tests.map(async (test): Promise<TestBranch> => {
+            this._assertInitialized();
+
             const updateResult = this._prepareTestResult(test);
-            const formattedResult = formatTestResult(updateResult, UPDATED, this._reportBuilder);
+            const formattedResult = formatTestResultUnsafe(updateResult, UPDATED, this._reportBuilder);
             const failResultId = formattedResult.id;
             const updateAttempt = this._reportBuilder.getUpdatedAttempt(formattedResult);
 
             formattedResult.attempt = updateAttempt;
             updateResult.attempt = updateAttempt;
 
-            return Promise.map(updateResult.imagesInfo, (imageInfo) => {
+            await Promise.all(updateResult.imagesInfo.map(async (imageInfo) => {
                 const {stateName} = imageInfo;
 
-                return reporterHelper.updateReferenceImage(formattedResult, this._reportPath, stateName)
-                    .then(() => {
-                        const result = _.extend(updateResult, {refImg: imageInfo.expectedImg});
-                        this._emitUpdateReference(result, stateName);
-                    });
-            })
-                .then(() => {
-                    this._reportBuilder.addUpdated(formatTestResult(updateResult, UPDATED, this._reportBuilder), failResultId);
-                    return this._reportBuilder.getTestBranch(formattedResult.id);
-                });
-        });
+                await reporterHelper.updateReferenceImage(formattedResult, this._reportPath, stateName);
+
+                const result = _.extend(updateResult, {refImg: imageInfo.expectedImg});
+                this._emitUpdateReference(result, stateName);
+            }));
+
+            this._reportBuilder.addUpdated(formatTestResultUnsafe(updateResult, UPDATED, this._reportBuilder), failResultId);
+
+            return this._reportBuilder.getTestBranch(formattedResult.id);
+        }));
     }
 
-    async undoAcceptImages(tests) {
-        const updatedImages = [], removedResults = [];
+    async undoAcceptImages(tests: TestRefUpdateData[]): Promise<UndoAcceptImagesResult> {
+        const updatedImages: TreeImage[] = [], removedResults: string[] = [];
 
-        await Promise.map(tests, async (test) => {
+        await Promise.all(tests.map(async (test) => {
+            this._assertInitialized();
+
             const updateResult = this._prepareTestResult(test);
-            const formattedResult = formatTestResult(updateResult, UPDATED, this._reportBuilder);
+            const formattedResult = formatTestResultUnsafe(updateResult, UPDATED, this._reportBuilder);
 
             formattedResult.attempt = updateResult.attempt;
 
-            await Promise.map(updateResult.imagesInfo, async (imageInfo) => {
+            await Promise.all(updateResult.imagesInfo.map(async (imageInfo) => {
+                this._assertInitialized();
+
                 const {stateName} = imageInfo;
+
+                const undoResultData = this._reportBuilder.undoAcceptImage(formattedResult, stateName);
+                if (undoResultData === null) {
+                    return;
+                }
+
                 const {
                     updatedImage,
                     removedResult,
                     previousExpectedPath,
                     shouldRemoveReference,
                     shouldRevertReference
-                } = await this._reportBuilder.undoAcceptImage(formattedResult, stateName);
+                } = undoResultData;
 
                 updatedImage && updatedImages.push(updatedImage);
                 removedResult && removedResults.push(removedResult);
@@ -149,26 +219,32 @@ module.exports = class ToolRunner {
                     await reporterHelper.removeReferenceImage(formattedResult, stateName);
                 }
 
-                if (shouldRevertReference) {
+                if (shouldRevertReference && removedResult) {
                     await reporterHelper.revertReferenceImage(removedResult, formattedResult, stateName);
                 }
 
-                if (previousExpectedPath) {
-                    this._reportBuilder.imageHandler.updateCacheExpectedPath(updateResult, stateName, previousExpectedPath);
+                if (previousExpectedPath && (updateResult as HermioneTest).fullTitle) {
+                    this._reportBuilder.imageHandler.updateCacheExpectedPath({
+                        fullName: (updateResult as HermioneTest).fullTitle(),
+                        browserId: (updateResult as HermioneTest).browserId
+                    }, stateName, previousExpectedPath);
                 }
-            });
-        });
+            }));
+        }));
 
         return {updatedImages, removedResults};
     }
 
-    async findEqualDiffs(images) {
-        const [selectedImage, ...comparedImages] = images;
+    async findEqualDiffs(images: TestEqualDiffsData[]): Promise<string[]> {
+        const [selectedImage, ...comparedImages] = images as (ImageInfoFail & {diffClusters: CoordBounds[]})[];
         const {tolerance, antialiasingTolerance} = this.config;
         const compareOpts = {tolerance, antialiasingTolerance, stopOnFirstFail: true, shouldCluster: false};
-        const equalImages = await Promise.filter(comparedImages, async (image) => {
-            try {
-                await Promise.mapSeries(image.diffClusters, async (diffCluster, i) => {
+
+        const comparisons = await Promise.all(comparedImages.map(async (image) => {
+            for (let i = 0; i < image.diffClusters.length; i++) {
+                const diffCluster = image.diffClusters[i];
+
+                try {
                     const refComparisonRes = await looksSame(
                         {source: this._resolveImgPath(selectedImage.expectedImg.path), boundingBox: selectedImage.diffClusters[i]},
                         {source: this._resolveImgPath(image.expectedImg.path), boundingBox: diffCluster},
@@ -176,7 +252,7 @@ module.exports = class ToolRunner {
                     );
 
                     if (!refComparisonRes.equal) {
-                        return Promise.reject(false);
+                        return false;
                     }
 
                     const actComparisonRes = await looksSame(
@@ -186,28 +262,37 @@ module.exports = class ToolRunner {
                     );
 
                     if (!actComparisonRes.equal) {
-                        return Promise.reject(false);
+                        return false;
                     }
-                });
-
-                return true;
-            } catch (err) {
-                return err === false ? err : Promise.reject(err);
+                } catch (err) {
+                    if (err !== false) {
+                        throw err;
+                    }
+                    return false;
+                }
             }
-        });
 
-        return equalImages.map((image) => image.id);
+            return image;
+        }));
+
+        return comparisons.filter(Boolean).map(image => (image as TestEqualDiffsData).id);
     }
 
-    run(tests = []) {
+    async run(tests: TestSpec[] = []): Promise<boolean> {
+        this._assertInitialized();
+
         const {grep, set: sets, browser: browsers} = this._globalOpts;
 
         return createTestRunner(this._collection, tests)
             .run((collection) => this._hermione.run(collection, {grep, sets, browsers}));
     }
 
-    async _handleRunnableCollection() {
+    protected async _handleRunnableCollection(): Promise<void> {
+        this._assertInitialized();
+
         this._collection.eachTest((test, browserId) => {
+            this._assertInitialized();
+
             if (test.disabled || this._isSilentlySkipped(test)) {
                 return;
             }
@@ -217,38 +302,42 @@ module.exports = class ToolRunner {
             this._tests[testId] = _.extend(test, {browserId});
 
             test.pending
-                ? this._reportBuilder.addSkipped(formatTestResult(test, SKIPPED, this._reportBuilder))
-                : this._reportBuilder.addIdle(formatTestResult(test, IDLE, this._reportBuilder));
+                ? this._reportBuilder.addSkipped(formatTestResultUnsafe(test, SKIPPED, this._reportBuilder))
+                : this._reportBuilder.addIdle(formatTestResultUnsafe(test, IDLE, this._reportBuilder));
         });
 
         await this._fillTestsTree();
     }
 
-    _isSilentlySkipped({silentSkip, parent}) {
+    protected _isSilentlySkipped({silentSkip, parent}: HermioneTest): boolean {
         return silentSkip || parent && this._isSilentlySkipped(parent);
     }
 
-    _subscribeOnEvents() {
+    protected _subscribeOnEvents(): void {
+        this._assertInitialized();
+
         subscribeOnToolEvents(this._hermione, this._reportBuilder, this._eventSource, this._reportPath);
     }
 
-    _prepareTestResult(test) {
+    protected _prepareTestResult(test: TestRefUpdateData): HermioneTestExtended | HermioneTestPlain {
         const {browserId, attempt} = test;
         const fullTitle = mkFullTitle(test);
         const testId = formatId(getShortMD5(fullTitle), browserId);
         const rawTest = this._tests[testId];
         const {sessionId, url} = test.metaInfo;
-        const assertViewResults = [];
+        const assertViewResults: AssertViewResult[] = [];
 
-        const imagesInfo = test.imagesInfo.map((imageInfo) => {
-            const {stateName, actualImg} = imageInfo;
-            const path = this._hermione.config.browsers[browserId].getScreenshotPath(rawTest, stateName);
-            const refImg = {path, size: actualImg.size};
+        const imagesInfo = test.imagesInfo
+            .filter(({stateName, actualImg}) => Boolean(stateName) && Boolean(actualImg))
+            .map((imageInfo) => {
+                const {stateName, actualImg} = imageInfo as {stateName: string, actualImg: ImageData};
+                const path = this._hermione.config.browsers[browserId].getScreenshotPath(rawTest, stateName);
+                const refImg = {path, size: actualImg.size};
 
-            assertViewResults.push({stateName, refImg, currImg: actualImg});
+                assertViewResults.push({stateName, refImg, currImg: actualImg});
 
-            return _.extend(imageInfo, {expectedImg: refImg});
-        });
+                return _.extend(imageInfo, {expectedImg: refImg});
+            });
 
         const res = _.merge({}, rawTest, {assertViewResults, imagesInfo, sessionId, attempt, meta: {url}, updated: true});
 
@@ -259,14 +348,16 @@ module.exports = class ToolRunner {
             : res;
     }
 
-    _emitUpdateReference({refImg}, state) {
+    protected _emitUpdateReference({refImg}: {refImg: ImageData}, state: string): void {
         this._hermione.emit(
             this._hermione.events.UPDATE_REFERENCE,
             {refImg, state}
         );
     }
 
-    async _fillTestsTree() {
+    async _fillTestsTree(): Promise<void> {
+        this._assertInitialized();
+
         const {autoRun} = this._guiOpts;
         const testsTree = await this._loadDataFromDatabase();
 
@@ -277,7 +368,7 @@ module.exports = class ToolRunner {
         this._tree = {...this._reportBuilder.getResult(), autoRun};
     }
 
-    async _loadDataFromDatabase() {
+    protected async _loadDataFromDatabase(): Promise<Tree | null> {
         const dbPath = path.resolve(this._reportPath, LOCAL_DATABASE_NAME);
 
         if (await fs.pathExists(dbPath)) {
@@ -286,10 +377,10 @@ module.exports = class ToolRunner {
 
         logger.warn(chalk.yellow(`Nothing to reuse in ${this._reportPath}: can not load data from ${DATABASE_URLS_JSON_NAME}`));
 
-        return {};
+        return null;
     }
 
-    _resolveImgPath(imgPath) {
+    protected _resolveImgPath(imgPath: string): string {
         return path.resolve(process.cwd(), this._pluginConfig.path, imgPath);
     }
-};
+}

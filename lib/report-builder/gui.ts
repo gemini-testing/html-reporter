@@ -21,7 +21,7 @@ interface UndoAcceptImageResult {
     shouldRevertReference: boolean;
 }
 
-interface GuiReportBuilderResult {
+export interface GuiReportBuilderResult {
     tree: Tree;
     skips: SkipItem[];
     config: ConfigForStaticFile & {customGui: ReporterConfig['customGui']};
