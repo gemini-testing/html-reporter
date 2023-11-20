@@ -1,7 +1,4 @@
-import Hermione from 'hermione';
-import {AsyncReturnType} from 'type-fest';
-
-export type TestCollection = AsyncReturnType<Hermione['readTests']>
+import type {TestCollection} from 'hermione';
 
 export interface TestRunner {
     run<U>(handler: (testCollection: TestCollection) => U): U;

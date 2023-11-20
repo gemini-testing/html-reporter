@@ -42,6 +42,11 @@ export interface ImageHandlerOptions {
     reportPath: string;
 }
 
+interface TestSpec {
+    fullName: string;
+    browserId: string;
+}
+
 export class ImageHandler extends EventEmitter2 implements ImagesInfoFormatter {
     private _imageStore: ImageStore;
     private _imagesSaver: ImagesSaver;
@@ -235,7 +240,7 @@ export class ImageHandler extends EventEmitter2 implements ImagesInfoFormatter {
         this._imagesSaver = newImagesSaver;
     }
 
-    updateCacheExpectedPath(testResult: ReporterTestResultPlain, stateName: string, expectedPath: string): void {
+    updateCacheExpectedPath(testResult: TestSpec, stateName: string, expectedPath: string): void {
         const key = this._getExpectedKey(testResult, stateName);
 
         if (expectedPath) {
@@ -245,7 +250,7 @@ export class ImageHandler extends EventEmitter2 implements ImagesInfoFormatter {
         }
     }
 
-    private _getExpectedKey(testResult: ReporterTestResultPlain, stateName?: string): string {
+    private _getExpectedKey(testResult: TestSpec, stateName?: string): string {
         const shortTestId = getShortMD5(mkTestId(testResult.fullName, testResult.browserId));
 
         return shortTestId + '#' + stateName;

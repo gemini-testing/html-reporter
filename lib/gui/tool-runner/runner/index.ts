@@ -1,6 +1,7 @@
 import _ from 'lodash';
+import type {TestCollection} from 'hermione';
 
-import {TestCollection, TestRunner, TestSpec} from './runner';
+import {TestRunner, TestSpec} from './runner';
 import {AllTestRunner} from './all-test-runner';
 import {SpecificTestRunner} from './specific-test-runner';
 

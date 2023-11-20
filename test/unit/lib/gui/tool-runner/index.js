@@ -98,7 +98,7 @@ describe('lib/gui/tool-runner/index', () => {
                 removeReferenceImage,
                 revertReferenceImage
             }
-        });
+        }).ToolRunner;
 
         sandbox.stub(reportBuilder, 'imageHandler').value({updateCacheExpectedPath: sinon.stub()});
         sandbox.stub(logger, 'warn');
@@ -312,7 +312,7 @@ describe('lib/gui/tool-runner/index', () => {
         const mkUndoTestData_ = async (stubResult, {stateName = 'plain'} = {}) => {
             reportBuilder.undoAcceptImage.withArgs(sinon.match({
                 fullName: 'some-title'
-            }), 'plain').resolves(stubResult);
+            }), 'plain').returns(stubResult);
             const tests = [{
                 id: 'some-id',
                 fullTitle: () => 'some-title',
