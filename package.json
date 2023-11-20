@@ -107,6 +107,7 @@
     "@types/enzyme": "^3.10.13",
     "@types/express": "4.16",
     "@types/fs-extra": "^7.0.0",
+    "@types/http-codes": "^1.0.4",
     "@types/json-stringify-safe": "^5.0.2",
     "@types/lodash": "^4.14.195",
     "@types/nested-error-stacks": "^2.1.0",

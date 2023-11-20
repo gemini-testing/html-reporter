@@ -1,22 +1,21 @@
-'use strict';
+import {Router} from 'express';
+import {INTERNAL_SERVER_ERROR, BAD_REQUEST} from 'http-codes';
 
-const {Router} = require('express');
-const {INTERNAL_SERVER_ERROR, BAD_REQUEST} = require('http-codes');
-
-const {
+import {
     isUnexpectedPlugin,
     getPluginClientScriptPath,
     getPluginMiddleware,
     forEachPlugin,
     logError
-} = require('../../server-utils');
+} from '../../server-utils';
+import {ReporterConfig} from '../../types';
 
-module.exports = function(router, pluginConfig) {
+export const initPluginsRoutes = (router: Router, pluginConfig: ReporterConfig): Router =>{
     if (!pluginConfig.pluginsEnabled) {
         return router;
     }
 
-    router.get(`/plugins/:pluginName/plugin.js`, (req, res) => {
+    router.get<{pluginName: string}>(`/plugins/:pluginName/plugin.js`, (req, res) => {
         if (isUnexpectedPlugin(pluginConfig.plugins, req.params.pluginName)) {
             res.status(BAD_REQUEST).send({error: `Unexpected plugin "${req.params.pluginName}" requested.`});
             return;
@@ -42,12 +41,12 @@ module.exports = function(router, pluginConfig) {
             initPluginMiddleware(pluginRouter);
 
             router.use(`/plugin-routes/${pluginName}`, pluginRouter);
-        } catch (err) {
-            logError(err);
+        } catch (err: unknown) {
+            logError(err as Error);
         }
     });
 
-    router.use('/plugin-routes/:pluginName', (req, res) => {
+    router.use<{pluginName: string}>('/plugin-routes/:pluginName', (req, res) => {
         res.status(BAD_REQUEST).send({error: `No middleware is registered for "${req.params.pluginName}".`});
     });
 
