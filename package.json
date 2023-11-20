@@ -86,7 +86,7 @@
     "ora": "^5.4.1",
     "p-queue": "^5.0.0",
     "qs": "^6.9.1",
-    "signal-exit": "^3.0.2",
+    "signal-exit": "^4.1.0",
     "strip-ansi": "^6.0.1",
     "tmp": "^0.1.0",
     "worker-farm": "^1.7.0"
