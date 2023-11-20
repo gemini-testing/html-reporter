@@ -137,7 +137,7 @@
     "eslint-plugin-react": "^7.32.2",
     "events": "^3.3.0",
     "fork-ts-checker-webpack-plugin": "^9.0.0",
-    "hermione": "^8.0.0-beta.2",
+    "hermione": "^8.0.0-beta.3",
     "hermione-global-hook": "^1.0.1",
     "hermione-test-repeater": "^0.0.8",
     "html-react-parser": "^0.4.0",

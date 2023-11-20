@@ -5,6 +5,6 @@
   "scripts": {
     "clean": "rm -rf report",
     "generate": "npx hermione",
-    "gui": "npx hermione gui --port 8001"
+    "gui": "npx hermione gui --hostname 0.0.0.0 --port 8001"
   }
 }
