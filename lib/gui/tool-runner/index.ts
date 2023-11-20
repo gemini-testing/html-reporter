@@ -46,7 +46,7 @@ interface HermioneTestExtended extends HermioneTest {
 
 type HermioneTestPlain = Pick<HermioneTestExtended & HermioneTestResult, 'assertViewResults' | 'imagesInfo' | 'sessionId' | 'attempt' | 'meta' | 'updated'>;
 
-interface UndoAcceptImagesResult {
+export interface UndoAcceptImagesResult {
     updatedImages: TreeImage[];
     removedResults: string[];
 }
@@ -113,22 +113,30 @@ export class ToolRunner {
         await this._handleRunnableCollection();
     }
 
-    private _assertInitialized(): asserts this is {_reportBuilder: GuiReportBuilder; _collection: TestCollection} {
-        if (!this._reportBuilder || !this._collection) {
-            throw new Error('ToolRunner has to be initialized before usage');
-        }
-    }
-
     async _readTests(): Promise<TestCollection> {
         const {grep, set: sets, browser: browsers} = this._globalOpts;
 
         return this._hermione.readTests(this._testFiles, {grep, sets, browsers});
     }
 
-    async finalize(): Promise<void> {
-        this._assertInitialized();
+    protected _ensureReportBuilder(): GuiReportBuilder {
+        if (!this._reportBuilder) {
+            throw new Error('ToolRunner has to be initialized before usage');
+        }
 
-        return this._reportBuilder.finalize();
+        return this._reportBuilder;
+    }
+
+    protected _ensureTestCollection(): TestCollection {
+        if (!this._collection) {
+            throw new Error('ToolRunner has to be initialized before usage');
+        }
+
+        return this._collection;
+    }
+
+    async finalize(): Promise<void> {
+        return this._ensureReportBuilder().finalize();
     }
 
     addClient(connection: Response): void {
@@ -140,15 +148,11 @@ export class ToolRunner {
     }
 
     getTestsDataToUpdateRefs(imageIds: string[]): TestRefUpdateData[] {
-        this._assertInitialized();
-
-        return this._reportBuilder.getTestsDataToUpdateRefs(imageIds);
+        return this._ensureReportBuilder().getTestsDataToUpdateRefs(imageIds);
     }
 
     getImageDataToFindEqualDiffs(imageIds: string[]): TestEqualDiffsData[] {
-        this._assertInitialized();
-
-        const [selectedImage, ...comparedImages] = this._reportBuilder.getImageDataToFindEqualDiffs(imageIds);
+        const [selectedImage, ...comparedImages] = this._ensureReportBuilder().getImageDataToFindEqualDiffs(imageIds);
 
         const imagesWithEqualBrowserName = comparedImages.filter((image) => image.browserName === selectedImage.browserName);
         const imagesWithEqualDiffSizes = filterByEqualDiffSizes(imagesWithEqualBrowserName, (selectedImage as ImageInfoFail).diffClusters);
@@ -157,13 +161,13 @@ export class ToolRunner {
     }
 
     async updateReferenceImage(tests: TestRefUpdateData[]): Promise<TestBranch[]> {
-        return Promise.all(tests.map(async (test): Promise<TestBranch> => {
-            this._assertInitialized();
+        const reportBuilder = this._ensureReportBuilder();
 
+        return Promise.all(tests.map(async (test): Promise<TestBranch> => {
             const updateResult = this._prepareTestResult(test);
-            const formattedResult = formatTestResultUnsafe(updateResult, UPDATED, this._reportBuilder);
+            const formattedResult = formatTestResultUnsafe(updateResult, UPDATED, reportBuilder);
             const failResultId = formattedResult.id;
-            const updateAttempt = this._reportBuilder.getUpdatedAttempt(formattedResult);
+            const updateAttempt = reportBuilder.getUpdatedAttempt(formattedResult);
 
             formattedResult.attempt = updateAttempt;
             updateResult.attempt = updateAttempt;
@@ -177,29 +181,26 @@ export class ToolRunner {
                 this._emitUpdateReference(result, stateName);
             }));
 
-            this._reportBuilder.addUpdated(formatTestResultUnsafe(updateResult, UPDATED, this._reportBuilder), failResultId);
+            reportBuilder.addUpdated(formatTestResultUnsafe(updateResult, UPDATED, reportBuilder), failResultId);
 
-            return this._reportBuilder.getTestBranch(formattedResult.id);
+            return reportBuilder.getTestBranch(formattedResult.id);
         }));
     }
 
     async undoAcceptImages(tests: TestRefUpdateData[]): Promise<UndoAcceptImagesResult> {
         const updatedImages: TreeImage[] = [], removedResults: string[] = [];
+        const reportBuilder = this._ensureReportBuilder();
 
         await Promise.all(tests.map(async (test) => {
-            this._assertInitialized();
-
             const updateResult = this._prepareTestResult(test);
-            const formattedResult = formatTestResultUnsafe(updateResult, UPDATED, this._reportBuilder);
+            const formattedResult = formatTestResultUnsafe(updateResult, UPDATED, reportBuilder);
 
             formattedResult.attempt = updateResult.attempt;
 
             await Promise.all(updateResult.imagesInfo.map(async (imageInfo) => {
-                this._assertInitialized();
-
                 const {stateName} = imageInfo;
 
-                const undoResultData = this._reportBuilder.undoAcceptImage(formattedResult, stateName);
+                const undoResultData = reportBuilder.undoAcceptImage(formattedResult, stateName);
                 if (undoResultData === null) {
                     return;
                 }
@@ -224,7 +225,7 @@ export class ToolRunner {
                 }
 
                 if (previousExpectedPath && (updateResult as HermioneTest).fullTitle) {
-                    this._reportBuilder.imageHandler.updateCacheExpectedPath({
+                    reportBuilder.imageHandler.updateCacheExpectedPath({
                         fullName: (updateResult as HermioneTest).fullTitle(),
                         browserId: (updateResult as HermioneTest).browserId
                     }, stateName, previousExpectedPath);
@@ -279,20 +280,16 @@ export class ToolRunner {
     }
 
     async run(tests: TestSpec[] = []): Promise<boolean> {
-        this._assertInitialized();
-
         const {grep, set: sets, browser: browsers} = this._globalOpts;
 
-        return createTestRunner(this._collection, tests)
+        return createTestRunner(this._ensureTestCollection(), tests)
             .run((collection) => this._hermione.run(collection, {grep, sets, browsers}));
     }
 
     protected async _handleRunnableCollection(): Promise<void> {
-        this._assertInitialized();
+        const reportBuilder = this._ensureReportBuilder();
 
-        this._collection.eachTest((test, browserId) => {
-            this._assertInitialized();
-
+        this._ensureTestCollection().eachTest((test, browserId) => {
             if (test.disabled || this._isSilentlySkipped(test)) {
                 return;
             }
@@ -302,8 +299,8 @@ export class ToolRunner {
             this._tests[testId] = _.extend(test, {browserId});
 
             test.pending
-                ? this._reportBuilder.addSkipped(formatTestResultUnsafe(test, SKIPPED, this._reportBuilder))
-                : this._reportBuilder.addIdle(formatTestResultUnsafe(test, IDLE, this._reportBuilder));
+                ? reportBuilder.addSkipped(formatTestResultUnsafe(test, SKIPPED, reportBuilder))
+                : reportBuilder.addIdle(formatTestResultUnsafe(test, IDLE, reportBuilder));
         });
 
         await this._fillTestsTree();
@@ -314,9 +311,7 @@ export class ToolRunner {
     }
 
     protected _subscribeOnEvents(): void {
-        this._assertInitialized();
-
-        subscribeOnToolEvents(this._hermione, this._reportBuilder, this._eventSource, this._reportPath);
+        subscribeOnToolEvents(this._hermione, this._ensureReportBuilder(), this._eventSource, this._reportPath);
     }
 
     protected _prepareTestResult(test: TestRefUpdateData): HermioneTestExtended | HermioneTestPlain {
@@ -356,16 +351,16 @@ export class ToolRunner {
     }
 
     async _fillTestsTree(): Promise<void> {
-        this._assertInitialized();
+        const reportBuilder = this._ensureReportBuilder();
 
         const {autoRun} = this._guiOpts;
         const testsTree = await this._loadDataFromDatabase();
 
         if (!_.isEmpty(testsTree)) {
-            this._reportBuilder.reuseTestsTree(testsTree);
+            reportBuilder.reuseTestsTree(testsTree);
         }
 
-        this._tree = {...this._reportBuilder.getResult(), autoRun};
+        this._tree = {...reportBuilder.getResult(), autoRun};
     }
 
     protected async _loadDataFromDatabase(): Promise<Tree | null> {
