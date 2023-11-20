@@ -36,7 +36,7 @@ import {ImagesInfoFormatter} from '../../image-handler';
 
 type ToolRunnerArgs = [paths: string[], hermione: Hermione & HtmlReporterApi, configs: GuiConfigs];
 
-type ToolRunnerTree = GuiReportBuilderResult & Pick<GuiCliOptions, 'autoRun'>;
+export type ToolRunnerTree = GuiReportBuilderResult & Pick<GuiCliOptions, 'autoRun'>;
 
 interface HermioneTestExtended extends HermioneTest {
     assertViewResults: {stateName: string, refImg: ImageData, currImg: ImageData};
