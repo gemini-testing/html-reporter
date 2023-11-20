@@ -4,7 +4,7 @@ const _ = require('lodash');
 const proxyquire = require('proxyquire');
 const Promise = require('bluebird');
 
-const ToolRunner = require('lib/gui/tool-runner');
+const {ToolRunner} = require('lib/gui/tool-runner');
 const {stubTool, stubConfig} = require('../../utils');
 
 describe('lib/gui/app', () => {
