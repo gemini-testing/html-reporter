@@ -2,7 +2,7 @@
 
 const _ = require('lodash');
 const proxyquire = require('proxyquire');
-const App = require('lib/gui/app');
+const {App} = require('lib/gui/app');
 const {stubTool} = require('../../utils');
 
 describe('lib/gui/server', () => {
@@ -60,47 +60,49 @@ describe('lib/gui/server', () => {
                 Router: () => RouterStub
             }),
             'body-parser': bodyParserStub,
-            'signal-exit': sandbox.stub().yields(),
+            'signal-exit': {onExit: sandbox.stub().yields()},
             '../common-utils': {logger: {log: sandbox.stub()}},
-            './routes/plugins': initPluginRoutesStub
+            './routes/plugins': {initPluginsRoutes: initPluginRoutesStub}
         });
     });
 
-    afterEach(() => sandbox.restore());
-
-    it('should init server from api', () => {
-        const guiApi = mkApi_();
-
-        return startServer({guiApi})
-            .then(() => {
-                assert.calledOnceWith(guiApi.initServer, expressStub);
-                assert.calledOnceWith(guiApi.serverReady, {url: 'http://localhost:4444'});
-            });
+    afterEach(() => {
+        sandbox.restore();
     });
 
-    it('should init server only after body is parsed', () => {
+    it('should init server from api', async () => {
         const guiApi = mkApi_();
 
-        return startServer({guiApi})
-            .then(() => assert.callOrder(bodyParserStub.json, guiApi.initServer, guiApi.serverReady));
+        await startServer({guiApi});
+
+        assert.calledOnceWith(guiApi.initServer, expressStub);
+        assert.calledOnceWith(guiApi.serverReady, {url: 'http://localhost:4444'});
     });
 
-    it('should init server before any static middleware starts', () => {
+    it('should init server only after body is parsed', async () => {
         const guiApi = mkApi_();
 
-        return startServer({guiApi})
-            .then(() => assert.callOrder(guiApi.initServer, staticMiddleware, guiApi.serverReady));
+        await startServer({guiApi});
+
+        assert.callOrder(bodyParserStub.json, guiApi.initServer, guiApi.serverReady);
     });
 
-    it('should properly complete app working', () => {
+    it('should init server before any static middleware starts', async () => {
+        const guiApi = mkApi_();
+
+        await startServer({guiApi});
+
+        assert.callOrder(guiApi.initServer, staticMiddleware, guiApi.serverReady);
+    });
+
+    it('should properly complete app working', async () => {
         sandbox.stub(process, 'kill');
 
-        return startServer()
-            .then(() => {
-                process.emit('SIGTERM');
+        await startServer();
 
-                assert.calledOnce(App.prototype.finalize);
-            });
+        process.emit('SIGTERM');
+
+        assert.calledOnce(App.prototype.finalize);
     });
 
     it('should correctly set json replacer', async () => {

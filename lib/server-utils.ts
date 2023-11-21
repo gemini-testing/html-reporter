@@ -12,6 +12,7 @@ import type Hermione from 'hermione';
 import crypto from 'crypto';
 import {ImageHandler, ImagesInfoFormatter} from './image-handler';
 import {HermioneTestAdapter} from './test-adapter';
+import {Router} from 'express';
 
 const DATA_FILE_NAME = 'data.js';
 
@@ -270,7 +271,11 @@ export function getPluginClientScriptPath(pluginName: string): string | null {
     }
 }
 
-export function getPluginMiddleware(pluginName: string): unknown | null {
+interface PluginMiddleware {
+    (pluginRouter: Router): unknown;
+}
+
+export function getPluginMiddleware(pluginName: string): PluginMiddleware | null {
     try {
         return require(`${pluginName}/middleware.js`);
     } catch (e: any) { // eslint-disable-line @typescript-eslint/no-explicit-any

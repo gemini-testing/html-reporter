@@ -1,19 +1,19 @@
-'use strict';
+import path from 'path';
+import express from 'express';
+import {onExit} from 'signal-exit';
+import BluebirdPromise from 'bluebird';
+import bodyParser from 'body-parser';
+import {INTERNAL_SERVER_ERROR, OK} from 'http-codes';
 
-const path = require('path');
-const express = require('express');
-const onExit = require('signal-exit');
-const Promise = require('bluebird');
-const bodyParser = require('body-parser');
-const {INTERNAL_SERVER_ERROR, OK} = require('http-codes');
+import {App} from './app';
+import {MAX_REQUEST_SIZE, KEEP_ALIVE_TIMEOUT, HEADERS_TIMEOUT} from './constants';
+import {initializeCustomGui, runCustomGuiAction} from '../server-utils';
+import {logger} from '../common-utils';
+import {initPluginsRoutes} from './routes/plugins';
+import {ServerArgs} from './index';
+import {ServerReadyData} from './api';
 
-const App = require('./app');
-const {MAX_REQUEST_SIZE, KEEP_ALIVE_TIMEOUT, HEADERS_TIMEOUT} = require('./constants');
-const {initializeCustomGui, runCustomGuiAction} = require('../server-utils');
-const {logger} = require('../common-utils');
-const initPluginsRoutes = require('./routes/plugins');
-
-exports.start = async ({paths, hermione, guiApi, configs}) => {
+export const start = async ({paths, hermione, guiApi, configs}: ServerArgs): Promise<ServerReadyData> => {
     const {options, pluginConfig} = configs;
     const app = App.create(paths, hermione, configs);
     const server = express();
@@ -28,31 +28,37 @@ exports.start = async ({paths, hermione, guiApi, configs}) => {
     server.use(express.static(path.join(__dirname, '../static'), {index: 'gui.html'}));
     server.use(express.static(path.join(process.cwd(), pluginConfig.path)));
 
-    server.get('/', (req, res) => res.sendFile(path.join(__dirname, '../static', 'gui.html')));
+    server.get('/', (_req, res) => res.sendFile(path.join(__dirname, '../static', 'gui.html')));
 
-    server.get('/events', (req, res) => {
+    server.get('/events', (_req, res) => {
         res.writeHead(OK, {'Content-Type': 'text/event-stream'});
 
         app.addClient(res);
     });
 
-    server.set('json replacer', (key, val) => {
+    server.set('json replacer', (_key: string, val: unknown) => {
         return typeof val === 'function' ? val.toString() : val;
     });
 
-    server.get('/init', async (req, res) => {
+    server.get('/init', async (_req, res) => {
         try {
             await initializeCustomGui(hermione, pluginConfig);
-        } catch (e) {
-            app.data.customGuiError = {
-                response: {
-                    status: INTERNAL_SERVER_ERROR,
-                    data: `Error while trying to initialize custom GUI: ${e.message}`
+            res.json(app.data);
+        } catch (e: unknown) {
+            const error = e as Error;
+            if (!app.data) {
+                throw new Error(`Failed to initialize custom GUI ${error.message}`);
+            }
+            res.json({
+                ...app.data,
+                customGuiError: {
+                    response: {
+                        status: INTERNAL_SERVER_ERROR,
+                        data: `Error while trying to initialize custom GUI: ${error.message}`
+                    }
                 }
-            };
+            });
         }
-
-        res.json(app.data);
     });
 
     server.post('/run', (req, res) => {
@@ -61,7 +67,7 @@ exports.start = async ({paths, hermione, guiApi, configs}) => {
             app.run(req.body);
             res.sendStatus(OK);
         } catch (e) {
-            res.status(INTERNAL_SERVER_ERROR).send(`Error while trying to run tests: ${e.message}`);
+            res.status(INTERNAL_SERVER_ERROR).send(`Error while trying to run tests: ${(e as Error).message}`);
         }
     });
 
@@ -70,7 +76,7 @@ exports.start = async ({paths, hermione, guiApi, configs}) => {
             await runCustomGuiAction(hermione, pluginConfig, payload);
             res.sendStatus(OK);
         } catch (e) {
-            res.status(INTERNAL_SERVER_ERROR).send(`Error while running custom gui action: ${e.message}`);
+            res.status(INTERNAL_SERVER_ERROR).send(`Error while running custom gui action: ${(e as Error).message}`);
         }
     });
 
@@ -79,7 +85,7 @@ exports.start = async ({paths, hermione, guiApi, configs}) => {
             const data = app.getTestsDataToUpdateRefs(req.body);
             res.json(data);
         } catch (error) {
-            res.status(INTERNAL_SERVER_ERROR).send({error: error.message});
+            res.status(INTERNAL_SERVER_ERROR).send({error: (error as Error).message});
         }
     });
 
@@ -99,8 +105,8 @@ exports.start = async ({paths, hermione, guiApi, configs}) => {
         try {
             const data = app.getImageDataToFindEqualDiffs(req.body);
             res.json(data);
-        } catch (error) {
-            res.status(INTERNAL_SERVER_ERROR).send({error: error.message});
+        } catch (e) {
+            res.status(INTERNAL_SERVER_ERROR).send({error: (e as Error).message});
         }
     });
 
@@ -108,8 +114,8 @@ exports.start = async ({paths, hermione, guiApi, configs}) => {
         try {
             const result = await app.findEqualDiffs(req.body);
             res.json(result);
-        } catch ({message}) {
-            res.status(INTERNAL_SERVER_ERROR).send({error: message});
+        } catch (e) {
+            res.status(INTERNAL_SERVER_ERROR).send({error: (e as Error).message});
         }
     });
 
@@ -118,21 +124,21 @@ exports.start = async ({paths, hermione, guiApi, configs}) => {
         logger.log('server shutting down');
     });
 
-    server.post('/stop', (req, res) => {
+    server.post('/stop', (_req, res) => {
         try {
             // pass 0 to prevent terminating hermione process
-            hermione.halt('Tests were stopped by the user', 0);
+            hermione.halt(new Error('Tests were stopped by the user'), 0);
             res.sendStatus(OK);
         } catch (e) {
-            res.status(INTERNAL_SERVER_ERROR).send(`Error while stopping tests: ${e.message}`);
+            res.status(INTERNAL_SERVER_ERROR).send(`Error while stopping tests: ${(e as Error).message}`);
         }
     });
 
     await app.initialize();
 
     const {port, hostname} = options;
-    await Promise.fromCallback((callback) => {
-        const httpServer = server.listen(port, hostname, callback);
+    await BluebirdPromise.fromCallback((callback) => {
+        const httpServer = server.listen(port, hostname, callback as () => void);
         httpServer.keepAliveTimeout = KEEP_ALIVE_TIMEOUT;
         httpServer.headersTimeout = HEADERS_TIMEOUT;
     });
