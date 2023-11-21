@@ -10,7 +10,7 @@ import {
 } from '../../server-utils';
 import {ReporterConfig} from '../../types';
 
-export const initPluginsRoutes = (router: Router, pluginConfig: ReporterConfig): Router =>{
+export const initPluginsRoutes = (router: Router, pluginConfig: ReporterConfig): Router => {
     if (!pluginConfig.pluginsEnabled) {
         return router;
     }

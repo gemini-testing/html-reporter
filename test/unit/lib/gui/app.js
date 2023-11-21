@@ -48,7 +48,7 @@ describe('lib/gui/app', () => {
 
         App = proxyquire('lib/gui/app', {
             'looks-same': looksSame
-        });
+        }).App;
 
         sandbox.stub(ToolRunner, 'create').returns(toolRunner);
     });

@@ -32,7 +32,7 @@ describe('lib/gui/routes/plugins', () => {
                     return router;
                 }
             }
-        });
+        }).initPluginsRoutes;
     });
 
     afterEach(() => sandbox.restore());

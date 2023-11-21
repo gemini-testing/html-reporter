@@ -2,22 +2,20 @@ import {ApiFacade} from './facade';
 import Hermione from 'hermione';
 import {Express} from 'express';
 
-interface GuiFacade {
-    gui: ApiFacade;
-}
-
 export interface ServerReadyData {
     url: string;
 }
 
+type HermioneWithGui = Hermione & { gui: ApiFacade };
+
 export class Api {
     private _gui: ApiFacade;
 
-    static create<T extends Api>(this: new (hermione: Hermione & GuiFacade) => T, hermione: Hermione & GuiFacade): T {
+    static create<T extends Api>(this: new (hermione: HermioneWithGui) => T, hermione: HermioneWithGui): T {
         return new this(hermione);
     }
 
-    constructor(hermione: Hermione & GuiFacade) {
+    constructor(hermione: HermioneWithGui) {
         this._gui = hermione.gui = ApiFacade.create();
     }
 

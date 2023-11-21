@@ -2,7 +2,7 @@
 
 const EventEmitter2 = require('eventemitter2');
 const {GuiEvents} = require('lib/gui/constants/gui-events');
-const Api = require('lib/gui/api');
+const {Api} = require('lib/gui/api');
 const {stubTool} = require('../../../utils');
 
 describe('lig/gui/api', () => {
