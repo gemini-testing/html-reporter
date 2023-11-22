@@ -13,3 +13,5 @@ export const createWorkers = (
 
     return runner.registerWorkers(workerFilepath, ['saveDiffTo']);
 };
+
+export type CreateWorkersRunner = Parameters<typeof createWorkers>[0];

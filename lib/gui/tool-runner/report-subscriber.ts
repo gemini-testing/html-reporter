@@ -3,7 +3,7 @@ import PQueue from 'p-queue';
 import Hermione from 'hermione';
 import {ClientEvents} from '../constants';
 import {getSuitePath} from '../../plugin-utils';
-import {createWorkers} from '../../workers/create-workers';
+import {createWorkers, CreateWorkersRunner} from '../../workers/create-workers';
 import {logError, formatTestResult} from '../../server-utils';
 import {hasDiff} from '../../common-utils';
 import {TestStatus, RUNNING, SUCCESS, SKIPPED} from '../../constants';
@@ -14,8 +14,6 @@ import {HermioneTestAdapter, ReporterTestResult} from '../../test-adapter';
 import {ImageDiffError} from '../../errors';
 
 let workers: ReturnType<typeof createWorkers>;
-
-type CreateWorkersRunner = Parameters<typeof createWorkers>[0];
 
 export const subscribeOnToolEvents = (hermione: Hermione, reportBuilder: GuiReportBuilder, client: EventSource, reportPath: string): void => {
     const queue = new PQueue({concurrency: os.cpus().length});

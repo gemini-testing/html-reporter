@@ -1,6 +1,6 @@
 {
     "extends": "./tsconfig.common.json",
-    "include": ["lib", "hermione.js", "gemini.js", "playwright.ts"],
+    "include": ["lib", "hermione.ts", "gemini.js", "playwright.ts"],
     "exclude": ["lib/static",],
     "compilerOptions": {
         "outDir": "build",

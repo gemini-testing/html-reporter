@@ -13,18 +13,18 @@ import {ToolName} from './constants';
 type PrepareFn = (hermione: Hermione & HtmlReporterApi, reportBuilder: StaticReportBuilder, config: ReporterConfig) => Promise<void>;
 
 export class PluginAdapter {
-    protected _hermione: Hermione & HtmlReporterApi;
+    protected _hermione: Hermione & Partial<HtmlReporterApi>;
     protected _config: ReporterConfig;
 
     static create<T extends PluginAdapter>(
-        this: new (hermione: Hermione & HtmlReporterApi, opts: Partial<ReporterOptions>) => T,
-        hermione: Hermione & HtmlReporterApi,
+        this: new (hermione: Hermione, opts: Partial<ReporterOptions>) => T,
+        hermione: Hermione,
         opts: Partial<ReporterOptions>
     ): T {
         return new this(hermione, opts);
     }
 
-    constructor(hermione: Hermione & HtmlReporterApi, opts: Partial<ReporterOptions>) {
+    constructor(hermione: Hermione, opts: Partial<ReporterOptions>) {
         this._hermione = hermione;
         this._config = parseConfig(opts);
     }
@@ -56,6 +56,10 @@ export class PluginAdapter {
     }
 
     protected async _createStaticReportBuilder(prepareData: PrepareFn): Promise<void> {
+        if (!this._hermione.htmlReporter) {
+            throw new Error('Html-reporter API has to be added to hermione before usage');
+        }
+
         const staticReportBuilder = StaticReportBuilder.create(this._hermione.htmlReporter, this._config);
 
         await staticReportBuilder.init();
@@ -63,11 +67,11 @@ export class PluginAdapter {
         return Promise
             .all([
                 staticReportBuilder.saveStaticFiles(),
-                prepareData(this._hermione, staticReportBuilder, this._config)
+                prepareData(this._hermione as Hermione & HtmlReporterApi, staticReportBuilder, this._config)
             ])
             .then(() => staticReportBuilder.finalize())
             .then(async () => {
-                const htmlReporter = this._hermione.htmlReporter;
+                const htmlReporter = this._hermione.htmlReporter as HtmlReporter;
 
                 await htmlReporter.emitAsync(htmlReporter.events.REPORT_SAVED, {reportPath: this._config.path});
             });
