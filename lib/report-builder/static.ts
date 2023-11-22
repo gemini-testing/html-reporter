@@ -14,7 +14,7 @@ import {
     LOCAL_DATABASE_NAME,
     PluginEvents
 } from '../constants';
-import {PreparedTestResult, SqliteAdapter} from '../sqlite-adapter';
+import {PreparedTestResult, SqliteClient} from '../sqlite-client';
 import {ReporterTestResult} from '../test-adapter';
 import {hasImage, saveStaticFilesToReportDir, writeDatabaseUrlsFile} from '../server-utils';
 import {ReporterConfig} from '../types';
@@ -34,7 +34,7 @@ interface StaticReportBuilderOptions {
 export class StaticReportBuilder {
     protected _htmlReporter: HtmlReporter;
     protected _pluginConfig: ReporterConfig;
-    protected _sqliteAdapter: SqliteAdapter;
+    protected _dbClient: SqliteClient;
     protected _imageHandler: ImageHandler;
 
     static create<T extends StaticReportBuilder>(
@@ -50,13 +50,13 @@ export class StaticReportBuilder {
         this._htmlReporter = htmlReporter;
         this._pluginConfig = pluginConfig;
 
-        this._sqliteAdapter = SqliteAdapter.create({
+        this._dbClient = SqliteClient.create({
             htmlReporter: this._htmlReporter,
             reportPath: this._pluginConfig.path,
             reuse
         });
 
-        const imageStore = new SqliteImageStore(this._sqliteAdapter);
+        const imageStore = new SqliteImageStore(this._dbClient);
         this._imageHandler = new ImageHandler(imageStore, htmlReporter.imagesSaver, {reportPath: pluginConfig.path});
 
         this._htmlReporter.on(PluginEvents.IMAGES_SAVER_UPDATED, (newImagesSaver) => {
@@ -71,7 +71,7 @@ export class StaticReportBuilder {
     }
 
     async init(): Promise<void> {
-        await this._sqliteAdapter.init();
+        await this._dbClient.init();
     }
 
     async saveStaticFiles(): Promise<void> {
@@ -130,7 +130,7 @@ export class StaticReportBuilder {
         }
 
         // To prevent skips duplication on reporter startup
-        const isPreviouslySkippedTest = testResult.status === SKIPPED && getTestFromDb(this._sqliteAdapter, formattedResult);
+        const isPreviouslySkippedTest = testResult.status === SKIPPED && getTestFromDb(this._dbClient, formattedResult);
 
         if (!ignoredStatuses.includes(testResult.status) && !isPreviouslySkippedTest) {
             this._writeTestResultToDb(testResult, formattedResult);
@@ -171,15 +171,15 @@ export class StaticReportBuilder {
         const suiteName = formattedResult.state.name;
         const suitePath = formattedResult.testPath;
 
-        this._sqliteAdapter.write({testResult, suitePath, suiteName});
+        this._dbClient.write({testResult, suitePath, suiteName});
     }
 
-    protected _deleteTestResultFromDb(...args: Parameters<typeof this._sqliteAdapter.delete>): void {
-        this._sqliteAdapter.delete(...args);
+    protected _deleteTestResultFromDb(...args: Parameters<typeof this._dbClient.delete>): void {
+        this._dbClient.delete(...args);
     }
 
     async finalize(): Promise<void> {
-        this._sqliteAdapter.close();
+        this._dbClient.close();
 
         const reportsSaver = this._htmlReporter.reportsSaver;
 

@@ -1,5 +1,5 @@
 import {DB_COLUMNS} from './constants';
-import {SqliteAdapter} from './sqlite-adapter';
+import {SqliteClient} from './sqlite-client';
 import {ImageInfo, ImageInfoFull, LabeledSuitesRow} from './types';
 import {ReporterTestResultPlain} from './image-handler';
 
@@ -8,10 +8,10 @@ export interface ImageStore {
 }
 
 export class SqliteImageStore implements ImageStore {
-    private _sqliteAdapter: SqliteAdapter;
+    private _dbClient: SqliteClient;
 
-    constructor(sqliteAdapter: SqliteAdapter) {
-        this._sqliteAdapter = sqliteAdapter;
+    constructor(dbClient: SqliteClient) {
+        this._dbClient = dbClient;
     }
 
     getLastImageInfoFromDb(testResult: ReporterTestResultPlain, stateName?: string): ImageInfo | undefined {
@@ -19,7 +19,7 @@ export class SqliteImageStore implements ImageStore {
         const suitePath = testResult.testPath;
         const suitePathString = JSON.stringify(suitePath);
 
-        const imagesInfoResult = this._sqliteAdapter.query<Pick<LabeledSuitesRow, 'imagesInfo'> | undefined>({
+        const imagesInfoResult = this._dbClient.query<Pick<LabeledSuitesRow, 'imagesInfo'> | undefined>({
             select: DB_COLUMNS.IMAGES_INFO,
             where: `${DB_COLUMNS.SUITE_PATH} = ? AND ${DB_COLUMNS.NAME} = ?`,
             orderBy: DB_COLUMNS.TIMESTAMP,

@@ -5,7 +5,7 @@ const _ = require('lodash');
 const proxyquire = require('proxyquire');
 const serverUtils = require('lib/server-utils');
 const {HermioneTestAdapter} = require('lib/test-adapter');
-const {SqliteAdapter} = require('lib/sqlite-adapter');
+const {SqliteClient} = require('lib/sqlite-client');
 const {GuiTestsTreeBuilder} = require('lib/tests-tree-builder/gui');
 const {HtmlReporter} = require('lib/plugin-api');
 const {SUCCESS, FAIL, ERROR, SKIPPED, IDLE, RUNNING, UPDATED} = require('lib/constants/test-statuses');
@@ -79,7 +79,7 @@ describe('GuiReportBuilder', () => {
         GuiReportBuilder = proxyquire('lib/report-builder/gui', {
             './static': {
                 StaticReportBuilder: proxyquire('lib/report-builder/static', {
-                    '../sqlite-adapter': {SqliteAdapter}
+                    '../sqlite-client': {SqliteClient}
                 }).StaticReportBuilder
             },
             '../server-utils': {hasImage, deleteFile}
@@ -391,7 +391,7 @@ describe('GuiReportBuilder', () => {
         beforeEach(async () => {
             reportBuilder = await mkGuiReportBuilder_();
 
-            sandbox.stub(SqliteAdapter.prototype, 'delete');
+            sandbox.stub(SqliteClient.prototype, 'delete');
         });
 
         describe('if image status is not "updated"', () => {
@@ -419,7 +419,7 @@ describe('GuiReportBuilder', () => {
             it('should not delete test from db', async () => {
                 await tryUndoFailedImage_();
 
-                assert.notCalled(SqliteAdapter.prototype.delete);
+                assert.notCalled(SqliteClient.prototype.delete);
             });
         });
 
@@ -491,7 +491,7 @@ describe('GuiReportBuilder', () => {
             await reportBuilder.undoAcceptImage(formattedResult, stateName);
 
             assert.calledOnceWith(
-                SqliteAdapter.prototype.delete,
+                SqliteClient.prototype.delete,
                 sinon.match.any,
                 '["s","p"]',
                 'bro-name',

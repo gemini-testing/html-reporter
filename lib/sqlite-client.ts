@@ -5,14 +5,13 @@ import fs from 'fs-extra';
 import NestedError from 'nested-error-stacks';
 
 import {getShortMD5} from './common-utils';
-import {TestStatus} from './constants';
-import {DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS, LOCAL_DATABASE_NAME, DATABASE_URLS_JSON_NAME} from './constants/database';
+import {TestStatus, DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS, LOCAL_DATABASE_NAME, DATABASE_URLS_JSON_NAME} from './constants';
 import {createTablesQuery} from './db-utils/common';
 import {DbNotInitializedError} from './errors/db-not-initialized-error';
 import type {ErrorDetails, ImageInfoFull} from './types';
 import {HtmlReporter} from './plugin-api';
 
-const debug = makeDebug('html-reporter:sqlite-adapter');
+const debug = makeDebug('html-reporter:sqlite-client');
 
 interface QueryParams {
     select?: string;
@@ -57,24 +56,24 @@ interface ParsedTestResult extends PreparedTestResult {
     suitePath: ParseTestResultParams['suitePath'];
 }
 
-interface SqliteAdapterOptions {
+interface SqliteClientOptions {
     htmlReporter: HtmlReporter;
     reportPath: string;
     reuse?: boolean;
 }
 
-export class SqliteAdapter {
+export class SqliteClient {
     private _htmlReporter: HtmlReporter;
     private _reportPath: string;
     private _reuse: boolean;
     private _db: null | Database.Database;
     private _queryCache: Map<string, unknown>;
 
-    static create<T extends SqliteAdapter>(this: new (options: SqliteAdapterOptions) => T, options: SqliteAdapterOptions): T {
+    static create<T extends SqliteClient>(this: new (options: SqliteClientOptions) => T, options: SqliteClientOptions): T {
         return new this(options);
     }
 
-    constructor({htmlReporter, reportPath, reuse = false}: SqliteAdapterOptions) {
+    constructor({htmlReporter, reportPath, reuse = false}: SqliteClientOptions) {
         this._htmlReporter = htmlReporter;
         this._reportPath = reportPath;
         this._reuse = reuse;

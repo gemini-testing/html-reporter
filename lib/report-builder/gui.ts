@@ -6,7 +6,7 @@ import {
 } from '../constants';
 import {ConfigForStaticFile, getConfigForStaticFile} from '../server-utils';
 import {ReporterTestResult} from '../test-adapter';
-import {PreparedTestResult} from '../sqlite-adapter';
+import {PreparedTestResult} from '../sqlite-client';
 import {Tree, TreeImage, TreeResult} from '../tests-tree-builder/base';
 import {ImageInfoWithState, ReporterConfig} from '../types';
 import {hasDiff, hasNoRefImageErrors, hasResultFails, isSkippedStatus, isUpdatedStatus} from '../common-utils';
