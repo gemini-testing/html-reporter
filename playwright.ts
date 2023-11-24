@@ -12,21 +12,23 @@ import {RegisterWorkers} from './lib/workers/create-workers';
 import {EventEmitter} from 'events';
 import {PlaywrightTestAdapter, getStatus} from './lib/test-adapter/playwright';
 import PQueue from 'p-queue';
+import {SqliteClient} from './lib/sqlite-client';
 
 export {ReporterConfig} from './lib/types';
 
 class MyReporter implements Reporter {
     protected _promiseQueue: PQueue = new PQueue();
-    protected _staticReportBuilder: StaticReportBuilder;
+    protected _staticReportBuilder: StaticReportBuilder | null;
     protected _htmlReporter: HtmlReporter;
     protected _config: ReporterConfig;
     protected _workerFarm: Workers;
     protected _workers: RegisterWorkers<['saveDiffTo']>;
+    protected _initPromise: Promise<void>;
 
     constructor(opts: Partial<ReporterConfig>) {
         this._config = parseConfig(_.omit(opts, ['configDir']));
         this._htmlReporter = HtmlReporter.create(this._config, {toolName: ToolName.Playwright});
-        this._staticReportBuilder = StaticReportBuilder.create(this._htmlReporter, this._config);
+        this._staticReportBuilder = null;
         this._workerFarm = workerFarm(require.resolve('./lib/workers/worker'), ['saveDiffTo']);
 
         const workers: RegisterWorkers<['saveDiffTo']> = new EventEmitter() as RegisterWorkers<['saveDiffTo']>;
@@ -34,33 +36,44 @@ class MyReporter implements Reporter {
             promisify<unknown, unknown, void>(this._workerFarm.saveDiffTo)(imageDiffError, diffPath);
         this._workers = workers;
 
-        this._promiseQueue.add(() => this._staticReportBuilder.init()
-            .then(() => this._staticReportBuilder.saveStaticFiles())
-        );
+        this._initPromise = (async (htmlReporter: HtmlReporter, config: ReporterConfig): Promise<void> => {
+            const dbClient = await SqliteClient.create({htmlReporter, reportPath: config.path});
+
+            this._staticReportBuilder = StaticReportBuilder.create(htmlReporter, config, {dbClient});
+            await this._staticReportBuilder.saveStaticFiles();
+        })(this._htmlReporter, this._config);
+
+        this._promiseQueue.add(async () => this._initPromise);
     }
 
     onTestEnd(test: TestCase, result: PwtTestResult): void {
-        const status = getStatus(result);
-        const formattedResult = new PlaywrightTestAdapter(test, result, {imagesInfoFormatter: this._staticReportBuilder.imageHandler});
+        this._promiseQueue.add(async () => {
+            await this._initPromise;
 
-        if (status === TestStatus.FAIL) {
-            if (formattedResult.status === TestStatus.FAIL) {
-                this._staticReportBuilder.addFail(formattedResult);
-            } else {
-                this._staticReportBuilder.addError(formattedResult);
+            const staticReportBuilder = this._staticReportBuilder as StaticReportBuilder;
+
+            const status = getStatus(result);
+            const formattedResult = new PlaywrightTestAdapter(test, result, {imagesInfoFormatter: staticReportBuilder.imageHandler});
+
+            if (status === TestStatus.FAIL) {
+                if (formattedResult.status === TestStatus.FAIL) {
+                    staticReportBuilder.addFail(formattedResult);
+                } else {
+                    staticReportBuilder.addError(formattedResult);
+                }
+            } else if (status === TestStatus.SUCCESS) {
+                staticReportBuilder.addSuccess(formattedResult);
+            } else if (status === TestStatus.SKIPPED) {
+                staticReportBuilder.addSkipped(formattedResult);
             }
-        } else if (status === TestStatus.SUCCESS) {
-            this._staticReportBuilder.addSuccess(formattedResult);
-        } else if (status === TestStatus.SKIPPED) {
-            this._staticReportBuilder.addSkipped(formattedResult);
-        }
-        this._promiseQueue.add(() => this._staticReportBuilder.imageHandler.saveTestImages(formattedResult, this._workers));
+            await staticReportBuilder.imageHandler.saveTestImages(formattedResult, this._workers);
+        });
     }
 
     async onEnd(): Promise<void> {
         await this._promiseQueue.onIdle();
 
-        await this._staticReportBuilder.finalize();
+        await this._staticReportBuilder?.finalize();
 
         await this._htmlReporter.emitAsync(PluginEvents.REPORT_SAVED);
     }

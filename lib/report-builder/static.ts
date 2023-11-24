@@ -28,7 +28,7 @@ import {ImageDiffError} from '../errors';
 const ignoredStatuses = [RUNNING, IDLE];
 
 interface StaticReportBuilderOptions {
-    reuse: boolean;
+    dbClient: SqliteClient;
 }
 
 export class StaticReportBuilder {
@@ -38,23 +38,19 @@ export class StaticReportBuilder {
     protected _imageHandler: ImageHandler;
 
     static create<T extends StaticReportBuilder>(
-        this: new (htmlReporter: HtmlReporter, pluginConfig: ReporterConfig, options?: Partial<StaticReportBuilderOptions>) => T,
+        this: new (htmlReporter: HtmlReporter, pluginConfig: ReporterConfig, options: StaticReportBuilderOptions) => T,
         htmlReporter: HtmlReporter,
         pluginConfig: ReporterConfig,
-        options?: Partial<StaticReportBuilderOptions>
+        options: StaticReportBuilderOptions
     ): T {
         return new this(htmlReporter, pluginConfig, options);
     }
 
-    constructor(htmlReporter: HtmlReporter, pluginConfig: ReporterConfig, {reuse = false}: Partial<StaticReportBuilderOptions> = {}) {
+    constructor(htmlReporter: HtmlReporter, pluginConfig: ReporterConfig, {dbClient}: StaticReportBuilderOptions) {
         this._htmlReporter = htmlReporter;
         this._pluginConfig = pluginConfig;
 
-        this._dbClient = SqliteClient.create({
-            htmlReporter: this._htmlReporter,
-            reportPath: this._pluginConfig.path,
-            reuse
-        });
+        this._dbClient = dbClient;
 
         const imageStore = new SqliteImageStore(this._dbClient);
         this._imageHandler = new ImageHandler(imageStore, htmlReporter.imagesSaver, {reportPath: pluginConfig.path});
@@ -68,10 +64,6 @@ export class StaticReportBuilder {
 
     get imageHandler(): ImageHandler {
         return this._imageHandler;
-    }
-
-    async init(): Promise<void> {
-        await this._dbClient.init();
     }
 
     async saveStaticFiles(): Promise<void> {

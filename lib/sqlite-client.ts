@@ -7,7 +7,6 @@ import NestedError from 'nested-error-stacks';
 import {getShortMD5} from './common-utils';
 import {TestStatus, DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS, LOCAL_DATABASE_NAME, DATABASE_URLS_JSON_NAME} from './constants';
 import {createTablesQuery} from './db-utils/common';
-import {DbNotInitializedError} from './errors/db-not-initialized-error';
 import type {ErrorDetails, ImageInfoFull} from './types';
 import {HtmlReporter} from './plugin-api';
 
@@ -63,54 +62,45 @@ interface SqliteClientOptions {
 }
 
 export class SqliteClient {
-    private _htmlReporter: HtmlReporter;
-    private _reportPath: string;
-    private _reuse: boolean;
-    private _db: null | Database.Database;
+    private readonly _db: Database.Database;
     private _queryCache: Map<string, unknown>;
 
-    static create<T extends SqliteClient>(this: new (options: SqliteClientOptions) => T, options: SqliteClientOptions): T {
-        return new this(options);
-    }
+    static async create<T extends SqliteClient>(this: { new(db: Database.Database): T }, options: SqliteClientOptions): Promise<T> {
+        const {htmlReporter, reportPath} = options;
+        const dbPath = path.resolve(reportPath, LOCAL_DATABASE_NAME);
+        const dbUrlsJsonPath = path.resolve(reportPath, DATABASE_URLS_JSON_NAME);
 
-    constructor({htmlReporter, reportPath, reuse = false}: SqliteClientOptions) {
-        this._htmlReporter = htmlReporter;
-        this._reportPath = reportPath;
-        this._reuse = reuse;
-        this._db = null;
-        this._queryCache = new Map();
-    }
-
-    async init(): Promise<void> {
-        const dbPath = path.resolve(this._reportPath, LOCAL_DATABASE_NAME);
-        const dbUrlsJsonPath = path.resolve(this._reportPath, DATABASE_URLS_JSON_NAME);
+        let db: Database.Database;
 
         try {
-            if (!this._reuse) {
+            if (!options.reuse) {
                 await Promise.all([
                     fs.remove(dbPath),
                     fs.remove(dbUrlsJsonPath)
                 ]);
             }
 
-            await fs.ensureDir(this._reportPath);
+            await fs.ensureDir(reportPath);
 
-            this._db = new Database(dbPath);
+            db = new Database(dbPath);
             debug('db connection opened');
 
-            createTablesQuery().forEach((query) => this._db?.prepare(query).run());
+            createTablesQuery().forEach((query) => db?.prepare(query).run());
 
-            this._htmlReporter.emit(this._htmlReporter.events.DATABASE_CREATED, this._db);
+            htmlReporter.emit(htmlReporter.events.DATABASE_CREATED, db);
         } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
             throw new NestedError(`Error creating database at "${dbPath}"`, err);
         }
+
+        return new this(db);
+    }
+
+    constructor(db: Database.Database) {
+        this._db = db;
+        this._queryCache = new Map();
     }
 
     close(): void {
-        if (!this._db) {
-            throw new DbNotInitializedError();
-        }
-
         this._db.prepare('VACUUM').run();
 
         debug('db connection closed');
@@ -118,10 +108,6 @@ export class SqliteClient {
     }
 
     query<T = unknown>(queryParams: QueryParams = {}, ...queryArgs: string[]): T {
-        if (!this._db) {
-            throw new DbNotInitializedError();
-        }
-
         const {select, where, orderBy, orderDescending, limit, noCache = false} = queryParams;
         const cacheKey = (!noCache && getShortMD5(`${select}#${where}#${orderBy}${orderDescending}${queryArgs.join('#')}`)) as string;
 
@@ -142,10 +128,6 @@ export class SqliteClient {
     }
 
     write(testResult: ParseTestResultParams): void {
-        if (!this._db) {
-            throw new DbNotInitializedError();
-        }
-
         const testResultObj = this._parseTestResult(testResult);
         const values = this._createValuesArray(testResultObj);
 
@@ -154,10 +136,6 @@ export class SqliteClient {
     }
 
     delete(deleteParams: DeleteParams = {}, ...deleteArgs: string[]): void {
-        if (!this._db) {
-            throw new DbNotInitializedError();
-        }
-
         const sentence = `DELETE FROM ${DB_SUITES_TABLE_NAME}`
             + this._createSentence(deleteParams);
 

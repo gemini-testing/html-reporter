@@ -33,6 +33,7 @@ import {Response} from 'express';
 import {TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../../tests-tree-builder/gui';
 import {ReporterTestResult} from '../../test-adapter';
 import {ImagesInfoFormatter} from '../../image-handler';
+import {SqliteClient} from '../../sqlite-client';
 
 type ToolRunnerArgs = [paths: string[], hermione: Hermione & HtmlReporterApi, configs: GuiConfigs];
 
@@ -101,12 +102,13 @@ export class ToolRunner {
     async initialize(): Promise<void> {
         await mergeDatabasesForReuse(this._reportPath);
 
-        this._reportBuilder = GuiReportBuilder.create(this._hermione.htmlReporter, this._pluginConfig, {reuse: true});
+        const dbClient = await SqliteClient.create({htmlReporter: this._hermione.htmlReporter, reportPath: this._reportPath, reuse: true});
+
+        this._reportBuilder = GuiReportBuilder.create(this._hermione.htmlReporter, this._pluginConfig, {dbClient});
         this._subscribeOnEvents();
 
         this._collection = await this._readTests();
 
-        await this._reportBuilder.init();
         await this._reportBuilder.saveStaticFiles();
 
         this._reportBuilder.setApiValues(this._hermione.htmlReporter.values);
