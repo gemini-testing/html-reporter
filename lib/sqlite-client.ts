@@ -7,8 +7,10 @@ import NestedError from 'nested-error-stacks';
 import {getShortMD5} from './common-utils';
 import {TestStatus, DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS, LOCAL_DATABASE_NAME, DATABASE_URLS_JSON_NAME} from './constants';
 import {createTablesQuery} from './db-utils/common';
-import type {ErrorDetails, ImageInfoFull} from './types';
+import type {ErrorDetails, ImageInfoFull, TestError} from './types';
 import {HtmlReporter} from './plugin-api';
+import {ReporterTestResult} from './test-adapter';
+import {DbTestResultTransformer} from './test-adapter/transformers/db';
 
 const debug = makeDebug('html-reporter:sqlite-client');
 
@@ -44,18 +46,29 @@ export interface PreparedTestResult {
     errorDetails?: ErrorDetails;
 }
 
-interface ParseTestResultParams {
+export interface DbTestResult {
+    description?: string | null;
+    error?: TestError;
+    history: string[];
+    imagesInfo: ImageInfoFull[];
+    metaInfo: Record<string, unknown>;
+    multipleTabs: boolean;
+    /* Browser name. Example: `"chrome"` */
+    name: string;
+    screenshot: boolean;
+    skipReason?: string;
+    status: TestStatus;
+    /* Last part of `suitePath`. Example: `"Test 1"` */
     suiteName: string;
+    /* Segments of full test name. Example: `["Title", "Test 1"]` */
     suitePath: string[];
-    testResult: PreparedTestResult;
-}
-
-interface ParsedTestResult extends PreparedTestResult {
-    suiteName: ParseTestResultParams['suiteName'];
-    suitePath: ParseTestResultParams['suitePath'];
+    suiteUrl: string;
+    /* Unix time in ms. Example: `1700563430266` */
+    timestamp: number;
 }
 
 interface SqliteClientOptions {
+    // TODO: get rid of htmlReporter in the future
     htmlReporter: HtmlReporter;
     reportPath: string;
     reuse?: boolean;
@@ -64,8 +77,12 @@ interface SqliteClientOptions {
 export class SqliteClient {
     private readonly _db: Database.Database;
     private _queryCache: Map<string, unknown>;
+    private _transformer: DbTestResultTransformer;
 
-    static async create<T extends SqliteClient>(this: { new(db: Database.Database): T }, options: SqliteClientOptions): Promise<T> {
+    static async create<T extends SqliteClient>(
+        this: { new(db: Database.Database, transformer: DbTestResultTransformer): T },
+        options: SqliteClientOptions
+    ): Promise<T> {
         const {htmlReporter, reportPath} = options;
         const dbPath = path.resolve(reportPath, LOCAL_DATABASE_NAME);
         const dbUrlsJsonPath = path.resolve(reportPath, DATABASE_URLS_JSON_NAME);
@@ -92,12 +109,15 @@ export class SqliteClient {
             throw new NestedError(`Error creating database at "${dbPath}"`, err);
         }
 
-        return new this(db);
+        const transformer = new DbTestResultTransformer({baseHost: htmlReporter.config.baseHost});
+
+        return new this(db, transformer);
     }
 
-    constructor(db: Database.Database) {
+    constructor(db: Database.Database, transformer: DbTestResultTransformer) {
         this._db = db;
         this._queryCache = new Map();
+        this._transformer = transformer;
     }
 
     close(): void {
@@ -127,9 +147,9 @@ export class SqliteClient {
         return result as T;
     }
 
-    write(testResult: ParseTestResultParams): void {
-        const testResultObj = this._parseTestResult(testResult);
-        const values = this._createValuesArray(testResultObj);
+    write(testResult: ReporterTestResult): void {
+        const dbTestResult = this._transformer.transform(testResult);
+        const values = this._createValuesArray(dbTestResult);
 
         const placeholders = values.map(() => '?').join(', ');
         this._db.prepare(`INSERT INTO ${DB_SUITES_TABLE_NAME} VALUES (${placeholders})`).run(...values);
@@ -160,43 +180,9 @@ export class SqliteClient {
         return sentence;
     }
 
-    _parseTestResult({suitePath, suiteName, testResult}: ParseTestResultParams): ParsedTestResult {
-        const {
-            name,
-            suiteUrl,
-            metaInfo,
-            history,
-            description,
-            error,
-            skipReason,
-            imagesInfo,
-            screenshot,
-            multipleTabs,
-            status,
-            timestamp = Date.now()
-        } = testResult;
-
-        return {
-            suitePath,
-            suiteName,
-            name,
-            suiteUrl,
-            metaInfo,
-            history,
-            description,
-            error,
-            skipReason,
-            imagesInfo,
-            screenshot,
-            multipleTabs,
-            status,
-            timestamp
-        };
-    }
-
-    private _createValuesArray(testResult: PreparedTestResult): (string | number | null)[] {
+    private _createValuesArray(testResult: DbTestResult): (string | number | null)[] {
         return SUITES_TABLE_COLUMNS.reduce<(string | number | null)[]>((acc, {name}) => {
-            const value = testResult[name as keyof PreparedTestResult];
+            const value = testResult[name as keyof DbTestResult];
             if (value === undefined || value === null) {
                 acc.push(null);
                 return acc;

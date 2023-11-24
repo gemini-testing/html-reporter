@@ -125,7 +125,7 @@ export class StaticReportBuilder {
         const isPreviouslySkippedTest = testResult.status === SKIPPED && getTestFromDb(this._dbClient, formattedResult);
 
         if (!ignoredStatuses.includes(testResult.status) && !isPreviouslySkippedTest) {
-            this._writeTestResultToDb(testResult, formattedResult);
+            this._dbClient.write(formattedResult);
         }
 
         return formattedResult;
@@ -157,13 +157,6 @@ export class StaticReportBuilder {
         }
 
         return testResult;
-    }
-
-    protected _writeTestResultToDb(testResult: PreparedTestResult, formattedResult: ReporterTestResult): void {
-        const suiteName = formattedResult.state.name;
-        const suitePath = formattedResult.testPath;
-
-        this._dbClient.write({testResult, suitePath, suiteName});
     }
 
     protected _deleteTestResultFromDb(...args: Parameters<typeof this._dbClient.delete>): void {
