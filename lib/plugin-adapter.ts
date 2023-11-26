@@ -10,6 +10,7 @@ import {HtmlReporter} from './plugin-api';
 import {HtmlReporterApi, ReporterConfig, ReporterOptions} from './types';
 import {ToolName} from './constants';
 import {SqliteClient} from './sqlite-client';
+import {TestAttemptManager} from './test-attempt-manager';
 
 type PrepareFn = (hermione: Hermione & HtmlReporterApi, reportBuilder: StaticReportBuilder, config: ReporterConfig) => Promise<void>;
 
@@ -62,8 +63,9 @@ export class PluginAdapter {
         }
 
         const dbClient = await SqliteClient.create({htmlReporter: this._hermione.htmlReporter, reportPath: this._config.path});
+        const testAttemptManager = new TestAttemptManager();
 
-        const staticReportBuilder = StaticReportBuilder.create(this._hermione.htmlReporter, this._config, {dbClient});
+        const staticReportBuilder = StaticReportBuilder.create(this._hermione.htmlReporter, this._config, {dbClient, testAttemptManager});
 
         return Promise
             .all([

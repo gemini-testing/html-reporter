@@ -311,6 +311,11 @@ export function mapPlugins<T>(plugins: ReporterConfig['plugins'], callback: (nam
     return result;
 }
 
-export const formatTestResult = (rawResult: HermioneTestResult, status: TestStatus, {imageHandler}: {imageHandler: ImagesInfoFormatter}): ReporterTestResult => {
-    return new HermioneTestAdapter(rawResult, {status, imagesInfoFormatter: imageHandler});
+export const formatTestResult = (
+    rawResult: HermioneTestResult,
+    status: TestStatus,
+    attempt: number,
+    {imageHandler}: {imageHandler: ImagesInfoFormatter}
+): ReporterTestResult => {
+    return new HermioneTestAdapter(rawResult, {attempt, status, imagesInfoFormatter: imageHandler});
 };

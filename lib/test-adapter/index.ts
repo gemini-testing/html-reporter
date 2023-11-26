@@ -5,7 +5,7 @@ export * from './hermione';
 
 export interface ReporterTestResult {
     readonly assertViewResults: AssertViewResult[];
-    attempt: number;
+    readonly attempt: number;
     readonly browserId: string;
     readonly description: string | undefined;
     error: undefined | TestError;

@@ -38,7 +38,9 @@ async function prepare(hermione: Hermione, reportBuilder: StaticReportBuilder, p
     const {imageHandler} = reportBuilder;
 
     const failHandler = async (testResult: HermioneTestResult): Promise<ReporterTestResult> => {
-        const formattedResult = formatTestResult(testResult, FAIL, reportBuilder);
+        const attempt = reportBuilder.testAttemptManager.registerAttempt({fullName: testResult.fullTitle(), browserId: testResult.browserId}, FAIL);
+        const formattedResult = formatTestResult(testResult, FAIL, attempt, reportBuilder);
+
         const actions: Promise<unknown>[] = [imageHandler.saveTestImages(formattedResult, workers)];
 
         if (pluginConfig.saveErrorDetails && formattedResult.errorDetails) {
@@ -62,7 +64,8 @@ async function prepare(hermione: Hermione, reportBuilder: StaticReportBuilder, p
 
         hermione.on(hermione.events.TEST_PASS, testResult => {
             promises.push(queue.add(async () => {
-                const formattedResult = formatTestResult(testResult, SUCCESS, reportBuilder);
+                const attempt = reportBuilder.testAttemptManager.registerAttempt({fullName: testResult.fullTitle(), browserId: testResult.browserId}, FAIL);
+                const formattedResult = formatTestResult(testResult, SUCCESS, attempt, reportBuilder);
                 await imageHandler.saveTestImages(formattedResult, workers);
 
                 return reportBuilder.addSuccess(formattedResult);

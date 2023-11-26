@@ -34,6 +34,7 @@ import {TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../../tests-tre
 import {ReporterTestResult} from '../../test-adapter';
 import {ImagesInfoFormatter} from '../../image-handler';
 import {SqliteClient} from '../../sqlite-client';
+import {TestAttemptManager} from '../../test-attempt-manager';
 
 type ToolRunnerArgs = [paths: string[], hermione: Hermione & HtmlReporterApi, configs: GuiConfigs];
 
@@ -53,8 +54,13 @@ export interface UndoAcceptImagesResult {
 }
 
 // TODO: get rid of this function. It allows to format raw test, but is type-unsafe.
-const formatTestResultUnsafe = (test: HermioneTest | HermioneTestExtended | HermioneTestPlain, status: TestStatus, {imageHandler}: {imageHandler: ImagesInfoFormatter}): ReporterTestResult => {
-    return formatTestResult(test as HermioneTestResult, status, {imageHandler});
+const formatTestResultUnsafe = (
+    test: HermioneTest | HermioneTestExtended | HermioneTestPlain,
+    status: TestStatus,
+    attempt: number,
+    {imageHandler}: {imageHandler: ImagesInfoFormatter}
+): ReporterTestResult => {
+    return formatTestResult(test as HermioneTestResult, status, attempt, {imageHandler});
 };
 
 export class ToolRunner {
@@ -103,8 +109,9 @@ export class ToolRunner {
         await mergeDatabasesForReuse(this._reportPath);
 
         const dbClient = await SqliteClient.create({htmlReporter: this._hermione.htmlReporter, reportPath: this._reportPath, reuse: true});
+        const testAttemptManager = new TestAttemptManager();
 
-        this._reportBuilder = GuiReportBuilder.create(this._hermione.htmlReporter, this._pluginConfig, {dbClient});
+        this._reportBuilder = GuiReportBuilder.create(this._hermione.htmlReporter, this._pluginConfig, {dbClient, testAttemptManager});
         this._subscribeOnEvents();
 
         this._collection = await this._readTests();
@@ -167,11 +174,12 @@ export class ToolRunner {
 
         return Promise.all(tests.map(async (test): Promise<TestBranch> => {
             const updateResult = this._prepareTestResult(test);
-            const formattedResult = formatTestResultUnsafe(updateResult, UPDATED, reportBuilder);
-            const failResultId = formattedResult.id;
-            const updateAttempt = reportBuilder.getUpdatedAttempt(formattedResult);
 
-            formattedResult.attempt = updateAttempt;
+            const fullName = test.suite.path.join(' ');
+            const updateAttempt = reportBuilder.testAttemptManager.registerAttempt({fullName, browserId: test.browserId}, UPDATED);
+            const formattedResult = formatTestResultUnsafe(updateResult, UPDATED, updateAttempt, reportBuilder);
+            const failResultId = formattedResult.id;
+
             updateResult.attempt = updateAttempt;
 
             await Promise.all(updateResult.imagesInfo.map(async (imageInfo) => {
@@ -183,7 +191,7 @@ export class ToolRunner {
                 this._emitUpdateReference(result, stateName);
             }));
 
-            reportBuilder.addUpdated(formatTestResultUnsafe(updateResult, UPDATED, reportBuilder), failResultId);
+            reportBuilder.addUpdated(formattedResult, failResultId);
 
             return reportBuilder.getTestBranch(formattedResult.id);
         }));
@@ -195,9 +203,9 @@ export class ToolRunner {
 
         await Promise.all(tests.map(async (test) => {
             const updateResult = this._prepareTestResult(test);
-            const formattedResult = formatTestResultUnsafe(updateResult, UPDATED, reportBuilder);
-
-            formattedResult.attempt = updateResult.attempt;
+            const fullName = test.suite.path.join(' ');
+            const attempt = reportBuilder.testAttemptManager.removeAttempt({fullName, browserId: test.browserId});
+            const formattedResult = formatTestResultUnsafe(updateResult, UPDATED, attempt, reportBuilder);
 
             await Promise.all(updateResult.imagesInfo.map(async (imageInfo) => {
                 const {stateName} = imageInfo;
@@ -300,9 +308,13 @@ export class ToolRunner {
             const testId = formatId(test.id.toString(), browserId);
             this._tests[testId] = _.extend(test, {browserId});
 
-            test.pending
-                ? reportBuilder.addSkipped(formatTestResultUnsafe(test, SKIPPED, reportBuilder))
-                : reportBuilder.addIdle(formatTestResultUnsafe(test, IDLE, reportBuilder));
+            if (test.pending) {
+                const attempt = reportBuilder.testAttemptManager.registerAttempt({fullName: test.fullTitle(), browserId: test.browserId}, SKIPPED);
+                reportBuilder.addSkipped(formatTestResultUnsafe(test, SKIPPED, attempt, reportBuilder));
+            } else {
+                const attempt = reportBuilder.testAttemptManager.registerAttempt({fullName: test.fullTitle(), browserId: test.browserId}, IDLE);
+                reportBuilder.addIdle(formatTestResultUnsafe(test, IDLE, attempt, reportBuilder));
+            }
         });
 
         await this._fillTestsTree();

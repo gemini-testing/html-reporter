@@ -17,7 +17,7 @@ let workers: ReturnType<typeof createWorkers>;
 
 export const subscribeOnToolEvents = (hermione: Hermione, reportBuilder: GuiReportBuilder, client: EventSource, reportPath: string): void => {
     const queue = new PQueue({concurrency: os.cpus().length});
-    const {imageHandler} = reportBuilder;
+    const {imageHandler, testAttemptManager} = reportBuilder;
 
     async function failHandler(formattedResult: ReporterTestResult): Promise<void> {
         const actions: Promise<unknown>[] = [imageHandler.saveTestImages(formattedResult, workers)];
@@ -45,8 +45,8 @@ export const subscribeOnToolEvents = (hermione: Hermione, reportBuilder: GuiRepo
     });
 
     hermione.on(hermione.events.TEST_BEGIN, (data) => {
-        const formattedResult = formatTestResult(data as HermioneTestResult, RUNNING, reportBuilder);
-        formattedResult.attempt = reportBuilder.getCurrAttempt(formattedResult);
+        const attempt = testAttemptManager.registerAttempt({fullName: data.fullTitle(), browserId: data.browserId}, RUNNING);
+        const formattedResult = formatTestResult(data as HermioneTestResult, RUNNING, attempt, reportBuilder);
 
         reportBuilder.addRunning(formattedResult);
         const testBranch = reportBuilder.getTestBranch(formattedResult.id);
@@ -56,8 +56,8 @@ export const subscribeOnToolEvents = (hermione: Hermione, reportBuilder: GuiRepo
 
     hermione.on(hermione.events.TEST_PASS, (testResult) => {
         queue.add(async () => {
-            const formattedResult = formatTestResult(testResult, SUCCESS, reportBuilder);
-            formattedResult.attempt = reportBuilder.getCurrAttempt(formattedResult);
+            const attempt = testAttemptManager.registerAttempt({fullName: testResult.fullTitle(), browserId: testResult.browserId}, SUCCESS);
+            const formattedResult = formatTestResult(testResult, SUCCESS, attempt, reportBuilder);
 
             await imageHandler.saveTestImages(formattedResult, workers);
             reportBuilder.addSuccess(formattedResult);
@@ -70,8 +70,9 @@ export const subscribeOnToolEvents = (hermione: Hermione, reportBuilder: GuiRepo
     hermione.on(hermione.events.RETRY, (testResult) => {
         queue.add(async () => {
             const status = hasDiff(testResult.assertViewResults as ImageDiffError[]) ? TestStatus.FAIL : TestStatus.ERROR;
-            const formattedResult = formatTestResult(testResult, status, reportBuilder);
-            formattedResult.attempt = reportBuilder.getCurrAttempt(formattedResult);
+            const attempt = testAttemptManager.registerAttempt({fullName: testResult.fullTitle(), browserId: testResult.browserId}, status);
+
+            const formattedResult = formatTestResult(testResult, status, attempt, reportBuilder);
 
             await failHandler(formattedResult);
             reportBuilder.addRetry(formattedResult);
@@ -84,8 +85,9 @@ export const subscribeOnToolEvents = (hermione: Hermione, reportBuilder: GuiRepo
     hermione.on(hermione.events.TEST_FAIL, (testResult) => {
         queue.add(async () => {
             const status = hasDiff(testResult.assertViewResults as ImageDiffError[]) ? TestStatus.FAIL : TestStatus.ERROR;
-            const formattedResult = formatTestResult(testResult, status, reportBuilder);
-            formattedResult.attempt = reportBuilder.getCurrAttempt(formattedResult);
+            const attempt = testAttemptManager.registerAttempt({fullName: testResult.fullTitle(), browserId: testResult.browserId}, status);
+
+            const formattedResult = formatTestResult(testResult, status, attempt, reportBuilder);
 
             await failHandler(formattedResult);
             status === TestStatus.FAIL
@@ -99,8 +101,8 @@ export const subscribeOnToolEvents = (hermione: Hermione, reportBuilder: GuiRepo
 
     hermione.on(hermione.events.TEST_PENDING, async (testResult) => {
         queue.add(async () => {
-            const formattedResult = formatTestResult(testResult as HermioneTestResult, SKIPPED, reportBuilder);
-            formattedResult.attempt = reportBuilder.getCurrAttempt(formattedResult);
+            const attempt = testAttemptManager.registerAttempt({fullName: testResult.fullTitle(), browserId: testResult.browserId}, SKIPPED);
+            const formattedResult = formatTestResult(testResult as HermioneTestResult, SKIPPED, attempt, reportBuilder);
 
             await failHandler(formattedResult);
             reportBuilder.addSkipped(formattedResult);

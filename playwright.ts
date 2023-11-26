@@ -13,6 +13,7 @@ import {EventEmitter} from 'events';
 import {PlaywrightTestAdapter, getStatus} from './lib/test-adapter/playwright';
 import PQueue from 'p-queue';
 import {SqliteClient} from './lib/sqlite-client';
+import {TestAttemptManager} from './lib/test-attempt-manager';
 
 export {ReporterConfig} from './lib/types';
 
@@ -38,8 +39,9 @@ class MyReporter implements Reporter {
 
         this._initPromise = (async (htmlReporter: HtmlReporter, config: ReporterConfig): Promise<void> => {
             const dbClient = await SqliteClient.create({htmlReporter, reportPath: config.path});
+            const testAttemptManager = new TestAttemptManager();
 
-            this._staticReportBuilder = StaticReportBuilder.create(htmlReporter, config, {dbClient});
+            this._staticReportBuilder = StaticReportBuilder.create(htmlReporter, config, {dbClient, testAttemptManager});
             await this._staticReportBuilder.saveStaticFiles();
         })(this._htmlReporter, this._config);
 

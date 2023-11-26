@@ -24,11 +24,13 @@ import {SqliteImageStore} from '../image-store';
 import {getUrlWithBase, getError, getRelativeUrl, hasDiff, hasNoRefImageErrors} from '../common-utils';
 import {getTestFromDb} from '../db-utils/server';
 import {ImageDiffError} from '../errors';
+import {TestAttemptManager} from '../test-attempt-manager';
 
 const ignoredStatuses = [RUNNING, IDLE];
 
 interface StaticReportBuilderOptions {
     dbClient: SqliteClient;
+    testAttemptManager: TestAttemptManager;
 }
 
 export class StaticReportBuilder {
@@ -36,6 +38,7 @@ export class StaticReportBuilder {
     protected _pluginConfig: ReporterConfig;
     protected _dbClient: SqliteClient;
     protected _imageHandler: ImageHandler;
+    protected _testAttemptManager: TestAttemptManager;
 
     static create<T extends StaticReportBuilder>(
         this: new (htmlReporter: HtmlReporter, pluginConfig: ReporterConfig, options: StaticReportBuilderOptions) => T,
@@ -46,11 +49,13 @@ export class StaticReportBuilder {
         return new this(htmlReporter, pluginConfig, options);
     }
 
-    constructor(htmlReporter: HtmlReporter, pluginConfig: ReporterConfig, {dbClient}: StaticReportBuilderOptions) {
+    constructor(htmlReporter: HtmlReporter, pluginConfig: ReporterConfig, {dbClient, testAttemptManager}: StaticReportBuilderOptions) {
         this._htmlReporter = htmlReporter;
         this._pluginConfig = pluginConfig;
 
         this._dbClient = dbClient;
+
+        this._testAttemptManager = testAttemptManager;
 
         const imageStore = new SqliteImageStore(this._dbClient);
         this._imageHandler = new ImageHandler(imageStore, htmlReporter.imagesSaver, {reportPath: pluginConfig.path});
@@ -64,6 +69,10 @@ export class StaticReportBuilder {
 
     get imageHandler(): ImageHandler {
         return this._imageHandler;
+    }
+
+    get testAttemptManager(): TestAttemptManager {
+        return this._testAttemptManager;
     }
 
     async saveStaticFiles(): Promise<void> {
@@ -131,7 +140,7 @@ export class StaticReportBuilder {
         return formattedResult;
     }
 
-    protected _createTestResult(result: ReporterTestResult, props: {attempt?: number, status: TestStatus, timestamp: number;} & Partial<PreparedTestResult>): PreparedTestResult {
+    protected _createTestResult(result: ReporterTestResult, props: {attempt?: number | null, status: TestStatus, timestamp: number;} & Partial<PreparedTestResult>): PreparedTestResult {
         const {
             browserId, file, sessionId, description, history,
             imagesInfo = [], screenshot, multipleTabs, errorDetails

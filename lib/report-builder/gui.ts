@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import {StaticReportBuilder} from './static';
 import {GuiTestsTreeBuilder, TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../tests-tree-builder/gui';
 import {
-    IDLE, RUNNING, SKIPPED, FAIL, SUCCESS, UPDATED, TestStatus, DB_COLUMNS, ToolName, ERROR
+    IDLE, RUNNING, FAIL, SUCCESS, UPDATED, TestStatus, DB_COLUMNS, ToolName, ERROR
 } from '../constants';
 import {ConfigForStaticFile, getConfigForStaticFile} from '../server-utils';
 import {ReporterTestResult} from '../test-adapter';
@@ -12,6 +12,7 @@ import {ImageInfoWithState, ReporterConfig} from '../types';
 import {hasDiff, hasNoRefImageErrors, hasResultFails, isSkippedStatus, isUpdatedStatus} from '../common-utils';
 import {HtmlReporterValues} from '../plugin-api';
 import {SkipItem} from '../tests-tree-builder/static';
+import {copyAndUpdate} from '../test-adapter/utils';
 
 interface UndoAcceptImageResult {
     updatedImage: TreeImage | undefined;
@@ -19,6 +20,7 @@ interface UndoAcceptImageResult {
     previousExpectedPath: string | null;
     shouldRemoveReference: boolean;
     shouldRevertReference: boolean;
+    newTestResult: ReporterTestResult;
 }
 
 export interface GuiReportBuilderResult {
@@ -102,31 +104,10 @@ export class GuiReportBuilder extends StaticReportBuilder {
         return this._testsTree.getImageDataToFindEqualDiffs(imageIds);
     }
 
-    getCurrAttempt(formattedResult: ReporterTestResult): number {
-        const lastResult = this._testsTree.getLastResult(formattedResult);
-        this._checkResult(lastResult, formattedResult);
-
-        const {status, attempt} = lastResult;
-
-        return [IDLE, RUNNING, SKIPPED].includes(status) ? attempt : attempt + 1;
-    }
-
-    getUpdatedAttempt(formattedResult: ReporterTestResult): number {
-        const lastResult = this._testsTree.getLastResult(formattedResult);
-        this._checkResult(lastResult, formattedResult);
-
-        const {attempt} = lastResult;
-
-        const imagesInfo = this._testsTree.getImagesInfo(formattedResult.id);
-        const isUpdated = imagesInfo.some((image) => image.status === UPDATED);
-
-        return isUpdated ? attempt : attempt + 1;
-    }
-
-    undoAcceptImage(formattedResult: ReporterTestResult, stateName: string): UndoAcceptImageResult | null {
-        const resultId = formattedResult.id;
-        const suitePath = formattedResult.testPath;
-        const browserName = formattedResult.browserId;
+    undoAcceptImage(testResult: ReporterTestResult, stateName: string): UndoAcceptImageResult | null {
+        const resultId = testResult.id;
+        const suitePath = testResult.testPath;
+        const browserName = testResult.browserId;
         const resultData = this._testsTree.getResultDataToUnacceptImage(resultId, stateName);
 
         if (!resultData || !isUpdatedStatus(resultData.status)) {
@@ -146,15 +127,19 @@ export class GuiReportBuilder extends StaticReportBuilder {
         const shouldRemoveReference = _.isNull(previousImageRefImgSize);
         const shouldRevertReference = !shouldRemoveReference;
 
-        let updatedImage, removedResult;
+        let updatedImage: TreeImage | undefined, removedResult: string | undefined, newTestResult: ReporterTestResult;
 
         if (shouldRemoveResult) {
             this._testsTree.removeTestResult(resultId);
-            formattedResult.attempt = formattedResult.attempt - 1;
+            this._testAttemptManager.removeAttempt(testResult);
+
+            newTestResult = copyAndUpdate(testResult, {attempt: this._testAttemptManager.getCurrentAttempt(testResult)});
 
             removedResult = resultId;
         } else {
             updatedImage = this._testsTree.updateImageInfo(imageId, previousImage);
+
+            newTestResult = testResult;
         }
 
         this._deleteTestResultFromDb({where: [
@@ -165,7 +150,7 @@ export class GuiReportBuilder extends StaticReportBuilder {
             `json_extract(${DB_COLUMNS.IMAGES_INFO}, '$[0].stateName') = ?`
         ].join(' AND ')}, JSON.stringify(suitePath), browserName, status, timestamp.toString(), stateName);
 
-        return {updatedImage, removedResult, previousExpectedPath, shouldRemoveReference, shouldRevertReference};
+        return {updatedImage, removedResult, previousExpectedPath, shouldRemoveReference, shouldRevertReference, newTestResult};
     }
 
     protected override _addTestResult(formattedResult: ReporterTestResult, props: {status: TestStatus} & Partial<PreparedTestResult>, opts: {failResultId?: string} = {}): ReporterTestResult {
