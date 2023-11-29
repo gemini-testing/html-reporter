@@ -141,6 +141,23 @@ describe('PlaywrightTestAdapter', () => {
             assert.deepEqual(results[0].name, 'ImageDiffError');
             assert.deepEqual(results[1].name, 'NoRefImageError');
         });
+
+        it('should return refImg, if provided', () => {
+            const testCaseStub = mkTestCase();
+            const testResultStub = {
+                status: 'success',
+                attachments: [createAttachment('state1' + ImageTitleEnding.Expected)],
+                steps: []
+            } as unknown as TestResult;
+            const adapter = new PlaywrightTestAdapter(testCaseStub, testResultStub, mkAdapterOptions());
+
+            const results = adapter.assertViewResults as ImageDiffError[];
+
+            assert.lengthOf(results, 1);
+            assert.isUndefined(results[0].name);
+            assert.strictEqual(results[0].stateName, 'state1');
+            assert.strictEqual(results[0].refImg?.path, 'state1' + ImageTitleEnding.Expected);
+        });
     });
 
     describe('attempt', () => {
