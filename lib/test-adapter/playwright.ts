@@ -88,7 +88,7 @@ const extractImageError = (result: PlaywrightTestResult, {state, expectedAttachm
     const snapshotName = state + '.png';
 
     if (expectedAttachment && diffAttachment && actualAttachment) {
-        const errors = result.errors as PwtImageDiffError[];
+        const errors = (result.errors || []) as PwtImageDiffError[];
         const imageDiffError = errors.find(err => {
             return err.meta?.type === ErrorName.IMAGE_DIFF && err.meta.snapshotName === snapshotName;
         });
@@ -97,7 +97,7 @@ const extractImageError = (result: PlaywrightTestResult, {state, expectedAttachm
     }
 
     // only supports toMatchScreenshot
-    const errors = result.errors as PwtNoRefImageError[];
+    const errors = (result.errors || []) as PwtNoRefImageError[];
     const noRefImageError = errors.find(err => {
         return err.meta?.type === ErrorName.NO_REF_IMAGE && err.meta.snapshotName === snapshotName;
     });
@@ -168,6 +168,11 @@ export class PlaywrightTestAdapter implements ReporterTestResult {
                     stack: error.stack,
                     stateName: state,
                     currImg
+                };
+            } else if (!error && refImg) {
+                return {
+                    stateName: state,
+                    refImg
                 };
             }
 
