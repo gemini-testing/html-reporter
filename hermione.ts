@@ -1,15 +1,22 @@
 import os from 'os';
-import PQueue from 'p-queue';
+import path from 'path';
 import Hermione, {TestResult as HermioneTestResult} from 'hermione';
+import _ from 'lodash';
+import PQueue from 'p-queue';
+import {CommanderStatic} from '@gemini-testing/commander';
 
-import {PluginAdapter} from './lib/plugin-adapter';
-import {createWorkers, CreateWorkersRunner} from './lib/workers/create-workers';
-import {FAIL, SUCCESS} from './lib/constants';
+import {cliCommands} from './lib/cli-commands';
 import {hasDiff} from './lib/common-utils';
-import {formatTestResult} from './lib/server-utils';
-import {ReporterConfig, ReporterOptions} from './lib/types';
+import {parseConfig} from './lib/config';
+import {FAIL, SUCCESS, ToolName} from './lib/constants';
+import {HtmlReporter} from './lib/plugin-api';
 import {StaticReportBuilder} from './lib/report-builder/static';
+import {formatTestResult, logPathToHtmlReport, logError} from './lib/server-utils';
+import {SqliteClient} from './lib/sqlite-client';
 import {HermioneTestAdapter, ReporterTestResult} from './lib/test-adapter';
+import {TestAttemptManager} from './lib/test-attempt-manager';
+import {HtmlReporterApi, ReporterConfig, ReporterOptions} from './lib/types';
+import {createWorkers, CreateWorkersRunner} from './lib/workers/create-workers';
 
 let workers: ReturnType<typeof createWorkers>;
 
@@ -17,23 +24,66 @@ export = (hermione: Hermione, opts: Partial<ReporterOptions>): void => {
     if (hermione.isWorker()) {
         return;
     }
-    const plugin = PluginAdapter.create(hermione, opts);
 
-    if (!plugin.isEnabled()) {
+    const config = parseConfig(opts);
+
+    if (!config.enabled) {
         return;
     }
 
-    plugin
-        .addApi()
-        .addCliCommands()
-        .init(prepare);
+    const htmlReporter = HtmlReporter.create(config, {toolName: ToolName.Hermione});
+
+    (hermione as Hermione & HtmlReporterApi).htmlReporter = htmlReporter;
+
+    let isCliCommandLaunched = false;
+    let handlingTestResults: Promise<void>;
+
+    hermione.on(hermione.events.CLI, (commander: CommanderStatic) => {
+        _.values(cliCommands).forEach((command: string) => {
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            require(path.resolve(__dirname, 'lib/cli-commands', command))(commander, config, hermione);
+
+            commander.prependListener(`command:${command}`, () => {
+                isCliCommandLaunched = true;
+            });
+        });
+    });
+
+    hermione.on(hermione.events.INIT, async () => {
+        if (isCliCommandLaunched) {
+            return;
+        }
+
+        const dbClient = await SqliteClient.create({htmlReporter, reportPath: config.path});
+        const testAttemptManager = new TestAttemptManager();
+        const staticReportBuilder = StaticReportBuilder.create(htmlReporter, config, {dbClient, testAttemptManager});
+
+        handlingTestResults = Promise.all([
+            staticReportBuilder.saveStaticFiles(),
+            handleTestResults(hermione, staticReportBuilder, config)
+        ]).then(async () => {
+            await staticReportBuilder.finalize();
+        }).then(async () => {
+            await htmlReporter.emitAsync(htmlReporter.events.REPORT_SAVED, {reportPath: config.path});
+        });
+    });
 
     hermione.on(hermione.events.RUNNER_START, (runner) => {
         workers = createWorkers(runner as unknown as CreateWorkersRunner);
     });
+
+    hermione.on(hermione.events.RUNNER_END, async () => {
+        try {
+            await handlingTestResults;
+
+            logPathToHtmlReport(config);
+        } catch (e: unknown) {
+            logError(e as Error);
+        }
+    });
 };
 
-async function prepare(hermione: Hermione, reportBuilder: StaticReportBuilder, pluginConfig: ReporterConfig): Promise<void> {
+async function handleTestResults(hermione: Hermione, reportBuilder: StaticReportBuilder, pluginConfig: ReporterConfig): Promise<void> {
     const {path: reportPath} = pluginConfig;
     const {imageHandler} = reportBuilder;
 

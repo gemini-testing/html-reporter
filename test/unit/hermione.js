@@ -20,6 +20,8 @@ describe('lib/hermione', () => {
     let hermione;
     let cacheExpectedPaths = new Map(), cacheAllImages = new Map(), cacheDiffImages = new Map();
 
+    let program;
+
     const fs = _.clone(fsOriginal);
     const originalUtils = proxyquire('lib/server-utils', {
         'fs-extra': fs
@@ -49,19 +51,17 @@ describe('lib/hermione', () => {
         '../image-handler': {ImageHandler}
     });
 
-    const {PluginAdapter} = proxyquire('lib/plugin-adapter', {
-        './sqlite-client': {SqliteClient},
-        './server-utils': utils,
-        './report-builder/static': {StaticReportBuilder},
-        './plugin-api': proxyquire('lib/plugin-api', {
-            './local-images-saver': proxyquire('lib/local-images-saver', {
-                './server-utils': utils
-            })
+    const HtmlReporter = proxyquire('lib/plugin-api', {
+        './local-images-saver': proxyquire('lib/local-images-saver', {
+            './server-utils': utils
         })
-    });
+    }).HtmlReporter;
 
-    const HermioneReporter = proxyquire('../../hermione', {
-        './lib/plugin-adapter': {PluginAdapter}
+    const runHtmlReporter = proxyquire('../../hermione', {
+        './lib/sqlite-client': {SqliteClient},
+        './lib/server-utils': utils,
+        './lib/report-builder/static': {StaticReportBuilder},
+        './lib/plugin-api': {HtmlReporter}
     });
 
     const events = {
@@ -103,6 +103,25 @@ describe('lib/hermione', () => {
         }, events, {ImageDiffError, NoRefImageError});
     }
 
+    function mkCommander() {
+        const commander = {};
+        const props = [
+            'command',
+            'allowUnknownOption',
+            'description',
+            'option',
+            'action',
+            'on',
+            'prependListener'
+        ];
+
+        for (const prop of props) {
+            commander[prop] = sinon.stub().returns(commander);
+        }
+
+        return commander;
+    }
+
     function initReporter_(opts) {
         opts = _.defaults(opts, {
             enabled: true,
@@ -110,7 +129,9 @@ describe('lib/hermione', () => {
             baseHost: ''
         });
 
-        HermioneReporter(hermione, opts);
+        runHtmlReporter(hermione, opts);
+
+        hermione.emit(hermione.events.CLI, program);
 
         return hermione.emitAsync(hermione.events.INIT);
     }
@@ -139,9 +160,9 @@ describe('lib/hermione', () => {
     beforeEach(async () => {
         hermione = mkHermione_();
 
-        sandbox.spy(PluginAdapter.prototype, 'addApi');
-        sandbox.spy(PluginAdapter.prototype, 'addCliCommands');
-        sandbox.spy(PluginAdapter.prototype, 'init');
+        program = mkCommander();
+
+        sandbox.spy(HtmlReporter, 'create');
 
         sandbox.stub(fs, 'ensureDir').resolves();
         sandbox.stub(fs, 'writeFile').resolves();
@@ -178,24 +199,22 @@ describe('lib/hermione', () => {
         sandbox.restore();
     });
 
-    it('should do nothing if plugin is disabled', () => {
-        return initReporter_({enabled: false}).then(() => {
-            assert.notCalled(PluginAdapter.prototype.addCliCommands);
-        });
+    it('should do nothing if plugin is disabled', async () => {
+        await initReporter_({enabled: false});
+
+        assert.notCalled(HtmlReporter.create);
     });
 
-    it('should add api', () => {
-        return initReporter_()
-            .then(() => assert.calledOnce(PluginAdapter.prototype.addCliCommands));
+    it('should add api', async () => {
+        await initReporter_();
+
+        assert.isObject(hermione.htmlReporter);
     });
 
-    it('should add cli commands', () => {
-        return initReporter_()
-            .then(() => assert.calledOnce(PluginAdapter.prototype.addCliCommands));
-    });
+    it('should add cli commands', async () => {
+        await initReporter_();
 
-    it('should init plugin', () => {
-        return initReporter_().then(() => assert.calledOnce(PluginAdapter.prototype.init));
+        assert.called(program.command);
     });
 
     it('should add skipped test to result', async () => {
