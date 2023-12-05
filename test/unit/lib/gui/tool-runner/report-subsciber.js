@@ -9,10 +9,12 @@ const {ClientEvents} = require('lib/gui/constants');
 const {stubTool, stubConfig} = require('test/unit/utils');
 const {HermioneTestAdapter} = require('lib/test-adapter');
 const {ErrorName} = require('lib/errors');
+const {TestAttemptManager} = require('lib/test-attempt-manager');
+const {FAIL} = require('lib/constants');
 
 describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
     const sandbox = sinon.createSandbox();
-    let reportBuilder;
+    let reportBuilder, testAttemptManager;
     let client;
 
     const events = {
@@ -34,10 +36,12 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
 
     beforeEach(() => {
         reportBuilder = sinon.createStubInstance(GuiReportBuilder);
-        reportBuilder.getCurrAttempt.returns(0);
+
+        testAttemptManager = new TestAttemptManager();
 
         sandbox.stub(GuiReportBuilder, 'create').returns(reportBuilder);
         sandbox.stub(reportBuilder, 'imageHandler').value({saveTestImages: sinon.stub()});
+        sandbox.stub(reportBuilder, 'testAttemptManager').value(testAttemptManager);
         sandbox.stub(HermioneTestAdapter.prototype, 'id').value('some-id');
 
         client = new EventEmitter();
@@ -120,7 +124,7 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
             const hermione = mkHermione_();
             const testResult = mkHermioneTestResult({assertViewResults: [{name: ErrorName.IMAGE_DIFF}]});
 
-            reportBuilder.getCurrAttempt.returns(1);
+            testAttemptManager.registerAttempt({fullName: testResult.fullTitle(), browserId: testResult.browserId}, FAIL);
 
             subscribeOnToolEvents(hermione, reportBuilder, client);
             hermione.emit(hermione.events.TEST_FAIL, testResult);

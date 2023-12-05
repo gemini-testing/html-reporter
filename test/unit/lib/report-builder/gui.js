@@ -11,28 +11,33 @@ const {HtmlReporter} = require('lib/plugin-api');
 const {SUCCESS, FAIL, ERROR, SKIPPED, IDLE, RUNNING, UPDATED} = require('lib/constants/test-statuses');
 const {LOCAL_DATABASE_NAME} = require('lib/constants/database');
 const {ErrorName} = require('lib/errors');
+const {TestAttemptManager} = require('lib/test-attempt-manager');
 
 const TEST_REPORT_PATH = 'test';
 const TEST_DB_PATH = `${TEST_REPORT_PATH}/${LOCAL_DATABASE_NAME}`;
 
 describe('GuiReportBuilder', () => {
     const sandbox = sinon.sandbox.create();
-    let hasImage, deleteFile, GuiReportBuilder;
+    let hasImage, deleteFile, GuiReportBuilder, dbClient, testAttemptManager;
 
     const mkGuiReportBuilder_ = async ({toolConfig, pluginConfig} = {}) => {
         toolConfig = _.defaults(toolConfig || {}, {getAbsoluteUrl: _.noop});
         pluginConfig = _.defaults(pluginConfig || {}, {baseHost: '', path: TEST_REPORT_PATH, baseTestPath: ''});
 
+        const htmlReporter = HtmlReporter.create({baseHost: ''});
+
         const browserConfigStub = {getAbsoluteUrl: toolConfig.getAbsoluteUrl};
         const hermione = {
             forBrowser: sandbox.stub().returns(browserConfigStub),
-            htmlReporter: HtmlReporter.create()
+            htmlReporter
         };
 
         HermioneTestAdapter.create = (obj) => obj;
 
-        const reportBuilder = GuiReportBuilder.create(hermione.htmlReporter, pluginConfig);
-        await reportBuilder.init();
+        dbClient = await SqliteClient.create({htmlReporter, reportPath: TEST_REPORT_PATH});
+        testAttemptManager = new TestAttemptManager();
+
+        const reportBuilder = GuiReportBuilder.create(hermione.htmlReporter, pluginConfig, {dbClient, testAttemptManager});
 
         return reportBuilder;
     };
@@ -92,7 +97,6 @@ describe('GuiReportBuilder', () => {
         sandbox.stub(GuiTestsTreeBuilder.prototype, 'getTestsDataToUpdateRefs').returns([]);
         sandbox.stub(GuiTestsTreeBuilder.prototype, 'getImageDataToFindEqualDiffs').returns({});
         sandbox.stub(GuiTestsTreeBuilder.prototype, 'getImagesInfo').returns([]);
-        sandbox.stub(GuiTestsTreeBuilder.prototype, 'getLastResult').returns({});
         sandbox.stub(GuiTestsTreeBuilder.prototype, 'addTestResult').returns({});
         sandbox.stub(GuiTestsTreeBuilder.prototype, 'getResultDataToUnacceptImage').returns({});
         sandbox.stub(GuiTestsTreeBuilder.prototype, 'updateImageInfo').returns({});
@@ -332,32 +336,6 @@ describe('GuiReportBuilder', () => {
             const reportBuilder = await mkGuiReportBuilder_({pluginConfig: {baseHost: 'some-host'}});
 
             assert.equal(reportBuilder.getResult().config.baseHost, 'some-host');
-        });
-    });
-
-    describe('"getCurrAttempt" method', () => {
-        [IDLE, SKIPPED].forEach((status) => {
-            it(`should return attempt for last result if status is "${status}"`, async () => {
-                const formattedResult = {status, attempt: 100500};
-                GuiTestsTreeBuilder.prototype.getLastResult.returns(formattedResult);
-                const reportBuilder = await mkGuiReportBuilder_();
-
-                const currAttempt = reportBuilder.getCurrAttempt(formattedResult);
-
-                assert.equal(currAttempt, formattedResult.attempt);
-            });
-        });
-
-        [SUCCESS, FAIL, ERROR, UPDATED].forEach((status) => {
-            it(`should return attempt for next result if status is "${status}"`, async () => {
-                const formattedResult = {status, attempt: 100500};
-                GuiTestsTreeBuilder.prototype.getLastResult.returns(formattedResult);
-                const reportBuilder = await mkGuiReportBuilder_();
-
-                const currAttempt = reportBuilder.getCurrAttempt(formattedResult);
-
-                assert.equal(currAttempt, formattedResult.attempt + 1);
-            });
         });
     });
 

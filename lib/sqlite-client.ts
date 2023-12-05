@@ -103,8 +103,6 @@ export class SqliteClient {
             debug('db connection opened');
 
             createTablesQuery().forEach((query) => db?.prepare(query).run());
-
-            htmlReporter.emit(htmlReporter.events.DATABASE_CREATED, db);
         } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
             throw new NestedError(`Error creating database at "${dbPath}"`, err);
         }
@@ -118,6 +116,10 @@ export class SqliteClient {
         this._db = db;
         this._queryCache = new Map();
         this._transformer = transformer;
+    }
+
+    getRawConnection(): Database.Database {
+        return this._db;
     }
 
     close(): void {

@@ -69,25 +69,6 @@ describe('HermioneTestAdapter', () => {
 
     afterEach(() => sandbox.restore());
 
-    it('should return suite attempt', () => {
-        const firstTestResult = mkTestResult_({fullTitle: () => 'some-title'});
-        const secondTestResult = mkTestResult_({fullTitle: () => 'other-title'});
-
-        mkHermioneTestResultAdapter(firstTestResult);
-
-        assert.equal(mkHermioneTestResultAdapter(firstTestResult).attempt, 1);
-        assert.equal(mkHermioneTestResultAdapter(secondTestResult).attempt, 0);
-    });
-
-    it('should not increment attempt for skipped tests', () => {
-        const testResult = mkTestResult_({fullTitle: () => 'some-title'});
-
-        mkHermioneTestResultAdapter(testResult, {status: SKIPPED});
-        const result = mkHermioneTestResultAdapter(testResult, {status: SKIPPED});
-
-        assert.equal(result.attempt, 0);
-    });
-
     it('should return full test error', () => {
         getCommandsHistory.withArgs([{name: 'foo'}], ['foo']).returns(['some-history']);
         const testResult = mkTestResult_({

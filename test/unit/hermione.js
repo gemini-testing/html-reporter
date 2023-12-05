@@ -45,12 +45,12 @@ describe('lib/hermione', () => {
     const {StaticReportBuilder} = proxyquire('lib/report-builder/static', {
         'fs-extra': fs,
         '../server-utils': utils,
-        '../sqlite-client': {SqliteClient},
         '../test-adapter': {TestAdapter},
         '../image-handler': {ImageHandler}
     });
 
     const {PluginAdapter} = proxyquire('lib/plugin-adapter', {
+        './sqlite-client': {SqliteClient},
         './server-utils': utils,
         './report-builder/static': {StaticReportBuilder},
         './plugin-api': proxyquire('lib/plugin-api', {
@@ -165,7 +165,6 @@ describe('lib/hermione', () => {
         sandbox.stub(StaticReportBuilder.prototype, 'saveStaticFiles');
         sandbox.stub(StaticReportBuilder.prototype, 'finalize');
 
-        sandbox.stub(SqliteClient.prototype, 'init').resolves({});
         sandbox.stub(SqliteClient.prototype, 'query');
 
         sandbox.stub(fs, 'readFile').resolves(Buffer.from(''));

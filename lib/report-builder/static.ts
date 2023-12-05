@@ -14,7 +14,7 @@ import {
     LOCAL_DATABASE_NAME,
     PluginEvents
 } from '../constants';
-import {PreparedTestResult, SqliteClient} from '../sqlite-client';
+import type {PreparedTestResult, SqliteClient} from '../sqlite-client';
 import {ReporterTestResult} from '../test-adapter';
 import {hasImage, saveStaticFilesToReportDir, writeDatabaseUrlsFile} from '../server-utils';
 import {ReporterConfig} from '../types';

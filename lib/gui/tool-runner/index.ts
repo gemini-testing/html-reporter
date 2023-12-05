@@ -14,7 +14,16 @@ import {GuiReportBuilder, GuiReportBuilderResult} from '../../report-builder/gui
 import {EventSource} from '../event-source';
 import {logger, getShortMD5} from '../../common-utils';
 import * as reporterHelper from '../../reporter-helpers';
-import {UPDATED, SKIPPED, IDLE, TestStatus, ToolName, DATABASE_URLS_JSON_NAME, LOCAL_DATABASE_NAME} from '../../constants';
+import {
+    UPDATED,
+    SKIPPED,
+    IDLE,
+    TestStatus,
+    ToolName,
+    DATABASE_URLS_JSON_NAME,
+    LOCAL_DATABASE_NAME,
+    PluginEvents
+} from '../../constants';
 import {formatId, mkFullTitle, mergeDatabasesForReuse, filterByEqualDiffSizes} from './utils';
 import {getTestsTreeFromDatabase} from '../../db-utils/server';
 import {formatTestResult} from '../../server-utils';
@@ -116,6 +125,7 @@ export class ToolRunner {
 
         this._collection = await this._readTests();
 
+        this._hermione.htmlReporter.emit(PluginEvents.DATABASE_CREATED, dbClient.getRawConnection());
         await this._reportBuilder.saveStaticFiles();
 
         this._reportBuilder.setApiValues(this._hermione.htmlReporter.values);

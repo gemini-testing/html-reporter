@@ -7,13 +7,14 @@ const proxyquire = require('proxyquire');
 const {HtmlReporter} = require('lib/plugin-api');
 const {SUCCESS, FAIL, ERROR, SKIPPED} = require('lib/constants/test-statuses');
 const {LOCAL_DATABASE_NAME} = require('lib/constants/database');
+const {SqliteClient} = require('lib/sqlite-client');
 
 const TEST_REPORT_PATH = 'test';
 const TEST_DB_PATH = `${TEST_REPORT_PATH}/${LOCAL_DATABASE_NAME}`;
 
 describe('StaticReportBuilder', () => {
     const sandbox = sinon.sandbox.create();
-    let StaticReportBuilder, htmlReporter;
+    let StaticReportBuilder, htmlReporter, dbClient;
 
     const fs = _.clone(fsOriginal);
 
@@ -25,16 +26,15 @@ describe('StaticReportBuilder', () => {
     const mkStaticReportBuilder_ = async ({pluginConfig} = {}) => {
         pluginConfig = _.defaults(pluginConfig, {baseHost: '', path: TEST_REPORT_PATH, baseTestPath: ''});
 
-        htmlReporter = _.extend(HtmlReporter.create(), {
+        htmlReporter = _.extend(HtmlReporter.create({baseHost: ''}), {
             reportsSaver: {
                 saveReportData: sandbox.stub()
             }
         });
 
-        const reportBuilder = StaticReportBuilder.create(htmlReporter, pluginConfig);
-        await reportBuilder.init();
+        dbClient = await SqliteClient.create({htmlReporter, reportPath: TEST_REPORT_PATH});
 
-        return reportBuilder;
+        return StaticReportBuilder.create(htmlReporter, pluginConfig, {dbClient});
     };
 
     const stubTest_ = (opts = {}) => {
@@ -69,7 +69,7 @@ describe('StaticReportBuilder', () => {
         });
 
         it('should add skipped test', async () => {
-            await reportBuilder.addSkipped(stubTest_());
+            await reportBuilder.addSkipped(stubTest_({status: SKIPPED}));
             const db = new Database(TEST_DB_PATH);
 
             const [{status}] = db.prepare('SELECT * from suites').all();
@@ -79,7 +79,7 @@ describe('StaticReportBuilder', () => {
         });
 
         it('should add success test', async () => {
-            await reportBuilder.addSuccess(stubTest_());
+            await reportBuilder.addSuccess(stubTest_({status: SUCCESS}));
             const db = new Database(TEST_DB_PATH);
 
             const [{status}] = db.prepare('SELECT * from suites').all();
@@ -89,7 +89,7 @@ describe('StaticReportBuilder', () => {
         });
 
         it('should add failed test', async () => {
-            await reportBuilder.addFail(stubTest_());
+            await reportBuilder.addFail(stubTest_({status: FAIL}));
             const db = new Database(TEST_DB_PATH);
 
             const [{status}] = db.prepare('SELECT * from suites').all();
@@ -99,7 +99,7 @@ describe('StaticReportBuilder', () => {
         });
 
         it('should add error test', async () => {
-            await reportBuilder.addError(stubTest_());
+            await reportBuilder.addError(stubTest_({status: ERROR}));
             const db = new Database(TEST_DB_PATH);
 
             const [{status}] = db.prepare('SELECT * from suites').all();

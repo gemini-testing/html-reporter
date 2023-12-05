@@ -7,6 +7,7 @@ const {logger} = require('lib/common-utils');
 const {StaticReportBuilder} = require('lib/report-builder/static');
 const {HtmlReporter} = require('lib/plugin-api');
 const {stubTool, stubConfig} = require('../utils');
+const {SqliteClient} = require('lib/sqlite-client');
 const {GUI, MERGE_REPORTS, REMOVE_UNUSED_SCREENS} = require('lib/cli-commands').cliCommands;
 
 describe('lib/plugin-adapter', () => {
@@ -64,7 +65,6 @@ describe('lib/plugin-adapter', () => {
 
         sandbox.stub(StaticReportBuilder, 'create').returns(Object.create(StaticReportBuilder.prototype));
         sandbox.stub(StaticReportBuilder.prototype, 'saveStaticFiles').resolves();
-        sandbox.stub(StaticReportBuilder.prototype, 'init').resolves();
         sandbox.stub(StaticReportBuilder.prototype, 'finalize').resolves();
 
         prepareData = sandbox.stub().resolves();
@@ -77,6 +77,7 @@ describe('lib/plugin-adapter', () => {
 
         toolReporter = proxyquire('lib/plugin-adapter', {
             './config': {parseConfig},
+            './sqlite-client': {SqliteClient: {create: async () => sinon.createStubInstance(SqliteClient)}},
             [`./cli-commands/${GUI}`]: cliCommands[GUI],
             [`./cli-commands/${MERGE_REPORTS}`]: cliCommands[MERGE_REPORTS],
             [`./cli-commands/${REMOVE_UNUSED_SCREENS}`]: cliCommands[REMOVE_UNUSED_SCREENS]

@@ -12,13 +12,11 @@ describe('lib/sqlite-client', () => {
     let htmlReporter;
 
     const makeSqliteClient_ = async () => {
-        const sqliteClient = SqliteClient.create({htmlReporter, reportPath: 'test'});
-        await sqliteClient.init();
-        return sqliteClient;
+        return SqliteClient.create({htmlReporter, reportPath: 'test'});
     };
 
     beforeEach(() => {
-        htmlReporter = HtmlReporter.create();
+        htmlReporter = HtmlReporter.create({baseHost: 'some-host'});
     });
 
     afterEach(() => {
@@ -62,26 +60,15 @@ describe('lib/sqlite-client', () => {
         });
     });
 
-    it('should emit "DATABASE_CREATED" event with new database connection', async () => {
-        const onDatabaseCreated = sinon.spy();
-        htmlReporter.on(htmlReporter.events.DATABASE_CREATED, onDatabaseCreated);
-
-        await makeSqliteClient_();
-
-        assert.calledOnceWith(onDatabaseCreated, sinon.match.instanceOf(Database));
-    });
-
     describe('query', () => {
         let getStub, prepareStub, sqliteClient;
 
         beforeEach(async () => {
             getStub = sandbox.stub();
             prepareStub = sandbox.stub(Database.prototype, 'prepare').returns({get: getStub});
-            sqliteClient = proxyquire('lib/sqlite-client', {
+            sqliteClient = await proxyquire('lib/sqlite-client', {
                 './db-utils/common': {createTablesQuery: () => []}
             }).SqliteClient.create({htmlReporter, reportPath: 'test'});
-
-            await sqliteClient.init();
         });
 
         describe('should create valid query string', () => {
@@ -145,11 +132,9 @@ describe('lib/sqlite-client', () => {
         beforeEach(async () => {
             runStub = sandbox.stub();
             prepareStub = sandbox.stub(Database.prototype, 'prepare').returns({run: runStub});
-            sqliteClient = proxyquire('lib/sqlite-client', {
+            sqliteClient = await proxyquire('lib/sqlite-client', {
                 './db-utils/common': {createTablesQuery: () => []}
             }).SqliteClient.create({htmlReporter, reportPath: 'test'});
-
-            await sqliteClient.init();
         });
 
         describe('should create valid sentence string', () => {
