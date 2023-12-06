@@ -4,7 +4,7 @@ import proxyquire from 'proxyquire';
 import sinon from 'sinon';
 import tmpOriginal from 'tmp';
 
-import {SKIPPED, TestStatus} from 'lib/constants/test-statuses';
+import {TestStatus} from 'lib/constants/test-statuses';
 import {ERROR_DETAILS_PATH} from 'lib/constants/paths';
 import {HermioneTestAdapter, HermioneTestAdapterOptions, ReporterTestResult} from 'lib/test-adapter';
 import {ErrorDetails, HermioneTestResult} from 'lib/types';
@@ -30,7 +30,7 @@ describe('HermioneTestAdapter', () => {
         testResult: HermioneTestResult,
         {status = TestStatus.SUCCESS, imagesInfoFormatter = mkImagesInfoFormatter()}: {status?: TestStatus, imagesInfoFormatter?: ImagesInfoFormatter} = {}
     ): HermioneTestAdapter => {
-        return new HermioneTestAdapter(testResult, {status, imagesInfoFormatter}) as HermioneTestAdapter;
+        return new HermioneTestAdapter(testResult, {status, imagesInfoFormatter, attempt: 0}) as HermioneTestAdapter;
     };
 
     const mkTestResult_ = (result: Partial<HermioneTestResult>): HermioneTestResult => _.defaults(result, {
