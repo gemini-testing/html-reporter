@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import {determineStatus} from '../common-utils';
+import {determineFinalStatus} from '../common-utils';
 import {BrowserVersions, PWT_TITLE_DELIMITER, TestStatus, ToolName} from '../constants';
 import {ReporterTestResult} from '../test-adapter';
 import {ImageInfoFull, ParsedSuitesRow} from '../types';
@@ -253,7 +253,7 @@ export class BaseTestsTreeBuilder {
         const childrenSuiteStatuses = _.compact(([] as (string | undefined)[]).concat(suite.suiteIds))
             .map((childSuiteId: string) => this._tree.suites.byId[childSuiteId].status);
 
-        const status = determineStatus(_.compact([...resultStatuses, ...childrenSuiteStatuses]));
+        const status = determineFinalStatus(_.compact([...resultStatuses, ...childrenSuiteStatuses]));
 
         // if newly determined status is the same as current status, do nothing
         if (suite.status === status) {

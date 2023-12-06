@@ -2,14 +2,14 @@ import * as _ from 'lodash';
 import {StaticReportBuilder} from './static';
 import {GuiTestsTreeBuilder, TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../tests-tree-builder/gui';
 import {
-    IDLE, RUNNING, FAIL, SUCCESS, UPDATED, TestStatus, DB_COLUMNS, ToolName, ERROR
+    IDLE, RUNNING, UPDATED, TestStatus, DB_COLUMNS, ToolName
 } from '../constants';
 import {ConfigForStaticFile, getConfigForStaticFile} from '../server-utils';
 import {ReporterTestResult} from '../test-adapter';
 import {PreparedTestResult} from '../sqlite-client';
-import {Tree, TreeImage, TreeResult} from '../tests-tree-builder/base';
+import {Tree, TreeImage} from '../tests-tree-builder/base';
 import {ImageInfoWithState, ReporterConfig} from '../types';
-import {hasDiff, hasNoRefImageErrors, hasResultFails, isSkippedStatus, isUpdatedStatus} from '../common-utils';
+import {isUpdatedStatus} from '../common-utils';
 import {HtmlReporterValues} from '../plugin-api';
 import {SkipItem} from '../tests-tree-builder/static';
 import {copyAndUpdate} from '../test-adapter/utils';
@@ -164,43 +164,9 @@ export class GuiReportBuilder extends StaticReportBuilder {
 
         this._extendTestWithImagePaths(testResult, formattedResult, opts);
 
-        if (![IDLE, RUNNING].includes(testResult.status)) {
-            this._updateTestResultStatus(testResult, formattedResult);
-        }
-
         this._testsTree.addTestResult(testResult, formattedResult);
 
         return formattedResult;
-    }
-
-    protected _checkResult(result: TreeResult | undefined, formattedResult: ReporterTestResult): asserts result is TreeResult {
-        if (!result) {
-            const filteredTestTreeResults = _.pickBy(
-                this._testsTree.tree.results.byId,
-                (_result, resultId) => resultId.startsWith(formattedResult.fullName));
-
-            throw new Error('Failed to get last result for test:\n' +
-                `fullName = ${formattedResult.fullName}; browserId = ${formattedResult.browserId}\n` +
-                `Related testsTree results: ${JSON.stringify(filteredTestTreeResults)}\n`);
-        }
-    }
-
-    private _updateTestResultStatus(testResult: PreparedTestResult, formattedResult: ReporterTestResult): void {
-        if (!hasResultFails(testResult) && !isSkippedStatus(testResult.status) && _.isEmpty(testResult.error)) {
-            testResult.status = SUCCESS;
-            return;
-        }
-
-        const imageErrors = testResult.imagesInfo.map(imagesInfo => (imagesInfo as {error: {name?: string}}).error ?? {});
-        if (hasDiff(imageErrors) || hasNoRefImageErrors({assertViewResults: imageErrors})) {
-            testResult.status = FAIL;
-            return;
-        }
-
-        if (!_.isEmpty(formattedResult.error)) {
-            testResult.status = ERROR;
-            return;
-        }
     }
 
     private _extendTestWithImagePaths(testResult: PreparedTestResult, formattedResult: ReporterTestResult, opts: {failResultId?: string} = {}): void {

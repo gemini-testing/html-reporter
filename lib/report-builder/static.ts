@@ -143,7 +143,7 @@ export class StaticReportBuilder {
     protected _createTestResult(result: ReporterTestResult, props: {attempt?: number | null, status: TestStatus, timestamp: number;} & Partial<PreparedTestResult>): PreparedTestResult {
         const {
             browserId, file, sessionId, description, history,
-            imagesInfo = [], screenshot, multipleTabs, errorDetails
+            imagesInfo = [], screenshot, multipleTabs, errorDetails, testPath
         } = result;
 
         const {baseHost, saveErrorDetails} = this._pluginConfig;
@@ -153,7 +153,8 @@ export class StaticReportBuilder {
 
         const testResult: PreparedTestResult = Object.assign({
             suiteUrl, name: browserId, metaInfo, description, history,
-            imagesInfo, screenshot: Boolean(screenshot), multipleTabs
+            imagesInfo, screenshot: Boolean(screenshot), multipleTabs,
+            suitePath: testPath
         }, props);
 
         const error = getError(result.error);

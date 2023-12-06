@@ -72,6 +72,8 @@ const formatTestResultUnsafe = (
     return formatTestResult(test as HermioneTestResult, status, attempt, {imageHandler});
 };
 
+const HERMIONE_TITLE_DELIMITER = ' ';
+
 export class ToolRunner {
     private _testFiles: string[];
     private _hermione: Hermione & HtmlReporterApi;
@@ -84,6 +86,7 @@ export class ToolRunner {
     private _eventSource: EventSource;
     protected _reportBuilder: GuiReportBuilder | null;
     private _tests: Record<string, HermioneTest>;
+    private readonly _testAttemptManager: TestAttemptManager;
 
     static create<T extends ToolRunner>(this: new (...args: ToolRunnerArgs) => T, ...args: ToolRunnerArgs): T {
         return new this(...args);
@@ -104,6 +107,7 @@ export class ToolRunner {
         this._reportBuilder = null;
 
         this._tests = {};
+        this._testAttemptManager = new TestAttemptManager();
     }
 
     get config(): HermioneConfig {
@@ -118,9 +122,8 @@ export class ToolRunner {
         await mergeDatabasesForReuse(this._reportPath);
 
         const dbClient = await SqliteClient.create({htmlReporter: this._hermione.htmlReporter, reportPath: this._reportPath, reuse: true});
-        const testAttemptManager = new TestAttemptManager();
 
-        this._reportBuilder = GuiReportBuilder.create(this._hermione.htmlReporter, this._pluginConfig, {dbClient, testAttemptManager});
+        this._reportBuilder = GuiReportBuilder.create(this._hermione.htmlReporter, this._pluginConfig, {dbClient, testAttemptManager: this._testAttemptManager});
         this._subscribeOnEvents();
 
         this._collection = await this._readTests();
@@ -185,10 +188,11 @@ export class ToolRunner {
         return Promise.all(tests.map(async (test): Promise<TestBranch> => {
             const updateResult = this._prepareTestResult(test);
 
-            const fullName = test.suite.path.join(' ');
+            const fullName = [...test.suite.path, test.state.name].join(HERMIONE_TITLE_DELIMITER);
             const updateAttempt = reportBuilder.testAttemptManager.registerAttempt({fullName, browserId: test.browserId}, UPDATED);
             const formattedResult = formatTestResultUnsafe(updateResult, UPDATED, updateAttempt, reportBuilder);
-            const failResultId = formattedResult.id;
+
+            const failResultId = formatTestResultUnsafe(updateResult, UPDATED, updateAttempt - 1, reportBuilder).id;
 
             updateResult.attempt = updateAttempt;
 
@@ -213,8 +217,8 @@ export class ToolRunner {
 
         await Promise.all(tests.map(async (test) => {
             const updateResult = this._prepareTestResult(test);
-            const fullName = test.suite.path.join(' ');
-            const attempt = reportBuilder.testAttemptManager.removeAttempt({fullName, browserId: test.browserId});
+            const fullName = [...test.suite.path, test.state.name].join(' ');
+            const attempt = reportBuilder.testAttemptManager.getCurrentAttempt({fullName, browserId: test.browserId});
             const formattedResult = formatTestResultUnsafe(updateResult, UPDATED, attempt, reportBuilder);
 
             await Promise.all(updateResult.imagesInfo.map(async (imageInfo) => {
@@ -318,11 +322,10 @@ export class ToolRunner {
             const testId = formatId(test.id.toString(), browserId);
             this._tests[testId] = _.extend(test, {browserId});
 
+            const attempt = 0;
             if (test.pending) {
-                const attempt = reportBuilder.testAttemptManager.registerAttempt({fullName: test.fullTitle(), browserId: test.browserId}, SKIPPED);
                 reportBuilder.addSkipped(formatTestResultUnsafe(test, SKIPPED, attempt, reportBuilder));
             } else {
-                const attempt = reportBuilder.testAttemptManager.registerAttempt({fullName: test.fullTitle(), browserId: test.browserId}, IDLE);
                 reportBuilder.addIdle(formatTestResultUnsafe(test, IDLE, attempt, reportBuilder));
             }
         });
@@ -358,7 +361,15 @@ export class ToolRunner {
                 return _.extend(imageInfo, {expectedImg: refImg});
             });
 
-        const res = _.merge({}, rawTest, {assertViewResults, imagesInfo, sessionId, attempt, meta: {url}, updated: true});
+        const res = _.merge({}, rawTest, {
+            assertViewResults,
+            err: test.error,
+            imagesInfo,
+            sessionId,
+            attempt,
+            meta: {url},
+            updated: true
+        });
 
         // _.merge can't fully clone test object since hermione@7+
         // TODO: use separate object to represent test results. Do not extend test object with test results
@@ -380,8 +391,16 @@ export class ToolRunner {
         const {autoRun} = this._guiOpts;
         const testsTree = await this._loadDataFromDatabase();
 
-        if (!_.isEmpty(testsTree)) {
+        if (testsTree && !_.isEmpty(testsTree)) {
             reportBuilder.reuseTestsTree(testsTree);
+
+            // Fill test attempt manager with data from db
+            for (const [, testResult] of Object.entries(testsTree.results.byId)) {
+                this._testAttemptManager.registerAttempt({
+                    fullName: testResult.suitePath.join(HERMIONE_TITLE_DELIMITER),
+                    browserId: testResult.name
+                }, testResult.status, testResult.attempt);
+            }
         }
 
         this._tree = {...reportBuilder.getResult(), autoRun};

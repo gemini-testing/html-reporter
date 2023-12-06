@@ -32,12 +32,14 @@ export class TestAttemptManager {
         return Math.max(data.statuses.length - 1, 0);
     }
 
-    registerAttempt(testResult: TestSpec, status: TestStatus): number {
+    registerAttempt(testResult: TestSpec, status: TestStatus, index: number | null = null): number {
         const [hash, data] = this._getData(testResult);
 
-        if (![IDLE, RUNNING].includes(status)) {
-            data.statuses.push(status);
-        }
+        const isManualOverride = index !== null;
+        const isLastStatusTemporary = [IDLE, RUNNING].includes(data.statuses.at(-1) as TestStatus);
+        const shouldReplace = Number(isManualOverride || isLastStatusTemporary);
+
+        data.statuses.splice(index ?? data.statuses.length - shouldReplace, shouldReplace, status);
 
         this._attempts.set(hash, data);
 

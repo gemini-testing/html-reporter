@@ -247,7 +247,7 @@ describe('ResultsTreeBuilder', () => {
         });
 
         describe('determine statuses for suites', () => {
-            it('should call "determineStatus" with test result status', () => {
+            it('should call "determineFinalStatus" with test result status', () => {
                 builder.addTestResult(
                     mkTestResult_({status: SUCCESS}),
                     mkFormattedResult_({testPath: ['s1']})
@@ -256,7 +256,7 @@ describe('ResultsTreeBuilder', () => {
                 assert.calledOnceWith(determineStatus, [SUCCESS]);
             });
 
-            it('should call "determineStatus" with test result status from last attempt', () => {
+            it('should call "determineFinalStatus" with test result status from last attempt', () => {
                 builder.addTestResult(
                     mkTestResult_({status: FAIL}),
                     mkFormattedResult_({testPath: ['s1'], attempt: 0})
@@ -269,7 +269,7 @@ describe('ResultsTreeBuilder', () => {
                 assert.calledWith(determineStatus.lastCall, [SUCCESS]);
             });
 
-            it('should call "determineStatus" with all test statuses from each browser', () => {
+            it('should call "determineFinalStatus" with all test statuses from each browser', () => {
                 builder.addTestResult(
                     mkTestResult_({status: FAIL}),
                     mkFormattedResult_({testPath: ['s1'], browserId: 'b1'})
@@ -282,7 +282,7 @@ describe('ResultsTreeBuilder', () => {
                 assert.calledWith(determineStatus.secondCall, [FAIL, SUCCESS]);
             });
 
-            it('should call "determineStatus" with statuses from child suites', () => {
+            it('should call "determineFinalStatus" with statuses from child suites', () => {
                 determineStatus.withArgs([FAIL]).returns('s1 s2 status');
                 determineStatus.withArgs([ERROR]).returns('s1 s3 status');
                 builder.addTestResult(

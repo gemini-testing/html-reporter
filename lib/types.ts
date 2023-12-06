@@ -133,6 +133,7 @@ export interface ParsedSuitesRow {
     screenshot: boolean;
     skipReason?: string;
     status: TestStatus;
+    suitePath: string[];
     suiteUrl: string;
     timestamp: number;
 }
