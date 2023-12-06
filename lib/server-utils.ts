@@ -263,8 +263,11 @@ export async function runCustomGuiAction(hermione: Hermione, {customGui}: Report
 }
 
 export function getPluginClientScriptPath(pluginName: string): string | null {
+    const pluginPath = `${pluginName}/plugin.js`;
+    const isPluginLocal = fileExists(pluginPath);
+
     try {
-        return require.resolve(`${pluginName}/plugin.js`);
+        return isPluginLocal ? path.resolve(pluginPath) : require.resolve(pluginPath);
     } catch (e: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
         logError(e);
         return null;
