@@ -186,7 +186,7 @@ export class GuiReportBuilder extends StaticReportBuilder {
     }
 
     private _updateTestResultStatus(testResult: PreparedTestResult, formattedResult: ReporterTestResult): void {
-        if (!hasResultFails(testResult) && !isSkippedStatus(testResult.status)) {
+        if (!hasResultFails(testResult) && !isSkippedStatus(testResult.status) && _.isEmpty(testResult.error)) {
             testResult.status = SUCCESS;
             return;
         }

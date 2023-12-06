@@ -1,71 +1,56 @@
-import _ from 'lodash';
 import {ReporterTestResult} from './test-adapter';
-import {IDLE, RUNNING, SKIPPED, TestStatus, UPDATED} from './constants';
+import {IDLE, RUNNING, TestStatus} from './constants';
 
 type TestSpec = Pick<ReporterTestResult, 'fullName' | 'browserId'>
 
-const INVALID_ATTEMPT = -1;
+interface AttemptData {
+    statuses: TestStatus[];
+}
 
 export class TestAttemptManager {
-    private _attemptMap: Map<string, number>;
-    private _statusMap: Map<string, TestStatus[]>;
+    private _attempts: Map<string, AttemptData>;
 
     constructor() {
-        this._attemptMap = new Map();
-        this._statusMap = new Map();
+        this._attempts = new Map();
     }
 
     removeAttempt(testResult: TestSpec): number {
-        const hash = this._getHash(testResult);
-        let value = this._attemptMap.get(hash);
+        const [hash, data] = this._getData(testResult);
 
-        if (_.isNil(value) || value === 0) {
-            value = INVALID_ATTEMPT;
-        } else {
-            value -= 1;
-
-            const statuses = this._statusMap.get(hash) as TestStatus[];
-            statuses.pop();
+        if (data.statuses.length > 0) {
+            data.statuses.pop();
         }
 
-        this._attemptMap.set(hash, value);
+        this._attempts.set(hash, data);
 
-        return value;
+        return Math.max(data.statuses.length - 1, 0);
     }
 
     getCurrentAttempt(testResult: TestSpec): number {
-        const hash = this._getHash(testResult);
+        const [, data] = this._getData(testResult);
 
-        return this._attemptMap.get(hash) ?? INVALID_ATTEMPT;
+        return Math.max(data.statuses.length - 1, 0);
     }
 
     registerAttempt(testResult: TestSpec, status: TestStatus): number {
-        const hash = this._getHash(testResult);
+        const [hash, data] = this._getData(testResult);
 
-        let attempt = this._attemptMap.get(hash);
-        const statuses = this._statusMap.get(hash) ?? [];
-
-        if (_.isNil(attempt)) {
-            this._attemptMap.set(hash, 0);
-            statuses.push(status);
-            this._statusMap.set(hash, statuses);
-
-            return 0;
+        if (![IDLE, RUNNING].includes(status)) {
+            data.statuses.push(status);
         }
 
-        if ([IDLE, RUNNING, SKIPPED, UPDATED].includes(_.last(statuses) as TestStatus)) {
-            return attempt;
-        }
+        this._attempts.set(hash, data);
 
-        attempt += 1;
-        this._attemptMap.set(hash, attempt);
-        statuses.push(status);
-        this._statusMap.set(hash, statuses);
-
-        return attempt;
+        return Math.max(data.statuses.length - 1, 0);
     }
 
     private _getHash(testResult: TestSpec): string {
         return `${testResult.fullName}.${testResult.browserId}`;
+    }
+
+    private _getData(testResult: TestSpec): [string, AttemptData] {
+        const hash = this._getHash(testResult);
+
+        return [hash, this._attempts.get(hash) ?? {statuses: []}];
     }
 }
