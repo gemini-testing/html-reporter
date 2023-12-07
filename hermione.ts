@@ -8,7 +8,7 @@ import {CommanderStatic} from '@gemini-testing/commander';
 import {cliCommands} from './lib/cli-commands';
 import {hasDiff} from './lib/common-utils';
 import {parseConfig} from './lib/config';
-import {FAIL, SUCCESS, ToolName} from './lib/constants';
+import {ERROR, FAIL, SUCCESS, ToolName} from './lib/constants';
 import {HtmlReporter} from './lib/plugin-api';
 import {StaticReportBuilder} from './lib/report-builder/static';
 import {formatTestResult, logPathToHtmlReport, logError} from './lib/server-utils';
@@ -88,8 +88,9 @@ async function handleTestResults(hermione: Hermione, reportBuilder: StaticReport
     const {imageHandler} = reportBuilder;
 
     const failHandler = async (testResult: HermioneTestResult): Promise<ReporterTestResult> => {
-        const attempt = reportBuilder.testAttemptManager.registerAttempt({fullName: testResult.fullTitle(), browserId: testResult.browserId}, FAIL);
-        const formattedResult = formatTestResult(testResult, FAIL, attempt, reportBuilder);
+        const status = hasDiff(testResult.assertViewResults as {name?: string}[]) ? FAIL : ERROR;
+        const attempt = reportBuilder.testAttemptManager.registerAttempt({fullName: testResult.fullTitle(), browserId: testResult.browserId}, status);
+        const formattedResult = formatTestResult(testResult, status, attempt, reportBuilder);
 
         const actions: Promise<unknown>[] = [imageHandler.saveTestImages(formattedResult, workers)];
 
@@ -103,9 +104,7 @@ async function handleTestResults(hermione: Hermione, reportBuilder: StaticReport
     };
 
     const addFail = (formattedResult: ReporterTestResult): ReporterTestResult => {
-        return hasDiff(formattedResult.assertViewResults as {name?: string}[])
-            ? reportBuilder.addFail(formattedResult)
-            : reportBuilder.addError(formattedResult);
+        return reportBuilder.addFail(formattedResult);
     };
 
     return new Promise((resolve, reject) => {
