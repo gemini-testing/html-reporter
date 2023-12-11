@@ -8,13 +8,11 @@ const {GuiReportBuilder} = require('lib/report-builder/gui');
 const {ClientEvents} = require('lib/gui/constants');
 const {stubTool, stubConfig} = require('test/unit/utils');
 const {HermioneTestAdapter} = require('lib/test-adapter');
-const {ErrorName} = require('lib/errors');
-const {TestAttemptManager} = require('lib/test-attempt-manager');
-const {FAIL} = require('lib/constants');
+const {UNKNOWN_ATTEMPT} = require('lib/constants');
 
 describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
     const sandbox = sinon.createSandbox();
-    let reportBuilder, testAttemptManager;
+    let reportBuilder;
     let client;
 
     const events = {
@@ -36,12 +34,13 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
 
     beforeEach(() => {
         reportBuilder = sinon.createStubInstance(GuiReportBuilder);
-
-        testAttemptManager = new TestAttemptManager();
+        reportBuilder.addFail.callsFake(_.identity);
+        reportBuilder.addError.callsFake(_.identity);
+        reportBuilder.addRunning.callsFake(_.identity);
+        reportBuilder.addSkipped.callsFake(_.identity);
 
         sandbox.stub(GuiReportBuilder, 'create').returns(reportBuilder);
         sandbox.stub(reportBuilder, 'imageHandler').value({saveTestImages: sinon.stub()});
-        sandbox.stub(reportBuilder, 'testAttemptManager').value(testAttemptManager);
         sandbox.stub(HermioneTestAdapter.prototype, 'id').value('some-id');
 
         client = new EventEmitter();
@@ -65,7 +64,7 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
             const testResult = mkHermioneTestResult();
             const mediator = sinon.spy().named('mediator');
 
-            reportBuilder.imageHandler.saveTestImages.callsFake(() => Promise.delay(100).then(mediator));
+            reportBuilder.addError.callsFake(() => Promise.delay(100).then(mediator).then(() => ({id: 'some-id'})));
 
             subscribeOnToolEvents(hermione, reportBuilder, client);
             hermione.emit(hermione.events.TEST_FAIL, testResult);
@@ -76,16 +75,18 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
     });
 
     describe('TEST_BEGIN', () => {
-        it('should emit "BEGIN_STATE" event for client with correct data', () => {
+        it('should emit "BEGIN_STATE" event for client with correct data', async () => {
             const hermione = mkHermione_();
             const testResult = mkHermioneTestResult();
 
+            reportBuilder.addRunning.resolves({id: 'some-id'});
             reportBuilder.getTestBranch.withArgs('some-id').returns('test-tree-branch');
 
             subscribeOnToolEvents(hermione, reportBuilder, client);
             hermione.emit(hermione.events.TEST_BEGIN, testResult);
+            await hermione.emitAsync(hermione.events.RUNNER_END);
 
-            assert.calledOnceWith(client.emit, ClientEvents.BEGIN_STATE, 'test-tree-branch');
+            assert.calledWith(client.emit, ClientEvents.BEGIN_STATE, 'test-tree-branch');
         });
     });
 
@@ -101,7 +102,7 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
             assert.calledOnceWith(reportBuilder.addSkipped, sinon.match({
                 fullName: 'some-title',
                 browserId: 'some-browser',
-                attempt: 0
+                attempt: UNKNOWN_ATTEMPT
             }));
         });
 
@@ -120,30 +121,6 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
     });
 
     describe('TEST_FAIL', () => {
-        it('should add correct attempt', async () => {
-            const hermione = mkHermione_();
-            const testResult = mkHermioneTestResult({assertViewResults: [{name: ErrorName.IMAGE_DIFF}]});
-
-            testAttemptManager.registerAttempt({fullName: testResult.fullTitle(), browserId: testResult.browserId}, FAIL);
-
-            subscribeOnToolEvents(hermione, reportBuilder, client);
-            hermione.emit(hermione.events.TEST_FAIL, testResult);
-            await hermione.emitAsync(hermione.events.RUNNER_END);
-
-            assert.calledWithMatch(reportBuilder.addFail, {attempt: 1});
-        });
-
-        it('should save images before fail adding', async () => {
-            const hermione = mkHermione_();
-            const testResult = mkHermioneTestResult({assertViewResults: [{name: ErrorName.IMAGE_DIFF}]});
-
-            subscribeOnToolEvents(hermione, reportBuilder, client);
-            hermione.emit(hermione.events.TEST_FAIL, testResult);
-            await hermione.emitAsync(hermione.events.RUNNER_END);
-
-            assert.callOrder(reportBuilder.imageHandler.saveTestImages, reportBuilder.addFail);
-        });
-
         it('should emit "TEST_RESULT" event for client with test data', async () => {
             const hermione = mkHermione_();
             const testResult = mkHermioneTestResult();

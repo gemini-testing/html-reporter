@@ -6,30 +6,22 @@ import PQueue from 'p-queue';
 import {CommanderStatic} from '@gemini-testing/commander';
 
 import {cliCommands} from './lib/cli-commands';
-import {hasDiff} from './lib/common-utils';
+import {hasFailedImages} from './lib/common-utils';
 import {parseConfig} from './lib/config';
-import {ERROR, FAIL, SUCCESS, ToolName} from './lib/constants';
+import {SKIPPED, SUCCESS, TestStatus, ToolName, UNKNOWN_ATTEMPT} from './lib/constants';
 import {HtmlReporter} from './lib/plugin-api';
 import {StaticReportBuilder} from './lib/report-builder/static';
 import {formatTestResult, logPathToHtmlReport, logError} from './lib/server-utils';
 import {SqliteClient} from './lib/sqlite-client';
-import {HermioneTestAdapter, ReporterTestResult} from './lib/test-adapter';
-import {TestAttemptManager} from './lib/test-attempt-manager';
-import {HtmlReporterApi, ReporterConfig, ReporterOptions} from './lib/types';
+import {HtmlReporterApi, ImageInfoFull, ReporterOptions} from './lib/types';
 import {createWorkers, CreateWorkersRunner} from './lib/workers/create-workers';
 
-let workers: ReturnType<typeof createWorkers>;
-
 export = (hermione: Hermione, opts: Partial<ReporterOptions>): void => {
-    if (hermione.isWorker()) {
+    if (hermione.isWorker() || !opts.enabled) {
         return;
     }
 
     const config = parseConfig(opts);
-
-    if (!config.enabled) {
-        return;
-    }
 
     const htmlReporter = HtmlReporter.create(config, {toolName: ToolName.Hermione});
 
@@ -37,6 +29,19 @@ export = (hermione: Hermione, opts: Partial<ReporterOptions>): void => {
 
     let isCliCommandLaunched = false;
     let handlingTestResults: Promise<void>;
+    let staticReportBuilder: StaticReportBuilder;
+
+    const withMiddleware = <T extends (...args: unknown[]) => unknown>(fn: T):
+        (...args: Parameters<T>) => ReturnType<T> | undefined => {
+        return (...args: unknown[]) => {
+            // If any CLI command was launched, e.g. merge-reports, we need to interrupt regular flow
+            if (isCliCommandLaunched) {
+                return;
+            }
+
+            return fn.call(undefined, ...args) as ReturnType<T>;
+        };
+    };
 
     hermione.on(hermione.events.CLI, (commander: CommanderStatic) => {
         _.values(cliCommands).forEach((command: string) => {
@@ -49,30 +54,27 @@ export = (hermione: Hermione, opts: Partial<ReporterOptions>): void => {
         });
     });
 
-    hermione.on(hermione.events.INIT, async () => {
-        if (isCliCommandLaunched) {
-            return;
-        }
-
+    hermione.on(hermione.events.INIT, withMiddleware(async () => {
         const dbClient = await SqliteClient.create({htmlReporter, reportPath: config.path});
-        const testAttemptManager = new TestAttemptManager();
-        const staticReportBuilder = StaticReportBuilder.create(htmlReporter, config, {dbClient, testAttemptManager});
+        staticReportBuilder = StaticReportBuilder.create(htmlReporter, config, {dbClient});
 
         handlingTestResults = Promise.all([
             staticReportBuilder.saveStaticFiles(),
-            handleTestResults(hermione, staticReportBuilder, config)
+            handleTestResults(hermione, staticReportBuilder)
         ]).then(async () => {
             await staticReportBuilder.finalize();
         }).then(async () => {
             await htmlReporter.emitAsync(htmlReporter.events.REPORT_SAVED, {reportPath: config.path});
         });
-    });
 
-    hermione.on(hermione.events.RUNNER_START, (runner) => {
-        workers = createWorkers(runner as unknown as CreateWorkersRunner);
-    });
+        htmlReporter.emit(htmlReporter.events.DATABASE_CREATED, dbClient.getRawConnection());
+    }));
 
-    hermione.on(hermione.events.RUNNER_END, async () => {
+    hermione.on(hermione.events.RUNNER_START, withMiddleware((runner) => {
+        staticReportBuilder.registerWorkers(createWorkers(runner as unknown as CreateWorkersRunner));
+    }));
+
+    hermione.on(hermione.events.RUNNER_END, withMiddleware(async () => {
         try {
             await handlingTestResults;
 
@@ -80,57 +82,47 @@ export = (hermione: Hermione, opts: Partial<ReporterOptions>): void => {
         } catch (e: unknown) {
             logError(e as Error);
         }
-    });
+    }));
 };
 
-async function handleTestResults(hermione: Hermione, reportBuilder: StaticReportBuilder, pluginConfig: ReporterConfig): Promise<void> {
-    const {path: reportPath} = pluginConfig;
-    const {imageHandler} = reportBuilder;
-
-    const failHandler = async (testResult: HermioneTestResult): Promise<ReporterTestResult> => {
-        const status = hasDiff(testResult.assertViewResults as {name?: string}[]) ? FAIL : ERROR;
-        const attempt = reportBuilder.testAttemptManager.registerAttempt({fullName: testResult.fullTitle(), browserId: testResult.browserId}, status);
-        const formattedResult = formatTestResult(testResult, status, attempt, reportBuilder);
-
-        const actions: Promise<unknown>[] = [imageHandler.saveTestImages(formattedResult, workers)];
-
-        if (pluginConfig.saveErrorDetails && formattedResult.errorDetails) {
-            actions.push((formattedResult as HermioneTestAdapter).saveErrorDetails(reportPath));
-        }
-
-        await Promise.all(actions);
-
-        return formattedResult;
-    };
-
-    const addFail = (formattedResult: ReporterTestResult): ReporterTestResult => {
-        return reportBuilder.addFail(formattedResult);
-    };
-
+async function handleTestResults(hermione: Hermione, reportBuilder: StaticReportBuilder): Promise<void> {
     return new Promise((resolve, reject) => {
         const queue = new PQueue({concurrency: os.cpus().length});
         const promises: Promise<unknown>[] = [];
 
         hermione.on(hermione.events.TEST_PASS, testResult => {
             promises.push(queue.add(async () => {
-                const attempt = reportBuilder.testAttemptManager.registerAttempt({fullName: testResult.fullTitle(), browserId: testResult.browserId}, FAIL);
-                const formattedResult = formatTestResult(testResult, SUCCESS, attempt, reportBuilder);
-                await imageHandler.saveTestImages(formattedResult, workers);
-
-                return reportBuilder.addSuccess(formattedResult);
+                const formattedResult = formatTestResult(testResult, SUCCESS, UNKNOWN_ATTEMPT, reportBuilder);
+                await reportBuilder.addSuccess(formattedResult);
             }).catch(reject));
         });
 
         hermione.on(hermione.events.RETRY, testResult => {
-            promises.push(queue.add(() => failHandler(testResult).then(addFail)).catch(reject));
+            promises.push(queue.add(async () => {
+                const status = hasFailedImages(testResult.assertViewResults as ImageInfoFull[]) ? TestStatus.FAIL : TestStatus.ERROR;
+
+                const formattedResult = formatTestResult(testResult, status, UNKNOWN_ATTEMPT, reportBuilder);
+
+                await reportBuilder.addFail(formattedResult);
+            }).catch(reject));
         });
 
         hermione.on(hermione.events.TEST_FAIL, testResult => {
-            promises.push(queue.add(() => failHandler(testResult).then(addFail)).catch(reject));
+            promises.push(queue.add(async () => {
+                const status = hasFailedImages(testResult.assertViewResults as ImageInfoFull[]) ? TestStatus.FAIL : TestStatus.ERROR;
+
+                const formattedResult = formatTestResult(testResult, status, UNKNOWN_ATTEMPT, reportBuilder);
+
+                await reportBuilder.addFail(formattedResult);
+            }).catch(reject));
         });
 
         hermione.on(hermione.events.TEST_PENDING, testResult => {
-            promises.push(queue.add(() => failHandler(testResult as HermioneTestResult).then((testResult) => reportBuilder.addSkipped(testResult)).catch(reject)));
+            promises.push(queue.add(async () => {
+                const formattedResult = formatTestResult(testResult as HermioneTestResult, SKIPPED, UNKNOWN_ATTEMPT, reportBuilder);
+
+                await reportBuilder.addSkipped(formattedResult);
+            }).catch(reject));
         });
 
         hermione.on(hermione.events.RUNNER_END, () => {

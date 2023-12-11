@@ -8,7 +8,7 @@ const {ToolName} = require('lib/constants');
 
 describe('ResultsTreeBuilder', () => {
     const sandbox = sinon.sandbox.create();
-    let ResultsTreeBuilder, builder, determineStatus;
+    let ResultsTreeBuilder, builder, determineFinalStatus;
 
     const mkTestResult_ = (result) => {
         return _.defaults(result, {imagesInfo: [], metaInfo: {}});
@@ -23,9 +23,9 @@ describe('ResultsTreeBuilder', () => {
     };
 
     beforeEach(() => {
-        determineStatus = sandbox.stub().returns(SUCCESS);
+        determineFinalStatus = sandbox.stub().returns(SUCCESS);
         ResultsTreeBuilder = proxyquire('lib/tests-tree-builder/base', {
-            '../common-utils': {determineStatus}
+            '../common-utils': {determineFinalStatus}
         }).BaseTestsTreeBuilder;
 
         builder = ResultsTreeBuilder.create({toolName: ToolName.Hermione});
@@ -253,7 +253,7 @@ describe('ResultsTreeBuilder', () => {
                     mkFormattedResult_({testPath: ['s1']})
                 );
 
-                assert.calledOnceWith(determineStatus, [SUCCESS]);
+                assert.calledOnceWith(determineFinalStatus, [SUCCESS]);
             });
 
             it('should call "determineFinalStatus" with test result status from last attempt', () => {
@@ -266,7 +266,7 @@ describe('ResultsTreeBuilder', () => {
                     mkFormattedResult_({testPath: ['s1'], attempt: 1})
                 );
 
-                assert.calledWith(determineStatus.lastCall, [SUCCESS]);
+                assert.calledWith(determineFinalStatus.lastCall, [SUCCESS]);
             });
 
             it('should call "determineFinalStatus" with all test statuses from each browser', () => {
@@ -279,12 +279,12 @@ describe('ResultsTreeBuilder', () => {
                     mkFormattedResult_({testPath: ['s1'], browserId: 'b2'})
                 );
 
-                assert.calledWith(determineStatus.secondCall, [FAIL, SUCCESS]);
+                assert.calledWith(determineFinalStatus.secondCall, [FAIL, SUCCESS]);
             });
 
             it('should call "determineFinalStatus" with statuses from child suites', () => {
-                determineStatus.withArgs([FAIL]).returns('s1 s2 status');
-                determineStatus.withArgs([ERROR]).returns('s1 s3 status');
+                determineFinalStatus.withArgs([FAIL]).returns('s1 s2 status');
+                determineFinalStatus.withArgs([ERROR]).returns('s1 s3 status');
                 builder.addTestResult(
                     mkTestResult_({status: FAIL}),
                     mkFormattedResult_({testPath: ['s1', 's2']})
@@ -294,7 +294,7 @@ describe('ResultsTreeBuilder', () => {
                     mkFormattedResult_({testPath: ['s1', 's3']})
                 );
 
-                assert.calledWith(determineStatus.getCall(3), ['s1 s2 status', 's1 s3 status']);
+                assert.calledWith(determineFinalStatus.getCall(3), ['s1 s2 status', 's1 s3 status']);
             });
         });
     });

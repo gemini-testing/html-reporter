@@ -1,7 +1,10 @@
 import {promisify} from 'util';
+
+import {EventEmitter} from 'events';
 import _ from 'lodash';
-import type {Reporter, TestCase, TestResult as PwtTestResult} from '@playwright/test/reporter';
+import PQueue from 'p-queue';
 import workerFarm, {Workers} from 'worker-farm';
+import type {Reporter, TestCase, TestResult as PwtTestResult} from '@playwright/test/reporter';
 
 import {StaticReportBuilder} from './lib/report-builder/static';
 import {HtmlReporter} from './lib/plugin-api';
@@ -9,11 +12,8 @@ import {ReporterConfig} from './lib/types';
 import {parseConfig} from './lib/config';
 import {PluginEvents, TestStatus, ToolName} from './lib/constants';
 import {RegisterWorkers} from './lib/workers/create-workers';
-import {EventEmitter} from 'events';
 import {PlaywrightTestAdapter, getStatus} from './lib/test-adapter/playwright';
-import PQueue from 'p-queue';
 import {SqliteClient} from './lib/sqlite-client';
-import {TestAttemptManager} from './lib/test-attempt-manager';
 
 export {ReporterConfig} from './lib/types';
 
@@ -39,9 +39,10 @@ class MyReporter implements Reporter {
 
         this._initPromise = (async (htmlReporter: HtmlReporter, config: ReporterConfig): Promise<void> => {
             const dbClient = await SqliteClient.create({htmlReporter, reportPath: config.path});
-            const testAttemptManager = new TestAttemptManager();
 
-            this._staticReportBuilder = StaticReportBuilder.create(htmlReporter, config, {dbClient, testAttemptManager});
+            this._staticReportBuilder = StaticReportBuilder.create(htmlReporter, config, {dbClient});
+            this._staticReportBuilder.registerWorkers(workers);
+
             await this._staticReportBuilder.saveStaticFiles();
         })(this._htmlReporter, this._config);
 
@@ -59,16 +60,15 @@ class MyReporter implements Reporter {
 
             if (status === TestStatus.FAIL) {
                 if (formattedResult.status === TestStatus.FAIL) {
-                    staticReportBuilder.addFail(formattedResult);
+                    await staticReportBuilder.addFail(formattedResult);
                 } else {
-                    staticReportBuilder.addError(formattedResult);
+                    await staticReportBuilder.addError(formattedResult);
                 }
             } else if (status === TestStatus.SUCCESS) {
-                staticReportBuilder.addSuccess(formattedResult);
+                await staticReportBuilder.addSuccess(formattedResult);
             } else if (status === TestStatus.SKIPPED) {
-                staticReportBuilder.addSkipped(formattedResult);
+                await staticReportBuilder.addSkipped(formattedResult);
             }
-            await staticReportBuilder.imageHandler.saveTestImages(formattedResult, this._workers);
         });
     }
 

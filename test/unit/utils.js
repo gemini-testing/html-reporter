@@ -130,6 +130,24 @@ function mkFormattedTest(result) {
     });
 }
 
+class NoRefImageError extends Error {
+    name = 'NoRefImageError';
+}
+
+class ImageDiffError extends Error {
+    name = 'ImageDiffError';
+    constructor() {
+        super();
+        this.stateName = '';
+        this.currImg = {
+            path: ''
+        };
+        this.refImg = {
+            path: ''
+        };
+    }
+}
+
 module.exports = {
     stubConfig,
     stubTestCollection,
@@ -141,5 +159,7 @@ module.exports = {
     mkImagesInfo,
     mkSuiteTree,
     mkStorage,
-    mkFormattedTest
+    mkFormattedTest,
+    NoRefImageError,
+    ImageDiffError
 };

@@ -86,13 +86,13 @@ describe('StaticResultsTreeBuilder', () => {
 
                 assert.calledWith(
                     StaticTestsTreeBuilder.prototype.addTestResult.firstCall,
-                    formatToTestResult(dataFromDb1, {attempt: 0}),
-                    {browserId: 'yabro', testPath: ['s1'], attempt: 0}
+                    sinon.match(formatToTestResult(dataFromDb1, {attempt: 0})),
+                    sinon.match({browserId: 'yabro', testPath: ['s1'], attempt: 0})
                 );
                 assert.calledWith(
                     StaticTestsTreeBuilder.prototype.addTestResult.secondCall,
-                    formatToTestResult(dataFromDb2, {attempt: 0}),
-                    {browserId: 'yabro', testPath: ['s2'], attempt: 0}
+                    sinon.match(formatToTestResult(dataFromDb2, {attempt: 0})),
+                    sinon.match({browserId: 'yabro', testPath: ['s2'], attempt: 0})
                 );
             });
 
@@ -105,13 +105,13 @@ describe('StaticResultsTreeBuilder', () => {
 
                 assert.calledWith(
                     StaticTestsTreeBuilder.prototype.addTestResult.firstCall,
-                    formatToTestResult(dataFromDb1, {attempt: 0}),
-                    {browserId: 'yabro', testPath: ['s1'], attempt: 0}
+                    sinon.match(formatToTestResult(dataFromDb1, {attempt: 0})),
+                    sinon.match({browserId: 'yabro', testPath: ['s1'], attempt: 0})
                 );
                 assert.calledWith(
                     StaticTestsTreeBuilder.prototype.addTestResult.secondCall,
-                    formatToTestResult(dataFromDb2, {attempt: 1}),
-                    {browserId: 'yabro', testPath: ['s1'], attempt: 1}
+                    sinon.match(formatToTestResult(dataFromDb2, {attempt: 1})),
+                    sinon.match({browserId: 'yabro', testPath: ['s1'], attempt: 1})
                 );
             });
         });

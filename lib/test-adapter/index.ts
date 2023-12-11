@@ -17,7 +17,6 @@ export interface ReporterTestResult {
     image?: boolean;
     readonly imageDir: string;
     readonly imagesInfo: ImageInfoFull[] | undefined;
-    readonly isUpdated?: boolean;
     readonly meta: Record<string, unknown>;
     readonly multipleTabs: boolean;
     readonly screenshot: ImageBase64 | ImageData | null | undefined;

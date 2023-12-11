@@ -1,8 +1,17 @@
 import _ from 'lodash';
 import {ReporterTestResult} from '../index';
 import {TupleToUnion} from 'type-fest';
+import {ErrorDetails} from '../../types';
+import {ERROR_DETAILS_PATH} from '../../constants';
+import * as utils from '../../server-utils';
+import {ReporterTestAdapter} from '../reporter';
+import {ImagesInfoFormatter} from '../../image-handler';
 
-export const copyAndUpdate = (original: ReporterTestResult, updates: Partial<ReporterTestResult>): ReporterTestResult => {
+export const copyAndUpdate = (
+    original: ReporterTestResult,
+    updates: Partial<ReporterTestResult>,
+    {imagesInfoFormatter}: {imagesInfoFormatter: ImagesInfoFormatter}
+): ReporterTestResult => {
     const keys = [
         'assertViewResults',
         'attempt',
@@ -17,7 +26,6 @@ export const copyAndUpdate = (original: ReporterTestResult, updates: Partial<Rep
         'image',
         'imageDir',
         'imagesInfo',
-        'isUpdated',
         'meta',
         'multipleTabs',
         'screenshot',
@@ -35,8 +43,26 @@ export const copyAndUpdate = (original: ReporterTestResult, updates: Partial<Rep
     type B = keyof ReporterTestResult;
 
     const keysTypeChecked: B extends A ?
-        B extends A ? typeof keys : never
+        A extends B ? typeof keys : never
         : never = keys;
 
-    return _.assign({}, _.pick(original, keysTypeChecked) as ReporterTestResult, updates);
+    const updatedTestResult = _.assign({}, _.pick(original, keysTypeChecked) as ReporterTestResult, updates);
+
+    return new ReporterTestAdapter(updatedTestResult, {imagesInfoFormatter});
+};
+
+export const extractErrorDetails = (testResult: ReporterTestResult): ErrorDetails | null => {
+    const details = testResult.error?.details ?? null;
+
+    if (details) {
+        return {
+            title: details.title || 'error details',
+            data: details.data,
+            filePath: `${ERROR_DETAILS_PATH}/${utils.getDetailsFileName(
+                testResult.imageDir, testResult.browserId, testResult.attempt
+            )}`
+        };
+    }
+
+    return null;
 };

@@ -17,7 +17,7 @@ import {
     ImagesSaver,
     ImageInfoPageSuccess
 } from './types';
-import {ERROR, FAIL, PluginEvents, SUCCESS, TestStatus, UPDATED} from './constants';
+import {ERROR, FAIL, PluginEvents, SUCCESS, TestStatus, UNKNOWN_ATTEMPT, UPDATED} from './constants';
 import {
     getError,
     getShortMD5,
@@ -142,7 +142,7 @@ export class ImageHandler extends EventEmitter2 implements ImagesInfoFormatter {
         const imagesInfo: ImageInfoFull[] = testResult.assertViewResults?.map((assertResult): ImageInfoFull => {
             let status: TestStatus, error: {message: string; stack?: string;} | undefined;
 
-            if (testResult.isUpdated === true) {
+            if (assertResult.isUpdated === true) {
                 status = UPDATED;
             } else if (isImageDiffError(assertResult)) {
                 status = FAIL;
@@ -258,33 +258,38 @@ export class ImageHandler extends EventEmitter2 implements ImagesInfoFormatter {
 
     private _getExpectedPath(testResult: ReporterTestResultPlain, stateName?: string): {path: string, reused: boolean} {
         const key = this._getExpectedKey(testResult, stateName);
+        let result: {path: string; reused: boolean};
 
         if (testResult.status === UPDATED) {
             const expectedPath = utils.getReferencePath({attempt: testResult.attempt, browserId: testResult.browserId, imageDir: testResult.imageDir, stateName});
-            cacheExpectedPaths.set(key, expectedPath);
 
-            return {path: expectedPath, reused: false};
+            result = {path: expectedPath, reused: false};
+        } else if (cacheExpectedPaths.has(key)) {
+            result = {path: cacheExpectedPaths.get(key) as string, reused: true};
+        } else {
+            const imageInfo = this._imageStore.getLastImageInfoFromDb(testResult, stateName);
+
+            if (imageInfo && (imageInfo as ImageInfoFail).expectedImg) {
+                const expectedPath = (imageInfo as ImageInfoFail).expectedImg.path;
+
+                result = {path: expectedPath, reused: true};
+            } else {
+                const expectedPath = utils.getReferencePath({
+                    attempt: testResult.attempt,
+                    browserId: testResult.browserId,
+                    imageDir: testResult.imageDir,
+                    stateName
+                });
+
+                result = {path: expectedPath, reused: false};
+            }
         }
 
-        if (cacheExpectedPaths.has(key)) {
-            return {path: cacheExpectedPaths.get(key) as string, reused: true};
+        if (testResult.attempt !== UNKNOWN_ATTEMPT) {
+            cacheExpectedPaths.set(key, result.path);
         }
 
-        const imageInfo = this._imageStore.getLastImageInfoFromDb(testResult, stateName);
-
-        if (imageInfo && (imageInfo as ImageInfoFail).expectedImg) {
-            const expectedPath = (imageInfo as ImageInfoFail).expectedImg.path;
-
-            cacheExpectedPaths.set(key, expectedPath);
-
-            return {path: expectedPath, reused: true};
-        }
-
-        const expectedPath = utils.getReferencePath({attempt: testResult.attempt, browserId: testResult.browserId, imageDir: testResult.imageDir, stateName});
-
-        cacheExpectedPaths.set(key, expectedPath);
-
-        return {path: expectedPath, reused: false};
+        return result;
     }
 
     private _getImgFromStorage(imgPath: string): string {

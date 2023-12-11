@@ -12,7 +12,7 @@ import {createTestRunner} from './runner';
 import {subscribeOnToolEvents} from './report-subscriber';
 import {GuiReportBuilder, GuiReportBuilderResult} from '../../report-builder/gui';
 import {EventSource} from '../event-source';
-import {logger, getShortMD5} from '../../common-utils';
+import {logger, getShortMD5, isUpdatedStatus} from '../../common-utils';
 import * as reporterHelper from '../../reporter-helpers';
 import {
     UPDATED,
@@ -22,7 +22,7 @@ import {
     ToolName,
     DATABASE_URLS_JSON_NAME,
     LOCAL_DATABASE_NAME,
-    PluginEvents
+    PluginEvents, UNKNOWN_ATTEMPT
 } from '../../constants';
 import {formatId, mkFullTitle, mergeDatabasesForReuse, filterByEqualDiffSizes} from './utils';
 import {getTestsTreeFromDatabase} from '../../db-utils/server';
@@ -43,7 +43,8 @@ import {TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../../tests-tre
 import {ReporterTestResult} from '../../test-adapter';
 import {ImagesInfoFormatter} from '../../image-handler';
 import {SqliteClient} from '../../sqlite-client';
-import {TestAttemptManager} from '../../test-attempt-manager';
+import PQueue from 'p-queue';
+import os from 'os';
 
 type ToolRunnerArgs = [paths: string[], hermione: Hermione & HtmlReporterApi, configs: GuiConfigs];
 
@@ -55,7 +56,7 @@ interface HermioneTestExtended extends HermioneTest {
     imagesInfo: Pick<ImageInfoFail, 'status' | 'stateName' | 'actualImg' | 'expectedImg'>[];
 }
 
-type HermioneTestPlain = Pick<HermioneTestExtended & HermioneTestResult, 'assertViewResults' | 'imagesInfo' | 'sessionId' | 'attempt' | 'meta' | 'updated'>;
+type HermioneTestPlain = Pick<HermioneTestExtended & HermioneTestResult, 'assertViewResults' | 'imagesInfo' | 'sessionId' | 'attempt' | 'meta'>;
 
 export interface UndoAcceptImagesResult {
     updatedImages: TreeImage[];
@@ -72,8 +73,6 @@ const formatTestResultUnsafe = (
     return formatTestResult(test as HermioneTestResult, status, attempt, {imageHandler});
 };
 
-const HERMIONE_TITLE_DELIMITER = ' ';
-
 export class ToolRunner {
     private _testFiles: string[];
     private _hermione: Hermione & HtmlReporterApi;
@@ -86,7 +85,6 @@ export class ToolRunner {
     private _eventSource: EventSource;
     protected _reportBuilder: GuiReportBuilder | null;
     private _tests: Record<string, HermioneTest>;
-    private readonly _testAttemptManager: TestAttemptManager;
 
     static create<T extends ToolRunner>(this: new (...args: ToolRunnerArgs) => T, ...args: ToolRunnerArgs): T {
         return new this(...args);
@@ -107,7 +105,6 @@ export class ToolRunner {
         this._reportBuilder = null;
 
         this._tests = {};
-        this._testAttemptManager = new TestAttemptManager();
     }
 
     get config(): HermioneConfig {
@@ -123,7 +120,7 @@ export class ToolRunner {
 
         const dbClient = await SqliteClient.create({htmlReporter: this._hermione.htmlReporter, reportPath: this._reportPath, reuse: true});
 
-        this._reportBuilder = GuiReportBuilder.create(this._hermione.htmlReporter, this._pluginConfig, {dbClient, testAttemptManager: this._testAttemptManager});
+        this._reportBuilder = GuiReportBuilder.create(this._hermione.htmlReporter, this._pluginConfig, {dbClient});
         this._subscribeOnEvents();
 
         this._collection = await this._readTests();
@@ -188,13 +185,11 @@ export class ToolRunner {
         return Promise.all(tests.map(async (test): Promise<TestBranch> => {
             const updateResult = this._prepareTestResult(test);
 
-            const fullName = [...test.suite.path, test.state.name].join(HERMIONE_TITLE_DELIMITER);
-            const updateAttempt = reportBuilder.testAttemptManager.registerAttempt({fullName, browserId: test.browserId}, UPDATED);
-            const formattedResult = formatTestResultUnsafe(updateResult, UPDATED, updateAttempt, reportBuilder);
+            const formattedResultWithoutAttempt = formatTestResultUnsafe(updateResult, UPDATED, UNKNOWN_ATTEMPT, reportBuilder);
 
-            const failResultId = formatTestResultUnsafe(updateResult, UPDATED, updateAttempt - 1, reportBuilder).id;
+            const formattedResult = await reportBuilder.addUpdated(formattedResultWithoutAttempt);
 
-            updateResult.attempt = updateAttempt;
+            updateResult.attempt = formattedResult.attempt;
 
             await Promise.all(updateResult.imagesInfo.map(async (imageInfo) => {
                 const {stateName} = imageInfo;
@@ -205,26 +200,22 @@ export class ToolRunner {
                 this._emitUpdateReference(result, stateName);
             }));
 
-            reportBuilder.addUpdated(formattedResult, failResultId);
-
             return reportBuilder.getTestBranch(formattedResult.id);
         }));
     }
 
     async undoAcceptImages(tests: TestRefUpdateData[]): Promise<UndoAcceptImagesResult> {
-        const updatedImages: TreeImage[] = [], removedResults: string[] = [];
+        const updatedImages: TreeImage[] = [], removedResultIds: string[] = [];
         const reportBuilder = this._ensureReportBuilder();
 
         await Promise.all(tests.map(async (test) => {
             const updateResult = this._prepareTestResult(test);
-            const fullName = [...test.suite.path, test.state.name].join(' ');
-            const attempt = reportBuilder.testAttemptManager.getCurrentAttempt({fullName, browserId: test.browserId});
-            const formattedResult = formatTestResultUnsafe(updateResult, UPDATED, attempt, reportBuilder);
+            const formattedResultWithoutAttempt = formatTestResultUnsafe(updateResult, UPDATED, UNKNOWN_ATTEMPT, reportBuilder);
 
             await Promise.all(updateResult.imagesInfo.map(async (imageInfo) => {
                 const {stateName} = imageInfo;
 
-                const undoResultData = reportBuilder.undoAcceptImage(formattedResult, stateName);
+                const undoResultData = reportBuilder.undoAcceptImage(formattedResultWithoutAttempt, stateName);
                 if (undoResultData === null) {
                     return;
                 }
@@ -234,18 +225,19 @@ export class ToolRunner {
                     removedResult,
                     previousExpectedPath,
                     shouldRemoveReference,
-                    shouldRevertReference
+                    shouldRevertReference,
+                    newResult
                 } = undoResultData;
 
                 updatedImage && updatedImages.push(updatedImage);
-                removedResult && removedResults.push(removedResult);
+                removedResult && removedResultIds.push(removedResult.id);
 
                 if (shouldRemoveReference) {
-                    await reporterHelper.removeReferenceImage(formattedResult, stateName);
+                    await reporterHelper.removeReferenceImage(newResult, stateName);
                 }
 
                 if (shouldRevertReference && removedResult) {
-                    await reporterHelper.revertReferenceImage(removedResult, formattedResult, stateName);
+                    await reporterHelper.revertReferenceImage(removedResult, newResult, stateName);
                 }
 
                 if (previousExpectedPath && (updateResult as HermioneTest).fullTitle) {
@@ -257,7 +249,7 @@ export class ToolRunner {
             }));
         }));
 
-        return {updatedImages, removedResults};
+        return {updatedImages, removedResults: removedResultIds};
     }
 
     async findEqualDiffs(images: TestEqualDiffsData[]): Promise<string[]> {
@@ -312,6 +304,7 @@ export class ToolRunner {
 
     protected async _handleRunnableCollection(): Promise<void> {
         const reportBuilder = this._ensureReportBuilder();
+        const queue = new PQueue({concurrency: os.cpus().length});
 
         this._ensureTestCollection().eachTest((test, browserId) => {
             if (test.disabled || this._isSilentlySkipped(test)) {
@@ -322,14 +315,14 @@ export class ToolRunner {
             const testId = formatId(test.id.toString(), browserId);
             this._tests[testId] = _.extend(test, {browserId});
 
-            const attempt = 0;
             if (test.pending) {
-                reportBuilder.addSkipped(formatTestResultUnsafe(test, SKIPPED, attempt, reportBuilder));
+                queue.add(async () => reportBuilder.addSkipped(formatTestResultUnsafe(test, SKIPPED, UNKNOWN_ATTEMPT, reportBuilder)));
             } else {
-                reportBuilder.addIdle(formatTestResultUnsafe(test, IDLE, attempt, reportBuilder));
+                queue.add(async () => reportBuilder.addIdle(formatTestResultUnsafe(test, IDLE, UNKNOWN_ATTEMPT, reportBuilder)));
             }
         });
 
+        await queue.onIdle();
         await this._fillTestsTree();
     }
 
@@ -338,7 +331,7 @@ export class ToolRunner {
     }
 
     protected _subscribeOnEvents(): void {
-        subscribeOnToolEvents(this._hermione, this._ensureReportBuilder(), this._eventSource, this._reportPath);
+        subscribeOnToolEvents(this._hermione, this._ensureReportBuilder(), this._eventSource);
     }
 
     protected _prepareTestResult(test: TestRefUpdateData): HermioneTestExtended | HermioneTestPlain {
@@ -356,7 +349,7 @@ export class ToolRunner {
                 const path = this._hermione.config.browsers[browserId].getScreenshotPath(rawTest, stateName);
                 const refImg = {path, size: actualImg.size};
 
-                assertViewResults.push({stateName, refImg, currImg: actualImg});
+                assertViewResults.push({stateName, refImg, currImg: actualImg, isUpdated: isUpdatedStatus(imageInfo.status)});
 
                 return _.extend(imageInfo, {expectedImg: refImg});
             });
@@ -367,8 +360,7 @@ export class ToolRunner {
             imagesInfo,
             sessionId,
             attempt,
-            meta: {url},
-            updated: true
+            meta: {url}
         });
 
         // _.merge can't fully clone test object since hermione@7+
@@ -393,14 +385,6 @@ export class ToolRunner {
 
         if (testsTree && !_.isEmpty(testsTree)) {
             reportBuilder.reuseTestsTree(testsTree);
-
-            // Fill test attempt manager with data from db
-            for (const [, testResult] of Object.entries(testsTree.results.byId)) {
-                this._testAttemptManager.registerAttempt({
-                    fullName: testResult.suitePath.join(HERMIONE_TITLE_DELIMITER),
-                    browserId: testResult.name
-                }, testResult.status, testResult.attempt);
-            }
         }
 
         this._tree = {...reportBuilder.getResult(), autoRun};

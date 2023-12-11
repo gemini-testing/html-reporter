@@ -1,11 +1,9 @@
 import _ from 'lodash';
-import fs from 'fs-extra';
 import path from 'path';
 
 import {getCommandsHistory} from '../history-utils';
-import {ERROR_DETAILS_PATH, TestStatus} from '../constants';
+import {TestStatus} from '../constants';
 import {wrapLinkByTag} from '../common-utils';
-import * as utils from '../server-utils';
 import {
     AssertViewResult,
     ErrorDetails,
@@ -16,6 +14,7 @@ import {
 import {ImagesInfoFormatter} from '../image-handler';
 import {ReporterTestResult} from './index';
 import {getSuitePath} from '../plugin-utils';
+import {extractErrorDetails} from './utils';
 
 const getSkipComment = (suite: HermioneTestResult | HermioneSuite): string | null | undefined => {
     return suite.skipReason || suite.parent && getSkipComment(suite.parent);
@@ -116,10 +115,6 @@ export class HermioneTestAdapter implements ReporterTestResult {
         return this.testPath.concat(this.browserId, this.attempt.toString()).join(' ');
     }
 
-    get isUpdated(): boolean | undefined {
-        return this._testResult.updated;
-    }
-
     get screenshot(): ImageBase64 | undefined {
         return _.get(this._testResult, 'err.screenshot');
     }
@@ -137,19 +132,7 @@ export class HermioneTestAdapter implements ReporterTestResult {
             return this._errorDetails;
         }
 
-        const details = _.get(this._testResult, 'err.details', null);
-
-        if (details) {
-            this._errorDetails = {
-                title: details.title || 'error details',
-                data: details.data,
-                filePath: `${ERROR_DETAILS_PATH}/${utils.getDetailsFileName(
-                    this._testResult.id, this._testResult.browserId, this.attempt
-                )}`
-            };
-        } else {
-            this._errorDetails = null;
-        }
+        this._errorDetails = extractErrorDetails(this);
 
         return this._errorDetails;
     }
@@ -174,19 +157,5 @@ export class HermioneTestAdapter implements ReporterTestResult {
         if (!_.isNumber(this._timestamp)) {
             this._timestamp = timestamp;
         }
-    }
-
-    async saveErrorDetails(reportPath: string): Promise<void> {
-        if (!this.errorDetails) {
-            return;
-        }
-
-        const detailsFilePath = path.resolve(reportPath, this.errorDetails.filePath);
-        const detailsData = _.isObject(this.errorDetails.data)
-            ? JSON.stringify(this.errorDetails.data, null, 2)
-            : this.errorDetails.data;
-
-        await utils.makeDirFor(detailsFilePath);
-        await fs.writeFile(detailsFilePath, detailsData);
     }
 }

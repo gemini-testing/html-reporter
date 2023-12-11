@@ -9,8 +9,7 @@ const {LOCAL_DATABASE_NAME} = require('lib/constants/database');
 const {logger} = require('lib/common-utils');
 const {stubTool, stubConfig, mkImagesInfo, mkState, mkSuite} = require('test/unit/utils');
 const {SqliteClient} = require('lib/sqlite-client');
-const {TestAttemptManager} = require('lib/test-attempt-manager');
-const {PluginEvents} = require('lib/constants');
+const {PluginEvents, TestStatus} = require('lib/constants');
 
 describe('lib/gui/tool-runner/index', () => {
     const sandbox = sinon.createSandbox();
@@ -24,7 +23,6 @@ describe('lib/gui/tool-runner/index', () => {
     let revertReferenceImage;
     let toolRunnerUtils;
     let createTestRunner;
-    let testAttemptManager;
 
     const mkTestCollection_ = (testsTree = {}) => {
         return {
@@ -73,15 +71,13 @@ describe('lib/gui/tool-runner/index', () => {
 
         createTestRunner = sinon.stub();
 
-        testAttemptManager = new TestAttemptManager();
-
         toolRunnerUtils = {
             findTestResult: sandbox.stub(),
             formatId: sandbox.stub().returns('some-id')
         };
 
         reportBuilder = sinon.createStubInstance(GuiReportBuilder);
-        sandbox.stub(reportBuilder, 'testAttemptManager').get(() => testAttemptManager);
+        reportBuilder.addUpdated.callsFake(_.identity);
 
         subscribeOnToolEvents = sandbox.stub().named('reportSubscriber').resolves();
         looksSame = sandbox.stub().named('looksSame').resolves({equal: true});
@@ -320,7 +316,10 @@ describe('lib/gui/tool-runner/index', () => {
         const mkUndoTestData_ = async (stubResult, {stateName = 'plain'} = {}) => {
             reportBuilder.undoAcceptImage.withArgs(sinon.match({
                 fullName: 'some-title'
-            }), 'plain').returns(stubResult);
+            }), 'plain').returns({
+                newResult: {fullName: 'some-title'},
+                ...stubResult
+            });
             const tests = [{
                 id: 'some-id',
                 fullTitle: () => 'some-title',
@@ -333,7 +332,8 @@ describe('lib/gui/tool-runner/index', () => {
                         stateName,
                         actualImg: {
                             size: {height: 100, width: 200}
-                        }
+                        },
+                        status: TestStatus.UPDATED
                     })
                 ]
             }];

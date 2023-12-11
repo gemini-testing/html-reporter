@@ -5,7 +5,7 @@ import axios, {AxiosRequestConfig} from 'axios';
 import {SUCCESS, FAIL, ERROR, SKIPPED, UPDATED, IDLE, RUNNING, QUEUED, TestStatus} from './constants';
 
 import {UNCHECKED, INDETERMINATE, CHECKED} from './constants/checked-statuses';
-import {ImageData, ImageBase64, ImageInfoFull, TestError, ImageInfoError} from './types';
+import {ImageData, ImageBase64, ImageInfoFull, TestError, ImageInfoFail} from './types';
 import {ErrorName, ImageDiffError, NoRefImageError} from './errors';
 import {ReporterTestResult} from './test-adapter';
 export const getShortMD5 = (str: string): string => {
@@ -104,17 +104,17 @@ export const hasNoRefImageErrors = ({assertViewResults = []}: {assertViewResults
     return assertViewResults.some((assertViewResult) => isNoRefImageError(assertViewResult));
 };
 
-export const hasFailedImages = (result: {imagesInfo?: ImageInfoFull[]}): boolean => {
-    const {imagesInfo = []} = result;
-
+export const hasFailedImages = (imagesInfo: ImageInfoFull[] = []): boolean => {
     return imagesInfo.some((imageInfo: ImageInfoFull) => {
-        return !isAssertViewError((imageInfo as ImageInfoError).error) &&
-            (isErrorStatus(imageInfo.status) || isFailStatus(imageInfo.status));
+        return (imageInfo as ImageInfoFail).stateName &&
+            (isErrorStatus(imageInfo.status) || isFailStatus(imageInfo.status) || isNoRefImageError(imageInfo) || isImageDiffError(imageInfo));
     });
 };
 
-export const hasResultFails = (testResult: {status: TestStatus, imagesInfo?: ImageInfoFull[]}): boolean => {
-    return hasFailedImages(testResult) || isErrorStatus(testResult.status) || isFailStatus(testResult.status);
+export const hasUnrelatedToScreenshotsErrors = (error: TestError): boolean => {
+    return !isNoRefImageError(error) &&
+        !isImageDiffError(error) &&
+        !isAssertViewError(error);
 };
 
 export const getError = (error?: TestError): undefined | Pick<TestError, 'name' | 'message' | 'stack' | 'stateName'> => {
@@ -131,7 +131,11 @@ export const hasDiff = (assertViewResults: {name?: string}[]): boolean => {
 
 /* This method tries to determine true status of testResult by using fields like error, imagesInfo */
 export const determineStatus = (testResult: Pick<ReporterTestResult, 'status' | 'error' | 'imagesInfo'>): TestStatus => {
-    if (!hasFailedImages(testResult) && !isSkippedStatus(testResult.status) && isEmpty(testResult.error)) {
+    if (
+        !hasFailedImages(testResult.imagesInfo) &&
+        !isSkippedStatus(testResult.status) &&
+        (!testResult.error || !hasUnrelatedToScreenshotsErrors(testResult.error))
+    ) {
         return SUCCESS;
     }
 

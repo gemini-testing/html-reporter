@@ -12,11 +12,11 @@ import {
     SUCCESS,
     TestStatus,
     LOCAL_DATABASE_NAME,
-    PluginEvents
+    PluginEvents, UNKNOWN_ATTEMPT, UPDATED
 } from '../constants';
 import type {PreparedTestResult, SqliteClient} from '../sqlite-client';
 import {ReporterTestResult} from '../test-adapter';
-import {hasImage, saveStaticFilesToReportDir, writeDatabaseUrlsFile} from '../server-utils';
+import {hasImage, saveErrorDetails, saveStaticFilesToReportDir, writeDatabaseUrlsFile} from '../server-utils';
 import {ReporterConfig} from '../types';
 import {HtmlReporter} from '../plugin-api';
 import {ImageHandler} from '../image-handler';
@@ -25,12 +25,13 @@ import {getUrlWithBase, getError, getRelativeUrl, hasDiff, hasNoRefImageErrors} 
 import {getTestFromDb} from '../db-utils/server';
 import {ImageDiffError} from '../errors';
 import {TestAttemptManager} from '../test-attempt-manager';
+import {copyAndUpdate} from '../test-adapter/utils';
+import {RegisterWorkers} from '../workers/create-workers';
 
 const ignoredStatuses = [RUNNING, IDLE];
 
 interface StaticReportBuilderOptions {
     dbClient: SqliteClient;
-    testAttemptManager: TestAttemptManager;
 }
 
 export class StaticReportBuilder {
@@ -39,6 +40,7 @@ export class StaticReportBuilder {
     protected _dbClient: SqliteClient;
     protected _imageHandler: ImageHandler;
     protected _testAttemptManager: TestAttemptManager;
+    private _workers: RegisterWorkers<['saveDiffTo']> | null;
 
     static create<T extends StaticReportBuilder>(
         this: new (htmlReporter: HtmlReporter, pluginConfig: ReporterConfig, options: StaticReportBuilderOptions) => T,
@@ -49,16 +51,18 @@ export class StaticReportBuilder {
         return new this(htmlReporter, pluginConfig, options);
     }
 
-    constructor(htmlReporter: HtmlReporter, pluginConfig: ReporterConfig, {dbClient, testAttemptManager}: StaticReportBuilderOptions) {
+    constructor(htmlReporter: HtmlReporter, pluginConfig: ReporterConfig, {dbClient}: StaticReportBuilderOptions) {
         this._htmlReporter = htmlReporter;
         this._pluginConfig = pluginConfig;
 
         this._dbClient = dbClient;
 
-        this._testAttemptManager = testAttemptManager;
+        this._testAttemptManager = new TestAttemptManager();
 
         const imageStore = new SqliteImageStore(this._dbClient);
         this._imageHandler = new ImageHandler(imageStore, htmlReporter.imagesSaver, {reportPath: pluginConfig.path});
+
+        this._workers = null;
 
         this._htmlReporter.on(PluginEvents.IMAGES_SAVER_UPDATED, (newImagesSaver) => {
             this._imageHandler.setImagesSaver(newImagesSaver);
@@ -71,10 +75,6 @@ export class StaticReportBuilder {
         return this._imageHandler;
     }
 
-    get testAttemptManager(): TestAttemptManager {
-        return this._testAttemptManager;
-    }
-
     async saveStaticFiles(): Promise<void> {
         const destPath = this._pluginConfig.path;
 
@@ -84,26 +84,26 @@ export class StaticReportBuilder {
         ]);
     }
 
-    addSkipped(result: ReporterTestResult): ReporterTestResult {
+    async addSkipped(result: ReporterTestResult): Promise<ReporterTestResult> {
         return this._addTestResult(result, {
             status: SKIPPED,
             skipReason: result.skipReason
         });
     }
 
-    addSuccess(result: ReporterTestResult): ReporterTestResult {
+    async addSuccess(result: ReporterTestResult): Promise<ReporterTestResult> {
         return this._addTestResult(result, {status: SUCCESS});
     }
 
-    addFail(result: ReporterTestResult): ReporterTestResult {
+    async addFail(result: ReporterTestResult): Promise<ReporterTestResult> {
         return this._addFailResult(result);
     }
 
-    addError(result: ReporterTestResult): ReporterTestResult {
+    async addError(result: ReporterTestResult): Promise<ReporterTestResult> {
         return this._addErrorResult(result);
     }
 
-    addRetry(result: ReporterTestResult): ReporterTestResult {
+    async addRetry(result: ReporterTestResult): Promise<ReporterTestResult> {
         if (hasDiff(result.assertViewResults as ImageDiffError[])) {
             return this._addFailResult(result);
         } else {
@@ -111,15 +111,64 @@ export class StaticReportBuilder {
         }
     }
 
-    protected _addFailResult(formattedResult: ReporterTestResult): ReporterTestResult {
+    registerWorkers(workers: RegisterWorkers<['saveDiffTo']>): void {
+        this._workers = workers;
+    }
+
+    private _ensureWorkers(): RegisterWorkers<['saveDiffTo']> {
+        if (!this._workers) {
+            throw new Error('You must register workers before using report builder.' +
+                'Make sure registerWorkers() was called before adding any test results.');
+        }
+
+        return this._workers;
+    }
+
+    /** If passed test result doesn't have attempt, this method registers new attempt and sets attempt number */
+    private _provideAttempt(testResultOriginal: ReporterTestResult): ReporterTestResult {
+        let formattedResult = testResultOriginal;
+
+        if (testResultOriginal.attempt === UNKNOWN_ATTEMPT) {
+            const imagesInfoFormatter = this._imageHandler;
+            const attempt = this._testAttemptManager.registerAttempt(testResultOriginal, testResultOriginal.status);
+            formattedResult = copyAndUpdate(testResultOriginal, {attempt}, {imagesInfoFormatter});
+        }
+
+        return formattedResult;
+    }
+
+    private async _saveTestResultData(testResult: ReporterTestResult): Promise<void> {
+        if ([IDLE, RUNNING, UPDATED].includes(testResult.status)) {
+            return;
+        }
+
+        const actions: Promise<unknown>[] = [];
+
+        if (!_.isEmpty(testResult.assertViewResults)) {
+            actions.push(this._imageHandler.saveTestImages(testResult, this._ensureWorkers()));
+        }
+
+        if (this._pluginConfig.saveErrorDetails && testResult.errorDetails) {
+            actions.push(saveErrorDetails(testResult, this._pluginConfig.path));
+        }
+
+        await Promise.all(actions);
+    }
+
+    protected async _addFailResult(formattedResult: ReporterTestResult): Promise<ReporterTestResult> {
         return this._addTestResult(formattedResult, {status: FAIL});
     }
 
-    protected _addErrorResult(formattedResult: ReporterTestResult): ReporterTestResult {
+    protected async _addErrorResult(formattedResult: ReporterTestResult): Promise<ReporterTestResult> {
         return this._addTestResult(formattedResult, {status: ERROR});
     }
 
-    protected _addTestResult(formattedResult: ReporterTestResult, props: {status: TestStatus} & Partial<PreparedTestResult>): ReporterTestResult {
+    protected async _addTestResult(formattedResultOriginal: ReporterTestResult, props: {status: TestStatus} & Partial<PreparedTestResult>): Promise<ReporterTestResult> {
+        const formattedResult = this._provideAttempt(formattedResultOriginal);
+
+        // Test result data has to be saved before writing to db, because user may save data to custom location
+        await this._saveTestResultData(formattedResult);
+
         formattedResult.image = hasImage(formattedResult);
 
         const testResult = this._createTestResult(formattedResult, _.extend(props, {
@@ -154,7 +203,7 @@ export class StaticReportBuilder {
         const testResult: PreparedTestResult = Object.assign({
             suiteUrl, name: browserId, metaInfo, description, history,
             imagesInfo, screenshot: Boolean(screenshot), multipleTabs,
-            suitePath: testPath
+            suitePath: testPath, suiteName: _.last(testPath) as string
         }, props);
 
         const error = getError(result.error);

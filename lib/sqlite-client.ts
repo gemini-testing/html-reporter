@@ -45,6 +45,7 @@ export interface PreparedTestResult {
     timestamp: number;
     errorDetails?: ErrorDetails;
     suitePath: string[];
+    suiteName: string;
 }
 
 export interface DbTestResult {

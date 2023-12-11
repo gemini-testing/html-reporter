@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import {StaticReportBuilder} from './static';
 import {GuiTestsTreeBuilder, TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../tests-tree-builder/gui';
 import {
-    IDLE, RUNNING, UPDATED, TestStatus, DB_COLUMNS, ToolName
+    IDLE, RUNNING, UPDATED, TestStatus, DB_COLUMNS, ToolName, HERMIONE_TITLE_DELIMITER
 } from '../constants';
 import {ConfigForStaticFile, getConfigForStaticFile} from '../server-utils';
 import {ReporterTestResult} from '../test-adapter';
@@ -16,11 +16,11 @@ import {copyAndUpdate} from '../test-adapter/utils';
 
 interface UndoAcceptImageResult {
     updatedImage: TreeImage | undefined;
-    removedResult: string | undefined;
+    removedResult: ReporterTestResult | undefined;
     previousExpectedPath: string | null;
     shouldRemoveReference: boolean;
     shouldRevertReference: boolean;
-    newTestResult: ReporterTestResult;
+    newResult: ReporterTestResult;
 }
 
 export interface GuiReportBuilderResult {
@@ -43,16 +43,16 @@ export class GuiReportBuilder extends StaticReportBuilder {
         this._skips = [];
     }
 
-    addIdle(result: ReporterTestResult): ReporterTestResult {
+    async addIdle(result: ReporterTestResult): Promise<ReporterTestResult> {
         return this._addTestResult(result, {status: IDLE});
     }
 
-    addRunning(result: ReporterTestResult): ReporterTestResult {
+    async addRunning(result: ReporterTestResult): Promise<ReporterTestResult> {
         return this._addTestResult(result, {status: RUNNING});
     }
 
-    addSkipped(result: ReporterTestResult): ReporterTestResult {
-        const formattedResult = super.addSkipped(result);
+    override async addSkipped(result: ReporterTestResult): Promise<ReporterTestResult> {
+        const formattedResult = await super.addSkipped(result);
         const {
             fullName: suite,
             skipReason: comment,
@@ -64,8 +64,8 @@ export class GuiReportBuilder extends StaticReportBuilder {
         return formattedResult;
     }
 
-    addUpdated(result: ReporterTestResult, failResultId: string): ReporterTestResult {
-        return this._addTestResult(result, {status: UPDATED}, {failResultId});
+    async addUpdated(result: ReporterTestResult): Promise<ReporterTestResult> {
+        return this._addTestResult(result, {status: UPDATED});
     }
 
     setApiValues(values: HtmlReporterValues): this {
@@ -75,6 +75,14 @@ export class GuiReportBuilder extends StaticReportBuilder {
 
     reuseTestsTree(tree: Tree): void {
         this._testsTree.reuseTestsTree(tree);
+
+        // Fill test attempt manager with data from db
+        for (const [, testResult] of Object.entries(tree.results.byId)) {
+            this._testAttemptManager.registerAttempt({
+                fullName: testResult.suitePath.join(HERMIONE_TITLE_DELIMITER),
+                browserId: testResult.name
+            }, testResult.status, testResult.attempt);
+        }
     }
 
     getResult(): GuiReportBuilderResult {
@@ -104,7 +112,11 @@ export class GuiReportBuilder extends StaticReportBuilder {
         return this._testsTree.getImageDataToFindEqualDiffs(imageIds);
     }
 
-    undoAcceptImage(testResult: ReporterTestResult, stateName: string): UndoAcceptImageResult | null {
+    undoAcceptImage(testResultWithoutAttempt: ReporterTestResult, stateName: string): UndoAcceptImageResult | null {
+        const attempt = this._testAttemptManager.getCurrentAttempt(testResultWithoutAttempt);
+        const imagesInfoFormatter = this.imageHandler;
+        const testResult = copyAndUpdate(testResultWithoutAttempt, {attempt}, {imagesInfoFormatter});
+
         const resultId = testResult.id;
         const suitePath = testResult.testPath;
         const browserName = testResult.browserId;
@@ -127,20 +139,18 @@ export class GuiReportBuilder extends StaticReportBuilder {
         const shouldRemoveReference = _.isNull(previousImageRefImgSize);
         const shouldRevertReference = !shouldRemoveReference;
 
-        let updatedImage: TreeImage | undefined, removedResult: string | undefined, newTestResult: ReporterTestResult;
+        let updatedImage: TreeImage | undefined, removedResult: ReporterTestResult | undefined;
 
         if (shouldRemoveResult) {
             this._testsTree.removeTestResult(resultId);
             this._testAttemptManager.removeAttempt(testResult);
 
-            newTestResult = copyAndUpdate(testResult, {attempt: this._testAttemptManager.getCurrentAttempt(testResult)});
-
-            removedResult = resultId;
+            removedResult = testResult;
         } else {
             updatedImage = this._testsTree.updateImageInfo(imageId, previousImage);
-
-            newTestResult = testResult;
         }
+
+        const newResult = copyAndUpdate(testResult, {attempt: this._testAttemptManager.getCurrentAttempt(testResult)}, {imagesInfoFormatter});
 
         this._deleteTestResultFromDb({where: [
             `${DB_COLUMNS.SUITE_PATH} = ?`,
@@ -150,11 +160,11 @@ export class GuiReportBuilder extends StaticReportBuilder {
             `json_extract(${DB_COLUMNS.IMAGES_INFO}, '$[0].stateName') = ?`
         ].join(' AND ')}, JSON.stringify(suitePath), browserName, status, timestamp.toString(), stateName);
 
-        return {updatedImage, removedResult, previousExpectedPath, shouldRemoveReference, shouldRevertReference, newTestResult};
+        return {updatedImage, removedResult, previousExpectedPath, shouldRemoveReference, shouldRevertReference, newResult};
     }
 
-    protected override _addTestResult(formattedResult: ReporterTestResult, props: {status: TestStatus} & Partial<PreparedTestResult>, opts: {failResultId?: string} = {}): ReporterTestResult {
-        super._addTestResult(formattedResult, props);
+    protected override async _addTestResult(formattedResultOriginal: ReporterTestResult, props: {status: TestStatus} & Partial<PreparedTestResult>): Promise<ReporterTestResult> {
+        const formattedResult = await super._addTestResult(formattedResultOriginal, props);
 
         const testResult = this._createTestResult(formattedResult, {
             ...props,
@@ -162,22 +172,24 @@ export class GuiReportBuilder extends StaticReportBuilder {
             attempt: formattedResult.attempt
         });
 
-        this._extendTestWithImagePaths(testResult, formattedResult, opts);
+        this._extendTestWithImagePaths(testResult, formattedResult);
 
         this._testsTree.addTestResult(testResult, formattedResult);
 
         return formattedResult;
     }
 
-    private _extendTestWithImagePaths(testResult: PreparedTestResult, formattedResult: ReporterTestResult, opts: {failResultId?: string} = {}): void {
+    private _extendTestWithImagePaths(testResult: PreparedTestResult, formattedResult: ReporterTestResult): void {
         const newImagesInfo = formattedResult.imagesInfo;
+        const imagesInfoFormatter = this._imageHandler;
 
         if (testResult.status !== UPDATED) {
             _.set(testResult, 'imagesInfo', newImagesInfo);
             return;
         }
 
-        const failImagesInfo = opts.failResultId ? this._testsTree.getImagesInfo(opts.failResultId) : [];
+        const failResultId = copyAndUpdate(formattedResult, {attempt: formattedResult.attempt - 1}, {imagesInfoFormatter}).id;
+        const failImagesInfo = this._testsTree.getImagesInfo(failResultId);
 
         if (failImagesInfo.length) {
             testResult.imagesInfo = _.clone(failImagesInfo);

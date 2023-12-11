@@ -319,3 +319,17 @@ export const formatTestResult = (
 ): ReporterTestResult => {
     return new HermioneTestAdapter(rawResult, {attempt, status, imagesInfoFormatter: imageHandler});
 };
+
+export const saveErrorDetails = async (testResult: ReporterTestResult, reportPath: string): Promise<void> => {
+    if (!testResult.errorDetails) {
+        return;
+    }
+
+    const detailsFilePath = path.resolve(reportPath, testResult.errorDetails.filePath);
+    const detailsData = _.isObject(testResult.errorDetails.data)
+        ? JSON.stringify(testResult.errorDetails.data, null, 2)
+        : testResult.errorDetails.data;
+
+    await makeDirFor(detailsFilePath);
+    await fs.writeFile(detailsFilePath, detailsData);
+};

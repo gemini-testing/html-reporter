@@ -5,32 +5,17 @@ import {ClientEvents} from '../constants';
 import {getSuitePath} from '../../plugin-utils';
 import {createWorkers, CreateWorkersRunner} from '../../workers/create-workers';
 import {logError, formatTestResult} from '../../server-utils';
-import {hasDiff} from '../../common-utils';
-import {TestStatus, RUNNING, SUCCESS, SKIPPED} from '../../constants';
+import {hasFailedImages} from '../../common-utils';
+import {TestStatus, RUNNING, SUCCESS, SKIPPED, UNKNOWN_ATTEMPT} from '../../constants';
 import {GuiReportBuilder} from '../../report-builder/gui';
 import {EventSource} from '../event-source';
-import {HermioneTestResult} from '../../types';
-import {HermioneTestAdapter, ReporterTestResult} from '../../test-adapter';
-import {ImageDiffError} from '../../errors';
+import {HermioneTestResult, ImageInfoFull} from '../../types';
 
-let workers: ReturnType<typeof createWorkers>;
-
-export const subscribeOnToolEvents = (hermione: Hermione, reportBuilder: GuiReportBuilder, client: EventSource, reportPath: string): void => {
+export const subscribeOnToolEvents = (hermione: Hermione, reportBuilder: GuiReportBuilder, client: EventSource): void => {
     const queue = new PQueue({concurrency: os.cpus().length});
-    const {imageHandler, testAttemptManager} = reportBuilder;
-
-    async function failHandler(formattedResult: ReporterTestResult): Promise<void> {
-        const actions: Promise<unknown>[] = [imageHandler.saveTestImages(formattedResult, workers)];
-
-        if (formattedResult.errorDetails) {
-            actions.push((formattedResult as HermioneTestAdapter).saveErrorDetails(reportPath));
-        }
-
-        await Promise.all(actions);
-    }
 
     hermione.on(hermione.events.RUNNER_START, (runner) => {
-        workers = createWorkers(runner as unknown as CreateWorkersRunner);
+        reportBuilder.registerWorkers(createWorkers(runner as unknown as CreateWorkersRunner));
     });
 
     hermione.on(hermione.events.SUITE_BEGIN, (suite) => {
@@ -45,22 +30,21 @@ export const subscribeOnToolEvents = (hermione: Hermione, reportBuilder: GuiRepo
     });
 
     hermione.on(hermione.events.TEST_BEGIN, (data) => {
-        const attempt = testAttemptManager.registerAttempt({fullName: data.fullTitle(), browserId: data.browserId}, RUNNING);
-        const formattedResult = formatTestResult(data as HermioneTestResult, RUNNING, attempt, reportBuilder);
+        queue.add(async () => {
+            const formattedResultWithoutAttempt = formatTestResult(data as HermioneTestResult, RUNNING, UNKNOWN_ATTEMPT, reportBuilder);
 
-        reportBuilder.addRunning(formattedResult);
-        const testBranch = reportBuilder.getTestBranch(formattedResult.id);
+            const formattedResult = await reportBuilder.addRunning(formattedResultWithoutAttempt);
+            const testBranch = reportBuilder.getTestBranch(formattedResult.id);
 
-        return client.emit(ClientEvents.BEGIN_STATE, testBranch);
+            return client.emit(ClientEvents.BEGIN_STATE, testBranch);
+        });
     });
 
     hermione.on(hermione.events.TEST_PASS, (testResult) => {
         queue.add(async () => {
-            const attempt = testAttemptManager.registerAttempt({fullName: testResult.fullTitle(), browserId: testResult.browserId}, SUCCESS);
-            const formattedResult = formatTestResult(testResult, SUCCESS, attempt, reportBuilder);
+            const formattedResultWithoutAttempt = formatTestResult(testResult, SUCCESS, UNKNOWN_ATTEMPT, reportBuilder);
 
-            await imageHandler.saveTestImages(formattedResult, workers);
-            reportBuilder.addSuccess(formattedResult);
+            const formattedResult = await reportBuilder.addSuccess(formattedResultWithoutAttempt);
 
             const testBranch = reportBuilder.getTestBranch(formattedResult.id);
             client.emit(ClientEvents.TEST_RESULT, testBranch);
@@ -69,13 +53,11 @@ export const subscribeOnToolEvents = (hermione: Hermione, reportBuilder: GuiRepo
 
     hermione.on(hermione.events.RETRY, (testResult) => {
         queue.add(async () => {
-            const status = hasDiff(testResult.assertViewResults as ImageDiffError[]) ? TestStatus.FAIL : TestStatus.ERROR;
-            const attempt = testAttemptManager.registerAttempt({fullName: testResult.fullTitle(), browserId: testResult.browserId}, status);
+            const status = hasFailedImages(testResult.assertViewResults as ImageInfoFull[]) ? TestStatus.FAIL : TestStatus.ERROR;
 
-            const formattedResult = formatTestResult(testResult, status, attempt, reportBuilder);
+            const formattedResultWithoutAttempt = formatTestResult(testResult, status, UNKNOWN_ATTEMPT, reportBuilder);
 
-            await failHandler(formattedResult);
-            reportBuilder.addRetry(formattedResult);
+            const formattedResult = await reportBuilder.addRetry(formattedResultWithoutAttempt);
 
             const testBranch = reportBuilder.getTestBranch(formattedResult.id);
             client.emit(ClientEvents.TEST_RESULT, testBranch);
@@ -84,15 +66,13 @@ export const subscribeOnToolEvents = (hermione: Hermione, reportBuilder: GuiRepo
 
     hermione.on(hermione.events.TEST_FAIL, (testResult) => {
         queue.add(async () => {
-            const status = hasDiff(testResult.assertViewResults as ImageDiffError[]) ? TestStatus.FAIL : TestStatus.ERROR;
-            const attempt = testAttemptManager.registerAttempt({fullName: testResult.fullTitle(), browserId: testResult.browserId}, status);
+            const status = hasFailedImages(testResult.assertViewResults as ImageInfoFull[]) ? TestStatus.FAIL : TestStatus.ERROR;
 
-            const formattedResult = formatTestResult(testResult, status, attempt, reportBuilder);
+            const formattedResultWithoutAttempt = formatTestResult(testResult, status, UNKNOWN_ATTEMPT, reportBuilder);
 
-            await failHandler(formattedResult);
-            status === TestStatus.FAIL
-                ? reportBuilder.addFail(formattedResult)
-                : reportBuilder.addError(formattedResult);
+            const formattedResult = status === TestStatus.FAIL
+                ? await reportBuilder.addFail(formattedResultWithoutAttempt)
+                : await reportBuilder.addError(formattedResultWithoutAttempt);
 
             const testBranch = reportBuilder.getTestBranch(formattedResult.id);
             client.emit(ClientEvents.TEST_RESULT, testBranch);
@@ -101,11 +81,9 @@ export const subscribeOnToolEvents = (hermione: Hermione, reportBuilder: GuiRepo
 
     hermione.on(hermione.events.TEST_PENDING, async (testResult) => {
         queue.add(async () => {
-            const attempt = testAttemptManager.registerAttempt({fullName: testResult.fullTitle(), browserId: testResult.browserId}, SKIPPED);
-            const formattedResult = formatTestResult(testResult as HermioneTestResult, SKIPPED, attempt, reportBuilder);
+            const formattedResultWithoutAttempt = formatTestResult(testResult as HermioneTestResult, SKIPPED, UNKNOWN_ATTEMPT, reportBuilder);
 
-            await failHandler(formattedResult);
-            reportBuilder.addSkipped(formattedResult);
+            const formattedResult = await reportBuilder.addSkipped(formattedResultWithoutAttempt);
 
             const testBranch = reportBuilder.getTestBranch(formattedResult.id);
             client.emit(ClientEvents.TEST_RESULT, testBranch);

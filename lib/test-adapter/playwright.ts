@@ -241,10 +241,6 @@ export class PlaywrightTestAdapter implements ReporterTestResult {
         return this._imagesInfoFormatter.getImagesInfo(this);
     }
 
-    get isUpdated(): boolean {
-        return false;
-    }
-
     get meta(): Record<string, unknown> {
         return Object.fromEntries(this._testCase.annotations.map(a => [a.type, a.description ?? '']));
     }

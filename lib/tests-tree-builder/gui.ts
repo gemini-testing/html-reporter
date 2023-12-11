@@ -2,7 +2,6 @@ import _ from 'lodash';
 import {BaseTestsTreeBuilder, Tree, TreeImage, TreeResult, TreeSuite} from './base';
 import {TestStatus, UPDATED} from '../constants';
 import {isUpdatedStatus} from '../common-utils';
-import {ReporterTestResult} from '../test-adapter';
 import {ImageInfoFail, ImageInfoWithState} from '../types';
 
 interface SuiteBranch {
@@ -234,19 +233,5 @@ export class GuiTestsTreeBuilder extends BaseTestsTreeBuilder {
         suite.status = testsTree.suites.byId[suiteId].status;
 
         this._reuseSuiteStatus(testsTree, suite.parentId);
-    }
-
-    protected _buildBrowserId(formattedResult: Pick<ReporterTestResult, 'testPath' | 'browserId'>): string {
-        const {testPath, browserId: browserName} = formattedResult;
-        const suiteId = this._buildId(testPath);
-        const browserId = this._buildId(suiteId, browserName);
-
-        return browserId;
-    }
-
-    protected _buildResultId(formattedResult: ReporterTestResult, attempt: number): string {
-        const browserId = this._buildBrowserId(formattedResult);
-
-        return `${browserId} ${attempt}`;
     }
 }
