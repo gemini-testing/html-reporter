@@ -6,6 +6,7 @@
     "install-chromium": "./install-chromium.sh"
   },
   "dependencies": {
-    "hermione-headless-chrome": "1.1.0"
+    "adm-zip": "^0.5.10",
+    "got": "^11.8.6"
   }
 }
