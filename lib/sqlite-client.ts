@@ -5,14 +5,14 @@ import fs from 'fs-extra';
 import NestedError from 'nested-error-stacks';
 
 import {getShortMD5} from './common-utils';
-import {TestStatus} from './constants';
-import {DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS, LOCAL_DATABASE_NAME, DATABASE_URLS_JSON_NAME} from './constants/database';
+import {TestStatus, DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS, LOCAL_DATABASE_NAME, DATABASE_URLS_JSON_NAME} from './constants';
 import {createTablesQuery} from './db-utils/common';
-import {DbNotInitializedError} from './errors/db-not-initialized-error';
-import type {ErrorDetails, ImageInfoFull} from './types';
+import type {ErrorDetails, ImageInfoFull, TestError} from './types';
 import {HtmlReporter} from './plugin-api';
+import {ReporterTestResult} from './test-adapter';
+import {DbTestResultTransformer} from './test-adapter/transformers/db';
 
-const debug = makeDebug('html-reporter:sqlite-adapter');
+const debug = makeDebug('html-reporter:sqlite-client');
 
 interface QueryParams {
     select?: string;
@@ -44,74 +44,87 @@ export interface PreparedTestResult {
     status: TestStatus;
     timestamp: number;
     errorDetails?: ErrorDetails;
-}
-
-interface ParseTestResultParams {
-    suiteName: string;
     suitePath: string[];
-    testResult: PreparedTestResult;
+    suiteName: string;
 }
 
-interface ParsedTestResult extends PreparedTestResult {
-    suiteName: ParseTestResultParams['suiteName'];
-    suitePath: ParseTestResultParams['suitePath'];
+export interface DbTestResult {
+    description?: string | null;
+    error?: TestError;
+    history: string[];
+    imagesInfo: ImageInfoFull[];
+    metaInfo: Record<string, unknown>;
+    multipleTabs: boolean;
+    /* Browser name. Example: `"chrome"` */
+    name: string;
+    screenshot: boolean;
+    skipReason?: string;
+    status: TestStatus;
+    /* Last part of `suitePath`. Example: `"Test 1"` */
+    suiteName: string;
+    /* Segments of full test name. Example: `["Title", "Test 1"]` */
+    suitePath: string[];
+    suiteUrl: string;
+    /* Unix time in ms. Example: `1700563430266` */
+    timestamp: number;
 }
 
-interface SqliteAdapterOptions {
+interface SqliteClientOptions {
+    // TODO: get rid of htmlReporter in the future
     htmlReporter: HtmlReporter;
     reportPath: string;
     reuse?: boolean;
 }
 
-export class SqliteAdapter {
-    private _htmlReporter: HtmlReporter;
-    private _reportPath: string;
-    private _reuse: boolean;
-    private _db: null | Database.Database;
+export class SqliteClient {
+    private readonly _db: Database.Database;
     private _queryCache: Map<string, unknown>;
+    private _transformer: DbTestResultTransformer;
 
-    static create<T extends SqliteAdapter>(this: new (options: SqliteAdapterOptions) => T, options: SqliteAdapterOptions): T {
-        return new this(options);
-    }
+    static async create<T extends SqliteClient>(
+        this: { new(db: Database.Database, transformer: DbTestResultTransformer): T },
+        options: SqliteClientOptions
+    ): Promise<T> {
+        const {htmlReporter, reportPath} = options;
+        const dbPath = path.resolve(reportPath, LOCAL_DATABASE_NAME);
+        const dbUrlsJsonPath = path.resolve(reportPath, DATABASE_URLS_JSON_NAME);
 
-    constructor({htmlReporter, reportPath, reuse = false}: SqliteAdapterOptions) {
-        this._htmlReporter = htmlReporter;
-        this._reportPath = reportPath;
-        this._reuse = reuse;
-        this._db = null;
-        this._queryCache = new Map();
-    }
-
-    async init(): Promise<void> {
-        const dbPath = path.resolve(this._reportPath, LOCAL_DATABASE_NAME);
-        const dbUrlsJsonPath = path.resolve(this._reportPath, DATABASE_URLS_JSON_NAME);
+        let db: Database.Database;
 
         try {
-            if (!this._reuse) {
+            if (!options.reuse) {
                 await Promise.all([
                     fs.remove(dbPath),
                     fs.remove(dbUrlsJsonPath)
                 ]);
             }
 
-            await fs.ensureDir(this._reportPath);
+            await fs.ensureDir(reportPath);
 
-            this._db = new Database(dbPath);
+            db = new Database(dbPath);
             debug('db connection opened');
 
-            createTablesQuery().forEach((query) => this._db?.prepare(query).run());
-
-            this._htmlReporter.emit(this._htmlReporter.events.DATABASE_CREATED, this._db);
+            createTablesQuery().forEach((query) => db?.prepare(query).run());
         } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
             throw new NestedError(`Error creating database at "${dbPath}"`, err);
         }
+
+        const transformer = new DbTestResultTransformer({baseHost: htmlReporter.config.baseHost});
+
+        return new this(db, transformer);
+    }
+
+    constructor(db: Database.Database, transformer: DbTestResultTransformer) {
+        this._db = db;
+        this._queryCache = new Map();
+        this._transformer = transformer;
+    }
+
+    getRawConnection(): Database.Database {
+        return this._db;
     }
 
     close(): void {
-        if (!this._db) {
-            throw new DbNotInitializedError();
-        }
-
         this._db.prepare('VACUUM').run();
 
         debug('db connection closed');
@@ -119,10 +132,6 @@ export class SqliteAdapter {
     }
 
     query<T = unknown>(queryParams: QueryParams = {}, ...queryArgs: string[]): T {
-        if (!this._db) {
-            throw new DbNotInitializedError();
-        }
-
         const {select, where, orderBy, orderDescending, limit, noCache = false} = queryParams;
         const cacheKey = (!noCache && getShortMD5(`${select}#${where}#${orderBy}${orderDescending}${queryArgs.join('#')}`)) as string;
 
@@ -142,23 +151,15 @@ export class SqliteAdapter {
         return result as T;
     }
 
-    write(testResult: ParseTestResultParams): void {
-        if (!this._db) {
-            throw new DbNotInitializedError();
-        }
-
-        const testResultObj = this._parseTestResult(testResult);
-        const values = this._createValuesArray(testResultObj);
+    write(testResult: ReporterTestResult): void {
+        const dbTestResult = this._transformer.transform(testResult);
+        const values = this._createValuesArray(dbTestResult);
 
         const placeholders = values.map(() => '?').join(', ');
         this._db.prepare(`INSERT INTO ${DB_SUITES_TABLE_NAME} VALUES (${placeholders})`).run(...values);
     }
 
     delete(deleteParams: DeleteParams = {}, ...deleteArgs: string[]): void {
-        if (!this._db) {
-            throw new DbNotInitializedError();
-        }
-
         const sentence = `DELETE FROM ${DB_SUITES_TABLE_NAME}`
             + this._createSentence(deleteParams);
 
@@ -183,43 +184,9 @@ export class SqliteAdapter {
         return sentence;
     }
 
-    _parseTestResult({suitePath, suiteName, testResult}: ParseTestResultParams): ParsedTestResult {
-        const {
-            name,
-            suiteUrl,
-            metaInfo,
-            history,
-            description,
-            error,
-            skipReason,
-            imagesInfo,
-            screenshot,
-            multipleTabs,
-            status,
-            timestamp = Date.now()
-        } = testResult;
-
-        return {
-            suitePath,
-            suiteName,
-            name,
-            suiteUrl,
-            metaInfo,
-            history,
-            description,
-            error,
-            skipReason,
-            imagesInfo,
-            screenshot,
-            multipleTabs,
-            status,
-            timestamp
-        };
-    }
-
-    private _createValuesArray(testResult: PreparedTestResult): (string | number | null)[] {
+    private _createValuesArray(testResult: DbTestResult): (string | number | null)[] {
         return SUITES_TABLE_COLUMNS.reduce<(string | number | null)[]>((acc, {name}) => {
-            const value = testResult[name as keyof PreparedTestResult];
+            const value = testResult[name as keyof DbTestResult];
             if (value === undefined || value === null) {
                 acc.push(null);
                 return acc;

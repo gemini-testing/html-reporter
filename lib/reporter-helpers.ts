@@ -29,10 +29,11 @@ export const updateReferenceImage = async (testResult: ReporterTestResult, repor
     ]);
 };
 
-export const revertReferenceImage = async (referenceId: string, testResult: ReporterTestResult, stateName: string): Promise<void> => {
+export const revertReferenceImage = async (removedResult: ReporterTestResult, newResult: ReporterTestResult, stateName: string): Promise<void> => {
+    const referenceId = removedResult.id;
     const referenceHash = mkReferenceHash(referenceId, stateName);
     const oldReferencePath = path.resolve(tmp.tmpdir, referenceHash);
-    const referencePath = ImageHandler.getRefImg(testResult.assertViewResults, stateName)?.path;
+    const referencePath = ImageHandler.getRefImg(newResult.assertViewResults, stateName)?.path;
 
     if (!referencePath) {
         return;

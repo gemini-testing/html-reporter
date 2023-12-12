@@ -8,6 +8,8 @@ const {GuiReportBuilder} = require('lib/report-builder/gui');
 const {LOCAL_DATABASE_NAME} = require('lib/constants/database');
 const {logger} = require('lib/common-utils');
 const {stubTool, stubConfig, mkImagesInfo, mkState, mkSuite} = require('test/unit/utils');
+const {SqliteClient} = require('lib/sqlite-client');
+const {PluginEvents, TestStatus} = require('lib/constants');
 
 describe('lib/gui/tool-runner/index', () => {
     const sandbox = sinon.createSandbox();
@@ -75,7 +77,7 @@ describe('lib/gui/tool-runner/index', () => {
         };
 
         reportBuilder = sinon.createStubInstance(GuiReportBuilder);
-        reportBuilder.getUpdatedAttempt.returns(0);
+        reportBuilder.addUpdated.callsFake(_.identity);
 
         subscribeOnToolEvents = sandbox.stub().named('reportSubscriber').resolves();
         looksSame = sandbox.stub().named('looksSame').resolves({equal: true});
@@ -92,6 +94,7 @@ describe('lib/gui/tool-runner/index', () => {
             './runner': {createTestRunner},
             './report-subscriber': {subscribeOnToolEvents},
             './utils': toolRunnerUtils,
+            '../../sqlite-client': {SqliteClient: {create: () => sinon.createStubInstance(SqliteClient)}},
             '../../db-utils/server': {getTestsTreeFromDatabase},
             '../../reporter-helpers': {
                 updateReferenceImage: sandbox.stub().resolves(),
@@ -108,7 +111,7 @@ describe('lib/gui/tool-runner/index', () => {
 
     describe('initialize', () => {
         it('should set values added through api', () => {
-            const htmlReporter = {values: {foo: 'bar'}};
+            const htmlReporter = {emit: sinon.stub(), values: {foo: 'bar'}};
             hermione = stubTool(stubConfig(), {}, {}, htmlReporter);
 
             const gui = initGuiReporter(hermione);
@@ -219,7 +222,8 @@ describe('lib/gui/tool-runner/index', () => {
 
             await gui.initialize();
 
-            assert.callOrder(hermione.readTests, reportBuilder.init);
+            assert.callOrder(hermione.readTests, hermione.htmlReporter.emit);
+            assert.calledOnceWith(hermione.htmlReporter.emit, PluginEvents.DATABASE_CREATED, sinon.match.any);
         });
     });
 
@@ -312,7 +316,10 @@ describe('lib/gui/tool-runner/index', () => {
         const mkUndoTestData_ = async (stubResult, {stateName = 'plain'} = {}) => {
             reportBuilder.undoAcceptImage.withArgs(sinon.match({
                 fullName: 'some-title'
-            }), 'plain').returns(stubResult);
+            }), 'plain').returns({
+                newResult: {fullName: 'some-title'},
+                ...stubResult
+            });
             const tests = [{
                 id: 'some-id',
                 fullTitle: () => 'some-title',
@@ -325,7 +332,8 @@ describe('lib/gui/tool-runner/index', () => {
                         stateName,
                         actualImg: {
                             size: {height: 100, width: 200}
-                        }
+                        },
+                        status: TestStatus.UPDATED
                     })
                 ]
             }];

@@ -5,8 +5,9 @@ import axios, {AxiosRequestConfig} from 'axios';
 import {SUCCESS, FAIL, ERROR, SKIPPED, UPDATED, IDLE, RUNNING, QUEUED, TestStatus} from './constants';
 
 import {UNCHECKED, INDETERMINATE, CHECKED} from './constants/checked-statuses';
-import {ImageData, ImageBase64, ImageInfoFull, TestError, ImageInfoError} from './types';
+import {ImageData, ImageBase64, ImageInfoFull, TestError, ImageInfoFail} from './types';
 import {ErrorName, ImageDiffError, NoRefImageError} from './errors';
+import {ReporterTestResult} from './test-adapter';
 export const getShortMD5 = (str: string): string => {
     return crypto.createHash('md5').update(str, 'ascii').digest('hex').substr(0, 7);
 };
@@ -29,7 +30,7 @@ export const isErrorStatus = (status: TestStatus): boolean => status === ERROR;
 export const isSkippedStatus = (status: TestStatus): boolean => status === SKIPPED;
 export const isUpdatedStatus = (status: TestStatus): boolean => status === UPDATED;
 
-export const determineStatus = (statuses: TestStatus[]): TestStatus | null => {
+export const determineFinalStatus = (statuses: TestStatus[]): TestStatus | null => {
     if (!statuses.length) {
         return SUCCESS;
     }
@@ -103,17 +104,17 @@ export const hasNoRefImageErrors = ({assertViewResults = []}: {assertViewResults
     return assertViewResults.some((assertViewResult) => isNoRefImageError(assertViewResult));
 };
 
-const hasFailedImages = (result: {imagesInfo?: ImageInfoFull[]}): boolean => {
-    const {imagesInfo = []} = result;
-
+export const hasFailedImages = (imagesInfo: ImageInfoFull[] = []): boolean => {
     return imagesInfo.some((imageInfo: ImageInfoFull) => {
-        return !isAssertViewError((imageInfo as ImageInfoError).error) &&
-            (isErrorStatus(imageInfo.status) || isFailStatus(imageInfo.status));
+        return (imageInfo as ImageInfoFail).stateName &&
+            (isErrorStatus(imageInfo.status) || isFailStatus(imageInfo.status) || isNoRefImageError(imageInfo) || isImageDiffError(imageInfo));
     });
 };
 
-export const hasResultFails = (testResult: {status: TestStatus, imagesInfo?: ImageInfoFull[]}): boolean => {
-    return hasFailedImages(testResult) || isErrorStatus(testResult.status) || isFailStatus(testResult.status);
+export const hasUnrelatedToScreenshotsErrors = (error: TestError): boolean => {
+    return !isNoRefImageError(error) &&
+        !isImageDiffError(error) &&
+        !isAssertViewError(error);
 };
 
 export const getError = (error?: TestError): undefined | Pick<TestError, 'name' | 'message' | 'stack' | 'stateName'> => {
@@ -126,6 +127,28 @@ export const getError = (error?: TestError): undefined | Pick<TestError, 'name' 
 
 export const hasDiff = (assertViewResults: {name?: string}[]): boolean => {
     return assertViewResults.some((result) => isImageDiffError(result as {name?: string}));
+};
+
+/* This method tries to determine true status of testResult by using fields like error, imagesInfo */
+export const determineStatus = (testResult: Pick<ReporterTestResult, 'status' | 'error' | 'imagesInfo'>): TestStatus => {
+    if (
+        !hasFailedImages(testResult.imagesInfo) &&
+        !isSkippedStatus(testResult.status) &&
+        (!testResult.error || !hasUnrelatedToScreenshotsErrors(testResult.error))
+    ) {
+        return SUCCESS;
+    }
+
+    const imageErrors = (testResult.imagesInfo ?? []).map(imagesInfo => (imagesInfo as {error: {name?: string}}).error ?? {});
+    if (hasDiff(imageErrors) || hasNoRefImageErrors({assertViewResults: imageErrors})) {
+        return FAIL;
+    }
+
+    if (!isEmpty(testResult.error)) {
+        return ERROR;
+    }
+
+    return testResult.status;
 };
 
 export const isBase64Image = (image: ImageData | ImageBase64 | null | undefined): image is ImageBase64 => {

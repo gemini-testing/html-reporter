@@ -12,7 +12,6 @@ export {Suite as HermioneSuite} from 'hermione';
 
 export interface HermioneTestResult extends HermioneTestResultOriginal {
     timestamp?: number;
-    updated?: boolean;
 }
 
 export interface ImagesSaver {
@@ -98,7 +97,7 @@ export type ImageInfo =
     | Omit<ImageInfoError, 'status' | 'stateName'>
     | Omit<ImageInfoPageSuccess, 'status' | 'stateName'>;
 
-export type AssertViewResult = AssertViewSuccess | ImageDiffError | NoRefImageError;
+export type AssertViewResult = (AssertViewSuccess | ImageDiffError | NoRefImageError) & {isUpdated?: boolean};
 
 export interface TestError {
     name: string;
@@ -133,6 +132,8 @@ export interface ParsedSuitesRow {
     screenshot: boolean;
     skipReason?: string;
     status: TestStatus;
+    suiteName: string;
+    suitePath: string[];
     suiteUrl: string;
     timestamp: number;
 }

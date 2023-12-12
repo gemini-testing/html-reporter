@@ -5,7 +5,7 @@ export * from './hermione';
 
 export interface ReporterTestResult {
     readonly assertViewResults: AssertViewResult[];
-    attempt: number;
+    readonly attempt: number;
     readonly browserId: string;
     readonly description: string | undefined;
     error: undefined | TestError;
@@ -17,7 +17,6 @@ export interface ReporterTestResult {
     image?: boolean;
     readonly imageDir: string;
     readonly imagesInfo: ImageInfoFull[] | undefined;
-    readonly isUpdated?: boolean;
     readonly meta: Record<string, unknown>;
     readonly multipleTabs: boolean;
     readonly screenshot: ImageBase64 | ImageData | null | undefined;

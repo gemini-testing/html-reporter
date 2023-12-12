@@ -201,6 +201,8 @@ function mkTestResult(row: RawSuitesRow, data: {attempt: number}): ParsedSuitesR
         name: row[DB_COLUMN_INDEXES.name] as string,
         screenshot: Boolean(row[DB_COLUMN_INDEXES.screenshot]),
         status: row[DB_COLUMN_INDEXES.status] as TestStatus,
+        suiteName: row[DB_COLUMN_INDEXES.suiteName] as string,
+        suitePath: JSON.parse(row[DB_COLUMN_INDEXES.suitePath] as string),
         suiteUrl: row[DB_COLUMN_INDEXES.suiteUrl] as string,
         skipReason: row[DB_COLUMN_INDEXES.skipReason] as string,
         error: JSON.parse(row[DB_COLUMN_INDEXES.error] as string),

@@ -14,7 +14,7 @@ import {DbLoadResult, HandleDatabasesOptions} from './common';
 import {DbUrlsJsonData, RawSuitesRow, ReporterConfig} from '../types';
 import {Tree} from '../tests-tree-builder/base';
 import {ReporterTestResult} from '../test-adapter';
-import {SqliteAdapter} from '../sqlite-adapter';
+import {SqliteClient} from '../sqlite-client';
 
 export * from './common';
 
@@ -121,8 +121,8 @@ async function rewriteDatabaseUrls(dbPaths: string[], mainDatabaseUrls: string, 
     });
 }
 
-export const getTestFromDb = <T = unknown>(sqliteAdapter: SqliteAdapter, testResult: ReporterTestResult): T | undefined => {
-    return sqliteAdapter.query<T>({
+export const getTestFromDb = <T = unknown>(dbClient: SqliteClient, testResult: ReporterTestResult): T | undefined => {
+    return dbClient.query<T>({
         select: '*',
         where: `${DB_COLUMNS.SUITE_PATH} = ? AND ${DB_COLUMNS.NAME} = ? AND ${DB_COLUMNS.STATUS} = ?`,
         orderBy: DB_COLUMNS.TIMESTAMP,

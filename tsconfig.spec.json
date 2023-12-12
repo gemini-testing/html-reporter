@@ -1,13 +1,12 @@
 {
     "extends": "./tsconfig.common.json",
-    "include": ["lib", "test", "hermione.js", "gemini.js", "playwright.ts"],
+    "include": ["lib", "test", "hermione.ts", "gemini.js", "playwright.ts"],
     "exclude": ["test/func"],
     "compilerOptions": {
-        "baseUrl": ".",
         "jsx": "react",
         "noEmit": true,
         "paths": {
-            "lib/*": ["lib/*"]
+            "lib/*": ["./lib/*"]
         }
     },
 }

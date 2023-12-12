@@ -2,6 +2,7 @@
 
 const _ = require('lodash');
 const EventEmitter2 = require('eventemitter2');
+const {HtmlReporter} = require('lib/plugin-api');
 
 function stubConfig(config = {}) {
     const browsers = config.browsers || {};
@@ -30,7 +31,7 @@ function stubTool(config = stubConfig(), events = {}, errors = {}, htmlReporter)
 
     tool.run = sinon.stub().resolves(false);
     tool.readTests = sinon.stub().resolves(stubTestCollection());
-    tool.htmlReporter = htmlReporter || sinon.stub();
+    tool.htmlReporter = htmlReporter || sinon.createStubInstance(HtmlReporter);
     _.defaultsDeep(tool.htmlReporter, {
         emitAsync: sinon.stub(),
         events: {REPORT_SAVED: 'reportSaved'}
@@ -129,6 +130,24 @@ function mkFormattedTest(result) {
     });
 }
 
+class NoRefImageError extends Error {
+    name = 'NoRefImageError';
+}
+
+class ImageDiffError extends Error {
+    name = 'ImageDiffError';
+    constructor() {
+        super();
+        this.stateName = '';
+        this.currImg = {
+            path: ''
+        };
+        this.refImg = {
+            path: ''
+        };
+    }
+}
+
 module.exports = {
     stubConfig,
     stubTestCollection,
@@ -140,5 +159,7 @@ module.exports = {
     mkImagesInfo,
     mkSuiteTree,
     mkStorage,
-    mkFormattedTest
+    mkFormattedTest,
+    NoRefImageError,
+    ImageDiffError
 };

@@ -5,7 +5,7 @@ const Database = require('better-sqlite3');
 const fsOriginal = require('fs-extra');
 const proxyquire = require('proxyquire').noPreserveCache();
 const {logger} = require('lib/common-utils');
-const {stubTool} = require('./utils');
+const {stubTool, NoRefImageError, ImageDiffError} = require('./utils');
 
 const mkSqliteDb = () => {
     const instance = sinon.createStubInstance(Database);
@@ -20,13 +20,15 @@ describe('lib/hermione', () => {
     let hermione;
     let cacheExpectedPaths = new Map(), cacheAllImages = new Map(), cacheDiffImages = new Map();
 
+    let program;
+
     const fs = _.clone(fsOriginal);
     const originalUtils = proxyquire('lib/server-utils', {
         'fs-extra': fs
     });
     const utils = _.clone(originalUtils);
 
-    const {SqliteAdapter} = proxyquire('lib/sqlite-adapter', {
+    const {SqliteClient} = proxyquire('lib/sqlite-client', {
         'fs-extra': fs,
         'better-sqlite3': sinon.stub().returns(mkSqliteDb())
     });
@@ -45,23 +47,21 @@ describe('lib/hermione', () => {
     const {StaticReportBuilder} = proxyquire('lib/report-builder/static', {
         'fs-extra': fs,
         '../server-utils': utils,
-        '../sqlite-adapter': {SqliteAdapter},
         '../test-adapter': {TestAdapter},
         '../image-handler': {ImageHandler}
     });
 
-    const {PluginAdapter} = proxyquire('lib/plugin-adapter', {
-        './server-utils': utils,
-        './report-builder/static': {StaticReportBuilder},
-        './plugin-api': proxyquire('lib/plugin-api', {
-            './local-images-saver': proxyquire('lib/local-images-saver', {
-                './server-utils': utils
-            })
+    const HtmlReporter = proxyquire('lib/plugin-api', {
+        './local-images-saver': proxyquire('lib/local-images-saver', {
+            './server-utils': utils
         })
-    });
+    }).HtmlReporter;
 
-    const HermioneReporter = proxyquire('../../hermione', {
-        './lib/plugin-adapter': {PluginAdapter}
+    const runHtmlReporter = proxyquire('../../hermione', {
+        './lib/sqlite-client': {SqliteClient},
+        './lib/server-utils': utils,
+        './lib/report-builder/static': {StaticReportBuilder},
+        './lib/plugin-api': {HtmlReporter}
     });
 
     const events = {
@@ -75,24 +75,6 @@ describe('lib/hermione', () => {
         AFTER_TESTS_READ: 'afterTestsRead'
     };
 
-    class ImageDiffError extends Error {
-        name = 'ImageDiffError';
-        constructor() {
-            super();
-            this.stateName = '';
-            this.currImg = {
-                path: ''
-            };
-            this.refImg = {
-                path: ''
-            };
-        }
-    }
-
-    class NoRefImageError extends Error {
-        name = 'NoRefImageError';
-    }
-
     function mkHermione_() {
         return stubTool({
             forBrowser: sinon.stub().returns({
@@ -103,6 +85,25 @@ describe('lib/hermione', () => {
         }, events, {ImageDiffError, NoRefImageError});
     }
 
+    function mkCommander() {
+        const commander = {};
+        const props = [
+            'command',
+            'allowUnknownOption',
+            'description',
+            'option',
+            'action',
+            'on',
+            'prependListener'
+        ];
+
+        for (const prop of props) {
+            commander[prop] = sinon.stub().returns(commander);
+        }
+
+        return commander;
+    }
+
     function initReporter_(opts) {
         opts = _.defaults(opts, {
             enabled: true,
@@ -110,7 +111,9 @@ describe('lib/hermione', () => {
             baseHost: ''
         });
 
-        HermioneReporter(hermione, opts);
+        runHtmlReporter(hermione, opts);
+
+        hermione.emit(hermione.events.CLI, program);
 
         return hermione.emitAsync(hermione.events.INIT);
     }
@@ -139,9 +142,9 @@ describe('lib/hermione', () => {
     beforeEach(async () => {
         hermione = mkHermione_();
 
-        sandbox.spy(PluginAdapter.prototype, 'addApi');
-        sandbox.spy(PluginAdapter.prototype, 'addCliCommands');
-        sandbox.spy(PluginAdapter.prototype, 'init');
+        program = mkCommander();
+
+        sandbox.spy(HtmlReporter, 'create');
 
         sandbox.stub(fs, 'ensureDir').resolves();
         sandbox.stub(fs, 'writeFile').resolves();
@@ -157,16 +160,15 @@ describe('lib/hermione', () => {
         sandbox.stub(logger, 'log');
         sandbox.stub(logger, 'warn');
 
-        sandbox.stub(StaticReportBuilder.prototype, 'addSkipped');
-        sandbox.stub(StaticReportBuilder.prototype, 'addSuccess');
-        sandbox.stub(StaticReportBuilder.prototype, 'addError');
-        sandbox.stub(StaticReportBuilder.prototype, 'addFail');
-        sandbox.stub(StaticReportBuilder.prototype, 'addRetry');
+        sandbox.stub(StaticReportBuilder.prototype, 'addSkipped').callsFake(_.identity);
+        sandbox.stub(StaticReportBuilder.prototype, 'addSuccess').callsFake(_.identity);
+        sandbox.stub(StaticReportBuilder.prototype, 'addError').callsFake(_.identity);
+        sandbox.stub(StaticReportBuilder.prototype, 'addFail').callsFake(_.identity);
+        sandbox.stub(StaticReportBuilder.prototype, 'addRetry').callsFake(_.identity);
         sandbox.stub(StaticReportBuilder.prototype, 'saveStaticFiles');
         sandbox.stub(StaticReportBuilder.prototype, 'finalize');
 
-        sandbox.stub(SqliteAdapter.prototype, 'init').resolves({});
-        sandbox.stub(SqliteAdapter.prototype, 'query');
+        sandbox.stub(SqliteClient.prototype, 'query');
 
         sandbox.stub(fs, 'readFile').resolves(Buffer.from(''));
     });
@@ -179,24 +181,22 @@ describe('lib/hermione', () => {
         sandbox.restore();
     });
 
-    it('should do nothing if plugin is disabled', () => {
-        return initReporter_({enabled: false}).then(() => {
-            assert.notCalled(PluginAdapter.prototype.addCliCommands);
-        });
+    it('should do nothing if plugin is disabled', async () => {
+        await initReporter_({enabled: false});
+
+        assert.notCalled(HtmlReporter.create);
     });
 
-    it('should add api', () => {
-        return initReporter_()
-            .then(() => assert.calledOnce(PluginAdapter.prototype.addCliCommands));
+    it('should add api', async () => {
+        await initReporter_();
+
+        assert.isObject(hermione.htmlReporter);
     });
 
-    it('should add cli commands', () => {
-        return initReporter_()
-            .then(() => assert.calledOnce(PluginAdapter.prototype.addCliCommands));
-    });
+    it('should add cli commands', async () => {
+        await initReporter_();
 
-    it('should init plugin', () => {
-        return initReporter_().then(() => assert.calledOnce(PluginAdapter.prototype.init));
+        assert.called(program.command);
     });
 
     it('should add skipped test to result', async () => {
@@ -224,7 +224,7 @@ describe('lib/hermione', () => {
                 hermione.emit(events[event], testResult);
                 await hermione.emitAsync(hermione.events.RUNNER_END);
 
-                assert.deepEqual(StaticReportBuilder.prototype.addError.args[0][0].state, {name: 'some-title'});
+                assert.deepEqual(StaticReportBuilder.prototype.addFail.args[0][0].state, {name: 'some-title'});
             });
 
             it(`errored assert view to result on ${event} event`, async () => {
@@ -235,7 +235,7 @@ describe('lib/hermione', () => {
                 hermione.emit(events[event], mkStubResult_({title: 'some-title', assertViewResults: [err]}));
                 await hermione.emitAsync(hermione.events.RUNNER_END);
 
-                assert.deepEqual(StaticReportBuilder.prototype.addError.args[0][0].state, {name: 'some-title'});
+                assert.deepEqual(StaticReportBuilder.prototype.addFail.args[0][0].state, {name: 'some-title'});
             });
 
             it(`failed test to result on ${event} event`, async () => {
@@ -266,84 +266,5 @@ describe('lib/hermione', () => {
                 assert.deepEqual(StaticReportBuilder.prototype.addFail.args[0][0].state, {name: 'some-title'});
             });
         });
-    });
-
-    it('should save image from passed test', async () => {
-        utils.getReferencePath.callsFake(({stateName}) => `report/${stateName}`);
-
-        await initReporter_({path: '/absolute'});
-        const testData = mkStubResult_({assertViewResults: [{refImg: {path: 'ref/path'}, stateName: 'plain'}]});
-        hermione.emit(events.TEST_PASS, testData);
-        await hermione.emitAsync(events.RUNNER_END);
-
-        assert.calledOnceWith(utils.copyFileAsync, 'ref/path', 'report/plain', {reportDir: '/absolute'});
-    });
-
-    it('should save image from assert view error', async () => {
-        utils.getCurrentPath.callsFake(({stateName}) => `report/${stateName}`);
-        await initReporter_({path: '/absolute'});
-        const err = new NoRefImageError();
-        err.stateName = 'plain';
-        err.currImg = {path: 'current/path'};
-
-        hermione.emit(events.RETRY, mkStubResult_({assertViewResults: [err]}));
-        await hermione.emitAsync(events.RUNNER_END);
-
-        assert.calledOnceWith(utils.copyFileAsync, 'current/path', 'report/plain', {reportDir: '/absolute'});
-    });
-
-    it('should save reference image from assert view fail', async () => {
-        utils.getReferencePath.callsFake(({stateName}) => `report/${stateName}`);
-        await initReporter_({path: '/absolute'});
-        await stubWorkers();
-
-        const err = new ImageDiffError();
-        err.stateName = 'plain';
-        err.refImg = {path: 'reference/path'};
-
-        hermione.emit(events.TEST_FAIL, mkStubResult_({assertViewResults: [err]}));
-        await hermione.emitAsync(events.RUNNER_END);
-
-        assert.calledWith(utils.copyFileAsync, 'reference/path', 'report/plain', {reportDir: '/absolute'});
-    });
-
-    it('should save current image from assert view fail', async () => {
-        utils.getCurrentPath.callsFake(({stateName}) => `report/${stateName}`);
-        await initReporter_({path: '/absolute'});
-        await hermione.emitAsync(events.RUNNER_START, {
-            registerWorkers: () => {
-                return {saveDiffTo: sandbox.stub()};
-            }
-        });
-        const err = new ImageDiffError();
-        err.stateName = 'plain';
-        err.currImg = {path: 'current/path'};
-
-        hermione.emit(events.TEST_FAIL, mkStubResult_({assertViewResults: [err]}));
-        await hermione.emitAsync(events.RUNNER_END);
-
-        assert.calledWith(utils.copyFileAsync, 'current/path', 'report/plain', {reportDir: '/absolute'});
-    });
-
-    it('should save current diff image from assert view fail', async () => {
-        fs.readFile.resolves(Buffer.from('some-buff'));
-        utils.getDiffPath.callsFake(({stateName}) => `report/${stateName}`);
-        const saveDiffTo = sinon.stub().resolves();
-        const err = new ImageDiffError();
-        err.stateName = 'plain';
-
-        await initReporter_();
-
-        await hermione.emitAsync(events.RUNNER_START, {
-            registerWorkers: () => {
-                return {saveDiffTo};
-            }
-        });
-        hermione.emit(events.TEST_FAIL, mkStubResult_({assertViewResults: [err]}));
-        await hermione.emitAsync(events.RUNNER_END);
-
-        assert.calledWith(
-            saveDiffTo, sinon.match.instanceOf(ImageDiffError), sinon.match('/report/plain')
-        );
     });
 });

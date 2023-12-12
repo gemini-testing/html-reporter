@@ -1,4 +1,4 @@
-import {determineStatus, getError, hasDiff, getUrlWithBase} from 'lib/common-utils';
+import {determineFinalStatus, getError, hasDiff, getUrlWithBase} from 'lib/common-utils';
 import {RUNNING, QUEUED, ERROR, FAIL, UPDATED, SUCCESS, IDLE, SKIPPED} from 'lib/constants/test-statuses';
 import {ErrorName} from 'lib/errors';
 
@@ -66,13 +66,13 @@ describe('common-utils', () => {
 
     describe('determineStatus', () => {
         it(`should not rewrite suite status to "${IDLE}" if some test already has final status`, () => {
-            const status = determineStatus([SUCCESS, IDLE]);
+            const status = determineFinalStatus([SUCCESS, IDLE]);
 
             assert.equal(status, SUCCESS);
         });
 
         it(`should return "${SUCCESS}" if statuses is not passed`, () => {
-            const status = determineStatus([]);
+            const status = determineFinalStatus([]);
 
             assert.equal(status, SUCCESS);
         });
@@ -81,8 +81,8 @@ describe('common-utils', () => {
             it(`should return "${RUNNING}" regardless of order`, () => {
                 const statuses = [SKIPPED, IDLE, SUCCESS, UPDATED, FAIL, ERROR, QUEUED, RUNNING];
 
-                const statusInDirectOrder = determineStatus(statuses);
-                const statusInReverseOrder = determineStatus(statuses.reverse());
+                const statusInDirectOrder = determineFinalStatus(statuses);
+                const statusInReverseOrder = determineFinalStatus(statuses.reverse());
 
                 assert.equal(statusInDirectOrder, RUNNING);
                 assert.equal(statusInReverseOrder, RUNNING);
@@ -91,8 +91,8 @@ describe('common-utils', () => {
             it(`should return "${QUEUED}" regardless of order`, () => {
                 const statuses = [SKIPPED, IDLE, SUCCESS, UPDATED, FAIL, ERROR, QUEUED];
 
-                const statusInDirectOrder = determineStatus(statuses);
-                const statusInReverseOrder = determineStatus(statuses.reverse());
+                const statusInDirectOrder = determineFinalStatus(statuses);
+                const statusInReverseOrder = determineFinalStatus(statuses.reverse());
 
                 assert.equal(statusInDirectOrder, QUEUED);
                 assert.equal(statusInReverseOrder, QUEUED);
@@ -101,8 +101,8 @@ describe('common-utils', () => {
             it(`should return "${ERROR}" regardless of order`, () => {
                 const statuses = [SKIPPED, IDLE, SUCCESS, UPDATED, FAIL, ERROR];
 
-                const statusInDirectOrder = determineStatus(statuses);
-                const statusInReverseOrder = determineStatus(statuses.reverse());
+                const statusInDirectOrder = determineFinalStatus(statuses);
+                const statusInReverseOrder = determineFinalStatus(statuses.reverse());
 
                 assert.equal(statusInDirectOrder, ERROR);
                 assert.equal(statusInReverseOrder, ERROR);
@@ -111,8 +111,8 @@ describe('common-utils', () => {
             it(`should return "${FAIL}" regardless of order`, () => {
                 const statuses = [SKIPPED, IDLE, SUCCESS, UPDATED, FAIL];
 
-                const statusInDirectOrder = determineStatus(statuses);
-                const statusInReverseOrder = determineStatus(statuses.reverse());
+                const statusInDirectOrder = determineFinalStatus(statuses);
+                const statusInReverseOrder = determineFinalStatus(statuses.reverse());
 
                 assert.equal(statusInDirectOrder, FAIL);
                 assert.equal(statusInReverseOrder, FAIL);
@@ -121,8 +121,8 @@ describe('common-utils', () => {
             it(`should return "${UPDATED}" regardless of order`, () => {
                 const statuses = [SKIPPED, IDLE, SUCCESS, UPDATED];
 
-                const statusInDirectOrder = determineStatus(statuses);
-                const statusInReverseOrder = determineStatus(statuses.reverse());
+                const statusInDirectOrder = determineFinalStatus(statuses);
+                const statusInReverseOrder = determineFinalStatus(statuses.reverse());
 
                 assert.equal(statusInDirectOrder, UPDATED);
                 assert.equal(statusInReverseOrder, UPDATED);
@@ -131,8 +131,8 @@ describe('common-utils', () => {
             it(`should return "${SUCCESS}" regardless of order`, () => {
                 const statuses = [SKIPPED, IDLE, SUCCESS];
 
-                const statusInDirectOrder = determineStatus(statuses);
-                const statusInReverseOrder = determineStatus(statuses.reverse());
+                const statusInDirectOrder = determineFinalStatus(statuses);
+                const statusInReverseOrder = determineFinalStatus(statuses.reverse());
 
                 assert.equal(statusInDirectOrder, SUCCESS);
                 assert.equal(statusInReverseOrder, SUCCESS);
@@ -141,15 +141,15 @@ describe('common-utils', () => {
             it(`should return "${IDLE}" regardless of order`, () => {
                 const statuses = [SKIPPED, IDLE];
 
-                const statusInDirectOrder = determineStatus(statuses);
-                const statusInReverseOrder = determineStatus(statuses.reverse());
+                const statusInDirectOrder = determineFinalStatus(statuses);
+                const statusInReverseOrder = determineFinalStatus(statuses.reverse());
 
                 assert.equal(statusInDirectOrder, IDLE);
                 assert.equal(statusInReverseOrder, IDLE);
             });
 
             it(`should return "${SKIPPED}"`, () => {
-                const status = determineStatus([SKIPPED]);
+                const status = determineFinalStatus([SKIPPED]);
 
                 assert.equal(status, SKIPPED);
             });

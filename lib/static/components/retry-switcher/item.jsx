@@ -5,10 +5,8 @@ import {connect} from 'react-redux';
 import {get} from 'lodash';
 import {ERROR} from '../../../constants';
 import {
-    isAssertViewError,
-    isFailStatus,
-    isImageDiffError,
-    isNoRefImageError
+    hasUnrelatedToScreenshotsErrors,
+    isFailStatus
 } from '../../../common-utils';
 
 class RetrySwitcherItem extends Component {
@@ -46,7 +44,7 @@ export default connect(
         const {status, attempt, error} = result;
 
         return {
-            status: hasUnrelatedToScreenshotsErrors(status, error) ? `${status}_${ERROR}` : status,
+            status: isFailStatus(status) && hasUnrelatedToScreenshotsErrors(error) ? `${status}_${ERROR}` : status,
             attempt,
             keyToGroupTestsBy,
             matchedSelectedGroup
@@ -54,9 +52,3 @@ export default connect(
     }
 )(RetrySwitcherItem);
 
-function hasUnrelatedToScreenshotsErrors(status, error) {
-    return isFailStatus(status) &&
-        !isNoRefImageError(error) &&
-        !isImageDiffError(error) &&
-        !isAssertViewError(error);
-}
