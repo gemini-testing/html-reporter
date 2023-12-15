@@ -187,7 +187,7 @@ export class ToolRunner {
 
             const formattedResultWithoutAttempt = formatTestResultUnsafe(updateResult, UPDATED, UNKNOWN_ATTEMPT, reportBuilder);
 
-            const formattedResult = await reportBuilder.addUpdated(formattedResultWithoutAttempt);
+            const formattedResult = await reportBuilder.addTestResult(formattedResultWithoutAttempt);
 
             updateResult.attempt = formattedResult.attempt;
 
@@ -316,9 +316,9 @@ export class ToolRunner {
             this._tests[testId] = _.extend(test, {browserId});
 
             if (test.pending) {
-                queue.add(async () => reportBuilder.addSkipped(formatTestResultUnsafe(test, SKIPPED, UNKNOWN_ATTEMPT, reportBuilder)));
+                queue.add(async () => reportBuilder.addTestResult(formatTestResultUnsafe(test, SKIPPED, UNKNOWN_ATTEMPT, reportBuilder)));
             } else {
-                queue.add(async () => reportBuilder.addIdle(formatTestResultUnsafe(test, IDLE, UNKNOWN_ATTEMPT, reportBuilder)));
+                queue.add(async () => reportBuilder.addTestResult(formatTestResultUnsafe(test, IDLE, UNKNOWN_ATTEMPT, reportBuilder)));
             }
         });
 
@@ -394,7 +394,7 @@ export class ToolRunner {
         const dbPath = path.resolve(this._reportPath, LOCAL_DATABASE_NAME);
 
         if (await fs.pathExists(dbPath)) {
-            return getTestsTreeFromDatabase(ToolName.Hermione, dbPath);
+            return getTestsTreeFromDatabase(ToolName.Hermione, dbPath, this._pluginConfig.baseHost);
         }
 
         logger.warn(chalk.yellow(`Nothing to reuse in ${this._reportPath}: can not load data from ${DATABASE_URLS_JSON_NAME}`));

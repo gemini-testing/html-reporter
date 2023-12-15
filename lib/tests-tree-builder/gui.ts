@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import {BaseTestsTreeBuilder, Tree, TreeImage, TreeResult, TreeSuite} from './base';
+import {BaseTestsTreeBuilder, Tree, TreeImage, TreeTestResult, TreeSuite} from './base';
 import {TestStatus, UPDATED} from '../constants';
 import {isUpdatedStatus} from '../common-utils';
 import {ImageInfoFail, ImageInfoWithState} from '../types';
@@ -10,17 +10,17 @@ interface SuiteBranch {
 }
 
 export interface TestBranch {
-    result: TreeResult;
+    result: TreeTestResult;
     images: TreeImage[];
     suites: SuiteBranch[];
 }
 
 export interface TestRefUpdateData {
     browserId: string;
-    error?: TreeResult['error'];
+    error?: TreeTestResult['error'];
     suite: {path: string[]};
     state: {name: string};
-    metaInfo: TreeResult['metaInfo'];
+    metaInfo: TreeTestResult['metaInfo'];
     imagesInfo: {
         stateName: ImageInfoWithState['stateName'];
         actualImg: ImageInfoWithState['actualImg'];

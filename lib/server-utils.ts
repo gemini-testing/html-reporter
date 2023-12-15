@@ -10,7 +10,7 @@ import type {ReporterTestResult} from './test-adapter';
 import {CustomGuiItem, HermioneTestResult, ReporterConfig} from './types';
 import type Hermione from 'hermione';
 import crypto from 'crypto';
-import {ImageHandler, ImagesInfoFormatter} from './image-handler';
+import {ImagesInfoFormatter} from './image-handler';
 import {HermioneTestAdapter} from './test-adapter';
 import {Router} from 'express';
 
@@ -97,12 +97,6 @@ export function logError(e: Error): void {
     logger.error(`Html-reporter runtime error: ${e.stack}`);
 }
 
-export function hasImage(formattedResult: ReporterTestResult): boolean {
-    return !!formattedResult.imagesInfo?.length ||
-        !!ImageHandler.getCurrImg(formattedResult.assertViewResults)?.path ||
-        !!formattedResult.screenshot;
-}
-
 export function prepareCommonJSData(data: unknown): string {
     const stringifiedData = JSON.stringify(data, (_key, val) => {
         return typeof val === 'function' ? val.toString() : val;
@@ -116,10 +110,6 @@ export function prepareCommonJSData(data: unknown): string {
 
 export function shouldUpdateAttempt(status: TestStatus): boolean {
     return ![SKIPPED, UPDATED, RUNNING, IDLE].includes(status);
-}
-
-export function getDetailsFileName(testId: string, browserId: string, attempt: number): string {
-    return `${testId}-${browserId}_${Number(attempt) + 1}_${Date.now()}.json`;
 }
 
 export async function saveStaticFilesToReportDir(htmlReporter: HtmlReporter, pluginConfig: ReporterConfig, destPath: string): Promise<void> {

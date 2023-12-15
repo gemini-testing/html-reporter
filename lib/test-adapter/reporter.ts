@@ -1,14 +1,9 @@
 import {TestStatus} from '../constants';
 import {AssertViewResult, TestError, ErrorDetails, ImageInfoFull, ImageBase64, ImageData} from '../types';
 import {ReporterTestResult} from './index';
-import {ImagesInfoFormatter} from '../image-handler';
 import _ from 'lodash';
-import {extractErrorDetails} from './utils';
+import {extractErrorDetails, getTestHash} from './utils';
 import {getShortMD5} from '../common-utils';
-
-interface ReporterTestAdapterOptions {
-    imagesInfoFormatter: ImagesInfoFormatter;
-}
 
 // This class is primarily useful when cloning ReporterTestResult.
 // It allows to override some properties while keeping computable
@@ -16,12 +11,10 @@ interface ReporterTestAdapterOptions {
 
 export class ReporterTestAdapter implements ReporterTestResult {
     private _testResult: ReporterTestResult;
-    private _imagesInfoFormatter: ImagesInfoFormatter;
     private _errorDetails: ErrorDetails | null;
 
-    constructor(testResult: ReporterTestResult, {imagesInfoFormatter}: ReporterTestAdapterOptions) {
+    constructor(testResult: ReporterTestResult) {
         this._testResult = testResult;
-        this._imagesInfoFormatter = imagesInfoFormatter;
         this._errorDetails = null;
     }
 
@@ -68,7 +61,7 @@ export class ReporterTestAdapter implements ReporterTestResult {
     }
 
     get id(): string {
-        return this.testPath.concat(this.browserId, this.attempt.toString()).join(' ');
+        return getTestHash(this);
     }
 
     get imageDir(): string {
@@ -76,7 +69,7 @@ export class ReporterTestAdapter implements ReporterTestResult {
     }
 
     get imagesInfo(): ImageInfoFull[] | undefined {
-        return this._imagesInfoFormatter.getImagesInfo(this);
+        return this._testResult.imagesInfo;
     }
 
     get meta(): Record<string, unknown> {

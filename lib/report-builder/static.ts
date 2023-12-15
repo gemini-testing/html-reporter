@@ -7,30 +7,24 @@ import {
     IDLE,
     RUNNING,
     SKIPPED,
-    FAIL,
-    ERROR,
-    SUCCESS,
-    TestStatus,
     LOCAL_DATABASE_NAME,
     PluginEvents, UNKNOWN_ATTEMPT, UPDATED
 } from '../constants';
-import type {PreparedTestResult, SqliteClient} from '../sqlite-client';
+import type {SqliteClient} from '../sqlite-client';
 import {ReporterTestResult} from '../test-adapter';
-import {hasImage, saveErrorDetails, saveStaticFilesToReportDir, writeDatabaseUrlsFile} from '../server-utils';
+import {saveErrorDetails, saveStaticFilesToReportDir, writeDatabaseUrlsFile} from '../server-utils';
 import {ReporterConfig} from '../types';
 import {HtmlReporter} from '../plugin-api';
 import {ImageHandler} from '../image-handler';
 import {SqliteImageStore} from '../image-store';
-import {getUrlWithBase, getError, getRelativeUrl, hasDiff, hasNoRefImageErrors} from '../common-utils';
 import {getTestFromDb} from '../db-utils/server';
-import {ImageDiffError} from '../errors';
 import {TestAttemptManager} from '../test-attempt-manager';
 import {copyAndUpdate} from '../test-adapter/utils';
 import {RegisterWorkers} from '../workers/create-workers';
 
 const ignoredStatuses = [RUNNING, IDLE];
 
-interface StaticReportBuilderOptions {
+export interface StaticReportBuilderOptions {
     dbClient: SqliteClient;
 }
 
@@ -84,33 +78,6 @@ export class StaticReportBuilder {
         ]);
     }
 
-    async addSkipped(result: ReporterTestResult): Promise<ReporterTestResult> {
-        return this._addTestResult(result, {
-            status: SKIPPED,
-            skipReason: result.skipReason
-        });
-    }
-
-    async addSuccess(result: ReporterTestResult): Promise<ReporterTestResult> {
-        return this._addTestResult(result, {status: SUCCESS});
-    }
-
-    async addFail(result: ReporterTestResult): Promise<ReporterTestResult> {
-        return this._addFailResult(result);
-    }
-
-    async addError(result: ReporterTestResult): Promise<ReporterTestResult> {
-        return this._addErrorResult(result);
-    }
-
-    async addRetry(result: ReporterTestResult): Promise<ReporterTestResult> {
-        if (hasDiff(result.assertViewResults as ImageDiffError[])) {
-            return this._addFailResult(result);
-        } else {
-            return this._addErrorResult(result);
-        }
-    }
-
     registerWorkers(workers: RegisterWorkers<['saveDiffTo']>): void {
         this._workers = workers;
     }
@@ -129,9 +96,8 @@ export class StaticReportBuilder {
         let formattedResult = testResultOriginal;
 
         if (testResultOriginal.attempt === UNKNOWN_ATTEMPT) {
-            const imagesInfoFormatter = this._imageHandler;
             const attempt = this._testAttemptManager.registerAttempt(testResultOriginal, testResultOriginal.status);
-            formattedResult = copyAndUpdate(testResultOriginal, {attempt}, {imagesInfoFormatter});
+            formattedResult = copyAndUpdate(testResultOriginal, {attempt});
         }
 
         return formattedResult;
@@ -155,67 +121,20 @@ export class StaticReportBuilder {
         await Promise.all(actions);
     }
 
-    protected async _addFailResult(formattedResult: ReporterTestResult): Promise<ReporterTestResult> {
-        return this._addTestResult(formattedResult, {status: FAIL});
-    }
-
-    protected async _addErrorResult(formattedResult: ReporterTestResult): Promise<ReporterTestResult> {
-        return this._addTestResult(formattedResult, {status: ERROR});
-    }
-
-    protected async _addTestResult(formattedResultOriginal: ReporterTestResult, props: {status: TestStatus} & Partial<PreparedTestResult>): Promise<ReporterTestResult> {
+    async addTestResult(formattedResultOriginal: ReporterTestResult): Promise<ReporterTestResult> {
         const formattedResult = this._provideAttempt(formattedResultOriginal);
 
         // Test result data has to be saved before writing to db, because user may save data to custom location
         await this._saveTestResultData(formattedResult);
 
-        formattedResult.image = hasImage(formattedResult);
-
-        const testResult = this._createTestResult(formattedResult, _.extend(props, {
-            timestamp: formattedResult.timestamp ?? 0
-        }));
-
-        if (hasNoRefImageErrors(formattedResult as {assertViewResults: ImageDiffError[]})) {
-            testResult.status = FAIL;
-        }
-
         // To prevent skips duplication on reporter startup
-        const isPreviouslySkippedTest = testResult.status === SKIPPED && getTestFromDb(this._dbClient, formattedResult);
+        const isPreviouslySkippedTest = formattedResult.status === SKIPPED && getTestFromDb(this._dbClient, formattedResult);
 
-        if (!ignoredStatuses.includes(testResult.status) && !isPreviouslySkippedTest) {
+        if (!ignoredStatuses.includes(formattedResult.status) && !isPreviouslySkippedTest) {
             this._dbClient.write(formattedResult);
         }
 
         return formattedResult;
-    }
-
-    protected _createTestResult(result: ReporterTestResult, props: {attempt?: number | null, status: TestStatus, timestamp: number;} & Partial<PreparedTestResult>): PreparedTestResult {
-        const {
-            browserId, file, sessionId, description, history,
-            imagesInfo = [], screenshot, multipleTabs, errorDetails, testPath
-        } = result;
-
-        const {baseHost, saveErrorDetails} = this._pluginConfig;
-        const suiteUrl: string = getUrlWithBase(result.url, baseHost);
-        const metaInfoFull = _.merge(_.cloneDeep(result.meta), {url: getRelativeUrl(suiteUrl) ?? '', file, sessionId});
-        const metaInfo = _.omitBy(metaInfoFull, _.isEmpty);
-
-        const testResult: PreparedTestResult = Object.assign({
-            suiteUrl, name: browserId, metaInfo, description, history,
-            imagesInfo, screenshot: Boolean(screenshot), multipleTabs,
-            suitePath: testPath, suiteName: _.last(testPath) as string
-        }, props);
-
-        const error = getError(result.error);
-        if (!_.isEmpty(error)) {
-            testResult.error = error;
-        }
-
-        if (saveErrorDetails && errorDetails) {
-            testResult.errorDetails = _.pick(errorDetails, ['title', 'filePath']);
-        }
-
-        return testResult;
     }
 
     protected _deleteTestResultFromDb(...args: Parameters<typeof this._dbClient.delete>): void {

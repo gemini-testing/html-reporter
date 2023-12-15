@@ -1,4 +1,4 @@
-import {ValueOf} from 'type-fest';
+import {Mutable, NameToIndexMap} from '../types';
 
 // TODO: change to enums
 export const DB_TYPES = {int: 'INT', text: 'TEXT'} as const;
@@ -40,7 +40,8 @@ export const DB_MAX_AVAILABLE_PAGE_SIZE = 65536; // helps to speed up queries
 export const DB_SUITES_TABLE_NAME = 'suites';
 export const LOCAL_DATABASE_NAME = 'sqlite.db';
 export const DATABASE_URLS_JSON_NAME = 'databaseUrls.json';
+
 export const DB_COLUMN_INDEXES = SUITES_TABLE_COLUMNS.reduce((acc: Record<string, number>, {name}, index) => {
     acc[name] = index;
     return acc;
-}, {}) as { [K in ValueOf<typeof DB_COLUMNS>]: number };
+}, {}) as NameToIndexMap<Mutable<typeof SUITES_TABLE_COLUMNS>>;

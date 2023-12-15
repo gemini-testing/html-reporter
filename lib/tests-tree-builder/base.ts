@@ -2,15 +2,21 @@ import _ from 'lodash';
 import {determineFinalStatus} from '../common-utils';
 import {BrowserVersions, PWT_TITLE_DELIMITER, TestStatus, ToolName} from '../constants';
 import {ReporterTestResult} from '../test-adapter';
-import {ImageInfoFull, ParsedSuitesRow} from '../types';
+import {ErrorDetails, ImageInfoFull} from '../types';
+import {TreeTestResultTransformer} from '../test-adapter/transformers/tree';
+import {DbTestResult} from '../sqlite-client';
 
-export type TreeResult = {
-    attempt: number;
+export type BaseTreeTestResult = Omit<DbTestResult, 'imagesInfo'> & {
+    attempt?: number;
+    errorDetails?: ErrorDetails | null;
+}
+
+export interface TreeTestResult extends BaseTreeTestResult {
     id: string;
     parentId: string;
-    status: TestStatus;
     imageIds: string[];
-} & Omit<ParsedSuitesRow, 'imagesInfo'>;
+    attempt: number;
+}
 
 interface TreeBrowser {
     id: string;
@@ -47,7 +53,7 @@ export interface Tree {
         allIds: string[]
     },
     results: {
-        byId: Record<string, TreeResult>,
+        byId: Record<string, TreeTestResult>,
         allIds: string[]
     },
     images: {
@@ -59,7 +65,7 @@ export interface Tree {
 interface ResultPayload {
     id: string;
     parentId: string;
-    result: ParsedSuitesRow;
+    result: ReporterTestResult;
 }
 
 interface BrowserPayload {
@@ -76,11 +82,13 @@ interface ImagesPayload {
 
 export interface BaseTestsTreeBuilderOptions {
     toolName: ToolName;
+    baseHost: string;
 }
 
 export class BaseTestsTreeBuilder {
     protected _tree: Tree;
     protected _toolName: ToolName;
+    protected _transformer: TreeTestResultTransformer;
 
     static create<T extends BaseTestsTreeBuilder>(
         this: new (options: BaseTestsTreeBuilderOptions) => T,
@@ -89,8 +97,10 @@ export class BaseTestsTreeBuilder {
         return new this(options);
     }
 
-    constructor({toolName}: BaseTestsTreeBuilderOptions) {
+    constructor({toolName, baseHost}: BaseTestsTreeBuilderOptions) {
         this._toolName = toolName;
+
+        this._transformer = new TreeTestResultTransformer({baseHost});
 
         this._tree = {
             suites: {byId: {}, allIds: [], allRootIds: []},
@@ -120,10 +130,9 @@ export class BaseTestsTreeBuilder {
         this._tree.suites.allRootIds.sort().forEach(sortChildSuites);
     }
 
-    addTestResult(testResult: ParsedSuitesRow, formattedResult: Pick<ReporterTestResult, 'testPath' | 'browserId' | 'attempt'>): void {
-        const {testPath, browserId: browserName, attempt} = formattedResult;
-        const {imagesInfo} = testResult;
-        const {browserVersion = BrowserVersions.UNKNOWN} = testResult.metaInfo as {browserVersion: string};
+    addTestResult(formattedResult: ReporterTestResult): void {
+        const {testPath, browserId: browserName, attempt, imagesInfo = []} = formattedResult;
+        const {browserVersion = BrowserVersions.UNKNOWN} = formattedResult.meta as {browserVersion: string};
 
         const suiteId = this._buildId(testPath);
         const browserId = this._buildId(suiteId, browserName);
@@ -134,7 +143,7 @@ export class BaseTestsTreeBuilder {
 
         this._addSuites(testPath, browserId);
         this._addBrowser({id: browserId, parentId: suiteId, name: browserName, version: browserVersion}, testResultId, attempt);
-        this._addResult({id: testResultId, parentId: browserId, result: testResult}, imageIds);
+        this._addResult({id: testResultId, parentId: browserId, result: formattedResult}, imageIds);
         this._addImages(imageIds, {imagesInfo, parentId: testResultId});
 
         this._setStatusForBranch(testPath);
@@ -217,13 +226,13 @@ export class BaseTestsTreeBuilder {
     }
 
     protected _addResult({id, parentId, result}: ResultPayload, imageIds: string[]): void {
-        const resultWithoutImagesInfo = _.omit(result, 'imagesInfo');
+        const treeResult = this._transformer.transform(result);
 
         if (!this._tree.results.byId[id]) {
             this._tree.results.allIds.push(id);
         }
 
-        this._tree.results.byId[id] = {attempt: 0, id, parentId, ...resultWithoutImagesInfo, imageIds};
+        this._tree.results.byId[id] = {attempt: 0, id, parentId, ...treeResult, imageIds};
     }
 
     protected _addImages(imageIds: string[], {imagesInfo, parentId}: ImagesPayload): void {

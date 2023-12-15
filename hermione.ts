@@ -93,7 +93,8 @@ async function handleTestResults(hermione: Hermione, reportBuilder: StaticReport
         hermione.on(hermione.events.TEST_PASS, testResult => {
             promises.push(queue.add(async () => {
                 const formattedResult = formatTestResult(testResult, SUCCESS, UNKNOWN_ATTEMPT, reportBuilder);
-                await reportBuilder.addSuccess(formattedResult);
+
+                await reportBuilder.addTestResult(formattedResult);
             }).catch(reject));
         });
 
@@ -103,8 +104,10 @@ async function handleTestResults(hermione: Hermione, reportBuilder: StaticReport
 
                 const formattedResult = formatTestResult(testResult, status, UNKNOWN_ATTEMPT, reportBuilder);
 
-                await reportBuilder.addFail(formattedResult);
-            }).catch(reject));
+                await reportBuilder.addTestResult(formattedResult);
+            }).catch((e) => {
+                reject(e);
+            }));
         });
 
         hermione.on(hermione.events.TEST_FAIL, testResult => {
@@ -113,15 +116,17 @@ async function handleTestResults(hermione: Hermione, reportBuilder: StaticReport
 
                 const formattedResult = formatTestResult(testResult, status, UNKNOWN_ATTEMPT, reportBuilder);
 
-                await reportBuilder.addFail(formattedResult);
-            }).catch(reject));
+                await reportBuilder.addTestResult(formattedResult);
+            }).catch((e) => {
+                reject(e);
+            }));
         });
 
         hermione.on(hermione.events.TEST_PENDING, testResult => {
             promises.push(queue.add(async () => {
                 const formattedResult = formatTestResult(testResult as HermioneTestResult, SKIPPED, UNKNOWN_ATTEMPT, reportBuilder);
 
-                await reportBuilder.addSkipped(formattedResult);
+                await reportBuilder.addTestResult(formattedResult);
             }).catch(reject));
         });
 

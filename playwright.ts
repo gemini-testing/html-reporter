@@ -10,9 +10,9 @@ import {StaticReportBuilder} from './lib/report-builder/static';
 import {HtmlReporter} from './lib/plugin-api';
 import {ReporterConfig} from './lib/types';
 import {parseConfig} from './lib/config';
-import {PluginEvents, TestStatus, ToolName} from './lib/constants';
+import {PluginEvents, ToolName} from './lib/constants';
 import {RegisterWorkers} from './lib/workers/create-workers';
-import {PlaywrightTestAdapter, getStatus} from './lib/test-adapter/playwright';
+import {PlaywrightTestAdapter} from './lib/test-adapter/playwright';
 import {SqliteClient} from './lib/sqlite-client';
 
 export {ReporterConfig} from './lib/types';
@@ -55,20 +55,9 @@ class MyReporter implements Reporter {
 
             const staticReportBuilder = this._staticReportBuilder as StaticReportBuilder;
 
-            const status = getStatus(result);
             const formattedResult = new PlaywrightTestAdapter(test, result, {imagesInfoFormatter: staticReportBuilder.imageHandler});
 
-            if (status === TestStatus.FAIL) {
-                if (formattedResult.status === TestStatus.FAIL) {
-                    await staticReportBuilder.addFail(formattedResult);
-                } else {
-                    await staticReportBuilder.addError(formattedResult);
-                }
-            } else if (status === TestStatus.SUCCESS) {
-                await staticReportBuilder.addSuccess(formattedResult);
-            } else if (status === TestStatus.SKIPPED) {
-                await staticReportBuilder.addSkipped(formattedResult);
-            }
+            await staticReportBuilder.addTestResult(formattedResult);
         });
     }
 

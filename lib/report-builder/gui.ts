@@ -1,16 +1,13 @@
-import * as _ from 'lodash';
-import {StaticReportBuilder} from './static';
+import _ from 'lodash';
+import {StaticReportBuilder, StaticReportBuilderOptions} from './static';
 import {GuiTestsTreeBuilder, TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../tests-tree-builder/gui';
-import {
-    IDLE, RUNNING, UPDATED, TestStatus, DB_COLUMNS, ToolName, HERMIONE_TITLE_DELIMITER
-} from '../constants';
+import {UPDATED, DB_COLUMNS, ToolName, HERMIONE_TITLE_DELIMITER, SKIPPED} from '../constants';
 import {ConfigForStaticFile, getConfigForStaticFile} from '../server-utils';
 import {ReporterTestResult} from '../test-adapter';
-import {PreparedTestResult} from '../sqlite-client';
 import {Tree, TreeImage} from '../tests-tree-builder/base';
-import {ImageInfoWithState, ReporterConfig} from '../types';
+import {ImageInfoFull, ImageInfoWithState, ReporterConfig} from '../types';
 import {isUpdatedStatus} from '../common-utils';
-import {HtmlReporterValues} from '../plugin-api';
+import {HtmlReporter, HtmlReporterValues} from '../plugin-api';
 import {SkipItem} from '../tests-tree-builder/static';
 import {copyAndUpdate} from '../test-adapter/utils';
 
@@ -36,36 +33,11 @@ export class GuiReportBuilder extends StaticReportBuilder {
     private _skips: SkipItem[];
     private _apiValues?: HtmlReporterValues;
 
-    constructor(...args: ConstructorParameters<typeof StaticReportBuilder>) {
-        super(...args);
+    constructor(htmlReporter: HtmlReporter, pluginConfig: ReporterConfig, options: StaticReportBuilderOptions) {
+        super(htmlReporter, pluginConfig, options);
 
-        this._testsTree = GuiTestsTreeBuilder.create({toolName: ToolName.Hermione});
+        this._testsTree = GuiTestsTreeBuilder.create({toolName: ToolName.Hermione, baseHost: pluginConfig.baseHost});
         this._skips = [];
-    }
-
-    async addIdle(result: ReporterTestResult): Promise<ReporterTestResult> {
-        return this._addTestResult(result, {status: IDLE});
-    }
-
-    async addRunning(result: ReporterTestResult): Promise<ReporterTestResult> {
-        return this._addTestResult(result, {status: RUNNING});
-    }
-
-    override async addSkipped(result: ReporterTestResult): Promise<ReporterTestResult> {
-        const formattedResult = await super.addSkipped(result);
-        const {
-            fullName: suite,
-            skipReason: comment,
-            browserId: browser
-        } = formattedResult;
-
-        this._skips.push({suite, browser, comment});
-
-        return formattedResult;
-    }
-
-    async addUpdated(result: ReporterTestResult): Promise<ReporterTestResult> {
-        return this._addTestResult(result, {status: UPDATED});
     }
 
     setApiValues(values: HtmlReporterValues): this {
@@ -114,8 +86,7 @@ export class GuiReportBuilder extends StaticReportBuilder {
 
     undoAcceptImage(testResultWithoutAttempt: ReporterTestResult, stateName: string): UndoAcceptImageResult | null {
         const attempt = this._testAttemptManager.getCurrentAttempt(testResultWithoutAttempt);
-        const imagesInfoFormatter = this.imageHandler;
-        const testResult = copyAndUpdate(testResultWithoutAttempt, {attempt}, {imagesInfoFormatter});
+        const testResult = copyAndUpdate(testResultWithoutAttempt, {attempt});
 
         const resultId = testResult.id;
         const suitePath = testResult.testPath;
@@ -150,7 +121,7 @@ export class GuiReportBuilder extends StaticReportBuilder {
             updatedImage = this._testsTree.updateImageInfo(imageId, previousImage);
         }
 
-        const newResult = copyAndUpdate(testResult, {attempt: this._testAttemptManager.getCurrentAttempt(testResult)}, {imagesInfoFormatter});
+        const newResult = copyAndUpdate(testResult, {attempt: this._testAttemptManager.getCurrentAttempt(testResult)});
 
         this._deleteTestResultFromDb({where: [
             `${DB_COLUMNS.SUITE_PATH} = ?`,
@@ -163,43 +134,43 @@ export class GuiReportBuilder extends StaticReportBuilder {
         return {updatedImage, removedResult, previousExpectedPath, shouldRemoveReference, shouldRevertReference, newResult};
     }
 
-    protected override async _addTestResult(formattedResultOriginal: ReporterTestResult, props: {status: TestStatus} & Partial<PreparedTestResult>): Promise<ReporterTestResult> {
-        const formattedResult = await super._addTestResult(formattedResultOriginal, props);
+    override async addTestResult(formattedResultOriginal: ReporterTestResult): Promise<ReporterTestResult> {
+        const formattedResult = await super.addTestResult(formattedResultOriginal);
 
-        const testResult = this._createTestResult(formattedResult, {
-            ...props,
-            timestamp: formattedResult.timestamp ?? 0,
-            attempt: formattedResult.attempt
-        });
+        if (formattedResult.status === SKIPPED) {
+            const {
+                fullName: suite,
+                skipReason: comment,
+                browserId: browser
+            } = formattedResult;
 
-        this._extendTestWithImagePaths(testResult, formattedResult);
+            this._skips.push({suite, browser, comment});
+        }
 
-        this._testsTree.addTestResult(testResult, formattedResult);
+        const formattedResultWithImagePaths = this._extendTestWithImagePaths(formattedResult);
 
-        return formattedResult;
+        this._testsTree.addTestResult(formattedResultWithImagePaths);
+
+        return formattedResultWithImagePaths;
     }
 
-    private _extendTestWithImagePaths(testResult: PreparedTestResult, formattedResult: ReporterTestResult): void {
-        const newImagesInfo = formattedResult.imagesInfo;
-        const imagesInfoFormatter = this._imageHandler;
-
-        if (testResult.status !== UPDATED) {
-            _.set(testResult, 'imagesInfo', newImagesInfo);
-            return;
+    private _extendTestWithImagePaths(formattedResult: ReporterTestResult): ReporterTestResult {
+        if (formattedResult.status !== UPDATED) {
+            return formattedResult;
         }
 
-        const failResultId = copyAndUpdate(formattedResult, {attempt: formattedResult.attempt - 1}, {imagesInfoFormatter}).id;
-        const failImagesInfo = this._testsTree.getImagesInfo(failResultId);
+        const failResultId = copyAndUpdate(formattedResult, {attempt: formattedResult.attempt - 1}).id;
+        const failImagesInfo = _.clone(this._testsTree.getImagesInfo(failResultId)) as ImageInfoFull[];
 
         if (failImagesInfo.length) {
-            testResult.imagesInfo = _.clone(failImagesInfo);
-
-            newImagesInfo?.forEach((imageInfo) => {
+            formattedResult.imagesInfo?.forEach((imageInfo) => {
                 const {stateName} = imageInfo as ImageInfoWithState;
-                let index = _.findIndex(testResult.imagesInfo, {stateName});
-                index = index >= 0 ? index : _.findLastIndex(testResult.imagesInfo);
-                testResult.imagesInfo[index] = imageInfo;
+                let index = _.findIndex(failImagesInfo, {stateName});
+                index = index >= 0 ? index : _.findLastIndex(failImagesInfo);
+                failImagesInfo[index] = imageInfo;
             });
         }
+
+        return copyAndUpdate(formattedResult, {imagesInfo: failImagesInfo});
     }
 }

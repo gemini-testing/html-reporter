@@ -56,8 +56,6 @@ export class HermioneTestAdapter implements ReporterTestResult {
         this._attempt = attempt;
     }
 
-    image?: boolean;
-
     get fullName(): string {
         return this._testResult.fullTitle();
     }

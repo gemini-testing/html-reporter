@@ -3,14 +3,12 @@ import {ReporterTestResult} from '../index';
 import {TupleToUnion} from 'type-fest';
 import {ErrorDetails} from '../../types';
 import {ERROR_DETAILS_PATH} from '../../constants';
-import * as utils from '../../server-utils';
 import {ReporterTestAdapter} from '../reporter';
-import {ImagesInfoFormatter} from '../../image-handler';
+import {getDetailsFileName} from '../../common-utils';
 
 export const copyAndUpdate = (
     original: ReporterTestResult,
-    updates: Partial<ReporterTestResult>,
-    {imagesInfoFormatter}: {imagesInfoFormatter: ImagesInfoFormatter}
+    updates: Partial<ReporterTestResult>
 ): ReporterTestResult => {
     const keys = [
         'assertViewResults',
@@ -23,7 +21,6 @@ export const copyAndUpdate = (
         'fullName',
         'history',
         'id',
-        'image',
         'imageDir',
         'imagesInfo',
         'meta',
@@ -48,7 +45,7 @@ export const copyAndUpdate = (
 
     const updatedTestResult = _.assign({}, _.pick(original, keysTypeChecked) as ReporterTestResult, updates);
 
-    return new ReporterTestAdapter(updatedTestResult, {imagesInfoFormatter});
+    return new ReporterTestAdapter(updatedTestResult);
 };
 
 export const extractErrorDetails = (testResult: ReporterTestResult): ErrorDetails | null => {
@@ -58,11 +55,15 @@ export const extractErrorDetails = (testResult: ReporterTestResult): ErrorDetail
         return {
             title: details.title || 'error details',
             data: details.data,
-            filePath: `${ERROR_DETAILS_PATH}/${utils.getDetailsFileName(
+            filePath: `${ERROR_DETAILS_PATH}/${getDetailsFileName(
                 testResult.imageDir, testResult.browserId, testResult.attempt
             )}`
         };
     }
 
     return null;
+};
+
+export const getTestHash = (testResult: ReporterTestResult): string => {
+    return testResult.testPath.concat(testResult.browserId, testResult.attempt.toString()).join(' ');
 };

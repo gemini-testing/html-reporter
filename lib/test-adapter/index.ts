@@ -8,16 +8,15 @@ export interface ReporterTestResult {
     readonly attempt: number;
     readonly browserId: string;
     readonly description: string | undefined;
-    error: undefined | TestError;
+    readonly error: undefined | TestError;
     readonly errorDetails: ErrorDetails | null;
     readonly file: string;
     readonly fullName: string;
     readonly history: string[];
     readonly id: string;
-    image?: boolean;
     readonly imageDir: string;
     readonly imagesInfo: ImageInfoFull[] | undefined;
-    readonly meta: Record<string, unknown>;
+    readonly meta: {browserVersion?: string} & Record<string, unknown>;
     readonly multipleTabs: boolean;
     readonly screenshot: ImageBase64 | ImageData | null | undefined;
     readonly sessionId: string;

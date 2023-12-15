@@ -1,7 +1,10 @@
 import _ from 'lodash';
 import {BaseTestsTreeBuilder, BaseTestsTreeBuilderOptions, Tree} from './base';
 import {BrowserVersions, DB_COLUMN_INDEXES, TestStatus} from '../constants';
-import {Attempt, ParsedSuitesRow, RawSuitesRow} from '../types';
+import {ReporterTestResult} from '../test-adapter';
+import {SqliteTestAdapter} from '../test-adapter/sqlite';
+import {getTitleDelimiter} from '../common-utils';
+import {RawSuitesRow} from '../types';
 
 interface Stats {
     total: number;
@@ -67,13 +70,12 @@ export class StaticTestsTreeBuilder extends BaseTestsTreeBuilder {
             attemptsMap.set(browserId, attemptsMap.has(browserId) ? attemptsMap.get(browserId) as number + 1 : 0);
             const attempt = attemptsMap.get(browserId) as number;
 
-            const testResult = mkTestResult(row, {attempt});
-            const formattedResult = {browserId: browserName, testPath, attempt};
+            const formattedResult = new SqliteTestAdapter(row, attempt, {titleDelimiter: getTitleDelimiter(this._toolName)});
 
-            addBrowserVersion(browsers, testResult);
+            addBrowserVersion(browsers, formattedResult);
 
-            this.addTestResult(testResult, formattedResult);
-            this._calcStats(testResult, {testId, browserName});
+            this.addTestResult(formattedResult);
+            this._calcStats(formattedResult, {testId, browserName});
         }
 
         this.sortTree();
@@ -90,10 +92,10 @@ export class StaticTestsTreeBuilder extends BaseTestsTreeBuilder {
         this._tree.browsers.byId[browserId].resultIds.push(testResultId);
     }
 
-    protected _calcStats(testResult: ParsedSuitesRow, {testId, browserName}: { testId: string; browserName: string }): void {
+    protected _calcStats(testResult: ReporterTestResult, {testId, browserName}: { testId: string; browserName: string }): void {
         const testIdWithBrowser = this._buildId(testId, browserName);
         const {status} = testResult;
-        const {browserVersion} = testResult.metaInfo;
+        const {browserVersion} = testResult.meta;
         const version = browserVersion || BrowserVersions.UNKNOWN;
 
         if (!this._stats.perBrowser[browserName]) {
@@ -191,33 +193,13 @@ function initStats(): Stats {
     };
 }
 
-function mkTestResult(row: RawSuitesRow, data: {attempt: number}): ParsedSuitesRow & Attempt {
-    return {
-        description: row[DB_COLUMN_INDEXES.description] as string | null,
-        imagesInfo: JSON.parse(row[DB_COLUMN_INDEXES.imagesInfo] as string),
-        metaInfo: JSON.parse(row[DB_COLUMN_INDEXES.metaInfo] as string),
-        history: JSON.parse(row[DB_COLUMN_INDEXES.history] as string),
-        multipleTabs: Boolean(row[DB_COLUMN_INDEXES.multipleTabs]),
-        name: row[DB_COLUMN_INDEXES.name] as string,
-        screenshot: Boolean(row[DB_COLUMN_INDEXES.screenshot]),
-        status: row[DB_COLUMN_INDEXES.status] as TestStatus,
-        suiteName: row[DB_COLUMN_INDEXES.suiteName] as string,
-        suitePath: JSON.parse(row[DB_COLUMN_INDEXES.suitePath] as string),
-        suiteUrl: row[DB_COLUMN_INDEXES.suiteUrl] as string,
-        skipReason: row[DB_COLUMN_INDEXES.skipReason] as string,
-        error: JSON.parse(row[DB_COLUMN_INDEXES.error] as string),
-        timestamp: Number(row[DB_COLUMN_INDEXES.timestamp]),
-        ...data
-    };
-}
-
-function addBrowserVersion(browsers: Record<string, Set<string>>, testResult: ParsedSuitesRow): void {
-    const browserId = testResult.name;
+function addBrowserVersion(browsers: Record<string, Set<string>>, testResult: ReporterTestResult): void {
+    const {browserId} = testResult;
 
     if (!browsers[browserId]) {
         browsers[browserId] = new Set();
     }
 
-    const {browserVersion = BrowserVersions.UNKNOWN} = testResult.metaInfo;
+    const {browserVersion = BrowserVersions.UNKNOWN} = testResult.meta;
     browsers[browserId].add(browserVersion);
 }

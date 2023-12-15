@@ -33,7 +33,7 @@ export const subscribeOnToolEvents = (hermione: Hermione, reportBuilder: GuiRepo
         queue.add(async () => {
             const formattedResultWithoutAttempt = formatTestResult(data as HermioneTestResult, RUNNING, UNKNOWN_ATTEMPT, reportBuilder);
 
-            const formattedResult = await reportBuilder.addRunning(formattedResultWithoutAttempt);
+            const formattedResult = await reportBuilder.addTestResult(formattedResultWithoutAttempt);
             const testBranch = reportBuilder.getTestBranch(formattedResult.id);
 
             return client.emit(ClientEvents.BEGIN_STATE, testBranch);
@@ -44,7 +44,7 @@ export const subscribeOnToolEvents = (hermione: Hermione, reportBuilder: GuiRepo
         queue.add(async () => {
             const formattedResultWithoutAttempt = formatTestResult(testResult, SUCCESS, UNKNOWN_ATTEMPT, reportBuilder);
 
-            const formattedResult = await reportBuilder.addSuccess(formattedResultWithoutAttempt);
+            const formattedResult = await reportBuilder.addTestResult(formattedResultWithoutAttempt);
 
             const testBranch = reportBuilder.getTestBranch(formattedResult.id);
             client.emit(ClientEvents.TEST_RESULT, testBranch);
@@ -57,7 +57,7 @@ export const subscribeOnToolEvents = (hermione: Hermione, reportBuilder: GuiRepo
 
             const formattedResultWithoutAttempt = formatTestResult(testResult, status, UNKNOWN_ATTEMPT, reportBuilder);
 
-            const formattedResult = await reportBuilder.addRetry(formattedResultWithoutAttempt);
+            const formattedResult = await reportBuilder.addTestResult(formattedResultWithoutAttempt);
 
             const testBranch = reportBuilder.getTestBranch(formattedResult.id);
             client.emit(ClientEvents.TEST_RESULT, testBranch);
@@ -70,9 +70,7 @@ export const subscribeOnToolEvents = (hermione: Hermione, reportBuilder: GuiRepo
 
             const formattedResultWithoutAttempt = formatTestResult(testResult, status, UNKNOWN_ATTEMPT, reportBuilder);
 
-            const formattedResult = status === TestStatus.FAIL
-                ? await reportBuilder.addFail(formattedResultWithoutAttempt)
-                : await reportBuilder.addError(formattedResultWithoutAttempt);
+            const formattedResult = await reportBuilder.addTestResult(formattedResultWithoutAttempt);
 
             const testBranch = reportBuilder.getTestBranch(formattedResult.id);
             client.emit(ClientEvents.TEST_RESULT, testBranch);
@@ -83,7 +81,7 @@ export const subscribeOnToolEvents = (hermione: Hermione, reportBuilder: GuiRepo
         queue.add(async () => {
             const formattedResultWithoutAttempt = formatTestResult(testResult as HermioneTestResult, SKIPPED, UNKNOWN_ATTEMPT, reportBuilder);
 
-            const formattedResult = await reportBuilder.addSkipped(formattedResultWithoutAttempt);
+            const formattedResult = await reportBuilder.addTestResult(formattedResultWithoutAttempt);
 
             const testBranch = reportBuilder.getTestBranch(formattedResult.id);
             client.emit(ClientEvents.TEST_RESULT, testBranch);

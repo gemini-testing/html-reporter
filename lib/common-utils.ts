@@ -1,13 +1,26 @@
 import crypto from 'crypto';
-import {pick, isEmpty} from 'lodash';
+import {isEmpty, pick} from 'lodash';
 import url from 'url';
 import axios, {AxiosRequestConfig} from 'axios';
-import {SUCCESS, FAIL, ERROR, SKIPPED, UPDATED, IDLE, RUNNING, QUEUED, TestStatus} from './constants';
+import {
+    ERROR,
+    FAIL,
+    HERMIONE_TITLE_DELIMITER,
+    IDLE, PWT_TITLE_DELIMITER,
+    QUEUED,
+    RUNNING,
+    SKIPPED,
+    SUCCESS,
+    TestStatus,
+    ToolName,
+    UPDATED
+} from './constants';
 
-import {UNCHECKED, INDETERMINATE, CHECKED} from './constants/checked-statuses';
-import {ImageData, ImageBase64, ImageInfoFull, TestError, ImageInfoFail} from './types';
+import {CHECKED, INDETERMINATE, UNCHECKED} from './constants/checked-statuses';
+import {ImageBase64, ImageData, ImageInfoFail, ImageInfoFull, TestError} from './types';
 import {ErrorName, ImageDiffError, NoRefImageError} from './errors';
 import {ReporterTestResult} from './test-adapter';
+
 export const getShortMD5 = (str: string): string => {
     return crypto.createHash('md5').update(str, 'ascii').digest('hex').substr(0, 7);
 };
@@ -217,3 +230,17 @@ export const isCheckboxChecked = (status: number): boolean => Number(status) ===
 export const isCheckboxIndeterminate = (status: number): boolean => Number(status) === INDETERMINATE;
 export const isCheckboxUnchecked = (status: number): boolean => Number(status) === UNCHECKED;
 export const getToggledCheckboxState = (status: number): number => isCheckboxChecked(status) ? UNCHECKED : CHECKED;
+
+export const getTitleDelimiter = (toolName: ToolName): string => {
+    if (toolName === ToolName.Hermione) {
+        return HERMIONE_TITLE_DELIMITER;
+    } else if (toolName === ToolName.Playwright) {
+        return PWT_TITLE_DELIMITER;
+    } else {
+        return HERMIONE_TITLE_DELIMITER;
+    }
+};
+
+export function getDetailsFileName(testId: string, browserId: string, attempt: number): string {
+    return `${testId}-${browserId}_${Number(attempt) + 1}_${Date.now()}.json`;
+}
