@@ -2,16 +2,21 @@ import _ from 'lodash';
 import path from 'path';
 
 import {getCommandsHistory} from '../history-utils';
-import {TestStatus} from '../constants';
-import {wrapLinkByTag} from '../common-utils';
+import {ERROR, FAIL, SUCCESS, TestStatus, UPDATED} from '../constants';
+import {getError, isImageDiffError, isNoRefImageError, wrapLinkByTag} from '../common-utils';
 import {
-    AssertViewResult,
     ErrorDetails,
     ImageBase64,
     ImageInfoFull,
-    HermioneTestResult, HermioneSuite, TestError
+    HermioneTestResult,
+    HermioneSuite,
+    TestError,
+    ImageInfoDiff,
+    ImageInfoNoRef,
+    ImageInfoSuccess,
+    ImageFile,
+    ImageInfoPageError, ImageInfoPageSuccess, ImageInfoUpdated
 } from '../types';
-import {ImagesInfoFormatter} from '../image-handler';
 import {ReporterTestResult} from './index';
 import {getSuitePath} from '../plugin-utils';
 import {extractErrorDetails} from './utils';
@@ -27,11 +32,9 @@ const wrapSkipComment = (skipComment: string | null | undefined): string => {
 export interface HermioneTestAdapterOptions {
     attempt: number;
     status: TestStatus;
-    imagesInfoFormatter: ImagesInfoFormatter;
 }
 
 export class HermioneTestAdapter implements ReporterTestResult {
-    private _imagesInfoFormatter: ImagesInfoFormatter;
     private _testResult: HermioneTestResult;
     private _errorDetails: ErrorDetails | null;
     private _timestamp: number | undefined;
@@ -42,8 +45,7 @@ export class HermioneTestAdapter implements ReporterTestResult {
         return new this(testResult, options);
     }
 
-    constructor(testResult: HermioneTestResult, {attempt, status, imagesInfoFormatter}: HermioneTestAdapterOptions) {
-        this._imagesInfoFormatter = imagesInfoFormatter;
+    constructor(testResult: HermioneTestResult, {attempt, status}: HermioneTestAdapterOptions) {
         this._testResult = testResult;
         this._errorDetails = null;
         this._timestamp = this._testResult.timestamp ?? this._testResult.startTime ?? Date.now();
@@ -76,16 +78,64 @@ export class HermioneTestAdapter implements ReporterTestResult {
         return this._testResult.browserId;
     }
 
-    get imagesInfo(): ImageInfoFull[] | undefined {
-        return this._imagesInfoFormatter.getImagesInfo(this);
+    get imagesInfo(): ImageInfoFull[] {
+        const {assertViewResults = []} = this._testResult;
+
+        const imagesInfo: ImageInfoFull[] = assertViewResults.map((assertResult): ImageInfoFull => {
+            if (isImageDiffError(assertResult)) {
+                const diffBufferImg = assertResult.diffBuffer ? {buffer: assertResult.diffBuffer as Buffer} : undefined;
+                const diffImg = assertResult.diffImg ?? diffBufferImg;
+
+                return {
+                    status: FAIL,
+                    stateName: assertResult.stateName,
+                    refImg: assertResult.refImg,
+                    actualImg: assertResult.currImg,
+                    ...(diffImg ? {diffImg} : {}),
+                    expectedImg: assertResult.refImg,
+                    diffClusters: assertResult.diffClusters,
+                    diffOptions: assertResult.diffOpts
+                } satisfies ImageInfoDiff;
+            } else if (isNoRefImageError(assertResult)) {
+                return {
+                    status: ERROR,
+                    stateName: assertResult.stateName,
+                    error: _.pick(assertResult, ['message', 'name', 'stack']),
+                    refImg: assertResult.refImg,
+                    actualImg: assertResult.currImg
+                } satisfies ImageInfoNoRef;
+            } else if ((assertResult as {isUpdated?: boolean}).isUpdated) {
+                return {
+                    status: UPDATED,
+                    stateName: assertResult.stateName,
+                    refImg: assertResult.refImg,
+                    expectedImg: assertResult.refImg,
+                    actualImg: (assertResult as {currImg: ImageFile}).currImg
+                } satisfies ImageInfoUpdated;
+            } else {
+                const {currImg} = assertResult as {currImg?: ImageFile};
+                return {
+                    status: SUCCESS,
+                    stateName: assertResult.stateName,
+                    refImg: assertResult.refImg,
+                    expectedImg: assertResult.refImg,
+                    ...(currImg ? {actualImg: currImg} : {})
+                } satisfies ImageInfoSuccess;
+            }
+        });
+
+        if (this.screenshot) {
+            imagesInfo.push({
+                status: _.isEmpty(getError(this.error)) ? SUCCESS : ERROR,
+                actualImg: this.screenshot
+            } satisfies ImageInfoPageSuccess | ImageInfoPageError as ImageInfoPageSuccess | ImageInfoPageError);
+        }
+
+        return imagesInfo;
     }
 
     get attempt(): number {
         return this._attempt;
-    }
-
-    get assertViewResults(): AssertViewResult[] {
-        return this._testResult.assertViewResults || [];
     }
 
     get history(): string[] {
