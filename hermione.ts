@@ -118,9 +118,7 @@ async function handleTestResults(hermione: Hermione, reportBuilder: StaticReport
                 const formattedResult = formatTestResult(testResult, status, UNKNOWN_ATTEMPT);
 
                 await reportBuilder.addTestResult(formattedResult);
-            }).catch((e) => {
-                reject(e);
-            }));
+            }).catch(reject));
         });
 
         hermione.on(hermione.events.TEST_FAIL, testResult => {
@@ -130,9 +128,7 @@ async function handleTestResults(hermione: Hermione, reportBuilder: StaticReport
                 const formattedResult = formatTestResult(testResult, status, UNKNOWN_ATTEMPT);
 
                 await reportBuilder.addTestResult(formattedResult);
-            }).catch((e) => {
-                reject(e);
-            }));
+            }).catch(reject));
         });
 
         hermione.on(hermione.events.TEST_PENDING, testResult => {
