@@ -1,10 +1,10 @@
 import React, {Component} from 'react';
 import Details from '../../details';
 import ResizedScreenshot from '../../state/screenshot/resized';
-import {ImageData} from '../../../../types';
+import {ImageFile} from '../../../../types';
 
 interface PageScreenshotProps {
-    image: ImageData;
+    image: ImageFile;
 }
 
 export class PageScreenshot extends Component<PageScreenshotProps> {

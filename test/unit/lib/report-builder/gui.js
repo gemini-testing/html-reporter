@@ -12,7 +12,7 @@ const {SUCCESS, FAIL, ERROR, SKIPPED, IDLE, RUNNING, UPDATED} = require('lib/con
 const {LOCAL_DATABASE_NAME} = require('lib/constants/database');
 const {TestAttemptManager} = require('lib/test-attempt-manager');
 const {ImageDiffError} = require('../../utils');
-const {ImageHandler} = require('lib/image-handler');
+const {ImagesInfoSaver} = require('lib/images-info-saver');
 
 const TEST_REPORT_PATH = 'test';
 const TEST_DB_PATH = `${TEST_REPORT_PATH}/${LOCAL_DATABASE_NAME}`;
@@ -85,7 +85,7 @@ describe('GuiReportBuilder', () => {
 
         copyAndUpdate = sandbox.stub().callsFake(_.identity);
 
-        const imageHandler = sandbox.createStubInstance(ImageHandler);
+        const imagesInfoSaver = sandbox.createStubInstance(ImagesInfoSaver);
 
         hasImage = sandbox.stub().returns(true);
         deleteFile = sandbox.stub().resolves();
@@ -94,7 +94,7 @@ describe('GuiReportBuilder', () => {
                 StaticReportBuilder: proxyquire('lib/report-builder/static', {
                     '../sqlite-client': {SqliteClient},
                     '../image-handler': {ImageHandler: function() {
-                        return imageHandler;
+                        return imagesInfoSaver;
                     }}
                 }).StaticReportBuilder
             },

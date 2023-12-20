@@ -6,11 +6,18 @@ import stripAnsi from 'strip-ansi';
 
 import {ReporterTestResult} from './index';
 import {testsAttempts} from './cache/playwright';
-import {getShortMD5, isImageDiffError, isNoRefImageError, mkTestId} from '../common-utils';
-import {FAIL, PWT_TITLE_DELIMITER, TestStatus} from '../constants';
+import {getError, getShortMD5, isImageDiffError, isNoRefImageError, mkTestId} from '../common-utils';
+import {ERROR, FAIL, PWT_TITLE_DELIMITER, SUCCESS, TestStatus} from '../constants';
 import {ErrorName} from '../errors';
-import {ImagesInfoFormatter} from '../image-handler';
-import {AssertViewResult, ErrorDetails, ImageData, ImageInfoFull, ImageSize, TestError} from '../types';
+import {
+    DiffOptions,
+    ErrorDetails,
+    ImageFile,
+    ImageInfoDiff,
+    ImageInfoFull, ImageInfoNoRef, ImageInfoPageError, ImageInfoPageSuccess, ImageInfoSuccess,
+    ImageSize,
+    TestError
+} from '../types';
 import * as utils from '../server-utils';
 import type {CoordBounds} from 'looks-same';
 
@@ -38,6 +45,10 @@ export enum ImageTitleEnding {
 }
 
 const ANY_IMAGE_ENDING_REGEXP = new RegExp(Object.values(ImageTitleEnding).map(ending => `${ending}$`).join('|'));
+
+const DEFAULT_DIFF_OPTIONS = {
+    diffColor: '#ff00ff'
+} satisfies Partial<DiffOptions>;
 
 export const getStatus = (result: PlaywrightTestResult): TestStatus => {
     if (result.status === PwtTestStatus.PASSED) {
@@ -108,7 +119,7 @@ const extractImageError = (result: PlaywrightTestResult, {state, expectedAttachm
     } : null;
 };
 
-const getImageData = (attachment: PlaywrightAttachment | undefined): ImageData | null => {
+const getImageData = (attachment: PlaywrightAttachment | undefined): ImageFile | null => {
     if (!attachment) {
         return null;
     }
@@ -119,20 +130,14 @@ const getImageData = (attachment: PlaywrightAttachment | undefined): ImageData |
     };
 };
 
-export interface PlaywrightTestAdapterOptions {
-    imagesInfoFormatter: ImagesInfoFormatter;
-}
-
 export class PlaywrightTestAdapter implements ReporterTestResult {
     private readonly _testCase: PlaywrightTestCase;
     private readonly _testResult: PlaywrightTestResult;
     private _attempt: number;
-    private _imagesInfoFormatter: ImagesInfoFormatter;
 
-    constructor(testCase: PlaywrightTestCase, testResult: PlaywrightTestResult, {imagesInfoFormatter}: PlaywrightTestAdapterOptions) {
+    constructor(testCase: PlaywrightTestCase, testResult: PlaywrightTestResult) {
         this._testCase = testCase;
         this._testResult = testResult;
-        this._imagesInfoFormatter = imagesInfoFormatter;
 
         const testId = mkTestId(this.fullName, this.browserId);
         if (utils.shouldUpdateAttempt(this.status)) {
@@ -140,44 +145,6 @@ export class PlaywrightTestAdapter implements ReporterTestResult {
         }
 
         this._attempt = testsAttempts.get(testId) || 0;
-    }
-
-    get assertViewResults(): AssertViewResult[] {
-        return Object.entries(this._attachmentsByState).map(([state, attachments]): AssertViewResult | null => {
-            const expectedAttachment = attachments.find(a => a.name?.endsWith(ImageTitleEnding.Expected));
-            const diffAttachment = attachments.find(a => a.name?.endsWith(ImageTitleEnding.Diff));
-            const actualAttachment = attachments.find(a => a.name?.endsWith(ImageTitleEnding.Actual));
-
-            const [refImg, diffImg, currImg] = [expectedAttachment, diffAttachment, actualAttachment].map(getImageData);
-
-            const error = extractImageError(this._testResult, {state, expectedAttachment, diffAttachment, actualAttachment}) || this.error;
-
-            if (error?.name === ErrorName.IMAGE_DIFF && refImg && diffImg && currImg) {
-                return {
-                    name: ErrorName.IMAGE_DIFF,
-                    stateName: state,
-                    refImg,
-                    diffImg,
-                    currImg,
-                    diffClusters: _.get(error, 'diffClusters', [])
-                };
-            } else if (error?.name === ErrorName.NO_REF_IMAGE && currImg) {
-                return {
-                    name: ErrorName.NO_REF_IMAGE,
-                    message: error.message,
-                    stack: error.stack,
-                    stateName: state,
-                    currImg
-                };
-            } else if (!error && refImg) {
-                return {
-                    stateName: state,
-                    refImg
-                };
-            }
-
-            return null;
-        }).filter(Boolean) as AssertViewResult[];
     }
 
     get attempt(): number {
@@ -237,8 +204,57 @@ export class PlaywrightTestAdapter implements ReporterTestResult {
         return getShortMD5(this.fullName);
     }
 
-    get imagesInfo(): ImageInfoFull[] | undefined {
-        return this._imagesInfoFormatter.getImagesInfo(this);
+    get imagesInfo(): ImageInfoFull[] {
+        const imagesInfo = Object.entries(this._attachmentsByState).map(([state, attachments]): ImageInfoFull | null => {
+            const expectedAttachment = attachments.find(a => a.name?.endsWith(ImageTitleEnding.Expected));
+            const diffAttachment = attachments.find(a => a.name?.endsWith(ImageTitleEnding.Diff));
+            const actualAttachment = attachments.find(a => a.name?.endsWith(ImageTitleEnding.Actual));
+
+            const [refImg, diffImg, actualImg] = [expectedAttachment, diffAttachment, actualAttachment].map(getImageData);
+
+            const error = extractImageError(this._testResult, {state, expectedAttachment, diffAttachment, actualAttachment}) || this.error;
+
+            if (error?.name === ErrorName.IMAGE_DIFF && refImg && diffImg && actualImg) {
+                return {
+                    status: FAIL,
+                    stateName: state,
+                    refImg,
+                    diffImg,
+                    actualImg,
+                    expectedImg: refImg,
+                    diffClusters: _.get(error, 'diffClusters', []),
+                    // TODO: extract diffOptions from config
+                    diffOptions: {current: actualImg.path, reference: refImg.path, ...DEFAULT_DIFF_OPTIONS}
+                } satisfies ImageInfoDiff;
+            } else if (error?.name === ErrorName.NO_REF_IMAGE && refImg && actualImg) {
+                return {
+                    status: ERROR,
+                    stateName: state,
+                    error: _.pick(error, ['message', 'name', 'stack']),
+                    refImg,
+                    actualImg
+                } satisfies ImageInfoNoRef;
+            } else if (!error && refImg) {
+                return {
+                    status: SUCCESS,
+                    stateName: state,
+                    refImg,
+                    expectedImg: refImg,
+                    ...(actualImg ? {actualImg} : {})
+                } satisfies ImageInfoSuccess;
+            }
+
+            return null;
+        }).filter((value): value is ImageInfoFull => value !== null);
+
+        if (this.screenshot) {
+            imagesInfo.push({
+                status: _.isEmpty(getError(this.error)) ? SUCCESS : ERROR,
+                actualImg: this.screenshot
+            } satisfies ImageInfoPageSuccess | ImageInfoPageError as ImageInfoPageSuccess | ImageInfoPageError);
+        }
+
+        return imagesInfo;
     }
 
     get meta(): Record<string, unknown> {
@@ -249,7 +265,7 @@ export class PlaywrightTestAdapter implements ReporterTestResult {
         return true;
     }
 
-    get screenshot(): ImageData | null {
+    get screenshot(): ImageFile | null {
         const pageScreenshot = this._testResult.attachments.find(a => a.contentType === 'image/png' && a.name === 'screenshot');
 
         return getImageData(pageScreenshot);

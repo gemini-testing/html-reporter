@@ -1,9 +1,9 @@
 import {TestStatus} from '../constants';
-import {AssertViewResult, TestError, ErrorDetails, ImageInfoFull, ImageBase64, ImageData} from '../types';
+import {TestError, ErrorDetails, ImageInfoFull, ImageBase64, ImageFile} from '../types';
 import {ReporterTestResult} from './index';
 import _ from 'lodash';
-import {extractErrorDetails, getTestHash} from './utils';
-import {getShortMD5} from '../common-utils';
+import {extractErrorDetails} from './utils';
+import {getShortMD5, getTestHash} from '../common-utils';
 
 // This class is primarily useful when cloning ReporterTestResult.
 // It allows to override some properties while keeping computable
@@ -16,10 +16,6 @@ export class ReporterTestAdapter implements ReporterTestResult {
     constructor(testResult: ReporterTestResult) {
         this._testResult = testResult;
         this._errorDetails = null;
-    }
-
-    get assertViewResults(): AssertViewResult[] {
-        return this._testResult.assertViewResults;
     }
 
     get attempt(): number {
@@ -68,7 +64,7 @@ export class ReporterTestAdapter implements ReporterTestResult {
         return getShortMD5(this.fullName);
     }
 
-    get imagesInfo(): ImageInfoFull[] | undefined {
+    get imagesInfo(): ImageInfoFull[] {
         return this._testResult.imagesInfo;
     }
 
@@ -80,7 +76,7 @@ export class ReporterTestAdapter implements ReporterTestResult {
         return this._testResult.multipleTabs;
     }
 
-    get screenshot(): ImageBase64 | ImageData | null | undefined {
+    get screenshot(): ImageBase64 | ImageFile | null | undefined {
         return this.error?.screenshot;
     }
 

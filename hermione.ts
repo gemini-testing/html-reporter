@@ -11,10 +11,13 @@ import {parseConfig} from './lib/config';
 import {SKIPPED, SUCCESS, TestStatus, ToolName, UNKNOWN_ATTEMPT} from './lib/constants';
 import {HtmlReporter} from './lib/plugin-api';
 import {StaticReportBuilder} from './lib/report-builder/static';
-import {formatTestResult, logPathToHtmlReport, logError} from './lib/server-utils';
+import {formatTestResult, logPathToHtmlReport, logError, getExpectedCacheKey} from './lib/server-utils';
 import {SqliteClient} from './lib/sqlite-client';
-import {HtmlReporterApi, ImageInfoFull, ReporterOptions} from './lib/types';
+import {HtmlReporterApi, ImageInfoFull, ReporterOptions, TestSpecByPath} from './lib/types';
 import {createWorkers, CreateWorkersRunner} from './lib/workers/create-workers';
+import {SqliteImageStore} from './lib/image-store';
+import {Cache} from './lib/cache';
+import {ImagesInfoSaver} from './lib/images-info-saver';
 
 export = (hermione: Hermione, opts: Partial<ReporterOptions>): void => {
     if (hermione.isWorker() || !opts.enabled) {
@@ -56,7 +59,17 @@ export = (hermione: Hermione, opts: Partial<ReporterOptions>): void => {
 
     hermione.on(hermione.events.INIT, withMiddleware(async () => {
         const dbClient = await SqliteClient.create({htmlReporter, reportPath: config.path});
-        staticReportBuilder = StaticReportBuilder.create(htmlReporter, config, {dbClient});
+        const imageStore = new SqliteImageStore(dbClient);
+        const expectedPathsCache = new Cache<[TestSpecByPath, string | undefined], string>(getExpectedCacheKey);
+
+        const imagesInfoSaver = new ImagesInfoSaver({
+            imageFileSaver: htmlReporter.imagesSaver,
+            expectedPathsCache,
+            imageStore,
+            reportPath: htmlReporter.config.path
+        });
+
+        staticReportBuilder = StaticReportBuilder.create(htmlReporter, config, {dbClient, imagesInfoSaver});
 
         handlingTestResults = Promise.all([
             staticReportBuilder.saveStaticFiles(),
@@ -92,7 +105,7 @@ async function handleTestResults(hermione: Hermione, reportBuilder: StaticReport
 
         hermione.on(hermione.events.TEST_PASS, testResult => {
             promises.push(queue.add(async () => {
-                const formattedResult = formatTestResult(testResult, SUCCESS, UNKNOWN_ATTEMPT, reportBuilder);
+                const formattedResult = formatTestResult(testResult, SUCCESS, UNKNOWN_ATTEMPT);
 
                 await reportBuilder.addTestResult(formattedResult);
             }).catch(reject));
@@ -102,7 +115,7 @@ async function handleTestResults(hermione: Hermione, reportBuilder: StaticReport
             promises.push(queue.add(async () => {
                 const status = hasFailedImages(testResult.assertViewResults as ImageInfoFull[]) ? TestStatus.FAIL : TestStatus.ERROR;
 
-                const formattedResult = formatTestResult(testResult, status, UNKNOWN_ATTEMPT, reportBuilder);
+                const formattedResult = formatTestResult(testResult, status, UNKNOWN_ATTEMPT);
 
                 await reportBuilder.addTestResult(formattedResult);
             }).catch((e) => {
@@ -114,7 +127,7 @@ async function handleTestResults(hermione: Hermione, reportBuilder: StaticReport
             promises.push(queue.add(async () => {
                 const status = hasFailedImages(testResult.assertViewResults as ImageInfoFull[]) ? TestStatus.FAIL : TestStatus.ERROR;
 
-                const formattedResult = formatTestResult(testResult, status, UNKNOWN_ATTEMPT, reportBuilder);
+                const formattedResult = formatTestResult(testResult, status, UNKNOWN_ATTEMPT);
 
                 await reportBuilder.addTestResult(formattedResult);
             }).catch((e) => {
@@ -124,7 +137,7 @@ async function handleTestResults(hermione: Hermione, reportBuilder: StaticReport
 
         hermione.on(hermione.events.TEST_PENDING, testResult => {
             promises.push(queue.add(async () => {
-                const formattedResult = formatTestResult(testResult as HermioneTestResult, SKIPPED, UNKNOWN_ATTEMPT, reportBuilder);
+                const formattedResult = formatTestResult(testResult as HermioneTestResult, SKIPPED, UNKNOWN_ATTEMPT);
 
                 await reportBuilder.addTestResult(formattedResult);
             }).catch(reject));

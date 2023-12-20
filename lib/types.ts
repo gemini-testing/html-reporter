@@ -15,7 +15,7 @@ export interface HermioneTestResult extends HermioneTestResultOriginal {
     timestamp?: number;
 }
 
-export interface ImagesSaver {
+export interface ImageFileSaver {
     saveImg: (localFilePath: string, options: {destPath: string; reportDir: string}) => string | Promise<string>;
 }
 
@@ -34,9 +34,13 @@ export interface ImageSize {
     height: number;
 }
 
-export interface ImageData {
+export interface ImageFile {
     path: string;
     size: ImageSize;
+}
+
+export interface ImageBuffer {
+    buffer: Buffer;
 }
 
 export interface ImageBase64 {
@@ -50,63 +54,81 @@ export interface DiffOptions extends LooksSameOptions {
     diffColor: string;
 }
 
-export interface ImageInfoFail {
-    status: TestStatus.FAIL;
-    stateName: string;
-    refImg?: ImageData;
-    diffClusters?: CoordBounds[];
-    expectedImg: ImageData;
-    actualImg: ImageData;
-    diffImg: ImageData;
-}
-
-interface AssertViewSuccess {
-    stateName: string;
-    refImg: ImageData;
-}
-
-export interface ImageInfoSuccess {
-    status: TestStatus.SUCCESS | TestStatus.UPDATED;
-    stateName: string;
-    refImg?: ImageData;
-    diffClusters?: CoordBounds[];
-    expectedImg: ImageData;
-    actualImg?: ImageData;
-}
-
-export interface ImageInfoPageSuccess {
-    status: TestStatus.SUCCESS;
-    actualImg: ImageData;
-}
-
-export interface ImageInfoError {
-    status: TestStatus.ERROR;
-    error?: {message: string; stack: string;}
-    stateName?: string;
-    refImg?: ImageData;
-    diffClusters?: CoordBounds[];
-    actualImg: ImageData;
-}
-
-export type ImageInfoWithState = ImageInfoFail | ImageInfoSuccess | ImageInfoError;
-
-export type ImageInfoFull = ImageInfoFail | ImageInfoSuccess | ImageInfoError | ImageInfoPageSuccess;
-
-export type ImageInfo =
-    | Omit<ImageInfoFail, 'status' | 'stateName'>
-    | Omit<ImageInfoSuccess, 'status' | 'stateName'>
-    | Omit<ImageInfoError, 'status' | 'stateName'>
-    | Omit<ImageInfoPageSuccess, 'status' | 'stateName'>;
-
-export type AssertViewResult = (AssertViewSuccess | ImageDiffError | NoRefImageError) & {isUpdated?: boolean};
-
 export interface TestError {
     name: string;
     message: string;
     stack?: string;
     stateName?: string;
     details?: ErrorDetails
-    screenshot?: ImageBase64 | ImageData
+    screenshot?: ImageBase64 | ImageFile
+}
+
+export interface ImageInfoDiff {
+    status: TestStatus.FAIL;
+    stateName: string;
+    refImg: ImageFile;
+    diffClusters?: CoordBounds[];
+    expectedImg: ImageFile;
+    actualImg: ImageFile;
+    diffImg?: ImageFile | ImageBuffer;
+    diffOptions: DiffOptions;
+}
+
+interface AssertViewSuccess {
+    stateName: string;
+    refImg: ImageFile;
+}
+
+export interface ImageInfoSuccess {
+    status: TestStatus.SUCCESS;
+    stateName: string;
+    refImg?: ImageFile;
+    diffClusters?: CoordBounds[];
+    expectedImg: ImageFile;
+    actualImg?: ImageFile;
+}
+
+export interface ImageInfoPageSuccess {
+    status: TestStatus.SUCCESS;
+    actualImg: ImageFile | ImageBase64;
+}
+
+export interface ImageInfoPageError {
+    status: TestStatus.ERROR;
+    actualImg: ImageFile | ImageBase64;
+}
+
+export interface ImageInfoNoRef {
+    status: TestStatus.ERROR;
+    error?: TestError;
+    stateName: string;
+    refImg: ImageFile;
+    actualImg: ImageFile;
+}
+
+export interface ImageInfoUpdated {
+    status: TestStatus.UPDATED;
+    stateName: string;
+    refImg: ImageFile;
+    actualImg: ImageFile;
+    expectedImg: ImageFile;
+}
+
+export type ImageInfoWithState = ImageInfoDiff | ImageInfoSuccess | ImageInfoNoRef | ImageInfoUpdated;
+
+export type ImageInfoFull = ImageInfoWithState | ImageInfoPageSuccess | ImageInfoPageError;
+
+export type ImageInfo =
+    | Omit<ImageInfoDiff, 'status' | 'stateName'>
+    | Omit<ImageInfoSuccess, 'status' | 'stateName'>
+    | Omit<ImageInfoNoRef, 'status' | 'stateName'>
+    | Omit<ImageInfoPageSuccess, 'status' | 'stateName'>;
+
+export type AssertViewResult = (AssertViewSuccess | ImageDiffError | NoRefImageError) & {isUpdated?: boolean};
+
+export interface TestSpecByPath {
+    testPath: string[];
+    browserId: string;
 }
 
 export interface HtmlReporterApi {

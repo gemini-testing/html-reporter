@@ -8,12 +8,16 @@ import type {Reporter, TestCase, TestResult as PwtTestResult} from '@playwright/
 
 import {StaticReportBuilder} from './lib/report-builder/static';
 import {HtmlReporter} from './lib/plugin-api';
-import {ReporterConfig} from './lib/types';
+import {ReporterConfig, TestSpecByPath} from './lib/types';
 import {parseConfig} from './lib/config';
 import {PluginEvents, ToolName} from './lib/constants';
 import {RegisterWorkers} from './lib/workers/create-workers';
 import {PlaywrightTestAdapter} from './lib/test-adapter/playwright';
 import {SqliteClient} from './lib/sqlite-client';
+import {SqliteImageStore} from './lib/image-store';
+import {ImagesInfoSaver} from './lib/images-info-saver';
+import {Cache} from './lib/cache';
+import {getExpectedCacheKey} from './lib/server-utils';
 
 export {ReporterConfig} from './lib/types';
 
@@ -39,8 +43,17 @@ class MyReporter implements Reporter {
 
         this._initPromise = (async (htmlReporter: HtmlReporter, config: ReporterConfig): Promise<void> => {
             const dbClient = await SqliteClient.create({htmlReporter, reportPath: config.path});
+            const imageStore = new SqliteImageStore(dbClient);
+            const expectedPathsCache = new Cache<[TestSpecByPath, string | undefined], string>(getExpectedCacheKey);
 
-            this._staticReportBuilder = StaticReportBuilder.create(htmlReporter, config, {dbClient});
+            const imagesInfoSaver = new ImagesInfoSaver({
+                imageFileSaver: htmlReporter.imagesSaver,
+                expectedPathsCache,
+                imageStore,
+                reportPath: htmlReporter.config.path
+            });
+
+            this._staticReportBuilder = StaticReportBuilder.create(htmlReporter, config, {dbClient, imagesInfoSaver});
             this._staticReportBuilder.registerWorkers(workers);
 
             await this._staticReportBuilder.saveStaticFiles();
@@ -55,7 +68,7 @@ class MyReporter implements Reporter {
 
             const staticReportBuilder = this._staticReportBuilder as StaticReportBuilder;
 
-            const formattedResult = new PlaywrightTestAdapter(test, result, {imagesInfoFormatter: staticReportBuilder.imageHandler});
+            const formattedResult = new PlaywrightTestAdapter(test, result);
 
             await staticReportBuilder.addTestResult(formattedResult);
         });

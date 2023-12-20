@@ -9,7 +9,7 @@ import {logger} from '../../common-utils';
 import {DATABASE_URLS_JSON_NAME, LOCAL_DATABASE_NAME} from '../../constants';
 import {mergeTables} from '../../db-utils/server';
 import {TestEqualDiffsData, TestRefUpdateData} from '../../tests-tree-builder/gui';
-import {ImageInfoFail, ImageSize} from '../../types';
+import {ImageInfoDiff, ImageSize} from '../../types';
 
 export const formatId = (hash: string, browserId: string): string => `${hash}/${browserId}`;
 
@@ -58,7 +58,7 @@ export const filterByEqualDiffSizes = (imagesInfo: TestEqualDiffsData[], refDiff
     const refDiffSizes = refDiffClusters.map(getDiffClusterSizes);
 
     return _.filter(imagesInfo, (imageInfo) => {
-        const imageInfoFail = imageInfo as ImageInfoFail;
+        const imageInfoFail = imageInfo as ImageInfoDiff;
 
         const imageDiffSizes = imageInfoFail.diffClusters?.map(getDiffClusterSizes) ?? [];
         const equal = compareDiffSizes(imageDiffSizes, refDiffSizes);

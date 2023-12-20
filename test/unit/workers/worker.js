@@ -20,17 +20,13 @@ describe('worker', () => {
         });
 
         it('should pass diffColor option as a highlightColor option to looks-same', async () => {
-            await worker.saveDiffTo({
-                diffOpts: {diffColor: '#foobar'}
-            });
+            await worker.saveDiffTo({diffColor: '#foobar'});
 
             assert.calledWith(looksSame.createDiff, sinon.match({highlightColor: '#foobar'}));
         });
 
         it('should pass through other diff options to looks-same', async () => {
-            await worker.saveDiffTo({
-                diffOpts: {foo: 'bar', baz: 'qux'}
-            });
+            await worker.saveDiffTo({foo: 'bar', baz: 'qux'});
 
             assert.calledWith(looksSame.createDiff, sinon.match({foo: 'bar', baz: 'qux'}));
         });

@@ -1,17 +1,16 @@
 import _ from 'lodash';
 import {ReporterTestResult} from '../index';
 import {TupleToUnion} from 'type-fest';
-import {ErrorDetails} from '../../types';
+import {ErrorDetails, ImageInfoDiff, ImageInfoFull} from '../../types';
 import {ERROR_DETAILS_PATH} from '../../constants';
 import {ReporterTestAdapter} from '../reporter';
-import {getDetailsFileName} from '../../common-utils';
+import {getDetailsFileName, isImageBufferData} from '../../common-utils';
 
 export const copyAndUpdate = (
     original: ReporterTestResult,
     updates: Partial<ReporterTestResult>
 ): ReporterTestResult => {
     const keys = [
-        'assertViewResults',
         'attempt',
         'browserId',
         'description',
@@ -64,6 +63,13 @@ export const extractErrorDetails = (testResult: ReporterTestResult): ErrorDetail
     return null;
 };
 
-export const getTestHash = (testResult: ReporterTestResult): string => {
-    return testResult.testPath.concat(testResult.browserId, testResult.attempt.toString()).join(' ');
+export const removeBufferFromImagesInfo = (imagesInfo: ImageInfoFull): ImageInfoFull => {
+    const {diffImg} = imagesInfo as ImageInfoDiff;
+    const newImagesInfo = _.clone(imagesInfo);
+
+    if (isImageBufferData(diffImg)) {
+        (newImagesInfo as ImageInfoDiff).diffImg = {...diffImg, buffer: Buffer.from('')};
+    }
+
+    return newImagesInfo;
 };

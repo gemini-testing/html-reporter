@@ -1,39 +1,65 @@
-import * as path from 'path';
-import * as tmp from 'tmp';
-import {getShortMD5} from './common-utils';
+import path from 'path';
+import tmp from 'tmp';
+import _ from 'lodash';
+import {getShortMD5, isImageInfoWithState} from './common-utils';
 import * as utils from './server-utils';
-import {ImageHandler} from './image-handler';
 import {ReporterTestResult} from './test-adapter';
+import {getImagesInfoByStateName} from './server-utils';
+import {copyAndUpdate} from './test-adapter/utils';
+import {ImageInfoFull, ImageInfoUpdated} from './types';
+import {UPDATED} from './constants';
 
 const mkReferenceHash = (testId: string, stateName: string): string => getShortMD5(`${testId}#${stateName}`);
 
-export const updateReferenceImage = async (testResult: ReporterTestResult, reportPath: string, stateName: string): Promise<void[]> => {
-    const currImg = ImageHandler.getCurrImg(testResult.assertViewResults, stateName);
+type OnReferenceUpdateCb = (testResult: ReporterTestResult, images: ImageInfoUpdated, state: string) => void;
 
-    const src = currImg?.path
-        ? path.resolve(reportPath, currImg.path)
-        : utils.getCurrentAbsolutePath(testResult, reportPath, stateName);
+export const updateReferenceImages = async (testResult: ReporterTestResult, reportPath: string, onReferenceUpdateCb: OnReferenceUpdateCb): Promise<ReporterTestResult> => {
+    const newImagesInfo: ImageInfoFull[] = await Promise.all(testResult.imagesInfo.map(async (imageInfo) => {
+        const newImageInfo = _.clone(imageInfo);
 
-    // TODO: get rid of type assertion
-    const referencePath = ImageHandler.getRefImg(testResult.assertViewResults, stateName)?.path as string;
+        if (!isImageInfoWithState(newImageInfo) || newImageInfo.status !== UPDATED) {
+            return newImageInfo;
+        }
 
-    if (utils.fileExists(referencePath)) {
-        const referenceId = mkReferenceHash(testResult.id, stateName);
-        const oldReferencePath = path.resolve(tmp.tmpdir, referenceId);
-        await utils.copyFileAsync(referencePath, oldReferencePath);
-    }
+        const {stateName} = newImageInfo;
 
-    return Promise.all([
-        utils.copyFileAsync(src, referencePath),
-        utils.copyFileAsync(src, utils.getReferenceAbsolutePath(testResult, reportPath, stateName))
-    ]);
+        const {actualImg} = newImageInfo;
+        const src = actualImg?.path
+            ? path.resolve(reportPath, actualImg.path)
+            : utils.getCurrentAbsolutePath(testResult, reportPath, stateName);
+
+        // TODO: get rid of type assertion
+        const referencePath = newImageInfo?.refImg?.path as string;
+
+        if (utils.fileExists(referencePath)) {
+            const referenceId = mkReferenceHash(testResult.id, stateName);
+            const oldReferencePath = path.resolve(tmp.tmpdir, referenceId);
+            await utils.copyFileAsync(referencePath, oldReferencePath);
+        }
+
+        const reportReferencePath = utils.getReferencePath(testResult, stateName);
+
+        await Promise.all([
+            utils.copyFileAsync(src, referencePath),
+            utils.copyFileAsync(src, path.resolve(reportPath, reportReferencePath))
+        ]);
+
+        const {expectedImg} = newImageInfo;
+        expectedImg.path = reportReferencePath;
+
+        onReferenceUpdateCb(testResult, newImageInfo, stateName);
+
+        return newImageInfo;
+    }));
+
+    return copyAndUpdate(testResult, {imagesInfo: newImagesInfo});
 };
 
 export const revertReferenceImage = async (removedResult: ReporterTestResult, newResult: ReporterTestResult, stateName: string): Promise<void> => {
     const referenceId = removedResult.id;
     const referenceHash = mkReferenceHash(referenceId, stateName);
     const oldReferencePath = path.resolve(tmp.tmpdir, referenceHash);
-    const referencePath = ImageHandler.getRefImg(newResult.assertViewResults, stateName)?.path;
+    const referencePath = getImagesInfoByStateName(newResult.imagesInfo, stateName)?.refImg?.path;
 
     if (!referencePath) {
         return;
@@ -43,7 +69,7 @@ export const revertReferenceImage = async (removedResult: ReporterTestResult, ne
 };
 
 export const removeReferenceImage = async (testResult: ReporterTestResult, stateName: string): Promise<void> => {
-    const imagePath = ImageHandler.getRefImg(testResult.assertViewResults, stateName)?.path;
+    const imagePath = getImagesInfoByStateName(testResult.imagesInfo, stateName)?.refImg?.path;
 
     if (!imagePath) {
         return;

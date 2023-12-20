@@ -31,7 +31,7 @@ export const subscribeOnToolEvents = (hermione: Hermione, reportBuilder: GuiRepo
 
     hermione.on(hermione.events.TEST_BEGIN, (data) => {
         queue.add(async () => {
-            const formattedResultWithoutAttempt = formatTestResult(data as HermioneTestResult, RUNNING, UNKNOWN_ATTEMPT, reportBuilder);
+            const formattedResultWithoutAttempt = formatTestResult(data as HermioneTestResult, RUNNING, UNKNOWN_ATTEMPT);
 
             const formattedResult = await reportBuilder.addTestResult(formattedResultWithoutAttempt);
             const testBranch = reportBuilder.getTestBranch(formattedResult.id);
@@ -42,7 +42,7 @@ export const subscribeOnToolEvents = (hermione: Hermione, reportBuilder: GuiRepo
 
     hermione.on(hermione.events.TEST_PASS, (testResult) => {
         queue.add(async () => {
-            const formattedResultWithoutAttempt = formatTestResult(testResult, SUCCESS, UNKNOWN_ATTEMPT, reportBuilder);
+            const formattedResultWithoutAttempt = formatTestResult(testResult, SUCCESS, UNKNOWN_ATTEMPT);
 
             const formattedResult = await reportBuilder.addTestResult(formattedResultWithoutAttempt);
 
@@ -55,7 +55,7 @@ export const subscribeOnToolEvents = (hermione: Hermione, reportBuilder: GuiRepo
         queue.add(async () => {
             const status = hasFailedImages(testResult.assertViewResults as ImageInfoFull[]) ? TestStatus.FAIL : TestStatus.ERROR;
 
-            const formattedResultWithoutAttempt = formatTestResult(testResult, status, UNKNOWN_ATTEMPT, reportBuilder);
+            const formattedResultWithoutAttempt = formatTestResult(testResult, status, UNKNOWN_ATTEMPT);
 
             const formattedResult = await reportBuilder.addTestResult(formattedResultWithoutAttempt);
 
@@ -68,7 +68,7 @@ export const subscribeOnToolEvents = (hermione: Hermione, reportBuilder: GuiRepo
         queue.add(async () => {
             const status = hasFailedImages(testResult.assertViewResults as ImageInfoFull[]) ? TestStatus.FAIL : TestStatus.ERROR;
 
-            const formattedResultWithoutAttempt = formatTestResult(testResult, status, UNKNOWN_ATTEMPT, reportBuilder);
+            const formattedResultWithoutAttempt = formatTestResult(testResult, status, UNKNOWN_ATTEMPT);
 
             const formattedResult = await reportBuilder.addTestResult(formattedResultWithoutAttempt);
 
@@ -79,7 +79,7 @@ export const subscribeOnToolEvents = (hermione: Hermione, reportBuilder: GuiRepo
 
     hermione.on(hermione.events.TEST_PENDING, async (testResult) => {
         queue.add(async () => {
-            const formattedResultWithoutAttempt = formatTestResult(testResult as HermioneTestResult, SKIPPED, UNKNOWN_ATTEMPT, reportBuilder);
+            const formattedResultWithoutAttempt = formatTestResult(testResult as HermioneTestResult, SKIPPED, UNKNOWN_ATTEMPT);
 
             const formattedResult = await reportBuilder.addTestResult(formattedResultWithoutAttempt);
 

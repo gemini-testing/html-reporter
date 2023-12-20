@@ -33,9 +33,8 @@ describe('lib/hermione', () => {
         'better-sqlite3': sinon.stub().returns(mkSqliteDb())
     });
 
-    const {ImageHandler} = proxyquire('lib/image-handler', {
+    const {ImagesInfoSaver} = proxyquire('lib/images-info-saver', {
         'fs-extra': fs,
-        './image-cache': {cacheExpectedPaths, cacheAllImages, cacheDiffImages},
         './server-utils': utils
     });
 
@@ -48,11 +47,11 @@ describe('lib/hermione', () => {
         'fs-extra': fs,
         '../server-utils': utils,
         '../test-adapter': {TestAdapter},
-        '../image-handler': {ImageHandler}
+        '../images-info-saver': {ImagesInfoSaver}
     });
 
     const HtmlReporter = proxyquire('lib/plugin-api', {
-        './local-images-saver': proxyquire('lib/local-images-saver', {
+        './local-image-file-saver': proxyquire('lib/local-image-file-saver', {
             './server-utils': utils
         })
     }).HtmlReporter;

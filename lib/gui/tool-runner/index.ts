@@ -26,14 +26,14 @@ import {
 } from '../../constants';
 import {formatId, mkFullTitle, mergeDatabasesForReuse, filterByEqualDiffSizes} from './utils';
 import {getTestsTreeFromDatabase} from '../../db-utils/server';
-import {formatTestResult} from '../../server-utils';
+import {formatTestResult, getExpectedCacheKey} from '../../server-utils';
 import {
     AssertViewResult,
     HermioneTestResult,
     HtmlReporterApi,
-    ImageData,
-    ImageInfoFail,
-    ReporterConfig
+    ImageFile,
+    ImageInfoDiff, ImageInfoUpdated,
+    ReporterConfig, TestSpecByPath
 } from '../../types';
 import {GuiCliOptions, GuiConfigs} from '../index';
 import {Tree, TreeImage} from '../../tests-tree-builder/base';
@@ -41,19 +41,21 @@ import {TestSpec} from './runner/runner';
 import {Response} from 'express';
 import {TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../../tests-tree-builder/gui';
 import {ReporterTestResult} from '../../test-adapter';
-import {ImagesInfoFormatter} from '../../image-handler';
 import {SqliteClient} from '../../sqlite-client';
 import PQueue from 'p-queue';
 import os from 'os';
+import {Cache} from '../../cache';
+import {ImagesInfoSaver} from '../../images-info-saver';
+import {SqliteImageStore} from '../../image-store';
 
 type ToolRunnerArgs = [paths: string[], hermione: Hermione & HtmlReporterApi, configs: GuiConfigs];
 
 export type ToolRunnerTree = GuiReportBuilderResult & Pick<GuiCliOptions, 'autoRun'>;
 
 interface HermioneTestExtended extends HermioneTest {
-    assertViewResults: {stateName: string, refImg: ImageData, currImg: ImageData};
+    assertViewResults: {stateName: string, refImg: ImageFile, currImg: ImageFile};
     attempt: number;
-    imagesInfo: Pick<ImageInfoFail, 'status' | 'stateName' | 'actualImg' | 'expectedImg'>[];
+    imagesInfo: Pick<ImageInfoDiff, 'status' | 'stateName' | 'actualImg' | 'expectedImg'>[];
 }
 
 type HermioneTestPlain = Pick<HermioneTestExtended & HermioneTestResult, 'assertViewResults' | 'imagesInfo' | 'sessionId' | 'attempt' | 'meta'>;
@@ -67,10 +69,9 @@ export interface UndoAcceptImagesResult {
 const formatTestResultUnsafe = (
     test: HermioneTest | HermioneTestExtended | HermioneTestPlain,
     status: TestStatus,
-    attempt: number,
-    {imageHandler}: {imageHandler: ImagesInfoFormatter}
+    attempt: number
 ): ReporterTestResult => {
-    return formatTestResult(test as HermioneTestResult, status, attempt, {imageHandler});
+    return formatTestResult(test as HermioneTestResult, status, attempt);
 };
 
 export class ToolRunner {
@@ -85,6 +86,7 @@ export class ToolRunner {
     private _eventSource: EventSource;
     protected _reportBuilder: GuiReportBuilder | null;
     private _tests: Record<string, HermioneTest>;
+    private _expectedImagesCache: Cache<[TestSpecByPath, string | undefined], string>;
 
     static create<T extends ToolRunner>(this: new (...args: ToolRunnerArgs) => T, ...args: ToolRunnerArgs): T {
         return new this(...args);
@@ -105,6 +107,8 @@ export class ToolRunner {
         this._reportBuilder = null;
 
         this._tests = {};
+
+        this._expectedImagesCache = new Cache(getExpectedCacheKey);
     }
 
     get config(): HermioneConfig {
@@ -119,8 +123,16 @@ export class ToolRunner {
         await mergeDatabasesForReuse(this._reportPath);
 
         const dbClient = await SqliteClient.create({htmlReporter: this._hermione.htmlReporter, reportPath: this._reportPath, reuse: true});
+        const imageStore = new SqliteImageStore(dbClient);
 
-        this._reportBuilder = GuiReportBuilder.create(this._hermione.htmlReporter, this._pluginConfig, {dbClient});
+        const imagesInfoSaver = new ImagesInfoSaver({
+            imageFileSaver: this._hermione.htmlReporter.imagesSaver,
+            expectedPathsCache: this._expectedImagesCache,
+            imageStore,
+            reportPath: this._hermione.htmlReporter.config.path
+        });
+
+        this._reportBuilder = GuiReportBuilder.create(this._hermione.htmlReporter, this._pluginConfig, {dbClient, imagesInfoSaver});
         this._subscribeOnEvents();
 
         this._collection = await this._readTests();
@@ -174,7 +186,7 @@ export class ToolRunner {
         const [selectedImage, ...comparedImages] = this._ensureReportBuilder().getImageDataToFindEqualDiffs(imageIds);
 
         const imagesWithEqualBrowserName = comparedImages.filter((image) => image.browserName === selectedImage.browserName);
-        const imagesWithEqualDiffSizes = filterByEqualDiffSizes(imagesWithEqualBrowserName, (selectedImage as ImageInfoFail).diffClusters);
+        const imagesWithEqualDiffSizes = filterByEqualDiffSizes(imagesWithEqualBrowserName, (selectedImage as ImageInfoDiff).diffClusters);
 
         return _.isEmpty(imagesWithEqualDiffSizes) ? [] : [selectedImage].concat(imagesWithEqualDiffSizes);
     }
@@ -185,22 +197,14 @@ export class ToolRunner {
         return Promise.all(tests.map(async (test): Promise<TestBranch> => {
             const updateResult = this._prepareTestResult(test);
 
-            const formattedResultWithoutAttempt = formatTestResultUnsafe(updateResult, UPDATED, UNKNOWN_ATTEMPT, reportBuilder);
+            const formattedResultWithoutAttempt = formatTestResultUnsafe(updateResult, UPDATED, UNKNOWN_ATTEMPT);
+            const formattedResult = reportBuilder.provideAttempt(formattedResultWithoutAttempt);
 
-            const formattedResult = await reportBuilder.addTestResult(formattedResultWithoutAttempt);
+            const formattedResultUpdated = await reporterHelper.updateReferenceImages(formattedResult, this._reportPath, this._handleReferenceUpdate.bind(this));
 
-            updateResult.attempt = formattedResult.attempt;
+            await reportBuilder.addTestResult(formattedResultUpdated);
 
-            await Promise.all(updateResult.imagesInfo.map(async (imageInfo) => {
-                const {stateName} = imageInfo;
-
-                await reporterHelper.updateReferenceImage(formattedResult, this._reportPath, stateName);
-
-                const result = _.extend(updateResult, {refImg: imageInfo.expectedImg});
-                this._emitUpdateReference(result, stateName);
-            }));
-
-            return reportBuilder.getTestBranch(formattedResult.id);
+            return reportBuilder.getTestBranch(formattedResultUpdated.id);
         }));
     }
 
@@ -210,7 +214,7 @@ export class ToolRunner {
 
         await Promise.all(tests.map(async (test) => {
             const updateResult = this._prepareTestResult(test);
-            const formattedResultWithoutAttempt = formatTestResultUnsafe(updateResult, UPDATED, UNKNOWN_ATTEMPT, reportBuilder);
+            const formattedResultWithoutAttempt = formatTestResultUnsafe(updateResult, UPDATED, UNKNOWN_ATTEMPT);
 
             await Promise.all(updateResult.imagesInfo.map(async (imageInfo) => {
                 const {stateName} = imageInfo;
@@ -241,10 +245,10 @@ export class ToolRunner {
                 }
 
                 if (previousExpectedPath && (updateResult as HermioneTest).fullTitle) {
-                    reportBuilder.imageHandler.updateCacheExpectedPath({
-                        fullName: (updateResult as HermioneTest).fullTitle(),
+                    this._expectedImagesCache.set([{
+                        testPath: [(updateResult as HermioneTest).fullTitle()],
                         browserId: (updateResult as HermioneTest).browserId
-                    }, stateName, previousExpectedPath);
+                    }, stateName], previousExpectedPath);
                 }
             }));
         }));
@@ -253,7 +257,7 @@ export class ToolRunner {
     }
 
     async findEqualDiffs(images: TestEqualDiffsData[]): Promise<string[]> {
-        const [selectedImage, ...comparedImages] = images as (ImageInfoFail & {diffClusters: CoordBounds[]})[];
+        const [selectedImage, ...comparedImages] = images as (ImageInfoDiff & {diffClusters: CoordBounds[]})[];
         const {tolerance, antialiasingTolerance} = this.config;
         const compareOpts = {tolerance, antialiasingTolerance, stopOnFirstFail: true, shouldCluster: false};
 
@@ -316,9 +320,9 @@ export class ToolRunner {
             this._tests[testId] = _.extend(test, {browserId});
 
             if (test.pending) {
-                queue.add(async () => reportBuilder.addTestResult(formatTestResultUnsafe(test, SKIPPED, UNKNOWN_ATTEMPT, reportBuilder)));
+                queue.add(async () => reportBuilder.addTestResult(formatTestResultUnsafe(test, SKIPPED, UNKNOWN_ATTEMPT)));
             } else {
-                queue.add(async () => reportBuilder.addTestResult(formatTestResultUnsafe(test, IDLE, UNKNOWN_ATTEMPT, reportBuilder)));
+                queue.add(async () => reportBuilder.addTestResult(formatTestResultUnsafe(test, IDLE, UNKNOWN_ATTEMPT)));
             }
         });
 
@@ -345,7 +349,7 @@ export class ToolRunner {
         const imagesInfo = test.imagesInfo
             .filter(({stateName, actualImg}) => Boolean(stateName) && Boolean(actualImg))
             .map((imageInfo) => {
-                const {stateName, actualImg} = imageInfo as {stateName: string, actualImg: ImageData};
+                const {stateName, actualImg} = imageInfo as {stateName: string, actualImg: ImageFile};
                 const path = this._hermione.config.browsers[browserId].getScreenshotPath(rawTest, stateName);
                 const refImg = {path, size: actualImg.size};
 
@@ -370,10 +374,12 @@ export class ToolRunner {
             : res;
     }
 
-    protected _emitUpdateReference({refImg}: {refImg: ImageData}, state: string): void {
+    protected _handleReferenceUpdate(testResult: ReporterTestResult, imageInfo: ImageInfoUpdated, state: string): void {
+        this._expectedImagesCache.set([testResult, imageInfo.stateName], imageInfo.expectedImg.path);
+
         this._hermione.emit(
             this._hermione.events.UPDATE_REFERENCE,
-            {refImg, state}
+            {refImg: imageInfo.refImg, state}
         );
     }
 

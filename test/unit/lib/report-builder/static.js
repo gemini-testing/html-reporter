@@ -27,13 +27,12 @@ describe('StaticReportBuilder', () => {
     });
     const utils = _.clone(originalUtils);
 
-    const {ImageHandler} = proxyquire('lib/image-handler', {
+    const {ImagesInfoSaver} = proxyquire('lib/images-info-saver', {
         'fs-extra': fs,
-        './image-cache': {cacheExpectedPaths, cacheAllImages, cacheDiffImages},
         './server-utils': utils
     });
 
-    const {LocalImagesSaver} = proxyquire('lib/local-images-saver', {
+    const {LocalImagesSaver} = proxyquire('lib/local-image-file-saver.ts', {
         './server-utils': utils
     });
 
@@ -73,7 +72,7 @@ describe('StaticReportBuilder', () => {
         StaticReportBuilder = proxyquire('lib/report-builder/static', {
             'fs-extra': fs,
             '../server-utils': utils,
-            '../image-handler': {ImageHandler}
+            '../images-info-saver': {ImagesInfoSaver}
         }).StaticReportBuilder;
     });
 

@@ -6,12 +6,12 @@ import {
     ErrorDetails,
     ImageInfoFull,
     ImageBase64,
-    ImageData,
+    ImageFile,
     RawSuitesRow
 } from '../types';
 import {ReporterTestResult} from './index';
 import {Writable} from 'type-fest';
-import {getTestHash} from './utils';
+import {getTestHash} from '../common-utils';
 
 const tryParseJson = (json: string): unknown | undefined => {
     try {
@@ -100,7 +100,7 @@ export class SqliteTestAdapter implements ReporterTestResult {
         return getTestHash(this);
     }
 
-    get imagesInfo(): ImageInfoFull[] | undefined {
+    get imagesInfo(): ImageInfoFull[] {
         if (!_.has(this._parsedTestResult, 'imagesInfo')) {
             this._parsedTestResult.imagesInfo = tryParseJson(this._testResult[DB_COLUMN_INDEXES.imagesInfo]) as ImageInfoFull[];
         }
@@ -120,7 +120,7 @@ export class SqliteTestAdapter implements ReporterTestResult {
         return Boolean(this._testResult[DB_COLUMN_INDEXES.multipleTabs]);
     }
 
-    get screenshot(): ImageBase64 | ImageData | null | undefined {
+    get screenshot(): ImageBase64 | ImageFile | null | undefined {
         return this.error?.screenshot;
     }
 

@@ -147,30 +147,31 @@ export class GuiReportBuilder extends StaticReportBuilder {
             this._skips.push({suite, browser, comment});
         }
 
-        const formattedResultWithImagePaths = this._extendTestWithImagePaths(formattedResult);
+        const formattedResultWithImages = this._loadImagesFromPreviousAttempt(formattedResult);
 
-        this._testsTree.addTestResult(formattedResultWithImagePaths);
+        this._testsTree.addTestResult(formattedResultWithImages);
 
-        return formattedResultWithImagePaths;
+        return formattedResultWithImages;
     }
 
-    private _extendTestWithImagePaths(formattedResult: ReporterTestResult): ReporterTestResult {
+    private _loadImagesFromPreviousAttempt(formattedResult: ReporterTestResult): ReporterTestResult {
         if (formattedResult.status !== UPDATED) {
             return formattedResult;
         }
 
-        const failResultId = copyAndUpdate(formattedResult, {attempt: formattedResult.attempt - 1}).id;
-        const failImagesInfo = _.clone(this._testsTree.getImagesInfo(failResultId)) as ImageInfoFull[];
+        const previousResultId = copyAndUpdate(formattedResult, {attempt: formattedResult.attempt - 1}).id;
+        const newImagesInfo = _.clone(this._testsTree.getImagesInfo(previousResultId)) as ImageInfoFull[];
 
-        if (failImagesInfo.length) {
+        if (newImagesInfo.length) {
             formattedResult.imagesInfo?.forEach((imageInfo) => {
                 const {stateName} = imageInfo as ImageInfoWithState;
-                let index = _.findIndex(failImagesInfo, {stateName});
-                index = index >= 0 ? index : _.findLastIndex(failImagesInfo);
-                failImagesInfo[index] = imageInfo;
+                let index = _.findIndex(newImagesInfo, {stateName});
+                index = index >= 0 ? index : _.findLastIndex(newImagesInfo);
+
+                newImagesInfo[index] = imageInfo;
             });
         }
 
-        return copyAndUpdate(formattedResult, {imagesInfo: failImagesInfo});
+        return copyAndUpdate(formattedResult, {imagesInfo: newImagesInfo});
     }
 }
