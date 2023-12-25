@@ -6,7 +6,8 @@ import tmpOriginal from 'tmp';
 
 import {TestStatus} from 'lib/constants/test-statuses';
 import {ERROR_DETAILS_PATH} from 'lib/constants/paths';
-import {HermioneTestAdapter, HermioneTestAdapterOptions, ReporterTestResult} from 'lib/test-adapter';
+import {ReporterTestResult} from 'lib/test-adapter';
+import {HermioneTestAdapter, HermioneTestAdapterOptions} from 'lib/test-adapter/hermione';
 import {HermioneTestResult} from 'lib/types';
 import * as originalUtils from 'lib/server-utils';
 import * as originalCommonUtils from 'lib/common-utils';

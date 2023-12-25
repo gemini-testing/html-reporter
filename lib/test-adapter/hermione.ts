@@ -1,25 +1,42 @@
-import _ from 'lodash';
 import path from 'path';
+import _ from 'lodash';
+import Hermione, {Test as HermioneTest} from 'hermione';
+import {ValueOf} from 'type-fest';
 
 import {getCommandsHistory} from '../history-utils';
-import {ERROR, FAIL, SUCCESS, TestStatus, UPDATED} from '../constants';
-import {getError, isImageDiffError, isNoRefImageError, wrapLinkByTag} from '../common-utils';
+import {ERROR, FAIL, SUCCESS, TestStatus, UNKNOWN_SESSION_ID, UPDATED} from '../constants';
+import {getError, hasFailedImages, isImageDiffError, isNoRefImageError, wrapLinkByTag} from '../common-utils';
 import {
     ErrorDetails,
-    ImageBase64,
-    ImageInfoFull,
-    HermioneTestResult,
     HermioneSuite,
-    TestError,
-    ImageInfoDiff,
-    ImageInfoNoRef,
-    ImageInfoSuccess,
+    HermioneTestResult,
+    ImageBase64,
     ImageFile,
-    ImageInfoPageError, ImageInfoPageSuccess, ImageInfoUpdated
+    ImageInfoDiff,
+    ImageInfoFull,
+    ImageInfoNoRef,
+    ImageInfoPageError,
+    ImageInfoPageSuccess,
+    ImageInfoSuccess,
+    ImageInfoUpdated,
+    TestError
 } from '../types';
 import {ReporterTestResult} from './index';
 import {getSuitePath} from '../plugin-utils';
 import {extractErrorDetails} from './utils';
+
+export const getStatus = (eventName: ValueOf<Hermione['events']>, events: Hermione['events'], testResult: HermioneTestResult): TestStatus => {
+    if (eventName === events.TEST_PASS) {
+        return TestStatus.SUCCESS;
+    } else if (eventName === events.TEST_PENDING) {
+        return TestStatus.SKIPPED;
+    } else if (eventName === events.RETRY || eventName === events.TEST_FAIL) {
+        return hasFailedImages(testResult.assertViewResults as ImageInfoFull[]) ? TestStatus.FAIL : TestStatus.ERROR;
+    } else if (eventName === events.TEST_BEGIN) {
+        return TestStatus.RUNNING;
+    }
+    return TestStatus.IDLE;
+};
 
 const getSkipComment = (suite: HermioneTestResult | HermioneSuite): string | null | undefined => {
     return suite.skipReason || suite.parent && getSkipComment(suite.parent);
@@ -35,7 +52,7 @@ export interface HermioneTestAdapterOptions {
 }
 
 export class HermioneTestAdapter implements ReporterTestResult {
-    private _testResult: HermioneTestResult;
+    private _testResult: HermioneTest | HermioneTestResult;
     private _errorDetails: ErrorDetails | null;
     private _timestamp: number | undefined;
     private _attempt: number;
@@ -45,10 +62,11 @@ export class HermioneTestAdapter implements ReporterTestResult {
         return new this(testResult, options);
     }
 
-    constructor(testResult: HermioneTestResult, {attempt, status}: HermioneTestAdapterOptions) {
+    constructor(testResult: HermioneTest | HermioneTestResult, {attempt, status}: HermioneTestAdapterOptions) {
         this._testResult = testResult;
         this._errorDetails = null;
-        this._timestamp = this._testResult.timestamp ?? this._testResult.startTime ?? Date.now();
+        this._timestamp = (this._testResult as HermioneTestResult).timestamp ??
+            (this._testResult as HermioneTestResult).startTime ?? Date.now();
         this._status = status;
 
         const browserVersion = _.get(this._testResult, 'meta.browserVersion', this._testResult.browserVersion);
@@ -63,7 +81,7 @@ export class HermioneTestAdapter implements ReporterTestResult {
     }
 
     get skipReason(): string {
-        return wrapSkipComment(getSkipComment(this._testResult));
+        return wrapSkipComment(getSkipComment(this._testResult as HermioneTestResult));
     }
 
     get status(): TestStatus {
@@ -71,7 +89,7 @@ export class HermioneTestAdapter implements ReporterTestResult {
     }
 
     get sessionId(): string {
-        return this._testResult.sessionId || 'unknown session id';
+        return (this._testResult as HermioneTestResult).sessionId || UNKNOWN_SESSION_ID;
     }
 
     get browserId(): string {
@@ -79,7 +97,7 @@ export class HermioneTestAdapter implements ReporterTestResult {
     }
 
     get imagesInfo(): ImageInfoFull[] {
-        const {assertViewResults = []} = this._testResult;
+        const {assertViewResults = []} = this._testResult as HermioneTestResult;
 
         const imagesInfo: ImageInfoFull[] = assertViewResults.map((assertResult): ImageInfoFull => {
             if (isImageDiffError(assertResult)) {
@@ -92,7 +110,7 @@ export class HermioneTestAdapter implements ReporterTestResult {
                     refImg: assertResult.refImg,
                     actualImg: assertResult.currImg,
                     ...(diffImg ? {diffImg} : {}),
-                    expectedImg: assertResult.refImg,
+                    expectedImg: _.clone(assertResult.refImg),
                     diffClusters: assertResult.diffClusters,
                     diffOptions: assertResult.diffOpts
                 } satisfies ImageInfoDiff;
@@ -109,7 +127,7 @@ export class HermioneTestAdapter implements ReporterTestResult {
                     status: UPDATED,
                     stateName: assertResult.stateName,
                     refImg: assertResult.refImg,
-                    expectedImg: assertResult.refImg,
+                    expectedImg: _.clone(assertResult.refImg),
                     actualImg: (assertResult as {currImg: ImageFile}).currImg
                 } satisfies ImageInfoUpdated;
             } else {
@@ -118,7 +136,7 @@ export class HermioneTestAdapter implements ReporterTestResult {
                     status: SUCCESS,
                     stateName: assertResult.stateName,
                     refImg: assertResult.refImg,
-                    expectedImg: assertResult.refImg,
+                    expectedImg: _.clone(assertResult.refImg),
                     ...(currImg ? {actualImg: currImg} : {})
                 } satisfies ImageInfoSuccess;
             }
@@ -139,11 +157,11 @@ export class HermioneTestAdapter implements ReporterTestResult {
     }
 
     get history(): string[] {
-        return getCommandsHistory(this._testResult.history) as string[];
+        return getCommandsHistory((this._testResult as HermioneTestResult).history) as string[];
     }
 
     get error(): undefined | TestError {
-        return this._testResult.err;
+        return (this._testResult as HermioneTestResult).err;
     }
 
     get imageDir(): string {
@@ -168,11 +186,11 @@ export class HermioneTestAdapter implements ReporterTestResult {
     }
 
     get description(): string | undefined {
-        return this._testResult.description;
+        return (this._testResult as HermioneTestResult).description;
     }
 
     get meta(): Record<string, unknown> {
-        return this._testResult.meta;
+        return (this._testResult as HermioneTestResult).meta ?? {};
     }
 
     get errorDetails(): ErrorDetails | null {
@@ -190,7 +208,7 @@ export class HermioneTestAdapter implements ReporterTestResult {
     }
 
     get url(): string | undefined {
-        return this._testResult.meta.url as string | undefined;
+        return (this._testResult as HermioneTestResult).meta?.url as string | undefined;
     }
 
     get multipleTabs(): boolean {

@@ -1,8 +1,6 @@
 import {TestStatus} from '../constants';
 import {ErrorDetails, ImageBase64, ImageFile, ImageInfoFull, TestError} from '../types';
 
-export * from './hermione';
-
 export interface ReporterTestResult {
     readonly attempt: number;
     readonly browserId: string;

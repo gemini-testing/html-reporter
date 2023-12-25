@@ -57,115 +57,12 @@ describe('PlaywrightTestAdapter', () => {
         sandbox.restore();
     });
 
-    describe('assertViewResults', () => {
-        it('should return an IMAGE_DIFF result when error is IMAGE_DIFF and all images are present', () => {
-            const testCaseStub = mkTestCase();
-            const testResultStub = mkTestResult();
-            const adapter = new PlaywrightTestAdapter(testCaseStub, testResultStub, mkAdapterOptions());
-
-            const results = adapter.assertViewResults as ImageDiffError[];
-
-            assert.lengthOf(results, 1);
-            assert.strictEqual(results[0].name, ErrorName.IMAGE_DIFF);
-            assert.strictEqual(results[0].stateName, 'state1');
-            assert.strictEqual(results[0].refImg?.path, 'state1' + ImageTitleEnding.Expected);
-            assert.strictEqual(results[0].diffImg?.path, 'state1' + ImageTitleEnding.Diff);
-            assert.strictEqual(results[0].currImg?.path, 'state1' + ImageTitleEnding.Actual);
-        });
-
-        it('should return a NO_REF_IMAGE result when error is NO_REF_IMAGE and only actual image is present', () => {
-            const testCaseStub = mkTestCase();
-            const testResultStub = mkTestResult({
-                attachments: [createAttachment('state1' + ImageTitleEnding.Actual)],
-                errors: [{name: ErrorName.NO_REF_IMAGE, message: 'snapshot doesn\'t exist: some.png.', stack: 'error-stack'}] as any
-            });
-            const adapter = new PlaywrightTestAdapter(testCaseStub, testResultStub, mkAdapterOptions());
-
-            const results = adapter.assertViewResults as NoRefImageError[];
-
-            assert.lengthOf(results, 1);
-            assert.strictEqual(results[0].name, ErrorName.NO_REF_IMAGE);
-            assert.strictEqual(results[0].stateName, 'state1');
-            assert.strictEqual(results[0].currImg?.path, 'state1' + ImageTitleEnding.Actual);
-        });
-
-        it('should have diff clusters', () => {
-            const testCaseStub = mkTestCase();
-            const testResultStub = mkTestResult({
-                errors: [{message: 'Screenshot comparison failed', meta: {
-                    type: 'ImageDiffError',
-                    snapshotName: 'state1.png',
-                    diffClusters: [{left: 0, top: 0, right: 1, bottom: 1}]
-                }} as PwtImageDiffError]
-            });
-
-            const adapter = new PlaywrightTestAdapter(testCaseStub, testResultStub, mkAdapterOptions());
-
-            const results = adapter.assertViewResults as ImageDiffError[];
-
-            assert.deepEqual(results[0].diffClusters, [{left: 0, top: 0, right: 1, bottom: 1}]);
-        });
-
-        it('should detect multiple different errors from toMatchScreenshot', () => {
-            const testCaseStub = mkTestCase();
-            const testResultStub = mkTestResult({
-                attachments: [
-                    createAttachment('state1' + ImageTitleEnding.Expected),
-                    createAttachment('state1' + ImageTitleEnding.Diff),
-                    createAttachment('state1' + ImageTitleEnding.Actual),
-                    createAttachment('state2' + ImageTitleEnding.Actual)
-                ],
-                errors: [
-                    {
-                        message: 'Screenshot comparison failed',
-                        meta: {
-                            type: 'ImageDiffError',
-                            snapshotName: 'state1.png',
-                            diffClusters: [{left: 0, top: 0, right: 1, bottom: 1}]
-                        }
-                    } as PwtImageDiffError,
-                    {
-                        message: '',
-                        meta: {
-                            type: 'NoRefImageError',
-                            snapshotName: 'state2.png'
-                        }
-                    } as PwtNoRefImageError
-                ]
-            });
-
-            const adapter = new PlaywrightTestAdapter(testCaseStub, testResultStub, mkAdapterOptions());
-
-            const results = adapter.assertViewResults as ImageDiffError[];
-
-            assert.deepEqual(results[0].name, 'ImageDiffError');
-            assert.deepEqual(results[1].name, 'NoRefImageError');
-        });
-
-        it('should return refImg, if provided', () => {
-            const testCaseStub = mkTestCase();
-            const testResultStub = {
-                status: 'success',
-                attachments: [createAttachment('state1' + ImageTitleEnding.Expected)],
-                steps: []
-            } as unknown as TestResult;
-            const adapter = new PlaywrightTestAdapter(testCaseStub, testResultStub, mkAdapterOptions());
-
-            const results = adapter.assertViewResults as ImageDiffError[];
-
-            assert.lengthOf(results, 1);
-            assert.isUndefined(results[0].name);
-            assert.strictEqual(results[0].stateName, 'state1');
-            assert.strictEqual(results[0].refImg?.path, 'state1' + ImageTitleEnding.Expected);
-        });
-    });
-
     describe('attempt', () => {
         it('should return suite attempt', () => {
             // eslint-disable-next-line no-new
-            new PlaywrightTestAdapter(mkTestCase(), mkTestResult(), mkAdapterOptions());
-            const adapter2 = new PlaywrightTestAdapter(mkTestCase({titlePath: sinon.stub().returns(['another-title'])}), mkTestResult(), mkAdapterOptions());
-            const adapter3 = new PlaywrightTestAdapter(mkTestCase(), mkTestResult(), mkAdapterOptions());
+            new PlaywrightTestAdapter(mkTestCase(), mkTestResult());
+            const adapter2 = new PlaywrightTestAdapter(mkTestCase({titlePath: sinon.stub().returns(['another-title'])}), mkTestResult());
+            const adapter3 = new PlaywrightTestAdapter(mkTestCase(), mkTestResult());
 
             assert.equal(adapter3.attempt, 1);
             assert.equal(adapter2.attempt, 0);
@@ -175,8 +72,8 @@ describe('PlaywrightTestAdapter', () => {
             const testResult = mkTestResult({status: 'skipped'});
 
             // eslint-disable-next-line no-new
-            new PlaywrightTestAdapter(mkTestCase(), testResult, mkAdapterOptions());
-            const adapter2 = new PlaywrightTestAdapter(mkTestCase(), testResult, mkAdapterOptions());
+            new PlaywrightTestAdapter(mkTestCase(), testResult);
+            const adapter2 = new PlaywrightTestAdapter(mkTestCase(), testResult);
 
             assert.equal(adapter2.attempt, 0);
         });
@@ -184,7 +81,7 @@ describe('PlaywrightTestAdapter', () => {
 
     describe('browserId', () => {
         it('should return browserId', () => {
-            const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult(), mkAdapterOptions());
+            const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult());
 
             assert.equal(adapter.browserId, 'some-browser');
         });
@@ -192,7 +89,7 @@ describe('PlaywrightTestAdapter', () => {
 
     describe('error', () => {
         it('should return undefined if there are no errors', () => {
-            const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult({errors: []}), mkAdapterOptions());
+            const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult({errors: []}));
 
             const {error} = adapter;
 
@@ -202,7 +99,7 @@ describe('PlaywrightTestAdapter', () => {
         it('should return an error with name NO_REF_IMAGE for snapshot missing errors', () => {
             const errorMessage = 'A snapshot doesn\'t exist: image-name.png.';
             const errors = [{message: errorMessage}];
-            const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult({errors}), mkAdapterOptions());
+            const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult({errors}));
 
             const {error} = adapter;
 
@@ -213,7 +110,7 @@ describe('PlaywrightTestAdapter', () => {
         it('should return an error with name IMAGE_DIFF for screenshot comparison failures', () => {
             const errorMessage = 'Screenshot comparison failed';
             const errors = [{message: errorMessage}];
-            const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult({errors}), mkAdapterOptions());
+            const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult({errors}));
 
             const {error} = adapter;
 
@@ -225,7 +122,7 @@ describe('PlaywrightTestAdapter', () => {
             const errorMessage = 'Some error occurred';
             const errorStack = 'Error: Some error occurred at some-file.ts:10:15';
             const errors = [{message: errorMessage, stack: errorStack}];
-            const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult({errors}), mkAdapterOptions());
+            const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult({errors}));
 
             const {error} = adapter;
 
@@ -237,7 +134,7 @@ describe('PlaywrightTestAdapter', () => {
                 {message: 'First error', stack: 'Error: First error at some-file.ts:5:10'},
                 {message: 'Second error', stack: 'Error: Second error at another-file.ts:15:20'}
             ];
-            const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult({errors}), mkAdapterOptions());
+            const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult({errors}));
             const expectedMessage = JSON.stringify(errors.map(err => err.message));
             const expectedStack = JSON.stringify(errors.map(err => err.stack));
 
@@ -250,7 +147,7 @@ describe('PlaywrightTestAdapter', () => {
 
     describe('file', () => {
         it('should return file path', () => {
-            const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult(), mkAdapterOptions());
+            const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult());
 
             assert.strictEqual(adapter.file, 'test-file-path');
         });
@@ -258,7 +155,7 @@ describe('PlaywrightTestAdapter', () => {
 
     describe('fullName', () => {
         it('should return fullName', () => {
-            const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult(), mkAdapterOptions());
+            const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult());
 
             assert.strictEqual(adapter.fullName, 'describe › test');
         });
@@ -270,7 +167,7 @@ describe('PlaywrightTestAdapter', () => {
                 {title: 'Step1', duration: 100},
                 {title: 'Step2', duration: 200}
             ];
-            const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult({steps} as any), mkAdapterOptions());
+            const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult({steps} as any));
             const expectedHistory = ['Step1 <- 100ms\n', 'Step2 <- 200ms\n'];
 
             assert.deepEqual(adapter.history, expectedHistory);
@@ -279,7 +176,7 @@ describe('PlaywrightTestAdapter', () => {
 
     describe('id', () => {
         it('should return id', () => {
-            const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult(), mkAdapterOptions());
+            const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult());
 
             assert.strictEqual(adapter.id, 'describe test some-browser 0');
         });
@@ -287,7 +184,7 @@ describe('PlaywrightTestAdapter', () => {
 
     describe('imageDir', () => {
         it('should return imageDir', () => {
-            const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult(), mkAdapterOptions());
+            const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult());
 
             assert.strictEqual(adapter.imageDir, '4050de5');
         });
@@ -307,31 +204,31 @@ describe('PlaywrightTestAdapter', () => {
 
     describe('status', () => {
         it('should return SUCCESS for PASSED PwtTestStatus', () => {
-            const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult({status: PwtTestStatus.PASSED}), mkAdapterOptions());
+            const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult({status: PwtTestStatus.PASSED}));
 
             assert.equal(adapter.status, TestStatus.SUCCESS);
         });
 
         it('should return FAIL for FAILED PwtTestStatus', () => {
-            const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult({status: PwtTestStatus.FAILED}), mkAdapterOptions());
+            const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult({status: PwtTestStatus.FAILED}));
 
             assert.equal(adapter.status, TestStatus.FAIL);
         });
 
         it('should return FAIL for TIMED_OUT PwtTestStatus', () => {
-            const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult({status: PwtTestStatus.TIMED_OUT}), mkAdapterOptions());
+            const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult({status: PwtTestStatus.TIMED_OUT}));
 
             assert.equal(adapter.status, TestStatus.FAIL);
         });
 
         it('should return FAIL for INTERRUPTED PwtTestStatus', () => {
-            const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult({status: PwtTestStatus.INTERRUPTED}), mkAdapterOptions());
+            const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult({status: PwtTestStatus.INTERRUPTED}));
 
             assert.equal(adapter.status, TestStatus.FAIL);
         });
 
         it('should return SKIPPED for any other PwtTestStatus', () => {
-            const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult({status: PwtTestStatus.SKIPPED}), mkAdapterOptions());
+            const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult({status: PwtTestStatus.SKIPPED}));
 
             assert.equal(adapter.status, TestStatus.SKIPPED);
         });
@@ -339,7 +236,7 @@ describe('PlaywrightTestAdapter', () => {
 
     describe('testPath', () => {
         it('should return testPath', () => {
-            const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult(), mkAdapterOptions());
+            const adapter = new PlaywrightTestAdapter(mkTestCase(), mkTestResult());
 
             assert.deepEqual(adapter.testPath, ['describe', 'test']);
         });

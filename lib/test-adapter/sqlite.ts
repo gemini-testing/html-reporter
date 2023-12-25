@@ -32,9 +32,7 @@ export class SqliteTestAdapter implements ReporterTestResult {
 
     constructor(testResult: RawSuitesRow, attempt: number, options: SqliteTestAdapterOptions) {
         this._testResult = testResult;
-
         this._parsedTestResult = {attempt};
-
         this._titleDelimiter = options.titleDelimiter;
     }
 
@@ -110,7 +108,7 @@ export class SqliteTestAdapter implements ReporterTestResult {
 
     get meta(): Record<string, unknown> {
         if (!_.has(this._parsedTestResult, 'meta')) {
-            this._parsedTestResult.meta = tryParseJson(this._testResult[DB_COLUMN_INDEXES.metaInfo]) as Record<string, unknown>;
+            this._parsedTestResult.meta = tryParseJson(this._testResult[DB_COLUMN_INDEXES.metaInfo]) as Record<string, unknown> ?? {};
         }
 
         return this._parsedTestResult.meta as Record<string, unknown>;

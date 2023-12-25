@@ -6,18 +6,18 @@ import PQueue from 'p-queue';
 import {CommanderStatic} from '@gemini-testing/commander';
 
 import {cliCommands} from './lib/cli-commands';
-import {hasFailedImages} from './lib/common-utils';
 import {parseConfig} from './lib/config';
-import {SKIPPED, SUCCESS, TestStatus, ToolName, UNKNOWN_ATTEMPT} from './lib/constants';
+import {ToolName} from './lib/constants';
 import {HtmlReporter} from './lib/plugin-api';
 import {StaticReportBuilder} from './lib/report-builder/static';
 import {formatTestResult, logPathToHtmlReport, logError, getExpectedCacheKey} from './lib/server-utils';
 import {SqliteClient} from './lib/sqlite-client';
-import {HtmlReporterApi, ImageInfoFull, ReporterOptions, TestSpecByPath} from './lib/types';
+import {HtmlReporterApi, ReporterOptions, TestSpecByPath} from './lib/types';
 import {createWorkers, CreateWorkersRunner} from './lib/workers/create-workers';
 import {SqliteImageStore} from './lib/image-store';
 import {Cache} from './lib/cache';
 import {ImagesInfoSaver} from './lib/images-info-saver';
+import {getStatus} from './lib/test-adapter/hermione';
 
 export = (hermione: Hermione, opts: Partial<ReporterOptions>): void => {
     if (hermione.isWorker() || !opts.enabled) {
@@ -103,40 +103,21 @@ async function handleTestResults(hermione: Hermione, reportBuilder: StaticReport
         const queue = new PQueue({concurrency: os.cpus().length});
         const promises: Promise<unknown>[] = [];
 
-        hermione.on(hermione.events.TEST_PASS, testResult => {
-            promises.push(queue.add(async () => {
-                const formattedResult = formatTestResult(testResult, SUCCESS, UNKNOWN_ATTEMPT);
+        [
+            {eventName: hermione.events.TEST_PASS},
+            {eventName: hermione.events.RETRY},
+            {eventName: hermione.events.TEST_FAIL},
+            {eventName: hermione.events.TEST_PENDING}
+        ].forEach(({eventName}) => {
+            type AnyHermioneTestEvent = typeof hermione.events.TEST_PASS;
 
-                await reportBuilder.addTestResult(formattedResult);
-            }).catch(reject));
-        });
+            hermione.on(eventName as AnyHermioneTestEvent, (testResult: HermioneTestResult) => {
+                promises.push(queue.add(async () => {
+                    const formattedResult = formatTestResult(testResult, getStatus(eventName, hermione.events, testResult));
 
-        hermione.on(hermione.events.RETRY, testResult => {
-            promises.push(queue.add(async () => {
-                const status = hasFailedImages(testResult.assertViewResults as ImageInfoFull[]) ? TestStatus.FAIL : TestStatus.ERROR;
-
-                const formattedResult = formatTestResult(testResult, status, UNKNOWN_ATTEMPT);
-
-                await reportBuilder.addTestResult(formattedResult);
-            }).catch(reject));
-        });
-
-        hermione.on(hermione.events.TEST_FAIL, testResult => {
-            promises.push(queue.add(async () => {
-                const status = hasFailedImages(testResult.assertViewResults as ImageInfoFull[]) ? TestStatus.FAIL : TestStatus.ERROR;
-
-                const formattedResult = formatTestResult(testResult, status, UNKNOWN_ATTEMPT);
-
-                await reportBuilder.addTestResult(formattedResult);
-            }).catch(reject));
-        });
-
-        hermione.on(hermione.events.TEST_PENDING, testResult => {
-            promises.push(queue.add(async () => {
-                const formattedResult = formatTestResult(testResult as HermioneTestResult, SKIPPED, UNKNOWN_ATTEMPT);
-
-                await reportBuilder.addTestResult(formattedResult);
-            }).catch(reject));
+                    await reportBuilder.addTestResult(formattedResult);
+                }).catch(reject));
+            });
         });
 
         hermione.on(hermione.events.RUNNER_END, () => {

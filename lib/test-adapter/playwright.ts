@@ -221,7 +221,7 @@ export class PlaywrightTestAdapter implements ReporterTestResult {
                     refImg,
                     diffImg,
                     actualImg,
-                    expectedImg: refImg,
+                    expectedImg: _.clone(refImg),
                     diffClusters: _.get(error, 'diffClusters', []),
                     // TODO: extract diffOptions from config
                     diffOptions: {current: actualImg.path, reference: refImg.path, ...DEFAULT_DIFF_OPTIONS}
@@ -239,7 +239,7 @@ export class PlaywrightTestAdapter implements ReporterTestResult {
                     status: SUCCESS,
                     stateName: state,
                     refImg,
-                    expectedImg: refImg,
+                    expectedImg: _.clone(refImg),
                     ...(actualImg ? {actualImg} : {})
                 } satisfies ImageInfoSuccess;
             }

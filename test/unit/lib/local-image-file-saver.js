@@ -12,9 +12,9 @@ describe('local-images-saver', () => {
         utils = _.clone(originalUtils);
         sandbox.stub(utils, 'copyFileAsync');
 
-        imagesSaver = proxyquire('lib/local-images-saver', {
+        imagesSaver = proxyquire('lib/local-image-file-saver', {
             './server-utils': utils
-        }).LocalImagesSaver;
+        }).LocalImageFileSaver;
     });
 
     afterEach(() => sandbox.restore());

@@ -9,7 +9,8 @@ const {LOCAL_DATABASE_NAME} = require('lib/constants/database');
 const {logger} = require('lib/common-utils');
 const {stubTool, stubConfig, mkImagesInfo, mkState, mkSuite} = require('test/unit/utils');
 const {SqliteClient} = require('lib/sqlite-client');
-const {PluginEvents, TestStatus} = require('lib/constants');
+const {PluginEvents, TestStatus, UPDATED} = require('lib/constants');
+const {Cache} = require('lib/cache');
 
 describe('lib/gui/tool-runner/index', () => {
     const sandbox = sinon.createSandbox();
@@ -19,10 +20,10 @@ describe('lib/gui/tool-runner/index', () => {
     let hermione;
     let getTestsTreeFromDatabase;
     let looksSame;
-    let removeReferenceImage;
-    let revertReferenceImage;
     let toolRunnerUtils;
     let createTestRunner;
+    let getReferencePath;
+    let reporterHelpers;
 
     const mkTestCollection_ = (testsTree = {}) => {
         return {
@@ -77,17 +78,32 @@ describe('lib/gui/tool-runner/index', () => {
         };
 
         reportBuilder = sinon.createStubInstance(GuiReportBuilder);
-        reportBuilder.addUpdated.callsFake(_.identity);
+        reportBuilder.addTestResult.callsFake(_.identity);
+        reportBuilder.provideAttempt.callsFake(_.identity);
 
         subscribeOnToolEvents = sandbox.stub().named('reportSubscriber').resolves();
         looksSame = sandbox.stub().named('looksSame').resolves({equal: true});
-        removeReferenceImage = sandbox.stub().resolves();
-        revertReferenceImage = sandbox.stub().resolves();
 
         sandbox.stub(GuiReportBuilder, 'create').returns(reportBuilder);
         reportBuilder.getResult.returns({});
 
         getTestsTreeFromDatabase = sandbox.stub().returns({});
+
+        getReferencePath = sinon.stub().returns('');
+
+        const reporterHelpersOriginal = proxyquire('lib/reporter-helpers', {
+            './server-utils': {
+                copyFileAsync: sinon.stub().resolves(),
+                getCurrentAbsolutePath: sinon.stub(),
+                getReferencePath,
+                fileExists: sinon.stub(),
+                deleteFile: sinon.stub()
+            },
+            './test-adapter/utils': {
+                copyAndUpdate: sinon.stub().callsFake(_.assign)
+            }
+        });
+        reporterHelpers = _.clone(reporterHelpersOriginal);
 
         ToolGuiReporter = proxyquire(`lib/gui/tool-runner`, {
             'looks-same': looksSame,
@@ -96,14 +112,9 @@ describe('lib/gui/tool-runner/index', () => {
             './utils': toolRunnerUtils,
             '../../sqlite-client': {SqliteClient: {create: () => sinon.createStubInstance(SqliteClient)}},
             '../../db-utils/server': {getTestsTreeFromDatabase},
-            '../../reporter-helpers': {
-                updateReferenceImage: sandbox.stub().resolves(),
-                removeReferenceImage,
-                revertReferenceImage
-            }
+            '../../reporter-helpers': reporterHelpers
         }).ToolRunner;
 
-        sandbox.stub(reportBuilder, 'imageHandler').value({updateCacheExpectedPath: sinon.stub()});
         sandbox.stub(logger, 'warn');
     });
 
@@ -111,7 +122,7 @@ describe('lib/gui/tool-runner/index', () => {
 
     describe('initialize', () => {
         it('should set values added through api', () => {
-            const htmlReporter = {emit: sinon.stub(), values: {foo: 'bar'}};
+            const htmlReporter = {emit: sinon.stub(), values: {foo: 'bar'}, config: {}, imagesSaver: {}};
             hermione = stubTool(stubConfig(), {}, {}, htmlReporter);
 
             const gui = initGuiReporter(hermione);
@@ -152,8 +163,7 @@ describe('lib/gui/tool-runner/index', () => {
 
             return gui.initialize()
                 .then(() => {
-                    assert.notCalled(reportBuilder.addSkipped);
-                    assert.notCalled(reportBuilder.addIdle);
+                    assert.notCalled(reportBuilder.addTestResult);
                 });
         });
 
@@ -165,8 +175,7 @@ describe('lib/gui/tool-runner/index', () => {
 
             return gui.initialize()
                 .then(() => {
-                    assert.notCalled(reportBuilder.addSkipped);
-                    assert.notCalled(reportBuilder.addIdle);
+                    assert.notCalled(reportBuilder.addTestResult);
                 });
         });
 
@@ -180,8 +189,7 @@ describe('lib/gui/tool-runner/index', () => {
 
             return gui.initialize()
                 .then(() => {
-                    assert.notCalled(reportBuilder.addSkipped);
-                    assert.notCalled(reportBuilder.addIdle);
+                    assert.notCalled(reportBuilder.addTestResult);
                 });
         });
 
@@ -192,7 +200,7 @@ describe('lib/gui/tool-runner/index', () => {
             const gui = initGuiReporter(hermione, {paths: ['foo']});
 
             return gui.initialize()
-                .then(() => assert.calledOnce(reportBuilder.addSkipped));
+                .then(() => assert.calledOnce(reportBuilder.addTestResult));
         });
 
         it('should add idle test to report', () => {
@@ -202,7 +210,7 @@ describe('lib/gui/tool-runner/index', () => {
             const gui = initGuiReporter(hermione, {paths: ['foo']});
 
             return gui.initialize()
-                .then(() => assert.calledOnce(reportBuilder.addIdle));
+                .then(() => assert.calledOnce(reportBuilder.addTestResult));
         });
 
         it('should subscribe on events before read tests', () => {
@@ -230,30 +238,31 @@ describe('lib/gui/tool-runner/index', () => {
     describe('updateReferenceImage', () => {
         describe('should emit "UPDATE_REFERENCE" event', () => {
             it('should emit "UPDATE_REFERENCE" event with state and reference data', async () => {
-                const tests = [{
+                const testRefUpdateData = [{
                     id: 'some-id',
                     fullTitle: () => 'some-title',
                     browserId: 'yabro',
                     suite: {path: ['suite1']},
                     state: {},
                     metaInfo: {},
-                    imagesInfo: [mkImagesInfo({
+                    imagesInfo: [{
+                        status: UPDATED,
                         stateName: 'plain1',
                         actualImg: {
                             size: {height: 100, width: 200}
                         }
-                    })]
+                    }]
                 }];
 
                 const getScreenshotPath = sandbox.stub().returns('/ref/path1');
                 const config = stubConfig({
                     browsers: {yabro: {getScreenshotPath}}
                 });
-                const hermione = mkHermione_(config, {'some-title.yabro': tests[0]});
-                const gui = initGuiReporter(hermione);
+                const hermione = mkHermione_(config, {'some-title.yabro': testRefUpdateData[0]});
+                const gui = initGuiReporter(hermione, {pluginConfig: {path: 'report-path'}});
                 await gui.initialize();
 
-                await gui.updateReferenceImage(tests);
+                await gui.updateReferenceImage(testRefUpdateData);
 
                 assert.calledOnceWith(hermione.emit, 'updateReference', {
                     refImg: {path: '/ref/path1', size: {height: 100, width: 200}},
@@ -270,18 +279,20 @@ describe('lib/gui/tool-runner/index', () => {
                     state: {},
                     metaInfo: {},
                     imagesInfo: [
-                        mkImagesInfo({
+                        {
+                            status: UPDATED,
                             stateName: 'plain1',
                             actualImg: {
                                 size: {height: 100, width: 200}
                             }
-                        }),
-                        mkImagesInfo({
+                        },
+                        {
+                            status: UPDATED,
                             stateName: 'plain2',
                             actualImg: {
                                 size: {height: 200, width: 300}
                             }
-                        })
+                        }
                     ]
                 }];
 
@@ -328,13 +339,13 @@ describe('lib/gui/tool-runner/index', () => {
                 state: {},
                 metaInfo: {},
                 imagesInfo: [
-                    mkImagesInfo({
+                    {
+                        status: TestStatus.UPDATED,
                         stateName,
                         actualImg: {
                             size: {height: 100, width: 200}
-                        },
-                        status: TestStatus.UPDATED
-                    })
+                        }
+                    }
                 ]
             }];
 
@@ -350,15 +361,17 @@ describe('lib/gui/tool-runner/index', () => {
         };
 
         it('should remove reference, if ReportBuilder.undoAcceptImages resolved "shouldRemoveReference"', async () => {
+            sandbox.stub(reporterHelpers, 'removeReferenceImage');
             const stateName = 'plain';
             const {gui, tests} = await mkUndoTestData_({shouldRemoveReference: true}, {stateName});
 
             await gui.undoAcceptImages(tests);
 
-            assert.calledOnceWith(removeReferenceImage, sinon.match({fullName: 'some-title'}), 'plain');
+            assert.calledOnceWith(reporterHelpers.removeReferenceImage, sinon.match({fullName: 'some-title'}), 'plain');
         });
 
         it('should revert reference, if ReportBuilder.undoAcceptImages resolved "shouldRevertReference"', async () => {
+            sandbox.stub(reporterHelpers, 'revertReferenceImage');
             const stateName = 'plain';
             const {gui, tests} = await mkUndoTestData_({
                 shouldRevertReference: true, removedResult: 'some-result'
@@ -366,17 +379,21 @@ describe('lib/gui/tool-runner/index', () => {
 
             await gui.undoAcceptImages(tests);
 
-            assert.calledOnceWith(revertReferenceImage, 'some-result', sinon.match({fullName: 'some-title'}), 'plain');
+            assert.calledOnceWith(reporterHelpers.revertReferenceImage, 'some-result', sinon.match({fullName: 'some-title'}), 'plain');
         });
 
         it('should update expected path', async () => {
+            sandbox.stub(Cache.prototype, 'set');
             const stateName = 'plain';
             const previousExpectedPath = 'previousExpectedPath';
             const {gui, tests} = await mkUndoTestData_({previousExpectedPath}, {stateName});
 
             await gui.undoAcceptImages(tests);
 
-            assert.calledOnceWith(reportBuilder.imageHandler.updateCacheExpectedPath, sinon.match.any, stateName, previousExpectedPath);
+            assert.calledOnce(Cache.prototype.set);
+            const args = Cache.prototype.set.firstCall.args;
+            assert.deepEqual(args[0], [{browserId: 'yabro', testPath: ['some-title']}, stateName]);
+            assert.deepEqual(args[1], previousExpectedPath);
         });
     });
 

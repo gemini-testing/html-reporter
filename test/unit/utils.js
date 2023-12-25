@@ -40,6 +40,9 @@ function stubTool(config = stubConfig(), events = {}, errors = {}, htmlReporter)
         return false;
     };
 
+    sinon.stub(tool.htmlReporter, 'imagesSaver').value({saveImg: sinon.stub()});
+    sinon.stub(tool.htmlReporter, 'config').value({});
+
     return tool;
 }
 

@@ -18,11 +18,10 @@ import {
     UPDATED,
     SKIPPED,
     IDLE,
-    TestStatus,
     ToolName,
     DATABASE_URLS_JSON_NAME,
     LOCAL_DATABASE_NAME,
-    PluginEvents, UNKNOWN_ATTEMPT
+    PluginEvents
 } from '../../constants';
 import {formatId, mkFullTitle, mergeDatabasesForReuse, filterByEqualDiffSizes} from './utils';
 import {getTestsTreeFromDatabase} from '../../db-utils/server';
@@ -32,7 +31,7 @@ import {
     HermioneTestResult,
     HtmlReporterApi,
     ImageFile,
-    ImageInfoDiff, ImageInfoUpdated,
+    ImageInfoDiff, ImageInfoUpdated, ImageInfoWithState,
     ReporterConfig, TestSpecByPath
 } from '../../types';
 import {GuiCliOptions, GuiConfigs} from '../index';
@@ -52,27 +51,10 @@ type ToolRunnerArgs = [paths: string[], hermione: Hermione & HtmlReporterApi, co
 
 export type ToolRunnerTree = GuiReportBuilderResult & Pick<GuiCliOptions, 'autoRun'>;
 
-interface HermioneTestExtended extends HermioneTest {
-    assertViewResults: {stateName: string, refImg: ImageFile, currImg: ImageFile};
-    attempt: number;
-    imagesInfo: Pick<ImageInfoDiff, 'status' | 'stateName' | 'actualImg' | 'expectedImg'>[];
-}
-
-type HermioneTestPlain = Pick<HermioneTestExtended & HermioneTestResult, 'assertViewResults' | 'imagesInfo' | 'sessionId' | 'attempt' | 'meta'>;
-
 export interface UndoAcceptImagesResult {
     updatedImages: TreeImage[];
     removedResults: string[];
 }
-
-// TODO: get rid of this function. It allows to format raw test, but is type-unsafe.
-const formatTestResultUnsafe = (
-    test: HermioneTest | HermioneTestExtended | HermioneTestPlain,
-    status: TestStatus,
-    attempt: number
-): ReporterTestResult => {
-    return formatTestResult(test as HermioneTestResult, status, attempt);
-};
 
 export class ToolRunner {
     private _testFiles: string[];
@@ -195,9 +177,9 @@ export class ToolRunner {
         const reportBuilder = this._ensureReportBuilder();
 
         return Promise.all(tests.map(async (test): Promise<TestBranch> => {
-            const updateResult = this._prepareTestResult(test);
+            const updateResult = this._createHermioneTestResult(test);
 
-            const formattedResultWithoutAttempt = formatTestResultUnsafe(updateResult, UPDATED, UNKNOWN_ATTEMPT);
+            const formattedResultWithoutAttempt = formatTestResult(updateResult, UPDATED);
             const formattedResult = reportBuilder.provideAttempt(formattedResultWithoutAttempt);
 
             const formattedResultUpdated = await reporterHelper.updateReferenceImages(formattedResult, this._reportPath, this._handleReferenceUpdate.bind(this));
@@ -213,11 +195,11 @@ export class ToolRunner {
         const reportBuilder = this._ensureReportBuilder();
 
         await Promise.all(tests.map(async (test) => {
-            const updateResult = this._prepareTestResult(test);
-            const formattedResultWithoutAttempt = formatTestResultUnsafe(updateResult, UPDATED, UNKNOWN_ATTEMPT);
+            const updateResult = this._createHermioneTestResult(test);
+            const formattedResultWithoutAttempt = formatTestResult(updateResult, UPDATED);
 
-            await Promise.all(updateResult.imagesInfo.map(async (imageInfo) => {
-                const {stateName} = imageInfo;
+            await Promise.all(formattedResultWithoutAttempt.imagesInfo.map(async (imageInfo) => {
+                const {stateName} = imageInfo as ImageInfoWithState;
 
                 const undoResultData = reportBuilder.undoAcceptImage(formattedResultWithoutAttempt, stateName);
                 if (undoResultData === null) {
@@ -320,9 +302,9 @@ export class ToolRunner {
             this._tests[testId] = _.extend(test, {browserId});
 
             if (test.pending) {
-                queue.add(async () => reportBuilder.addTestResult(formatTestResultUnsafe(test, SKIPPED, UNKNOWN_ATTEMPT)));
+                queue.add(async () => reportBuilder.addTestResult(formatTestResult(test, SKIPPED)));
             } else {
-                queue.add(async () => reportBuilder.addTestResult(formatTestResultUnsafe(test, IDLE, UNKNOWN_ATTEMPT)));
+                queue.add(async () => reportBuilder.addTestResult(formatTestResult(test, IDLE)));
             }
         });
 
@@ -338,40 +320,36 @@ export class ToolRunner {
         subscribeOnToolEvents(this._hermione, this._ensureReportBuilder(), this._eventSource);
     }
 
-    protected _prepareTestResult(test: TestRefUpdateData): HermioneTestExtended | HermioneTestPlain {
-        const {browserId, attempt} = test;
-        const fullTitle = mkFullTitle(test);
+    protected _createHermioneTestResult(updateData: TestRefUpdateData): HermioneTestResult {
+        const {browserId} = updateData;
+        const fullTitle = mkFullTitle(updateData);
         const testId = formatId(getShortMD5(fullTitle), browserId);
-        const rawTest = this._tests[testId];
-        const {sessionId, url} = test.metaInfo;
+        const hermioneTest = this._tests[testId];
+        const {sessionId, url} = updateData.metaInfo as {sessionId?: string; url?: string};
         const assertViewResults: AssertViewResult[] = [];
 
-        const imagesInfo = test.imagesInfo
+        updateData.imagesInfo
             .filter(({stateName, actualImg}) => Boolean(stateName) && Boolean(actualImg))
-            .map((imageInfo) => {
+            .forEach((imageInfo) => {
                 const {stateName, actualImg} = imageInfo as {stateName: string, actualImg: ImageFile};
-                const path = this._hermione.config.browsers[browserId].getScreenshotPath(rawTest, stateName);
+                const path = this._hermione.config.browsers[browserId].getScreenshotPath(hermioneTest, stateName);
                 const refImg = {path, size: actualImg.size};
 
                 assertViewResults.push({stateName, refImg, currImg: actualImg, isUpdated: isUpdatedStatus(imageInfo.status)});
-
-                return _.extend(imageInfo, {expectedImg: refImg});
             });
 
-        const res = _.merge({}, rawTest, {
+        const hermioneTestResult: HermioneTestResult = _.merge({}, hermioneTest, {
             assertViewResults,
-            err: test.error,
-            imagesInfo,
+            err: updateData.error as HermioneTestResult['err'],
             sessionId,
-            attempt,
             meta: {url}
-        });
+        } satisfies Partial<HermioneTestResult>) as unknown as HermioneTestResult;
 
         // _.merge can't fully clone test object since hermione@7+
         // TODO: use separate object to represent test results. Do not extend test object with test results
-        return rawTest && rawTest.clone
-            ? Object.assign(rawTest.clone(), res)
-            : res;
+        return hermioneTest && hermioneTest.clone
+            ? Object.assign(hermioneTest.clone(), hermioneTestResult)
+            : hermioneTestResult;
     }
 
     protected _handleReferenceUpdate(testResult: ReporterTestResult, imageInfo: ImageInfoUpdated, state: string): void {

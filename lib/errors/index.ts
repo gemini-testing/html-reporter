@@ -30,5 +30,5 @@ export interface NoRefImageError {
     message: string;
     stack?: string;
     currImg: ImageFile;
-    refImg?: ImageFile;
+    refImg: ImageFile;
 }

@@ -4,20 +4,18 @@ const fsOriginal = require('fs-extra');
 const _ = require('lodash');
 const Database = require('better-sqlite3');
 const proxyquire = require('proxyquire');
+const sinon = require('sinon');
 const {HtmlReporter} = require('lib/plugin-api');
-const {SUCCESS, FAIL, ERROR, SKIPPED} = require('lib/constants/test-statuses');
+const {ERROR} = require('lib/constants/test-statuses');
 const {LOCAL_DATABASE_NAME} = require('lib/constants/database');
 const {SqliteClient} = require('lib/sqlite-client');
-const {NoRefImageError, ImageDiffError} = require('../../utils');
-const sinon = require('sinon');
-const path = require('path');
 
 const TEST_REPORT_PATH = 'test';
 const TEST_DB_PATH = `${TEST_REPORT_PATH}/${LOCAL_DATABASE_NAME}`;
 
 describe('StaticReportBuilder', () => {
     const sandbox = sinon.sandbox.create();
-    let StaticReportBuilder, htmlReporter, dbClient;
+    let StaticReportBuilder, htmlReporter, dbClient, workers, imagesInfoSaver;
     let cacheExpectedPaths = new Map(), cacheAllImages = new Map(), cacheDiffImages = new Map();
 
     const fs = _.clone(fsOriginal);
@@ -36,7 +34,7 @@ describe('StaticReportBuilder', () => {
         './server-utils': utils
     });
 
-    const mkStaticReportBuilder_ = async ({pluginConfig, workers} = {}) => {
+    const mkStaticReportBuilder_ = async ({pluginConfig} = {}) => {
         pluginConfig = _.defaults(pluginConfig, {baseHost: '', path: TEST_REPORT_PATH, baseTestPath: ''});
 
         htmlReporter = _.extend(HtmlReporter.create({baseHost: ''}), {
@@ -47,9 +45,12 @@ describe('StaticReportBuilder', () => {
         });
 
         dbClient = await SqliteClient.create({htmlReporter, reportPath: TEST_REPORT_PATH});
+        imagesInfoSaver = sinon.createStubInstance(ImagesInfoSaver);
 
-        const reportBuilder = StaticReportBuilder.create(htmlReporter, pluginConfig, {dbClient});
-        workers = workers ?? {saveDiffTo: () => {}};
+        imagesInfoSaver.save.callsFake(_.identity);
+
+        const reportBuilder = StaticReportBuilder.create(htmlReporter, pluginConfig, {dbClient, imagesInfoSaver});
+        workers = {saveDiffTo: sinon.stub()};
 
         reportBuilder.registerWorkers(workers);
 
@@ -57,18 +58,14 @@ describe('StaticReportBuilder', () => {
     };
 
     const stubTest_ = (opts = {}) => {
-        const {imagesInfo = []} = opts;
-
         return _.defaultsDeep(opts, {
             state: {name: 'name-default'},
             imageDir: '',
-            imagesInfo
+            imagesInfo: []
         });
     };
 
     beforeEach(() => {
-        sandbox.stub(utils, 'hasImage').returns(true);
-
         StaticReportBuilder = proxyquire('lib/report-builder/static', {
             'fs-extra': fs,
             '../server-utils': utils,
@@ -92,38 +89,8 @@ describe('StaticReportBuilder', () => {
             reportBuilder = await mkStaticReportBuilder_();
         });
 
-        it('should add skipped test', async () => {
-            await reportBuilder.addSkipped(stubTest_({status: SKIPPED}));
-            const db = new Database(TEST_DB_PATH);
-
-            const [{status}] = db.prepare('SELECT * from suites').all();
-            db.close();
-
-            assert.equal(status, SKIPPED);
-        });
-
-        it('should add success test', async () => {
-            await reportBuilder.addSuccess(stubTest_({status: SUCCESS}));
-            const db = new Database(TEST_DB_PATH);
-
-            const [{status}] = db.prepare('SELECT * from suites').all();
-            db.close();
-
-            assert.equal(status, SUCCESS);
-        });
-
-        it('should add failed test', async () => {
-            await reportBuilder.addFail(stubTest_({status: FAIL}));
-            const db = new Database(TEST_DB_PATH);
-
-            const [{status}] = db.prepare('SELECT * from suites').all();
-            db.close();
-
-            assert.equal(status, FAIL);
-        });
-
-        it('should add error test', async () => {
-            await reportBuilder.addError(stubTest_({status: ERROR}));
+        it('should use test results status', async () => {
+            await reportBuilder.addTestResult(stubTest_({status: ERROR}));
             const db = new Database(TEST_DB_PATH);
 
             const [{status}] = db.prepare('SELECT * from suites').all();
@@ -133,7 +100,7 @@ describe('StaticReportBuilder', () => {
         });
 
         it('should use timestamp from test result when it is present', async () => {
-            await reportBuilder.addSuccess(stubTest_({timestamp: 100500}));
+            await reportBuilder.addTestResult(stubTest_({timestamp: 100500}));
             const db = new Database(TEST_DB_PATH);
 
             const [{timestamp}] = db.prepare('SELECT * from suites').all();
@@ -143,7 +110,7 @@ describe('StaticReportBuilder', () => {
         });
 
         it('should use some current timestamp when test result misses one', async () => {
-            await reportBuilder.addSuccess(stubTest_());
+            await reportBuilder.addTestResult(stubTest_());
             const db = new Database(TEST_DB_PATH);
 
             const [{timestamp}] = db.prepare('SELECT * from suites').all();
@@ -154,117 +121,46 @@ describe('StaticReportBuilder', () => {
     });
 
     describe('saving images', () => {
-        let reportBuilder, saveDiffTo;
+        let reportBuilder;
 
         beforeEach(async () => {
-            saveDiffTo = sinon.stub();
-
-            reportBuilder = await mkStaticReportBuilder_({workers: {saveDiffTo}});
-
-            sandbox.stub(utils, 'getReferencePath');
-            sandbox.stub(utils, 'getCurrentPath');
-            sandbox.stub(utils, 'getDiffPath').returns('diff');
-            sandbox.stub(utils, 'copyFileAsync');
-            sandbox.stub(utils, 'makeDirFor');
-
-            sandbox.stub(fs, 'readFile').resolves(Buffer.from(''));
+            reportBuilder = await mkStaticReportBuilder_();
         });
 
-        it('should save image from passed test', async () => {
-            utils.getReferencePath.callsFake(({stateName}) => `report/${stateName}`);
+        it('should use images info saver to save images', async () => {
+            const testResult = stubTest_({assertViewResults: [{refImg: {path: 'ref/path'}, stateName: 'plain'}]});
 
-            await reportBuilder.addSuccess(stubTest_({assertViewResults: [{refImg: {path: 'ref/path'}, stateName: 'plain'}]}));
+            await reportBuilder.addTestResult(testResult);
 
-            assert.calledOnceWith(utils.copyFileAsync, 'ref/path', 'report/plain', {reportDir: 'test'});
-        });
-
-        it('should save image from assert view error', async () => {
-            utils.getCurrentPath.callsFake(({stateName}) => `report/${stateName}`);
-
-            const err = new NoRefImageError();
-            err.stateName = 'plain';
-            err.currImg = {path: 'current/path'};
-
-            await reportBuilder.addFail(stubTest_({assertViewResults: [err]}));
-
-            assert.calledOnceWith(utils.copyFileAsync, 'current/path', 'report/plain', {reportDir: 'test'});
-        });
-
-        it('should save reference image from assert view fail', async () => {
-            utils.getReferencePath.callsFake(({stateName}) => `report/${stateName}`);
-
-            const err = new ImageDiffError();
-            err.stateName = 'plain';
-            err.refImg = {path: 'reference/path'};
-
-            await reportBuilder.addFail(stubTest_({assertViewResults: [err]}));
-
-            assert.calledWith(utils.copyFileAsync, 'reference/path', 'report/plain', {reportDir: 'test'});
-        });
-
-        it('should save current image from assert view fail', async () => {
-            utils.getCurrentPath.callsFake(({stateName}) => `report/${stateName}`);
-
-            const err = new ImageDiffError();
-            err.stateName = 'plain';
-            err.currImg = {path: 'current/path'};
-
-            await reportBuilder.addFail(stubTest_({assertViewResults: [err]}));
-
-            assert.calledWith(utils.copyFileAsync, 'current/path', 'report/plain', {reportDir: 'test'});
-        });
-
-        it('should save current diff image from assert view fail', async () => {
-            fs.readFile.resolves(Buffer.from('some-buff'));
-            utils.getDiffPath.callsFake(({stateName}) => `report/${stateName}`);
-
-            const err = new ImageDiffError();
-            err.stateName = 'plain';
-
-            await reportBuilder.addFail(stubTest_({assertViewResults: [err]}));
-
-            assert.calledWith(
-                saveDiffTo, sinon.match.instanceOf(ImageDiffError), sinon.match('/report/plain')
-            );
+            assert.calledOnceWith(imagesInfoSaver.save, testResult, workers);
         });
     });
 
     describe('saving error details', () => {
-        let reportBuilder;
-
         beforeEach(async () => {
-            reportBuilder = await mkStaticReportBuilder_({pluginConfig: {saveErrorDetails: true}});
-
-            sandbox.stub(utils, 'makeDirFor').resolves();
-            sandbox.stub(utils, 'getDetailsFileName').returns('md5-bro-n-time');
-
-            sandbox.stub(fs, 'writeFile');
-            sandbox.stub(fs, 'mkdirs');
+            sandbox.stub(utils, 'saveErrorDetails').resolves();
         });
 
-        it('should do nothing if no error details are available', async () => {
-            await reportBuilder.addFail(stubTest_());
+        it('should not save error details if turned off', async () => {
+            const reportBuilder = await mkStaticReportBuilder_({
+                pluginConfig: {saveErrorDetails: false, path: TEST_REPORT_PATH}
+            });
+            const testResult = stubTest_({errorDetails: {filePath: 'some-path'}});
 
-            assert.notCalled(fs.writeFile);
+            await reportBuilder.addTestResult(testResult);
+
+            assert.notCalled(utils.saveErrorDetails);
         });
 
-        it('should save error details to correct path', async () => {
-            await reportBuilder.addFail(stubTest_({errorDetails: {filePath: 'some-path'}}));
+        it('should use server-utils to save error details if needed', async () => {
+            const reportBuilder = await mkStaticReportBuilder_({
+                pluginConfig: {saveErrorDetails: true, path: TEST_REPORT_PATH}
+            });
+            const testResult = stubTest_({errorDetails: {filePath: 'some-path'}});
 
-            assert.calledWithMatch(fs.writeFile, path.resolve(`${TEST_REPORT_PATH}/some-path`), sinon.match.any);
-        });
+            await reportBuilder.addTestResult(testResult);
 
-        it('should create directory for error details', async () => {
-            await reportBuilder.addFail(stubTest_({errorDetails: {filePath: `some-dir/some-path`}}));
-
-            assert.calledOnceWith(fs.mkdirs, path.resolve(TEST_REPORT_PATH, 'some-dir'));
-        });
-
-        it('should save error details', async () => {
-            const data = {foo: 'bar'};
-            await reportBuilder.addFail(stubTest_({errorDetails: {filePath: 'some-path', data}}));
-
-            assert.calledWith(fs.writeFile, sinon.match.any, JSON.stringify(data, null, 2));
+            assert.calledOnceWith(utils.saveErrorDetails, testResult, TEST_REPORT_PATH);
         });
     });
 

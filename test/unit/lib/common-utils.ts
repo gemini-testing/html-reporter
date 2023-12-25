@@ -1,8 +1,13 @@
-import {determineFinalStatus, getError, hasDiff, getUrlWithBase} from 'lib/common-utils';
+import {determineFinalStatus, getError, hasDiff, getUrlWithBase, getDetailsFileName} from 'lib/common-utils';
 import {RUNNING, QUEUED, ERROR, FAIL, UPDATED, SUCCESS, IDLE, SKIPPED} from 'lib/constants/test-statuses';
 import {ErrorName} from 'lib/errors';
+import sinon from 'sinon';
 
 describe('common-utils', () => {
+    const sandbox = sinon.sandbox.create();
+
+    afterEach(() => sandbox.restore());
+
     describe('getUrlWithBase', () => {
         it('should change host of the url', () => {
             const userUrl = 'https://example.com/test/123?a=1#hello';
@@ -153,6 +158,16 @@ describe('common-utils', () => {
 
                 assert.equal(status, SKIPPED);
             });
+        });
+    });
+
+    describe('getDetailsFileName', () => {
+        it('should compose correct file name from suite path, browser id and attempt', () => {
+            sandbox.stub(Date, 'now').returns('123456789');
+            const testId = 'abcdef';
+            const expected = `${testId}-bro_2_123456789.json`;
+
+            assert.equal(getDetailsFileName(testId, 'bro', 1), expected);
         });
     });
 });

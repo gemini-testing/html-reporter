@@ -1,9 +1,8 @@
 import type {LooksSameOptions, CoordBounds} from 'looks-same';
 import type {default as Hermione, TestResult as HermioneTestResultOriginal} from 'hermione';
-import {DB_TYPES, DiffModeId, SaveFormat, SUITES_TABLE_COLUMNS, TestStatus, ViewMode} from './constants';
+import {DiffModeId, SaveFormat, SUITES_TABLE_COLUMNS, TestStatus, ViewMode} from './constants';
 import type {HtmlReporter} from './plugin-api';
 import {ImageDiffError, NoRefImageError} from './errors';
-import {EmptyObject, ValueOf} from 'type-fest';
 
 declare module 'tmp' {
     export const tmpdir: string;
@@ -181,36 +180,22 @@ export interface DbUrlsJsonData {
     jsonUrls: string[];
 }
 
-type DbType = ValueOf<typeof DB_TYPES>;
-
-type Length<T extends unknown[]> =
-    T extends { length: infer L } ? L : never;
-
-// Writable from type-fest didn't work here, because it transforms array to object
-export type Mutable<T> = {
-    -readonly [K in keyof T]: T[K]
-}
-
-type ExtractType<T extends DbType> = T extends typeof DB_TYPES.int ? number :
-    T extends typeof DB_TYPES.text ? string : never;
-
-// This type accepts an array of objects shaped {name: string} and returns map of shape {<name>: <index in array>}
-// Useful to produce precise type of db columns order, e.g. {suitePath: 0, suiteName: 1, ...}
-export type NameToIndexMap<T extends {name: string}[], Result = EmptyObject, Processed extends unknown[] = []> = T extends [infer Head, ...infer Tail] ?
-    Tail extends {name: string}[] ?
-        Head extends {name: string} ? NameToIndexMap<Tail, Result & {[K in Head['name']]: Length<Processed>}, [Head, ...Processed]> : never
-        : never
-    : Result;
-
-// This type accepts an array of objects shaped {type: DbType} and returns map of shape {<index in array>: <type>}
-// Useful to produce precise type of table row in db, similar to a tuple, e.g. [string, string, number, ...]
-type IndexToTypeMap<T extends {type: DbType}[], Result = EmptyObject, Processed extends unknown[] = []> = T extends [infer Head, ...infer Tail] ?
-    Tail extends {type: DbType}[] ?
-        Head extends {type: DbType} ? IndexToTypeMap<Tail, Result & {[K in Length<Processed>]: ExtractType<Head['type']>}, [Head, ...Processed]> : never
-        : never
-    : Result;
-
-export type RawSuitesRow = IndexToTypeMap<Mutable<typeof SUITES_TABLE_COLUMNS>>;
+export type RawSuitesRow = [
+    suitePath: string,
+    suiteName: string,
+    name: string,
+    suiteUrl: string,
+    metaInfo: string,
+    history: string,
+    description: string,
+    error: string,
+    skipReason: string,
+    imagesInfo: string,
+    screenshot: number,
+    multipleTabs: number,
+    status: string,
+    timestamp: number,
+];
 
 export type LabeledSuitesRow = {
     [K in (typeof SUITES_TABLE_COLUMNS)[number]['name']]: string;

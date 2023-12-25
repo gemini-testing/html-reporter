@@ -1,6 +1,5 @@
 import path from 'path';
 import {GeneralEventEmitter} from 'eventemitter2';
-import _ from 'lodash';
 import fs from 'fs-extra';
 import PQueue from 'p-queue';
 

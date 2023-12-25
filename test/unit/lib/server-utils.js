@@ -1,14 +1,23 @@
 'use strict';
 
 const path = require('path');
-const fs = require('fs-extra');
+
 const Promise = require('bluebird');
-const utils = require('lib/server-utils');
+const _ = require('lodash');
+const proxyquire = require('proxyquire');
+const sinon = require('sinon');
 const {IMAGES_PATH} = require('lib/constants/paths');
 const testStatuses = require('lib/constants/test-statuses');
 
 describe('server-utils', () => {
     const sandbox = sinon.sandbox.create();
+
+    const fsOriginal = require('fs-extra');
+    const fs = _.clone(fsOriginal);
+
+    const utils = proxyquire('lib/server-utils', {
+        'fs-extra': fs
+    });
 
     afterEach(() => sandbox.restore());
 
@@ -44,11 +53,11 @@ describe('server-utils', () => {
             it('should add state name to the path if it was passed', () => {
                 const test = {
                     imageDir: 'some/dir',
-                    browserId: 'bro',
-                    stateName: 'plain'
+                    browserId: 'bro'
                 };
+                const stateName = 'plain';
 
-                const resultPath = utils[`get${testData.name}Path`](test);
+                const resultPath = utils[`get${testData.name}Path`](test, stateName);
 
                 assert.equal(resultPath, path.join(IMAGES_PATH, 'some', 'dir', `plain/bro~${testData.prefix}_0.png`));
             });
@@ -121,13 +130,43 @@ describe('server-utils', () => {
         });
     });
 
-    describe('getDetailsFileName', () => {
-        it('should compose correct file name from suite path, browser id and attempt', () => {
-            sandbox.stub(Date, 'now').returns('123456789');
-            const testId = 'abcdef';
-            const expected = `${testId}-bro_2_123456789.json`;
+    describe('saveErrorDetails', () => {
+        const TEST_REPORT_PATH = 'report-path';
 
-            assert.equal(utils.getDetailsFileName(testId, 'bro', 1), expected);
+        beforeEach(() => {
+            sandbox.stub(fs, 'writeFile').resolves();
+            sandbox.stub(fs, 'mkdirs').resolves();
+        });
+
+        it('should do nothing if no error details are available', async () => {
+            await utils.saveErrorDetails({}, '');
+
+            assert.notCalled(fs.writeFile);
+        });
+
+        it('should save error details to correct path', async () => {
+            const testResult = {errorDetails: {filePath: 'some-path'}};
+
+            await utils.saveErrorDetails(testResult, TEST_REPORT_PATH);
+
+            assert.calledWithMatch(fs.writeFile, path.resolve(`${TEST_REPORT_PATH}/some-path`), sinon.match.any);
+        });
+
+        it('should create directory for error details', async () => {
+            const testResult = {errorDetails: {filePath: `some-dir/some-path`}};
+
+            await utils.saveErrorDetails(testResult, TEST_REPORT_PATH);
+
+            assert.calledOnceWith(fs.mkdirs, path.resolve(TEST_REPORT_PATH, 'some-dir'));
+        });
+
+        it('should save error details', async () => {
+            const data = {foo: 'bar'};
+            const testResult = {errorDetails: {filePath: 'some-path', data}};
+
+            await utils.saveErrorDetails(testResult, TEST_REPORT_PATH);
+
+            assert.calledWith(fs.writeFile, sinon.match.any, JSON.stringify(data, null, 2));
         });
     });
 

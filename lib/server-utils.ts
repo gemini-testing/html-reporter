@@ -1,10 +1,16 @@
+import crypto from 'crypto';
 import path from 'path';
 import url from 'url';
+
 import chalk from 'chalk';
-import _ from 'lodash';
+import {Router} from 'express';
 import fs from 'fs-extra';
+import Hermione, {Test as HermioneTest} from 'hermione';
+import _ from 'lodash';
+import tmp from 'tmp';
+
 import {getShortMD5, logger, mkTestId} from './common-utils';
-import {UPDATED, RUNNING, IDLE, SKIPPED, IMAGES_PATH, TestStatus} from './constants';
+import {UPDATED, RUNNING, IDLE, SKIPPED, IMAGES_PATH, TestStatus, UNKNOWN_ATTEMPT} from './constants';
 import type {HtmlReporter} from './plugin-api';
 import type {ReporterTestResult} from './test-adapter';
 import {
@@ -14,11 +20,7 @@ import {
     ReporterConfig,
     TestSpecByPath
 } from './types';
-import type Hermione from 'hermione';
-import crypto from 'crypto';
-import {HermioneTestAdapter} from './test-adapter';
-import {Router} from 'express';
-import tmp from 'tmp';
+import {HermioneTestAdapter} from './test-adapter/hermione';
 
 const DATA_FILE_NAME = 'data.js';
 
@@ -313,9 +315,9 @@ export function mapPlugins<T>(plugins: ReporterConfig['plugins'], callback: (nam
 }
 
 export const formatTestResult = (
-    rawResult: HermioneTestResult,
+    rawResult: HermioneTest | HermioneTestResult,
     status: TestStatus,
-    attempt: number
+    attempt: number = UNKNOWN_ATTEMPT
 ): ReporterTestResult => {
     return new HermioneTestAdapter(rawResult, {attempt, status});
 };
