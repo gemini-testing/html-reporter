@@ -65,7 +65,8 @@ export interface TestError {
 export interface ImageInfoDiff {
     status: TestStatus.FAIL;
     stateName: string;
-    refImg: ImageFile;
+    // Ref image is absent in pwt test results
+    refImg?: ImageFile;
     diffClusters?: CoordBounds[];
     expectedImg: ImageFile;
     actualImg: ImageFile;
@@ -81,6 +82,7 @@ interface AssertViewSuccess {
 export interface ImageInfoSuccess {
     status: TestStatus.SUCCESS;
     stateName: string;
+    // Ref image may be absent in pwt test results
     refImg?: ImageFile;
     diffClusters?: CoordBounds[];
     expectedImg: ImageFile;
@@ -101,7 +103,8 @@ export interface ImageInfoNoRef {
     status: TestStatus.ERROR;
     error?: TestError;
     stateName: string;
-    refImg: ImageFile;
+    // Ref image may be absent in pwt test results
+    refImg?: ImageFile;
     actualImg: ImageFile;
 }
 

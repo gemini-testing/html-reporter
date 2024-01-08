@@ -23,7 +23,6 @@ describe('HermioneTestAdapter', () => {
     let commonUtils: sinon.SinonStubbedInstance<typeof originalCommonUtils>;
     let fs: sinon.SinonStubbedInstance<typeof fsOriginal>;
     let tmp: typeof tmpOriginal;
-    let hermioneCache: typeof import('lib/test-adapter/cache/hermione');
     let testAdapterUtils: sinon.SinonStubbedInstance<typeof originalTestAdapterUtils>;
 
     const mkHermioneTestResultAdapter = (
@@ -41,7 +40,6 @@ describe('HermioneTestAdapter', () => {
     beforeEach(() => {
         tmp = {tmpdir: 'default/dir'} as typeof tmpOriginal;
         fs = sinon.stub(_.clone(fsOriginal));
-        hermioneCache = {testsAttempts: new Map()};
         getSuitePath = sandbox.stub();
         getCommandsHistory = sandbox.stub();
 
@@ -65,7 +63,6 @@ describe('HermioneTestAdapter', () => {
             '../plugin-utils': {getSuitePath},
             '../history-utils': {getCommandsHistory},
             '../server-utils': utils,
-            './cache/hermione': hermioneCache,
             './utils': testAdapterUtils
         }).HermioneTestAdapter;
         sandbox.stub(utils, 'getCurrentPath').returns('');

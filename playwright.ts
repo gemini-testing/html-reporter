@@ -10,7 +10,7 @@ import {StaticReportBuilder} from './lib/report-builder/static';
 import {HtmlReporter} from './lib/plugin-api';
 import {ReporterConfig, TestSpecByPath} from './lib/types';
 import {parseConfig} from './lib/config';
-import {PluginEvents, ToolName} from './lib/constants';
+import {PluginEvents, ToolName, UNKNOWN_ATTEMPT} from './lib/constants';
 import {RegisterWorkers} from './lib/workers/create-workers';
 import {PlaywrightTestAdapter} from './lib/test-adapter/playwright';
 import {SqliteClient} from './lib/sqlite-client';
@@ -68,7 +68,7 @@ class MyReporter implements Reporter {
 
             const staticReportBuilder = this._staticReportBuilder as StaticReportBuilder;
 
-            const formattedResult = new PlaywrightTestAdapter(test, result);
+            const formattedResult = new PlaywrightTestAdapter(test, result, UNKNOWN_ATTEMPT);
 
             await staticReportBuilder.addTestResult(formattedResult);
         });
