@@ -7,7 +7,7 @@ import NestedError from 'nested-error-stacks';
 import {getShortMD5} from './common-utils';
 import {TestStatus, DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS, LOCAL_DATABASE_NAME, DATABASE_URLS_JSON_NAME} from './constants';
 import {createTablesQuery} from './db-utils/common';
-import type {ErrorDetails, ImageInfoFull, TestError} from './types';
+import type {ImageInfoFull, TestError} from './types';
 import {HtmlReporter} from './plugin-api';
 import {ReporterTestResult} from './test-adapter';
 import {DbTestResultTransformer} from './test-adapter/transformers/db';
@@ -28,24 +28,6 @@ interface DeleteParams {
     orderBy?: string;
     orderDescending?: boolean;
     limit?: number;
-}
-
-export interface PreparedTestResult {
-    name: string;
-    suiteUrl: string;
-    metaInfo: Record<string, unknown>;
-    history: string[];
-    description?: string | null;
-    error?: {message?: string; stack?: string; stateName?: string};
-    skipReason?: string;
-    imagesInfo: ImageInfoFull[];
-    screenshot: boolean;
-    multipleTabs: boolean;
-    status: TestStatus;
-    timestamp: number;
-    errorDetails?: ErrorDetails;
-    suitePath: string[];
-    suiteName: string;
 }
 
 export interface DbTestResult {

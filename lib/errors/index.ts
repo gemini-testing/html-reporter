@@ -1,5 +1,5 @@
 import {CoordBounds} from 'looks-same';
-import {DiffOptions, ImageData} from '../types';
+import {DiffOptions, ImageFile} from '../types';
 import {ValueOf} from 'type-fest';
 
 export const ErrorName = {
@@ -17,11 +17,11 @@ export interface ImageDiffError {
     stack: string;
     stateName: string;
     diffOpts: DiffOptions;
-    currImg: ImageData;
-    refImg: ImageData;
+    currImg: ImageFile;
+    refImg: ImageFile;
     diffClusters: CoordBounds[];
     diffBuffer?: ArrayBuffer;
-    diffImg?: ImageData;
+    diffImg?: ImageFile;
 }
 
 export interface NoRefImageError {
@@ -29,6 +29,6 @@ export interface NoRefImageError {
     stateName: string;
     message: string;
     stack?: string;
-    currImg: ImageData;
-    refImg?: ImageData;
+    currImg: ImageFile;
+    refImg: ImageFile;
 }

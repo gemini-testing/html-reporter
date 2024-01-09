@@ -5,13 +5,18 @@ import _ from 'lodash';
 import stripAnsi from 'strip-ansi';
 
 import {ReporterTestResult} from './index';
-import {testsAttempts} from './cache/playwright';
-import {getShortMD5, isImageDiffError, isNoRefImageError, mkTestId} from '../common-utils';
-import {FAIL, PWT_TITLE_DELIMITER, TestStatus} from '../constants';
+import {getError, getShortMD5, isImageDiffError, isNoRefImageError} from '../common-utils';
+import {ERROR, FAIL, PWT_TITLE_DELIMITER, SUCCESS, TestStatus} from '../constants';
 import {ErrorName} from '../errors';
-import {ImagesInfoFormatter} from '../image-handler';
-import {AssertViewResult, ErrorDetails, ImageData, ImageInfoFull, ImageSize, TestError} from '../types';
-import * as utils from '../server-utils';
+import {
+    DiffOptions,
+    ErrorDetails,
+    ImageFile,
+    ImageInfoDiff,
+    ImageInfoFull, ImageInfoNoRef, ImageInfoPageError, ImageInfoPageSuccess, ImageInfoSuccess,
+    ImageSize,
+    TestError
+} from '../types';
 import type {CoordBounds} from 'looks-same';
 
 export type PlaywrightAttachment = PlaywrightTestResult['attachments'][number];
@@ -38,6 +43,10 @@ export enum ImageTitleEnding {
 }
 
 const ANY_IMAGE_ENDING_REGEXP = new RegExp(Object.values(ImageTitleEnding).map(ending => `${ending}$`).join('|'));
+
+export const DEFAULT_DIFF_OPTIONS = {
+    diffColor: '#ff00ff'
+} satisfies Partial<DiffOptions>;
 
 export const getStatus = (result: PlaywrightTestResult): TestStatus => {
     if (result.status === PwtTestStatus.PASSED) {
@@ -79,7 +88,7 @@ const extractErrorStack = (result: PlaywrightTestResult): string => {
     return JSON.stringify(result.errors.map(err => stripAnsi(err.stack || '')));
 };
 
-const extractImageError = (result: PlaywrightTestResult, {state, expectedAttachment, diffAttachment, actualAttachment} : {
+const extractToMatchScreenshotError = (result: PlaywrightTestResult, {state, expectedAttachment, diffAttachment, actualAttachment} : {
     state: string;
     expectedAttachment?: PlaywrightAttachment;
     diffAttachment?: PlaywrightAttachment;
@@ -96,7 +105,6 @@ const extractImageError = (result: PlaywrightTestResult, {state, expectedAttachm
         return {name: ErrorName.IMAGE_DIFF, message: '', diffClusters: imageDiffError?.meta?.diffClusters};
     }
 
-    // only supports toMatchScreenshot
     const errors = (result.errors || []) as PwtNoRefImageError[];
     const noRefImageError = errors.find(err => {
         return err.meta?.type === ErrorName.NO_REF_IMAGE && err.meta.snapshotName === snapshotName;
@@ -108,7 +116,7 @@ const extractImageError = (result: PlaywrightTestResult, {state, expectedAttachm
     } : null;
 };
 
-const getImageData = (attachment: PlaywrightAttachment | undefined): ImageData | null => {
+const getImageData = (attachment: PlaywrightAttachment | undefined): ImageFile | null => {
     if (!attachment) {
         return null;
     }
@@ -119,65 +127,16 @@ const getImageData = (attachment: PlaywrightAttachment | undefined): ImageData |
     };
 };
 
-export interface PlaywrightTestAdapterOptions {
-    imagesInfoFormatter: ImagesInfoFormatter;
-}
-
 export class PlaywrightTestAdapter implements ReporterTestResult {
     private readonly _testCase: PlaywrightTestCase;
     private readonly _testResult: PlaywrightTestResult;
     private _attempt: number;
-    private _imagesInfoFormatter: ImagesInfoFormatter;
 
-    constructor(testCase: PlaywrightTestCase, testResult: PlaywrightTestResult, {imagesInfoFormatter}: PlaywrightTestAdapterOptions) {
+    constructor(testCase: PlaywrightTestCase, testResult: PlaywrightTestResult, attempt: number) {
         this._testCase = testCase;
         this._testResult = testResult;
-        this._imagesInfoFormatter = imagesInfoFormatter;
 
-        const testId = mkTestId(this.fullName, this.browserId);
-        if (utils.shouldUpdateAttempt(this.status)) {
-            testsAttempts.set(testId, _.isUndefined(testsAttempts.get(testId)) ? 0 : testsAttempts.get(testId) as number + 1);
-        }
-
-        this._attempt = testsAttempts.get(testId) || 0;
-    }
-
-    get assertViewResults(): AssertViewResult[] {
-        return Object.entries(this._attachmentsByState).map(([state, attachments]): AssertViewResult | null => {
-            const expectedAttachment = attachments.find(a => a.name?.endsWith(ImageTitleEnding.Expected));
-            const diffAttachment = attachments.find(a => a.name?.endsWith(ImageTitleEnding.Diff));
-            const actualAttachment = attachments.find(a => a.name?.endsWith(ImageTitleEnding.Actual));
-
-            const [refImg, diffImg, currImg] = [expectedAttachment, diffAttachment, actualAttachment].map(getImageData);
-
-            const error = extractImageError(this._testResult, {state, expectedAttachment, diffAttachment, actualAttachment}) || this.error;
-
-            if (error?.name === ErrorName.IMAGE_DIFF && refImg && diffImg && currImg) {
-                return {
-                    name: ErrorName.IMAGE_DIFF,
-                    stateName: state,
-                    refImg,
-                    diffImg,
-                    currImg,
-                    diffClusters: _.get(error, 'diffClusters', [])
-                };
-            } else if (error?.name === ErrorName.NO_REF_IMAGE && currImg) {
-                return {
-                    name: ErrorName.NO_REF_IMAGE,
-                    message: error.message,
-                    stack: error.stack,
-                    stateName: state,
-                    currImg
-                };
-            } else if (!error && refImg) {
-                return {
-                    stateName: state,
-                    refImg
-                };
-            }
-
-            return null;
-        }).filter(Boolean) as AssertViewResult[];
+        this._attempt = attempt;
     }
 
     get attempt(): number {
@@ -198,7 +157,7 @@ export class PlaywrightTestAdapter implements ReporterTestResult {
             const result: TestError = {name: ErrorName.GENERAL_ERROR, message};
 
             const stack = extractErrorStack(this._testResult);
-            if (stack) {
+            if (!_.isNil(stack)) {
                 result.stack = stack;
             }
 
@@ -237,8 +196,56 @@ export class PlaywrightTestAdapter implements ReporterTestResult {
         return getShortMD5(this.fullName);
     }
 
-    get imagesInfo(): ImageInfoFull[] | undefined {
-        return this._imagesInfoFormatter.getImagesInfo(this);
+    get imagesInfo(): ImageInfoFull[] {
+        const imagesInfo = Object.entries(this._attachmentsByState).map(([state, attachments]): ImageInfoFull | null => {
+            const expectedAttachment = attachments.find(a => a.name?.endsWith(ImageTitleEnding.Expected));
+            const diffAttachment = attachments.find(a => a.name?.endsWith(ImageTitleEnding.Diff));
+            const actualAttachment = attachments.find(a => a.name?.endsWith(ImageTitleEnding.Actual));
+
+            const [expectedImg, diffImg, actualImg] = [expectedAttachment, diffAttachment, actualAttachment].map(getImageData);
+
+            const error = extractToMatchScreenshotError(this._testResult, {state, expectedAttachment, diffAttachment, actualAttachment}) || this.error;
+
+            // We don't provide refImg here, because on some pwt versions it's impossible to provide correct path:
+            // older pwt versions had test-results directory in expected path instead of project directory.
+            if (error?.name === ErrorName.IMAGE_DIFF && expectedImg && diffImg && actualImg) {
+                return {
+                    status: FAIL,
+                    stateName: state,
+                    diffImg,
+                    actualImg,
+                    expectedImg,
+                    diffClusters: _.get(error, 'diffClusters', []),
+                    // TODO: extract diffOptions from config
+                    diffOptions: {current: actualImg.path, reference: expectedImg.path, ...DEFAULT_DIFF_OPTIONS}
+                } satisfies ImageInfoDiff;
+            } else if (error?.name === ErrorName.NO_REF_IMAGE && actualImg) {
+                return {
+                    status: ERROR,
+                    stateName: state,
+                    error: _.pick(error, ['message', 'name', 'stack']),
+                    actualImg
+                } satisfies ImageInfoNoRef;
+            } else if (!error && expectedImg) {
+                return {
+                    status: SUCCESS,
+                    stateName: state,
+                    expectedImg,
+                    ...(actualImg ? {actualImg} : {})
+                } satisfies ImageInfoSuccess;
+            }
+
+            return null;
+        }).filter((value): value is ImageInfoFull => value !== null);
+
+        if (this.screenshot) {
+            imagesInfo.push({
+                status: _.isEmpty(getError(this.error)) ? SUCCESS : ERROR,
+                actualImg: this.screenshot
+            } satisfies ImageInfoPageSuccess | ImageInfoPageError as ImageInfoPageSuccess | ImageInfoPageError);
+        }
+
+        return imagesInfo;
     }
 
     get meta(): Record<string, unknown> {
@@ -249,7 +256,7 @@ export class PlaywrightTestAdapter implements ReporterTestResult {
         return true;
     }
 
-    get screenshot(): ImageData | null {
+    get screenshot(): ImageFile | null {
         const pageScreenshot = this._testResult.attachments.find(a => a.contentType === 'image/png' && a.name === 'screenshot');
 
         return getImageData(pageScreenshot);

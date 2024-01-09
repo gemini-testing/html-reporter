@@ -48,23 +48,37 @@ describe('StaticResultsTreeBuilder', () => {
         ];
     };
 
-    const formatToTestResult = (result, data = {}) => {
+    const formatDbResultToTestResult = (result, overrides = {}) => {
         return {
             description: result.description,
             imagesInfo: result.imagesInfo,
-            metaInfo: result.metaInfo,
+            meta: result.metaInfo,
             history: result.history,
             multipleTabs: result.multipleTabs,
-            name: result.name,
-            screenshot: result.screenshot,
+            browserId: result.name,
             status: result.status,
-            suiteUrl: result.suiteUrl,
+            url: result.suiteUrl,
             skipReason: result.skipReason,
             error: result.error,
             timestamp: result.timestamp,
-            ...data
+            ...overrides
         };
     };
+
+    const formatTestResult = (result) => _.pick(result, [
+        'attempt',
+        'description',
+        'imagesInfo',
+        'meta',
+        'history',
+        'multipleTabs',
+        'browserId',
+        'status',
+        'url',
+        'skipReason',
+        'error',
+        'timestamp'
+    ]);
 
     beforeEach(() => {
         sandbox.stub(StaticTestsTreeBuilder.prototype, 'addTestResult');
@@ -84,35 +98,34 @@ describe('StaticResultsTreeBuilder', () => {
 
                 builder.build(rows);
 
-                assert.calledWith(
-                    StaticTestsTreeBuilder.prototype.addTestResult.firstCall,
-                    sinon.match(formatToTestResult(dataFromDb1, {attempt: 0})),
-                    sinon.match({browserId: 'yabro', testPath: ['s1'], attempt: 0})
-                );
-                assert.calledWith(
-                    StaticTestsTreeBuilder.prototype.addTestResult.secondCall,
-                    sinon.match(formatToTestResult(dataFromDb2, {attempt: 0})),
-                    sinon.match({browserId: 'yabro', testPath: ['s2'], attempt: 0})
-                );
+                assert.calledTwice(StaticTestsTreeBuilder.prototype.addTestResult);
+
+                const actualTestResults = StaticTestsTreeBuilder.prototype.addTestResult
+                    .getCalls()
+                    .map(_.property('args.0'))
+                    .map(formatTestResult);
+                const expectedTestResults = [dataFromDb1, dataFromDb2].map(r => formatDbResultToTestResult(r, {attempt: 0}));
+                assert.deepEqual(actualTestResults, expectedTestResults);
             });
 
-            it('the same test with increase attempt', () => {
+            it('the same test with increased attempt', () => {
                 const dataFromDb1 = mkDataFromDb_({suitePath: ['s1'], name: 'yabro', timestamp: 10});
                 const dataFromDb2 = mkDataFromDb_({suitePath: ['s1'], name: 'yabro', timestamp: 20});
                 const rows = [mkDataRowFromDb_(dataFromDb1), mkDataRowFromDb_(dataFromDb2)];
 
                 builder.build(rows);
 
-                assert.calledWith(
-                    StaticTestsTreeBuilder.prototype.addTestResult.firstCall,
-                    sinon.match(formatToTestResult(dataFromDb1, {attempt: 0})),
-                    sinon.match({browserId: 'yabro', testPath: ['s1'], attempt: 0})
-                );
-                assert.calledWith(
-                    StaticTestsTreeBuilder.prototype.addTestResult.secondCall,
-                    sinon.match(formatToTestResult(dataFromDb2, {attempt: 1})),
-                    sinon.match({browserId: 'yabro', testPath: ['s1'], attempt: 1})
-                );
+                assert.calledTwice(StaticTestsTreeBuilder.prototype.addTestResult);
+
+                const actualTestResults = StaticTestsTreeBuilder.prototype.addTestResult
+                    .getCalls()
+                    .map(_.property('args.0'))
+                    .map(formatTestResult);
+                const expectedTestResults = [
+                    formatDbResultToTestResult(dataFromDb1, {attempt: 0}),
+                    formatDbResultToTestResult(dataFromDb2, {attempt: 1})
+                ];
+                assert.deepEqual(actualTestResults, expectedTestResults);
             });
         });
 

@@ -64,10 +64,10 @@ describe('history-utils', () => {
             ]);
         });
 
-        it('should return undefined if all history is not given', () => {
+        it('should return empty array if all history is not given', () => {
             const history = getCommandsHistory(undefined);
 
-            assert.isUndefined(history);
+            assert.deepEqual(history, []);
         });
     });
 });

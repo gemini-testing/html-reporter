@@ -8,15 +8,12 @@ const {ToolName} = require('lib/constants');
 describe('GuiResultsTreeBuilder', () => {
     let builder;
 
-    const mkTestResult_ = (result) => {
-        return _.defaults(result, {status: IDLE, imagesInfo: [], metaInfo: {}});
-    };
-
     const mkFormattedResult_ = (result) => {
         return _.defaults(result, {
             testPath: ['default-parent-suite', 'default-child-suite'],
             browserId: 'default-browser',
-            attempt: 0
+            attempt: 0,
+            meta: {browserVersion: 'some-version'}
         });
     };
 
@@ -28,9 +25,9 @@ describe('GuiResultsTreeBuilder', () => {
 
     describe('"getImagesInfo" method', () => {
         it('should return images from tree for passed test result id', () => {
-            const formattedRes = mkFormattedResult_({testPath: ['s'], browserId: 'b', attempt: 0});
             const imagesInfo = [{stateName: 'image-1'}, {stateName: 'image-2'}];
-            builder.addTestResult(mkTestResult_({imagesInfo}), formattedRes);
+            const formattedRes = mkFormattedResult_({testPath: ['s'], browserId: 'b', attempt: 0, imagesInfo});
+            builder.addTestResult(formattedRes);
 
             const gotImagesInfo = builder.getImagesInfo('s b 0');
 
@@ -49,12 +46,10 @@ describe('GuiResultsTreeBuilder', () => {
             it('should not reuse browser result if browser ids are not matched', () => {
                 const srcBuilder = mkGuiTreeBuilder();
                 srcBuilder.addTestResult(
-                    mkTestResult_(),
                     mkFormattedResult_({testPath: ['s1'], browserId: 'b1', attempt: 0})
                 );
 
                 builder.addTestResult(
-                    mkTestResult_(),
                     mkFormattedResult_({testPath: ['s1'], browserId: 'b2', attempt: 0})
                 );
 
@@ -67,12 +62,10 @@ describe('GuiResultsTreeBuilder', () => {
             it('should reuse browser result from the passed tree if browser ids matched', () => {
                 const srcBuilder = mkGuiTreeBuilder();
                 srcBuilder.addTestResult(
-                    mkTestResult_(),
                     mkFormattedResult_({testPath: ['s1'], browserId: 'b1', attempt: 0})
                 );
 
                 builder.addTestResult(
-                    mkTestResult_(),
                     mkFormattedResult_({testPath: ['s1'], browserId: 'b1', attempt: 0})
                 );
 
@@ -86,13 +79,11 @@ describe('GuiResultsTreeBuilder', () => {
             it('should not reuse result if browser ids does not matched', () => {
                 const srcBuilder = mkGuiTreeBuilder();
                 srcBuilder.addTestResult(
-                    mkTestResult_({status: FAIL}),
-                    mkFormattedResult_({testPath: ['s1'], browserId: 'b1', attempt: 0})
+                    mkFormattedResult_({status: FAIL, testPath: ['s1'], browserId: 'b1', attempt: 0})
                 );
 
                 builder.addTestResult(
-                    mkTestResult_({status: IDLE}),
-                    mkFormattedResult_({testPath: ['s1'], browserId: 'b2', attempt: 0})
+                    mkFormattedResult_({status: IDLE, testPath: ['s1'], browserId: 'b2', attempt: 0})
                 );
 
                 builder.reuseTestsTree(srcBuilder.tree);
@@ -104,17 +95,14 @@ describe('GuiResultsTreeBuilder', () => {
             it('should reuse all results from the passed tree if browser ids matched', () => {
                 const srcBuilder = mkGuiTreeBuilder();
                 srcBuilder.addTestResult(
-                    mkTestResult_({status: FAIL}),
-                    mkFormattedResult_({testPath: ['s1'], browserId: 'b1', attempt: 0})
+                    mkFormattedResult_({status: FAIL, testPath: ['s1'], browserId: 'b1', attempt: 0})
                 );
                 srcBuilder.addTestResult(
-                    mkTestResult_({status: SUCCESS}),
-                    mkFormattedResult_({testPath: ['s1'], browserId: 'b1', attempt: 1})
+                    mkFormattedResult_({status: SUCCESS, testPath: ['s1'], browserId: 'b1', attempt: 1})
                 );
 
                 builder.addTestResult(
-                    mkTestResult_({status: IDLE}),
-                    mkFormattedResult_({testPath: ['s1'], browserId: 'b1', attempt: 0})
+                    mkFormattedResult_({status: IDLE, testPath: ['s1'], browserId: 'b1', attempt: 0})
                 );
 
                 builder.reuseTestsTree(srcBuilder.tree);
@@ -126,12 +114,10 @@ describe('GuiResultsTreeBuilder', () => {
             it('should register reused result ids', () => {
                 const srcBuilder = mkGuiTreeBuilder();
                 srcBuilder.addTestResult(
-                    mkTestResult_(),
                     mkFormattedResult_({testPath: ['s1'], browserId: 'b1', attempt: 1})
                 );
 
                 builder.addTestResult(
-                    mkTestResult_(),
                     mkFormattedResult_({testPath: ['s1'], browserId: 'b1', attempt: 0})
                 );
 
@@ -145,13 +131,11 @@ describe('GuiResultsTreeBuilder', () => {
             it('should not reuse images if browser ids does not matched', () => {
                 const srcBuilder = mkGuiTreeBuilder();
                 srcBuilder.addTestResult(
-                    mkTestResult_({imagesInfo: [{stateName: 'img1'}]}),
-                    mkFormattedResult_({testPath: ['s1'], browserId: 'b1', attempt: 0})
+                    mkFormattedResult_({testPath: ['s1'], browserId: 'b1', attempt: 0, imagesInfo: [{stateName: 'img1'}]})
                 );
 
                 builder.addTestResult(
-                    mkTestResult_({imagesInfo: [{stateName: 'img1'}]}),
-                    mkFormattedResult_({testPath: ['s1'], browserId: 'b2', attempt: 0})
+                    mkFormattedResult_({testPath: ['s1'], browserId: 'b2', attempt: 0, imagesInfo: [{stateName: 'img1'}]})
                 );
 
                 builder.reuseTestsTree(srcBuilder.tree);
@@ -162,14 +146,14 @@ describe('GuiResultsTreeBuilder', () => {
 
             it('should reuse all images from the passed tree if browser ids matched', () => {
                 const srcBuilder = mkGuiTreeBuilder();
+                const imagesInfo1 = [{stateName: 'img1'}, {stateName: 'img2'}];
                 srcBuilder.addTestResult(
-                    mkTestResult_({imagesInfo: [{stateName: 'img1'}, {stateName: 'img2'}]}),
-                    mkFormattedResult_({testPath: ['s1'], browserId: 'b1', attempt: 0})
+                    mkFormattedResult_({testPath: ['s1'], browserId: 'b1', attempt: 0, imagesInfo: imagesInfo1})
                 );
 
+                const imagesInfo2 = [{stateName: 'img1'}];
                 builder.addTestResult(
-                    mkTestResult_({imagesInfo: [{stateName: 'img1'}]}),
-                    mkFormattedResult_({testPath: ['s1'], browserId: 'b1', attempt: 0})
+                    mkFormattedResult_({testPath: ['s1'], browserId: 'b1', attempt: 0, imagesInfo: imagesInfo2})
                 );
 
                 builder.reuseTestsTree(srcBuilder.tree);
@@ -180,13 +164,12 @@ describe('GuiResultsTreeBuilder', () => {
 
             it('should register reused images ids', () => {
                 const srcBuilder = mkGuiTreeBuilder();
+                const imagesInfo = [{stateName: 'img1'}, {stateName: 'img2'}];
                 srcBuilder.addTestResult(
-                    mkTestResult_({imagesInfo: [{stateName: 'img1'}, {stateName: 'img2'}]}),
-                    mkFormattedResult_({testPath: ['s1'], browserId: 'b1', attempt: 0})
+                    mkFormattedResult_({testPath: ['s1'], browserId: 'b1', attempt: 0, imagesInfo})
                 );
 
                 builder.addTestResult(
-                    mkTestResult_(),
                     mkFormattedResult_({testPath: ['s1'], browserId: 'b1', attempt: 0})
                 );
 
@@ -200,13 +183,11 @@ describe('GuiResultsTreeBuilder', () => {
             it('should not reuse suite status if browser ids does not matched', () => {
                 const srcBuilder = mkGuiTreeBuilder();
                 srcBuilder.addTestResult(
-                    mkTestResult_({status: FAIL}),
-                    mkFormattedResult_({testPath: ['s1'], browserId: 'b1', attempt: 0})
+                    mkFormattedResult_({status: FAIL, testPath: ['s1'], browserId: 'b1', attempt: 0})
                 );
 
                 builder.addTestResult(
-                    mkTestResult_({status: IDLE}),
-                    mkFormattedResult_({testPath: ['s1'], browserId: 'b2', attempt: 0})
+                    mkFormattedResult_({status: IDLE, testPath: ['s1'], browserId: 'b2', attempt: 0})
                 );
 
                 builder.reuseTestsTree(srcBuilder.tree);
@@ -217,13 +198,11 @@ describe('GuiResultsTreeBuilder', () => {
             it('should reuse suite status from passed tree with if browser ids matched', () => {
                 const srcBuilder = mkGuiTreeBuilder();
                 srcBuilder.addTestResult(
-                    mkTestResult_({status: FAIL}),
-                    mkFormattedResult_({testPath: ['s1'], browserId: 'b1', attempt: 0})
+                    mkFormattedResult_({status: FAIL, testPath: ['s1'], browserId: 'b1', attempt: 0})
                 );
 
                 builder.addTestResult(
-                    mkTestResult_({status: IDLE}),
-                    mkFormattedResult_({testPath: ['s1'], browserId: 'b1', attempt: 0})
+                    mkFormattedResult_({status: IDLE, testPath: ['s1'], browserId: 'b1', attempt: 0})
                 );
 
                 builder.reuseTestsTree(srcBuilder.tree);
@@ -236,8 +215,7 @@ describe('GuiResultsTreeBuilder', () => {
     describe('"getTestBranch" method', () => {
         it('should return "suites" as array for root suite', () => {
             builder.addTestResult(
-                mkTestResult_({status: IDLE}),
-                mkFormattedResult_({testPath: ['s'], browserId: 'b', attempt: 0})
+                mkFormattedResult_({status: IDLE, testPath: ['s'], browserId: 'b', attempt: 0})
             );
 
             const {suites} = builder.getTestBranch('s b 0');
@@ -248,10 +226,15 @@ describe('GuiResultsTreeBuilder', () => {
 
     describe('"getResultDataToUnacceptImage" method', () => {
         it('should return "shouldRemoveResult: true" if it is the only updated image in result', () => {
-            const formattedRes1 = mkFormattedResult_({testPath: ['s'], browserId: 'b', attempt: 0});
-            const formattedRes2 = mkFormattedResult_({testPath: ['s'], browserId: 'b', attempt: 1});
-            builder.addTestResult(mkTestResult_({imagesInfo: [{stateName: 'foo', status: FAIL}]}), formattedRes1);
-            builder.addTestResult(mkTestResult_({imagesInfo: [{stateName: 'foo', status: UPDATED}]}), formattedRes2);
+            const formattedRes1 = mkFormattedResult_({testPath: ['s'], browserId: 'b', attempt: 0, imagesInfo: [
+                {stateName: 'foo', status: FAIL}]
+            });
+            const formattedRes2 = mkFormattedResult_({testPath: ['s'], browserId: 'b', attempt: 1, imagesInfo: [
+                {stateName: 'foo', status: UPDATED}]
+            });
+
+            builder.addTestResult(formattedRes1);
+            builder.addTestResult(formattedRes2);
 
             const {shouldRemoveResult} = builder.getResultDataToUnacceptImage('s b 1', 'foo');
 
@@ -261,10 +244,11 @@ describe('GuiResultsTreeBuilder', () => {
         it('should return "shouldRemoveResult: false" if it is not the only updated image in result', () => {
             const imagesInfo1 = [{stateName: 'foo', status: FAIL}, {stateName: 'bar', status: FAIL}];
             const imagesInfo2 = [{stateName: 'foo', status: UPDATED}, {stateName: 'bar', status: UPDATED}];
-            const formattedRes1 = mkFormattedResult_({testPath: ['s'], browserId: 'b', attempt: 0});
-            const formattedRes2 = mkFormattedResult_({testPath: ['s'], browserId: 'b', attempt: 1});
-            builder.addTestResult(mkTestResult_({imagesInfo: imagesInfo1}), formattedRes1);
-            builder.addTestResult(mkTestResult_({imagesInfo: imagesInfo2}), formattedRes2);
+            const formattedRes1 = mkFormattedResult_({testPath: ['s'], browserId: 'b', attempt: 0, imagesInfo: imagesInfo1});
+            const formattedRes2 = mkFormattedResult_({testPath: ['s'], browserId: 'b', attempt: 1, imagesInfo: imagesInfo2});
+
+            builder.addTestResult(formattedRes1);
+            builder.addTestResult(formattedRes2);
 
             const {shouldRemoveResult} = builder.getResultDataToUnacceptImage('s b 1', 'foo');
 

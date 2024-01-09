@@ -7,7 +7,7 @@ const {subscribeOnToolEvents} = require('lib/gui/tool-runner/report-subscriber')
 const {GuiReportBuilder} = require('lib/report-builder/gui');
 const {ClientEvents} = require('lib/gui/constants');
 const {stubTool, stubConfig} = require('test/unit/utils');
-const {HermioneTestAdapter} = require('lib/test-adapter');
+const {HermioneTestAdapter} = require('lib/test-adapter/hermione');
 const {UNKNOWN_ATTEMPT} = require('lib/constants');
 
 describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
@@ -34,13 +34,9 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
 
     beforeEach(() => {
         reportBuilder = sinon.createStubInstance(GuiReportBuilder);
-        reportBuilder.addFail.callsFake(_.identity);
-        reportBuilder.addError.callsFake(_.identity);
-        reportBuilder.addRunning.callsFake(_.identity);
-        reportBuilder.addSkipped.callsFake(_.identity);
+        reportBuilder.addTestResult.callsFake(_.identity);
 
         sandbox.stub(GuiReportBuilder, 'create').returns(reportBuilder);
-        sandbox.stub(reportBuilder, 'imageHandler').value({saveTestImages: sinon.stub()});
         sandbox.stub(HermioneTestAdapter.prototype, 'id').value('some-id');
 
         client = new EventEmitter();
@@ -64,7 +60,7 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
             const testResult = mkHermioneTestResult();
             const mediator = sinon.spy().named('mediator');
 
-            reportBuilder.addError.callsFake(() => Promise.delay(100).then(mediator).then(() => ({id: 'some-id'})));
+            reportBuilder.addTestResult.callsFake(() => Promise.delay(100).then(mediator).then(() => ({id: 'some-id'})));
 
             subscribeOnToolEvents(hermione, reportBuilder, client);
             hermione.emit(hermione.events.TEST_FAIL, testResult);
@@ -79,7 +75,7 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
             const hermione = mkHermione_();
             const testResult = mkHermioneTestResult();
 
-            reportBuilder.addRunning.resolves({id: 'some-id'});
+            reportBuilder.addTestResult.resolves({id: 'some-id'});
             reportBuilder.getTestBranch.withArgs('some-id').returns('test-tree-branch');
 
             subscribeOnToolEvents(hermione, reportBuilder, client);
@@ -99,7 +95,7 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
             await hermione.emitAsync(hermione.events.TEST_PENDING, testResult);
             await hermione.emitAsync(hermione.events.RUNNER_END);
 
-            assert.calledOnceWith(reportBuilder.addSkipped, sinon.match({
+            assert.calledOnceWith(reportBuilder.addTestResult, sinon.match({
                 fullName: 'some-title',
                 browserId: 'some-browser',
                 attempt: UNKNOWN_ATTEMPT

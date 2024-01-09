@@ -33,9 +33,8 @@ describe('lib/hermione', () => {
         'better-sqlite3': sinon.stub().returns(mkSqliteDb())
     });
 
-    const {ImageHandler} = proxyquire('lib/image-handler', {
+    const {ImagesInfoSaver} = proxyquire('lib/images-info-saver', {
         'fs-extra': fs,
-        './image-cache': {cacheExpectedPaths, cacheAllImages, cacheDiffImages},
         './server-utils': utils
     });
 
@@ -48,11 +47,11 @@ describe('lib/hermione', () => {
         'fs-extra': fs,
         '../server-utils': utils,
         '../test-adapter': {TestAdapter},
-        '../image-handler': {ImageHandler}
+        '../images-info-saver': {ImagesInfoSaver}
     });
 
     const HtmlReporter = proxyquire('lib/plugin-api', {
-        './local-images-saver': proxyquire('lib/local-images-saver', {
+        './local-image-file-saver': proxyquire('lib/local-image-file-saver', {
             './server-utils': utils
         })
     }).HtmlReporter;
@@ -160,12 +159,7 @@ describe('lib/hermione', () => {
         sandbox.stub(logger, 'log');
         sandbox.stub(logger, 'warn');
 
-        sandbox.stub(StaticReportBuilder.prototype, 'addSkipped').callsFake(_.identity);
-        sandbox.stub(StaticReportBuilder.prototype, 'addSuccess').callsFake(_.identity);
-        sandbox.stub(StaticReportBuilder.prototype, 'addError').callsFake(_.identity);
-        sandbox.stub(StaticReportBuilder.prototype, 'addFail').callsFake(_.identity);
-        sandbox.stub(StaticReportBuilder.prototype, 'addRetry').callsFake(_.identity);
-        sandbox.stub(StaticReportBuilder.prototype, 'saveStaticFiles');
+        sandbox.stub(StaticReportBuilder.prototype, 'addTestResult').callsFake(_.identity);
         sandbox.stub(StaticReportBuilder.prototype, 'finalize');
 
         sandbox.stub(SqliteClient.prototype, 'query');
@@ -204,7 +198,7 @@ describe('lib/hermione', () => {
         hermione.emit(events.TEST_PENDING, mkStubResult_({title: 'some-title'}));
         await hermione.emitAsync(hermione.events.RUNNER_END);
 
-        assert.deepEqual(StaticReportBuilder.prototype.addSkipped.args[0][0].state, {name: 'some-title'});
+        assert.deepEqual(StaticReportBuilder.prototype.addTestResult.args[0][0].state, {name: 'some-title'});
     });
 
     it('should add passed test to result', async () => {
@@ -212,7 +206,7 @@ describe('lib/hermione', () => {
         hermione.emit(events.TEST_PASS, mkStubResult_({title: 'some-title'}));
         await hermione.emitAsync(hermione.events.RUNNER_END);
 
-        assert.deepEqual(StaticReportBuilder.prototype.addSuccess.args[0][0].state, {name: 'some-title'});
+        assert.deepEqual(StaticReportBuilder.prototype.addTestResult.args[0][0].state, {name: 'some-title'});
     });
 
     ['TEST_FAIL', 'RETRY'].forEach((event) => {
@@ -224,7 +218,7 @@ describe('lib/hermione', () => {
                 hermione.emit(events[event], testResult);
                 await hermione.emitAsync(hermione.events.RUNNER_END);
 
-                assert.deepEqual(StaticReportBuilder.prototype.addFail.args[0][0].state, {name: 'some-title'});
+                assert.deepEqual(StaticReportBuilder.prototype.addTestResult.args[0][0].state, {name: 'some-title'});
             });
 
             it(`errored assert view to result on ${event} event`, async () => {
@@ -235,7 +229,7 @@ describe('lib/hermione', () => {
                 hermione.emit(events[event], mkStubResult_({title: 'some-title', assertViewResults: [err]}));
                 await hermione.emitAsync(hermione.events.RUNNER_END);
 
-                assert.deepEqual(StaticReportBuilder.prototype.addFail.args[0][0].state, {name: 'some-title'});
+                assert.deepEqual(StaticReportBuilder.prototype.addTestResult.args[0][0].state, {name: 'some-title'});
             });
 
             it(`failed test to result on ${event} event`, async () => {
@@ -251,7 +245,7 @@ describe('lib/hermione', () => {
                 hermione.emit(events[event], testResult);
                 await hermione.emitAsync(hermione.events.RUNNER_END);
 
-                assert.deepEqual(StaticReportBuilder.prototype.addFail.args[0][0].state, {name: 'some-title'});
+                assert.deepEqual(StaticReportBuilder.prototype.addTestResult.args[0][0].state, {name: 'some-title'});
             });
 
             it(`failed test to result on ${event} event`, async () => {
@@ -263,7 +257,7 @@ describe('lib/hermione', () => {
                 hermione.emit(events[event], mkStubResult_({title: 'some-title', assertViewResults: [err]}));
                 await hermione.emitAsync(hermione.events.RUNNER_END);
 
-                assert.deepEqual(StaticReportBuilder.prototype.addFail.args[0][0].state, {name: 'some-title'});
+                assert.deepEqual(StaticReportBuilder.prototype.addTestResult.args[0][0].state, {name: 'some-title'});
             });
         });
     });

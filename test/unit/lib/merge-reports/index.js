@@ -25,6 +25,8 @@ describe('lib/merge-reports', () => {
         htmlReporter = sinon.stub();
         htmlReporter.events = {REPORT_SAVED: 'reportSaved'};
         htmlReporter.emitAsync = sinon.stub();
+        htmlReporter.imagesSaver = {saveImg: sinon.stub()};
+        htmlReporter.config = {};
 
         mergeReports = proxyquire('lib/merge-reports', {
             '../server-utils': serverUtils,

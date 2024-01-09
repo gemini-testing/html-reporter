@@ -1,15 +1,15 @@
 import EventsEmitter2 from 'eventemitter2';
 import {PluginEvents, ToolName} from './constants';
 import {downloadDatabases, getTestsTreeFromDatabase, mergeDatabases} from './db-utils/server';
-import {LocalImagesSaver} from './local-images-saver';
+import {LocalImageFileSaver} from './local-image-file-saver';
 import {version} from '../package.json';
-import {ImagesSaver, ReporterConfig, ReportsSaver} from './types';
+import {ImageFileSaver, ReporterConfig, ReportsSaver} from './types';
 
 export interface HtmlReporterValues {
     toolName: ToolName;
     extraItems: Record<string, string>;
     metaInfoExtenders: Record<string, string>;
-    imagesSaver: ImagesSaver;
+    imagesSaver: ImageFileSaver;
     reportsSaver: ReportsSaver | null;
 }
 
@@ -41,7 +41,7 @@ export class HtmlReporter extends EventsEmitter2 {
             toolName: toolName ?? ToolName.Hermione,
             extraItems: {},
             metaInfoExtenders: {},
-            imagesSaver: LocalImagesSaver,
+            imagesSaver: LocalImageFileSaver,
             reportsSaver: null
         };
         this._version = version;
@@ -75,12 +75,12 @@ export class HtmlReporter extends EventsEmitter2 {
         return this._values.metaInfoExtenders;
     }
 
-    set imagesSaver(imagesSaver: ImagesSaver) {
+    set imagesSaver(imagesSaver: ImageFileSaver) {
         this.emit(PluginEvents.IMAGES_SAVER_UPDATED, imagesSaver);
         this._values.imagesSaver = imagesSaver;
     }
 
-    get imagesSaver(): ImagesSaver {
+    get imagesSaver(): ImageFileSaver {
         return this._values.imagesSaver;
     }
 

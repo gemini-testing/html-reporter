@@ -1,15 +1,15 @@
 import os from 'os';
 import PQueue from 'p-queue';
-import Hermione from 'hermione';
+import Hermione, {Test as HermioneTest} from 'hermione';
 import {ClientEvents} from '../constants';
 import {getSuitePath} from '../../plugin-utils';
 import {createWorkers, CreateWorkersRunner} from '../../workers/create-workers';
 import {logError, formatTestResult} from '../../server-utils';
-import {hasFailedImages} from '../../common-utils';
-import {TestStatus, RUNNING, SUCCESS, SKIPPED, UNKNOWN_ATTEMPT} from '../../constants';
+import {TestStatus} from '../../constants';
 import {GuiReportBuilder} from '../../report-builder/gui';
 import {EventSource} from '../event-source';
-import {HermioneTestResult, ImageInfoFull} from '../../types';
+import {HermioneTestResult} from '../../types';
+import {getStatus} from '../../test-adapter/hermione';
 
 export const subscribeOnToolEvents = (hermione: Hermione, reportBuilder: GuiReportBuilder, client: EventSource): void => {
     const queue = new PQueue({concurrency: os.cpus().length});
@@ -29,65 +29,26 @@ export const subscribeOnToolEvents = (hermione: Hermione, reportBuilder: GuiRepo
         });
     });
 
-    hermione.on(hermione.events.TEST_BEGIN, (data) => {
-        queue.add(async () => {
-            const formattedResultWithoutAttempt = formatTestResult(data as HermioneTestResult, RUNNING, UNKNOWN_ATTEMPT, reportBuilder);
+    [
+        {eventName: hermione.events.TEST_BEGIN, clientEventName: ClientEvents.BEGIN_STATE},
+        {eventName: hermione.events.TEST_PASS, clientEventName: ClientEvents.TEST_RESULT},
+        {eventName: hermione.events.RETRY, clientEventName: ClientEvents.TEST_RESULT},
+        {eventName: hermione.events.TEST_FAIL, clientEventName: ClientEvents.TEST_RESULT},
+        {eventName: hermione.events.TEST_PENDING, clientEventName: ClientEvents.TEST_RESULT}
+    ].forEach(({eventName, clientEventName}) => {
+        type AnyHermioneTestEvent = typeof hermione.events.TEST_PASS;
 
-            const formattedResult = await reportBuilder.addRunning(formattedResultWithoutAttempt);
-            const testBranch = reportBuilder.getTestBranch(formattedResult.id);
+        hermione.on(eventName as AnyHermioneTestEvent, (data: HermioneTest | HermioneTestResult) => {
+            queue.add(async () => {
+                const status = getStatus(eventName, hermione.events, data as HermioneTestResult);
+                const formattedResultWithoutAttempt = formatTestResult(data, status);
 
-            return client.emit(ClientEvents.BEGIN_STATE, testBranch);
+                const formattedResult = await reportBuilder.addTestResult(formattedResultWithoutAttempt);
+                const testBranch = reportBuilder.getTestBranch(formattedResult.id);
+
+                return client.emit(clientEventName, testBranch);
+            }).catch(logError);
         });
-    });
-
-    hermione.on(hermione.events.TEST_PASS, (testResult) => {
-        queue.add(async () => {
-            const formattedResultWithoutAttempt = formatTestResult(testResult, SUCCESS, UNKNOWN_ATTEMPT, reportBuilder);
-
-            const formattedResult = await reportBuilder.addSuccess(formattedResultWithoutAttempt);
-
-            const testBranch = reportBuilder.getTestBranch(formattedResult.id);
-            client.emit(ClientEvents.TEST_RESULT, testBranch);
-        }).catch(logError);
-    });
-
-    hermione.on(hermione.events.RETRY, (testResult) => {
-        queue.add(async () => {
-            const status = hasFailedImages(testResult.assertViewResults as ImageInfoFull[]) ? TestStatus.FAIL : TestStatus.ERROR;
-
-            const formattedResultWithoutAttempt = formatTestResult(testResult, status, UNKNOWN_ATTEMPT, reportBuilder);
-
-            const formattedResult = await reportBuilder.addRetry(formattedResultWithoutAttempt);
-
-            const testBranch = reportBuilder.getTestBranch(formattedResult.id);
-            client.emit(ClientEvents.TEST_RESULT, testBranch);
-        }).catch(logError);
-    });
-
-    hermione.on(hermione.events.TEST_FAIL, (testResult) => {
-        queue.add(async () => {
-            const status = hasFailedImages(testResult.assertViewResults as ImageInfoFull[]) ? TestStatus.FAIL : TestStatus.ERROR;
-
-            const formattedResultWithoutAttempt = formatTestResult(testResult, status, UNKNOWN_ATTEMPT, reportBuilder);
-
-            const formattedResult = status === TestStatus.FAIL
-                ? await reportBuilder.addFail(formattedResultWithoutAttempt)
-                : await reportBuilder.addError(formattedResultWithoutAttempt);
-
-            const testBranch = reportBuilder.getTestBranch(formattedResult.id);
-            client.emit(ClientEvents.TEST_RESULT, testBranch);
-        }).catch(logError);
-    });
-
-    hermione.on(hermione.events.TEST_PENDING, async (testResult) => {
-        queue.add(async () => {
-            const formattedResultWithoutAttempt = formatTestResult(testResult as HermioneTestResult, SKIPPED, UNKNOWN_ATTEMPT, reportBuilder);
-
-            const formattedResult = await reportBuilder.addSkipped(formattedResultWithoutAttempt);
-
-            const testBranch = reportBuilder.getTestBranch(formattedResult.id);
-            client.emit(ClientEvents.TEST_RESULT, testBranch);
-        }).catch(logError);
     });
 
     hermione.on(hermione.events.RUNNER_END, async () => {

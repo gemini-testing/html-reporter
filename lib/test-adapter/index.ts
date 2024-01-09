@@ -1,25 +1,21 @@
 import {TestStatus} from '../constants';
-import {AssertViewResult, ErrorDetails, ImageBase64, ImageData, ImageInfoFull, TestError} from '../types';
-
-export * from './hermione';
+import {ErrorDetails, ImageBase64, ImageFile, ImageInfoFull, TestError} from '../types';
 
 export interface ReporterTestResult {
-    readonly assertViewResults: AssertViewResult[];
     readonly attempt: number;
     readonly browserId: string;
     readonly description: string | undefined;
-    error: undefined | TestError;
+    readonly error: undefined | TestError;
     readonly errorDetails: ErrorDetails | null;
     readonly file: string;
     readonly fullName: string;
     readonly history: string[];
     readonly id: string;
-    image?: boolean;
     readonly imageDir: string;
-    readonly imagesInfo: ImageInfoFull[] | undefined;
-    readonly meta: Record<string, unknown>;
+    readonly imagesInfo: ImageInfoFull[];
+    readonly meta: {browserVersion?: string} & Record<string, unknown>;
     readonly multipleTabs: boolean;
-    readonly screenshot: ImageBase64 | ImageData | null | undefined;
+    readonly screenshot: ImageBase64 | ImageFile | null | undefined;
     readonly sessionId: string;
     readonly skipReason?: string;
     readonly state: { name: string };

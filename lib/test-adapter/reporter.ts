@@ -1,14 +1,9 @@
 import {TestStatus} from '../constants';
-import {AssertViewResult, TestError, ErrorDetails, ImageInfoFull, ImageBase64, ImageData} from '../types';
+import {TestError, ErrorDetails, ImageInfoFull, ImageBase64, ImageFile} from '../types';
 import {ReporterTestResult} from './index';
-import {ImagesInfoFormatter} from '../image-handler';
 import _ from 'lodash';
 import {extractErrorDetails} from './utils';
-import {getShortMD5} from '../common-utils';
-
-interface ReporterTestAdapterOptions {
-    imagesInfoFormatter: ImagesInfoFormatter;
-}
+import {getShortMD5, getTestHash} from '../common-utils';
 
 // This class is primarily useful when cloning ReporterTestResult.
 // It allows to override some properties while keeping computable
@@ -16,17 +11,11 @@ interface ReporterTestAdapterOptions {
 
 export class ReporterTestAdapter implements ReporterTestResult {
     private _testResult: ReporterTestResult;
-    private _imagesInfoFormatter: ImagesInfoFormatter;
     private _errorDetails: ErrorDetails | null;
 
-    constructor(testResult: ReporterTestResult, {imagesInfoFormatter}: ReporterTestAdapterOptions) {
+    constructor(testResult: ReporterTestResult) {
         this._testResult = testResult;
-        this._imagesInfoFormatter = imagesInfoFormatter;
         this._errorDetails = null;
-    }
-
-    get assertViewResults(): AssertViewResult[] {
-        return this._testResult.assertViewResults;
     }
 
     get attempt(): number {
@@ -68,15 +57,15 @@ export class ReporterTestAdapter implements ReporterTestResult {
     }
 
     get id(): string {
-        return this.testPath.concat(this.browserId, this.attempt.toString()).join(' ');
+        return getTestHash(this);
     }
 
     get imageDir(): string {
         return getShortMD5(this.fullName);
     }
 
-    get imagesInfo(): ImageInfoFull[] | undefined {
-        return this._imagesInfoFormatter.getImagesInfo(this);
+    get imagesInfo(): ImageInfoFull[] {
+        return this._testResult.imagesInfo;
     }
 
     get meta(): Record<string, unknown> {
@@ -87,7 +76,7 @@ export class ReporterTestAdapter implements ReporterTestResult {
         return this._testResult.multipleTabs;
     }
 
-    get screenshot(): ImageBase64 | ImageData | null | undefined {
+    get screenshot(): ImageBase64 | ImageFile | null | undefined {
         return this.error?.screenshot;
     }
 

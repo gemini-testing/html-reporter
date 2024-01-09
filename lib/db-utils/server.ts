@@ -57,10 +57,10 @@ export async function mergeDatabases(srcDbPaths: string[], reportPath: string): 
     }
 }
 
-export function getTestsTreeFromDatabase(toolName: ToolName, dbPath: string): Tree {
+export function getTestsTreeFromDatabase(toolName: ToolName, dbPath: string, baseHost: string): Tree {
     try {
         const db = new Database(dbPath, {readonly: true, fileMustExist: true});
-        const testsTreeBuilder = StaticTestsTreeBuilder.create({toolName});
+        const testsTreeBuilder = StaticTestsTreeBuilder.create({toolName, baseHost});
 
         const suitesRows = (db.prepare(commonSqliteUtils.selectAllSuitesQuery())
             .raw()

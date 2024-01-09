@@ -1,6 +1,6 @@
 import type {LooksSameOptions, CoordBounds} from 'looks-same';
 import type {default as Hermione, TestResult as HermioneTestResultOriginal} from 'hermione';
-import {DiffModeId, SaveFormat, TestStatus, ViewMode} from './constants';
+import {DiffModeId, SaveFormat, SUITES_TABLE_COLUMNS, TestStatus, ViewMode} from './constants';
 import type {HtmlReporter} from './plugin-api';
 import {ImageDiffError, NoRefImageError} from './errors';
 
@@ -14,7 +14,7 @@ export interface HermioneTestResult extends HermioneTestResultOriginal {
     timestamp?: number;
 }
 
-export interface ImagesSaver {
+export interface ImageFileSaver {
     saveImg: (localFilePath: string, options: {destPath: string; reportDir: string}) => string | Promise<string>;
 }
 
@@ -33,9 +33,13 @@ export interface ImageSize {
     height: number;
 }
 
-export interface ImageData {
+export interface ImageFile {
     path: string;
     size: ImageSize;
+}
+
+export interface ImageBuffer {
+    buffer: Buffer;
 }
 
 export interface ImageBase64 {
@@ -49,97 +53,84 @@ export interface DiffOptions extends LooksSameOptions {
     diffColor: string;
 }
 
-export interface ImageInfoFail {
-    status: TestStatus.FAIL;
-    stateName: string;
-    refImg?: ImageData;
-    diffClusters?: CoordBounds[];
-    expectedImg: ImageData;
-    actualImg: ImageData;
-    diffImg: ImageData;
-}
-
-interface AssertViewSuccess {
-    stateName: string;
-    refImg: ImageData;
-}
-
-export interface ImageInfoSuccess {
-    status: TestStatus.SUCCESS | TestStatus.UPDATED;
-    stateName: string;
-    refImg?: ImageData;
-    diffClusters?: CoordBounds[];
-    expectedImg: ImageData;
-    actualImg?: ImageData;
-}
-
-export interface ImageInfoPageSuccess {
-    status: TestStatus.SUCCESS;
-    actualImg: ImageData;
-}
-
-export interface ImageInfoError {
-    status: TestStatus.ERROR;
-    error?: {message: string; stack: string;}
-    stateName?: string;
-    refImg?: ImageData;
-    diffClusters?: CoordBounds[];
-    actualImg: ImageData;
-}
-
-export type ImageInfoWithState = ImageInfoFail | ImageInfoSuccess | ImageInfoError;
-
-export type ImageInfoFull = ImageInfoFail | ImageInfoSuccess | ImageInfoError | ImageInfoPageSuccess;
-
-export type ImageInfo =
-    | Omit<ImageInfoFail, 'status' | 'stateName'>
-    | Omit<ImageInfoSuccess, 'status' | 'stateName'>
-    | Omit<ImageInfoError, 'status' | 'stateName'>
-    | Omit<ImageInfoPageSuccess, 'status' | 'stateName'>;
-
-export type AssertViewResult = (AssertViewSuccess | ImageDiffError | NoRefImageError) & {isUpdated?: boolean};
-
 export interface TestError {
     name: string;
     message: string;
     stack?: string;
     stateName?: string;
     details?: ErrorDetails
-    screenshot?: ImageBase64 | ImageData
+    screenshot?: ImageBase64 | ImageFile
 }
 
-export interface LabeledSuitesRow {
-    imagesInfo: string;
-    timestamp: number;
+export interface ImageInfoDiff {
+    status: TestStatus.FAIL;
+    stateName: string;
+    // Ref image is absent in pwt test results
+    refImg?: ImageFile;
+    diffClusters?: CoordBounds[];
+    expectedImg: ImageFile;
+    actualImg: ImageFile;
+    diffImg?: ImageFile | ImageBuffer;
+    diffOptions: DiffOptions;
 }
 
-export type RawSuitesRow = LabeledSuitesRow[keyof LabeledSuitesRow][];
-
-export interface ParsedSuitesRow {
-    description?: string | null;
-    error?: {
-        message?: string;
-        stack?: string;
-    };
-    history: unknown;
-    imagesInfo: ImageInfoFull[];
-    metaInfo: {
-        browserVersion?: string;
-        [key: string]: unknown;
-    };
-    multipleTabs: boolean;
-    name: string;
-    screenshot: boolean;
-    skipReason?: string;
-    status: TestStatus;
-    suiteName: string;
-    suitePath: string[];
-    suiteUrl: string;
-    timestamp: number;
+interface AssertViewSuccess {
+    stateName: string;
+    refImg: ImageFile;
 }
 
-export interface Attempt {
-    attempt: number;
+export interface ImageInfoSuccess {
+    status: TestStatus.SUCCESS;
+    stateName: string;
+    // Ref image may be absent in pwt test results
+    refImg?: ImageFile;
+    diffClusters?: CoordBounds[];
+    expectedImg: ImageFile;
+    actualImg?: ImageFile;
+}
+
+export interface ImageInfoPageSuccess {
+    status: TestStatus.SUCCESS;
+    actualImg: ImageFile | ImageBase64;
+}
+
+export interface ImageInfoPageError {
+    status: TestStatus.ERROR;
+    actualImg: ImageFile | ImageBase64;
+}
+
+export interface ImageInfoNoRef {
+    status: TestStatus.ERROR;
+    error?: TestError;
+    stateName: string;
+    // Ref image may be absent in pwt test results
+    refImg?: ImageFile;
+    actualImg: ImageFile;
+}
+
+export interface ImageInfoUpdated {
+    status: TestStatus.UPDATED;
+    stateName: string;
+    refImg: ImageFile;
+    actualImg: ImageFile;
+    expectedImg: ImageFile;
+}
+
+export type ImageInfoWithState = ImageInfoDiff | ImageInfoSuccess | ImageInfoNoRef | ImageInfoUpdated;
+
+export type ImageInfoFull = ImageInfoWithState | ImageInfoPageSuccess | ImageInfoPageError;
+
+export type ImageInfo =
+    | Omit<ImageInfoDiff, 'status' | 'stateName'>
+    | Omit<ImageInfoSuccess, 'status' | 'stateName'>
+    | Omit<ImageInfoNoRef, 'status' | 'stateName'>
+    | Omit<ImageInfoPageSuccess, 'status' | 'stateName'>;
+
+export type AssertViewResult = (AssertViewSuccess | ImageDiffError | NoRefImageError) & {isUpdated?: boolean};
+
+export interface TestSpecByPath {
+    testPath: string[];
+    browserId: string;
 }
 
 export interface HtmlReporterApi {
@@ -191,3 +182,24 @@ export interface DbUrlsJsonData {
     dbUrls: string[];
     jsonUrls: string[];
 }
+
+export type RawSuitesRow = [
+    suitePath: string,
+    suiteName: string,
+    name: string,
+    suiteUrl: string,
+    metaInfo: string,
+    history: string,
+    description: string,
+    error: string,
+    skipReason: string,
+    imagesInfo: string,
+    screenshot: number,
+    multipleTabs: number,
+    status: string,
+    timestamp: number,
+];
+
+export type LabeledSuitesRow = {
+    [K in (typeof SUITES_TABLE_COLUMNS)[number]['name']]: string;
+};

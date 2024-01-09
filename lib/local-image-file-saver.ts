@@ -1,7 +1,7 @@
 import {copyFileAsync} from './server-utils';
-import type {ImagesSaver} from './types';
+import type {ImageFileSaver} from './types';
 
-export const LocalImagesSaver: ImagesSaver = {
+export const LocalImageFileSaver: ImageFileSaver = {
     saveImg: async (srcCurrPath, {destPath, reportDir}) => {
         await copyFileAsync(srcCurrPath, destPath, {reportDir});
 

@@ -2,6 +2,7 @@ export * from './browser';
 export * from './database';
 export * from './defaults';
 export * from './diff-modes';
+export * from './errors';
 export * from './group-tests';
 export * from './paths';
 export * from './tests';

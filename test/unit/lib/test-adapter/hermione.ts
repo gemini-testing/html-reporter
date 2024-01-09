@@ -6,10 +6,11 @@ import tmpOriginal from 'tmp';
 
 import {TestStatus} from 'lib/constants/test-statuses';
 import {ERROR_DETAILS_PATH} from 'lib/constants/paths';
-import {HermioneTestAdapter, HermioneTestAdapterOptions, ReporterTestResult} from 'lib/test-adapter';
+import {ReporterTestResult} from 'lib/test-adapter';
+import {HermioneTestAdapter, HermioneTestAdapterOptions} from 'lib/test-adapter/hermione';
 import {HermioneTestResult} from 'lib/types';
-import {ImagesInfoFormatter} from 'lib/image-handler';
 import * as originalUtils from 'lib/server-utils';
+import * as originalCommonUtils from 'lib/common-utils';
 import * as originalTestAdapterUtils from 'lib/test-adapter/utils';
 
 describe('HermioneTestAdapter', () => {
@@ -19,20 +20,16 @@ describe('HermioneTestAdapter', () => {
     let getCommandsHistory: sinon.SinonStub;
     let getSuitePath: sinon.SinonStub;
     let utils: sinon.SinonStubbedInstance<typeof originalUtils>;
+    let commonUtils: sinon.SinonStubbedInstance<typeof originalCommonUtils>;
     let fs: sinon.SinonStubbedInstance<typeof fsOriginal>;
     let tmp: typeof tmpOriginal;
-    let hermioneCache: typeof import('lib/test-adapter/cache/hermione');
     let testAdapterUtils: sinon.SinonStubbedInstance<typeof originalTestAdapterUtils>;
-
-    const mkImagesInfoFormatter = (): sinon.SinonStubbedInstance<ImagesInfoFormatter> => {
-        return {} as sinon.SinonStubbedInstance<ImagesInfoFormatter>;
-    };
 
     const mkHermioneTestResultAdapter = (
         testResult: HermioneTestResult,
-        {status = TestStatus.SUCCESS, imagesInfoFormatter = mkImagesInfoFormatter()}: {status?: TestStatus, imagesInfoFormatter?: ImagesInfoFormatter} = {}
+        {status = TestStatus.SUCCESS}: {status?: TestStatus} = {}
     ): HermioneTestAdapter => {
-        return new HermioneTestAdapter(testResult, {status, imagesInfoFormatter, attempt: 0}) as HermioneTestAdapter;
+        return new HermioneTestAdapter(testResult, {status, attempt: 0}) as HermioneTestAdapter;
     };
 
     const mkTestResult_ = (result: Partial<HermioneTestResult>): HermioneTestResult => _.defaults(result, {
@@ -43,7 +40,6 @@ describe('HermioneTestAdapter', () => {
     beforeEach(() => {
         tmp = {tmpdir: 'default/dir'} as typeof tmpOriginal;
         fs = sinon.stub(_.clone(fsOriginal));
-        hermioneCache = {testsAttempts: new Map()};
         getSuitePath = sandbox.stub();
         getCommandsHistory = sandbox.stub();
 
@@ -52,8 +48,12 @@ describe('HermioneTestAdapter', () => {
         });
         utils = _.clone(originalUtils);
 
+        const originalCommonUtils = proxyquire('lib/common-utils', {});
+        commonUtils = _.clone(originalCommonUtils);
+
         const originalTestAdapterUtils = proxyquire('lib/test-adapter/utils', {
-            '../../server-utils': utils
+            '../../server-utils': utils,
+            '../../common-utils': commonUtils
         });
         testAdapterUtils = _.clone(originalTestAdapterUtils);
 
@@ -63,7 +63,6 @@ describe('HermioneTestAdapter', () => {
             '../plugin-utils': {getSuitePath},
             '../history-utils': {getCommandsHistory},
             '../server-utils': utils,
-            './cache/hermione': hermioneCache,
             './utils': testAdapterUtils
         }).HermioneTestAdapter;
         sandbox.stub(utils, 'getCurrentPath').returns('');
@@ -126,19 +125,11 @@ describe('HermioneTestAdapter', () => {
         assert.deepEqual(hermioneTestAdapter.state, {name: 'some-test'});
     });
 
-    it('should return assert view results', () => {
-        const testResult = mkTestResult_({assertViewResults: [1 as any]});
-
-        const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
-
-        assert.deepEqual(hermioneTestAdapter.assertViewResults, [1 as any]);
-    });
-
     describe('error details', () => {
         let getDetailsFileName: sinon.SinonStub;
 
         beforeEach(() => {
-            getDetailsFileName = sandbox.stub(utils, 'getDetailsFileName').returns('');
+            getDetailsFileName = sandbox.stub(commonUtils, 'getDetailsFileName').returns('');
         });
 
         it('should be returned for test if they are available', () => {
@@ -231,6 +222,113 @@ describe('HermioneTestAdapter', () => {
             const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
 
             assert.strictEqual(hermioneTestAdapter.timestamp, 100500);
+        });
+    });
+
+    describe('imagesInfo', () => {
+        it('should correctly format diff assert view result', () => {
+            const testResult = mkTestResult_({
+                timestamp: 100500,
+                assertViewResults: [{
+                    currImg: {path: 'curr-path', size: {width: 20, height: 10}},
+                    diffClusters: [],
+                    diffOpts: {diffColor: '#000'} as any,
+                    message: 'diff message',
+                    name: 'ImageDiffError',
+                    refImg: {path: 'ref-path', size: {width: 25, height: 15}},
+                    stack: 'some-stack',
+                    stateName: 'some-state'
+                }]
+            });
+
+            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+
+            assert.deepEqual(hermioneTestAdapter.imagesInfo, [
+                {
+                    status: TestStatus.FAIL,
+                    stateName: 'some-state',
+                    actualImg: {path: 'curr-path', size: {height: 10, width: 20}},
+                    expectedImg: {path: 'ref-path', size: {height: 15, width: 25}},
+                    refImg: {path: 'ref-path', size: {height: 15, width: 25}},
+                    diffClusters: [],
+                    diffOptions: {diffColor: '#000'} as any
+                }
+            ]);
+        });
+
+        it('should correctly format no ref assert view result', () => {
+            const testResult = mkTestResult_({
+                timestamp: 100500,
+                assertViewResults: [{
+                    currImg: {path: 'curr-path', size: {height: 10, width: 20}},
+                    message: 'no ref message',
+                    name: 'NoRefImageError',
+                    refImg: {path: 'ref-path', size: {height: 15, width: 25}},
+                    stack: 'some-stack',
+                    stateName: 'some-state'
+                }]
+            });
+
+            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+
+            assert.deepEqual(hermioneTestAdapter.imagesInfo, [
+                {
+                    status: TestStatus.ERROR,
+                    stateName: 'some-state',
+                    error: {
+                        name: 'NoRefImageError',
+                        message: 'no ref message',
+                        stack: 'some-stack'
+                    },
+                    actualImg: {path: 'curr-path', size: {height: 10, width: 20}},
+                    refImg: {path: 'ref-path', size: {height: 15, width: 25}}
+                }
+            ]);
+        });
+
+        it('should correctly format updated assert view result', () => {
+            const testResult = mkTestResult_({
+                timestamp: 100500,
+                assertViewResults: [{
+                    isUpdated: true,
+                    stateName: 'some-state',
+                    currImg: {path: 'curr-path', size: {height: 10, width: 20}},
+                    refImg: {path: 'ref-path', size: {height: 15, width: 25}}
+                } as HermioneTestResult['assertViewResults'][number]]
+            });
+
+            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+
+            assert.deepEqual(hermioneTestAdapter.imagesInfo, [
+                {
+                    status: TestStatus.UPDATED,
+                    stateName: 'some-state',
+                    actualImg: {path: 'curr-path', size: {height: 10, width: 20}},
+                    expectedImg: {path: 'ref-path', size: {height: 15, width: 25}},
+                    refImg: {path: 'ref-path', size: {height: 15, width: 25}}
+                }
+            ]);
+        });
+
+        it('should correctly format success assert view result', () => {
+            const testResult = mkTestResult_({
+                timestamp: 100500,
+                assertViewResults: [{
+                    stateName: 'some-state',
+                    refImg: {path: 'ref-path', size: {height: 15, width: 25}}
+                }]
+            });
+
+            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+
+            assert.deepEqual(hermioneTestAdapter.imagesInfo, [
+                {
+                    status: TestStatus.SUCCESS,
+                    stateName: 'some-state',
+                    expectedImg: {path: 'ref-path', size: {height: 15, width: 25}},
+                    refImg: {path: 'ref-path', size: {height: 15, width: 25}}
+                }
+            ]);
         });
     });
 });

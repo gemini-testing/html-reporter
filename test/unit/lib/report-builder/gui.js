@@ -4,22 +4,22 @@ const fs = require('fs-extra');
 const _ = require('lodash');
 const proxyquire = require('proxyquire');
 const serverUtils = require('lib/server-utils');
-const {HermioneTestAdapter} = require('lib/test-adapter');
+const {HermioneTestAdapter} = require('lib/test-adapter/hermione');
 const {SqliteClient} = require('lib/sqlite-client');
 const {GuiTestsTreeBuilder} = require('lib/tests-tree-builder/gui');
 const {HtmlReporter} = require('lib/plugin-api');
-const {SUCCESS, FAIL, ERROR, SKIPPED, IDLE, RUNNING, UPDATED} = require('lib/constants/test-statuses');
+const {FAIL, UPDATED} = require('lib/constants/test-statuses');
 const {LOCAL_DATABASE_NAME} = require('lib/constants/database');
-const {TestAttemptManager} = require('lib/test-attempt-manager');
-const {ImageDiffError} = require('../../utils');
-const {ImageHandler} = require('lib/image-handler');
+const {ImagesInfoSaver} = require('lib/images-info-saver');
+const sinon = require('sinon');
+const {SKIPPED, SUCCESS, ERROR} = require('lib/constants');
 
 const TEST_REPORT_PATH = 'test';
 const TEST_DB_PATH = `${TEST_REPORT_PATH}/${LOCAL_DATABASE_NAME}`;
 
 describe('GuiReportBuilder', () => {
     const sandbox = sinon.sandbox.create();
-    let hasImage, deleteFile, GuiReportBuilder, dbClient, testAttemptManager, copyAndUpdate;
+    let hasImage, deleteFile, GuiReportBuilder, dbClient, copyAndUpdate, imagesInfoSaver;
 
     const mkGuiReportBuilder_ = async ({toolConfig, pluginConfig} = {}) => {
         toolConfig = _.defaults(toolConfig || {}, {getAbsoluteUrl: _.noop});
@@ -36,9 +36,10 @@ describe('GuiReportBuilder', () => {
         HermioneTestAdapter.create = (obj) => obj;
 
         dbClient = await SqliteClient.create({htmlReporter, reportPath: TEST_REPORT_PATH});
-        testAttemptManager = new TestAttemptManager();
+        imagesInfoSaver = sinon.createStubInstance(ImagesInfoSaver);
+        imagesInfoSaver.save.callsFake(_.identity);
 
-        const reportBuilder = GuiReportBuilder.create(hermione.htmlReporter, pluginConfig, {dbClient, testAttemptManager});
+        const reportBuilder = GuiReportBuilder.create(hermione.htmlReporter, pluginConfig, {dbClient, imagesInfoSaver});
 
         const workers = {saveDiffTo: () => {}};
         reportBuilder.registerWorkers(workers);
@@ -85,7 +86,7 @@ describe('GuiReportBuilder', () => {
 
         copyAndUpdate = sandbox.stub().callsFake(_.identity);
 
-        const imageHandler = sandbox.createStubInstance(ImageHandler);
+        const imagesInfoSaver = sandbox.createStubInstance(ImagesInfoSaver);
 
         hasImage = sandbox.stub().returns(true);
         deleteFile = sandbox.stub().resolves();
@@ -94,7 +95,7 @@ describe('GuiReportBuilder', () => {
                 StaticReportBuilder: proxyquire('lib/report-builder/static', {
                     '../sqlite-client': {SqliteClient},
                     '../image-handler': {ImageHandler: function() {
-                        return imageHandler;
+                        return imagesInfoSaver;
                     }}
                 }).StaticReportBuilder
             },
@@ -120,182 +121,39 @@ describe('GuiReportBuilder', () => {
         sandbox.restore();
     });
 
-    describe('"addIdle" method', () => {
-        it(`should add "${IDLE}" status to result`, async () => {
+    describe('"addTestResult" method', () => {
+        it('should add skipped test results to skips', async () => {
             const reportBuilder = await mkGuiReportBuilder_();
 
-            await reportBuilder.addIdle(stubTest_());
-
-            assert.equal(getTestResult_().status, IDLE);
-        });
-    });
-
-    describe('"addRunning" method', () => {
-        it(`should add "${RUNNING}" status to result`, async () => {
-            const reportBuilder = await mkGuiReportBuilder_();
-
-            await reportBuilder.addRunning(stubTest_());
-
-            assert.equal(getTestResult_().status, RUNNING);
-        });
-    });
-
-    describe('"addSkipped" method', () => {
-        it('should add skipped test to results', async () => {
-            const reportBuilder = await mkGuiReportBuilder_();
-
-            await reportBuilder.addSkipped(stubTest_({
-                browserId: 'bro1',
-                skipReason: 'some skip comment',
-                fullName: 'suite-full-name'
+            await reportBuilder.addTestResult(stubTest_({
+                status: SKIPPED,
+                fullName: 'some-name',
+                skipReason: 'some-reason',
+                browserId: 'some-browser'
             }));
 
-            assert.equal(getTestResult_().status, SKIPPED);
-            assert.deepEqual(reportBuilder.getResult().skips, [{
-                suite: 'suite-full-name',
-                browser: 'bro1',
-                comment: 'some skip comment'
-            }]);
+            const result = reportBuilder.getResult();
+
+            assert.deepEqual(result.skips[0], {suite: 'some-name', comment: 'some-reason', browser: 'some-browser'});
         });
-    });
 
-    describe('"addSuccess" method', () => {
-        it('should add success test to result', async () => {
+        it('should load images info from previous attempt', async () => {
             const reportBuilder = await mkGuiReportBuilder_();
+            GuiTestsTreeBuilder.prototype.getImagesInfo.returns([
+                {stateName: 'state-1', status: SUCCESS},
+                {stateName: 'state-2', status: ERROR}
+            ]);
 
-            await reportBuilder.addSuccess(stubTest_({
-                browserId: 'bro1'
+            copyAndUpdate.callsFake(_.assign);
+            const enrichedResult = await reportBuilder.addTestResult(stubTest_({
+                status: UPDATED,
+                imagesInfo: [{stateName: 'state-2', status: UPDATED}]
             }));
 
-            assert.match(getTestResult_(), {
-                status: SUCCESS,
-                name: 'bro1'
-            });
-        });
-    });
-
-    describe('"addFail" method', () => {
-        it('should add failed test to result', async () => {
-            const reportBuilder = await mkGuiReportBuilder_();
-
-            await reportBuilder.addFail(stubTest_({
-                browserId: 'bro1',
-                imageDir: 'some-image-dir'
-            }));
-
-            assert.match(getTestResult_(), {
-                status: FAIL,
-                name: 'bro1'
-            });
-        });
-    });
-
-    describe('"addError" method', () => {
-        it('should add error test to result', async () => {
-            const reportBuilder = await mkGuiReportBuilder_();
-
-            await reportBuilder.addError(stubTest_({error: {message: 'some-error-message'}}));
-
-            assert.match(getTestResult_(), {
-                status: ERROR,
-                error: {message: 'some-error-message'}
-            });
-        });
-    });
-
-    describe('"addRetry" method', () => {
-        it('should add "fail" status to result if test result has not equal images', async () => {
-            const reportBuilder = await mkGuiReportBuilder_();
-
-            await reportBuilder.addRetry(stubTest_({assertViewResults: [new ImageDiffError()]}));
-
-            assert.equal(getTestResult_().status, FAIL);
-        });
-
-        it('should add "error" status to result if test result has no image', async () => {
-            const reportBuilder = await mkGuiReportBuilder_();
-
-            await reportBuilder.addRetry(stubTest_({assertViewResults: [{name: 'some-error-name'}]}));
-
-            assert.equal(getTestResult_().status, ERROR);
-        });
-    });
-
-    describe('"addUpdated" method', () => {
-        it(`should add "${UPDATED}" status to result if all images updated`, async () => {
-            const reportBuilder = await mkGuiReportBuilder_();
-
-            await reportBuilder.addUpdated(stubTest_({testPath: [], imagesInfo: [{status: UPDATED}]}));
-
-            assert.equal(getTestResult_().status, UPDATED);
-        });
-
-        it(`should add "${UPDATED}" status even if result has errors`, async () => {
-            const reportBuilder = await mkGuiReportBuilder_();
-
-            await reportBuilder.addUpdated(stubTest_({
-                testPath: [],
-                error: {name: 'some-error', message: 'some-message'},
-                imagesInfo: [{status: FAIL}],
-                attempt: 4
-            }));
-
-            assert.equal(getTestResult_().status, UPDATED);
-        });
-
-        it('should update test image for current state name', async () => {
-            const reportBuilder = await mkGuiReportBuilder_();
-
-            const failedTest = stubTest_({
-                imagesInfo: [
-                    {stateName: 'plain1', status: FAIL},
-                    {stateName: 'plain2', status: FAIL}
-                ]
-            });
-
-            const updatedTest = stubTest_({
-                imagesInfo: [
-                    {stateName: 'plain1', status: UPDATED},
-                    {stateName: 'plain2', status: FAIL}
-                ],
-                testPath: []
-            });
-
-            await reportBuilder.addFail(failedTest);
-            GuiTestsTreeBuilder.prototype.getImagesInfo.returns(failedTest.imagesInfo);
-            await reportBuilder.addUpdated(updatedTest);
-
-            const updatedTestResult = GuiTestsTreeBuilder.prototype.addTestResult.secondCall.args[0];
-
-            assert.match(updatedTestResult.imagesInfo[0], {stateName: 'plain1', status: UPDATED});
-            assert.match(updatedTestResult.imagesInfo[1], {stateName: 'plain2', status: FAIL});
-        });
-
-        it('should update last test image if state name was not passed', async () => {
-            const reportBuilder = await mkGuiReportBuilder_();
-
-            const failedTest = stubTest_({
-                imagesInfo: [
-                    {stateName: 'plain1', status: FAIL},
-                    {stateName: 'plain2', status: FAIL}
-                ]
-            });
-            const updatedTest = stubTest_({
-                id: 'result-2',
-                imagesInfo: [
-                    {status: UPDATED}
-                ],
-                testPath: []
-            });
-
-            await reportBuilder.addFail(failedTest);
-            GuiTestsTreeBuilder.prototype.getImagesInfo.returns(failedTest.imagesInfo);
-            await reportBuilder.addUpdated(updatedTest, 'result-2');
-
-            const {imagesInfo} = GuiTestsTreeBuilder.prototype.addTestResult.secondCall.args[0];
-
-            assert.match(imagesInfo[0], {status: FAIL});
-            assert.match(imagesInfo[1], {status: UPDATED});
+            assert.deepEqual(enrichedResult.imagesInfo, [
+                {stateName: 'state-1', status: SUCCESS},
+                {stateName: 'state-2', status: UPDATED}
+            ]);
         });
     });
 
@@ -522,33 +380,31 @@ describe('GuiReportBuilder', () => {
             it('"suiteUrl" field', async () => {
                 const reportBuilder = await mkGuiReportBuilder_();
 
-                await reportBuilder.addSuccess(stubTest_({
+                await reportBuilder.addTestResult(stubTest_({
                     url: 'some-url'
                 }));
 
-                assert.equal(getTestResult_().suiteUrl, 'some-url');
+                assert.equal(getTestResult_().url, 'some-url');
             });
 
             it('"name" field as browser id', async () => {
                 const reportBuilder = await mkGuiReportBuilder_();
 
-                await reportBuilder.addSuccess(stubTest_({browserId: 'yabro'}));
+                await reportBuilder.addTestResult(stubTest_({browserId: 'yabro'}));
 
-                assert.equal(getTestResult_().name, 'yabro');
+                assert.equal(getTestResult_().browserId, 'yabro');
             });
 
             it('"metaInfo" field', async () => {
                 const reportBuilder = await mkGuiReportBuilder_();
 
-                await reportBuilder.addSuccess(stubTest_({
-                    meta: {some: 'value', sessionId: '12345'},
-                    file: '/path/file.js',
-                    url: '/test/url'
+                await reportBuilder.addTestResult(stubTest_({
+                    meta: {some: 'value', sessionId: '12345', file: '/path/file.js', url: '/test/url'}
                 }));
 
                 const expectedMetaInfo = {some: 'value', sessionId: '12345', file: '/path/file.js', url: '/test/url'};
 
-                assert.deepEqual(getTestResult_().metaInfo, expectedMetaInfo);
+                assert.deepEqual(getTestResult_().meta, expectedMetaInfo);
             });
 
             [
@@ -560,29 +416,11 @@ describe('GuiReportBuilder', () => {
                 it(`add "${name}" field`, async () => {
                     const reportBuilder = await mkGuiReportBuilder_();
 
-                    await reportBuilder.addSuccess(stubTest_({[name]: value}));
+                    await reportBuilder.addTestResult(stubTest_({[name]: value}));
 
                     assert.deepEqual(getTestResult_()[name], value);
                 });
             });
-        });
-
-        it('should pass test result without "errorDetails" if "saveErrorDetails" is not set', async () => {
-            const reportBuilder = await mkGuiReportBuilder_({pluginConfig: {saveErrorDetails: false}});
-            const errorDetails = {title: 'some-title', filePath: 'some-path'};
-
-            await reportBuilder.addFail(stubTest_({errorDetails}));
-
-            assert.isUndefined(getTestResult_().errorDetails);
-        });
-
-        it('should pass test result with "errorDetails" if "saveErrorDetails" is set', async () => {
-            const reportBuilder = await mkGuiReportBuilder_({pluginConfig: {saveErrorDetails: true}});
-            const errorDetails = {title: 'some-title', filePath: 'some-path'};
-
-            await reportBuilder.addFail(stubTest_({errorDetails}));
-
-            assert.deepEqual(getTestResult_().errorDetails, errorDetails);
         });
     });
 });

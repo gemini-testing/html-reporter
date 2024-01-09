@@ -1,51 +1,62 @@
+import crypto from 'crypto';
 import path from 'path';
 import url from 'url';
+
 import chalk from 'chalk';
-import _ from 'lodash';
+import {Router} from 'express';
 import fs from 'fs-extra';
-import {logger} from './common-utils';
-import {UPDATED, RUNNING, IDLE, SKIPPED, IMAGES_PATH, TestStatus} from './constants';
+import Hermione, {Test as HermioneTest} from 'hermione';
+import _ from 'lodash';
+import tmp from 'tmp';
+
+import {getShortMD5, logger, mkTestId} from './common-utils';
+import {UPDATED, RUNNING, IDLE, SKIPPED, IMAGES_PATH, TestStatus, UNKNOWN_ATTEMPT} from './constants';
 import type {HtmlReporter} from './plugin-api';
 import type {ReporterTestResult} from './test-adapter';
-import {CustomGuiItem, HermioneTestResult, ReporterConfig} from './types';
-import type Hermione from 'hermione';
-import crypto from 'crypto';
-import {ImageHandler, ImagesInfoFormatter} from './image-handler';
-import {HermioneTestAdapter} from './test-adapter';
-import {Router} from 'express';
+import {
+    CustomGuiItem,
+    HermioneTestResult,
+    ImageInfoWithState,
+    ReporterConfig,
+    TestSpecByPath
+} from './types';
+import {HermioneTestAdapter} from './test-adapter/hermione';
 
 const DATA_FILE_NAME = 'data.js';
 
 interface GetPathOptions {
-    stateName?: string;
     imageDir: string;
     attempt: number;
     browserId: string;
 }
 
-export const getReferencePath = (options: GetPathOptions): string => createPath({kind: 'ref', ...options});
-export const getCurrentPath = (options: GetPathOptions): string => createPath({kind: 'current', ...options});
-export const getDiffPath = (options: GetPathOptions): string => createPath({kind: 'diff', ...options});
+export const getReferencePath = (options: GetPathOptions, stateName?: string): string =>
+    createPath({kind: 'ref', stateName, ..._.pick(options, ['attempt', 'browserId', 'imageDir'])});
+export const getCurrentPath = (options: GetPathOptions, stateName?: string): string =>
+    createPath({kind: 'current', stateName, ..._.pick(options, ['attempt', 'browserId', 'imageDir'])});
+export const getDiffPath = (options: GetPathOptions, stateName?: string): string =>
+    createPath({kind: 'diff', stateName, ..._.pick(options, ['attempt', 'browserId', 'imageDir'])});
 
 export const getReferenceAbsolutePath = (testResult: ReporterTestResult, reportDir: string, stateName: string): string => {
-    const referenceImagePath = getReferencePath({attempt: testResult.attempt, imageDir: testResult.imageDir, browserId: testResult.browserId, stateName});
+    const referenceImagePath = getReferencePath({attempt: testResult.attempt, imageDir: testResult.imageDir, browserId: testResult.browserId}, stateName);
 
     return path.resolve(reportDir, referenceImagePath);
 };
 
 export const getCurrentAbsolutePath = (testResult: ReporterTestResult, reportDir: string, stateName: string): string => {
-    const currentImagePath = getCurrentPath({attempt: testResult.attempt, imageDir: testResult.imageDir, browserId: testResult.browserId, stateName});
+    const currentImagePath = getCurrentPath({attempt: testResult.attempt, imageDir: testResult.imageDir, browserId: testResult.browserId}, stateName);
 
     return path.resolve(reportDir, currentImagePath);
 };
 
 export const getDiffAbsolutePath = (testResult: ReporterTestResult, reportDir: string, stateName: string): string => {
-    const diffImagePath = getDiffPath({attempt: testResult.attempt, imageDir: testResult.imageDir, browserId: testResult.browserId, stateName});
+    const diffImagePath = getDiffPath({attempt: testResult.attempt, imageDir: testResult.imageDir, browserId: testResult.browserId}, stateName);
 
     return path.resolve(reportDir, diffImagePath);
 };
 
 interface CreatePathOptions extends GetPathOptions {
+    stateName?: string;
     kind: string;
 }
 
@@ -56,6 +67,8 @@ export function createPath({attempt: attemptInput, imageDir: imageDirInput, brow
 
     return path.join(...components);
 }
+
+export const getTempPath = (destPath: string): string => path.resolve(tmp.tmpdir, destPath);
 
 export function createHash(buffer: Buffer): string {
     return crypto
@@ -97,12 +110,6 @@ export function logError(e: Error): void {
     logger.error(`Html-reporter runtime error: ${e.stack}`);
 }
 
-export function hasImage(formattedResult: ReporterTestResult): boolean {
-    return !!formattedResult.imagesInfo?.length ||
-        !!ImageHandler.getCurrImg(formattedResult.assertViewResults)?.path ||
-        !!formattedResult.screenshot;
-}
-
 export function prepareCommonJSData(data: unknown): string {
     const stringifiedData = JSON.stringify(data, (_key, val) => {
         return typeof val === 'function' ? val.toString() : val;
@@ -116,10 +123,6 @@ export function prepareCommonJSData(data: unknown): string {
 
 export function shouldUpdateAttempt(status: TestStatus): boolean {
     return ![SKIPPED, UPDATED, RUNNING, IDLE].includes(status);
-}
-
-export function getDetailsFileName(testId: string, browserId: string, attempt: number): string {
-    return `${testId}-${browserId}_${Number(attempt) + 1}_${Date.now()}.json`;
 }
 
 export async function saveStaticFilesToReportDir(htmlReporter: HtmlReporter, pluginConfig: ReporterConfig, destPath: string): Promise<void> {
@@ -312,12 +315,11 @@ export function mapPlugins<T>(plugins: ReporterConfig['plugins'], callback: (nam
 }
 
 export const formatTestResult = (
-    rawResult: HermioneTestResult,
+    rawResult: HermioneTest | HermioneTestResult,
     status: TestStatus,
-    attempt: number,
-    {imageHandler}: {imageHandler: ImagesInfoFormatter}
+    attempt: number = UNKNOWN_ATTEMPT
 ): ReporterTestResult => {
-    return new HermioneTestAdapter(rawResult, {attempt, status, imagesInfoFormatter: imageHandler});
+    return new HermioneTestAdapter(rawResult, {attempt, status});
 };
 
 export const saveErrorDetails = async (testResult: ReporterTestResult, reportPath: string): Promise<void> => {
@@ -332,4 +334,15 @@ export const saveErrorDetails = async (testResult: ReporterTestResult, reportPat
 
     await makeDirFor(detailsFilePath);
     await fs.writeFile(detailsFilePath, detailsData);
+};
+
+export const getExpectedCacheKey = ([testResult, stateName]: [TestSpecByPath, string | undefined]): string => {
+    const shortTestId = getShortMD5(mkTestId(testResult.testPath.join(' '), testResult.browserId));
+
+    return shortTestId + '#' + stateName;
+};
+
+export const getImagesInfoByStateName = (imagesInfo: ReporterTestResult['imagesInfo'], stateName: string): ImageInfoWithState | undefined => {
+    return imagesInfo.find(
+        imagesInfo => (imagesInfo as ImageInfoWithState).stateName === stateName) as ImageInfoWithState | undefined;
 };
