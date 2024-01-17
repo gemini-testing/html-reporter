@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="9.16.0"></a>
+# [9.16.0](https://github.com/gemini-testing/html-reporter/compare/v9.15.0...v9.16.0) (2024-01-17)
+
+
+### Bug Fixes
+
+* **playwright:** display provided image on screenshot match ([336511c](https://github.com/gemini-testing/html-reporter/commit/336511c))
+
+
+### Features
+
+* **merge-reports:** ability to pass headers for databaseUrls.json files ([a367122](https://github.com/gemini-testing/html-reporter/commit/a367122))
+* re-write the rest of the GUI logic to typescript ([#520](https://github.com/gemini-testing/html-reporter/issues/520)) ([6d0a7b3](https://github.com/gemini-testing/html-reporter/commit/6d0a7b3))
+
+
+
 <a name="9.15.0"></a>
 # [9.15.0](https://github.com/gemini-testing/html-reporter/compare/v9.13.0...v9.15.0) (2023-10-23)
 
