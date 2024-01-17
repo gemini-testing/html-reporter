@@ -63,7 +63,7 @@
   "dependencies": {
     "@babel/runtime": "^7.22.5",
     "@gemini-testing/sql.js": "^2.0.0",
-    "axios": "^1.6.5",
+    "axios": "1.6.3",
     "better-sqlite3": "^8.5.0",
     "bluebird": "^3.5.3",
     "body-parser": "^1.18.2",
