@@ -83,14 +83,23 @@ The command accepts paths to database files or to `databaseUrls.json` files from
 
 ### Usage
 
-The `merge-reports` command supports the following required option:
+The `merge-reports` command supports the following options:
 
 | **Option** | **Description** |
 | --------- | ------------ |
 | -d, --destination <folder> | The path to the folder where you want to save the final report. |
+| -h, --header <header> | Http header for databaseUrls.json files from source paths. |
 
 Usage example:
 
 ```bash
-npx hermione merge-reports path-to-database.db path-to-databaseUrls.json -d dest-report
+npx hermione merge-reports path-to-database.db path-to-databaseUrls.json -d dest-report -h foo=bar
 ```
+
+Http headers can also be send using the environment variable - `html_reporter_headers` (has a higher priority than the cli option `--header'). Example:
+
+```bash
+html_reporter_headers='{"foo":"bar"}' npx hermione merge-reports path-to-database.db path-to-databaseUrls.json -d dest-report -h baz=qux
+```
+
+As a result, the `path-to-databaseUrls.json` will be requested with headers: `{foo: 'bar', baz: 'qux'}`.

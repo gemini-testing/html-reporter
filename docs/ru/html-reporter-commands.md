@@ -83,14 +83,23 @@ npx hermione remove-unused-screens --help
 
 ### Использование
 
-Команда `merge-reports` поддерживает следующую обязательную опцию:
+Команда `merge-reports` поддерживает следующие опции:
 
 | **Опция** | **Описание** |
 | --------- | ------------ |
 | -d, --destination <folder> | Путь к папке, в которую нужно сохранить итоговый отчет. |
+| -h, --header <header> | Http-хедер для загрузки databaseUrls.json из переданных исходных отчетов. |
 
 Пример использования:
 
 ```bash
-npx hermione merge-reports path-to-database.db path-to-databaseUrls.json -d dest-report
+npx hermione merge-reports path-to-database.db path-to-databaseUrls.json -d dest-report -h foo=bar
 ```
+
+Http-хедеры можно так же передавать с помощью переменной окружения - `html_reporter_headers` (имеет приоритет выше, чем cli-опция `--header`). Пример:
+
+```bash
+html_reporter_headers='{"foo":"bar"}' npx hermione merge-reports path-to-database.db path-to-databaseUrls.json -d dest-report -h baz=qux
+```
+
+В итоге `path-to-databaseUrls.json` будет запрошен с хедерами: `{foo: 'bar', baz: 'qux'}`.
