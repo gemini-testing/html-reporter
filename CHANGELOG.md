@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="9.16.1"></a>
+## [9.16.1](https://github.com/gemini-testing/html-reporter/compare/v9.16.0...v9.16.1) (2024-01-17)
+
+
+### Bug Fixes
+
+* use axios[@1](https://github.com/1).6.3 ([d397aaa](https://github.com/gemini-testing/html-reporter/commit/d397aaa))
+
+
+
 <a name="9.16.0"></a>
 # [9.16.0](https://github.com/gemini-testing/html-reporter/compare/v9.15.0...v9.16.0) (2024-01-17)
 
