@@ -48,6 +48,11 @@ import {ImagesInfoSaver} from '../../images-info-saver';
 import {SqliteImageStore} from '../../image-store';
 
 type ToolRunnerArgs = [paths: string[], hermione: Hermione & HtmlReporterApi, configs: GuiConfigs];
+type ReplModeOption = {
+    enabled: boolean;
+    beforeTest: boolean;
+    onFail: boolean;
+}
 
 export type ToolRunnerTree = GuiReportBuilderResult & Pick<GuiCliOptions, 'autoRun'>;
 
@@ -128,8 +133,19 @@ export class ToolRunner {
 
     async _readTests(): Promise<TestCollection> {
         const {grep, set: sets, browser: browsers} = this._globalOpts;
+        const replMode = this._getReplModeOption();
 
-        return this._hermione.readTests(this._testFiles, {grep, sets, browsers});
+        return this._hermione.readTests(this._testFiles, {grep, sets, browsers, replMode});
+    }
+
+    _getReplModeOption(): ReplModeOption {
+        const {repl = false, replBeforeTest = false, replOnFail = false} = this._globalOpts;
+
+        return {
+            enabled: repl || replBeforeTest || replOnFail,
+            beforeTest: replBeforeTest,
+            onFail: replOnFail
+        };
     }
 
     protected _ensureReportBuilder(): GuiReportBuilder {
@@ -282,10 +298,11 @@ export class ToolRunner {
     }
 
     async run(tests: TestSpec[] = []): Promise<boolean> {
-        const {grep, set: sets, browser: browsers} = this._globalOpts;
+        const {grep, set: sets, browser: browsers, devtools = false} = this._globalOpts;
+        const replMode = this._getReplModeOption();
 
         return createTestRunner(this._ensureTestCollection(), tests)
-            .run((collection) => this._hermione.run(collection, {grep, sets, browsers}));
+            .run((collection) => this._hermione.run(collection, {grep, sets, browsers, devtools, replMode}));
     }
 
     protected async _handleRunnableCollection(): Promise<void> {
