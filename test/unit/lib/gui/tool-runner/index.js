@@ -131,28 +131,104 @@ describe('lib/gui/tool-runner/index', () => {
                 .then(() => assert.calledWith(reportBuilder.setApiValues, {foo: 'bar'}));
         });
 
-        it('should pass paths to "readTests" method', () => {
-            const gui = initGuiReporter(hermione, {paths: ['foo', 'bar']});
+        describe('correctly pass options to "readTests" method', () => {
+            it('should pass "paths" option', () => {
+                const gui = initGuiReporter(hermione, {paths: ['foo', 'bar']});
 
-            return gui.initialize()
-                .then(() => assert.calledOnceWith(hermione.readTests, ['foo', 'bar']));
-        });
-
-        it('should pass "grep", "sets" and "browsers" options to "readTests" method', () => {
-            const grep = 'foo';
-            const set = 'bar';
-            const browser = 'yabro';
-
-            const gui = initGuiReporter(hermione, {
-                configs: {
-                    program: {name: () => 'tool', grep, set, browser}
-                }
+                return gui.initialize()
+                    .then(() => assert.calledOnceWith(hermione.readTests, ['foo', 'bar']));
             });
 
-            return gui.initialize()
-                .then(() => {
-                    assert.calledOnceWith(hermione.readTests, sinon.match.any, {grep, sets: set, browsers: browser});
+            it('should pass "grep", "sets" and "browsers" options', () => {
+                const grep = 'foo';
+                const set = 'bar';
+                const browser = 'yabro';
+
+                const gui = initGuiReporter(hermione, {
+                    configs: {
+                        program: {grep, set, browser}
+                    }
                 });
+
+                return gui.initialize()
+                    .then(() => {
+                        assert.calledOnceWith(hermione.readTests, sinon.match.any, sinon.match({grep, sets: set, browsers: browser}));
+                    });
+            });
+
+            describe('"replMode" option', () => {
+                it('should be disabled by default', async () => {
+                    const gui = initGuiReporter(hermione, {
+                        configs: {
+                            program: {}
+                        }
+                    });
+
+                    await gui.initialize();
+
+                    assert.calledOnceWith(hermione.readTests, sinon.match.any, sinon.match({
+                        replMode: {
+                            enabled: false,
+                            beforeTest: false,
+                            onFail: false
+                        }
+                    }));
+                });
+
+                it('should be enabled when specify "repl" flag', async () => {
+                    const gui = initGuiReporter(hermione, {
+                        configs: {
+                            program: {repl: true}
+                        }
+                    });
+
+                    await gui.initialize();
+
+                    assert.calledOnceWith(hermione.readTests, sinon.match.any, sinon.match({
+                        replMode: {
+                            enabled: true,
+                            beforeTest: false,
+                            onFail: false
+                        }
+                    }));
+                });
+
+                it('should be enabled when specify "beforeTest" flag', async () => {
+                    const gui = initGuiReporter(hermione, {
+                        configs: {
+                            program: {replBeforeTest: true}
+                        }
+                    });
+
+                    await gui.initialize();
+
+                    assert.calledOnceWith(hermione.readTests, sinon.match.any, sinon.match({
+                        replMode: {
+                            enabled: true,
+                            beforeTest: true,
+                            onFail: false
+                        }
+                    }));
+                });
+
+                it('should be enabled when specify "onFail" flag', async () => {
+                    const gui = initGuiReporter(hermione, {
+                        configs: {
+                            program: {replOnFail: true}
+                        }
+                    });
+
+                    await gui.initialize();
+
+                    assert.calledOnceWith(hermione.readTests, sinon.match.any, sinon.match({
+                        replMode: {
+                            enabled: true,
+                            beforeTest: false,
+                            onFail: true
+                        }
+                    }));
+                });
+            });
         });
 
         it('should not add disabled test to report', () => {
@@ -510,18 +586,73 @@ describe('lib/gui/tool-runner/index', () => {
             hermione.readTests.resolves(collection);
         });
 
-        it('should run hermione with passed opts', async () => {
-            const globalCliOpts = {grep: /some-grep/, set: 'some-set', browser: 'yabro'};
-            const configs = {...mkPluginConfig_(), ...mkToolCliOpts_(globalCliOpts)};
-            const gui = ToolGuiReporter.create([], hermione, configs);
+        describe('should run hermione with', () => {
+            const run_ = async (globalCliOpts = {}) => {
+                const configs = {...mkPluginConfig_(), ...mkToolCliOpts_(globalCliOpts)};
+                const gui = ToolGuiReporter.create([], hermione, configs);
 
-            await gui.initialize();
-            await gui.run();
+                await gui.initialize();
+                await gui.run();
 
-            const runHandler = runner.run.firstCall.args[0];
-            runHandler(collection);
+                const runHandler = runner.run.firstCall.args[0];
+                runHandler(collection);
+            };
 
-            assert.calledOnceWith(hermione.run, collection, {grep: /some-grep/, sets: 'some-set', browsers: 'yabro'});
+            it('passed opts', async () => {
+                await run_({grep: /some-grep/, set: 'some-set', browser: 'yabro', devtools: true});
+
+                assert.calledOnceWith(hermione.run, collection, sinon.match({grep: /some-grep/, sets: 'some-set', browsers: 'yabro', devtools: true}));
+            });
+
+            describe('"replMode" option', () => {
+                it('should be disabled by default', async () => {
+                    await run_();
+
+                    assert.calledOnceWith(hermione.run, collection, sinon.match({
+                        replMode: {
+                            enabled: false,
+                            beforeTest: false,
+                            onFail: false
+                        }
+                    }));
+                });
+
+                it('should be enabled when specify "repl" flag', async () => {
+                    await run_({repl: true});
+
+                    assert.calledOnceWith(hermione.run, collection, sinon.match({
+                        replMode: {
+                            enabled: true,
+                            beforeTest: false,
+                            onFail: false
+                        }
+                    }));
+                });
+
+                it('should be enabled when specify "beforeTest" flag', async () => {
+                    await run_({replBeforeTest: true});
+
+                    assert.calledOnceWith(hermione.run, collection, sinon.match({
+                        replMode: {
+                            enabled: true,
+                            beforeTest: true,
+                            onFail: false
+                        }
+                    }));
+                });
+
+                it('should be enabled when specify "onFail" flag', async () => {
+                    await run_({replOnFail: true});
+
+                    assert.calledOnceWith(hermione.run, collection, sinon.match({
+                        replMode: {
+                            enabled: true,
+                            beforeTest: false,
+                            onFail: true
+                        }
+                    }));
+                });
+            });
         });
     });
 
