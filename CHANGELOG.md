@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="9.16.2"></a>
+## [9.16.2](https://github.com/gemini-testing/html-reporter/compare/v9.16.1...v9.16.2) (2024-01-24)
+
+
+### Bug Fixes
+
+* correctly pass cli options to hermione "readTests" and "run" ([9a5101b](https://github.com/gemini-testing/html-reporter/commit/9a5101b))
+
+
+
 <a name="9.16.1"></a>
 ## [9.16.1](https://github.com/gemini-testing/html-reporter/compare/v9.16.0...v9.16.1) (2024-01-17)
 
