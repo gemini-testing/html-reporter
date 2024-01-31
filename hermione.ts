@@ -20,11 +20,15 @@ import {ImagesInfoSaver} from './lib/images-info-saver';
 import {getStatus} from './lib/test-adapter/hermione';
 
 export = (hermione: Hermione, opts: Partial<ReporterOptions>): void => {
-    if (hermione.isWorker() || !opts.enabled) {
+    if (hermione.isWorker()) {
         return;
     }
 
     const config = parseConfig(opts);
+
+    if (!config.enabled) {
+        return;
+    }
 
     const htmlReporter = HtmlReporter.create(config, {toolName: ToolName.Hermione});
 
