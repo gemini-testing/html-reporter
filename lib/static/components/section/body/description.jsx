@@ -11,7 +11,7 @@ export default class Description extends Component {
     };
 
     _renderDescription = () => {
-        return <Markdown source={this.props.content} />;
+        return <Markdown>{this.props.content}</Markdown>;
     };
 
     render() {
