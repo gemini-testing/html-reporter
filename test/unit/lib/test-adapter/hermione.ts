@@ -237,7 +237,9 @@ describe('HermioneTestAdapter', () => {
                     name: 'ImageDiffError',
                     refImg: {path: 'ref-path', size: {width: 25, height: 15}},
                     stack: 'some-stack',
-                    stateName: 'some-state'
+                    stateName: 'some-state',
+                    differentPixels: 100,
+                    diffRatio: 0.01
                 }]
             });
 
@@ -251,7 +253,9 @@ describe('HermioneTestAdapter', () => {
                     expectedImg: {path: 'ref-path', size: {height: 15, width: 25}},
                     refImg: {path: 'ref-path', size: {height: 15, width: 25}},
                     diffClusters: [],
-                    diffOptions: {diffColor: '#000'} as any
+                    diffOptions: {diffColor: '#000'} as any,
+                    differentPixels: 100,
+                    diffRatio: 0.01
                 }
             ]);
         });

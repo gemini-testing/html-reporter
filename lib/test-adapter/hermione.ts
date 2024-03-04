@@ -112,7 +112,9 @@ export class HermioneTestAdapter implements ReporterTestResult {
                     ...(diffImg ? {diffImg} : {}),
                     expectedImg: _.clone(assertResult.refImg),
                     diffClusters: assertResult.diffClusters,
-                    diffOptions: assertResult.diffOpts
+                    diffOptions: assertResult.diffOpts,
+                    differentPixels: assertResult.differentPixels,
+                    diffRatio: assertResult.diffRatio
                 } satisfies ImageInfoDiff;
             } else if (isNoRefImageError(assertResult)) {
                 return {

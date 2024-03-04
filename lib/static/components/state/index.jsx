@@ -125,7 +125,19 @@ class State extends Component {
         );
     }
 
-    _getStateTitle() {
+    _getDisplayedDiffPercentValue() {
+        const percent = this.props.image.diffRatio * 100;
+        const percentRounded = Math.ceil(percent * 100) / 100;
+        const percentThreshold = 0.01;
+
+        if (percent < percentThreshold) {
+            return `< ${percentThreshold}`
+        }
+
+        return String(percentRounded);
+    }
+
+    _getStateTitleWithDiffCount() {
         const {image, shouldImageBeOpened} = this.props;
 
         if (!image.stateName) {
@@ -138,7 +150,15 @@ class State extends Component {
             `state-title_${image.status}`
         );
 
-        return <div className={className} onClick={this.onToggleStateResult}>{image.stateName}</div>;
+        let displayedText = image.stateName;
+
+        if (image.differentPixels && image.diffRatio) {
+            const displayedDiffPercent = this._getDisplayedDiffPercentValue();
+
+            displayedText += ` (diff: ${image.differentPixels}px, ${displayedDiffPercent}%)`;
+        }
+
+        return <div className={className} onClick={this.onToggleStateResult}>{displayedText}</div>;
     }
 
     render() {
@@ -146,7 +166,7 @@ class State extends Component {
             return (
                 <Fragment>
                     <hr className="tab__separator" />
-                    {this._getStateTitle()}
+                    {this._getStateTitleWithDiffCount()}
                 </Fragment>
             );
         }
@@ -168,7 +188,7 @@ class State extends Component {
         return (
             <Fragment>
                 <hr className="tab__separator"/>
-                {this._getStateTitle()}
+                {this._getStateTitleWithDiffCount()}
                 {this._drawFailImageControls()}
                 {this._drawUpdatedImageControls()}
                 {elem ? <div className='image-box__container'>{elem}</div> : null}
