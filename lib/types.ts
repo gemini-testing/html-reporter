@@ -72,6 +72,8 @@ export interface ImageInfoDiff {
     actualImg: ImageFile;
     diffImg?: ImageFile | ImageBuffer;
     diffOptions: DiffOptions;
+    differentPixels?: number; // defined if hermione >= 8.2.0
+    diffRatio?: number; // defined if hermione >= 8.2.0
 }
 
 interface AssertViewSuccess {

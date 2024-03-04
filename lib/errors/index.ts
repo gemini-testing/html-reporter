@@ -22,6 +22,8 @@ export interface ImageDiffError {
     diffClusters: CoordBounds[];
     diffBuffer?: ArrayBuffer;
     diffImg?: ImageFile;
+    differentPixels?: number; // defined if hermione >= 8.2.0
+    diffRatio?: number; // defined if hermione >= 8.2.0
 }
 
 export interface NoRefImageError {
