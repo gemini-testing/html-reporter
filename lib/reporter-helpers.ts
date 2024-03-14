@@ -28,8 +28,7 @@ export const updateReferenceImages = async (testResult: ReporterTestResult, repo
             ? path.resolve(reportPath, actualImg.path)
             : utils.getCurrentAbsolutePath(testResult, reportPath, stateName);
 
-        // TODO: get rid of type assertion
-        const referencePath = newImageInfo?.refImg?.path as string;
+        const referencePath = newImageInfo.refImg.path;
 
         if (utils.fileExists(referencePath)) {
             const referenceId = mkReferenceHash(testResult.id, stateName);
