@@ -1,12 +1,12 @@
 import _ from 'lodash';
 import {StaticReportBuilder, StaticReportBuilderOptions} from './static';
 import {GuiTestsTreeBuilder, TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../tests-tree-builder/gui';
-import {UPDATED, DB_COLUMNS, ToolName, HERMIONE_TITLE_DELIMITER, SKIPPED} from '../constants';
+import {UPDATED, DB_COLUMNS, ToolName, TestStatus, HERMIONE_TITLE_DELIMITER, SKIPPED, SUCCESS} from '../constants';
 import {ConfigForStaticFile, getConfigForStaticFile} from '../server-utils';
 import {ReporterTestResult} from '../test-adapter';
 import {Tree, TreeImage} from '../tests-tree-builder/base';
 import {ImageInfoFull, ImageInfoWithState, ReporterConfig} from '../types';
-import {isUpdatedStatus} from '../common-utils';
+import {determineStatus, isUpdatedStatus} from '../common-utils';
 import {HtmlReporter, HtmlReporterValues} from '../plugin-api';
 import {SkipItem} from '../tests-tree-builder/static';
 import {copyAndUpdate} from '../test-adapter/utils';
@@ -134,7 +134,25 @@ export class GuiReportBuilder extends StaticReportBuilder {
         return {updatedImage, removedResult, previousExpectedPath, shouldRemoveReference, shouldRevertReference, newResult};
     }
 
-    override async addTestResult(formattedResultOriginal: ReporterTestResult): Promise<ReporterTestResult> {
+    getUpdatedReferenceTestStatus(testResult: ReporterTestResult): TestStatus {
+        const getStateName = (imageInfo: ImageInfoFull): string => (imageInfo as ImageInfoWithState).stateName;
+        const resultId = testResult.id;
+        const originalResult = this._testsTree.getTestBranch(resultId);
+        const omittedImageStates = testResult.imagesInfo.map(getStateName);
+
+        const estimatedStatus = determineStatus({
+            status: originalResult.result.status,
+            error: originalResult.result.error,
+            imagesInfo: originalResult.images.filter(image => !omittedImageStates.includes(getStateName(image)))
+        });
+
+        return estimatedStatus === SUCCESS ? UPDATED : estimatedStatus;
+    }
+
+    override async addTestResult(
+        formattedResultOriginal: ReporterTestResult,
+        updates?: Partial<ReporterTestResult>
+    ): Promise<ReporterTestResult> {
         const formattedResult = await super.addTestResult(formattedResultOriginal);
 
         if (formattedResult.status === SKIPPED) {
@@ -148,10 +166,13 @@ export class GuiReportBuilder extends StaticReportBuilder {
         }
 
         const formattedResultWithImages = this._loadImagesFromPreviousAttempt(formattedResult);
+        const resultOverrided = updates
+            ? copyAndUpdate(formattedResultWithImages, updates)
+            : formattedResultWithImages;
 
-        this._testsTree.addTestResult(formattedResultWithImages);
+        this._testsTree.addTestResult(resultOverrided);
 
-        return formattedResultWithImages;
+        return resultOverrided;
     }
 
     private _loadImagesFromPreviousAttempt(formattedResult: ReporterTestResult): ReporterTestResult {

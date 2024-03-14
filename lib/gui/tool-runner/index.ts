@@ -194,13 +194,15 @@ export class ToolRunner {
 
         return Promise.all(tests.map(async (test): Promise<TestBranch> => {
             const updateResult = this._createHermioneTestResult(test);
+            const currentResult = formatTestResult(updateResult, UPDATED, test.attempt);
+            const estimatedStatus = reportBuilder.getUpdatedReferenceTestStatus(currentResult);
 
             const formattedResultWithoutAttempt = formatTestResult(updateResult, UPDATED);
             const formattedResult = reportBuilder.provideAttempt(formattedResultWithoutAttempt);
 
             const formattedResultUpdated = await reporterHelper.updateReferenceImages(formattedResult, this._reportPath, this._handleReferenceUpdate.bind(this));
 
-            await reportBuilder.addTestResult(formattedResultUpdated);
+            await reportBuilder.addTestResult(formattedResultUpdated, {status: estimatedStatus});
 
             return reportBuilder.getTestBranch(formattedResultUpdated.id);
         }));
