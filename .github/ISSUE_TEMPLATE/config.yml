@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+    - name: Question 🤷
+      url: https://github.com/gemini-testing/html-reporter/discussions
+      about: Ask questions and discuss with other community members

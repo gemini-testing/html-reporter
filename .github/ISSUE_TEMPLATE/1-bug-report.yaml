@@ -1,0 +1,59 @@
+name: Bug Report
+description: Create a bug report for html-reporter
+labels: ["type: bug"]
+body:
+    - type: checkboxes
+      attributes:
+          label: Verify latest release
+          description: "Please run `npm install html-reporter@latest` to try the latest version of html-reporter. Some issues may already be fixed in the latest release, so please verify that your issue reproduces before opening a new issue."
+          options:
+              - label: I verified that the issue exists in the latest html-reporter release
+    - type: input
+      attributes:
+          label: Html-reporter version
+          description: e.g. 9.16.0
+    - type: input
+      id: last-working-version
+      attributes:
+        label: Last html-reporter version that worked
+        placeholder: e.g. 9.15.1
+    - type: input
+      attributes:
+          label: Link to the code that reproduces this issue or a replay of the bug
+          description: |
+              A link to a GitHub repository minimal reproduction. If a minimal reproduction can't be created please share a replay of the bug which doesn't require sharing a private repo.
+    - type: textarea
+      id: repro
+      attributes:
+          label: Reproduction steps
+          description: |
+              How do you trigger this bug? Please walk us through it step by step.
+      validations:
+          required: true
+    - type: markdown
+      attributes:
+          value: ----------------------------
+    - type: textarea
+      attributes:
+          label: Actual Behavior
+          description: A clear and concise description of what the bug is.
+      validations:
+          required: true
+    - type: markdown
+      attributes:
+          value: ----------------------------
+    - type: textarea
+      attributes:
+          label: Expected Behavior
+          description: A clear and concise description of what you expected to happen.
+      validations:
+          required: true
+    - type: markdown
+      attributes:
+          value: ----------------------------
+    - type: input
+      attributes:
+          label: Which Node.js version are you using?
+          description: "Please specify the exact version. For example: 20.11.0"
+      validations:
+          required: true
