@@ -52,9 +52,7 @@ export class ImagesInfoSaver extends EventEmitter2 {
         const testDebug = debug.extend(testResult.imageDir);
         testDebug(`Saving images of ${testResult.id}`);
 
-        const newImagesInfos: ImageInfoFull[] = [];
-
-        await Promise.all(testResult.imagesInfo.map(async (imagesInfo, index) => {
+        const newImagesInfos = await Promise.all(testResult.imagesInfo.map(async (imagesInfo, index) => {
             const imageDebug = testDebug.extend(index.toString());
             imageDebug.enabled && imageDebug('Handling %j', removeBufferFromImagesInfo(imagesInfo));
 
@@ -79,7 +77,7 @@ export class ImagesInfoSaver extends EventEmitter2 {
 
             await actions.onIdle();
 
-            newImagesInfos.push(_.omitBy(newImagesInfo, _.isNil) as ImageInfoFull);
+            return _.omitBy(newImagesInfo, _.isNil) as ImageInfoFull;
         }));
 
         await this.emitAsync(PluginEvents.TEST_SCREENSHOTS_SAVED, {
