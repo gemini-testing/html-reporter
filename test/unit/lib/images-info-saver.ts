@@ -261,5 +261,27 @@ describe('images-info-saver', () => {
                 imagesInfo: updatedTestResult.imagesInfo
             }));
         });
+
+        it('should keep images order', async () => {
+            const imagesInfo = _.range(20).map(i => ({stateName: `state ${i + 1}`})) as ImageInfoNoRef[];
+            const testResult = {
+                imagesInfo,
+                fullName: 'some-name',
+                browserId: 'some-browser',
+                attempt: 0
+            } as ReporterTestResult;
+
+            const eventHandler = sinon.stub();
+            imagesInfoSaver.on(PluginEvents.TEST_SCREENSHOTS_SAVED, eventHandler);
+
+            const updatedTestResult = await imagesInfoSaver.save(testResult);
+
+            assert.deepStrictEqual(updatedTestResult.imagesInfo, imagesInfo);
+            assert.calledWith(eventHandler, sinon.match({
+                imagesInfo,
+                testId: 'some-name.some-browser',
+                attempt: 0
+            }));
+        });
     });
 });
