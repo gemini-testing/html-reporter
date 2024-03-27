@@ -36,7 +36,7 @@ export class TestAttemptManager {
         const [hash, data] = this._getData(testResult);
 
         const isManualOverride = index !== null;
-        const isLastStatusTemporary = [IDLE, RUNNING].includes(data.statuses.at(-1) as TestStatus);
+        const isLastStatusTemporary = [IDLE, RUNNING].includes(data.statuses[data.statuses.length - 1]);
         const shouldReplace = Number(isManualOverride || isLastStatusTemporary);
 
         data.statuses.splice(index ?? data.statuses.length - shouldReplace, shouldReplace, status);

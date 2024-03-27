@@ -89,7 +89,7 @@ export class ReporterTestAdapter implements ReporterTestResult {
     }
 
     get state(): {name: string;} {
-        return {name: this.testPath.at(-1) as string};
+        return {name: this.testPath[this.testPath.length - 1]};
     }
 
     get status(): TestStatus {
