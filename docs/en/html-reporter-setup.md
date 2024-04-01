@@ -105,7 +105,7 @@ module.exports = {
 | **Parameter** | **Type** | **Default&nbsp;value** | **Description** |
 | ------------- | -------- | :--------------------: | --------------- |
 | [enabled](#enabled) | Boolean | true | Enable / disable the plugin. |
-| [path](#path) | String | "hermione-report" | The path to the folder for saving html-report files. |
+| [path](#path) | String | "html-report" | The path to the folder for saving html-report files. |
 | [saveErrorDetails](#saveerrordetails) | Boolean | false | Save / do not save error details in json files. |
 | [defaultView](#defaultview) | String | "all" | The test filtering mode when displayed, which will be set by default. |
 | [diffMode](#diffmode) | String | "3-up" | The mode of viewing diffs, which will be set by default. |
@@ -125,7 +125,7 @@ Enables or disables the plugin.
 
 ### path
 
-The path to the folder for saving html-report files. By default, the files will be saved to the `hermione-report` folder in the current working folder.
+The path to the folder for saving html-report files. By default, the files will be saved to the `html-report` folder in the current working folder.
 
 ### saveErrorDetails
 
