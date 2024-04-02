@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="9.17.2"></a>
+## [9.17.2](https://github.com/gemini-testing/html-reporter/compare/v9.17.1...v9.17.2) (2024-04-02)
+
+
+### Bug Fixes
+
+* use propper result status after reference update ([f617ca6](https://github.com/gemini-testing/html-reporter/commit/f617ca6))
+
+
+
 <a name="9.17.1"></a>
 ## [9.17.1](https://github.com/gemini-testing/html-reporter/compare/v9.17.0...v9.17.1) (2024-03-27)
 
