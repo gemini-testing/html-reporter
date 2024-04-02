@@ -155,6 +155,26 @@ describe('GuiReportBuilder', () => {
                 {stateName: 'state-2', status: UPDATED}
             ]);
         });
+
+        it('should load images info from previous attempt, while being overrided with fail status', async () => {
+            const reportBuilder = await mkGuiReportBuilder_();
+            GuiTestsTreeBuilder.prototype.getImagesInfo.returns([
+                {stateName: 'state-1', status: ERROR},
+                {stateName: 'state-2', status: ERROR}
+            ]);
+
+            copyAndUpdate.callsFake(_.assign);
+            const enrichedResult = await reportBuilder.addTestResult(stubTest_({
+                status: UPDATED,
+                imagesInfo: [{stateName: 'state-2', status: UPDATED}]
+            }), {status: FAIL});
+
+            assert.equal(enrichedResult.status, FAIL);
+            assert.deepEqual(enrichedResult.imagesInfo, [
+                {stateName: 'state-1', status: ERROR},
+                {stateName: 'state-2', status: UPDATED}
+            ]);
+        });
     });
 
     describe('"setApiValues" method', () => {
@@ -372,6 +392,30 @@ describe('GuiReportBuilder', () => {
             const {shouldRemoveReference} = await reportBuilder.undoAcceptImage(formattedResult, stateName);
 
             assert.isFalse(shouldRemoveReference);
+        });
+    });
+
+    describe('"getUpdatedReferenceTestStatus"', () => {
+        it('should return estimated by determineStatus status', async () => {
+            const reportBuilder = await mkGuiReportBuilder_();
+            const testResult = {id: 'result-id', imagesInfo: [{stateName: 'foo'}]};
+            const testBranch = {result: {status: 'fail', error: 'some-error'}, images: [{stateName: 'foo'}, {stateName: 'bar'}]};
+            GuiTestsTreeBuilder.prototype.getTestBranch.withArgs('result-id').returns(testBranch);
+
+            const estimatedStatus = reportBuilder.getUpdatedReferenceTestStatus(testResult);
+
+            assert.equal(estimatedStatus, ERROR);
+        });
+
+        it('should return "updated", if there are no errors', async () => {
+            const reportBuilder = await mkGuiReportBuilder_();
+            const testResult = {id: 'result-id', imagesInfo: [{stateName: 'foo'}]};
+            const testBranch = {result: {status: 'fail'}, images: [{stateName: 'foo'}]};
+            GuiTestsTreeBuilder.prototype.getTestBranch.withArgs('result-id').returns(testBranch);
+
+            const estimatedStatus = reportBuilder.getUpdatedReferenceTestStatus(testResult);
+
+            assert.equal(estimatedStatus, UPDATED);
         });
     });
 
