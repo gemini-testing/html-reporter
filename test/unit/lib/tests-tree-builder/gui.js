@@ -17,7 +17,7 @@ describe('GuiResultsTreeBuilder', () => {
         });
     };
 
-    const mkGuiTreeBuilder = () => GuiTestsTreeBuilder.create({toolName: ToolName.Hermione});
+    const mkGuiTreeBuilder = () => GuiTestsTreeBuilder.create({toolName: ToolName.Testplane});
 
     beforeEach(() => {
         builder = mkGuiTreeBuilder();

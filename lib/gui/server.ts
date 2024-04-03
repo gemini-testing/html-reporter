@@ -13,9 +13,9 @@ import {initPluginsRoutes} from './routes/plugins';
 import {ServerArgs} from './index';
 import {ServerReadyData} from './api';
 
-export const start = async ({paths, hermione, guiApi, configs}: ServerArgs): Promise<ServerReadyData> => {
+export const start = async ({paths, testplane, guiApi, configs}: ServerArgs): Promise<ServerReadyData> => {
     const {options, pluginConfig} = configs;
-    const app = App.create(paths, hermione, configs);
+    const app = App.create(paths, testplane, configs);
     const server = express();
 
     server.use(bodyParser.json({limit: MAX_REQUEST_SIZE}));
@@ -42,7 +42,7 @@ export const start = async ({paths, hermione, guiApi, configs}: ServerArgs): Pro
 
     server.get('/init', async (_req, res) => {
         try {
-            await initializeCustomGui(hermione, pluginConfig);
+            await initializeCustomGui(testplane, pluginConfig);
             res.json(app.data);
         } catch (e: unknown) {
             const error = e as Error;
@@ -73,7 +73,7 @@ export const start = async ({paths, hermione, guiApi, configs}: ServerArgs): Pro
 
     server.post('/run-custom-gui-action', async ({body: payload}, res) => {
         try {
-            await runCustomGuiAction(hermione, pluginConfig, payload);
+            await runCustomGuiAction(testplane, pluginConfig, payload);
             res.sendStatus(OK);
         } catch (e) {
             res.status(INTERNAL_SERVER_ERROR).send(`Error while running custom gui action: ${(e as Error).message}`);
@@ -126,8 +126,8 @@ export const start = async ({paths, hermione, guiApi, configs}: ServerArgs): Pro
 
     server.post('/stop', (_req, res) => {
         try {
-            // pass 0 to prevent terminating hermione process
-            hermione.halt(new Error('Tests were stopped by the user'), 0);
+            // pass 0 to prevent terminating testplane process
+            testplane.halt(new Error('Tests were stopped by the user'), 0);
             res.sendStatus(OK);
         } catch (e) {
             res.status(INTERNAL_SERVER_ERROR).send(`Error while stopping tests: ${(e as Error).message}`);

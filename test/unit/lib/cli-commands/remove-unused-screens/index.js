@@ -27,15 +27,15 @@ describe('lib/cli-commands/remove-unused-screens', () => {
 
     const mkPluginCfg_ = (opts) => _.defaults(opts, {path: 'default-path'});
 
-    const mkHermione_ = (htmlReporter) => {
-        const hermione = stubTool();
+    const mkTestplane_ = (htmlReporter) => {
+        const testplane = stubTool();
 
-        hermione.htmlReporter = htmlReporter || {
+        testplane.htmlReporter = htmlReporter || {
             downloadDatabases: sandbox.stub().resolves(['/default-path/sqlite.db']),
             mergeDatabases: sandbox.stub().resolves()
         };
 
-        return hermione;
+        return testplane;
     };
 
     const mkTestsTreeFromFs_ = (opts = {}) => {
@@ -45,9 +45,9 @@ describe('lib/cli-commands/remove-unused-screens', () => {
     const removeUnusedScreens_ = async ({
         program = mkProgram_({pattern: ['default/pattern'], skipQuestions: false}),
         pluginConfig = mkPluginCfg_(),
-        hermione = mkHermione_()
+        testplane = mkTestplane_()
     } = {}) => {
-        removeUnusedScreens(program, pluginConfig, hermione);
+        removeUnusedScreens(program, pluginConfig, testplane);
 
         await actionPromise;
     };
@@ -101,11 +101,11 @@ describe('lib/cli-commands/remove-unused-screens', () => {
     });
 
     it('should get tests tree from fs', async () => {
-        const hermione = mkHermione_();
+        const testplane = mkTestplane_();
 
-        await removeUnusedScreens_({hermione});
+        await removeUnusedScreens_({testplane});
 
-        assert.calledOnceWith(getTestsFromFs, hermione);
+        assert.calledOnceWith(getTestsFromFs, testplane);
     });
 
     it('should inform user about the number of tests read', async () => {
@@ -346,22 +346,22 @@ describe('lib/cli-commands/remove-unused-screens', () => {
         });
 
         it('should not handle unused images if user say "no"', async () => {
-            const hermione = mkHermione_();
+            const testplane = mkTestplane_();
             const program = mkProgram_({pattern: ['some/pattern'], skipQuestions: false});
             askQuestion.withArgs(sinon.match({name: 'identifyUnused'}), program.options).resolves(false);
 
-            await removeUnusedScreens_({hermione, program});
+            await removeUnusedScreens_({testplane, program});
 
-            assert.notCalled(hermione.htmlReporter.downloadDatabases);
+            assert.notCalled(testplane.htmlReporter.downloadDatabases);
         });
 
         describe('if user say "yes"', () => {
-            let hermione, program, pluginConfig;
+            let testplane, program, pluginConfig;
 
             beforeEach(() => {
-                hermione = mkHermione_();
+                testplane = mkTestplane_();
                 program = mkProgram_({pattern: ['some/pattern'], skipQuestions: false});
-                pluginConfig = mkPluginCfg_({path: './hermione-report'});
+                pluginConfig = mkPluginCfg_({path: './testplane-report'});
 
                 askQuestion.withArgs(sinon.match({name: 'identifyUnused'}), program.options).resolves(true);
             });
@@ -379,16 +379,16 @@ describe('lib/cli-commands/remove-unused-screens', () => {
                 it('should download from main databaseUrls.json', async () => {
                     const mainDatabaseUrls = path.resolve(pluginConfig.path, DATABASE_URLS_JSON_NAME);
 
-                    await removeUnusedScreens_({hermione, program, pluginConfig});
+                    await removeUnusedScreens_({testplane, program, pluginConfig});
 
-                    assert.calledOnceWith(hermione.htmlReporter.downloadDatabases, [mainDatabaseUrls], {pluginConfig});
+                    assert.calledOnceWith(testplane.htmlReporter.downloadDatabases, [mainDatabaseUrls], {pluginConfig});
                 });
 
                 it(`should inform user if databases were not loaded from "${DATABASE_URLS_JSON_NAME}"`, async () => {
                     const mainDatabaseUrls = path.resolve(pluginConfig.path, DATABASE_URLS_JSON_NAME);
-                    hermione.htmlReporter.downloadDatabases.resolves([]);
+                    testplane.htmlReporter.downloadDatabases.resolves([]);
 
-                    await removeUnusedScreens_({hermione, program, pluginConfig});
+                    await removeUnusedScreens_({testplane, program, pluginConfig});
 
                     assert.calledWith(logger.error, sinon.match(`Databases were not loaded from "${mainDatabaseUrls}" file`));
                     assert.calledOnceWith(process.exit, 1);
@@ -398,31 +398,31 @@ describe('lib/cli-commands/remove-unused-screens', () => {
             describe('merge databases', () => {
                 it('should not merge databases if downloaded only main database', async () => {
                     const mainDatabasePath = path.resolve(pluginConfig.path, LOCAL_DATABASE_NAME);
-                    hermione.htmlReporter.downloadDatabases.resolves([mainDatabasePath]);
+                    testplane.htmlReporter.downloadDatabases.resolves([mainDatabasePath]);
 
-                    await removeUnusedScreens_({hermione, program, pluginConfig});
+                    await removeUnusedScreens_({testplane, program, pluginConfig});
 
-                    assert.notCalled(hermione.htmlReporter.mergeDatabases);
+                    assert.notCalled(testplane.htmlReporter.mergeDatabases);
                 });
 
                 it('should merge source databases to main', async () => {
                     const srcDb1 = path.resolve(pluginConfig.path, 'sqlite_1.db');
                     const srcDb2 = path.resolve(pluginConfig.path, 'sqlite_2.db');
                     const mainDatabasePath = path.resolve(pluginConfig.path, LOCAL_DATABASE_NAME);
-                    hermione.htmlReporter.downloadDatabases.resolves([mainDatabasePath, srcDb1, srcDb2]);
+                    testplane.htmlReporter.downloadDatabases.resolves([mainDatabasePath, srcDb1, srcDb2]);
 
-                    await removeUnusedScreens_({hermione, program, pluginConfig});
+                    await removeUnusedScreens_({testplane, program, pluginConfig});
 
-                    assert.calledOnceWith(hermione.htmlReporter.mergeDatabases, [srcDb1, srcDb2], pluginConfig.path);
+                    assert.calledOnceWith(testplane.htmlReporter.mergeDatabases, [srcDb1, srcDb2], pluginConfig.path);
                 });
 
                 it('should infrom user about how much databases were merged', async () => {
                     const srcDb1 = path.resolve(pluginConfig.path, 'sqlite_1.db');
                     const srcDb2 = path.resolve(pluginConfig.path, 'sqlite_2.db');
                     const mainDatabasePath = path.resolve(pluginConfig.path, LOCAL_DATABASE_NAME);
-                    hermione.htmlReporter.downloadDatabases.resolves([mainDatabasePath, srcDb1, srcDb2]);
+                    testplane.htmlReporter.downloadDatabases.resolves([mainDatabasePath, srcDb1, srcDb2]);
 
-                    await removeUnusedScreens_({hermione, program, pluginConfig});
+                    await removeUnusedScreens_({testplane, program, pluginConfig});
 
                     assert.calledWith(
                         logger.log,
@@ -438,9 +438,9 @@ describe('lib/cli-commands/remove-unused-screens', () => {
                 getTestsFromFs.resolves(testsTreeFromFs);
                 const mergedDbPath = path.resolve(pluginConfig.path, LOCAL_DATABASE_NAME);
 
-                await removeUnusedScreens_({hermione, program, pluginConfig});
+                await removeUnusedScreens_({testplane, program, pluginConfig});
 
-                assert.calledOnceWith(identifyUnusedScreens, testsTreeFromFs, {hermione, mergedDbPath});
+                assert.calledOnceWith(identifyUnusedScreens, testsTreeFromFs, {testplane, mergedDbPath});
             });
 
             it('should not throw if unused screen does not exist on fs', async () => {
@@ -451,7 +451,7 @@ describe('lib/cli-commands/remove-unused-screens', () => {
                 accessError.code = 'ENOENT';
                 fs.access.withArgs('/root/broId/unusedTestId/2.png').rejects(accessError);
 
-                await removeUnusedScreens_({hermione, program, pluginConfig});
+                await removeUnusedScreens_({testplane, program, pluginConfig});
 
                 assert.calledOnceWith(logger.warn, sinon.match('Screen by path: "/root/broId/unusedTestId/2.png" is not found in your file system'));
                 assert.calledWith(logger.log, `Found ${chalk.green('0')} unused reference images out of ${chalk.bold('2')}`);
@@ -461,7 +461,7 @@ describe('lib/cli-commands/remove-unused-screens', () => {
                 findScreens.resolves(['/root/usedTestId/img.png', '/root/unusedTestId/img.png']);
                 identifyUnusedScreens.returns(['/root/unusedTestId/img.png']);
 
-                await removeUnusedScreens_({hermione, program, pluginConfig});
+                await removeUnusedScreens_({testplane, program, pluginConfig});
 
                 assert.calledWith(logger.log, `Found ${chalk.red('1')} unused reference images out of ${chalk.bold('2')}`);
             });

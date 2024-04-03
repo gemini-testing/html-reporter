@@ -179,7 +179,7 @@ describe('lib/static/modules/actions', () => {
 
             global.window = {
                 data: {
-                    apiValues: {toolName: ToolName.Hermione}
+                    apiValues: {toolName: ToolName.Testplane}
                 },
                 location: {
                     href: 'http://localhost/random/path.html'

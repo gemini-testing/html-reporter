@@ -1,5 +1,5 @@
 import type {LooksSameOptions, CoordBounds} from 'looks-same';
-import type {default as Hermione, TestResult as HermioneTestResultOriginal} from 'hermione';
+import type {default as Testplane, TestResult} from 'hermione';
 import {DiffModeId, SaveFormat, SUITES_TABLE_COLUMNS, TestStatus, ViewMode} from './constants';
 import type {HtmlReporter} from './plugin-api';
 import {ImageDiffError, NoRefImageError} from './errors';
@@ -8,11 +8,14 @@ declare module 'tmp' {
     export const tmpdir: string;
 }
 
-export {Suite as HermioneSuite} from 'hermione';
+export {Suite as TestplaneSuite} from 'hermione';
 
-export interface HermioneTestResult extends HermioneTestResultOriginal {
+export interface HermioneTestResult extends TestResult {
     timestamp?: number;
 }
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface TestplaneTestResult extends HermioneTestResult {}
 
 export interface ImageFileSaver {
     saveImg: (localFilePath: string, options: {destPath: string; reportDir: string}) => string | Promise<string>;
@@ -155,8 +158,23 @@ export interface PluginDescription {
 export interface CustomGuiItem {
     type: string;
     controls: {label: string; value: string;}[];
-    initialize?: (data: {hermione: Hermione, ctx: object}) => void | Promise<void>;
-    action: (data: {hermione: Hermione, ctx: object, control: object}) => void | Promise<void>;
+    initialize?: (data: {
+        testplane: Testplane,
+        /**
+         * @deprecated Use `testplane` instead
+         */
+        hermione: Testplane,
+        ctx: object
+    }) => void | Promise<void>;
+    action: (data: {
+        testplane: Testplane,
+        /**
+         * @deprecated Use `testplane` instead
+         */
+        hermione: Testplane,
+        ctx: object,
+        control: object
+    }) => void | Promise<void>;
 }
 
 export interface ReporterConfig {

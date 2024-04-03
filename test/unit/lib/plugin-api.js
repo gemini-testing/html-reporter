@@ -30,7 +30,7 @@ describe('plugin api', () => {
         pluginApi.reportsSaver = {some: 'reports_saver'};
 
         assert.deepEqual(pluginApi.values, {
-            toolName: ToolName.Hermione,
+            toolName: ToolName.Testplane,
             extraItems: {key1: 'value1'},
             metaInfoExtenders: {key2: 'value2'},
             imagesSaver: {some: 'images_saver'},

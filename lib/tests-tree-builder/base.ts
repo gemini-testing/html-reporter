@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import {determineFinalStatus} from '../common-utils';
-import {BrowserVersions, PWT_TITLE_DELIMITER, TestStatus, ToolName} from '../constants';
+import {BrowserVersions, PWT_TITLE_DELIMITER, TESTPLANE_TITLE_DELIMITER, TestStatus, ToolName} from '../constants';
 import {ReporterTestResult} from '../test-adapter';
 import {ErrorDetails, ImageInfoFull} from '../types';
 import {TreeTestResultTransformer} from '../test-adapter/transformers/tree';
@@ -150,10 +150,7 @@ export class BaseTestsTreeBuilder {
     }
 
     protected _buildId(parentId: string | string[] = [], name: string | string[] = []): string {
-        let delimiter = ' ';
-        if (this._toolName === ToolName.Playwright) {
-            delimiter = PWT_TITLE_DELIMITER;
-        }
+        const delimiter = this._toolName === ToolName.Playwright ? PWT_TITLE_DELIMITER : TESTPLANE_TITLE_DELIMITER;
 
         return ([] as string[]).concat(parentId, name).join(delimiter);
     }

@@ -15,53 +15,13 @@ const mkSqliteDb = () => {
     return instance;
 };
 
-describe('lib/hermione', () => {
+describe('lib/testplane', () => {
     const sandbox = sinon.createSandbox();
-    let hermione;
+    let testplane;
     let cacheExpectedPaths = new Map(), cacheAllImages = new Map(), cacheDiffImages = new Map();
+    let fs, originalUtils, utils, SqliteClient, ImagesInfoSaver, TestAdapter, StaticReportBuilder, HtmlReporter, runHtmlReporter;
 
     let program;
-
-    const fs = _.clone(fsOriginal);
-    const originalUtils = proxyquire('lib/server-utils', {
-        'fs-extra': fs
-    });
-    const utils = _.clone(originalUtils);
-
-    const {SqliteClient} = proxyquire('lib/sqlite-client', {
-        'fs-extra': fs,
-        'better-sqlite3': sinon.stub().returns(mkSqliteDb())
-    });
-
-    const {ImagesInfoSaver} = proxyquire('lib/images-info-saver', {
-        'fs-extra': fs,
-        './server-utils': utils
-    });
-
-    const {TestAdapter} = proxyquire('lib/test-adapter', {
-        'fs-extra': fs,
-        './server-utils': utils
-    });
-
-    const {StaticReportBuilder} = proxyquire('lib/report-builder/static', {
-        'fs-extra': fs,
-        '../server-utils': utils,
-        '../test-adapter': {TestAdapter},
-        '../images-info-saver': {ImagesInfoSaver}
-    });
-
-    const HtmlReporter = proxyquire('lib/plugin-api', {
-        './local-image-file-saver': proxyquire('lib/local-image-file-saver', {
-            './server-utils': utils
-        })
-    }).HtmlReporter;
-
-    const runHtmlReporter = proxyquire('../../hermione', {
-        './lib/sqlite-client': {SqliteClient},
-        './lib/server-utils': utils,
-        './lib/report-builder/static': {StaticReportBuilder},
-        './lib/plugin-api': {HtmlReporter}
-    });
 
     const events = {
         INIT: 'init',
@@ -74,7 +34,7 @@ describe('lib/hermione', () => {
         AFTER_TESTS_READ: 'afterTestsRead'
     };
 
-    function mkHermione_() {
+    function mkTestplane_() {
         return stubTool({
             forBrowser: sinon.stub().returns({
                 rootUrl: 'browser/root/url',
@@ -97,7 +57,7 @@ describe('lib/hermione', () => {
         ];
 
         for (const prop of props) {
-            commander[prop] = sinon.stub().returns(commander);
+            commander[prop] = sandbox.stub().returns(commander);
         }
 
         return commander;
@@ -110,11 +70,11 @@ describe('lib/hermione', () => {
             baseHost: ''
         });
 
-        runHtmlReporter(hermione, opts);
+        runHtmlReporter(testplane, opts);
 
-        hermione.emit(hermione.events.CLI, program);
+        testplane.emit(testplane.events.CLI, program);
 
-        return hermione.emitAsync(hermione.events.INIT);
+        return testplane.emitAsync(testplane.events.INIT);
     }
 
     function mkStubResult_(options = {}) {
@@ -131,7 +91,7 @@ describe('lib/hermione', () => {
     }
 
     async function stubWorkers() {
-        await hermione.emitAsync(events.RUNNER_START, {
+        await testplane.emitAsync(events.RUNNER_START, {
             registerWorkers: () => {
                 return {saveDiffTo: sandbox.stub()};
             }
@@ -139,7 +99,48 @@ describe('lib/hermione', () => {
     }
 
     beforeEach(async () => {
-        hermione = mkHermione_();
+        fs = _.clone(fsOriginal);
+        originalUtils = proxyquire('lib/server-utils', {
+            'fs-extra': fs
+        });
+        utils = _.clone(originalUtils);
+
+        SqliteClient = proxyquire('lib/sqlite-client', {
+            'fs-extra': fs,
+            'better-sqlite3': sandbox.stub().returns(mkSqliteDb())
+        }).SqliteClient;
+
+        ImagesInfoSaver = proxyquire('lib/images-info-saver', {
+            'fs-extra': fs,
+            './server-utils': utils
+        }).ImagesInfoSaver;
+
+        TestAdapter = proxyquire('lib/test-adapter', {
+            'fs-extra': fs,
+            './server-utils': utils
+        }).TestAdapter;
+
+        StaticReportBuilder = proxyquire('lib/report-builder/static', {
+            'fs-extra': fs,
+            '../server-utils': utils,
+            '../test-adapter': {TestAdapter},
+            '../images-info-saver': {ImagesInfoSaver}
+        }).StaticReportBuilder;
+
+        HtmlReporter = proxyquire('lib/plugin-api', {
+            './local-image-file-saver': proxyquire('lib/local-image-file-saver', {
+                './server-utils': utils
+            })
+        }).HtmlReporter;
+
+        runHtmlReporter = proxyquire('../../testplane', {
+            './lib/sqlite-client': {SqliteClient},
+            './lib/server-utils': utils,
+            './lib/report-builder/static': {StaticReportBuilder},
+            './lib/plugin-api': {HtmlReporter}
+        }).default;
+
+        testplane = mkTestplane_();
 
         program = mkCommander();
 
@@ -184,7 +185,7 @@ describe('lib/hermione', () => {
     it('should add api', async () => {
         await initReporter_();
 
-        assert.isObject(hermione.htmlReporter);
+        assert.isObject(testplane.htmlReporter);
     });
 
     it('should add cli commands', async () => {
@@ -195,16 +196,16 @@ describe('lib/hermione', () => {
 
     it('should add skipped test to result', async () => {
         await initReporter_();
-        hermione.emit(events.TEST_PENDING, mkStubResult_({title: 'some-title'}));
-        await hermione.emitAsync(hermione.events.RUNNER_END);
+        testplane.emit(events.TEST_PENDING, mkStubResult_({title: 'some-title'}));
+        await testplane.emitAsync(testplane.events.RUNNER_END);
 
         assert.deepEqual(StaticReportBuilder.prototype.addTestResult.args[0][0].state, {name: 'some-title'});
     });
 
     it('should add passed test to result', async () => {
         await initReporter_();
-        hermione.emit(events.TEST_PASS, mkStubResult_({title: 'some-title'}));
-        await hermione.emitAsync(hermione.events.RUNNER_END);
+        testplane.emit(events.TEST_PASS, mkStubResult_({title: 'some-title'}));
+        await testplane.emitAsync(testplane.events.RUNNER_END);
 
         assert.deepEqual(StaticReportBuilder.prototype.addTestResult.args[0][0].state, {name: 'some-title'});
     });
@@ -215,8 +216,8 @@ describe('lib/hermione', () => {
                 const testResult = mkStubResult_({title: 'some-title', stateName: 'state-name'});
                 await initReporter_();
 
-                hermione.emit(events[event], testResult);
-                await hermione.emitAsync(hermione.events.RUNNER_END);
+                testplane.emit(events[event], testResult);
+                await testplane.emitAsync(testplane.events.RUNNER_END);
 
                 assert.deepEqual(StaticReportBuilder.prototype.addTestResult.args[0][0].state, {name: 'some-title'});
             });
@@ -226,8 +227,8 @@ describe('lib/hermione', () => {
                 const err = new Error();
                 err.stateName = 'state-name';
 
-                hermione.emit(events[event], mkStubResult_({title: 'some-title', assertViewResults: [err]}));
-                await hermione.emitAsync(hermione.events.RUNNER_END);
+                testplane.emit(events[event], mkStubResult_({title: 'some-title', assertViewResults: [err]}));
+                await testplane.emitAsync(testplane.events.RUNNER_END);
 
                 assert.deepEqual(StaticReportBuilder.prototype.addTestResult.args[0][0].state, {name: 'some-title'});
             });
@@ -242,8 +243,8 @@ describe('lib/hermione', () => {
                     assertViewResults: [err]
                 });
 
-                hermione.emit(events[event], testResult);
-                await hermione.emitAsync(hermione.events.RUNNER_END);
+                testplane.emit(events[event], testResult);
+                await testplane.emitAsync(testplane.events.RUNNER_END);
 
                 assert.deepEqual(StaticReportBuilder.prototype.addTestResult.args[0][0].state, {name: 'some-title'});
             });
@@ -254,8 +255,8 @@ describe('lib/hermione', () => {
                 const err = new ImageDiffError();
                 err.stateName = 'state-name';
 
-                hermione.emit(events[event], mkStubResult_({title: 'some-title', assertViewResults: [err]}));
-                await hermione.emitAsync(hermione.events.RUNNER_END);
+                testplane.emit(events[event], mkStubResult_({title: 'some-title', assertViewResults: [err]}));
+                await testplane.emitAsync(testplane.events.RUNNER_END);
 
                 assert.deepEqual(StaticReportBuilder.prototype.addTestResult.args[0][0].state, {name: 'some-title'});
             });

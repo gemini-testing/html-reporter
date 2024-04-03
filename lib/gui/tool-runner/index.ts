@@ -3,8 +3,8 @@ import path from 'path';
 import {CommanderStatic} from '@gemini-testing/commander';
 import chalk from 'chalk';
 import fs from 'fs-extra';
-import type Hermione from 'hermione';
-import type {TestCollection, Test as HermioneTest, Config as HermioneConfig} from 'hermione';
+import type Testplane from 'hermione';
+import type {TestCollection, Test as TestplaneTest, Config as TestplaneConfig} from 'hermione';
 import _ from 'lodash';
 import looksSame, {CoordBounds} from 'looks-same';
 
@@ -28,7 +28,7 @@ import {getTestsTreeFromDatabase} from '../../db-utils/server';
 import {formatTestResult, getExpectedCacheKey} from '../../server-utils';
 import {
     AssertViewResult,
-    HermioneTestResult,
+    TestplaneTestResult,
     HtmlReporterApi,
     ImageFile,
     ImageInfoDiff, ImageInfoUpdated, ImageInfoWithState,
@@ -47,7 +47,7 @@ import {Cache} from '../../cache';
 import {ImagesInfoSaver} from '../../images-info-saver';
 import {SqliteImageStore} from '../../image-store';
 
-type ToolRunnerArgs = [paths: string[], hermione: Hermione & HtmlReporterApi, configs: GuiConfigs];
+type ToolRunnerArgs = [paths: string[], testplane: Testplane & HtmlReporterApi, configs: GuiConfigs];
 type ReplModeOption = {
     enabled: boolean;
     beforeTest: boolean;
@@ -63,7 +63,7 @@ export interface UndoAcceptImagesResult {
 
 export class ToolRunner {
     private _testFiles: string[];
-    private _hermione: Hermione & HtmlReporterApi;
+    private _testplane: Testplane & HtmlReporterApi;
     private _tree: ToolRunnerTree | null;
     protected _collection: TestCollection | null;
     private _globalOpts: CommanderStatic;
@@ -72,16 +72,16 @@ export class ToolRunner {
     private _pluginConfig: ReporterConfig;
     private _eventSource: EventSource;
     protected _reportBuilder: GuiReportBuilder | null;
-    private _tests: Record<string, HermioneTest>;
+    private _tests: Record<string, TestplaneTest>;
     private _expectedImagesCache: Cache<[TestSpecByPath, string | undefined], string>;
 
     static create<T extends ToolRunner>(this: new (...args: ToolRunnerArgs) => T, ...args: ToolRunnerArgs): T {
         return new this(...args);
     }
 
-    constructor(...[paths, hermione, {program: globalOpts, pluginConfig, options: guiOpts}]: ToolRunnerArgs) {
+    constructor(...[paths, testplane, {program: globalOpts, pluginConfig, options: guiOpts}]: ToolRunnerArgs) {
         this._testFiles = ([] as string[]).concat(paths);
-        this._hermione = hermione;
+        this._testplane = testplane;
         this._tree = null;
         this._collection = null;
 
@@ -98,8 +98,8 @@ export class ToolRunner {
         this._expectedImagesCache = new Cache(getExpectedCacheKey);
     }
 
-    get config(): HermioneConfig {
-        return this._hermione.config;
+    get config(): TestplaneConfig {
+        return this._testplane.config;
     }
 
     get tree(): ToolRunnerTree | null {
@@ -109,25 +109,25 @@ export class ToolRunner {
     async initialize(): Promise<void> {
         await mergeDatabasesForReuse(this._reportPath);
 
-        const dbClient = await SqliteClient.create({htmlReporter: this._hermione.htmlReporter, reportPath: this._reportPath, reuse: true});
+        const dbClient = await SqliteClient.create({htmlReporter: this._testplane.htmlReporter, reportPath: this._reportPath, reuse: true});
         const imageStore = new SqliteImageStore(dbClient);
 
         const imagesInfoSaver = new ImagesInfoSaver({
-            imageFileSaver: this._hermione.htmlReporter.imagesSaver,
+            imageFileSaver: this._testplane.htmlReporter.imagesSaver,
             expectedPathsCache: this._expectedImagesCache,
             imageStore,
-            reportPath: this._hermione.htmlReporter.config.path
+            reportPath: this._testplane.htmlReporter.config.path
         });
 
-        this._reportBuilder = GuiReportBuilder.create(this._hermione.htmlReporter, this._pluginConfig, {dbClient, imagesInfoSaver});
+        this._reportBuilder = GuiReportBuilder.create(this._testplane.htmlReporter, this._pluginConfig, {dbClient, imagesInfoSaver});
         this._subscribeOnEvents();
 
         this._collection = await this._readTests();
 
-        this._hermione.htmlReporter.emit(PluginEvents.DATABASE_CREATED, dbClient.getRawConnection());
+        this._testplane.htmlReporter.emit(PluginEvents.DATABASE_CREATED, dbClient.getRawConnection());
         await this._reportBuilder.saveStaticFiles();
 
-        this._reportBuilder.setApiValues(this._hermione.htmlReporter.values);
+        this._reportBuilder.setApiValues(this._testplane.htmlReporter.values);
         await this._handleRunnableCollection();
     }
 
@@ -135,7 +135,7 @@ export class ToolRunner {
         const {grep, set: sets, browser: browsers} = this._globalOpts;
         const replMode = this._getReplModeOption();
 
-        return this._hermione.readTests(this._testFiles, {grep, sets, browsers, replMode});
+        return this._testplane.readTests(this._testFiles, {grep, sets, browsers, replMode});
     }
 
     _getReplModeOption(): ReplModeOption {
@@ -193,7 +193,7 @@ export class ToolRunner {
         const reportBuilder = this._ensureReportBuilder();
 
         return Promise.all(tests.map(async (test): Promise<TestBranch> => {
-            const updateResult = this._createHermioneTestResult(test);
+            const updateResult = this._createTestplaneTestResult(test);
             const currentResult = formatTestResult(updateResult, UPDATED, test.attempt);
             const estimatedStatus = reportBuilder.getUpdatedReferenceTestStatus(currentResult);
 
@@ -213,7 +213,7 @@ export class ToolRunner {
         const reportBuilder = this._ensureReportBuilder();
 
         await Promise.all(tests.map(async (test) => {
-            const updateResult = this._createHermioneTestResult(test);
+            const updateResult = this._createTestplaneTestResult(test);
             const formattedResultWithoutAttempt = formatTestResult(updateResult, UPDATED);
 
             await Promise.all(formattedResultWithoutAttempt.imagesInfo.map(async (imageInfo) => {
@@ -244,10 +244,10 @@ export class ToolRunner {
                     await reporterHelper.revertReferenceImage(removedResult, newResult, stateName);
                 }
 
-                if (previousExpectedPath && (updateResult as HermioneTest).fullTitle) {
+                if (previousExpectedPath && (updateResult as TestplaneTest).fullTitle) {
                     this._expectedImagesCache.set([{
-                        testPath: [(updateResult as HermioneTest).fullTitle()],
-                        browserId: (updateResult as HermioneTest).browserId
+                        testPath: [(updateResult as TestplaneTest).fullTitle()],
+                        browserId: (updateResult as TestplaneTest).browserId
                     }, stateName], previousExpectedPath);
                 }
             }));
@@ -304,7 +304,7 @@ export class ToolRunner {
         const replMode = this._getReplModeOption();
 
         return createTestRunner(this._ensureTestCollection(), tests)
-            .run((collection) => this._hermione.run(collection, {grep, sets, browsers, devtools, replMode}));
+            .run((collection) => this._testplane.run(collection, {grep, sets, browsers, devtools, replMode}));
     }
 
     protected async _handleRunnableCollection(): Promise<void> {
@@ -331,19 +331,19 @@ export class ToolRunner {
         await this._fillTestsTree();
     }
 
-    protected _isSilentlySkipped({silentSkip, parent}: HermioneTest): boolean {
+    protected _isSilentlySkipped({silentSkip, parent}: TestplaneTest): boolean {
         return silentSkip || parent && this._isSilentlySkipped(parent);
     }
 
     protected _subscribeOnEvents(): void {
-        subscribeOnToolEvents(this._hermione, this._ensureReportBuilder(), this._eventSource);
+        subscribeOnToolEvents(this._testplane, this._ensureReportBuilder(), this._eventSource);
     }
 
-    protected _createHermioneTestResult(updateData: TestRefUpdateData): HermioneTestResult {
+    protected _createTestplaneTestResult(updateData: TestRefUpdateData): TestplaneTestResult {
         const {browserId} = updateData;
         const fullTitle = mkFullTitle(updateData);
         const testId = formatId(getShortMD5(fullTitle), browserId);
-        const hermioneTest = this._tests[testId];
+        const testplaneTest = this._tests[testId];
         const {sessionId, url} = updateData.metaInfo as {sessionId?: string; url?: string};
         const assertViewResults: AssertViewResult[] = [];
 
@@ -351,31 +351,31 @@ export class ToolRunner {
             .filter(({stateName, actualImg}) => Boolean(stateName) && Boolean(actualImg))
             .forEach((imageInfo) => {
                 const {stateName, actualImg} = imageInfo as {stateName: string, actualImg: ImageFile};
-                const path = this._hermione.config.browsers[browserId].getScreenshotPath(hermioneTest, stateName);
+                const path = this._testplane.config.browsers[browserId].getScreenshotPath(testplaneTest, stateName);
                 const refImg = {path, size: actualImg.size};
 
                 assertViewResults.push({stateName, refImg, currImg: actualImg, isUpdated: isUpdatedStatus(imageInfo.status)});
             });
 
-        const hermioneTestResult: HermioneTestResult = _.merge({}, hermioneTest, {
+        const testplaneTestResult: TestplaneTestResult = _.merge({}, testplaneTest, {
             assertViewResults,
-            err: updateData.error as HermioneTestResult['err'],
+            err: updateData.error as TestplaneTestResult['err'],
             sessionId,
             meta: {url}
-        } satisfies Partial<HermioneTestResult>) as unknown as HermioneTestResult;
+        } satisfies Partial<TestplaneTestResult>) as unknown as TestplaneTestResult;
 
         // _.merge can't fully clone test object since hermione@7+
         // TODO: use separate object to represent test results. Do not extend test object with test results
-        return hermioneTest && hermioneTest.clone
-            ? Object.assign(hermioneTest.clone(), hermioneTestResult)
-            : hermioneTestResult;
+        return testplaneTest && testplaneTest.clone
+            ? Object.assign(testplaneTest.clone(), testplaneTestResult)
+            : testplaneTestResult;
     }
 
     protected _handleReferenceUpdate(testResult: ReporterTestResult, imageInfo: ImageInfoUpdated, state: string): void {
         this._expectedImagesCache.set([testResult, imageInfo.stateName], imageInfo.expectedImg.path);
 
-        this._hermione.emit(
-            this._hermione.events.UPDATE_REFERENCE,
+        this._testplane.emit(
+            this._testplane.events.UPDATE_REFERENCE,
             {refImg: imageInfo.refImg, state}
         );
     }
@@ -397,7 +397,7 @@ export class ToolRunner {
         const dbPath = path.resolve(this._reportPath, LOCAL_DATABASE_NAME);
 
         if (await fs.pathExists(dbPath)) {
-            return getTestsTreeFromDatabase(ToolName.Hermione, dbPath, this._pluginConfig.baseHost);
+            return getTestsTreeFromDatabase(ToolName.Testplane, dbPath, this._pluginConfig.baseHost);
         }
 
         logger.warn(chalk.yellow(`Nothing to reuse in ${this._reportPath}: can not load data from ${DATABASE_URLS_JSON_NAME}`));

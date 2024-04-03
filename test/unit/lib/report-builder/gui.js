@@ -4,7 +4,7 @@ const fs = require('fs-extra');
 const _ = require('lodash');
 const proxyquire = require('proxyquire');
 const serverUtils = require('lib/server-utils');
-const {HermioneTestAdapter} = require('lib/test-adapter/hermione');
+const {TestplaneTestAdapter} = require('lib/test-adapter/testplane');
 const {SqliteClient} = require('lib/sqlite-client');
 const {GuiTestsTreeBuilder} = require('lib/tests-tree-builder/gui');
 const {HtmlReporter} = require('lib/plugin-api');
@@ -28,18 +28,18 @@ describe('GuiReportBuilder', () => {
         const htmlReporter = HtmlReporter.create({baseHost: ''});
 
         const browserConfigStub = {getAbsoluteUrl: toolConfig.getAbsoluteUrl};
-        const hermione = {
+        const testplane = {
             forBrowser: sandbox.stub().returns(browserConfigStub),
             htmlReporter
         };
 
-        HermioneTestAdapter.create = (obj) => obj;
+        TestplaneTestAdapter.create = (obj) => obj;
 
         dbClient = await SqliteClient.create({htmlReporter, reportPath: TEST_REPORT_PATH});
         imagesInfoSaver = sinon.createStubInstance(ImagesInfoSaver);
         imagesInfoSaver.save.callsFake(_.identity);
 
-        const reportBuilder = GuiReportBuilder.create(hermione.htmlReporter, pluginConfig, {dbClient, imagesInfoSaver});
+        const reportBuilder = GuiReportBuilder.create(testplane.htmlReporter, pluginConfig, {dbClient, imagesInfoSaver});
 
         const workers = {saveDiffTo: () => {}};
         reportBuilder.registerWorkers(workers);

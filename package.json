@@ -1,12 +1,12 @@
 {
   "name": "html-reporter",
   "version": "9.17.2",
-  "description": "Plugin for hermione which is intended to aggregate the results of tests running into html report",
+  "description": "Html-reporter and GUI for viewing and managing results of a tests run. Currently supports Testplane and Hermione.",
   "files": [
     "build"
   ],
   "exports": {
-    "./gemini": "./build/gemini.js",
+    "./testplane": "./build/testplane.js",
     "./hermione": "./build/hermione.js",
     "./playwright": "./build/playwright.js"
   },
@@ -51,6 +51,7 @@
     "node": ">= 14"
   },
   "keywords": [
+    "testplane",
     "hermione",
     "plugin",
     "html-reporter"

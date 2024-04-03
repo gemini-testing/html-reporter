@@ -1,22 +1,22 @@
 import {ApiFacade} from './facade';
-import Hermione from 'hermione';
+import type Testplane from 'hermione';
 import {Express} from 'express';
 
 export interface ServerReadyData {
     url: string;
 }
 
-type HermioneWithGui = Hermione & { gui: ApiFacade };
+type TestplaneWithGui = Testplane & { gui: ApiFacade };
 
 export class Api {
     private _gui: ApiFacade;
 
-    static create<T extends Api>(this: new (hermione: HermioneWithGui) => T, hermione: HermioneWithGui): T {
-        return new this(hermione);
+    static create<T extends Api>(this: new (testplane: TestplaneWithGui) => T, testplane: TestplaneWithGui): T {
+        return new this(testplane);
     }
 
-    constructor(hermione: HermioneWithGui) {
-        this._gui = hermione.gui = ApiFacade.create();
+    constructor(testplane: TestplaneWithGui) {
+        this._gui = testplane.gui = ApiFacade.create();
     }
 
     async initServer(server: Express): Promise<void> {
