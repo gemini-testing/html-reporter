@@ -59,7 +59,16 @@
   "homepage": "https://github.com/gemini-testing/html-reporter#readme",
   "license": "MIT",
   "peerDependencies": {
-    "hermione": ">=6.0.0"
+    "hermione": ">=6.0.0",
+    "testplane": "*"
+  },
+  "peerDependenciesMeta": {
+    "hermione": {
+      "optional": true
+    },
+    "testplane": {
+      "optional": true
+    }
   },
   "dependencies": {
     "@babel/runtime": "^7.22.5",
@@ -139,7 +148,6 @@
     "eslint-plugin-react": "^7.32.2",
     "events": "^3.3.0",
     "fork-ts-checker-webpack-plugin": "^9.0.0",
-    "hermione": "^8.2.1",
     "hermione-global-hook": "^1.0.1",
     "hermione-test-repeater": "^0.0.8",
     "html-react-parser": "^0.4.0",
@@ -194,6 +202,7 @@
     "stylus": "^0.57.0",
     "stylus-loader": "^7.1.3",
     "terser-webpack-plugin": "^5.3.9",
+    "testplane": "^0.1.0-rc.0",
     "tree-kill": "^1.2.2",
     "ts-node": "^10.9.1",
     "type-fest": "^3.13.1",
