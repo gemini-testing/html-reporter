@@ -1,4 +1,4 @@
-import type {TestCollection} from 'hermione';
+import type {TestCollection} from 'testplane';
 import {BaseRunner, TestSpec} from './runner';
 
 export class SpecificTestRunner extends BaseRunner {

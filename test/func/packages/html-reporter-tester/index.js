@@ -1,3 +1,3 @@
 'use strict';
 
-module.exports = require('../../../../build/hermione');
+module.exports = require('../../../../build/testplane');

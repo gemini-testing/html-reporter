@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import type {TestCollection} from 'hermione';
+import type {TestCollection} from 'testplane';
 
 import {TestRunner, TestSpec} from './runner';
 import {AllTestRunner} from './all-test-runner';

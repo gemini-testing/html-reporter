@@ -3,8 +3,8 @@ import path from 'path';
 import {CommanderStatic} from '@gemini-testing/commander';
 import chalk from 'chalk';
 import fs from 'fs-extra';
-import type Testplane from 'hermione';
-import type {TestCollection, Test as TestplaneTest, Config as TestplaneConfig} from 'hermione';
+import type Testplane from 'testplane';
+import type {TestCollection, Test as TestplaneTest, Config as TestplaneConfig} from 'testplane';
 import _ from 'lodash';
 import looksSame, {CoordBounds} from 'looks-same';
 

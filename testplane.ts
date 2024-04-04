@@ -1,7 +1,7 @@
 import os from 'os';
 import path from 'path';
-import type Testplane from 'hermione';
-import type {TestResult as TestplaneTestResult} from 'hermione';
+import type Testplane from 'testplane';
+import type {TestResult as TestplaneTestResult} from 'testplane';
 import _ from 'lodash';
 import PQueue from 'p-queue';
 import {CommanderStatic} from '@gemini-testing/commander';

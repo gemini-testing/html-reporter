@@ -3,8 +3,8 @@ import _ from 'lodash';
 
 import {ToolRunner, ToolRunnerTree, UndoAcceptImagesResult} from './tool-runner';
 import {HtmlReporterApi} from '../types';
-import type Testplane from 'hermione';
-import type {Config} from 'hermione';
+import type Testplane from 'testplane';
+import type {Config} from 'testplane';
 import {GuiConfigs} from './index';
 import {TestSpec} from './tool-runner/runner/runner';
 import {TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../tests-tree-builder/gui';

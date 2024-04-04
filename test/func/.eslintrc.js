@@ -5,7 +5,7 @@ module.exports = {
     env: {browser: true},
     overrides: [
         {
-            files: ['tests/**/*.hermione.js', 'fixtures/**/*.hermione.js'],
+            files: ['tests/**/*.testplane.js', 'fixtures/**/*.testplane.js'],
             globals: {
                 expect: 'readonly'
             }

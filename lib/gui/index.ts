@@ -6,7 +6,7 @@ import * as server from './server';
 import {logger} from '../common-utils';
 import * as utils from '../server-utils';
 import {HtmlReporterApi, ReporterConfig} from '../types';
-import type Testplane from 'hermione';
+import type Testplane from 'testplane';
 import {Api} from './api';
 
 const {logError} = utils;

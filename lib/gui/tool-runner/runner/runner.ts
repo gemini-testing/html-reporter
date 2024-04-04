@@ -1,4 +1,4 @@
-import type {TestCollection} from 'hermione';
+import type {TestCollection} from 'testplane';
 
 export interface TestRunner {
     run<U>(handler: (testCollection: TestCollection) => U): U;

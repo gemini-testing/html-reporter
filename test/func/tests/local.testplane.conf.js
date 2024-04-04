@@ -1,15 +1,15 @@
 /*
-This hermione config may be useful for running tests on a local, non-headless Chromium browser while debugging.
+This testplane config may be useful for running tests on a local, non-headless Chromium browser while debugging.
 
 Use it as follows:
-npm run gui:hermione-common -- -c local.hermione.conf.js
+npm run gui:testplane-common -- -c local.testplane.conf.js
 */
 
 process.env.SERVER_HOST = 'localhost';
 
 const _ = require('lodash');
 
-const mainConfig = require('./.hermione.conf.js');
+const mainConfig = require('./.testplane.conf.js');
 
 const config = _.merge(mainConfig, {
     browsers: {

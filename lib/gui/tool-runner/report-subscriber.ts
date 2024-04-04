@@ -1,7 +1,7 @@
 import os from 'os';
 import PQueue from 'p-queue';
-import type Testplane from 'hermione';
-import type {Test as TestplaneTest} from 'hermione';
+import type Testplane from 'testplane';
+import type {Test as TestplaneTest} from 'testplane';
 import {ClientEvents} from '../constants';
 import {getSuitePath} from '../../plugin-utils';
 import {createWorkers, CreateWorkersRunner} from '../../workers/create-workers';

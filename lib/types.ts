@@ -1,5 +1,5 @@
 import type {LooksSameOptions, CoordBounds} from 'looks-same';
-import type {default as Testplane, TestResult} from 'hermione';
+import type {default as Testplane, TestResult} from 'testplane';
 import {DiffModeId, SaveFormat, SUITES_TABLE_COLUMNS, TestStatus, ViewMode} from './constants';
 import type {HtmlReporter} from './plugin-api';
 import {ImageDiffError, NoRefImageError} from './errors';
@@ -8,7 +8,7 @@ declare module 'tmp' {
     export const tmpdir: string;
 }
 
-export {Suite as TestplaneSuite} from 'hermione';
+export {Suite as TestplaneSuite} from 'testplane';
 
 export interface HermioneTestResult extends TestResult {
     timestamp?: number;

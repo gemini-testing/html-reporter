@@ -5,8 +5,8 @@ import url from 'url';
 import chalk from 'chalk';
 import {Router} from 'express';
 import fs from 'fs-extra';
-import type Testplane from 'hermione';
-import type {Test as TestplaneTest} from 'hermione';
+import type Testplane from 'testplane';
+import type {Test as TestplaneTest} from 'testplane';
 import _ from 'lodash';
 import tmp from 'tmp';
 
