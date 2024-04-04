@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="9.18.0"></a>
+# [9.18.0](https://github.com/gemini-testing/html-reporter/compare/v9.17.2...v9.18.0) (2024-04-04)
+
+
+### Features
+
+* add testplane support ([362a457](https://github.com/gemini-testing/html-reporter/commit/362a457))
+
+
+
 <a name="9.17.2"></a>
 ## [9.17.2](https://github.com/gemini-testing/html-reporter/compare/v9.17.1...v9.17.2) (2024-04-02)
 
