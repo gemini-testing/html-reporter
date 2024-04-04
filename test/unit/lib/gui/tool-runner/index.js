@@ -17,7 +17,7 @@ describe('lib/gui/tool-runner/index', () => {
     let reportBuilder;
     let ToolGuiReporter;
     let subscribeOnToolEvents;
-    let hermione;
+    let testplane;
     let getTestsTreeFromDatabase;
     let looksSame;
     let toolRunnerUtils;
@@ -40,7 +40,7 @@ describe('lib/gui/tool-runner/index', () => {
         }));
     };
 
-    const mkToolCliOpts_ = (globalCliOpts = {name: () => 'hermione'}, guiCliOpts = {}) => {
+    const mkToolCliOpts_ = (globalCliOpts = {name: () => 'testplane'}, guiCliOpts = {}) => {
         return {program: globalCliOpts, options: guiCliOpts};
     };
     const mkPluginConfig_ = (config = {}) => {
@@ -48,15 +48,15 @@ describe('lib/gui/tool-runner/index', () => {
         return {pluginConfig};
     };
 
-    const mkHermione_ = (config, testsTree) => {
-        const hermione = stubTool(config, {UPDATE_REFERENCE: 'updateReference'});
-        sandbox.stub(hermione, 'emit');
-        hermione.readTests.resolves(mkTestCollection_(testsTree));
+    const mkTestplane_ = (config, testsTree) => {
+        const testplane = stubTool(config, {UPDATE_REFERENCE: 'updateReference'});
+        sandbox.stub(testplane, 'emit');
+        testplane.readTests.resolves(mkTestCollection_(testsTree));
 
-        return hermione;
+        return testplane;
     };
 
-    const initGuiReporter = (hermione, opts = {}) => {
+    const initGuiReporter = (testplane, opts = {}) => {
         opts = _.defaults(opts, {
             paths: [],
             configs: {}
@@ -64,20 +64,20 @@ describe('lib/gui/tool-runner/index', () => {
 
         const configs = _.defaults(opts.configs, mkToolCliOpts_(), mkPluginConfig_());
 
-        return ToolGuiReporter.create(opts.paths, hermione, configs);
+        return ToolGuiReporter.create(opts.paths, testplane, configs);
     };
 
     beforeEach(() => {
-        hermione = stubTool();
+        testplane = stubTool();
 
-        createTestRunner = sinon.stub();
+        createTestRunner = sandbox.stub();
 
         toolRunnerUtils = {
             findTestResult: sandbox.stub(),
             formatId: sandbox.stub().returns('some-id')
         };
 
-        reportBuilder = sinon.createStubInstance(GuiReportBuilder);
+        reportBuilder = sandbox.createStubInstance(GuiReportBuilder);
         reportBuilder.addTestResult.callsFake(_.identity);
         reportBuilder.provideAttempt.callsFake(_.identity);
 
@@ -89,18 +89,18 @@ describe('lib/gui/tool-runner/index', () => {
 
         getTestsTreeFromDatabase = sandbox.stub().returns({});
 
-        getReferencePath = sinon.stub().returns('');
+        getReferencePath = sandbox.stub().returns('');
 
         const reporterHelpersOriginal = proxyquire('lib/reporter-helpers', {
             './server-utils': {
-                copyFileAsync: sinon.stub().resolves(),
-                getCurrentAbsolutePath: sinon.stub(),
+                copyFileAsync: sandbox.stub().resolves(),
+                getCurrentAbsolutePath: sandbox.stub(),
                 getReferencePath,
-                fileExists: sinon.stub(),
-                deleteFile: sinon.stub()
+                fileExists: sandbox.stub(),
+                deleteFile: sandbox.stub()
             },
             './test-adapter/utils': {
-                copyAndUpdate: sinon.stub().callsFake(_.assign)
+                copyAndUpdate: sandbox.stub().callsFake(_.assign)
             }
         });
         reporterHelpers = _.clone(reporterHelpersOriginal);
@@ -110,7 +110,7 @@ describe('lib/gui/tool-runner/index', () => {
             './runner': {createTestRunner},
             './report-subscriber': {subscribeOnToolEvents},
             './utils': toolRunnerUtils,
-            '../../sqlite-client': {SqliteClient: {create: () => sinon.createStubInstance(SqliteClient)}},
+            '../../sqlite-client': {SqliteClient: {create: () => sandbox.createStubInstance(SqliteClient)}},
             '../../db-utils/server': {getTestsTreeFromDatabase},
             '../../reporter-helpers': reporterHelpers
         }).ToolRunner;
@@ -122,10 +122,10 @@ describe('lib/gui/tool-runner/index', () => {
 
     describe('initialize', () => {
         it('should set values added through api', () => {
-            const htmlReporter = {emit: sinon.stub(), values: {foo: 'bar'}, config: {}, imagesSaver: {}};
-            hermione = stubTool(stubConfig(), {}, {}, htmlReporter);
+            const htmlReporter = {emit: sandbox.stub(), values: {foo: 'bar'}, config: {}, imagesSaver: {}};
+            testplane = stubTool(stubConfig(), {}, {}, htmlReporter);
 
-            const gui = initGuiReporter(hermione);
+            const gui = initGuiReporter(testplane);
 
             return gui.initialize()
                 .then(() => assert.calledWith(reportBuilder.setApiValues, {foo: 'bar'}));
@@ -133,10 +133,10 @@ describe('lib/gui/tool-runner/index', () => {
 
         describe('correctly pass options to "readTests" method', () => {
             it('should pass "paths" option', () => {
-                const gui = initGuiReporter(hermione, {paths: ['foo', 'bar']});
+                const gui = initGuiReporter(testplane, {paths: ['foo', 'bar']});
 
                 return gui.initialize()
-                    .then(() => assert.calledOnceWith(hermione.readTests, ['foo', 'bar']));
+                    .then(() => assert.calledOnceWith(testplane.readTests, ['foo', 'bar']));
             });
 
             it('should pass "grep", "sets" and "browsers" options', () => {
@@ -144,7 +144,7 @@ describe('lib/gui/tool-runner/index', () => {
                 const set = 'bar';
                 const browser = 'yabro';
 
-                const gui = initGuiReporter(hermione, {
+                const gui = initGuiReporter(testplane, {
                     configs: {
                         program: {grep, set, browser}
                     }
@@ -152,13 +152,13 @@ describe('lib/gui/tool-runner/index', () => {
 
                 return gui.initialize()
                     .then(() => {
-                        assert.calledOnceWith(hermione.readTests, sinon.match.any, sinon.match({grep, sets: set, browsers: browser}));
+                        assert.calledOnceWith(testplane.readTests, sinon.match.any, sinon.match({grep, sets: set, browsers: browser}));
                     });
             });
 
             describe('"replMode" option', () => {
                 it('should be disabled by default', async () => {
-                    const gui = initGuiReporter(hermione, {
+                    const gui = initGuiReporter(testplane, {
                         configs: {
                             program: {}
                         }
@@ -166,7 +166,7 @@ describe('lib/gui/tool-runner/index', () => {
 
                     await gui.initialize();
 
-                    assert.calledOnceWith(hermione.readTests, sinon.match.any, sinon.match({
+                    assert.calledOnceWith(testplane.readTests, sinon.match.any, sinon.match({
                         replMode: {
                             enabled: false,
                             beforeTest: false,
@@ -176,7 +176,7 @@ describe('lib/gui/tool-runner/index', () => {
                 });
 
                 it('should be enabled when specify "repl" flag', async () => {
-                    const gui = initGuiReporter(hermione, {
+                    const gui = initGuiReporter(testplane, {
                         configs: {
                             program: {repl: true}
                         }
@@ -184,7 +184,7 @@ describe('lib/gui/tool-runner/index', () => {
 
                     await gui.initialize();
 
-                    assert.calledOnceWith(hermione.readTests, sinon.match.any, sinon.match({
+                    assert.calledOnceWith(testplane.readTests, sinon.match.any, sinon.match({
                         replMode: {
                             enabled: true,
                             beforeTest: false,
@@ -194,7 +194,7 @@ describe('lib/gui/tool-runner/index', () => {
                 });
 
                 it('should be enabled when specify "beforeTest" flag', async () => {
-                    const gui = initGuiReporter(hermione, {
+                    const gui = initGuiReporter(testplane, {
                         configs: {
                             program: {replBeforeTest: true}
                         }
@@ -202,7 +202,7 @@ describe('lib/gui/tool-runner/index', () => {
 
                     await gui.initialize();
 
-                    assert.calledOnceWith(hermione.readTests, sinon.match.any, sinon.match({
+                    assert.calledOnceWith(testplane.readTests, sinon.match.any, sinon.match({
                         replMode: {
                             enabled: true,
                             beforeTest: true,
@@ -212,7 +212,7 @@ describe('lib/gui/tool-runner/index', () => {
                 });
 
                 it('should be enabled when specify "onFail" flag', async () => {
-                    const gui = initGuiReporter(hermione, {
+                    const gui = initGuiReporter(testplane, {
                         configs: {
                             program: {replOnFail: true}
                         }
@@ -220,7 +220,7 @@ describe('lib/gui/tool-runner/index', () => {
 
                     await gui.initialize();
 
-                    assert.calledOnceWith(hermione.readTests, sinon.match.any, sinon.match({
+                    assert.calledOnceWith(testplane.readTests, sinon.match.any, sinon.match({
                         replMode: {
                             enabled: true,
                             beforeTest: false,
@@ -232,10 +232,10 @@ describe('lib/gui/tool-runner/index', () => {
         });
 
         it('should not add disabled test to report', () => {
-            const hermione = stubTool();
-            hermione.readTests.resolves(mkTestCollection_({bro: stubTest_({disabled: true})}));
+            const testplane = stubTool();
+            testplane.readTests.resolves(mkTestCollection_({bro: stubTest_({disabled: true})}));
 
-            const gui = initGuiReporter(hermione, {paths: ['foo']});
+            const gui = initGuiReporter(testplane, {paths: ['foo']});
 
             return gui.initialize()
                 .then(() => {
@@ -244,10 +244,10 @@ describe('lib/gui/tool-runner/index', () => {
         });
 
         it('should not add silently skipped test to report', () => {
-            const hermione = stubTool();
-            hermione.readTests.resolves(mkTestCollection_({bro: stubTest_({silentSkip: true})}));
+            const testplane = stubTool();
+            testplane.readTests.resolves(mkTestCollection_({bro: stubTest_({silentSkip: true})}));
 
-            const gui = initGuiReporter(hermione, {paths: ['foo']});
+            const gui = initGuiReporter(testplane, {paths: ['foo']});
 
             return gui.initialize()
                 .then(() => {
@@ -256,12 +256,12 @@ describe('lib/gui/tool-runner/index', () => {
         });
 
         it('should not add test from silently skipped suite to report', () => {
-            const hermione = stubTool();
+            const testplane = stubTool();
             const silentlySkippedSuite = mkSuite({silentSkip: true});
 
-            hermione.readTests.resolves(mkTestCollection_({bro: stubTest_({parent: silentlySkippedSuite})}));
+            testplane.readTests.resolves(mkTestCollection_({bro: stubTest_({parent: silentlySkippedSuite})}));
 
-            const gui = initGuiReporter(hermione, {paths: ['foo']});
+            const gui = initGuiReporter(testplane, {paths: ['foo']});
 
             return gui.initialize()
                 .then(() => {
@@ -270,44 +270,44 @@ describe('lib/gui/tool-runner/index', () => {
         });
 
         it('should add skipped test to report', () => {
-            const hermione = stubTool();
-            hermione.readTests.resolves(mkTestCollection_({bro: stubTest_({pending: true})}));
+            const testplane = stubTool();
+            testplane.readTests.resolves(mkTestCollection_({bro: stubTest_({pending: true})}));
 
-            const gui = initGuiReporter(hermione, {paths: ['foo']});
+            const gui = initGuiReporter(testplane, {paths: ['foo']});
 
             return gui.initialize()
                 .then(() => assert.calledOnce(reportBuilder.addTestResult));
         });
 
         it('should add idle test to report', () => {
-            const hermione = stubTool();
-            hermione.readTests.resolves(mkTestCollection_({bro: stubTest_()}));
+            const testplane = stubTool();
+            testplane.readTests.resolves(mkTestCollection_({bro: stubTest_()}));
 
-            const gui = initGuiReporter(hermione, {paths: ['foo']});
+            const gui = initGuiReporter(testplane, {paths: ['foo']});
 
             return gui.initialize()
                 .then(() => assert.calledOnce(reportBuilder.addTestResult));
         });
 
         it('should subscribe on events before read tests', () => {
-            const hermione = stubTool();
-            hermione.readTests.resolves(mkTestCollection_({bro: stubTest_()}));
+            const testplane = stubTool();
+            testplane.readTests.resolves(mkTestCollection_({bro: stubTest_()}));
 
-            const gui = initGuiReporter(hermione, {paths: ['foo']});
+            const gui = initGuiReporter(testplane, {paths: ['foo']});
 
             return gui.initialize()
-                .then(() => assert.callOrder(subscribeOnToolEvents, hermione.readTests));
+                .then(() => assert.callOrder(subscribeOnToolEvents, testplane.readTests));
         });
 
         it('should initialize report builder after read tests for the correct order of events', async () => {
-            const hermione = stubTool();
-            hermione.readTests.resolves(mkTestCollection_({bro: stubTest_()}));
-            const gui = initGuiReporter(hermione, {paths: ['foo']});
+            const testplane = stubTool();
+            testplane.readTests.resolves(mkTestCollection_({bro: stubTest_()}));
+            const gui = initGuiReporter(testplane, {paths: ['foo']});
 
             await gui.initialize();
 
-            assert.callOrder(hermione.readTests, hermione.htmlReporter.emit);
-            assert.calledOnceWith(hermione.htmlReporter.emit, PluginEvents.DATABASE_CREATED, sinon.match.any);
+            assert.callOrder(testplane.readTests, testplane.htmlReporter.emit);
+            assert.calledOnceWith(testplane.htmlReporter.emit, PluginEvents.DATABASE_CREATED, sinon.match.any);
         });
     });
 
@@ -334,13 +334,13 @@ describe('lib/gui/tool-runner/index', () => {
                 const config = stubConfig({
                     browsers: {yabro: {getScreenshotPath}}
                 });
-                const hermione = mkHermione_(config, {'some-title.yabro': testRefUpdateData[0]});
-                const gui = initGuiReporter(hermione, {pluginConfig: {path: 'report-path'}});
+                const testplane = mkTestplane_(config, {'some-title.yabro': testRefUpdateData[0]});
+                const gui = initGuiReporter(testplane, {pluginConfig: {path: 'report-path'}});
                 await gui.initialize();
 
                 await gui.updateReferenceImage(testRefUpdateData);
 
-                assert.calledOnceWith(hermione.emit, 'updateReference', {
+                assert.calledOnceWith(testplane.emit, 'updateReference', {
                     refImg: {path: '/ref/path1', size: {height: 100, width: 200}},
                     state: 'plain1'
                 });
@@ -380,18 +380,18 @@ describe('lib/gui/tool-runner/index', () => {
                     browsers: {yabro: {getScreenshotPath}}
                 });
 
-                const hermione = mkHermione_(config, {'some-title.yabro': tests[0]});
-                const gui = initGuiReporter(hermione);
+                const testplane = mkTestplane_(config, {'some-title.yabro': tests[0]});
+                const gui = initGuiReporter(testplane);
                 await gui.initialize();
 
                 await gui.updateReferenceImage(tests);
 
-                assert.calledTwice(hermione.emit);
-                assert.calledWith(hermione.emit.firstCall, 'updateReference', {
+                assert.calledTwice(testplane.emit);
+                assert.calledWith(testplane.emit.firstCall, 'updateReference', {
                     refImg: {path: '/ref/path1', size: {height: 100, width: 200}},
                     state: 'plain1'
                 });
-                assert.calledWith(hermione.emit.secondCall, 'updateReference', {
+                assert.calledWith(testplane.emit.secondCall, 'updateReference', {
                     refImg: {path: '/ref/path2', size: {height: 200, width: 300}},
                     state: 'plain2'
                 });
@@ -429,8 +429,8 @@ describe('lib/gui/tool-runner/index', () => {
             const config = stubConfig({
                 browsers: {yabro: {getScreenshotPath}}
             });
-            const hermione = mkHermione_(config, {'some-title.yabro': tests[0]});
-            const gui = initGuiReporter(hermione);
+            const testplane = mkTestplane_(config, {'some-title.yabro': tests[0]});
+            const gui = initGuiReporter(testplane);
             await gui.initialize();
 
             return {gui, tests};
@@ -477,8 +477,8 @@ describe('lib/gui/tool-runner/index', () => {
         let compareOpts;
 
         beforeEach(() => {
-            hermione = stubTool(stubConfig({tolerance: 100500, antialiasingTolerance: 500100}));
-            hermione.readTests.resolves(mkTestCollection_());
+            testplane = stubTool(stubConfig({tolerance: 100500, antialiasingTolerance: 500100}));
+            testplane.readTests.resolves(mkTestCollection_());
 
             compareOpts = {
                 tolerance: 100500,
@@ -491,7 +491,7 @@ describe('lib/gui/tool-runner/index', () => {
         });
 
         it('should stop comparison on first diff in reference images', async () => {
-            const gui = initGuiReporter(hermione, {configs: mkPluginConfig_({path: 'report_path'})});
+            const gui = initGuiReporter(testplane, {configs: mkPluginConfig_({path: 'report_path'})});
             const refImagesInfo = mkImagesInfo({expectedImg: {path: 'ref-path-1'}});
             const comparedImagesInfo = [mkImagesInfo({expectedImg: {path: 'ref-path-2'}})];
 
@@ -513,7 +513,7 @@ describe('lib/gui/tool-runner/index', () => {
         });
 
         it('should stop comparison on diff in actual images', async () => {
-            const gui = initGuiReporter(hermione, {configs: mkPluginConfig_({path: 'report_path'})});
+            const gui = initGuiReporter(testplane, {configs: mkPluginConfig_({path: 'report_path'})});
             const refImagesInfo = mkImagesInfo({actualImg: {path: 'act-path-1'}});
             const comparedImagesInfo = [mkImagesInfo({actualImg: {path: 'act-path-2'}})];
 
@@ -536,7 +536,7 @@ describe('lib/gui/tool-runner/index', () => {
         });
 
         it('should compare each diff cluster', async () => {
-            const gui = initGuiReporter(hermione, {configs: mkPluginConfig_({path: 'report_path'})});
+            const gui = initGuiReporter(testplane, {configs: mkPluginConfig_({path: 'report_path'})});
             const refImagesInfo = mkImagesInfo({
                 diffClusters: [
                     {left: 0, top: 0, right: 5, bottom: 5},
@@ -559,7 +559,7 @@ describe('lib/gui/tool-runner/index', () => {
         });
 
         it('should return all found image ids with equal diffs', async () => {
-            const gui = initGuiReporter(hermione);
+            const gui = initGuiReporter(testplane);
             const refImagesInfo = {...mkImagesInfo(), id: 'selected-img-1'};
             const comparedImagesInfo = [
                 {...mkImagesInfo(), id: 'compared-img-2'},
@@ -583,13 +583,13 @@ describe('lib/gui/tool-runner/index', () => {
             runner = {run: sandbox.stub().resolves()};
             collection = mkTestCollection_();
             createTestRunner.withArgs(collection).returns(runner);
-            hermione.readTests.resolves(collection);
+            testplane.readTests.resolves(collection);
         });
 
-        describe('should run hermione with', () => {
+        describe('should run testplane with', () => {
             const run_ = async (globalCliOpts = {}) => {
                 const configs = {...mkPluginConfig_(), ...mkToolCliOpts_(globalCliOpts)};
-                const gui = ToolGuiReporter.create([], hermione, configs);
+                const gui = ToolGuiReporter.create([], testplane, configs);
 
                 await gui.initialize();
                 await gui.run();
@@ -601,14 +601,14 @@ describe('lib/gui/tool-runner/index', () => {
             it('passed opts', async () => {
                 await run_({grep: /some-grep/, set: 'some-set', browser: 'yabro', devtools: true});
 
-                assert.calledOnceWith(hermione.run, collection, sinon.match({grep: /some-grep/, sets: 'some-set', browsers: 'yabro', devtools: true}));
+                assert.calledOnceWith(testplane.run, collection, sinon.match({grep: /some-grep/, sets: 'some-set', browsers: 'yabro', devtools: true}));
             });
 
             describe('"replMode" option', () => {
                 it('should be disabled by default', async () => {
                     await run_();
 
-                    assert.calledOnceWith(hermione.run, collection, sinon.match({
+                    assert.calledOnceWith(testplane.run, collection, sinon.match({
                         replMode: {
                             enabled: false,
                             beforeTest: false,
@@ -620,7 +620,7 @@ describe('lib/gui/tool-runner/index', () => {
                 it('should be enabled when specify "repl" flag', async () => {
                     await run_({repl: true});
 
-                    assert.calledOnceWith(hermione.run, collection, sinon.match({
+                    assert.calledOnceWith(testplane.run, collection, sinon.match({
                         replMode: {
                             enabled: true,
                             beforeTest: false,
@@ -632,7 +632,7 @@ describe('lib/gui/tool-runner/index', () => {
                 it('should be enabled when specify "beforeTest" flag', async () => {
                     await run_({replBeforeTest: true});
 
-                    assert.calledOnceWith(hermione.run, collection, sinon.match({
+                    assert.calledOnceWith(testplane.run, collection, sinon.match({
                         replMode: {
                             enabled: true,
                             beforeTest: true,
@@ -644,7 +644,7 @@ describe('lib/gui/tool-runner/index', () => {
                 it('should be enabled when specify "onFail" flag', async () => {
                     await run_({replOnFail: true});
 
-                    assert.calledOnceWith(hermione.run, collection, sinon.match({
+                    assert.calledOnceWith(testplane.run, collection, sinon.match({
                         replMode: {
                             enabled: true,
                             beforeTest: false,
@@ -656,9 +656,9 @@ describe('lib/gui/tool-runner/index', () => {
         });
     });
 
-    describe('finalize hermione', () => {
+    describe('finalize testplane', () => {
         it('should call reportBuilder.finalize', async () => {
-            const gui = initGuiReporter(hermione);
+            const gui = initGuiReporter(testplane);
 
             await gui.initialize();
             gui.finalize();
@@ -672,7 +672,7 @@ describe('lib/gui/tool-runner/index', () => {
         let dbPath;
 
         beforeEach(() => {
-            gui = initGuiReporter(hermione, {configs: mkPluginConfig_({path: 'report_path'})});
+            gui = initGuiReporter(testplane, {configs: mkPluginConfig_({path: 'report_path'})});
             dbPath = path.resolve('report_path', LOCAL_DATABASE_NAME);
 
             sandbox.stub(fs, 'pathExists').withArgs(dbPath).resolves(false);
@@ -717,7 +717,7 @@ describe('lib/gui/tool-runner/index', () => {
             it('"autoRun" from gui options', async () => {
                 const guiOpts = {autoRun: true};
                 const configs = {...mkPluginConfig_(), ...mkToolCliOpts_({}, guiOpts)};
-                const gui = ToolGuiReporter.create([], hermione, configs);
+                const gui = ToolGuiReporter.create([], testplane, configs);
 
                 await gui.initialize();
 

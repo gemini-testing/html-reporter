@@ -5,4 +5,6 @@ lib/static/js/
 lib/static/report.css
 
 hermione-report
+testplane-report
 .hermione.conf.js
+.testplane.conf.js

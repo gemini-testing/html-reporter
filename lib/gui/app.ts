@@ -3,14 +3,15 @@ import _ from 'lodash';
 
 import {ToolRunner, ToolRunnerTree, UndoAcceptImagesResult} from './tool-runner';
 import {HtmlReporterApi} from '../types';
-import Hermione, {Config} from 'hermione';
+import type Testplane from 'hermione';
+import type {Config} from 'hermione';
 import {GuiConfigs} from './index';
 import {TestSpec} from './tool-runner/runner/runner';
 import {TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../tests-tree-builder/gui';
 
 type BrowserConfig = ReturnType<Config['forBrowser']>;
 
-type AppArgs = [paths: string[], hermione: Hermione & HtmlReporterApi, configs: GuiConfigs];
+type AppArgs = [paths: string[], testplane: Testplane & HtmlReporterApi, configs: GuiConfigs];
 
 export class App {
     private _toolRunner: ToolRunner;
@@ -21,8 +22,8 @@ export class App {
         return new this(...args);
     }
 
-    constructor(...[paths, hermione, configs]: AppArgs) {
-        this._toolRunner = ToolRunner.create(paths, hermione, configs);
+    constructor(...[paths, testplane, configs]: AppArgs) {
+        this._toolRunner = ToolRunner.create(paths, testplane, configs);
 
         this._browserConfigs = [];
         this._retryCache = {};

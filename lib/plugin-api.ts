@@ -38,7 +38,7 @@ export class HtmlReporter extends EventsEmitter2 {
 
         this._config = config;
         this._values = {
-            toolName: toolName ?? ToolName.Hermione,
+            toolName: toolName ?? ToolName.Testplane,
             extraItems: {},
             metaInfoExtenders: {},
             imagesSaver: LocalImageFileSaver,

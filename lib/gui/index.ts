@@ -6,7 +6,7 @@ import * as server from './server';
 import {logger} from '../common-utils';
 import * as utils from '../server-utils';
 import {HtmlReporterApi, ReporterConfig} from '../types';
-import Hermione from 'hermione';
+import type Testplane from 'hermione';
 import {Api} from './api';
 
 const {logError} = utils;
@@ -26,7 +26,7 @@ export interface GuiConfigs {
 
 export interface ServerArgs {
     paths: string[];
-    hermione: Hermione & HtmlReporterApi;
+    testplane: Testplane & HtmlReporterApi;
     guiApi: Api;
     configs: GuiConfigs;
 }

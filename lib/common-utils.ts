@@ -5,7 +5,7 @@ import axios, {AxiosRequestConfig} from 'axios';
 import {
     ERROR,
     FAIL,
-    HERMIONE_TITLE_DELIMITER,
+    TESTPLANE_TITLE_DELIMITER,
     IDLE, PWT_TITLE_DELIMITER,
     QUEUED,
     RUNNING,
@@ -240,13 +240,7 @@ export const isCheckboxUnchecked = (status: number): boolean => Number(status) =
 export const getToggledCheckboxState = (status: number): number => isCheckboxChecked(status) ? UNCHECKED : CHECKED;
 
 export const getTitleDelimiter = (toolName: ToolName): string => {
-    if (toolName === ToolName.Hermione) {
-        return HERMIONE_TITLE_DELIMITER;
-    } else if (toolName === ToolName.Playwright) {
-        return PWT_TITLE_DELIMITER;
-    } else {
-        return HERMIONE_TITLE_DELIMITER;
-    }
+    return toolName === ToolName.Playwright ? PWT_TITLE_DELIMITER : TESTPLANE_TITLE_DELIMITER;
 };
 
 export function getDetailsFileName(testId: string, browserId: string, attempt: number): string {

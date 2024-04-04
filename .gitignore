@@ -24,6 +24,7 @@ tmp
 
 **/playwright-report
 hermione-report
+testplane-report
 test/func/**/report
 test/func/**/report-backup
 test/func/**/reports

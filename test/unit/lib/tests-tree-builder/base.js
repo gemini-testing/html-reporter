@@ -25,7 +25,7 @@ describe('ResultsTreeBuilder', () => {
             '../common-utils': {determineFinalStatus}
         }).BaseTestsTreeBuilder;
 
-        builder = ResultsTreeBuilder.create({toolName: ToolName.Hermione});
+        builder = ResultsTreeBuilder.create({toolName: ToolName.Testplane});
     });
 
     afterEach(() => sandbox.restore());

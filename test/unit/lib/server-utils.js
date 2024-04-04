@@ -256,12 +256,12 @@ describe('server-utils', () => {
             const pluginConfig = {
                 customGui: {'section-1': [ctx1], 'section-2': [ctx2]}
             };
-            const hermione = {};
+            const testplane = {};
 
-            await utils.initializeCustomGui(hermione, pluginConfig);
+            await utils.initializeCustomGui(testplane, pluginConfig);
 
-            assert.calledOnceWith(initialize1, {hermione, ctx: ctx1});
-            assert.calledOnceWith(initialize2, {hermione, ctx: ctx2});
+            assert.calledOnceWith(initialize1, {testplane, hermione: testplane, ctx: ctx1});
+            assert.calledOnceWith(initialize2, {testplane, hermione: testplane, ctx: ctx2});
 
             assert.callOrder(initializeSpy1, initializeSpy2);
         });
@@ -274,15 +274,15 @@ describe('server-utils', () => {
             const control = {};
             const ctx = {controls: [control], action};
             const pluginConfig = {customGui: {'section': [ctx]}};
-            const hermione = {};
+            const testplane = {};
 
-            await utils.runCustomGuiAction(hermione, pluginConfig, {
+            await utils.runCustomGuiAction(testplane, pluginConfig, {
                 sectionName: 'section',
                 groupIndex: 0,
                 controlIndex: 0
             });
 
-            assert.calledOnceWith(action, {hermione, ctx, control});
+            assert.calledOnceWith(action, {testplane, hermione: testplane, ctx, control});
             assert.calledOnce(actionSpy);
         });
     });

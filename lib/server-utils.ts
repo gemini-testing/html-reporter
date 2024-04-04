@@ -5,7 +5,8 @@ import url from 'url';
 import chalk from 'chalk';
 import {Router} from 'express';
 import fs from 'fs-extra';
-import Hermione, {Test as HermioneTest} from 'hermione';
+import type Testplane from 'hermione';
+import type {Test as TestplaneTest} from 'hermione';
 import _ from 'lodash';
 import tmp from 'tmp';
 
@@ -15,12 +16,12 @@ import type {HtmlReporter} from './plugin-api';
 import type {ReporterTestResult} from './test-adapter';
 import {
     CustomGuiItem,
-    HermioneTestResult,
+    TestplaneTestResult,
     ImageInfoWithState,
     ReporterConfig,
     TestSpecByPath
 } from './types';
-import {HermioneTestAdapter} from './test-adapter/hermione';
+import {TestplaneTestAdapter} from './test-adapter/testplane';
 
 const DATA_FILE_NAME = 'data.js';
 
@@ -242,11 +243,11 @@ export function getDataForStaticFile(htmlReporter: HtmlReporter, pluginConfig: R
     };
 }
 
-export async function initializeCustomGui(hermione: Hermione, {customGui}: ReporterConfig): Promise<void> {
+export async function initializeCustomGui(testplane: Testplane, {customGui}: ReporterConfig): Promise<void> {
     await Promise.all(
         _(customGui)
             .flatMap<CustomGuiItem>(_.identity)
-            .map((ctx) => ctx.initialize?.({hermione, ctx}))
+            .map((ctx) => ctx.initialize?.({testplane, hermione: testplane, ctx}))
             .value()
     );
 }
@@ -257,12 +258,12 @@ export interface CustomGuiActionPayload {
     controlIndex: number;
 }
 
-export async function runCustomGuiAction(hermione: Hermione, {customGui}: ReporterConfig, payload: CustomGuiActionPayload): Promise<void> {
+export async function runCustomGuiAction(testplane: Testplane, {customGui}: ReporterConfig, payload: CustomGuiActionPayload): Promise<void> {
     const {sectionName, groupIndex, controlIndex} = payload;
     const ctx = customGui[sectionName][groupIndex];
     const control = ctx.controls[controlIndex];
 
-    await ctx.action({hermione, control, ctx});
+    await ctx.action({testplane, hermione: testplane, control, ctx});
 }
 
 export function getPluginClientScriptPath(pluginName: string): string | null {
@@ -315,11 +316,11 @@ export function mapPlugins<T>(plugins: ReporterConfig['plugins'], callback: (nam
 }
 
 export const formatTestResult = (
-    rawResult: HermioneTest | HermioneTestResult,
+    rawResult: TestplaneTest | TestplaneTestResult,
     status: TestStatus,
     attempt: number = UNKNOWN_ATTEMPT
 ): ReporterTestResult => {
-    return new HermioneTestAdapter(rawResult, {attempt, status});
+    return new TestplaneTestAdapter(rawResult, {attempt, status});
 };
 
 export const saveErrorDetails = async (testResult: ReporterTestResult, reportPath: string): Promise<void> => {

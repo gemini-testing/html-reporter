@@ -7,10 +7,10 @@ const {subscribeOnToolEvents} = require('lib/gui/tool-runner/report-subscriber')
 const {GuiReportBuilder} = require('lib/report-builder/gui');
 const {ClientEvents} = require('lib/gui/constants');
 const {stubTool, stubConfig} = require('test/unit/utils');
-const {HermioneTestAdapter} = require('lib/test-adapter/hermione');
+const {TestplaneTestAdapter} = require('lib/test-adapter/testplane');
 const {UNKNOWN_ATTEMPT} = require('lib/constants');
 
-describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
+describe('lib/gui/tool-runner/testplane/report-subscriber', () => {
     const sandbox = sinon.createSandbox();
     let reportBuilder;
     let client;
@@ -23,9 +23,9 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
         AFTER_TESTS_READ: 'afterTestsRead'
     };
 
-    const mkHermione_ = () => stubTool(stubConfig(), events);
+    const mkTestplane_ = () => stubTool(stubConfig(), events);
 
-    const mkHermioneTestResult = (opts = {}) => _.defaults(opts, {
+    const mkTestplaneTestResult = (opts = {}) => _.defaults(opts, {
         fullTitle: () => 'some-title',
         browserId: 'some-browser',
         assertViewResults: [],
@@ -37,7 +37,7 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
         reportBuilder.addTestResult.callsFake(_.identity);
 
         sandbox.stub(GuiReportBuilder, 'create').returns(reportBuilder);
-        sandbox.stub(HermioneTestAdapter.prototype, 'id').value('some-id');
+        sandbox.stub(TestplaneTestAdapter.prototype, 'id').value('some-id');
 
         client = new EventEmitter();
         sandbox.spy(client, 'emit');
@@ -47,24 +47,24 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
 
     describe('RUNNER_END', () => {
         it('should emit "END" event for client', () => {
-            const hermione = mkHermione_();
+            const testplane = mkTestplane_();
 
-            subscribeOnToolEvents(hermione, reportBuilder, client);
+            subscribeOnToolEvents(testplane, reportBuilder, client);
 
-            return hermione.emitAsync(hermione.events.RUNNER_END)
+            return testplane.emitAsync(testplane.events.RUNNER_END)
                 .then(() => assert.calledOnceWith(client.emit, ClientEvents.END));
         });
 
         it('should emit "END" event after all promises are resolved', async () => {
-            const hermione = mkHermione_();
-            const testResult = mkHermioneTestResult();
+            const testplane = mkTestplane_();
+            const testResult = mkTestplaneTestResult();
             const mediator = sinon.spy().named('mediator');
 
             reportBuilder.addTestResult.callsFake(() => Promise.delay(100).then(mediator).then(() => ({id: 'some-id'})));
 
-            subscribeOnToolEvents(hermione, reportBuilder, client);
-            hermione.emit(hermione.events.TEST_FAIL, testResult);
-            await hermione.emitAsync(hermione.events.RUNNER_END);
+            subscribeOnToolEvents(testplane, reportBuilder, client);
+            testplane.emit(testplane.events.TEST_FAIL, testResult);
+            await testplane.emitAsync(testplane.events.RUNNER_END);
 
             assert.callOrder(mediator, client.emit.withArgs(ClientEvents.END));
         });
@@ -72,15 +72,15 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
 
     describe('TEST_BEGIN', () => {
         it('should emit "BEGIN_STATE" event for client with correct data', async () => {
-            const hermione = mkHermione_();
-            const testResult = mkHermioneTestResult();
+            const testplane = mkTestplane_();
+            const testResult = mkTestplaneTestResult();
 
             reportBuilder.addTestResult.resolves({id: 'some-id'});
             reportBuilder.getTestBranch.withArgs('some-id').returns('test-tree-branch');
 
-            subscribeOnToolEvents(hermione, reportBuilder, client);
-            hermione.emit(hermione.events.TEST_BEGIN, testResult);
-            await hermione.emitAsync(hermione.events.RUNNER_END);
+            subscribeOnToolEvents(testplane, reportBuilder, client);
+            testplane.emit(testplane.events.TEST_BEGIN, testResult);
+            await testplane.emitAsync(testplane.events.RUNNER_END);
 
             assert.calledWith(client.emit, ClientEvents.BEGIN_STATE, 'test-tree-branch');
         });
@@ -88,12 +88,12 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
 
     describe('TEST_PENDING', () => {
         it('should add skipped test result to report', async () => {
-            const hermione = mkHermione_();
-            const testResult = mkHermioneTestResult();
+            const testplane = mkTestplane_();
+            const testResult = mkTestplaneTestResult();
 
-            subscribeOnToolEvents(hermione, reportBuilder, client);
-            await hermione.emitAsync(hermione.events.TEST_PENDING, testResult);
-            await hermione.emitAsync(hermione.events.RUNNER_END);
+            subscribeOnToolEvents(testplane, reportBuilder, client);
+            await testplane.emitAsync(testplane.events.TEST_PENDING, testResult);
+            await testplane.emitAsync(testplane.events.RUNNER_END);
 
             assert.calledOnceWith(reportBuilder.addTestResult, sinon.match({
                 fullName: 'some-title',
@@ -103,14 +103,14 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
         });
 
         it('should emit "TEST_RESULT" event for client with test data', async () => {
-            const hermione = mkHermione_();
-            const testResult = mkHermioneTestResult();
+            const testplane = mkTestplane_();
+            const testResult = mkTestplaneTestResult();
 
             reportBuilder.getTestBranch.withArgs('some-id').returns('test-tree-branch');
 
-            subscribeOnToolEvents(hermione, reportBuilder, client);
-            await hermione.emitAsync(hermione.events.TEST_PENDING, testResult);
-            await hermione.emitAsync(hermione.events.RUNNER_END);
+            subscribeOnToolEvents(testplane, reportBuilder, client);
+            await testplane.emitAsync(testplane.events.TEST_PENDING, testResult);
+            await testplane.emitAsync(testplane.events.RUNNER_END);
 
             assert.calledWith(client.emit, ClientEvents.TEST_RESULT, 'test-tree-branch');
         });
@@ -118,14 +118,14 @@ describe('lib/gui/tool-runner/hermione/report-subscriber', () => {
 
     describe('TEST_FAIL', () => {
         it('should emit "TEST_RESULT" event for client with test data', async () => {
-            const hermione = mkHermione_();
-            const testResult = mkHermioneTestResult();
+            const testplane = mkTestplane_();
+            const testResult = mkTestplaneTestResult();
 
             reportBuilder.getTestBranch.withArgs('some-id').returns('test-tree-branch');
 
-            subscribeOnToolEvents(hermione, reportBuilder, client);
-            hermione.emit(hermione.events.TEST_FAIL, testResult);
-            await hermione.emitAsync(hermione.events.RUNNER_END);
+            subscribeOnToolEvents(testplane, reportBuilder, client);
+            testplane.emit(testplane.events.TEST_FAIL, testResult);
+            await testplane.emitAsync(testplane.events.RUNNER_END);
 
             assert.calledWith(client.emit, ClientEvents.TEST_RESULT, 'test-tree-branch');
         });

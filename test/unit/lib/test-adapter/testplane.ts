@@ -7,16 +7,16 @@ import tmpOriginal from 'tmp';
 import {TestStatus} from 'lib/constants/test-statuses';
 import {ERROR_DETAILS_PATH} from 'lib/constants/paths';
 import {ReporterTestResult} from 'lib/test-adapter';
-import {HermioneTestAdapter, HermioneTestAdapterOptions} from 'lib/test-adapter/hermione';
-import {HermioneTestResult} from 'lib/types';
+import {TestplaneTestAdapter, TestplaneTestAdapterOptions} from 'lib/test-adapter/testplane';
+import {TestplaneTestResult} from 'lib/types';
 import * as originalUtils from 'lib/server-utils';
 import * as originalCommonUtils from 'lib/common-utils';
 import * as originalTestAdapterUtils from 'lib/test-adapter/utils';
 
-describe('HermioneTestAdapter', () => {
+describe('TestplaneTestAdapter', () => {
     const sandbox = sinon.sandbox.create();
 
-    let HermioneTestAdapter: new (testResult: HermioneTestResult, options: HermioneTestAdapterOptions) => ReporterTestResult;
+    let TestplaneTestAdapter: new (testResult: TestplaneTestResult, options: TestplaneTestAdapterOptions) => ReporterTestResult;
     let getCommandsHistory: sinon.SinonStub;
     let getSuitePath: sinon.SinonStub;
     let utils: sinon.SinonStubbedInstance<typeof originalUtils>;
@@ -25,17 +25,17 @@ describe('HermioneTestAdapter', () => {
     let tmp: typeof tmpOriginal;
     let testAdapterUtils: sinon.SinonStubbedInstance<typeof originalTestAdapterUtils>;
 
-    const mkHermioneTestResultAdapter = (
-        testResult: HermioneTestResult,
+    const mkTestplaneTestResultAdapter = (
+        testResult: TestplaneTestResult,
         {status = TestStatus.SUCCESS}: {status?: TestStatus} = {}
-    ): HermioneTestAdapter => {
-        return new HermioneTestAdapter(testResult, {status, attempt: 0}) as HermioneTestAdapter;
+    ): TestplaneTestAdapter => {
+        return new TestplaneTestAdapter(testResult, {status, attempt: 0}) as TestplaneTestAdapter;
     };
 
-    const mkTestResult_ = (result: Partial<HermioneTestResult>): HermioneTestResult => _.defaults(result, {
+    const mkTestResult_ = (result: Partial<TestplaneTestResult>): TestplaneTestResult => _.defaults(result, {
         id: 'some-id',
         fullTitle: () => 'default-title'
-    }) as HermioneTestResult;
+    }) as TestplaneTestResult;
 
     beforeEach(() => {
         tmp = {tmpdir: 'default/dir'} as typeof tmpOriginal;
@@ -57,14 +57,14 @@ describe('HermioneTestAdapter', () => {
         });
         testAdapterUtils = _.clone(originalTestAdapterUtils);
 
-        HermioneTestAdapter = proxyquire('lib/test-adapter/hermione', {
+        TestplaneTestAdapter = proxyquire('lib/test-adapter/testplane', {
             tmp,
             'fs-extra': fs,
             '../plugin-utils': {getSuitePath},
             '../history-utils': {getCommandsHistory},
             '../server-utils': utils,
             './utils': testAdapterUtils
-        }).HermioneTestAdapter;
+        }).TestplaneTestAdapter;
         sandbox.stub(utils, 'getCurrentPath').returns('');
         sandbox.stub(utils, 'getDiffPath').returns('');
         sandbox.stub(utils, 'getReferencePath').returns('');
@@ -89,9 +89,9 @@ describe('HermioneTestAdapter', () => {
             } as any
         });
 
-        const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+        const testplaneTestAdapter = mkTestplaneTestResultAdapter(testResult);
 
-        assert.deepEqual(hermioneTestAdapter.error, {
+        assert.deepEqual(testplaneTestAdapter.error, {
             message: 'some-message',
             stack: 'some-stack',
             stateName: 'some-test',
@@ -112,17 +112,17 @@ describe('HermioneTestAdapter', () => {
             } as any
         });
 
-        const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+        const testplaneTestAdapter = mkTestplaneTestResultAdapter(testResult);
 
-        assert.deepEqual(hermioneTestAdapter.history, ['some-history']);
+        assert.deepEqual(testplaneTestAdapter.history, ['some-history']);
     });
 
     it('should return test state', () => {
         const testResult = mkTestResult_({title: 'some-test'});
 
-        const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+        const testplaneTestAdapter = mkTestplaneTestResultAdapter(testResult);
 
-        assert.deepEqual(hermioneTestAdapter.state, {name: 'some-test'});
+        assert.deepEqual(testplaneTestAdapter.state, {name: 'some-test'});
     });
 
     describe('error details', () => {
@@ -140,9 +140,9 @@ describe('HermioneTestAdapter', () => {
             });
             getDetailsFileName.returns('md5-bro-n-time');
 
-            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+            const testplaneTestAdapter = mkTestplaneTestResultAdapter(testResult);
 
-            assert.deepEqual(hermioneTestAdapter.errorDetails, {
+            assert.deepEqual(testplaneTestAdapter.errorDetails, {
                 title: 'some-title',
                 data: {foo: 'bar'},
                 filePath: `${ERROR_DETAILS_PATH}/md5-bro-n-time`
@@ -152,9 +152,9 @@ describe('HermioneTestAdapter', () => {
         it('should have "error details" title if no title is given', () => {
             const testResult = mkTestResult_({err: {details: {}} as any});
 
-            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+            const testplaneTestAdapter = mkTestplaneTestResultAdapter(testResult);
 
-            assert.propertyVal(hermioneTestAdapter.errorDetails, 'title', 'error details');
+            assert.propertyVal(testplaneTestAdapter.errorDetails, 'title', 'error details');
         });
 
         it('should be memoized', () => {
@@ -164,10 +164,10 @@ describe('HermioneTestAdapter', () => {
                     details: {title: 'some-title', data: {foo: 'bar'}}
                 } as any
             });
-            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+            const testplaneTestAdapter = mkTestplaneTestResultAdapter(testResult);
 
-            const firstErrDetails = hermioneTestAdapter.errorDetails;
-            const secondErrDetails = hermioneTestAdapter.errorDetails;
+            const firstErrDetails = testplaneTestAdapter.errorDetails;
+            const secondErrDetails = testplaneTestAdapter.errorDetails;
 
             assert.calledOnce(extractErrorDetails);
             assert.deepEqual(firstErrDetails, secondErrDetails);
@@ -176,7 +176,7 @@ describe('HermioneTestAdapter', () => {
         it('should be returned as null if absent', () => {
             const testResult = mkTestResult_({err: {}} as any);
 
-            const {errorDetails} = mkHermioneTestResultAdapter(testResult);
+            const {errorDetails} = mkTestplaneTestResultAdapter(testResult);
 
             assert.isNull(errorDetails);
         });
@@ -189,29 +189,29 @@ describe('HermioneTestAdapter', () => {
                     details: {data: {foo: 'bar'}}
                 } as any
             });
-            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+            const testplaneTestAdapter = mkTestplaneTestResultAdapter(testResult);
 
             // we need to get errorDetails to trigger getDetailsFileName to be called
-            hermioneTestAdapter.errorDetails;
+            testplaneTestAdapter.errorDetails;
 
-            assert.calledWith(getDetailsFileName, 'abcdef', 'bro', hermioneTestAdapter.attempt);
+            assert.calledWith(getDetailsFileName, 'abcdef', 'bro', testplaneTestAdapter.attempt);
         });
     });
 
     it('should return image dir', () => {
         const testResult = mkTestResult_({id: 'some-id'});
 
-        const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+        const testplaneTestAdapter = mkTestplaneTestResultAdapter(testResult);
 
-        assert.deepEqual(hermioneTestAdapter.imageDir, 'some-id');
+        assert.deepEqual(testplaneTestAdapter.imageDir, 'some-id');
     });
 
     it('should return description', () => {
         const testResult = mkTestResult_({description: 'some-description'});
 
-        const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+        const testplaneTestAdapter = mkTestplaneTestResultAdapter(testResult);
 
-        assert.deepEqual(hermioneTestAdapter.description, 'some-description');
+        assert.deepEqual(testplaneTestAdapter.description, 'some-description');
     });
 
     describe('timestamp', () => {
@@ -219,9 +219,9 @@ describe('HermioneTestAdapter', () => {
             const testResult = mkTestResult_({
                 timestamp: 100500
             });
-            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+            const testplaneTestAdapter = mkTestplaneTestResultAdapter(testResult);
 
-            assert.strictEqual(hermioneTestAdapter.timestamp, 100500);
+            assert.strictEqual(testplaneTestAdapter.timestamp, 100500);
         });
     });
 
@@ -243,9 +243,9 @@ describe('HermioneTestAdapter', () => {
                 }]
             });
 
-            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+            const testplaneTestAdapter = mkTestplaneTestResultAdapter(testResult);
 
-            assert.deepEqual(hermioneTestAdapter.imagesInfo, [
+            assert.deepEqual(testplaneTestAdapter.imagesInfo, [
                 {
                     status: TestStatus.FAIL,
                     stateName: 'some-state',
@@ -273,9 +273,9 @@ describe('HermioneTestAdapter', () => {
                 }]
             });
 
-            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+            const testplaneTestAdapter = mkTestplaneTestResultAdapter(testResult);
 
-            assert.deepEqual(hermioneTestAdapter.imagesInfo, [
+            assert.deepEqual(testplaneTestAdapter.imagesInfo, [
                 {
                     status: TestStatus.ERROR,
                     stateName: 'some-state',
@@ -298,12 +298,12 @@ describe('HermioneTestAdapter', () => {
                     stateName: 'some-state',
                     currImg: {path: 'curr-path', size: {height: 10, width: 20}},
                     refImg: {path: 'ref-path', size: {height: 15, width: 25}}
-                } as HermioneTestResult['assertViewResults'][number]]
+                } as TestplaneTestResult['assertViewResults'][number]]
             });
 
-            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+            const testplaneTestAdapter = mkTestplaneTestResultAdapter(testResult);
 
-            assert.deepEqual(hermioneTestAdapter.imagesInfo, [
+            assert.deepEqual(testplaneTestAdapter.imagesInfo, [
                 {
                     status: TestStatus.UPDATED,
                     stateName: 'some-state',
@@ -323,9 +323,9 @@ describe('HermioneTestAdapter', () => {
                 }]
             });
 
-            const hermioneTestAdapter = mkHermioneTestResultAdapter(testResult);
+            const testplaneTestAdapter = mkTestplaneTestResultAdapter(testResult);
 
-            assert.deepEqual(hermioneTestAdapter.imagesInfo, [
+            assert.deepEqual(testplaneTestAdapter.imagesInfo, [
                 {
                     status: TestStatus.SUCCESS,
                     stateName: 'some-state',

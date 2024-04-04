@@ -84,7 +84,7 @@ describe('StaticResultsTreeBuilder', () => {
         sandbox.stub(StaticTestsTreeBuilder.prototype, 'addTestResult');
         sandbox.stub(StaticTestsTreeBuilder.prototype, 'sortTree');
 
-        builder = StaticTestsTreeBuilder.create({toolName: ToolName.Hermione});
+        builder = StaticTestsTreeBuilder.create({toolName: ToolName.Testplane});
     });
 
     afterEach(() => sandbox.restore());

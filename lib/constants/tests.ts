@@ -1,4 +1,4 @@
-export const HERMIONE_TITLE_DELIMITER = ' ';
+export const TESTPLANE_TITLE_DELIMITER = ' ';
 
 export const PWT_TITLE_DELIMITER = ' › ';
 

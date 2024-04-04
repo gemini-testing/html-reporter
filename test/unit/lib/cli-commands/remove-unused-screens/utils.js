@@ -36,14 +36,14 @@ describe('lib/cli-commands/remove-unused-screens/utils', () => {
         };
     };
 
-    const mkHermione_ = (testCollection = mkTestCollection_(), config = stubConfig(), htmlReporter) => {
-        const hermione = stubTool(config);
-        hermione.readTests.resolves(testCollection);
-        hermione.htmlReporter = htmlReporter || {
+    const mkTestplane_ = (testCollection = mkTestCollection_(), config = stubConfig(), htmlReporter) => {
+        const testplane = stubTool(config);
+        testplane.readTests.resolves(testCollection);
+        testplane.htmlReporter = htmlReporter || {
             getTestsTreeFromDatabase: sandbox.stub().returns(mkTestsTreeFromDb_())
         };
 
-        return hermione;
+        return testplane;
     };
 
     beforeEach(() => {
@@ -66,12 +66,12 @@ describe('lib/cli-commands/remove-unused-screens/utils', () => {
             getScreenshotPath = sandbox.stub().returns('/default/path/*.png');
         });
 
-        it('should read all hermione tests silently', async () => {
-            const hermione = mkHermione_();
+        it('should read all testplane tests silently', async () => {
+            const testplane = mkTestplane_();
 
-            await utils.getTestsFromFs(hermione);
+            await utils.getTestsFromFs(testplane);
 
-            assert.calledOnceWith(hermione.readTests, [], {silent: true});
+            assert.calledOnceWith(testplane.readTests, [], {silent: true});
         });
 
         it('should add test tests tree with its screen info', async () => {
@@ -82,9 +82,9 @@ describe('lib/cli-commands/remove-unused-screens/utils', () => {
 
             fgMock.withArgs('/ref/path/*.png').resolves(['/ref/path/1.png', '/ref/path/2.png']);
 
-            const hermione = mkHermione_(testCollection, config);
+            const testplane = mkTestplane_(testCollection, config);
 
-            const tests = await utils.getTestsFromFs(hermione);
+            const tests = await utils.getTestsFromFs(testplane);
 
             assert.lengthOf(Object.keys(tests.byId), 1);
             assert.deepEqual(
@@ -106,9 +106,9 @@ describe('lib/cli-commands/remove-unused-screens/utils', () => {
                 .withArgs(test2, '*').returns('/ref/path-2/*.png');
 
             const config = stubConfig({browsers: {bro1: {getScreenshotPath}, bro2: {getScreenshotPath}}});
-            const hermione = mkHermione_(testCollection, config);
+            const testplane = mkTestplane_(testCollection, config);
 
-            const tests = await utils.getTestsFromFs(hermione);
+            const tests = await utils.getTestsFromFs(testplane);
 
             assert.deepEqual(tests.screenPatterns, ['/ref/path-1/*.png', '/ref/path-2/*.png']);
         });
@@ -122,9 +122,9 @@ describe('lib/cli-commands/remove-unused-screens/utils', () => {
                 bro1: {getScreenshotPath}, bro2: {getScreenshotPath},
                 bro3: {getScreenshotPath}, bro4: {getScreenshotPath}
             }});
-            const hermione = mkHermione_(testCollection, config);
+            const testplane = mkTestplane_(testCollection, config);
 
-            const tests = await utils.getTestsFromFs(hermione);
+            const tests = await utils.getTestsFromFs(testplane);
 
             assert.equal(tests.count, 2);
         });
@@ -136,9 +136,9 @@ describe('lib/cli-commands/remove-unused-screens/utils', () => {
             const config = stubConfig({browsers: {
                 bro1: {getScreenshotPath}, bro2: {getScreenshotPath}, bro3: {getScreenshotPath}
             }});
-            const hermione = mkHermione_(testCollection, config);
+            const testplane = mkTestplane_(testCollection, config);
 
-            const tests = await utils.getTestsFromFs(hermione);
+            const tests = await utils.getTestsFromFs(testplane);
 
             assert.deepEqual(tests.browserIds, new Set(['bro1', 'bro2', 'bro3']));
         });
@@ -261,8 +261,8 @@ describe('lib/cli-commands/remove-unused-screens/utils', () => {
             const imagesById = mkImage({id: 'img-1', stateName: 'a'});
             const dbTree = mkTestsTreeFromDb_({browsersById, resultsById, imagesById});
 
-            const hermione = mkHermione_();
-            hermione.htmlReporter.getTestsTreeFromDatabase.withArgs('/report/sqlite.db').returns(dbTree);
+            const testplane = mkTestplane_();
+            testplane.htmlReporter.getTestsTreeFromDatabase.withArgs('/report/sqlite.db').returns(dbTree);
 
             const fsTestsTree = mkTestsTreeFromFs_({
                 byId: {
@@ -272,7 +272,7 @@ describe('lib/cli-commands/remove-unused-screens/utils', () => {
 
             const unusedScreens = utils.identifyUnusedScreens(
                 fsTestsTree,
-                {hermione, mergedDbPath: '/report/sqlite.db'}
+                {testplane, mergedDbPath: '/report/sqlite.db'}
             );
 
             assert.deepEqual(unusedScreens, ['/test1/b.png']);
@@ -284,8 +284,8 @@ describe('lib/cli-commands/remove-unused-screens/utils', () => {
             const imagesById = mkImage({id: 'img-1', stateName: 'a'});
             const dbTree = mkTestsTreeFromDb_({browsersById, resultsById, imagesById});
 
-            const hermione = mkHermione_();
-            hermione.htmlReporter.getTestsTreeFromDatabase.withArgs('/report/sqlite.db').returns(dbTree);
+            const testplane = mkTestplane_();
+            testplane.htmlReporter.getTestsTreeFromDatabase.withArgs('/report/sqlite.db').returns(dbTree);
 
             const fsTestsTree = mkTestsTreeFromFs_({
                 byId: {
@@ -295,7 +295,7 @@ describe('lib/cli-commands/remove-unused-screens/utils', () => {
 
             const unusedScreens = utils.identifyUnusedScreens(
                 fsTestsTree,
-                {hermione, mergedDbPath: '/report/sqlite.db'}
+                {testplane, mergedDbPath: '/report/sqlite.db'}
             );
 
             assert.isEmpty(unusedScreens);

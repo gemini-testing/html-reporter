@@ -1,6 +1,7 @@
 import os from 'os';
 import PQueue from 'p-queue';
-import Hermione, {Test as HermioneTest} from 'hermione';
+import type Testplane from 'hermione';
+import type {Test as TestplaneTest} from 'hermione';
 import {ClientEvents} from '../constants';
 import {getSuitePath} from '../../plugin-utils';
 import {createWorkers, CreateWorkersRunner} from '../../workers/create-workers';
@@ -8,17 +9,17 @@ import {logError, formatTestResult} from '../../server-utils';
 import {TestStatus} from '../../constants';
 import {GuiReportBuilder} from '../../report-builder/gui';
 import {EventSource} from '../event-source';
-import {HermioneTestResult} from '../../types';
-import {getStatus} from '../../test-adapter/hermione';
+import {TestplaneTestResult} from '../../types';
+import {getStatus} from '../../test-adapter/testplane';
 
-export const subscribeOnToolEvents = (hermione: Hermione, reportBuilder: GuiReportBuilder, client: EventSource): void => {
+export const subscribeOnToolEvents = (testplane: Testplane, reportBuilder: GuiReportBuilder, client: EventSource): void => {
     const queue = new PQueue({concurrency: os.cpus().length});
 
-    hermione.on(hermione.events.RUNNER_START, (runner) => {
+    testplane.on(testplane.events.RUNNER_START, (runner) => {
         reportBuilder.registerWorkers(createWorkers(runner as unknown as CreateWorkersRunner));
     });
 
-    hermione.on(hermione.events.SUITE_BEGIN, (suite) => {
+    testplane.on(testplane.events.SUITE_BEGIN, (suite) => {
         if (suite.pending) {
             return;
         }
@@ -30,17 +31,17 @@ export const subscribeOnToolEvents = (hermione: Hermione, reportBuilder: GuiRepo
     });
 
     [
-        {eventName: hermione.events.TEST_BEGIN, clientEventName: ClientEvents.BEGIN_STATE},
-        {eventName: hermione.events.TEST_PASS, clientEventName: ClientEvents.TEST_RESULT},
-        {eventName: hermione.events.RETRY, clientEventName: ClientEvents.TEST_RESULT},
-        {eventName: hermione.events.TEST_FAIL, clientEventName: ClientEvents.TEST_RESULT},
-        {eventName: hermione.events.TEST_PENDING, clientEventName: ClientEvents.TEST_RESULT}
+        {eventName: testplane.events.TEST_BEGIN, clientEventName: ClientEvents.BEGIN_STATE},
+        {eventName: testplane.events.TEST_PASS, clientEventName: ClientEvents.TEST_RESULT},
+        {eventName: testplane.events.RETRY, clientEventName: ClientEvents.TEST_RESULT},
+        {eventName: testplane.events.TEST_FAIL, clientEventName: ClientEvents.TEST_RESULT},
+        {eventName: testplane.events.TEST_PENDING, clientEventName: ClientEvents.TEST_RESULT}
     ].forEach(({eventName, clientEventName}) => {
-        type AnyHermioneTestEvent = typeof hermione.events.TEST_PASS;
+        type AnyTestplaneTestEvent = typeof testplane.events.TEST_PASS;
 
-        hermione.on(eventName as AnyHermioneTestEvent, (data: HermioneTest | HermioneTestResult) => {
+        testplane.on(eventName as AnyTestplaneTestEvent, (data: TestplaneTest | TestplaneTestResult) => {
             queue.add(async () => {
-                const status = getStatus(eventName, hermione.events, data as HermioneTestResult);
+                const status = getStatus(eventName, testplane.events, data as TestplaneTestResult);
                 const formattedResultWithoutAttempt = formatTestResult(data, status);
 
                 const formattedResult = await reportBuilder.addTestResult(formattedResultWithoutAttempt);
@@ -51,7 +52,7 @@ export const subscribeOnToolEvents = (hermione: Hermione, reportBuilder: GuiRepo
         });
     });
 
-    hermione.on(hermione.events.RUNNER_END, async () => {
+    testplane.on(testplane.events.RUNNER_END, async () => {
         try {
             await queue.onIdle();
             client.emit(ClientEvents.END);

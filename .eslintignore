@@ -10,5 +10,6 @@ hot
 /test/func/**/reports
 /test/func/packages/*/plugin.js
 /hermione-report
+/testplane-report
 tmp
 **/playwright-report
