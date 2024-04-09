@@ -19,7 +19,7 @@ describe('static/modules/load-plugin', () => {
         sandbox.stub(axios, 'get');
         axios.get.resolves({
             status: 200,
-            data: `__hermione_html_reporter_register_plugin__(pluginFactory)`
+            data: `__testplane_html_reporter_register_plugin__(pluginFactory)`
         });
     });
 

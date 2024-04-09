@@ -1,5 +1,5 @@
 import {ApiFacade} from './facade';
-import type Testplane from 'hermione';
+import type Testplane from 'testplane';
 import {Express} from 'express';
 
 export interface ServerReadyData {

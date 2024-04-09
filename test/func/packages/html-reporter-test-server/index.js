@@ -3,19 +3,19 @@
 const path = require('path');
 const express = require('express');
 
-module.exports = (hermione, pluginConfig) => {
+module.exports = (testplane, pluginConfig) => {
     if (pluginConfig.enabled === false) {
         return;
     }
 
-    if (hermione.isWorker()) {
+    if (testplane.isWorker()) {
         return;
     }
 
     let server;
     const {port = 8080} = pluginConfig;
 
-    hermione.on(hermione.events.RUNNER_START, () => {
+    testplane.on(testplane.events.RUNNER_START, () => {
         const app = express();
         app.use(express.static(path.resolve(__dirname, '../..')));
         server = app.listen(port, (err) => {
@@ -28,7 +28,7 @@ module.exports = (hermione, pluginConfig) => {
         });
     });
 
-    hermione.on(hermione.events.RUNNER_END, () => {
+    testplane.on(testplane.events.RUNNER_END, () => {
         server.close(() => console.info(`Server was closed`));
     });
 };

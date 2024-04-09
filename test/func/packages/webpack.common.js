@@ -24,7 +24,7 @@ module.exports = {
     },
     output: {
         filename: '[name].js',
-        library: '__hermione_html_reporter_register_plugin__',
+        library: '__testplane_html_reporter_register_plugin__',
         libraryTarget: 'jsonp'
     },
     optimization: {

@@ -1,11 +1,11 @@
 {
-  "name": "hermione-eye",
+  "name": "testplane-eye",
   "description": "Test project that generates html-report for testing the view in browser (eye button) feature",
   "version": "0.0.0",
   "private": true,
   "scripts": {
     "clean": "rm -rf report",
-    "generate": "npx hermione",
-    "gui": "npx hermione gui --hostname 0.0.0.0 --port $(../../utils/get-port.js hermione-eye gui)"
+    "generate": "npx testplane",
+    "gui": "npx testplane gui --hostname 0.0.0.0 --port $(../../utils/get-port.js testplane-eye gui)"
   }
 }

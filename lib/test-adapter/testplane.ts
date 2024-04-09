@@ -1,7 +1,7 @@
 import path from 'path';
 import _ from 'lodash';
-import type Testplane from 'hermione';
-import type {Test as TestplaneTest} from 'hermione';
+import type Testplane from 'testplane';
+import type {Test as TestplaneTest} from 'testplane';
 import {ValueOf} from 'type-fest';
 
 import {getCommandsHistory} from '../history-utils';

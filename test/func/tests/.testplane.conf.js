@@ -4,7 +4,7 @@ const path = require('path');
 
 const chai = require('chai');
 const _ = require('lodash');
-const {getCommonConfig} = require('../common.hermione.conf');
+const {getCommonConfig} = require('../common.testplane.conf');
 
 chai.config.includeStack = true;
 chai.config.truncateThreshold = 0;
@@ -26,19 +26,19 @@ const config = _.merge(commonConfig, {
 
     sets: {
         common: {
-            files: 'common/**/*.hermione.js'
+            files: 'common/**/*.testplane.js'
         },
         'common-gui': {
-            files: 'common-gui/**/*.hermione.js'
+            files: 'common-gui/**/*.testplane.js'
         },
         'common-tinder': {
-            files: 'common-tinder/**/*.hermione.js'
+            files: 'common-tinder/**/*.testplane.js'
         },
         eye: {
-            files: 'eye/**/*.hermione.js',
+            files: 'eye/**/*.testplane.js',
         },
         plugins: {
-            files: 'plugins/**/*.hermione.js'
+            files: 'plugins/**/*.testplane.js'
         }
     },
 

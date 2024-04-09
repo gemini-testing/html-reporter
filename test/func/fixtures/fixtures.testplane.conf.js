@@ -3,7 +3,7 @@ const _ = require('lodash');
 
 global.assert = require('chai').assert;
 
-const {getCommonConfig} = require('../common.hermione.conf');
+const {getCommonConfig} = require('../common.testplane.conf');
 const {PORTS} = require('../utils/constants');
 
 module.exports.getFixturesConfig = (projectDir, projectName) => {
@@ -18,7 +18,7 @@ module.exports.getFixturesConfig = (projectDir, projectName) => {
 
         sets: {
             fixtures: {
-                files: '**/*.hermione.js'
+                files: '**/*.testplane.js'
             }
         },
 

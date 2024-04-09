@@ -15,7 +15,7 @@ describe('View in browser button behavior', () => {
         const eyeElement = await browser.$('a[data-test-id="view-in-browser"]');
         const link = await eyeElement.getAttribute('href');
 
-        expect(link).toBe('https://example.com:123/fixtures/hermione-eye/index.html');
+        expect(link).toBe('https://example.com:123/fixtures/testplane-eye/index.html');
     });
 
     it('should change in accordance to the baseHost in header', async ({browser}) => {
@@ -27,6 +27,6 @@ describe('View in browser button behavior', () => {
         const eyeElement = await browser.$('a[data-test-id="view-in-browser"]');
         const link = await eyeElement.getAttribute('href');
 
-        expect(link).toBe('http://some-host.dev:33/fixtures/hermione-eye/index.html');
+        expect(link).toBe('http://some-host.dev:33/fixtures/testplane-eye/index.html');
     });
 });
