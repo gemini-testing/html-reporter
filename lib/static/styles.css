@@ -77,7 +77,7 @@ main.container {
 
 .ui.dropdown .menu>.item,
 .ui.selection.dropdown .menu>.item {
-    padding: 8px 5px !important;
+    padding: 8px 8px !important;
     font-size: 11px;
 }
 
@@ -125,17 +125,17 @@ main.container {
     cursor: pointer;
     background: #fff;
     border: 1px solid #ccc;
-    border-radius: 2px;
+    border-radius: var(--button-border-radius);
     line-height: 11px;
     height: 23px;
-    padding: 0 5px;
+    padding: 0 8px;
     outline: 0;
     box-sizing: content-box;
     transition: border-color 200ms, background-color 200ms;
 }
 
 .button:hover {
-    border-color: #4b4c5a;
+    border-color: var(--button-hover-color);
 }
 
 .button:disabled {
@@ -284,10 +284,14 @@ main.container {
     line-height: 24px;
     font-weight: bold;
     cursor: pointer;
-    color: #000;
+    color: var(--text-color);
     margin-bottom: 5px;
 
     user-select: none;
+}
+
+.section__title:hover {
+    opacity: 0.7;
 }
 
 .ui.checkbox.indeterminate label:after {
@@ -298,9 +302,21 @@ main.container {
 .tests-group__title .ui.checkbox {
     vertical-align: bottom;
     margin-right: 5px;
-
+    bottom: 2px;
     width: 18px;
     height: 18px;
+}
+
+.tests-group__title .ui.checkbox {
+    bottom: -2px;
+}
+
+.section__body .ui.checkbox {
+    bottom: 1px;
+}
+
+.section__title_type_browser .ui.checkbox {
+    bottom: 0;
 }
 
 .section__title .ui.checkbox label:before,
@@ -442,12 +458,6 @@ details[open] > .details__summary:before {
     border-color: var(--report-color-success) !important;
 }
 
-.section_status_success > .section__title:hover,
-.state-title_success:hover,
-.state-title_updated:hover {
-    color: #5ed15e;
-}
-
 .section_status_fail > .section__title,
 .section_status_error > .section__title,
 .state-title_fail,
@@ -461,13 +471,6 @@ details[open] > .details__summary:before {
 .section_status_error > .section__title .ui.checkbox label:after {
     color: var(--report-color-fail) !important;
     border-color: var(--report-color-fail) !important;
-}
-
-.section_status_fail > .section__title:hover,
-.section_status_error > .section__title:hover,
-.state-title_fail:hover,
-.state-title_error:hover {
-    color: #e66767;
 }
 
 .section__body,
@@ -775,9 +778,9 @@ a:active {
     line-height: 25px;
     font-family: inherit;
     outline: 0;
-    padding: 3px 5px;
+    padding: 3px 8px;
     border: 1px solid #ccc;
-    border-radius: 2px;
+    border-radius: var(--button-border-radius);
     height: 25px;
 }
 

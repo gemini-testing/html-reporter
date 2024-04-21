@@ -3,11 +3,11 @@
     height 25px
     font-size 11px
     border 1px solid #ccc
-    border-radius 2px
+    border-radius var(--button-border-radius)
     user-select none
 
     &:hover 
-        border-color #555
+        border-color var(--button-hover-color)
 
     .array__container 
         display inherit
@@ -21,10 +21,10 @@
 
     .array__item 
         flex-shrink 0
-        background #ffeb9f
+        background var(--button-action-color)
         border 1px solid #cebe7d
-        border-radius 3px
-        padding 4px
+        border-radius 5px
+        padding 4px 5px
         margin 1px
         line-height 11px
 
