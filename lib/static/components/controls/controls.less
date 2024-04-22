@@ -36,7 +36,7 @@
     }
 
     .control-label {
-        border-radius: 2px;
+        border-radius: var(--button-border-radius);
         height: 25px;
     }
 }
@@ -67,11 +67,11 @@
     }
 
     &.control-group__item:first-child {
-        border-radius: 2px 0 0 2px;
+        border-radius: var(--button-border-radius) 0 0 var(--button-border-radius);
     }
 
     &.control-group__item:last-child {
-        border-radius: 0 2px 2px 0;
+        border-radius: 0 var(--button-border-radius) var(--button-border-radius) 0;
     }
 
     &.control-group__item:not(:last-child) {
@@ -90,11 +90,11 @@
     }
 
     &.control-group__item:first-child:after {
-        border-radius: 2px 0 0 2px;
+        border-radius: var(--button-border-radius) 0 0 var(--button-border-radius);
     }
 
     &.control-group__item:last-child:after {
-        border-radius: 0 2px 2px 0;
+        border-radius: 0 var(--button-border-radius) var(--button-border-radius) 0;
     }
 
     &.control-group__item:hover:after {

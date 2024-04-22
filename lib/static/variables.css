@@ -2,4 +2,10 @@
     --report-color-fail: #d00;
     --report-color-skip: #8c8c8c;
     --report-color-success: #169737;
+    
+    --button-border-radius: 6px;
+    --button-action-color: #ffeba0;
+    --button-hover-color: #9a9999;
+
+    --text-color: rgba(0, 0, 0, .65)
 }

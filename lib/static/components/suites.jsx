@@ -20,7 +20,7 @@ class Suites extends Component {
 
     _suitesMeasurementCache = new CellMeasurerCache({
         fixedWidth: true,
-        defaultHeight: 40
+        defaultHeight: 30
     });
 
     _renderRow = ({index, key, style, parent}) => {
