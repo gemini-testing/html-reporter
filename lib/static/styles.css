@@ -757,6 +757,10 @@ a:active {
     margin-bottom: 0;
 }
 
+.details__content pre {
+    margin: 5px 0;
+}
+
 .details_type_text .details__content {
     margin: 5px 0;
     background-color: #f0f2f5;

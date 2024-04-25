@@ -59,6 +59,7 @@ export interface DiffOptions extends LooksSameOptions {
 export interface TestError {
     name: string;
     message: string;
+    snippet?: string; // defined if testplane >= 8.11.0
     stack?: string;
     stateName?: string;
     details?: ErrorDetails

@@ -138,12 +138,12 @@ export const hasUnrelatedToScreenshotsErrors = (error: TestError): boolean => {
         !isAssertViewError(error);
 };
 
-export const getError = (error?: TestError): undefined | Pick<TestError, 'name' | 'message' | 'stack' | 'stateName'> => {
+export const getError = (error?: TestError): undefined | Pick<TestError, 'name' | 'message' | 'stack' | 'stateName' | 'snippet'> => {
     if (!error) {
         return undefined;
     }
 
-    return pick(error, ['name', 'message', 'stack', 'stateName']);
+    return pick(error, ['name', 'message', 'stack', 'stateName', 'snippet']);
 };
 
 export const hasDiff = (assertViewResults: {name?: string}[]): boolean => {
@@ -257,4 +257,107 @@ export const isImageBufferData = (imageData: ImageBuffer | ImageFile | ImageBase
 
 export const isImageInfoWithState = (imageInfo: ImageInfoFull): imageInfo is ImageInfoWithState => {
     return Boolean((imageInfo as ImageInfoWithState).stateName);
+};
+
+export const trimArray = <T>(array: Array<T>): Array<T> => {
+    let indexBegin = 0;
+    let indexEnd = array.length;
+
+    while (indexBegin < array.length && !array[indexBegin]) {
+        indexBegin++;
+    }
+
+    while (indexEnd > 0 && !array[indexEnd - 1]) {
+        indexEnd--;
+    }
+
+    return array.slice(indexBegin, indexEnd);
+};
+
+const getErrorTitle = (e: Error): string => {
+    let errorName = e.name;
+
+    if (!errorName && e.stack) {
+        const columnIndex = e.stack.indexOf(':');
+
+        if (columnIndex !== -1) {
+            errorName = e.stack.slice(0, columnIndex);
+        } else {
+            errorName = e.stack.slice(0, e.stack.indexOf('\n'));
+        }
+    }
+
+    if (!errorName) {
+        errorName = 'Error';
+    }
+
+    return e.message ? `${errorName}: ${e.message}` : errorName;
+};
+
+const getErrorRawStackFrames = (e: Error & { stack: string }): string => {
+    const errorTitle = getErrorTitle(e) + '\n';
+    const errorTitleStackIndex = e.stack.indexOf(errorTitle);
+
+    if (errorTitleStackIndex !== -1) {
+        return e.stack.slice(errorTitleStackIndex + errorTitle.length);
+    }
+
+    const errorString = e.toString ? e.toString() + '\n' : '';
+    const errorStringIndex = e.stack.indexOf(errorString);
+
+    if (errorString && errorStringIndex !== -1) {
+        return e.stack.slice(errorStringIndex + errorString.length);
+    }
+
+    const errorMessageStackIndex = e.stack.indexOf(e.message);
+    const errorMessageEndsStackIndex = e.stack.indexOf('\n', errorMessageStackIndex + e.message.length);
+
+    return e.stack.slice(errorMessageEndsStackIndex + 1);
+};
+
+const cloneError = <T extends Error>(error: T): T => {
+    const originalProperties = ['name', 'message', 'stack'] as Array<keyof Error>;
+    const clonedError = new Error(error.message) as T;
+
+    originalProperties.forEach(property => {
+        delete clonedError[property];
+    });
+
+    const customProperties = Object.getOwnPropertyNames(error) as Array<keyof Error>;
+
+    originalProperties.concat(customProperties).forEach((property) => {
+        clonedError[property] = error[property] as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+    });
+
+    return clonedError;
+};
+
+export const mergeSnippetIntoErrorStack = <T extends Error>(error: T & { snippet?: string }): T => {
+    if (!error.snippet) {
+        return error;
+    }
+
+    const clonedError = cloneError(error);
+
+    delete clonedError.snippet;
+
+    if (!error.stack) {
+        clonedError.stack = [
+            getErrorTitle(error),
+            error.snippet
+        ].join('\n');
+
+        return clonedError;
+    }
+
+    const grayBegin = '\x1B[90m';
+    const grayEnd = '\x1B[39m';
+
+    clonedError.stack = [
+        getErrorTitle(error),
+        error.snippet,
+        grayBegin + getErrorRawStackFrames(error as Error & { stack: string }) + grayEnd
+    ].join('\n');
+
+    return clonedError;
 };
