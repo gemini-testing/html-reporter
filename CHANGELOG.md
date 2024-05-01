@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="9.19.0"></a>
+# [9.19.0](https://github.com/gemini-testing/html-reporter/compare/v9.18.1...v9.19.0) (2024-05-01)
+
+
+### Features
+
+* add error snippets support ([c1020c4](https://github.com/gemini-testing/html-reporter/commit/c1020c4))
+
+
+
 <a name="9.18.0"></a>
 # [9.18.0](https://github.com/gemini-testing/html-reporter/compare/v9.17.2...v9.18.0) (2024-04-04)
 
