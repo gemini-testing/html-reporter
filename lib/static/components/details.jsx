@@ -10,7 +10,8 @@ export default class Details extends Component {
         title: PropTypes.oneOfType([PropTypes.element, PropTypes.string]).isRequired,
         content: PropTypes.oneOfType([PropTypes.func, PropTypes.string, PropTypes.element, PropTypes.array]).isRequired,
         extendClassNames: PropTypes.oneOfType([PropTypes.array, PropTypes.string]),
-        onClick: PropTypes.func
+        onClick: PropTypes.func,
+        asHtml: PropTypes.bool,
     };
 
     state = {isOpened: false};
@@ -26,6 +27,25 @@ export default class Details extends Component {
             return newState;
         });
     };
+
+    _getContent() {
+        const content = this.props.content;
+
+        return isFunction(content) ? content() : content
+    }
+
+    _renderContent() {
+        if (!this.state.isOpened) {
+            return null;
+        }
+
+        const children = this.props.asHtml ? null : this._getContent();
+        const extraProps = this.props.asHtml ? {dangerouslySetInnerHTML: {__html: this._getContent()}} : {};
+
+        return <div className='details__content' {...extraProps}>
+            {children}
+        </div>
+    }
 
     render() {
         const {title, content, extendClassNames} = this.props;
@@ -44,13 +64,7 @@ export default class Details extends Component {
                     <summary className='details__summary' onClick={this.handleClick}>
                         {title}
                     </summary>
-                    {
-                        this.state.isOpened
-                            ? <div className='details__content'>
-                                {isFunction(content) ? content() : content}
-                            </div>
-                            : null
-                    }
+                    {this._renderContent()}
                 </details>
             )
         );

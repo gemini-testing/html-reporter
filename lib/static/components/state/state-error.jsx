@@ -6,12 +6,22 @@ import {bindActionCreators} from 'redux';
 import PropTypes from 'prop-types';
 import {isEmpty, map, isFunction} from 'lodash';
 import ReactHtmlParser from 'react-html-parser';
+import escapeHtml from "escape-html";
+import ansiHtml from "ansi-html-community";
 import * as actions from '../../modules/actions';
 import ResizedScreenshot from './screenshot/resized';
 import ErrorDetails from './error-details';
 import Details from '../details';
 import {ERROR_TITLE_TEXT_LENGTH} from '../../../constants/errors';
-import {isAssertViewError, isImageDiffError, isNoRefImageError} from '../../../common-utils';
+import {isAssertViewError, isImageDiffError, isNoRefImageError, mergeSnippetIntoErrorStack, trimArray} from '../../../common-utils';
+
+ansiHtml.setColors({
+    reset: ["#", "#"],
+    cyan: "ff6188",
+    yellow: "5cb008",
+    magenta: "8e81cd",
+    green: "aa8720",
+})
 
 class StateError extends Component {
     static propTypes = {
@@ -46,6 +56,10 @@ class StateError extends Component {
         return null;
     }
 
+    _wrapInPreformatted = (html) => {
+        return html ? `<pre>${html}</pre>` : html;
+    }
+
     _errorToElements(error) {
         return map(error, (value, key) => {
             if (!value) {
@@ -58,6 +72,8 @@ class StateError extends Component {
             if (typeof value === 'string') {
                 if (value.match(/\n/)) {
                     [titleText, ...content] = value.split('\n');
+
+                    content = trimArray(content);
                 } else if (value.length < ERROR_TITLE_TEXT_LENGTH) {
                     titleText = value;
                 } else {
@@ -67,15 +83,19 @@ class StateError extends Component {
                 if (Array.isArray(content)) {
                     content = content.join('\n');
                 }
+
+                content = this._wrapInPreformatted(ansiHtml(escapeHtml(content)));
             } else {
                 titleText = <span>show more</span>;
                 content = isFunction(value) ? value : () => value;
             }
 
             const title = <Fragment><span className="error__item-key">{key}: </span>{titleText}</Fragment>;
+            const asHtml = typeof content === "string";
 
             return <Details
                 key={key}
+                asHtml={asHtml}
                 title={title}
                 content={content}
                 extendClassNames="error__item"
@@ -97,7 +117,14 @@ class StateError extends Component {
 
         return (
             <div className="image-box__image image-box__image_single">
-                {this._shouldDrawErrorInfo(extendedError) && <div className="error">{this._errorToElements(extendedError)}</div>}
+                {
+                    this._shouldDrawErrorInfo(extendedError)
+                        ? <div
+                            className="error"
+                        >
+                            {this._errorToElements(mergeSnippetIntoErrorStack(extendedError))}
+                        </div> : null
+                }
                 {errorDetails && <ErrorDetails errorDetails={errorDetails} />}
                 {this._drawImage()}
             </div>

@@ -1,7 +1,9 @@
-import {determineFinalStatus, getError, hasDiff, getUrlWithBase, getDetailsFileName} from 'lib/common-utils';
+import {determineFinalStatus, getError, hasDiff, getUrlWithBase, getDetailsFileName, trimArray, mergeSnippetIntoErrorStack} from 'lib/common-utils';
 import {RUNNING, QUEUED, ERROR, FAIL, UPDATED, SUCCESS, IDLE, SKIPPED} from 'lib/constants/test-statuses';
 import {ErrorName} from 'lib/errors';
 import sinon from 'sinon';
+
+const withGray = (line: string): string => '\x1B[90m' + line + '\x1B[39m';
 
 describe('common-utils', () => {
     const sandbox = sinon.sandbox.create();
@@ -168,6 +170,95 @@ describe('common-utils', () => {
             const expected = `${testId}-bro_2_123456789.json`;
 
             assert.equal(getDetailsFileName(testId, 'bro', 1), expected);
+        });
+    });
+
+    describe('trimArray', () => {
+        it('should return array with removed falsy values from start and end of the array', () => {
+            const result = trimArray([null, undefined, false, 5, '']);
+
+            assert.deepEqual(result, [5]);
+        });
+
+        it('should not remove empty values fron the middle of the array', () => {
+            const result = trimArray([null, 1, null, '', undefined, false, 5, '']);
+
+            assert.deepEqual(result, [1, null, '', undefined, false, 5]);
+        });
+
+        it('should return empty array if array is empty', () => {
+            const result = trimArray([]);
+
+            assert.deepEqual(result, []);
+        });
+
+        it('should not modify original array', () => {
+            const arr = ['', null, undefined];
+
+            const result = trimArray(arr);
+
+            assert.deepEqual(result, []);
+            assert.deepEqual(arr, ['', null, undefined]);
+        });
+    });
+
+    describe('mergeSnippetIntoErrorStack', () => {
+        it('should return extended error', () => {
+            const myError = new Error('error message') as Error & { snippet: string };
+            myError.snippet = 'snippet';
+            myError.stack = myError.toString() + '\n' + 'my stack';
+
+            const result = mergeSnippetIntoErrorStack(myError);
+
+            assert.equal(result.stack, 'Error: error message\nsnippet\n' + withGray('my stack'));
+        });
+
+        it('should remove snippet property', () => {
+            const myError = new Error('error message') as Error & { snippet: string };
+            myError.snippet = 'snippet';
+            myError.stack = myError.toString() + '\n' + 'my stack';
+
+            const result = mergeSnippetIntoErrorStack(myError);
+
+            assert.isUndefined(result.snippet);
+        });
+
+        it('should not modify original error stack', () => {
+            const myError = new Error('error message') as Error & { snippet: string };
+            myError.snippet = 'snippet';
+            myError.stack = myError.toString() + '\n' + 'my stack';
+
+            mergeSnippetIntoErrorStack(myError);
+
+            assert.equal(myError.stack, 'Error: error message\nmy stack');
+        });
+
+        it('should return original error if snippet is undefined', () => {
+            const myError = new Error('error message') as Error & { snippet: string };
+
+            const result = mergeSnippetIntoErrorStack(myError);
+
+            assert.equal(myError, result);
+        });
+
+        it('should overwrite stack with snippet, if stack is undefined', () => {
+            const myError = new Error('error message') as Error & { snippet: string };
+            myError.snippet = 'snippet';
+            delete myError.stack;
+
+            const result = mergeSnippetIntoErrorStack(myError);
+
+            assert.equal(result.stack, 'Error: error message\nsnippet');
+        });
+
+        it('should work with multiline error message', () => {
+            const myError = new Error('my\nerror\nmessage') as Error & { snippet: string };
+            myError.stack = myError.toString() + '\n' + 'my stack';
+            myError.snippet = 'snippet';
+
+            const result = mergeSnippetIntoErrorStack(myError);
+
+            assert.equal(result.stack, 'Error: my\nerror\nmessage\nsnippet\n' + withGray('my stack'));
         });
     });
 });

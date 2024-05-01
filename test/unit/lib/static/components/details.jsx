@@ -60,4 +60,18 @@ describe('<Details />', () => {
             assert.calledWith(props.onClick.secondCall, {isOpened: false});
         });
     });
+
+    it('should render html, if specified', () => {
+        const props = {
+            title: 'some-title',
+            content: '<pre><span>some content</span></pre>',
+            asHtml: true
+        };
+
+        const component = mount(<Details {...props} />);
+        component.find('.details__summary').simulate('click');
+
+        const expectedHtml = '<div class="details__content">' + props.content + '</div>';
+        assert.equal(component.find('.details__content').html(), expectedHtml);
+    });
 });

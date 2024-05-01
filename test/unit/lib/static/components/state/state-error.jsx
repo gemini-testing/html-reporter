@@ -101,4 +101,49 @@ describe('<StateError/> component', () => {
             assert.equal(component.find('.details__content .foo-bar').text(), ['some-hint']);
         });
     });
+
+    describe('error snippet', () => {
+        it('should be rendered in preformatted tags', () => {
+            const error = {snippet: `\x1B[90m   . | // /some-file-path.js\x1B[39m")}
+                . |
+                9 | some line
+               10 | other line
+            `};
+
+            const component = mkStateErrorComponent({result: {error}});
+            component.find('.details__summary').last().simulate('click');
+
+            assert.isTrue(component.find('.details__content').html().startsWith('<div class="details__content"><pre>'));
+            assert.isTrue(component.find('.details__content').html().includes('some line'));
+            assert.isTrue(component.find('.details__content').html().endsWith('</pre></div>'));
+        });
+
+        it('should resolve colors', () => {
+            const error = {snippet: `\x1B[90m   . | // /some-file-path.js\x1B[39m)}
+                . |
+                9 | some line
+               10 | other line
+            `};
+
+            const component = mkStateErrorComponent({result: {error}});
+            component.find('.details__summary').last().simulate('click');
+
+            const expectedSpan = '<span style="color:#888;">   . | // /some-file-path.js</span>';
+            assert.isTrue(component.find('.details__content').html().includes(expectedSpan));
+        });
+
+        it('should escape html', () => {
+            const error = {snippet: `\x1B[90m   . | // /some-file-path.js\x1B[39m")}
+                . |
+                9 | some<line>
+               10 | other line
+            `};
+
+            const component = mkStateErrorComponent({result: {error}});
+            component.find('.details__summary').last().simulate('click');
+
+            assert.isFalse(component.find('.details__content').html().includes("some<line>"));
+            assert.isTrue(component.find('.details__content').html().includes("some&lt;line&gt;"));
+        });
+    });
 });
