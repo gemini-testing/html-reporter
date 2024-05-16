@@ -105,6 +105,8 @@ main.container {
 
 .menu-bar .icon {
     margin: 0;
+    height: 25px;
+    line-height: 25px;
 }
 
 .menu-bar .ui.dropdown .menu>.item,
