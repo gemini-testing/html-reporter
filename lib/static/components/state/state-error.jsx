@@ -43,7 +43,7 @@ class StateError extends Component {
     _getErrorPattern() {
         const {errorPatterns, error} = this.props;
 
-        return errorPatterns.find(({regexp}) => error.message?.match(regexp));
+        return errorPatterns.find(({regexp}) => error?.message?.match(regexp));
     }
 
     _drawImage() {
@@ -61,6 +61,10 @@ class StateError extends Component {
     }
 
     _errorToElements(error) {
+        if (isEmpty(error)) {
+            return 'Unknown error';
+        }
+
         return map(error, (value, key) => {
             if (!value) {
                 return null;
@@ -113,7 +117,7 @@ class StateError extends Component {
 
         const extendedError = isEmpty(errorPattern)
             ? error
-            : {...error, message: `${errorPattern.name}\n${error.message}`, hint: () => parseHtmlString(errorPattern.hint)};
+            : {...error, message: `${errorPattern.name}\n${error?.message}`, hint: () => parseHtmlString(errorPattern.hint)};
 
         return (
             <div className="image-box__image image-box__image_single">
