@@ -196,7 +196,7 @@ export class ImagesInfoSaver extends EventEmitter2 {
                     util.format('Test result: %o\n', testResult) +
                     `Please report this error to html-reporter team: ${NEW_ISSUE_LINK}.`);
             }
-            diffImg = await this._createDiffInFile(imagesInfo, reportDiffPath, workers);
+            diffImg = await this._createDiffInFile(imagesInfo, getTempPath(reportDiffPath), workers);
             logger(`Created new diff in file ${reportDiffPath}`);
         }
 
