@@ -48,7 +48,7 @@
     "url": "https://github.com/gemini-testing/html-reporter/issues"
   },
   "engines": {
-    "node": ">= 14"
+    "node": ">= 18"
   },
   "keywords": [
     "testplane",
@@ -59,7 +59,7 @@
   "homepage": "https://github.com/gemini-testing/html-reporter#readme",
   "license": "MIT",
   "peerDependencies": {
-    "hermione": ">=6.0.0",
+    "hermione": ">=8.0.0",
     "testplane": "*"
   },
   "peerDependenciesMeta": {
@@ -75,7 +75,7 @@
     "@gemini-testing/sql.js": "^2.0.0",
     "ansi-html-community": "^0.0.8",
     "axios": "1.6.3",
-    "better-sqlite3": "^8.5.0",
+    "better-sqlite3": "^10.0.0",
     "bluebird": "^3.5.3",
     "body-parser": "^1.18.2",
     "chalk": "^4.1.2",
