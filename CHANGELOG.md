@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.0.0"></a>
+# [10.0.0](https://github.com/gemini-testing/html-reporter/compare/v9.19.0...v10.0.0) (2024-05-31)
+
+
+### Bug Fixes
+
+* align the menu icon with the rest of the items ([0d493cc](https://github.com/gemini-testing/html-reporter/commit/0d493cc))
+* handle edge case when error is null ([#523](https://github.com/gemini-testing/html-reporter/issues/523)) ([65b3808](https://github.com/gemini-testing/html-reporter/commit/65b3808))
+
+
+### Features
+
+* drop node versions less than 18 ([5569be6](https://github.com/gemini-testing/html-reporter/commit/5569be6))
+
+
+### BREAKING CHANGES
+
+* node versions less than 18.0.0 are no longer supported
+
+
+
 <a name="9.19.0"></a>
 # [9.19.0](https://github.com/gemini-testing/html-reporter/compare/v9.18.1...v9.19.0) (2024-05-01)
 
