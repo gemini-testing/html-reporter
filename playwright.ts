@@ -31,7 +31,9 @@ class MyReporter implements Reporter {
     protected _initPromise: Promise<void>;
 
     constructor(opts: Partial<ReporterConfig>) {
-        this._config = parseConfig(_.omit(opts, ['configDir']));
+        const reporterOpts = _.omitBy(opts, (_value, key) => key === 'configDir' || key.startsWith('_'));
+
+        this._config = parseConfig(reporterOpts);
         this._htmlReporter = HtmlReporter.create(this._config, {toolName: ToolName.Playwright});
         this._staticReportBuilder = null;
         this._workerFarm = workerFarm(require.resolve('./lib/workers/worker'), ['saveDiffTo']);
