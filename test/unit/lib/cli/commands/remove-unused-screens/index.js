@@ -1,15 +1,14 @@
 'use strict';
 
 const path = require('path');
-const _ = require('lodash');
 const fs = require('fs-extra');
 const proxyquire = require('proxyquire');
 const chalk = require('chalk');
 const {DATABASE_URLS_JSON_NAME, LOCAL_DATABASE_NAME} = require('lib/constants/database');
-const {stubTool} = require('test/unit/utils');
 const {logger} = require('lib/common-utils');
+const {stubToolAdapter, stubReporterConfig} = require('test/unit/utils');
 
-describe('lib/cli-commands/remove-unused-screens', () => {
+describe('lib/cli/commands/remove-unused-screens', () => {
     const sandbox = sinon.sandbox.create();
     let actionPromise, removeUnusedScreens, getTestsFromFs, findScreens, askQuestion;
     let identifyOutdatedScreens, identifyUnusedScreens, removeScreens, filesizeMock;
@@ -25,17 +24,13 @@ describe('lib/cli-commands/remove-unused-screens', () => {
         })
     });
 
-    const mkPluginCfg_ = (opts) => _.defaults(opts, {path: 'default-path'});
+    const mkToolAdapter_ = ({htmlReporter, reporterConfig} = {}) => {
+        const toolAdapter = stubToolAdapter({reporterConfig, htmlReporter});
 
-    const mkTestplane_ = (htmlReporter) => {
-        const testplane = stubTool();
+        toolAdapter.htmlReporter.downloadDatabases = sandbox.stub().resolves(['/default-path/sqlite.db']);
+        toolAdapter.htmlReporter.mergeDatabases = sandbox.stub().resolves();
 
-        testplane.htmlReporter = htmlReporter || {
-            downloadDatabases: sandbox.stub().resolves(['/default-path/sqlite.db']),
-            mergeDatabases: sandbox.stub().resolves()
-        };
-
-        return testplane;
+        return toolAdapter;
     };
 
     const mkTestsTreeFromFs_ = (opts = {}) => {
@@ -44,10 +39,9 @@ describe('lib/cli-commands/remove-unused-screens', () => {
 
     const removeUnusedScreens_ = async ({
         program = mkProgram_({pattern: ['default/pattern'], skipQuestions: false}),
-        pluginConfig = mkPluginCfg_(),
-        testplane = mkTestplane_()
+        toolAdapter = mkToolAdapter_()
     } = {}) => {
-        removeUnusedScreens(program, pluginConfig, testplane);
+        removeUnusedScreens(program, toolAdapter);
 
         await actionPromise;
     };
@@ -71,7 +65,7 @@ describe('lib/cli-commands/remove-unused-screens', () => {
 
         filesizeMock = sandbox.stub().returns('12345');
 
-        removeUnusedScreens = proxyquire('lib/cli-commands/remove-unused-screens', {
+        removeUnusedScreens = proxyquire('lib/cli/commands/remove-unused-screens', {
             ora: () => ({start: sandbox.stub(), succeed: sandbox.stub()}),
             filesize: filesizeMock,
             './utils': {getTestsFromFs, findScreens, askQuestion, identifyOutdatedScreens, identifyUnusedScreens, removeScreens}
@@ -101,11 +95,11 @@ describe('lib/cli-commands/remove-unused-screens', () => {
     });
 
     it('should get tests tree from fs', async () => {
-        const testplane = mkTestplane_();
+        const toolAdapter = mkToolAdapter_();
 
-        await removeUnusedScreens_({testplane});
+        await removeUnusedScreens_({toolAdapter});
 
-        assert.calledOnceWith(getTestsFromFs, testplane);
+        assert.calledOnceWith(getTestsFromFs, toolAdapter);
     });
 
     it('should inform user about the number of tests read', async () => {
@@ -346,49 +340,49 @@ describe('lib/cli-commands/remove-unused-screens', () => {
         });
 
         it('should not handle unused images if user say "no"', async () => {
-            const testplane = mkTestplane_();
+            const toolAdapter = mkToolAdapter_();
             const program = mkProgram_({pattern: ['some/pattern'], skipQuestions: false});
             askQuestion.withArgs(sinon.match({name: 'identifyUnused'}), program.options).resolves(false);
 
-            await removeUnusedScreens_({testplane, program});
+            await removeUnusedScreens_({toolAdapter, program});
 
-            assert.notCalled(testplane.htmlReporter.downloadDatabases);
+            assert.notCalled(toolAdapter.htmlReporter.downloadDatabases);
         });
 
         describe('if user say "yes"', () => {
-            let testplane, program, pluginConfig;
+            let toolAdapter, program, reporterConfig;
 
             beforeEach(() => {
-                testplane = mkTestplane_();
+                reporterConfig = stubReporterConfig({path: './testplane-report'});
+                toolAdapter = mkToolAdapter_({reporterConfig});
                 program = mkProgram_({pattern: ['some/pattern'], skipQuestions: false});
-                pluginConfig = mkPluginCfg_({path: './testplane-report'});
 
                 askQuestion.withArgs(sinon.match({name: 'identifyUnused'}), program.options).resolves(true);
             });
 
             it('should inform user if report with the result of test run is missing on fs', async () => {
-                fs.pathExists.withArgs(pluginConfig.path).resolves(false);
+                fs.pathExists.withArgs(reporterConfig.path).resolves(false);
 
-                await removeUnusedScreens_({program, pluginConfig});
+                await removeUnusedScreens_({toolAdapter, program});
 
-                assert.calledWith(logger.error, sinon.match(`Can't find html-report in "${pluginConfig.path}" folder`));
+                assert.calledWith(logger.error, sinon.match(`Can't find html-report in "${reporterConfig.path}" folder`));
                 assert.calledOnceWith(process.exit, 1);
             });
 
             describe('download databases', () => {
                 it('should download from main databaseUrls.json', async () => {
-                    const mainDatabaseUrls = path.resolve(pluginConfig.path, DATABASE_URLS_JSON_NAME);
+                    const mainDatabaseUrls = path.resolve(reporterConfig.path, DATABASE_URLS_JSON_NAME);
 
-                    await removeUnusedScreens_({testplane, program, pluginConfig});
+                    await removeUnusedScreens_({toolAdapter, program});
 
-                    assert.calledOnceWith(testplane.htmlReporter.downloadDatabases, [mainDatabaseUrls], {pluginConfig});
+                    assert.calledOnceWith(toolAdapter.htmlReporter.downloadDatabases, [mainDatabaseUrls], {pluginConfig: reporterConfig});
                 });
 
                 it(`should inform user if databases were not loaded from "${DATABASE_URLS_JSON_NAME}"`, async () => {
-                    const mainDatabaseUrls = path.resolve(pluginConfig.path, DATABASE_URLS_JSON_NAME);
-                    testplane.htmlReporter.downloadDatabases.resolves([]);
+                    const mainDatabaseUrls = path.resolve(reporterConfig.path, DATABASE_URLS_JSON_NAME);
+                    toolAdapter.htmlReporter.downloadDatabases.resolves([]);
 
-                    await removeUnusedScreens_({testplane, program, pluginConfig});
+                    await removeUnusedScreens_({toolAdapter, program});
 
                     assert.calledWith(logger.error, sinon.match(`Databases were not loaded from "${mainDatabaseUrls}" file`));
                     assert.calledOnceWith(process.exit, 1);
@@ -397,32 +391,32 @@ describe('lib/cli-commands/remove-unused-screens', () => {
 
             describe('merge databases', () => {
                 it('should not merge databases if downloaded only main database', async () => {
-                    const mainDatabasePath = path.resolve(pluginConfig.path, LOCAL_DATABASE_NAME);
-                    testplane.htmlReporter.downloadDatabases.resolves([mainDatabasePath]);
+                    const mainDatabasePath = path.resolve(reporterConfig.path, LOCAL_DATABASE_NAME);
+                    toolAdapter.htmlReporter.downloadDatabases.resolves([mainDatabasePath]);
 
-                    await removeUnusedScreens_({testplane, program, pluginConfig});
+                    await removeUnusedScreens_({toolAdapter, program});
 
-                    assert.notCalled(testplane.htmlReporter.mergeDatabases);
+                    assert.notCalled(toolAdapter.htmlReporter.mergeDatabases);
                 });
 
                 it('should merge source databases to main', async () => {
-                    const srcDb1 = path.resolve(pluginConfig.path, 'sqlite_1.db');
-                    const srcDb2 = path.resolve(pluginConfig.path, 'sqlite_2.db');
-                    const mainDatabasePath = path.resolve(pluginConfig.path, LOCAL_DATABASE_NAME);
-                    testplane.htmlReporter.downloadDatabases.resolves([mainDatabasePath, srcDb1, srcDb2]);
+                    const srcDb1 = path.resolve(reporterConfig.path, 'sqlite_1.db');
+                    const srcDb2 = path.resolve(reporterConfig.path, 'sqlite_2.db');
+                    const mainDatabasePath = path.resolve(reporterConfig.path, LOCAL_DATABASE_NAME);
+                    toolAdapter.htmlReporter.downloadDatabases.resolves([mainDatabasePath, srcDb1, srcDb2]);
 
-                    await removeUnusedScreens_({testplane, program, pluginConfig});
+                    await removeUnusedScreens_({toolAdapter, program});
 
-                    assert.calledOnceWith(testplane.htmlReporter.mergeDatabases, [srcDb1, srcDb2], pluginConfig.path);
+                    assert.calledOnceWith(toolAdapter.htmlReporter.mergeDatabases, [srcDb1, srcDb2], reporterConfig.path);
                 });
 
                 it('should infrom user about how much databases were merged', async () => {
-                    const srcDb1 = path.resolve(pluginConfig.path, 'sqlite_1.db');
-                    const srcDb2 = path.resolve(pluginConfig.path, 'sqlite_2.db');
-                    const mainDatabasePath = path.resolve(pluginConfig.path, LOCAL_DATABASE_NAME);
-                    testplane.htmlReporter.downloadDatabases.resolves([mainDatabasePath, srcDb1, srcDb2]);
+                    const srcDb1 = path.resolve(reporterConfig.path, 'sqlite_1.db');
+                    const srcDb2 = path.resolve(reporterConfig.path, 'sqlite_2.db');
+                    const mainDatabasePath = path.resolve(reporterConfig.path, LOCAL_DATABASE_NAME);
+                    toolAdapter.htmlReporter.downloadDatabases.resolves([mainDatabasePath, srcDb1, srcDb2]);
 
-                    await removeUnusedScreens_({testplane, program, pluginConfig});
+                    await removeUnusedScreens_({toolAdapter, program});
 
                     assert.calledWith(
                         logger.log,
@@ -436,11 +430,11 @@ describe('lib/cli-commands/remove-unused-screens', () => {
                     byId: {a: {}, b: {}, c: {}}
                 });
                 getTestsFromFs.resolves(testsTreeFromFs);
-                const mergedDbPath = path.resolve(pluginConfig.path, LOCAL_DATABASE_NAME);
+                const mergedDbPath = path.resolve(reporterConfig.path, LOCAL_DATABASE_NAME);
 
-                await removeUnusedScreens_({testplane, program, pluginConfig});
+                await removeUnusedScreens_({toolAdapter, program});
 
-                assert.calledOnceWith(identifyUnusedScreens, testsTreeFromFs, {testplane, mergedDbPath});
+                assert.calledOnceWith(identifyUnusedScreens, testsTreeFromFs, {toolAdapter, mergedDbPath});
             });
 
             it('should not throw if unused screen does not exist on fs', async () => {
@@ -451,7 +445,7 @@ describe('lib/cli-commands/remove-unused-screens', () => {
                 accessError.code = 'ENOENT';
                 fs.access.withArgs('/root/broId/unusedTestId/2.png').rejects(accessError);
 
-                await removeUnusedScreens_({testplane, program, pluginConfig});
+                await removeUnusedScreens_({toolAdapter, program});
 
                 assert.calledOnceWith(logger.warn, sinon.match('Screen by path: "/root/broId/unusedTestId/2.png" is not found in your file system'));
                 assert.calledWith(logger.log, `Found ${chalk.green('0')} unused reference images out of ${chalk.bold('2')}`);
@@ -461,7 +455,7 @@ describe('lib/cli-commands/remove-unused-screens', () => {
                 findScreens.resolves(['/root/usedTestId/img.png', '/root/unusedTestId/img.png']);
                 identifyUnusedScreens.returns(['/root/unusedTestId/img.png']);
 
-                await removeUnusedScreens_({testplane, program, pluginConfig});
+                await removeUnusedScreens_({toolAdapter, program});
 
                 assert.calledWith(logger.log, `Found ${chalk.red('1')} unused reference images out of ${chalk.bold('2')}`);
             });

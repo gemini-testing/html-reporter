@@ -5,7 +5,6 @@ import url from 'url';
 import chalk from 'chalk';
 import {Router} from 'express';
 import fs from 'fs-extra';
-import type Testplane from 'testplane';
 import type {Test as TestplaneTest} from 'testplane';
 import _ from 'lodash';
 import tmp from 'tmp';
@@ -15,7 +14,6 @@ import {UPDATED, RUNNING, IDLE, SKIPPED, IMAGES_PATH, TestStatus, UNKNOWN_ATTEMP
 import type {HtmlReporter} from './plugin-api';
 import type {ReporterTestResult} from './test-adapter';
 import {
-    CustomGuiItem,
     TestplaneTestResult,
     ImageInfoWithState,
     ReporterConfig,
@@ -241,29 +239,6 @@ export function getDataForStaticFile(htmlReporter: HtmlReporter, pluginConfig: R
         apiValues: htmlReporter.values,
         date: new Date().toString()
     };
-}
-
-export async function initializeCustomGui(testplane: Testplane, {customGui}: ReporterConfig): Promise<void> {
-    await Promise.all(
-        _(customGui)
-            .flatMap<CustomGuiItem>(_.identity)
-            .map((ctx) => ctx.initialize?.({testplane, hermione: testplane, ctx}))
-            .value()
-    );
-}
-
-export interface CustomGuiActionPayload {
-    sectionName: string;
-    groupIndex: number;
-    controlIndex: number;
-}
-
-export async function runCustomGuiAction(testplane: Testplane, {customGui}: ReporterConfig, payload: CustomGuiActionPayload): Promise<void> {
-    const {sectionName, groupIndex, controlIndex} = payload;
-    const ctx = customGui[sectionName][groupIndex];
-    const control = ctx.controls[controlIndex];
-
-    await ctx.action({testplane, hermione: testplane, control, ctx});
 }
 
 export function getPluginClientScriptPath(pluginName: string): string | null {

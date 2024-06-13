@@ -2,34 +2,28 @@
 
 const EventEmitter2 = require('eventemitter2');
 const {GuiEvents} = require('lib/gui/constants/gui-events');
-const {Api} = require('lib/gui/api');
-const {stubTool} = require('../../../utils');
+const {GuiApi} = require('lib/gui/api');
 
-describe('lig/gui/api', () => {
+describe('lib/gui/api', () => {
     describe('constructor', () => {
-        it('should extend tool with gui api', () => {
-            const tool = stubTool();
+        it('should init gui api', () => {
+            const api = GuiApi.create();
 
-            Api.create(tool);
-
-            assert.instanceOf(tool.gui, EventEmitter2);
+            assert.instanceOf(api.gui, EventEmitter2);
         });
 
         it('should add events to gui api', () => {
-            const tool = stubTool();
+            const api = GuiApi.create();
 
-            Api.create(tool);
-
-            assert.deepEqual(tool.gui.events, GuiEvents);
+            assert.deepEqual(api.gui.events, GuiEvents);
         });
     });
 
     describe('initServer', () => {
         it('should emit "SERVER_INIT" event through gui api', () => {
-            const tool = stubTool();
-            const api = Api.create(tool);
+            const api = GuiApi.create();
             const onServerInit = sinon.spy().named('onServerInit');
-            tool.gui.on(GuiEvents.SERVER_INIT, onServerInit);
+            api.gui.on(GuiEvents.SERVER_INIT, onServerInit);
 
             api.initServer({foo: 'bar'});
 
@@ -39,10 +33,9 @@ describe('lig/gui/api', () => {
 
     describe('serverReady', () => {
         it('should emit "SERVER_READY" event through gui api', () => {
-            const tool = stubTool();
-            const api = Api.create(tool);
+            const api = GuiApi.create();
             const onServerReady = sinon.spy().named('onServerReady');
-            tool.gui.on(GuiEvents.SERVER_READY, onServerReady);
+            api.gui.on(GuiEvents.SERVER_READY, onServerReady);
 
             api.serverReady({url: 'http://my.server'});
 
