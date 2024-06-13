@@ -14,6 +14,10 @@ function stubConfig(config = {}) {
     return Object.assign(config, browserConfigs);
 }
 
+function stubReporterConfig(opts = {}) {
+    return _.defaults(opts, {path: 'default-path'});
+}
+
 const stubTestCollection = (testsTree = {}) => {
     return {
         eachTest: (cb) => {
@@ -31,6 +35,7 @@ function stubTool(config = stubConfig(), events = {}, errors = {}, htmlReporter)
 
     tool.run = sinon.stub().resolves(false);
     tool.readTests = sinon.stub().resolves(stubTestCollection());
+    tool.halt = sinon.stub();
     tool.htmlReporter = htmlReporter || sinon.createStubInstance(HtmlReporter);
     _.defaultsDeep(tool.htmlReporter, {
         emitAsync: sinon.stub(),
@@ -44,6 +49,29 @@ function stubTool(config = stubConfig(), events = {}, errors = {}, htmlReporter)
     sinon.stub(tool.htmlReporter, 'config').value({});
 
     return tool;
+}
+
+function stubToolAdapter({
+    config = stubConfig(), reporterConfig = stubReporterConfig(), testCollection = stubTestCollection(), htmlReporter
+} = {}) {
+    const toolAdapter = {
+        config,
+        reporterConfig,
+        htmlReporter: htmlReporter || sinon.createStubInstance(HtmlReporter),
+        run: sinon.stub().resolves(false),
+        readTests: sinon.stub().resolves(testCollection),
+        updateReference: sinon.stub(),
+        handleTestResults: sinon.stub(),
+        guiApi: {
+            initServer: sinon.stub(),
+            serverReady: sinon.stub()
+        }
+    };
+
+    sinon.stub(toolAdapter.htmlReporter, 'imagesSaver').value({saveImg: sinon.stub()});
+    sinon.stub(toolAdapter.htmlReporter, 'config').value({});
+
+    return toolAdapter;
 }
 
 function mkSuite(opts = {}) {
@@ -153,8 +181,10 @@ class ImageDiffError extends Error {
 
 module.exports = {
     stubConfig,
+    stubReporterConfig,
     stubTestCollection,
     stubTool,
+    stubToolAdapter,
     mkSuite,
     mkState,
     mkBrowserResult,

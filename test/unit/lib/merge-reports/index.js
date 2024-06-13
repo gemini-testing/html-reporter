@@ -2,17 +2,17 @@
 
 const _ = require('lodash');
 const proxyquire = require('proxyquire');
-const {stubTool, stubConfig} = require('../../utils');
+const {stubToolAdapter} = require('../../utils');
 const originalServerUtils = require('lib/server-utils');
 
 describe('lib/merge-reports', () => {
     const sandbox = sinon.sandbox.create();
     let htmlReporter, serverUtils, mergeReports, axiosStub;
 
-    const execMergeReports_ = async ({pluginConfig = stubConfig(), testplane = stubTool(stubConfig()), paths = [], opts = {}}) => {
+    const execMergeReports_ = async ({toolAdapter = stubToolAdapter(), paths = [], opts = {}}) => {
         opts = _.defaults(opts, {destination: 'default-dest-report/path'});
 
-        await mergeReports(pluginConfig, testplane, paths, opts);
+        await mergeReports(toolAdapter, paths, opts);
     };
 
     beforeEach(() => {
@@ -71,11 +71,10 @@ describe('lib/merge-reports', () => {
     });
 
     describe('should send headers to request json urls', () => {
-        let pluginConfig, testplane, paths, destPath;
+        let toolAdapter, paths, destPath;
 
         beforeEach(() => {
-            pluginConfig = stubConfig();
-            testplane = stubTool(pluginConfig, {}, {}, htmlReporter);
+            toolAdapter = stubToolAdapter({htmlReporter});
             paths = ['src-report/path-1.json'];
             destPath = 'dest-report/path';
         });
@@ -87,7 +86,7 @@ describe('lib/merge-reports', () => {
         it('from environment variable', async () => {
             process.env['html_reporter_headers'] = '{"foo":"bar","baz":"qux"}';
 
-            await execMergeReports_({pluginConfig, testplane, paths, opts: {destPath, headers: []}});
+            await execMergeReports_({toolAdapter, paths, opts: {destPath, headers: []}});
 
             assert.calledOnceWith(
                 axiosStub.get,
@@ -103,7 +102,7 @@ describe('lib/merge-reports', () => {
         it('from cli option', async () => {
             const headers = ['foo=bar', 'baz=qux'];
 
-            await execMergeReports_({pluginConfig, testplane, paths, opts: {destPath, headers}});
+            await execMergeReports_({toolAdapter, paths, opts: {destPath, headers}});
 
             assert.calledOnceWith(
                 axiosStub.get,
@@ -121,7 +120,7 @@ describe('lib/merge-reports', () => {
             const headers = ['foo=123', 'abc=def'];
             axiosStub.get.withArgs('src-report/path-1.json').resolves({data: {jsonUrls: ['src-report/path-2.json'], dbUrls: []}});
 
-            await execMergeReports_({pluginConfig, testplane, paths, opts: {destPath, headers}});
+            await execMergeReports_({toolAdapter, paths, opts: {destPath, headers}});
 
             assert.calledTwice(axiosStub.get);
             assert.calledWith(
@@ -146,20 +145,18 @@ describe('lib/merge-reports', () => {
     });
 
     it('should merge reports', async () => {
-        const pluginConfig = stubConfig();
-        const testplane = stubTool(pluginConfig, {}, {}, htmlReporter);
+        const toolAdapter = stubToolAdapter({htmlReporter});
         const paths = ['src-report/path-1.json', 'src-report/path-2.db'];
         const destPath = 'dest-report/path';
 
-        await execMergeReports_({pluginConfig, testplane, paths, opts: {destPath, headers: []}});
+        await execMergeReports_({toolAdapter, paths, opts: {destPath, headers: []}});
 
-        assert.calledOnceWith(serverUtils.saveStaticFilesToReportDir, testplane.htmlReporter, pluginConfig, destPath);
+        assert.calledOnceWith(serverUtils.saveStaticFilesToReportDir, toolAdapter.htmlReporter, toolAdapter.reporterConfig, destPath);
         assert.calledOnceWith(serverUtils.writeDatabaseUrlsFile, destPath, paths);
     });
 
     it('should resolve json urls while merging reports', async () => {
-        const pluginConfig = stubConfig();
-        const testplane = stubTool(pluginConfig, {}, {}, htmlReporter);
+        const toolAdapter = stubToolAdapter({htmlReporter});
         const paths = ['src-report/path-1.json'];
         const destPath = 'dest-report/path';
 
@@ -168,44 +165,42 @@ describe('lib/merge-reports', () => {
         axiosStub.get.withArgs('src-report/path-3.json').resolves({data: {jsonUrls: ['src-report/path-4.json'], dbUrls: ['path-3.db']}});
         axiosStub.get.withArgs('src-report/path-4.json').resolves({data: {jsonUrls: [], dbUrls: ['path-4.db']}});
 
-        await execMergeReports_({pluginConfig, testplane, paths, opts: {destPath, headers: []}});
+        await execMergeReports_({toolAdapter, paths, opts: {destPath, headers: []}});
 
         assert.calledOnceWith(serverUtils.writeDatabaseUrlsFile, destPath, ['path-1.db', 'path-2.db', 'path-3.db', 'path-4.db']);
     });
 
     it('should normalize urls while merging reports', async () => {
-        const pluginConfig = stubConfig();
-        const testplane = stubTool(pluginConfig, {}, {}, htmlReporter);
+        const toolAdapter = stubToolAdapter({htmlReporter});
         const paths = ['src-report/path-1.json'];
         const destPath = 'dest-report/path';
 
         axiosStub.get.withArgs('src-report/path-1.json').resolves({data: {jsonUrls: ['https://foo.bar/path-2.json']}});
         axiosStub.get.withArgs('https://foo.bar/path-2.json').resolves({data: {jsonUrls: [], dbUrls: ['sqlite.db']}});
 
-        await execMergeReports_({pluginConfig, testplane, paths, opts: {destPath, headers: []}});
+        await execMergeReports_({toolAdapter, paths, opts: {destPath, headers: []}});
 
         assert.calledOnceWith(serverUtils.writeDatabaseUrlsFile, destPath, ['https://foo.bar/sqlite.db']);
     });
 
     it('should fallback to json url while merging reports', async () => {
-        const pluginConfig = stubConfig();
-        const testplane = stubTool(pluginConfig, {}, {}, htmlReporter);
+        const toolAdapter = stubToolAdapter({htmlReporter});
         const paths = ['src-report/path-1.json'];
         const destPath = 'dest-report/path';
 
         axiosStub.get.rejects();
 
-        await execMergeReports_({pluginConfig, testplane, paths, opts: {destPath, headers: []}});
+        await execMergeReports_({toolAdapter, paths, opts: {destPath, headers: []}});
 
         assert.calledOnceWith(serverUtils.writeDatabaseUrlsFile, destPath, ['src-report/path-1.json']);
     });
 
     it('should emit REPORT_SAVED event', async () => {
-        const testplane = stubTool({}, {}, {}, htmlReporter);
+        const toolAdapter = stubToolAdapter({htmlReporter});
         const destPath = 'dest-report/path';
 
-        await execMergeReports_({pluginConfig: {}, testplane, paths: [''], opts: {destPath, headers: []}});
+        await execMergeReports_({toolAdapter, paths: [''], opts: {destPath, headers: []}});
 
-        assert.calledOnceWith(testplane.htmlReporter.emitAsync, 'reportSaved', {reportPath: destPath});
+        assert.calledOnceWith(toolAdapter.htmlReporter.emitAsync, 'reportSaved', {reportPath: destPath});
     });
 });

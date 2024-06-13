@@ -3,14 +3,14 @@
 const {EventEmitter} = require('events');
 const Promise = require('bluebird');
 const _ = require('lodash');
-const {subscribeOnToolEvents} = require('lib/gui/tool-runner/report-subscriber');
+const {handleTestResults} = require('lib/adapters/tool/testplane/test-results-handler');
 const {GuiReportBuilder} = require('lib/report-builder/gui');
 const {ClientEvents} = require('lib/gui/constants');
 const {stubTool, stubConfig} = require('test/unit/utils');
 const {TestplaneTestAdapter} = require('lib/test-adapter/testplane');
 const {UNKNOWN_ATTEMPT} = require('lib/constants');
 
-describe('lib/gui/tool-runner/testplane/report-subscriber', () => {
+describe('lib/adapters/tool/testplane/test-results-handler', () => {
     const sandbox = sinon.createSandbox();
     let reportBuilder;
     let client;
@@ -49,7 +49,7 @@ describe('lib/gui/tool-runner/testplane/report-subscriber', () => {
         it('should emit "END" event for client', () => {
             const testplane = mkTestplane_();
 
-            subscribeOnToolEvents(testplane, reportBuilder, client);
+            handleTestResults(testplane, reportBuilder, client);
 
             return testplane.emitAsync(testplane.events.RUNNER_END)
                 .then(() => assert.calledOnceWith(client.emit, ClientEvents.END));
@@ -62,7 +62,7 @@ describe('lib/gui/tool-runner/testplane/report-subscriber', () => {
 
             reportBuilder.addTestResult.callsFake(() => Promise.delay(100).then(mediator).then(() => ({id: 'some-id'})));
 
-            subscribeOnToolEvents(testplane, reportBuilder, client);
+            handleTestResults(testplane, reportBuilder, client);
             testplane.emit(testplane.events.TEST_FAIL, testResult);
             await testplane.emitAsync(testplane.events.RUNNER_END);
 
@@ -78,7 +78,7 @@ describe('lib/gui/tool-runner/testplane/report-subscriber', () => {
             reportBuilder.addTestResult.resolves({id: 'some-id'});
             reportBuilder.getTestBranch.withArgs('some-id').returns('test-tree-branch');
 
-            subscribeOnToolEvents(testplane, reportBuilder, client);
+            handleTestResults(testplane, reportBuilder, client);
             testplane.emit(testplane.events.TEST_BEGIN, testResult);
             await testplane.emitAsync(testplane.events.RUNNER_END);
 
@@ -91,7 +91,7 @@ describe('lib/gui/tool-runner/testplane/report-subscriber', () => {
             const testplane = mkTestplane_();
             const testResult = mkTestplaneTestResult();
 
-            subscribeOnToolEvents(testplane, reportBuilder, client);
+            handleTestResults(testplane, reportBuilder, client);
             await testplane.emitAsync(testplane.events.TEST_PENDING, testResult);
             await testplane.emitAsync(testplane.events.RUNNER_END);
 
@@ -108,7 +108,7 @@ describe('lib/gui/tool-runner/testplane/report-subscriber', () => {
 
             reportBuilder.getTestBranch.withArgs('some-id').returns('test-tree-branch');
 
-            subscribeOnToolEvents(testplane, reportBuilder, client);
+            handleTestResults(testplane, reportBuilder, client);
             await testplane.emitAsync(testplane.events.TEST_PENDING, testResult);
             await testplane.emitAsync(testplane.events.RUNNER_END);
 
@@ -123,7 +123,7 @@ describe('lib/gui/tool-runner/testplane/report-subscriber', () => {
 
             reportBuilder.getTestBranch.withArgs('some-id').returns('test-tree-branch');
 
-            subscribeOnToolEvents(testplane, reportBuilder, client);
+            handleTestResults(testplane, reportBuilder, client);
             testplane.emit(testplane.events.TEST_FAIL, testResult);
             await testplane.emitAsync(testplane.events.RUNNER_END);
 

@@ -6,14 +6,14 @@ import _ from 'lodash';
 import PQueue from 'p-queue';
 import {CommanderStatic} from '@gemini-testing/commander';
 
-import {cliCommands} from './lib/cli-commands';
+import {TestplaneToolAdapter} from './lib/adapters/tool/testplane';
+import {commands as cliCommands} from './lib/cli';
 import {parseConfig} from './lib/config';
 import {ToolName} from './lib/constants';
-import {HtmlReporter} from './lib/plugin-api';
 import {StaticReportBuilder} from './lib/report-builder/static';
 import {formatTestResult, logPathToHtmlReport, logError, getExpectedCacheKey} from './lib/server-utils';
 import {SqliteClient} from './lib/sqlite-client';
-import {HtmlReporterApi, ReporterOptions, TestSpecByPath} from './lib/types';
+import {ReporterOptions, TestSpecByPath} from './lib/types';
 import {createWorkers, CreateWorkersRunner} from './lib/workers/create-workers';
 import {SqliteImageStore} from './lib/image-store';
 import {Cache} from './lib/cache';
@@ -31,9 +31,8 @@ export default (testplane: Testplane, opts: Partial<ReporterOptions>): void => {
         return;
     }
 
-    const htmlReporter = HtmlReporter.create(config, {toolName: ToolName.Testplane});
-
-    (testplane as Testplane & HtmlReporterApi).htmlReporter = htmlReporter;
+    const toolAdapter = TestplaneToolAdapter.create({toolName: ToolName.Testplane, tool: testplane, reporterConfig: config});
+    const {htmlReporter} = toolAdapter;
 
     let isCliCommandLaunched = false;
     let handlingTestResults: Promise<void>;
@@ -54,7 +53,7 @@ export default (testplane: Testplane, opts: Partial<ReporterOptions>): void => {
     testplane.on(testplane.events.CLI, (commander: CommanderStatic) => {
         _.values(cliCommands).forEach((command: string) => {
             // eslint-disable-next-line @typescript-eslint/no-var-requires
-            require(path.resolve(__dirname, 'lib/cli-commands', command))(commander, config, testplane);
+            require(path.resolve(__dirname, 'lib/cli/commands', command))(commander, toolAdapter);
 
             commander.prependListener(`command:${command}`, () => {
                 isCliCommandLaunched = true;

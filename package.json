@@ -56,6 +56,9 @@
     "plugin",
     "html-reporter"
   ],
+  "bin": {
+    "html-reporter": "./bin/html-reporter"
+  },
   "homepage": "https://github.com/gemini-testing/html-reporter#readme",
   "license": "MIT",
   "peerDependencies": {

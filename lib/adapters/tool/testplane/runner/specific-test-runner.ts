@@ -1,5 +1,6 @@
 import type {TestCollection} from 'testplane';
-import {BaseRunner, TestSpec} from './runner';
+import {BaseRunner} from './runner';
+import type {TestSpec} from '../../types';
 
 export class SpecificTestRunner extends BaseRunner {
     private _tests: TestSpec[];

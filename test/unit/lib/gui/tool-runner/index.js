@@ -7,7 +7,7 @@ const proxyquire = require('proxyquire');
 const {GuiReportBuilder} = require('lib/report-builder/gui');
 const {LOCAL_DATABASE_NAME} = require('lib/constants/database');
 const {logger} = require('lib/common-utils');
-const {stubTool, stubConfig, mkImagesInfo, mkState, mkSuite} = require('test/unit/utils');
+const {stubToolAdapter, stubConfig, stubReporterConfig, mkImagesInfo, mkState, mkSuite} = require('test/unit/utils');
 const {SqliteClient} = require('lib/sqlite-client');
 const {PluginEvents, TestStatus, UPDATED} = require('lib/constants');
 const {Cache} = require('lib/cache');
@@ -16,12 +16,10 @@ describe('lib/gui/tool-runner/index', () => {
     const sandbox = sinon.createSandbox();
     let reportBuilder;
     let ToolGuiReporter;
-    let subscribeOnToolEvents;
-    let testplane;
+    let toolAdapter;
     let getTestsTreeFromDatabase;
     let looksSame;
     let toolRunnerUtils;
-    let createTestRunner;
     let getReferencePath;
     let reporterHelpers;
 
@@ -40,37 +38,21 @@ describe('lib/gui/tool-runner/index', () => {
         }));
     };
 
-    const mkToolCliOpts_ = (globalCliOpts = {name: () => 'testplane'}, guiCliOpts = {}) => {
-        return {program: globalCliOpts, options: guiCliOpts};
-    };
-    const mkPluginConfig_ = (config = {}) => {
-        const pluginConfig = _.defaults(config, {path: 'default-path'});
-        return {pluginConfig};
-    };
-
-    const mkTestplane_ = (config, testsTree) => {
-        const testplane = stubTool(config, {UPDATE_REFERENCE: 'updateReference'});
-        sandbox.stub(testplane, 'emit');
-        testplane.readTests.resolves(mkTestCollection_(testsTree));
-
-        return testplane;
-    };
-
-    const initGuiReporter = (testplane, opts = {}) => {
+    const initGuiReporter = (opts = {}) => {
         opts = _.defaults(opts, {
+            toolAdapter: stubToolAdapter(),
             paths: [],
-            configs: {}
+            cli: {
+                tool: {},
+                options: {}
+            }
         });
 
-        const configs = _.defaults(opts.configs, mkToolCliOpts_(), mkPluginConfig_());
-
-        return ToolGuiReporter.create(opts.paths, testplane, configs);
+        return ToolGuiReporter.create(opts);
     };
 
     beforeEach(() => {
-        testplane = stubTool();
-
-        createTestRunner = sandbox.stub();
+        toolAdapter = stubToolAdapter();
 
         toolRunnerUtils = {
             findTestResult: sandbox.stub(),
@@ -81,7 +63,6 @@ describe('lib/gui/tool-runner/index', () => {
         reportBuilder.addTestResult.callsFake(_.identity);
         reportBuilder.provideAttempt.callsFake(_.identity);
 
-        subscribeOnToolEvents = sandbox.stub().named('reportSubscriber').resolves();
         looksSame = sandbox.stub().named('looksSame').resolves({equal: true});
 
         sandbox.stub(GuiReportBuilder, 'create').returns(reportBuilder);
@@ -107,8 +88,6 @@ describe('lib/gui/tool-runner/index', () => {
 
         ToolGuiReporter = proxyquire(`lib/gui/tool-runner`, {
             'looks-same': looksSame,
-            './runner': {createTestRunner},
-            './report-subscriber': {subscribeOnToolEvents},
             './utils': toolRunnerUtils,
             '../../sqlite-client': {SqliteClient: {create: () => sandbox.createStubInstance(SqliteClient)}},
             '../../db-utils/server': {getTestsTreeFromDatabase},
@@ -123,9 +102,9 @@ describe('lib/gui/tool-runner/index', () => {
     describe('initialize', () => {
         it('should set values added through api', () => {
             const htmlReporter = {emit: sandbox.stub(), values: {foo: 'bar'}, config: {}, imagesSaver: {}};
-            testplane = stubTool(stubConfig(), {}, {}, htmlReporter);
+            toolAdapter = stubToolAdapter({htmlReporter});
 
-            const gui = initGuiReporter(testplane);
+            const gui = initGuiReporter({toolAdapter});
 
             return gui.initialize()
                 .then(() => assert.calledWith(reportBuilder.setApiValues, {foo: 'bar'}));
@@ -133,109 +112,34 @@ describe('lib/gui/tool-runner/index', () => {
 
         describe('correctly pass options to "readTests" method', () => {
             it('should pass "paths" option', () => {
-                const gui = initGuiReporter(testplane, {paths: ['foo', 'bar']});
+                const gui = initGuiReporter({toolAdapter, paths: ['foo', 'bar']});
 
                 return gui.initialize()
-                    .then(() => assert.calledOnceWith(testplane.readTests, ['foo', 'bar']));
+                    .then(() => assert.calledOnceWith(toolAdapter.readTests, ['foo', 'bar']));
             });
 
-            it('should pass "grep", "sets" and "browsers" options', () => {
-                const grep = 'foo';
-                const set = 'bar';
-                const browser = 'yabro';
+            it('should pass cli options', () => {
+                const cliTool = {grep: 'foo', set: 'bar', browser: 'yabro'};
 
-                const gui = initGuiReporter(testplane, {
-                    configs: {
-                        program: {grep, set, browser}
+                const gui = initGuiReporter({
+                    toolAdapter,
+                    cli: {
+                        tool: cliTool,
+                        options: {}
                     }
                 });
 
                 return gui.initialize()
                     .then(() => {
-                        assert.calledOnceWith(testplane.readTests, sinon.match.any, sinon.match({grep, sets: set, browsers: browser}));
+                        assert.calledOnceWith(toolAdapter.readTests, sinon.match.any, cliTool);
                     });
-            });
-
-            describe('"replMode" option', () => {
-                it('should be disabled by default', async () => {
-                    const gui = initGuiReporter(testplane, {
-                        configs: {
-                            program: {}
-                        }
-                    });
-
-                    await gui.initialize();
-
-                    assert.calledOnceWith(testplane.readTests, sinon.match.any, sinon.match({
-                        replMode: {
-                            enabled: false,
-                            beforeTest: false,
-                            onFail: false
-                        }
-                    }));
-                });
-
-                it('should be enabled when specify "repl" flag', async () => {
-                    const gui = initGuiReporter(testplane, {
-                        configs: {
-                            program: {repl: true}
-                        }
-                    });
-
-                    await gui.initialize();
-
-                    assert.calledOnceWith(testplane.readTests, sinon.match.any, sinon.match({
-                        replMode: {
-                            enabled: true,
-                            beforeTest: false,
-                            onFail: false
-                        }
-                    }));
-                });
-
-                it('should be enabled when specify "beforeTest" flag', async () => {
-                    const gui = initGuiReporter(testplane, {
-                        configs: {
-                            program: {replBeforeTest: true}
-                        }
-                    });
-
-                    await gui.initialize();
-
-                    assert.calledOnceWith(testplane.readTests, sinon.match.any, sinon.match({
-                        replMode: {
-                            enabled: true,
-                            beforeTest: true,
-                            onFail: false
-                        }
-                    }));
-                });
-
-                it('should be enabled when specify "onFail" flag', async () => {
-                    const gui = initGuiReporter(testplane, {
-                        configs: {
-                            program: {replOnFail: true}
-                        }
-                    });
-
-                    await gui.initialize();
-
-                    assert.calledOnceWith(testplane.readTests, sinon.match.any, sinon.match({
-                        replMode: {
-                            enabled: true,
-                            beforeTest: false,
-                            onFail: true
-                        }
-                    }));
-                });
             });
         });
 
         it('should not add disabled test to report', () => {
-            const testplane = stubTool();
-            testplane.readTests.resolves(mkTestCollection_({bro: stubTest_({disabled: true})}));
+            toolAdapter.readTests.resolves(mkTestCollection_({bro: stubTest_({disabled: true})}));
 
-            const gui = initGuiReporter(testplane, {paths: ['foo']});
+            const gui = initGuiReporter({toolAdapter, paths: ['foo']});
 
             return gui.initialize()
                 .then(() => {
@@ -244,10 +148,9 @@ describe('lib/gui/tool-runner/index', () => {
         });
 
         it('should not add silently skipped test to report', () => {
-            const testplane = stubTool();
-            testplane.readTests.resolves(mkTestCollection_({bro: stubTest_({silentSkip: true})}));
+            toolAdapter.readTests.resolves(mkTestCollection_({bro: stubTest_({silentSkip: true})}));
 
-            const gui = initGuiReporter(testplane, {paths: ['foo']});
+            const gui = initGuiReporter({toolAdapter, paths: ['foo']});
 
             return gui.initialize()
                 .then(() => {
@@ -256,12 +159,10 @@ describe('lib/gui/tool-runner/index', () => {
         });
 
         it('should not add test from silently skipped suite to report', () => {
-            const testplane = stubTool();
             const silentlySkippedSuite = mkSuite({silentSkip: true});
+            toolAdapter.readTests.resolves(mkTestCollection_({bro: stubTest_({parent: silentlySkippedSuite})}));
 
-            testplane.readTests.resolves(mkTestCollection_({bro: stubTest_({parent: silentlySkippedSuite})}));
-
-            const gui = initGuiReporter(testplane, {paths: ['foo']});
+            const gui = initGuiReporter({toolAdapter, paths: ['foo']});
 
             return gui.initialize()
                 .then(() => {
@@ -270,131 +171,130 @@ describe('lib/gui/tool-runner/index', () => {
         });
 
         it('should add skipped test to report', () => {
-            const testplane = stubTool();
-            testplane.readTests.resolves(mkTestCollection_({bro: stubTest_({pending: true})}));
+            toolAdapter.readTests.resolves(mkTestCollection_({bro: stubTest_({pending: true})}));
 
-            const gui = initGuiReporter(testplane, {paths: ['foo']});
+            const gui = initGuiReporter({toolAdapter, paths: ['foo']});
 
             return gui.initialize()
                 .then(() => assert.calledOnce(reportBuilder.addTestResult));
         });
 
         it('should add idle test to report', () => {
-            const testplane = stubTool();
-            testplane.readTests.resolves(mkTestCollection_({bro: stubTest_()}));
+            toolAdapter.readTests.resolves(mkTestCollection_({bro: stubTest_()}));
 
-            const gui = initGuiReporter(testplane, {paths: ['foo']});
+            const gui = initGuiReporter({toolAdapter, paths: ['foo']});
 
             return gui.initialize()
                 .then(() => assert.calledOnce(reportBuilder.addTestResult));
         });
 
-        it('should subscribe on events before read tests', () => {
-            const testplane = stubTool();
-            testplane.readTests.resolves(mkTestCollection_({bro: stubTest_()}));
+        it('should handle test results before read tests', () => {
+            toolAdapter.readTests.resolves(mkTestCollection_({bro: stubTest_()}));
 
-            const gui = initGuiReporter(testplane, {paths: ['foo']});
+            const gui = initGuiReporter({toolAdapter, paths: ['foo']});
 
             return gui.initialize()
-                .then(() => assert.callOrder(subscribeOnToolEvents, testplane.readTests));
+                .then(() => assert.callOrder(toolAdapter.handleTestResults, toolAdapter.readTests));
         });
 
         it('should initialize report builder after read tests for the correct order of events', async () => {
-            const testplane = stubTool();
-            testplane.readTests.resolves(mkTestCollection_({bro: stubTest_()}));
-            const gui = initGuiReporter(testplane, {paths: ['foo']});
+            toolAdapter.readTests.resolves(mkTestCollection_({bro: stubTest_()}));
+            const gui = initGuiReporter({toolAdapter, paths: ['foo']});
 
             await gui.initialize();
 
-            assert.callOrder(testplane.readTests, testplane.htmlReporter.emit);
-            assert.calledOnceWith(testplane.htmlReporter.emit, PluginEvents.DATABASE_CREATED, sinon.match.any);
+            assert.callOrder(toolAdapter.readTests, toolAdapter.htmlReporter.emit);
+            assert.calledOnceWith(toolAdapter.htmlReporter.emit, PluginEvents.DATABASE_CREATED, sinon.match.any);
         });
     });
 
     describe('updateReferenceImage', () => {
-        describe('should emit "UPDATE_REFERENCE" event', () => {
-            it('should emit "UPDATE_REFERENCE" event with state and reference data', async () => {
-                const testRefUpdateData = [{
-                    id: 'some-id',
-                    fullTitle: () => 'some-title',
-                    browserId: 'yabro',
-                    suite: {path: ['suite1']},
-                    state: {},
-                    metaInfo: {},
-                    imagesInfo: [{
+        it('should update reference for one image', async () => {
+            const testRefUpdateData = [{
+                id: 'some-id',
+                fullTitle: () => 'some-title',
+                browserId: 'yabro',
+                suite: {path: ['suite1']},
+                state: {},
+                metaInfo: {},
+                imagesInfo: [{
+                    status: UPDATED,
+                    stateName: 'plain1',
+                    actualImg: {
+                        size: {height: 100, width: 200}
+                    }
+                }]
+            }];
+
+            const getScreenshotPath = sandbox.stub().returns('/ref/path1');
+            const config = stubConfig({
+                browsers: {yabro: {getScreenshotPath}}
+            });
+
+            const testCollection = mkTestCollection_({'some-title.yabro': testRefUpdateData[0]});
+            const toolAdapter = stubToolAdapter({config, testCollection});
+
+            const gui = initGuiReporter({toolAdapter});
+            await gui.initialize();
+
+            await gui.updateReferenceImage(testRefUpdateData);
+
+            assert.calledOnceWith(toolAdapter.updateReference, {
+                refImg: {path: '/ref/path1', size: {height: 100, width: 200}},
+                state: 'plain1'
+            });
+        });
+
+        it('should update reference for each image', async () => {
+            const tests = [{
+                id: 'some-id',
+                fullTitle: () => 'some-title',
+                browserId: 'yabro',
+                suite: {path: ['suite1']},
+                state: {},
+                metaInfo: {},
+                imagesInfo: [
+                    {
                         status: UPDATED,
                         stateName: 'plain1',
                         actualImg: {
                             size: {height: 100, width: 200}
                         }
-                    }]
-                }];
+                    },
+                    {
+                        status: UPDATED,
+                        stateName: 'plain2',
+                        actualImg: {
+                            size: {height: 200, width: 300}
+                        }
+                    }
+                ]
+            }];
 
-                const getScreenshotPath = sandbox.stub().returns('/ref/path1');
-                const config = stubConfig({
-                    browsers: {yabro: {getScreenshotPath}}
-                });
-                const testplane = mkTestplane_(config, {'some-title.yabro': testRefUpdateData[0]});
-                const gui = initGuiReporter(testplane, {pluginConfig: {path: 'report-path'}});
-                await gui.initialize();
+            const getScreenshotPath = sandbox.stub()
+                .onFirstCall().returns('/ref/path1')
+                .onSecondCall().returns('/ref/path2');
 
-                await gui.updateReferenceImage(testRefUpdateData);
-
-                assert.calledOnceWith(testplane.emit, 'updateReference', {
-                    refImg: {path: '/ref/path1', size: {height: 100, width: 200}},
-                    state: 'plain1'
-                });
+            const config = stubConfig({
+                browsers: {yabro: {getScreenshotPath}}
             });
 
-            it('for each image info', async () => {
-                const tests = [{
-                    id: 'some-id',
-                    fullTitle: () => 'some-title',
-                    browserId: 'yabro',
-                    suite: {path: ['suite1']},
-                    state: {},
-                    metaInfo: {},
-                    imagesInfo: [
-                        {
-                            status: UPDATED,
-                            stateName: 'plain1',
-                            actualImg: {
-                                size: {height: 100, width: 200}
-                            }
-                        },
-                        {
-                            status: UPDATED,
-                            stateName: 'plain2',
-                            actualImg: {
-                                size: {height: 200, width: 300}
-                            }
-                        }
-                    ]
-                }];
+            const testCollection = mkTestCollection_({'some-title.yabro': tests[0]});
+            const toolAdapter = stubToolAdapter({config, testCollection});
 
-                const getScreenshotPath = sandbox.stub()
-                    .onFirstCall().returns('/ref/path1')
-                    .onSecondCall().returns('/ref/path2');
+            const gui = initGuiReporter({toolAdapter});
+            await gui.initialize();
 
-                const config = stubConfig({
-                    browsers: {yabro: {getScreenshotPath}}
-                });
+            await gui.updateReferenceImage(tests);
 
-                const testplane = mkTestplane_(config, {'some-title.yabro': tests[0]});
-                const gui = initGuiReporter(testplane);
-                await gui.initialize();
-
-                await gui.updateReferenceImage(tests);
-
-                assert.calledTwice(testplane.emit);
-                assert.calledWith(testplane.emit.firstCall, 'updateReference', {
-                    refImg: {path: '/ref/path1', size: {height: 100, width: 200}},
-                    state: 'plain1'
-                });
-                assert.calledWith(testplane.emit.secondCall, 'updateReference', {
-                    refImg: {path: '/ref/path2', size: {height: 200, width: 300}},
-                    state: 'plain2'
-                });
+            assert.calledTwice(toolAdapter.updateReference);
+            assert.calledWith(toolAdapter.updateReference.firstCall, {
+                refImg: {path: '/ref/path1', size: {height: 100, width: 200}},
+                state: 'plain1'
+            });
+            assert.calledWith(toolAdapter.updateReference.secondCall, {
+                refImg: {path: '/ref/path2', size: {height: 200, width: 300}},
+                state: 'plain2'
             });
         });
     });
@@ -429,8 +329,11 @@ describe('lib/gui/tool-runner/index', () => {
             const config = stubConfig({
                 browsers: {yabro: {getScreenshotPath}}
             });
-            const testplane = mkTestplane_(config, {'some-title.yabro': tests[0]});
-            const gui = initGuiReporter(testplane);
+
+            const testCollection = mkTestCollection_({'some-title.yabro': tests[0]});
+            const toolAdapter = stubToolAdapter({config, testCollection});
+
+            const gui = initGuiReporter({toolAdapter});
             await gui.initialize();
 
             return {gui, tests};
@@ -477,8 +380,11 @@ describe('lib/gui/tool-runner/index', () => {
         let compareOpts;
 
         beforeEach(() => {
-            testplane = stubTool(stubConfig({tolerance: 100500, antialiasingTolerance: 500100}));
-            testplane.readTests.resolves(mkTestCollection_());
+            toolAdapter = stubToolAdapter({
+                config: stubConfig({tolerance: 100500, antialiasingTolerance: 500100}),
+                reporterConfig: stubReporterConfig({path: 'report_path'})
+            });
+            toolAdapter.readTests.resolves(mkTestCollection_());
 
             compareOpts = {
                 tolerance: 100500,
@@ -491,7 +397,7 @@ describe('lib/gui/tool-runner/index', () => {
         });
 
         it('should stop comparison on first diff in reference images', async () => {
-            const gui = initGuiReporter(testplane, {configs: mkPluginConfig_({path: 'report_path'})});
+            const gui = initGuiReporter({toolAdapter});
             const refImagesInfo = mkImagesInfo({expectedImg: {path: 'ref-path-1'}});
             const comparedImagesInfo = [mkImagesInfo({expectedImg: {path: 'ref-path-2'}})];
 
@@ -513,7 +419,7 @@ describe('lib/gui/tool-runner/index', () => {
         });
 
         it('should stop comparison on diff in actual images', async () => {
-            const gui = initGuiReporter(testplane, {configs: mkPluginConfig_({path: 'report_path'})});
+            const gui = initGuiReporter({toolAdapter});
             const refImagesInfo = mkImagesInfo({actualImg: {path: 'act-path-1'}});
             const comparedImagesInfo = [mkImagesInfo({actualImg: {path: 'act-path-2'}})];
 
@@ -536,7 +442,7 @@ describe('lib/gui/tool-runner/index', () => {
         });
 
         it('should compare each diff cluster', async () => {
-            const gui = initGuiReporter(testplane, {configs: mkPluginConfig_({path: 'report_path'})});
+            const gui = initGuiReporter({toolAdapter});
             const refImagesInfo = mkImagesInfo({
                 diffClusters: [
                     {left: 0, top: 0, right: 5, bottom: 5},
@@ -559,7 +465,7 @@ describe('lib/gui/tool-runner/index', () => {
         });
 
         it('should return all found image ids with equal diffs', async () => {
-            const gui = initGuiReporter(testplane);
+            const gui = initGuiReporter({toolAdapter});
             const refImagesInfo = {...mkImagesInfo(), id: 'selected-img-1'};
             const comparedImagesInfo = [
                 {...mkImagesInfo(), id: 'compared-img-2'},
@@ -576,89 +482,24 @@ describe('lib/gui/tool-runner/index', () => {
     });
 
     describe('run', () => {
-        let runner;
-        let collection;
+        it('should run tool with passed opts', async () => {
+            const cliTool = {grep: /some-grep/, set: 'some-set', browser: 'yabro', devtools: true};
+            const collection = mkTestCollection_();
+            toolAdapter.readTests.resolves(collection);
 
-        beforeEach(() => {
-            runner = {run: sandbox.stub().resolves()};
-            collection = mkTestCollection_();
-            createTestRunner.withArgs(collection).returns(runner);
-            testplane.readTests.resolves(collection);
-        });
+            const gui = initGuiReporter({toolAdapter, cli: {tool: cliTool, options: {}}});
+            const tests = [];
 
-        describe('should run testplane with', () => {
-            const run_ = async (globalCliOpts = {}) => {
-                const configs = {...mkPluginConfig_(), ...mkToolCliOpts_(globalCliOpts)};
-                const gui = ToolGuiReporter.create([], testplane, configs);
+            await gui.initialize();
+            await gui.run(tests);
 
-                await gui.initialize();
-                await gui.run();
-
-                const runHandler = runner.run.firstCall.args[0];
-                runHandler(collection);
-            };
-
-            it('passed opts', async () => {
-                await run_({grep: /some-grep/, set: 'some-set', browser: 'yabro', devtools: true});
-
-                assert.calledOnceWith(testplane.run, collection, sinon.match({grep: /some-grep/, sets: 'some-set', browsers: 'yabro', devtools: true}));
-            });
-
-            describe('"replMode" option', () => {
-                it('should be disabled by default', async () => {
-                    await run_();
-
-                    assert.calledOnceWith(testplane.run, collection, sinon.match({
-                        replMode: {
-                            enabled: false,
-                            beforeTest: false,
-                            onFail: false
-                        }
-                    }));
-                });
-
-                it('should be enabled when specify "repl" flag', async () => {
-                    await run_({repl: true});
-
-                    assert.calledOnceWith(testplane.run, collection, sinon.match({
-                        replMode: {
-                            enabled: true,
-                            beforeTest: false,
-                            onFail: false
-                        }
-                    }));
-                });
-
-                it('should be enabled when specify "beforeTest" flag', async () => {
-                    await run_({replBeforeTest: true});
-
-                    assert.calledOnceWith(testplane.run, collection, sinon.match({
-                        replMode: {
-                            enabled: true,
-                            beforeTest: true,
-                            onFail: false
-                        }
-                    }));
-                });
-
-                it('should be enabled when specify "onFail" flag', async () => {
-                    await run_({replOnFail: true});
-
-                    assert.calledOnceWith(testplane.run, collection, sinon.match({
-                        replMode: {
-                            enabled: true,
-                            beforeTest: false,
-                            onFail: true
-                        }
-                    }));
-                });
-            });
+            assert.calledOnceWith(toolAdapter.run, collection, tests, cliTool);
         });
     });
 
-    describe('finalize testplane', () => {
+    describe('finalize tool', () => {
         it('should call reportBuilder.finalize', async () => {
-            const gui = initGuiReporter(testplane);
+            const gui = initGuiReporter({toolAdapter});
 
             await gui.initialize();
             gui.finalize();
@@ -670,9 +511,11 @@ describe('lib/gui/tool-runner/index', () => {
     describe('reuse tests tree from database', () => {
         let gui;
         let dbPath;
+        let toolAdapter;
 
         beforeEach(() => {
-            gui = initGuiReporter(testplane, {configs: mkPluginConfig_({path: 'report_path'})});
+            toolAdapter = stubToolAdapter({reporterConfig: stubReporterConfig({path: 'report_path'})});
+            gui = initGuiReporter({toolAdapter});
             dbPath = path.resolve('report_path', LOCAL_DATABASE_NAME);
 
             sandbox.stub(fs, 'pathExists').withArgs(dbPath).resolves(false);
@@ -716,8 +559,7 @@ describe('lib/gui/tool-runner/index', () => {
 
             it('"autoRun" from gui options', async () => {
                 const guiOpts = {autoRun: true};
-                const configs = {...mkPluginConfig_(), ...mkToolCliOpts_({}, guiOpts)};
-                const gui = ToolGuiReporter.create([], testplane, configs);
+                const gui = initGuiReporter({toolAdapter, cli: {options: guiOpts}});
 
                 await gui.initialize();
 

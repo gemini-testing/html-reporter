@@ -2,28 +2,25 @@ import {Response} from 'express';
 import _ from 'lodash';
 
 import {ToolRunner, ToolRunnerTree, UndoAcceptImagesResult} from './tool-runner';
-import {HtmlReporterApi} from '../types';
-import type Testplane from 'testplane';
-import type {Config} from 'testplane';
-import {GuiConfigs} from './index';
-import {TestSpec} from './tool-runner/runner/runner';
 import {TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../tests-tree-builder/gui';
 
-type BrowserConfig = ReturnType<Config['forBrowser']>;
+import type {Config} from 'testplane';
+import type {ServerArgs} from './index';
+import type {TestSpec} from '../adapters/tool/types';
 
-type AppArgs = [paths: string[], testplane: Testplane & HtmlReporterApi, configs: GuiConfigs];
+type BrowserConfig = ReturnType<Config['forBrowser']>;
 
 export class App {
     private _toolRunner: ToolRunner;
     private _browserConfigs: BrowserConfig[];
     private _retryCache: Record<string, number>;
 
-    static create<T extends App>(this: new (...args: AppArgs) => T, ...args: AppArgs): T {
-        return new this(...args);
+    static create<T extends App>(this: new (args: ServerArgs) => T, args: ServerArgs): T {
+        return new this(args);
     }
 
-    constructor(...[paths, testplane, configs]: AppArgs) {
-        this._toolRunner = ToolRunner.create(paths, testplane, configs);
+    constructor(args: ServerArgs) {
+        this._toolRunner = ToolRunner.create(args);
 
         this._browserConfigs = [];
         this._retryCache = {};

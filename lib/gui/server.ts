@@ -7,15 +7,21 @@ import {INTERNAL_SERVER_ERROR, OK} from 'http-codes';
 
 import {App} from './app';
 import {MAX_REQUEST_SIZE, KEEP_ALIVE_TIMEOUT, HEADERS_TIMEOUT} from './constants';
-import {initializeCustomGui, runCustomGuiAction} from '../server-utils';
 import {logger} from '../common-utils';
 import {initPluginsRoutes} from './routes/plugins';
 import {ServerArgs} from './index';
 import {ServerReadyData} from './api';
+import {ToolName} from '../constants';
 
-export const start = async ({paths, testplane, guiApi, configs}: ServerArgs): Promise<ServerReadyData> => {
-    const {options, pluginConfig} = configs;
-    const app = App.create(paths, testplane, configs);
+export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
+    const {toolAdapter} = args;
+    const {reporterConfig, guiApi} = toolAdapter;
+
+    if (!guiApi) {
+        throw new Error('Gui API must be initialized before starting gui server');
+    }
+
+    const app = App.create(args);
     const server = express();
 
     server.use(bodyParser.json({limit: MAX_REQUEST_SIZE}));
@@ -23,10 +29,10 @@ export const start = async ({paths, testplane, guiApi, configs}: ServerArgs): Pr
     await guiApi.initServer(server);
 
     // allow plugins to precede default server routes
-    server.use(initPluginsRoutes(express.Router(), pluginConfig));
+    server.use(initPluginsRoutes(express.Router(), reporterConfig));
 
     server.use(express.static(path.join(__dirname, '../static'), {index: 'gui.html'}));
-    server.use(express.static(path.join(process.cwd(), pluginConfig.path)));
+    server.use(express.static(path.join(process.cwd(), reporterConfig.path)));
 
     server.get('/', (_req, res) => res.sendFile(path.join(__dirname, '../static', 'gui.html')));
 
@@ -42,7 +48,10 @@ export const start = async ({paths, testplane, guiApi, configs}: ServerArgs): Pr
 
     server.get('/init', async (_req, res) => {
         try {
-            await initializeCustomGui(testplane, pluginConfig);
+            if (toolAdapter.toolName === ToolName.Testplane) {
+                await toolAdapter.initGuiHandler();
+            }
+
             res.json(app.data);
         } catch (e: unknown) {
             const error = e as Error;
@@ -73,7 +82,10 @@ export const start = async ({paths, testplane, guiApi, configs}: ServerArgs): Pr
 
     server.post('/run-custom-gui-action', async ({body: payload}, res) => {
         try {
-            await runCustomGuiAction(testplane, pluginConfig, payload);
+            if (toolAdapter.toolName === ToolName.Testplane) {
+                await toolAdapter.runCustomGuiAction(payload);
+            }
+
             res.sendStatus(OK);
         } catch (e) {
             res.status(INTERNAL_SERVER_ERROR).send(`Error while running custom gui action: ${(e as Error).message}`);
@@ -127,7 +139,7 @@ export const start = async ({paths, testplane, guiApi, configs}: ServerArgs): Pr
     server.post('/stop', (_req, res) => {
         try {
             // pass 0 to prevent terminating testplane process
-            testplane.halt(new Error('Tests were stopped by the user'), 0);
+            toolAdapter.halt(new Error('Tests were stopped by the user'), 0);
             res.sendStatus(OK);
         } catch (e) {
             res.status(INTERNAL_SERVER_ERROR).send(`Error while stopping tests: ${(e as Error).message}`);
@@ -136,7 +148,7 @@ export const start = async ({paths, testplane, guiApi, configs}: ServerArgs): Pr
 
     await app.initialize();
 
-    const {port, hostname} = options;
+    const {port, hostname} = args.cli.options;
     await BluebirdPromise.fromCallback((callback) => {
         const httpServer = server.listen(port, hostname, callback as () => void);
         httpServer.keepAliveTimeout = KEEP_ALIVE_TIMEOUT;
