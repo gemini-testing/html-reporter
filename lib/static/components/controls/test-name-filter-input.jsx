@@ -25,7 +25,7 @@ const TestNameFilterInput = ({actions, testNameFilter: testNameFilterProp}) => {
         <input
             className="filter__input-name"
             value={testNameFilter}
-            placeholder="filter by test name"
+            placeholder="Filter by test name or regexp"
             onChange={onChange}
             data-test-id="header-test-name-filter"
         />
