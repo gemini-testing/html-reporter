@@ -18,7 +18,7 @@ import {createWorkers, CreateWorkersRunner} from './lib/workers/create-workers';
 import {SqliteImageStore} from './lib/image-store';
 import {Cache} from './lib/cache';
 import {ImagesInfoSaver} from './lib/images-info-saver';
-import {getStatus} from './lib/test-adapter/testplane';
+import {getStatus} from './lib/adapters/test-result/testplane';
 
 export default (testplane: Testplane, opts: Partial<ReporterOptions>): void => {
     if (testplane.isWorker()) {

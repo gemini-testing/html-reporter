@@ -10,7 +10,7 @@ import {TestStatus} from '../../../constants';
 import {GuiReportBuilder} from '../../../report-builder/gui';
 import {EventSource} from '../../../gui/event-source';
 import {TestplaneTestResult} from '../../../types';
-import {getStatus} from '../../../test-adapter/testplane';
+import {getStatus} from '../../test-result/testplane';
 
 export const handleTestResults = (testplane: Testplane, reportBuilder: GuiReportBuilder, client: EventSource): void => {
     const queue = new PQueue({concurrency: os.cpus().length});

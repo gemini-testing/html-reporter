@@ -4,9 +4,9 @@ import type Testplane from 'testplane';
 import type {Test as TestplaneTest} from 'testplane';
 import {ValueOf} from 'type-fest';
 
-import {getCommandsHistory} from '../history-utils';
-import {ERROR, FAIL, SUCCESS, TestStatus, UNKNOWN_SESSION_ID, UPDATED} from '../constants';
-import {getError, hasFailedImages, isImageDiffError, isNoRefImageError, wrapLinkByTag} from '../common-utils';
+import {getCommandsHistory} from '../../history-utils';
+import {ERROR, FAIL, SUCCESS, TestStatus, UNKNOWN_SESSION_ID, UPDATED} from '../../constants';
+import {getError, hasFailedImages, isImageDiffError, isNoRefImageError, wrapLinkByTag} from '../../common-utils';
 import {
     ErrorDetails,
     TestplaneSuite,
@@ -21,9 +21,9 @@ import {
     ImageInfoSuccess,
     ImageInfoUpdated,
     TestError
-} from '../types';
+} from '../../types';
 import {ReporterTestResult} from './index';
-import {getSuitePath} from '../plugin-utils';
+import {getSuitePath} from '../../plugin-utils';
 import {extractErrorDetails} from './utils';
 
 export const getStatus = (eventName: ValueOf<Testplane['events']>, events: Testplane['events'], testResult: TestplaneTestResult): TestStatus => {
@@ -47,23 +47,23 @@ const wrapSkipComment = (skipComment: string | null | undefined): string => {
     return skipComment ? wrapLinkByTag(skipComment) : 'Unknown reason';
 };
 
-export interface TestplaneTestAdapterOptions {
+export interface TestplaneTestResultAdapterOptions {
     attempt: number;
     status: TestStatus;
 }
 
-export class TestplaneTestAdapter implements ReporterTestResult {
+export class TestplaneTestResultAdapter implements ReporterTestResult {
     private _testResult: TestplaneTest | TestplaneTestResult;
     private _errorDetails: ErrorDetails | null;
     private _timestamp: number | undefined;
     private _attempt: number;
     private _status: TestStatus;
 
-    static create<T extends TestplaneTestAdapter>(this: new (testResult: TestplaneTestResult, options: TestplaneTestAdapterOptions) => T, testResult: TestplaneTestResult, options: TestplaneTestAdapterOptions): T {
+    static create<T extends TestplaneTestResultAdapter>(this: new (testResult: TestplaneTestResult, options: TestplaneTestResultAdapterOptions) => T, testResult: TestplaneTestResult, options: TestplaneTestResultAdapterOptions): T {
         return new this(testResult, options);
     }
 
-    constructor(testResult: TestplaneTest | TestplaneTestResult, {attempt, status}: TestplaneTestAdapterOptions) {
+    constructor(testResult: TestplaneTest | TestplaneTestResult, {attempt, status}: TestplaneTestResultAdapterOptions) {
         this._testResult = testResult;
         this._errorDetails = null;
         this._timestamp = (this._testResult as TestplaneTestResult).timestamp ??

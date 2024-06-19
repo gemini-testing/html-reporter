@@ -34,7 +34,7 @@ import {
 
 import type {GuiCliOptions, ServerArgs} from '../index';
 import type {TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../../tests-tree-builder/gui';
-import type {ReporterTestResult} from '../../test-adapter';
+import type {ReporterTestResult} from '../../adapters/test-result';
 import type {Tree, TreeImage} from '../../tests-tree-builder/base';
 import type {TestSpec} from '../../adapters/tool/types';
 import type {

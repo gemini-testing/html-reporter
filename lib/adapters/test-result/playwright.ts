@@ -5,9 +5,9 @@ import _ from 'lodash';
 import stripAnsi from 'strip-ansi';
 
 import {ReporterTestResult} from './index';
-import {getError, getShortMD5, isImageDiffError, isNoRefImageError} from '../common-utils';
-import {ERROR, FAIL, PWT_TITLE_DELIMITER, SUCCESS, TestStatus} from '../constants';
-import {ErrorName} from '../errors';
+import {getError, getShortMD5, isImageDiffError, isNoRefImageError} from '../../common-utils';
+import {ERROR, FAIL, PWT_TITLE_DELIMITER, SUCCESS, TestStatus} from '../../constants';
+import {ErrorName} from '../../errors';
 import {
     DiffOptions,
     ErrorDetails,
@@ -16,7 +16,7 @@ import {
     ImageInfoFull, ImageInfoNoRef, ImageInfoPageError, ImageInfoPageSuccess, ImageInfoSuccess,
     ImageSize,
     TestError
-} from '../types';
+} from '../../types';
 import type {CoordBounds} from 'looks-same';
 
 export type PlaywrightAttachment = PlaywrightTestResult['attachments'][number];
@@ -127,7 +127,7 @@ const getImageData = (attachment: PlaywrightAttachment | undefined): ImageFile |
     };
 };
 
-export class PlaywrightTestAdapter implements ReporterTestResult {
+export class PlaywrightTestResultAdapter implements ReporterTestResult {
     private readonly _testCase: PlaywrightTestCase;
     private readonly _testResult: PlaywrightTestResult;
     private _attempt: number;

@@ -80,7 +80,7 @@ describe('lib/gui/tool-runner/index', () => {
                 fileExists: sandbox.stub(),
                 deleteFile: sandbox.stub()
             },
-            './test-adapter/utils': {
+            './adapters/test-result/utils': {
                 copyAndUpdate: sandbox.stub().callsFake(_.assign)
             }
         });

@@ -27,7 +27,7 @@ import {
     TestError
 } from './types';
 import {ErrorName, ImageDiffError, NoRefImageError} from './errors';
-import {ReporterTestResult} from './test-adapter';
+import type {ReporterTestResult} from './adapters/test-result';
 
 export const getShortMD5 = (str: string): string => {
     return crypto.createHash('md5').update(str, 'ascii').digest('hex').substr(0, 7);

@@ -1,5 +1,5 @@
-import {TestStatus} from '../constants';
-import {ErrorDetails, ImageBase64, ImageFile, ImageInfoFull, TestError} from '../types';
+import {TestStatus} from '../../constants';
+import {ErrorDetails, ImageBase64, ImageFile, ImageInfoFull, TestError} from '../../types';
 
 export interface ReporterTestResult {
     readonly attempt: number;

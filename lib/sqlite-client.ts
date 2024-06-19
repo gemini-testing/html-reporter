@@ -9,8 +9,8 @@ import {TestStatus, DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS, LOCAL_DATABASE_N
 import {createTablesQuery} from './db-utils/common';
 import type {ImageInfoFull, TestError} from './types';
 import {HtmlReporter} from './plugin-api';
-import {ReporterTestResult} from './test-adapter';
-import {DbTestResultTransformer} from './test-adapter/transformers/db';
+import {ReporterTestResult} from './adapters/test-result';
+import {DbTestResultTransformer} from './adapters/test-result/transformers/db';
 
 const debug = makeDebug('html-reporter:sqlite-client');
 

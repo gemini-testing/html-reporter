@@ -6,17 +6,18 @@ import tmpOriginal from 'tmp';
 
 import {TestStatus} from 'lib/constants/test-statuses';
 import {ERROR_DETAILS_PATH} from 'lib/constants/paths';
-import {ReporterTestResult} from 'lib/test-adapter';
-import {TestplaneTestAdapter, TestplaneTestAdapterOptions} from 'lib/test-adapter/testplane';
+import {TestplaneTestResultAdapter, TestplaneTestResultAdapterOptions} from 'lib/adapters/test-result/testplane';
 import {TestplaneTestResult} from 'lib/types';
 import * as originalUtils from 'lib/server-utils';
 import * as originalCommonUtils from 'lib/common-utils';
-import * as originalTestAdapterUtils from 'lib/test-adapter/utils';
+import * as originalTestAdapterUtils from 'lib/adapters/test-result/utils';
 
-describe('TestplaneTestAdapter', () => {
+import type {ReporterTestResult} from 'lib/adapters/test-result';
+
+describe('TestplaneTestResultAdapter', () => {
     const sandbox = sinon.sandbox.create();
 
-    let TestplaneTestAdapter: new (testResult: TestplaneTestResult, options: TestplaneTestAdapterOptions) => ReporterTestResult;
+    let TestplaneTestResultAdapter: new (testResult: TestplaneTestResult, options: TestplaneTestResultAdapterOptions) => ReporterTestResult;
     let getCommandsHistory: sinon.SinonStub;
     let getSuitePath: sinon.SinonStub;
     let utils: sinon.SinonStubbedInstance<typeof originalUtils>;
@@ -28,8 +29,8 @@ describe('TestplaneTestAdapter', () => {
     const mkTestplaneTestResultAdapter = (
         testResult: TestplaneTestResult,
         {status = TestStatus.SUCCESS}: {status?: TestStatus} = {}
-    ): TestplaneTestAdapter => {
-        return new TestplaneTestAdapter(testResult, {status, attempt: 0}) as TestplaneTestAdapter;
+    ): TestplaneTestResultAdapter => {
+        return new TestplaneTestResultAdapter(testResult, {status, attempt: 0}) as TestplaneTestResultAdapter;
     };
 
     const mkTestResult_ = (result: Partial<TestplaneTestResult>): TestplaneTestResult => _.defaults(result, {
@@ -51,20 +52,19 @@ describe('TestplaneTestAdapter', () => {
         const originalCommonUtils = proxyquire('lib/common-utils', {});
         commonUtils = _.clone(originalCommonUtils);
 
-        const originalTestAdapterUtils = proxyquire('lib/test-adapter/utils', {
-            '../../server-utils': utils,
-            '../../common-utils': commonUtils
+        const originalTestAdapterUtils = proxyquire('lib/adapters/test-result/utils', {
+            '../../../common-utils': commonUtils
         });
         testAdapterUtils = _.clone(originalTestAdapterUtils);
 
-        TestplaneTestAdapter = proxyquire('lib/test-adapter/testplane', {
+        TestplaneTestResultAdapter = proxyquire('lib/adapters/test-result/testplane', {
             tmp,
             'fs-extra': fs,
-            '../plugin-utils': {getSuitePath},
-            '../history-utils': {getCommandsHistory},
+            '../../plugin-utils': {getSuitePath},
+            '../../history-utils': {getCommandsHistory},
             '../server-utils': utils,
             './utils': testAdapterUtils
-        }).TestplaneTestAdapter;
+        }).TestplaneTestResultAdapter;
         sandbox.stub(utils, 'getCurrentPath').returns('');
         sandbox.stub(utils, 'getDiffPath').returns('');
         sandbox.stub(utils, 'getReferencePath').returns('');
@@ -89,9 +89,9 @@ describe('TestplaneTestAdapter', () => {
             } as any
         });
 
-        const testplaneTestAdapter = mkTestplaneTestResultAdapter(testResult);
+        const TestplaneTestResultAdapter = mkTestplaneTestResultAdapter(testResult);
 
-        assert.deepEqual(testplaneTestAdapter.error, {
+        assert.deepEqual(TestplaneTestResultAdapter.error, {
             message: 'some-message',
             stack: 'some-stack',
             stateName: 'some-test',
@@ -112,17 +112,17 @@ describe('TestplaneTestAdapter', () => {
             } as any
         });
 
-        const testplaneTestAdapter = mkTestplaneTestResultAdapter(testResult);
+        const TestplaneTestResultAdapter = mkTestplaneTestResultAdapter(testResult);
 
-        assert.deepEqual(testplaneTestAdapter.history, ['some-history']);
+        assert.deepEqual(TestplaneTestResultAdapter.history, ['some-history']);
     });
 
     it('should return test state', () => {
         const testResult = mkTestResult_({title: 'some-test'});
 
-        const testplaneTestAdapter = mkTestplaneTestResultAdapter(testResult);
+        const TestplaneTestResultAdapter = mkTestplaneTestResultAdapter(testResult);
 
-        assert.deepEqual(testplaneTestAdapter.state, {name: 'some-test'});
+        assert.deepEqual(TestplaneTestResultAdapter.state, {name: 'some-test'});
     });
 
     describe('error details', () => {
@@ -140,9 +140,9 @@ describe('TestplaneTestAdapter', () => {
             });
             getDetailsFileName.returns('md5-bro-n-time');
 
-            const testplaneTestAdapter = mkTestplaneTestResultAdapter(testResult);
+            const TestplaneTestResultAdapter = mkTestplaneTestResultAdapter(testResult);
 
-            assert.deepEqual(testplaneTestAdapter.errorDetails, {
+            assert.deepEqual(TestplaneTestResultAdapter.errorDetails, {
                 title: 'some-title',
                 data: {foo: 'bar'},
                 filePath: `${ERROR_DETAILS_PATH}/md5-bro-n-time`
@@ -152,9 +152,9 @@ describe('TestplaneTestAdapter', () => {
         it('should have "error details" title if no title is given', () => {
             const testResult = mkTestResult_({err: {details: {}} as any});
 
-            const testplaneTestAdapter = mkTestplaneTestResultAdapter(testResult);
+            const TestplaneTestResultAdapter = mkTestplaneTestResultAdapter(testResult);
 
-            assert.propertyVal(testplaneTestAdapter.errorDetails, 'title', 'error details');
+            assert.propertyVal(TestplaneTestResultAdapter.errorDetails, 'title', 'error details');
         });
 
         it('should be memoized', () => {
@@ -164,10 +164,10 @@ describe('TestplaneTestAdapter', () => {
                     details: {title: 'some-title', data: {foo: 'bar'}}
                 } as any
             });
-            const testplaneTestAdapter = mkTestplaneTestResultAdapter(testResult);
+            const TestplaneTestResultAdapter = mkTestplaneTestResultAdapter(testResult);
 
-            const firstErrDetails = testplaneTestAdapter.errorDetails;
-            const secondErrDetails = testplaneTestAdapter.errorDetails;
+            const firstErrDetails = TestplaneTestResultAdapter.errorDetails;
+            const secondErrDetails = TestplaneTestResultAdapter.errorDetails;
 
             assert.calledOnce(extractErrorDetails);
             assert.deepEqual(firstErrDetails, secondErrDetails);
@@ -189,29 +189,29 @@ describe('TestplaneTestAdapter', () => {
                     details: {data: {foo: 'bar'}}
                 } as any
             });
-            const testplaneTestAdapter = mkTestplaneTestResultAdapter(testResult);
+            const TestplaneTestResultAdapter = mkTestplaneTestResultAdapter(testResult);
 
             // we need to get errorDetails to trigger getDetailsFileName to be called
-            testplaneTestAdapter.errorDetails;
+            TestplaneTestResultAdapter.errorDetails;
 
-            assert.calledWith(getDetailsFileName, 'abcdef', 'bro', testplaneTestAdapter.attempt);
+            assert.calledWith(getDetailsFileName, 'abcdef', 'bro', TestplaneTestResultAdapter.attempt);
         });
     });
 
     it('should return image dir', () => {
         const testResult = mkTestResult_({id: 'some-id'});
 
-        const testplaneTestAdapter = mkTestplaneTestResultAdapter(testResult);
+        const TestplaneTestResultAdapter = mkTestplaneTestResultAdapter(testResult);
 
-        assert.deepEqual(testplaneTestAdapter.imageDir, 'some-id');
+        assert.deepEqual(TestplaneTestResultAdapter.imageDir, 'some-id');
     });
 
     it('should return description', () => {
         const testResult = mkTestResult_({description: 'some-description'});
 
-        const testplaneTestAdapter = mkTestplaneTestResultAdapter(testResult);
+        const TestplaneTestResultAdapter = mkTestplaneTestResultAdapter(testResult);
 
-        assert.deepEqual(testplaneTestAdapter.description, 'some-description');
+        assert.deepEqual(TestplaneTestResultAdapter.description, 'some-description');
     });
 
     describe('timestamp', () => {
@@ -219,9 +219,9 @@ describe('TestplaneTestAdapter', () => {
             const testResult = mkTestResult_({
                 timestamp: 100500
             });
-            const testplaneTestAdapter = mkTestplaneTestResultAdapter(testResult);
+            const TestplaneTestResultAdapter = mkTestplaneTestResultAdapter(testResult);
 
-            assert.strictEqual(testplaneTestAdapter.timestamp, 100500);
+            assert.strictEqual(TestplaneTestResultAdapter.timestamp, 100500);
         });
     });
 
@@ -243,9 +243,9 @@ describe('TestplaneTestAdapter', () => {
                 }]
             });
 
-            const testplaneTestAdapter = mkTestplaneTestResultAdapter(testResult);
+            const TestplaneTestResultAdapter = mkTestplaneTestResultAdapter(testResult);
 
-            assert.deepEqual(testplaneTestAdapter.imagesInfo, [
+            assert.deepEqual(TestplaneTestResultAdapter.imagesInfo, [
                 {
                     status: TestStatus.FAIL,
                     stateName: 'some-state',
@@ -273,9 +273,9 @@ describe('TestplaneTestAdapter', () => {
                 }]
             });
 
-            const testplaneTestAdapter = mkTestplaneTestResultAdapter(testResult);
+            const TestplaneTestResultAdapter = mkTestplaneTestResultAdapter(testResult);
 
-            assert.deepEqual(testplaneTestAdapter.imagesInfo, [
+            assert.deepEqual(TestplaneTestResultAdapter.imagesInfo, [
                 {
                     status: TestStatus.ERROR,
                     stateName: 'some-state',
@@ -301,9 +301,9 @@ describe('TestplaneTestAdapter', () => {
                 } as TestplaneTestResult['assertViewResults'][number]]
             });
 
-            const testplaneTestAdapter = mkTestplaneTestResultAdapter(testResult);
+            const TestplaneTestResultAdapter = mkTestplaneTestResultAdapter(testResult);
 
-            assert.deepEqual(testplaneTestAdapter.imagesInfo, [
+            assert.deepEqual(TestplaneTestResultAdapter.imagesInfo, [
                 {
                     status: TestStatus.UPDATED,
                     stateName: 'some-state',
@@ -323,9 +323,9 @@ describe('TestplaneTestAdapter', () => {
                 }]
             });
 
-            const testplaneTestAdapter = mkTestplaneTestResultAdapter(testResult);
+            const TestplaneTestResultAdapter = mkTestplaneTestResultAdapter(testResult);
 
-            assert.deepEqual(testplaneTestAdapter.imagesInfo, [
+            assert.deepEqual(TestplaneTestResultAdapter.imagesInfo, [
                 {
                     status: TestStatus.SUCCESS,
                     stateName: 'some-state',

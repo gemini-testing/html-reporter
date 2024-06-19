@@ -1,6 +1,6 @@
 import {ReporterTestResult} from '../index';
-import {DbTestResult} from '../../sqlite-client';
-import {getError, getRelativeUrl, getUrlWithBase} from '../../common-utils';
+import {DbTestResult} from '../../../sqlite-client';
+import {getError, getRelativeUrl, getUrlWithBase} from '../../../common-utils';
 import _ from 'lodash';
 
 interface Options {
