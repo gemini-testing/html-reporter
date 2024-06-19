@@ -4,11 +4,6 @@ export interface TestRunner {
     run<U>(handler: (testCollection: TestCollection) => U): U;
 }
 
-export interface TestSpec {
-    testName: string;
-    browserName: string;
-}
-
 export class BaseRunner implements TestRunner {
     protected _collection: TestCollection;
 

@@ -5,9 +5,8 @@ import opener from 'opener';
 import * as server from './server';
 import {logger} from '../common-utils';
 import * as utils from '../server-utils';
-import {HtmlReporterApi, ReporterConfig} from '../types';
-import type Testplane from 'testplane';
-import {Api} from './api';
+
+import type {TestplaneToolAdapter} from '../adapters/tool/testplane';
 
 const {logError} = utils;
 
@@ -18,24 +17,20 @@ export interface GuiCliOptions {
     hostname: string;
 }
 
-export interface GuiConfigs {
-    options: GuiCliOptions;
-    program: CommanderStatic;
-    pluginConfig: ReporterConfig;
-}
-
 export interface ServerArgs {
     paths: string[];
-    testplane: Testplane & HtmlReporterApi;
-    guiApi: Api;
-    configs: GuiConfigs;
+    toolAdapter: TestplaneToolAdapter;
+    cli: {
+        options: GuiCliOptions;
+        tool: CommanderStatic;
+    }
 }
 
 export default (args: ServerArgs): void => {
     server.start(args)
         .then(({url}: { url: string }) => {
             logger.log(`GUI is running at ${chalk.cyan(url)}`);
-            args.configs.options.open && opener(url);
+            args.cli.options.open && opener(url);
         })
         .catch((err: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
             logError(err);

@@ -1,0 +1,6 @@
+#!/usr/bin/env node
+'use strict';
+
+(async () => {
+    await require('../build/lib/cli').run();
+})();

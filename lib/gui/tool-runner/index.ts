@@ -1,19 +1,27 @@
-import path from 'path';
+import path from 'node:path';
+import os from 'node:os';
 
 import {CommanderStatic} from '@gemini-testing/commander';
 import chalk from 'chalk';
 import fs from 'fs-extra';
-import type Testplane from 'testplane';
 import type {TestCollection, Test as TestplaneTest, Config as TestplaneConfig} from 'testplane';
 import _ from 'lodash';
 import looksSame, {CoordBounds} from 'looks-same';
+import PQueue from 'p-queue';
+import type {Response} from 'express';
 
-import {createTestRunner} from './runner';
-import {subscribeOnToolEvents} from './report-subscriber';
 import {GuiReportBuilder, GuiReportBuilderResult} from '../../report-builder/gui';
 import {EventSource} from '../event-source';
-import {logger, getShortMD5, isUpdatedStatus} from '../../common-utils';
+import {TestplaneToolAdapter} from '../../adapters/tool/testplane';
+import {SqliteClient} from '../../sqlite-client';
+import {Cache} from '../../cache';
+import {ImagesInfoSaver} from '../../images-info-saver';
+import {SqliteImageStore} from '../../image-store';
 import * as reporterHelper from '../../reporter-helpers';
+import {logger, getShortMD5, isUpdatedStatus} from '../../common-utils';
+import {formatId, mkFullTitle, mergeDatabasesForReuse, filterByEqualDiffSizes} from './utils';
+import {formatTestResult, getExpectedCacheKey} from '../../server-utils';
+import {getTestsTreeFromDatabase} from '../../db-utils/server';
 import {
     UPDATED,
     SKIPPED,
@@ -23,36 +31,19 @@ import {
     LOCAL_DATABASE_NAME,
     PluginEvents
 } from '../../constants';
-import {formatId, mkFullTitle, mergeDatabasesForReuse, filterByEqualDiffSizes} from './utils';
-import {getTestsTreeFromDatabase} from '../../db-utils/server';
-import {formatTestResult, getExpectedCacheKey} from '../../server-utils';
-import {
+
+import type {GuiCliOptions, ServerArgs} from '../index';
+import type {TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../../tests-tree-builder/gui';
+import type {ReporterTestResult} from '../../test-adapter';
+import type {Tree, TreeImage} from '../../tests-tree-builder/base';
+import type {TestSpec} from '../../adapters/tool/types';
+import type {
     AssertViewResult,
     TestplaneTestResult,
-    HtmlReporterApi,
     ImageFile,
     ImageInfoDiff, ImageInfoUpdated, ImageInfoWithState,
     ReporterConfig, TestSpecByPath
 } from '../../types';
-import {GuiCliOptions, GuiConfigs} from '../index';
-import {Tree, TreeImage} from '../../tests-tree-builder/base';
-import {TestSpec} from './runner/runner';
-import {Response} from 'express';
-import {TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../../tests-tree-builder/gui';
-import {ReporterTestResult} from '../../test-adapter';
-import {SqliteClient} from '../../sqlite-client';
-import PQueue from 'p-queue';
-import os from 'os';
-import {Cache} from '../../cache';
-import {ImagesInfoSaver} from '../../images-info-saver';
-import {SqliteImageStore} from '../../image-store';
-
-type ToolRunnerArgs = [paths: string[], testplane: Testplane & HtmlReporterApi, configs: GuiConfigs];
-type ReplModeOption = {
-    enabled: boolean;
-    beforeTest: boolean;
-    onFail: boolean;
-}
 
 export type ToolRunnerTree = GuiReportBuilderResult & Pick<GuiCliOptions, 'autoRun'>;
 
@@ -63,32 +54,33 @@ export interface UndoAcceptImagesResult {
 
 export class ToolRunner {
     private _testFiles: string[];
-    private _testplane: Testplane & HtmlReporterApi;
+    private _toolAdapter: TestplaneToolAdapter;
     private _tree: ToolRunnerTree | null;
     protected _collection: TestCollection | null;
     private _globalOpts: CommanderStatic;
     private _guiOpts: GuiCliOptions;
     private _reportPath: string;
-    private _pluginConfig: ReporterConfig;
+    private _reporterConfig: ReporterConfig;
     private _eventSource: EventSource;
     protected _reportBuilder: GuiReportBuilder | null;
     private _tests: Record<string, TestplaneTest>;
     private _expectedImagesCache: Cache<[TestSpecByPath, string | undefined], string>;
 
-    static create<T extends ToolRunner>(this: new (...args: ToolRunnerArgs) => T, ...args: ToolRunnerArgs): T {
-        return new this(...args);
+    static create<T extends ToolRunner>(this: new (args: ServerArgs) => T, args: ServerArgs): T {
+        return new this(args);
     }
 
-    constructor(...[paths, testplane, {program: globalOpts, pluginConfig, options: guiOpts}]: ToolRunnerArgs) {
+    constructor({paths, toolAdapter, cli}: ServerArgs) {
         this._testFiles = ([] as string[]).concat(paths);
-        this._testplane = testplane;
+        this._toolAdapter = toolAdapter;
         this._tree = null;
         this._collection = null;
 
-        this._globalOpts = globalOpts;
-        this._guiOpts = guiOpts;
-        this._reportPath = pluginConfig.path;
-        this._pluginConfig = pluginConfig;
+        this._globalOpts = cli.tool;
+        this._guiOpts = cli.options;
+
+        this._reporterConfig = this._toolAdapter.reporterConfig;
+        this._reportPath = this._reporterConfig.path;
 
         this._eventSource = new EventSource();
         this._reportBuilder = null;
@@ -99,7 +91,7 @@ export class ToolRunner {
     }
 
     get config(): TestplaneConfig {
-        return this._testplane.config;
+        return this._toolAdapter.config;
     }
 
     get tree(): ToolRunnerTree | null {
@@ -109,43 +101,30 @@ export class ToolRunner {
     async initialize(): Promise<void> {
         await mergeDatabasesForReuse(this._reportPath);
 
-        const dbClient = await SqliteClient.create({htmlReporter: this._testplane.htmlReporter, reportPath: this._reportPath, reuse: true});
+        const dbClient = await SqliteClient.create({htmlReporter: this._toolAdapter.htmlReporter, reportPath: this._reportPath, reuse: true});
         const imageStore = new SqliteImageStore(dbClient);
 
         const imagesInfoSaver = new ImagesInfoSaver({
-            imageFileSaver: this._testplane.htmlReporter.imagesSaver,
+            imageFileSaver: this._toolAdapter.htmlReporter.imagesSaver,
             expectedPathsCache: this._expectedImagesCache,
             imageStore,
-            reportPath: this._testplane.htmlReporter.config.path
+            reportPath: this._toolAdapter.htmlReporter.config.path
         });
 
-        this._reportBuilder = GuiReportBuilder.create(this._testplane.htmlReporter, this._pluginConfig, {dbClient, imagesInfoSaver});
-        this._subscribeOnEvents();
+        this._reportBuilder = GuiReportBuilder.create(this._toolAdapter.htmlReporter, this._reporterConfig, {dbClient, imagesInfoSaver});
+        this._toolAdapter.handleTestResults(this._reportBuilder, this._eventSource);
 
         this._collection = await this._readTests();
 
-        this._testplane.htmlReporter.emit(PluginEvents.DATABASE_CREATED, dbClient.getRawConnection());
+        this._toolAdapter.htmlReporter.emit(PluginEvents.DATABASE_CREATED, dbClient.getRawConnection());
         await this._reportBuilder.saveStaticFiles();
 
-        this._reportBuilder.setApiValues(this._testplane.htmlReporter.values);
+        this._reportBuilder.setApiValues(this._toolAdapter.htmlReporter.values);
         await this._handleRunnableCollection();
     }
 
     async _readTests(): Promise<TestCollection> {
-        const {grep, set: sets, browser: browsers} = this._globalOpts;
-        const replMode = this._getReplModeOption();
-
-        return this._testplane.readTests(this._testFiles, {grep, sets, browsers, replMode});
-    }
-
-    _getReplModeOption(): ReplModeOption {
-        const {repl = false, replBeforeTest = false, replOnFail = false} = this._globalOpts;
-
-        return {
-            enabled: repl || replBeforeTest || replOnFail,
-            beforeTest: replBeforeTest,
-            onFail: replOnFail
-        };
+        return this._toolAdapter.readTests(this._testFiles, this._globalOpts);
     }
 
     protected _ensureReportBuilder(): GuiReportBuilder {
@@ -300,11 +279,9 @@ export class ToolRunner {
     }
 
     async run(tests: TestSpec[] = []): Promise<boolean> {
-        const {grep, set: sets, browser: browsers, devtools = false} = this._globalOpts;
-        const replMode = this._getReplModeOption();
+        const testCollection = this._ensureTestCollection();
 
-        return createTestRunner(this._ensureTestCollection(), tests)
-            .run((collection) => this._testplane.run(collection, {grep, sets, browsers, devtools, replMode}));
+        return this._toolAdapter.run(testCollection, tests, this._globalOpts);
     }
 
     protected async _handleRunnableCollection(): Promise<void> {
@@ -332,11 +309,7 @@ export class ToolRunner {
     }
 
     protected _isSilentlySkipped({silentSkip, parent}: TestplaneTest): boolean {
-        return silentSkip || parent && this._isSilentlySkipped(parent);
-    }
-
-    protected _subscribeOnEvents(): void {
-        subscribeOnToolEvents(this._testplane, this._ensureReportBuilder(), this._eventSource);
+        return Boolean(silentSkip || parent && this._isSilentlySkipped(parent));
     }
 
     protected _createTestplaneTestResult(updateData: TestRefUpdateData): TestplaneTestResult {
@@ -351,7 +324,7 @@ export class ToolRunner {
             .filter(({stateName, actualImg}) => Boolean(stateName) && Boolean(actualImg))
             .forEach((imageInfo) => {
                 const {stateName, actualImg} = imageInfo as {stateName: string, actualImg: ImageFile};
-                const path = this._testplane.config.browsers[browserId].getScreenshotPath(testplaneTest, stateName);
+                const path = this._toolAdapter.config.browsers[browserId].getScreenshotPath(testplaneTest, stateName);
                 const refImg = {path, size: actualImg.size};
 
                 assertViewResults.push({stateName, refImg, currImg: actualImg, isUpdated: isUpdatedStatus(imageInfo.status)});
@@ -374,10 +347,7 @@ export class ToolRunner {
     protected _handleReferenceUpdate(testResult: ReporterTestResult, imageInfo: ImageInfoUpdated, state: string): void {
         this._expectedImagesCache.set([testResult, imageInfo.stateName], imageInfo.expectedImg.path);
 
-        this._testplane.emit(
-            this._testplane.events.UPDATE_REFERENCE,
-            {refImg: imageInfo.refImg, state}
-        );
+        this._toolAdapter.updateReference({refImg: imageInfo.refImg, state});
     }
 
     async _fillTestsTree(): Promise<void> {
@@ -397,7 +367,7 @@ export class ToolRunner {
         const dbPath = path.resolve(this._reportPath, LOCAL_DATABASE_NAME);
 
         if (await fs.pathExists(dbPath)) {
-            return getTestsTreeFromDatabase(ToolName.Testplane, dbPath, this._pluginConfig.baseHost);
+            return getTestsTreeFromDatabase(ToolName.Testplane, dbPath, this._reporterConfig.baseHost);
         }
 
         logger.warn(chalk.yellow(`Nothing to reuse in ${this._reportPath}: can not load data from ${DATABASE_URLS_JSON_NAME}`));
@@ -406,6 +376,6 @@ export class ToolRunner {
     }
 
     protected _resolveImgPath(imgPath: string): string {
-        return path.resolve(process.cwd(), this._pluginConfig.path, imgPath);
+        return path.resolve(process.cwd(), this._reporterConfig.path, imgPath);
     }
 }

@@ -6,9 +6,9 @@ const proxyquire = require('proxyquire');
 const inquirer = require('inquirer');
 
 const {SUCCESS, ERROR} = require('lib/constants/test-statuses');
-const {stubTool, stubConfig, mkState} = require('test/unit/utils');
+const {stubToolAdapter, stubConfig, mkState} = require('test/unit/utils');
 
-describe('lib/cli-commands/remove-unused-screens/utils', () => {
+describe('lib/cli/commands/remove-unused-screens/utils', () => {
     const sandbox = sinon.sandbox.create();
     let utils, fgMock;
 
@@ -36,14 +36,15 @@ describe('lib/cli-commands/remove-unused-screens/utils', () => {
         };
     };
 
-    const mkTestplane_ = (testCollection = mkTestCollection_(), config = stubConfig(), htmlReporter) => {
-        const testplane = stubTool(config);
-        testplane.readTests.resolves(testCollection);
-        testplane.htmlReporter = htmlReporter || {
+    const mkToolAdapter_ = (testCollection = mkTestCollection_(), config = stubConfig(), htmlReporter) => {
+        const toolAdapter = stubToolAdapter({config});
+
+        toolAdapter.readTests.resolves(testCollection);
+        toolAdapter.htmlReporter = htmlReporter || {
             getTestsTreeFromDatabase: sandbox.stub().returns(mkTestsTreeFromDb_())
         };
 
-        return testplane;
+        return toolAdapter;
     };
 
     beforeEach(() => {
@@ -52,7 +53,7 @@ describe('lib/cli-commands/remove-unused-screens/utils', () => {
 
         fgMock = sandbox.stub().resolves([]);
 
-        utils = proxyquire('lib/cli-commands/remove-unused-screens/utils', {
+        utils = proxyquire('lib/cli/commands/remove-unused-screens/utils', {
             'fast-glob': fgMock
         });
     });
@@ -66,12 +67,12 @@ describe('lib/cli-commands/remove-unused-screens/utils', () => {
             getScreenshotPath = sandbox.stub().returns('/default/path/*.png');
         });
 
-        it('should read all testplane tests silently', async () => {
-            const testplane = mkTestplane_();
+        it('should read all tests silently', async () => {
+            const toolAdapter = mkToolAdapter_();
 
-            await utils.getTestsFromFs(testplane);
+            await utils.getTestsFromFs(toolAdapter);
 
-            assert.calledOnceWith(testplane.readTests, [], {silent: true});
+            assert.calledOnceWith(toolAdapter.readTests, [], {silent: true});
         });
 
         it('should add test tests tree with its screen info', async () => {
@@ -82,9 +83,9 @@ describe('lib/cli-commands/remove-unused-screens/utils', () => {
 
             fgMock.withArgs('/ref/path/*.png').resolves(['/ref/path/1.png', '/ref/path/2.png']);
 
-            const testplane = mkTestplane_(testCollection, config);
+            const toolAdapter = mkToolAdapter_(testCollection, config);
 
-            const tests = await utils.getTestsFromFs(testplane);
+            const tests = await utils.getTestsFromFs(toolAdapter);
 
             assert.lengthOf(Object.keys(tests.byId), 1);
             assert.deepEqual(
@@ -106,9 +107,9 @@ describe('lib/cli-commands/remove-unused-screens/utils', () => {
                 .withArgs(test2, '*').returns('/ref/path-2/*.png');
 
             const config = stubConfig({browsers: {bro1: {getScreenshotPath}, bro2: {getScreenshotPath}}});
-            const testplane = mkTestplane_(testCollection, config);
+            const toolAdapter = mkToolAdapter_(testCollection, config);
 
-            const tests = await utils.getTestsFromFs(testplane);
+            const tests = await utils.getTestsFromFs(toolAdapter);
 
             assert.deepEqual(tests.screenPatterns, ['/ref/path-1/*.png', '/ref/path-2/*.png']);
         });
@@ -122,9 +123,9 @@ describe('lib/cli-commands/remove-unused-screens/utils', () => {
                 bro1: {getScreenshotPath}, bro2: {getScreenshotPath},
                 bro3: {getScreenshotPath}, bro4: {getScreenshotPath}
             }});
-            const testplane = mkTestplane_(testCollection, config);
+            const toolAdapter = mkToolAdapter_(testCollection, config);
 
-            const tests = await utils.getTestsFromFs(testplane);
+            const tests = await utils.getTestsFromFs(toolAdapter);
 
             assert.equal(tests.count, 2);
         });
@@ -136,9 +137,9 @@ describe('lib/cli-commands/remove-unused-screens/utils', () => {
             const config = stubConfig({browsers: {
                 bro1: {getScreenshotPath}, bro2: {getScreenshotPath}, bro3: {getScreenshotPath}
             }});
-            const testplane = mkTestplane_(testCollection, config);
+            const toolAdapter = mkToolAdapter_(testCollection, config);
 
-            const tests = await utils.getTestsFromFs(testplane);
+            const tests = await utils.getTestsFromFs(toolAdapter);
 
             assert.deepEqual(tests.browserIds, new Set(['bro1', 'bro2', 'bro3']));
         });
@@ -261,8 +262,8 @@ describe('lib/cli-commands/remove-unused-screens/utils', () => {
             const imagesById = mkImage({id: 'img-1', stateName: 'a'});
             const dbTree = mkTestsTreeFromDb_({browsersById, resultsById, imagesById});
 
-            const testplane = mkTestplane_();
-            testplane.htmlReporter.getTestsTreeFromDatabase.withArgs('/report/sqlite.db').returns(dbTree);
+            const toolAdapter = mkToolAdapter_();
+            toolAdapter.htmlReporter.getTestsTreeFromDatabase.withArgs('/report/sqlite.db').returns(dbTree);
 
             const fsTestsTree = mkTestsTreeFromFs_({
                 byId: {
@@ -272,7 +273,7 @@ describe('lib/cli-commands/remove-unused-screens/utils', () => {
 
             const unusedScreens = utils.identifyUnusedScreens(
                 fsTestsTree,
-                {testplane, mergedDbPath: '/report/sqlite.db'}
+                {toolAdapter, mergedDbPath: '/report/sqlite.db'}
             );
 
             assert.deepEqual(unusedScreens, ['/test1/b.png']);
@@ -284,8 +285,8 @@ describe('lib/cli-commands/remove-unused-screens/utils', () => {
             const imagesById = mkImage({id: 'img-1', stateName: 'a'});
             const dbTree = mkTestsTreeFromDb_({browsersById, resultsById, imagesById});
 
-            const testplane = mkTestplane_();
-            testplane.htmlReporter.getTestsTreeFromDatabase.withArgs('/report/sqlite.db').returns(dbTree);
+            const toolAdapter = mkToolAdapter_();
+            toolAdapter.htmlReporter.getTestsTreeFromDatabase.withArgs('/report/sqlite.db').returns(dbTree);
 
             const fsTestsTree = mkTestsTreeFromFs_({
                 byId: {
@@ -295,7 +296,7 @@ describe('lib/cli-commands/remove-unused-screens/utils', () => {
 
             const unusedScreens = utils.identifyUnusedScreens(
                 fsTestsTree,
-                {testplane, mergedDbPath: '/report/sqlite.db'}
+                {toolAdapter, mergedDbPath: '/report/sqlite.db'}
             );
 
             assert.isEmpty(unusedScreens);
