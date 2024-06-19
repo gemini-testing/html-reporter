@@ -20,7 +20,7 @@ const RunMode = Object.freeze({
 });
 
 const RunButton = ({actions, autoRun, isDisabled, isRunning, failedTests, checkedTests}) => {
-    const [mode, setMode] = useState(RunMode.ALL);
+    const [mode, setMode] = useLocalStorage('RunMode', RunMode.FAILED);
     const [showCheckboxes] = useLocalStorage('showCheckboxes', false);
 
     const btnClassName = classNames('btn', {'button_blink': isRunning});
