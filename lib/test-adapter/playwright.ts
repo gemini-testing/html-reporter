@@ -61,7 +61,11 @@ export const getStatus = (result: PlaywrightTestResult): TestStatus => {
         return TestStatus.FAIL;
     }
 
-    return TestStatus.SKIPPED;
+    if (result.status === PwtTestStatus.SKIPPED) {
+        return TestStatus.SKIPPED;
+    }
+
+    return TestStatus.IDLE;
 };
 
 const extractErrorMessage = (result: PlaywrightTestResult): string => {
@@ -288,6 +292,8 @@ export class PlaywrightTestAdapter implements ReporterTestResult {
     }
 
     get testPath(): string[] {
+        // console.log('this._testCase:', this._testCase);
+
         // slicing because first entries are not actually test-name, but a file, etc.
         return this._testCase.titlePath().slice(3);
     }

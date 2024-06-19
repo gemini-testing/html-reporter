@@ -131,8 +131,12 @@ export class BaseTestsTreeBuilder {
     }
 
     addTestResult(formattedResult: ReporterTestResult): void {
+        console.log('addTestResult, formattedResult:', formattedResult);
+
         const {testPath, browserId: browserName, attempt, imagesInfo = []} = formattedResult;
         const {browserVersion = BrowserVersions.UNKNOWN} = formattedResult.meta as {browserVersion: string};
+
+        console.log('addTestResult, testPath:', testPath);
 
         const suiteId = this._buildId(testPath);
         const browserId = this._buildId(suiteId, browserName);

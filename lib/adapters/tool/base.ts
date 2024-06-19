@@ -1,4 +1,4 @@
-import Testplane, {type Config, type TestCollection} from 'testplane';
+import Testplane from 'testplane';
 import type {CommanderStatic} from '@gemini-testing/commander';
 import {GuiApi} from '../../gui/api';
 import {HtmlReporter} from '../../plugin-api';
@@ -7,11 +7,15 @@ import {GuiReportBuilder} from '../../report-builder/gui';
 import {ToolName} from '../../constants';
 
 import type {ReporterConfig, ImageFile} from '../../types';
+import type {TestCollectionAdapter} from '../test-collection/index';
+import type {ConfigAdapter} from '../config/index';
+// import type {TestAdapter} from '../test/index';
 import type {TestSpec} from './types';
 
-interface ToolAdapterOptionsFromCli {
+export interface ToolAdapterOptionsFromCli {
     toolName: ToolName;
     configPath?: string;
+    config?: ConfigAdapter;
 }
 
 interface TestplaneAdapterOptionsFromPlugin {
@@ -40,12 +44,12 @@ export abstract class BaseToolAdapter {
         }
     }
 
-    static create<T extends BaseToolAdapter>(
-        this: new (options: BaseToolAdapterOptions) => T,
-        options: BaseToolAdapterOptions
-    ): T {
-        return new this(options);
-    }
+    // static async create<T extends BaseToolAdapter>(
+    //     this: new (options: BaseToolAdapterOptions) => T,
+    //     options: BaseToolAdapterOptions
+    // ): Promise<T> {
+    //     return new this(options);
+    // }
 
     get toolName(): ToolName {
         return this._toolName;
@@ -59,12 +63,14 @@ export abstract class BaseToolAdapter {
         this._guiApi = GuiApi.create();
     }
 
-    abstract get config(): Config;
+    abstract get config(): ConfigAdapter;
     abstract get reporterConfig(): ReporterConfig;
     abstract get htmlReporter(): HtmlReporter;
 
-    abstract readTests(paths: string[], cliTool: CommanderStatic): Promise<TestCollection>;
-    abstract run(testCollection: TestCollection, tests: TestSpec[], cliTool: CommanderStatic): Promise<boolean>;
+    abstract readTests(paths: string[], cliTool: CommanderStatic): Promise<TestCollectionAdapter>;
+    // abstract readTests(paths: string[], cliTool: CommanderStatic): Promise<TestAdapter[]>;
+    abstract run(testCollection: TestCollectionAdapter, tests: TestSpec[], cliTool: CommanderStatic): Promise<boolean>;
+    // abstract run(testCollection: TestAdapter[], tests: TestSpec[], cliTool: CommanderStatic): Promise<boolean>;
 
     abstract updateReference(opts: UpdateReferenceOpts): void;
     abstract handleTestResults(reportBuilder: GuiReportBuilder, eventSource: EventSource): void;

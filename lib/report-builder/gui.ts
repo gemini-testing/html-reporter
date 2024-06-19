@@ -61,6 +61,8 @@ export class GuiReportBuilder extends StaticReportBuilder {
         const {customGui} = this._pluginConfig;
         const config = {...getConfigForStaticFile(this._pluginConfig), customGui};
 
+        console.log('getResult, this._testsTree:', this._testsTree);
+
         this._testsTree.sortTree();
 
         return {

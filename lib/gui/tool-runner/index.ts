@@ -4,7 +4,7 @@ import os from 'node:os';
 import {CommanderStatic} from '@gemini-testing/commander';
 import chalk from 'chalk';
 import fs from 'fs-extra';
-import type {TestCollection, Test as TestplaneTest, Config as TestplaneConfig} from 'testplane';
+import type {Test as TestplaneTest} from 'testplane';
 import _ from 'lodash';
 import looksSame, {CoordBounds} from 'looks-same';
 import PQueue from 'p-queue';
@@ -12,7 +12,7 @@ import type {Response} from 'express';
 
 import {GuiReportBuilder, GuiReportBuilderResult} from '../../report-builder/gui';
 import {EventSource} from '../event-source';
-import {TestplaneToolAdapter} from '../../adapters/tool/testplane';
+import {BaseToolAdapter} from '../../adapters/tool/base';
 import {SqliteClient} from '../../sqlite-client';
 import {Cache} from '../../cache';
 import {ImagesInfoSaver} from '../../images-info-saver';
@@ -45,6 +45,9 @@ import type {
     ImageInfoDiff, ImageInfoUpdated, ImageInfoWithState,
     ReporterConfig, TestSpecByPath
 } from '../../types';
+import type {TestAdapter} from '../../adapters/test/index';
+import type {TestCollectionAdapter} from '../../adapters/test-collection';
+import type {ConfigAdapter} from '../../adapters/config';
 
 export type ToolRunnerTree = GuiReportBuilderResult & Pick<GuiCliOptions, 'autoRun'>;
 
@@ -55,16 +58,16 @@ export interface UndoAcceptImagesResult {
 
 export class ToolRunner {
     private _testFiles: string[];
-    private _toolAdapter: TestplaneToolAdapter;
+    private _toolAdapter: BaseToolAdapter;
     private _tree: ToolRunnerTree | null;
-    protected _collection: TestCollection | null;
+    protected _collection: TestCollectionAdapter | null;
     private _globalOpts: CommanderStatic;
     private _guiOpts: GuiCliOptions;
     private _reportPath: string;
     private _reporterConfig: ReporterConfig;
     private _eventSource: EventSource;
     protected _reportBuilder: GuiReportBuilder | null;
-    private _tests: Record<string, TestplaneTest>;
+    private _tests: Record<string, TestAdapter>;
     private _expectedImagesCache: Cache<[TestSpecByPath, string | undefined], string>;
 
     static create<T extends ToolRunner>(this: new (args: ServerArgs) => T, args: ServerArgs): T {
@@ -91,7 +94,7 @@ export class ToolRunner {
         this._expectedImagesCache = new Cache(getExpectedCacheKey);
     }
 
-    get config(): TestplaneConfig {
+    get config(): ConfigAdapter {
         return this._toolAdapter.config;
     }
 
@@ -124,7 +127,7 @@ export class ToolRunner {
         await this._handleRunnableCollection();
     }
 
-    async _readTests(): Promise<TestCollection> {
+    async _readTests(): Promise<TestCollectionAdapter> {
         return this._toolAdapter.readTests(this._testFiles, this._globalOpts);
     }
 
@@ -136,7 +139,7 @@ export class ToolRunner {
         return this._reportBuilder;
     }
 
-    protected _ensureTestCollection(): TestCollection {
+    protected _ensureTestCollection(): TestCollectionAdapter {
         if (!this._collection) {
             throw new Error('ToolRunner has to be initialized before usage');
         }
@@ -227,7 +230,9 @@ export class ToolRunner {
                 if (previousExpectedPath && (updateResult as TestplaneTest).fullTitle) {
                     this._expectedImagesCache.set([{
                         testPath: [(updateResult as TestplaneTest).fullTitle()],
-                        browserId: (updateResult as TestplaneTest).browserId
+                        // TODO: FIX IT !!!
+                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                        browserId: (updateResult as TestplaneTest).browserId!
                     }, stateName], previousExpectedPath);
                 }
             }));
@@ -289,8 +294,25 @@ export class ToolRunner {
         const reportBuilder = this._ensureReportBuilder();
         const queue = new PQueue({concurrency: os.cpus().length});
 
+        // for (const test of this._ensureTestCollection()) {
+        //     if (test.disabled || test.isSilentlySkipped()) {
+        //         return;
+        //     }
+
+        //     // TODO: remove toString after publish major version
+        //     const testId = formatId(test.id.toString(), test.browserId);
+        //     this._tests[testId] = _.extend(test, {browserId: test.browserId});
+
+        //     if (test.pending) {
+        //         queue.add(async () => reportBuilder.addTestResult(test.formatTestResult(SKIPPED)));
+        //     } else {
+        //         queue.add(async () => reportBuilder.addTestResult(test.formatTestResult(IDLE)));
+        //     }
+        // }
+
         this._ensureTestCollection().eachTest((test, browserId) => {
-            if (test.disabled || this._isSilentlySkipped(test)) {
+            // if (test.disabled || this._isSilentlySkipped(test)) {
+            if (test.disabled || test.isSilentlySkipped()) {
                 return;
             }
 
@@ -298,10 +320,15 @@ export class ToolRunner {
             const testId = formatId(test.id.toString(), browserId);
             this._tests[testId] = _.extend(test, {browserId});
 
+            console.log('_ensureTestCollection, test:', test);
+            console.log('_ensureTestCollection, test.pending:', test.pending);
+
             if (test.pending) {
-                queue.add(async () => reportBuilder.addTestResult(formatTestResult(test, SKIPPED)));
+                queue.add(async () => reportBuilder.addTestResult(test.formatTestResult(SKIPPED)));
+                // queue.add(async () => reportBuilder.addTestResult(formatTestResult(test, SKIPPED)));
             } else {
-                queue.add(async () => reportBuilder.addTestResult(formatTestResult(test, IDLE)));
+                queue.add(async () => reportBuilder.addTestResult(test.formatTestResult(IDLE)));
+                // queue.add(async () => reportBuilder.addTestResult(formatTestResult(test, IDLE)));
             }
         });
 
@@ -309,9 +336,9 @@ export class ToolRunner {
         await this._fillTestsTree();
     }
 
-    protected _isSilentlySkipped({silentSkip, parent}: TestplaneTest): boolean {
-        return Boolean(silentSkip || parent && this._isSilentlySkipped(parent));
-    }
+    // protected _isSilentlySkipped({silentSkip, parent}: TestAdapter): boolean {
+    //     return Boolean(silentSkip || parent && this._isSilentlySkipped(parent));
+    // }
 
     protected _createTestplaneTestResult(updateData: TestRefUpdateData): TestplaneTestResult {
         const {browserId} = updateData;
@@ -325,12 +352,14 @@ export class ToolRunner {
             .filter(({stateName, actualImg}) => Boolean(stateName) && Boolean(actualImg))
             .forEach((imageInfo) => {
                 const {stateName, actualImg} = imageInfo as {stateName: string, actualImg: ImageFile};
-                const path = this._toolAdapter.config.browsers[browserId].getScreenshotPath(testplaneTest, stateName);
+                // const path = this._toolAdapter.config.browsers[browserId].getScreenshotPath(testplaneTest, stateName);
+                const path = this._toolAdapter.config.getScreenshotPath(testplaneTest, stateName);
                 const refImg = {path, size: actualImg.size};
 
                 assertViewResults.push({stateName, refImg, currImg: actualImg, isUpdated: isUpdatedStatus(imageInfo.status)});
             });
 
+        // TODO: should use original test here from test adapter ???
         const testplaneTestResult: TestplaneTestResult = _.merge({}, testplaneTest, {
             assertViewResults,
             err: updateData.error as TestplaneTestResult['err'],
@@ -362,6 +391,7 @@ export class ToolRunner {
         }
 
         this._tree = {...reportBuilder.getResult(), autoRun};
+        console.log('this._tree.tree:', this._tree.tree);
     }
 
     protected async _loadDataFromDatabase(): Promise<Tree | null> {

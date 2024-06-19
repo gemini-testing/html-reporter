@@ -94,7 +94,9 @@ export class TestplaneTestAdapter implements ReporterTestResult {
     }
 
     get browserId(): string {
-        return this._testResult.browserId;
+        // TODO: fix it !!!
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        return this._testResult.browserId!;
     }
 
     get imagesInfo(): ImageInfoFull[] {
@@ -177,7 +179,9 @@ export class TestplaneTestAdapter implements ReporterTestResult {
     }
 
     get testPath(): string[] {
-        return getSuitePath(this._testResult.parent).concat(this._testResult.title);
+        // TODO: fix it !!!
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        return getSuitePath(this._testResult.parent!).concat(this._testResult.title);
     }
 
     get id(): string {

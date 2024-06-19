@@ -18,7 +18,8 @@ import {SqliteImageStore} from './lib/image-store';
 import {Cache} from './lib/cache';
 import {ImagesInfoSaver} from './lib/images-info-saver';
 import {getStatus} from './lib/test-adapter/testplane';
-import {makeToolAdapter} from './lib/adapters/tool';
+// import {makeToolAdapter} from './lib/adapters/tool';
+import {TestplaneToolAdapter} from './lib/adapters/tool/testplane';
 
 export default (testplane: Testplane, opts: Partial<ReporterOptions>): void => {
     if (testplane.isWorker()) {
@@ -31,7 +32,9 @@ export default (testplane: Testplane, opts: Partial<ReporterOptions>): void => {
         return;
     }
 
-    const toolAdapter = makeToolAdapter({toolName: ToolName.Testplane, tool: testplane, reporterConfig: config});
+    // TODO: what to do with it. Problem here because I need to import file using dinamyc import in pwt - await import
+    // const toolAdapter = makeToolAdapter({toolName: ToolName.Testplane, tool: testplane, reporterConfig: config});
+    const toolAdapter = TestplaneToolAdapter.create({toolName: ToolName.Testplane, tool: testplane, reporterConfig: config});
     const {htmlReporter} = toolAdapter;
 
     let isCliCommandLaunched = false;

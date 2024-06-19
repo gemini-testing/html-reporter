@@ -26,7 +26,7 @@ export const run = async (): Promise<void> => {
         throw new Error(`Tool with name: "${toolName}" is not supported, try to use one of these: ${availableToolNames.map(t => `"${t}"`).join(', ')}`);
     }
 
-    const toolAdapter = makeToolAdapter({toolName: toolName as ToolName, configPath});
+    const toolAdapter = await makeToolAdapter({toolName: toolName as ToolName, configPath});
 
     for (const commandName of _.values(commands)) {
         const registerCmd = (await import(path.resolve(__dirname, './commands', commandName))).default;
