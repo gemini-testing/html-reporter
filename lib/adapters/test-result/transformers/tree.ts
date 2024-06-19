@@ -1,6 +1,6 @@
 import {ReporterTestResult} from '../index';
 import _ from 'lodash';
-import {BaseTreeTestResult} from '../../tests-tree-builder/base';
+import {BaseTreeTestResult} from '../../../tests-tree-builder/base';
 import {DbTestResultTransformer} from './db';
 import {extractErrorDetails} from '../utils';
 

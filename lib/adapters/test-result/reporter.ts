@@ -1,9 +1,9 @@
-import {TestStatus} from '../constants';
-import {TestError, ErrorDetails, ImageInfoFull, ImageBase64, ImageFile} from '../types';
+import {TestStatus} from '../../constants';
+import {TestError, ErrorDetails, ImageInfoFull, ImageBase64, ImageFile} from '../../types';
 import {ReporterTestResult} from './index';
 import _ from 'lodash';
 import {extractErrorDetails} from './utils';
-import {getShortMD5, getTestHash} from '../common-utils';
+import {getShortMD5, getTestHash} from '../../common-utils';
 
 // This class is primarily useful when cloning ReporterTestResult.
 // It allows to override some properties while keeping computable

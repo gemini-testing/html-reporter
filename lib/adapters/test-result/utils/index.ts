@@ -1,10 +1,10 @@
 import _ from 'lodash';
 import {ReporterTestResult} from '../index';
 import {TupleToUnion} from 'type-fest';
-import {ErrorDetails, ImageInfoDiff, ImageInfoFull} from '../../types';
-import {ERROR_DETAILS_PATH} from '../../constants';
+import {ErrorDetails, ImageInfoDiff, ImageInfoFull} from '../../../types';
+import {ERROR_DETAILS_PATH} from '../../../constants';
 import {ReporterTestAdapter} from '../reporter';
-import {getDetailsFileName, isImageBufferData} from '../../common-utils';
+import {getDetailsFileName, isImageBufferData} from '../../../common-utils';
 
 export const copyAndUpdate = (
     original: ReporterTestResult,

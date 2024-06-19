@@ -12,14 +12,14 @@ import tmp from 'tmp';
 import {getShortMD5, logger, mkTestId} from './common-utils';
 import {UPDATED, RUNNING, IDLE, SKIPPED, IMAGES_PATH, TestStatus, UNKNOWN_ATTEMPT} from './constants';
 import type {HtmlReporter} from './plugin-api';
-import type {ReporterTestResult} from './test-adapter';
+import type {ReporterTestResult} from './adapters/test-result';
 import {
     TestplaneTestResult,
     ImageInfoWithState,
     ReporterConfig,
     TestSpecByPath
 } from './types';
-import {TestplaneTestAdapter} from './test-adapter/testplane';
+import {TestplaneTestResultAdapter} from './adapters/test-result/testplane';
 
 const DATA_FILE_NAME = 'data.js';
 
@@ -295,7 +295,7 @@ export const formatTestResult = (
     status: TestStatus,
     attempt: number = UNKNOWN_ATTEMPT
 ): ReporterTestResult => {
-    return new TestplaneTestAdapter(rawResult, {attempt, status});
+    return new TestplaneTestResultAdapter(rawResult, {attempt, status});
 };
 
 export const saveErrorDetails = async (testResult: ReporterTestResult, reportPath: string): Promise<void> => {

@@ -3,9 +3,9 @@ import tmp from 'tmp';
 import _ from 'lodash';
 import {getShortMD5, isImageInfoWithState} from './common-utils';
 import * as utils from './server-utils';
-import {ReporterTestResult} from './test-adapter';
+import {ReporterTestResult} from './adapters/test-result';
 import {getImagesInfoByStateName} from './server-utils';
-import {copyAndUpdate} from './test-adapter/utils';
+import {copyAndUpdate} from './adapters/test-result/utils';
 import {ImageInfoFull, ImageInfoUpdated} from './types';
 import {UPDATED} from './constants';
 

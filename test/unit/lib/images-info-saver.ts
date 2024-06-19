@@ -1,7 +1,7 @@
 import * as fsOriginal from 'fs-extra';
 import {ImagesInfoSaver as ImagesInfoSaverOriginal} from 'lib/images-info-saver';
 import {Writable} from 'type-fest';
-import {ReporterTestResult} from 'lib/test-adapter';
+import {ReporterTestResult} from 'lib/adapters/test-result';
 import {
     ImageBase64,
     ImageBuffer,

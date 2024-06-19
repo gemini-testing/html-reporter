@@ -3,13 +3,13 @@ import {StaticReportBuilder, StaticReportBuilderOptions} from './static';
 import {GuiTestsTreeBuilder, TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../tests-tree-builder/gui';
 import {UPDATED, DB_COLUMNS, ToolName, TestStatus, TESTPLANE_TITLE_DELIMITER, SKIPPED, SUCCESS} from '../constants';
 import {ConfigForStaticFile, getConfigForStaticFile} from '../server-utils';
-import {ReporterTestResult} from '../test-adapter';
+import {ReporterTestResult} from '../adapters/test-result';
 import {Tree, TreeImage} from '../tests-tree-builder/base';
 import {ImageInfoFull, ImageInfoWithState, ReporterConfig} from '../types';
 import {determineStatus, isUpdatedStatus} from '../common-utils';
 import {HtmlReporter, HtmlReporterValues} from '../plugin-api';
 import {SkipItem} from '../tests-tree-builder/static';
-import {copyAndUpdate} from '../test-adapter/utils';
+import {copyAndUpdate} from '../adapters/test-result/utils';
 
 interface UndoAcceptImageResult {
     updatedImage: TreeImage | undefined;

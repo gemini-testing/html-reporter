@@ -11,13 +11,13 @@ import {
     PluginEvents, UNKNOWN_ATTEMPT, UPDATED
 } from '../constants';
 import type {SqliteClient} from '../sqlite-client';
-import {ReporterTestResult} from '../test-adapter';
+import {ReporterTestResult} from '../adapters/test-result';
 import {saveErrorDetails, saveStaticFilesToReportDir, writeDatabaseUrlsFile} from '../server-utils';
 import {ReporterConfig} from '../types';
 import {HtmlReporter} from '../plugin-api';
 import {getTestFromDb} from '../db-utils/server';
 import {TestAttemptManager} from '../test-attempt-manager';
-import {copyAndUpdate} from '../test-adapter/utils';
+import {copyAndUpdate} from '../adapters/test-result/utils';
 import {RegisterWorkers} from '../workers/create-workers';
 import {ImagesInfoSaver} from '../images-info-saver';
 

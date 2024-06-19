@@ -7,7 +7,7 @@ const {handleTestResults} = require('lib/adapters/tool/testplane/test-results-ha
 const {GuiReportBuilder} = require('lib/report-builder/gui');
 const {ClientEvents} = require('lib/gui/constants');
 const {stubTool, stubConfig} = require('test/unit/utils');
-const {TestplaneTestAdapter} = require('lib/test-adapter/testplane');
+const {TestplaneTestResultAdapter} = require('lib/adapters/test-result/testplane');
 const {UNKNOWN_ATTEMPT} = require('lib/constants');
 
 describe('lib/adapters/tool/testplane/test-results-handler', () => {
@@ -37,7 +37,7 @@ describe('lib/adapters/tool/testplane/test-results-handler', () => {
         reportBuilder.addTestResult.callsFake(_.identity);
 
         sandbox.stub(GuiReportBuilder, 'create').returns(reportBuilder);
-        sandbox.stub(TestplaneTestAdapter.prototype, 'id').value('some-id');
+        sandbox.stub(TestplaneTestResultAdapter.prototype, 'id').value('some-id');
 
         client = new EventEmitter();
         sandbox.spy(client, 'emit');

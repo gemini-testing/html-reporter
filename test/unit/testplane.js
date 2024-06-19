@@ -19,7 +19,7 @@ describe('lib/testplane', () => {
     const sandbox = sinon.createSandbox();
     let testplane;
     let cacheExpectedPaths = new Map(), cacheAllImages = new Map(), cacheDiffImages = new Map();
-    let fs, originalUtils, utils, SqliteClient, ImagesInfoSaver, TestAdapter, StaticReportBuilder, HtmlReporter, runHtmlReporter;
+    let fs, originalUtils, utils, SqliteClient, ImagesInfoSaver, TestResultAdapter, StaticReportBuilder, HtmlReporter, runHtmlReporter;
 
     let program;
 
@@ -115,15 +115,15 @@ describe('lib/testplane', () => {
             './server-utils': utils
         }).ImagesInfoSaver;
 
-        TestAdapter = proxyquire('lib/test-adapter', {
+        TestResultAdapter = proxyquire('lib/adapters/test-result', {
             'fs-extra': fs,
             './server-utils': utils
-        }).TestAdapter;
+        }).TestResultAdapter;
 
         StaticReportBuilder = proxyquire('lib/report-builder/static', {
             'fs-extra': fs,
             '../server-utils': utils,
-            '../test-adapter': {TestAdapter},
+            '../adapters/test-result': {TestResultAdapter},
             '../images-info-saver': {ImagesInfoSaver}
         }).StaticReportBuilder;
 

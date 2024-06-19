@@ -1,4 +1,4 @@
-import {ReporterTestResult} from './test-adapter';
+import {ReporterTestResult} from './adapters/test-result';
 import {IDLE, RUNNING, TestStatus} from './constants';
 
 type TestSpec = Pick<ReporterTestResult, 'fullName' | 'browserId'>

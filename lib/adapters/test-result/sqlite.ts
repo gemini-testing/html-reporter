@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import {DB_COLUMN_INDEXES, TestStatus} from '../constants';
+import {DB_COLUMN_INDEXES, TestStatus} from '../../constants';
 import {
     AssertViewResult,
     TestError,
@@ -8,10 +8,10 @@ import {
     ImageBase64,
     ImageFile,
     RawSuitesRow
-} from '../types';
+} from '../../types';
 import {ReporterTestResult} from './index';
 import {Writable} from 'type-fest';
-import {getTestHash} from '../common-utils';
+import {getTestHash} from '../../common-utils';
 
 const tryParseJson = (json: string): unknown | undefined => {
     try {
@@ -21,16 +21,16 @@ const tryParseJson = (json: string): unknown | undefined => {
     }
 };
 
-interface SqliteTestAdapterOptions {
+interface SqliteTestResultAdapterOptions {
     titleDelimiter: string;
 }
 
-export class SqliteTestAdapter implements ReporterTestResult {
+export class SqliteTestResultAdapter implements ReporterTestResult {
     private _testResult: RawSuitesRow;
     private _parsedTestResult: Writable<Partial<ReporterTestResult>>;
     private _titleDelimiter: string;
 
-    constructor(testResult: RawSuitesRow, attempt: number, options: SqliteTestAdapterOptions) {
+    constructor(testResult: RawSuitesRow, attempt: number, options: SqliteTestResultAdapterOptions) {
         this._testResult = testResult;
         this._parsedTestResult = {attempt};
         this._titleDelimiter = options.titleDelimiter;

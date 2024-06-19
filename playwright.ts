@@ -12,7 +12,7 @@ import {ReporterConfig, TestSpecByPath} from './lib/types';
 import {parseConfig} from './lib/config';
 import {PluginEvents, ToolName, UNKNOWN_ATTEMPT} from './lib/constants';
 import {RegisterWorkers} from './lib/workers/create-workers';
-import {PlaywrightTestAdapter} from './lib/test-adapter/playwright';
+import {PlaywrightTestResultAdapter} from './lib/adapters/test-result/playwright';
 import {SqliteClient} from './lib/sqlite-client';
 import {SqliteImageStore} from './lib/image-store';
 import {ImagesInfoSaver} from './lib/images-info-saver';
@@ -70,7 +70,7 @@ class MyReporter implements Reporter {
 
             const staticReportBuilder = this._staticReportBuilder as StaticReportBuilder;
 
-            const formattedResult = new PlaywrightTestAdapter(test, result, UNKNOWN_ATTEMPT);
+            const formattedResult = new PlaywrightTestResultAdapter(test, result, UNKNOWN_ATTEMPT);
 
             await staticReportBuilder.addTestResult(formattedResult);
         });
