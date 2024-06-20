@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.1.0"></a>
+# [10.1.0](https://github.com/gemini-testing/html-reporter/compare/v10.0.0...v10.1.0) (2024-06-20)
+
+
+### Bug Fixes
+
+* escape regexp chars when copying a test link ([#552](https://github.com/gemini-testing/html-reporter/issues/552)) ([e7b2103](https://github.com/gemini-testing/html-reporter/commit/e7b2103))
+* save RunMode to localStorage ([#554](https://github.com/gemini-testing/html-reporter/issues/554)) ([e523e21](https://github.com/gemini-testing/html-reporter/commit/e523e21))
+* **pwt:** ignore private report options from pwt ([88e9e5d](https://github.com/gemini-testing/html-reporter/commit/88e9e5d))
+
+
+### Features
+
+* add ability to run cli commands using html-reporter binary ([db0862c](https://github.com/gemini-testing/html-reporter/commit/db0862c))
+
+
+
 <a name="10.0.0"></a>
 # [10.0.0](https://github.com/gemini-testing/html-reporter/compare/v9.19.0...v10.0.0) (2024-05-31)
 
