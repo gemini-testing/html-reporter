@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.2.0"></a>
+# [10.2.0](https://github.com/gemini-testing/html-reporter/compare/v10.0.0...v10.2.0) (2024-06-20)
+
+
+### Features
+
+* add relativePath to refImg ([b722899](https://github.com/gemini-testing/html-reporter/commit/b722899))
+
+
+
 <a name="10.1.0"></a>
 # [10.1.0](https://github.com/gemini-testing/html-reporter/compare/v10.0.0...v10.1.0) (2024-06-20)
 
