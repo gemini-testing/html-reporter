@@ -41,6 +41,13 @@ export interface ImageFile {
     size: ImageSize;
 }
 
+export interface RefImageFile extends ImageFile {
+    /**
+     * @note defined if testplane >= 8.13.0
+     */
+    relativePath?: string;
+}
+
 export interface ImageBuffer {
     buffer: Buffer;
 }
@@ -59,7 +66,10 @@ export interface DiffOptions extends LooksSameOptions {
 export interface TestError {
     name: string;
     message: string;
-    snippet?: string; // defined if testplane >= 8.11.0
+    /**
+     * @note defined if testplane >= 8.11.0
+     */
+    snippet?: string;
     stack?: string;
     stateName?: string;
     details?: ErrorDetails
@@ -69,27 +79,37 @@ export interface TestError {
 export interface ImageInfoDiff {
     status: TestStatus.FAIL;
     stateName: string;
-    // Ref image is absent in pwt test results
-    refImg?: ImageFile;
+    /**
+     * @note Ref image is absent in pwt test results
+     */
+    refImg?: RefImageFile;
     diffClusters?: CoordBounds[];
     expectedImg: ImageFile;
     actualImg: ImageFile;
     diffImg?: ImageFile | ImageBuffer;
     diffOptions: DiffOptions;
-    differentPixels?: number; // defined if hermione >= 8.2.0
-    diffRatio?: number; // defined if hermione >= 8.2.0
+    /**
+     * @note defined if hermione >= 8.2.0
+     */
+    differentPixels?: number;
+    /**
+     * @note defined if hermione >= 8.2.0
+     */
+    diffRatio?: number;
 }
 
 interface AssertViewSuccess {
     stateName: string;
-    refImg: ImageFile;
+    refImg: RefImageFile;
 }
 
 export interface ImageInfoSuccess {
     status: TestStatus.SUCCESS;
     stateName: string;
-    // Ref image may be absent in pwt test results
-    refImg?: ImageFile;
+    /**
+     * @note Ref image is absent in pwt test results
+     */
+    refImg?: RefImageFile;
     diffClusters?: CoordBounds[];
     expectedImg: ImageFile;
     actualImg?: ImageFile;
@@ -109,15 +129,17 @@ export interface ImageInfoNoRef {
     status: TestStatus.ERROR;
     error?: TestError;
     stateName: string;
-    // Ref image may be absent in pwt test results
-    refImg?: ImageFile;
+    /**
+     * @note Ref image is absent in pwt test results
+     */
+    refImg?: RefImageFile;
     actualImg: ImageFile;
 }
 
 export interface ImageInfoUpdated {
     status: TestStatus.UPDATED;
     stateName: string;
-    refImg: ImageFile;
+    refImg: RefImageFile;
     actualImg: ImageFile;
     expectedImg: ImageFile;
 }

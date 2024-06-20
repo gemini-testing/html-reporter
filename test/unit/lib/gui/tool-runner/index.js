@@ -95,6 +95,8 @@ describe('lib/gui/tool-runner/index', () => {
         }).ToolRunner;
 
         sandbox.stub(logger, 'warn');
+
+        sandbox.stub(process, 'cwd').returns('/ref/cwd');
     });
 
     afterEach(() => sandbox.restore());
@@ -240,7 +242,7 @@ describe('lib/gui/tool-runner/index', () => {
             await gui.updateReferenceImage(testRefUpdateData);
 
             assert.calledOnceWith(toolAdapter.updateReference, {
-                refImg: {path: '/ref/path1', size: {height: 100, width: 200}},
+                refImg: {path: '/ref/path1', relativePath: '../path1', size: {height: 100, width: 200}},
                 state: 'plain1'
             });
         });
@@ -289,11 +291,11 @@ describe('lib/gui/tool-runner/index', () => {
 
             assert.calledTwice(toolAdapter.updateReference);
             assert.calledWith(toolAdapter.updateReference.firstCall, {
-                refImg: {path: '/ref/path1', size: {height: 100, width: 200}},
+                refImg: {path: '/ref/path1', relativePath: '../path1', size: {height: 100, width: 200}},
                 state: 'plain1'
             });
             assert.calledWith(toolAdapter.updateReference.secondCall, {
-                refImg: {path: '/ref/path2', size: {height: 200, width: 300}},
+                refImg: {path: '/ref/path2', relativePath: '../path2', size: {height: 200, width: 300}},
                 state: 'plain2'
             });
         });

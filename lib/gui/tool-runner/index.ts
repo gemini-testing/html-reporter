@@ -42,7 +42,7 @@ import type {
     TestplaneTestResult,
     ImageFile,
     ImageInfoDiff, ImageInfoUpdated, ImageInfoWithState,
-    ReporterConfig, TestSpecByPath
+    ReporterConfig, TestSpecByPath, RefImageFile
 } from '../../types';
 
 export type ToolRunnerTree = GuiReportBuilderResult & Pick<GuiCliOptions, 'autoRun'>;
@@ -324,8 +324,9 @@ export class ToolRunner {
             .filter(({stateName, actualImg}) => Boolean(stateName) && Boolean(actualImg))
             .forEach((imageInfo) => {
                 const {stateName, actualImg} = imageInfo as {stateName: string, actualImg: ImageFile};
-                const path = this._toolAdapter.config.browsers[browserId].getScreenshotPath(testplaneTest, stateName);
-                const refImg = {path, size: actualImg.size};
+                const absoluteRefImgPath = this._toolAdapter.config.browsers[browserId].getScreenshotPath(testplaneTest, stateName);
+                const relativeRefImgPath = absoluteRefImgPath && path.relative(process.cwd(), absoluteRefImgPath);
+                const refImg: RefImageFile = {path: absoluteRefImgPath, relativePath: relativeRefImgPath, size: actualImg.size};
 
                 assertViewResults.push({stateName, refImg, currImg: actualImg, isUpdated: isUpdatedStatus(imageInfo.status)});
             });
