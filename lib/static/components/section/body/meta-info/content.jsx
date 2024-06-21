@@ -6,18 +6,18 @@ import PropTypes from 'prop-types';
 import {map, mapValues, isObject, omitBy, isEmpty} from 'lodash';
 import {isUrl, getUrlWithBase} from '../../../../../common-utils';
 
-const mkLinkToUrl = (url, text = url) => {
+const mkTextWithClipboardButton = (text, url)  => {
     return <Fragment>
-        <a data-suite-view-link={url} className="custom-icon_view-local" target="_blank" href={url}>
-            {text}
-        </a>
+        {url ? <a data-suite-view-link={url} className="custom-icon_view-local" target="_blank" href={url}>
+            {text || url}
+        </a> : text}
         <ClipboardButton
             className="button custom-icon custom-icon_copy-to-clipboard"
             button-title="copy to clipboard"
-            data-clipboard-text={url}>
+            data-clipboard-text={url || text}>
         </ClipboardButton>
     </Fragment>;
-};
+}
 
 const serializeMetaValues = (metaInfo) => mapValues(metaInfo, (v) => isObject(v) ? JSON.stringify(v) : v);
 
@@ -40,13 +40,16 @@ const resolveUrl = (baseUrl, value) => {
 const metaToElements = (metaInfo, metaInfoBaseUrls) => {
     return map(metaInfo, (value, key) => {
         if (isUrl(value)) {
-            value = mkLinkToUrl(value);
+            value = mkTextWithClipboardButton(value, value);
         } else if (metaInfoBaseUrls[key]) {
             const baseUrl = metaInfoBaseUrls[key];
             const link = isUrl(baseUrl) ? resolveUrl(baseUrl, value) : path.join(baseUrl, value);
-            value = mkLinkToUrl(link, value);
+            value = mkTextWithClipboardButton(value, link);
         } else if (typeof value === 'boolean') {
             value = value.toString();
+        }
+        else if (typeof value === 'string') {
+            value = mkTextWithClipboardButton(value);
         }
 
         return <div key={key} className="meta-info__item">
@@ -93,7 +96,7 @@ class MetaInfoContent extends Component {
             ...extraMetaInfo
         };
         if (result.suiteUrl) {
-            formattedMetaInfo.url = mkLinkToUrl(getUrlWithBase(result.suiteUrl, baseHost), result.metaInfo.url);
+            formattedMetaInfo.url = mkTextWithClipboardButton(result.metaInfo.url, getUrlWithBase(result.suiteUrl, baseHost));
         }
 
         return metaToElements(formattedMetaInfo, metaInfoBaseUrls);

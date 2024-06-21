@@ -555,6 +555,14 @@ details[open] > .details__summary:before {
     text-overflow: ellipsis;
 }
 
+.meta-info__item .custom-icon_copy-to-clipboard {
+    opacity: 0;
+}
+
+.meta-info__item:hover .custom-icon_copy-to-clipboard {
+    opacity: 1;
+}
+
 .error {
     background: #f0f2f5;
     padding: 10px;
