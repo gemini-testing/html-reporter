@@ -4,7 +4,7 @@ import os from 'node:os';
 import {CommanderStatic} from '@gemini-testing/commander';
 import chalk from 'chalk';
 import fs from 'fs-extra';
-import type {TestCollection, Test as TestplaneTest, Config as TestplaneConfig} from 'testplane';
+import type {Test as TestplaneTest} from 'testplane';
 import _ from 'lodash';
 import looksSame, {CoordBounds} from 'looks-same';
 import PQueue from 'p-queue';
@@ -12,7 +12,6 @@ import type {Response} from 'express';
 
 import {GuiReportBuilder, GuiReportBuilderResult} from '../../report-builder/gui';
 import {EventSource} from '../event-source';
-import {TestplaneToolAdapter} from '../../adapters/tool/testplane';
 import {SqliteClient} from '../../sqlite-client';
 import {Cache} from '../../cache';
 import {ImagesInfoSaver} from '../../images-info-saver';
@@ -32,6 +31,7 @@ import {
     PluginEvents
 } from '../../constants';
 
+import type {ToolAdapter} from '../../adapters/tool';
 import type {GuiCliOptions, ServerArgs} from '../index';
 import type {TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../../tests-tree-builder/gui';
 import type {ReporterTestResult} from '../../adapters/test-result';
@@ -44,6 +44,9 @@ import type {
     ImageInfoDiff, ImageInfoUpdated, ImageInfoWithState,
     ReporterConfig, TestSpecByPath, RefImageFile
 } from '../../types';
+import type {TestAdapter} from '../../adapters/test/index';
+import type {TestCollectionAdapter} from '../../adapters/test-collection';
+import type {ConfigAdapter} from '../../adapters/config';
 
 export type ToolRunnerTree = GuiReportBuilderResult & Pick<GuiCliOptions, 'autoRun'>;
 
@@ -54,16 +57,16 @@ export interface UndoAcceptImagesResult {
 
 export class ToolRunner {
     private _testFiles: string[];
-    private _toolAdapter: TestplaneToolAdapter;
+    private _toolAdapter: ToolAdapter;
     private _tree: ToolRunnerTree | null;
-    protected _collection: TestCollection | null;
+    protected _collection: TestCollectionAdapter | null;
     private _globalOpts: CommanderStatic;
     private _guiOpts: GuiCliOptions;
     private _reportPath: string;
     private _reporterConfig: ReporterConfig;
     private _eventSource: EventSource;
     protected _reportBuilder: GuiReportBuilder | null;
-    private _tests: Record<string, TestplaneTest>;
+    private _tests: Record<string, TestAdapter>;
     private _expectedImagesCache: Cache<[TestSpecByPath, string | undefined], string>;
 
     static create<T extends ToolRunner>(this: new (args: ServerArgs) => T, args: ServerArgs): T {
@@ -90,7 +93,7 @@ export class ToolRunner {
         this._expectedImagesCache = new Cache(getExpectedCacheKey);
     }
 
-    get config(): TestplaneConfig {
+    get config(): ConfigAdapter {
         return this._toolAdapter.config;
     }
 
@@ -123,7 +126,7 @@ export class ToolRunner {
         await this._handleRunnableCollection();
     }
 
-    async _readTests(): Promise<TestCollection> {
+    async _readTests(): Promise<TestCollectionAdapter> {
         return this._toolAdapter.readTests(this._testFiles, this._globalOpts);
     }
 
@@ -135,7 +138,7 @@ export class ToolRunner {
         return this._reportBuilder;
     }
 
-    protected _ensureTestCollection(): TestCollection {
+    protected _ensureTestCollection(): TestCollectionAdapter {
         if (!this._collection) {
             throw new Error('ToolRunner has to be initialized before usage');
         }
@@ -293,7 +296,7 @@ export class ToolRunner {
         const queue = new PQueue({concurrency: os.cpus().length});
 
         this._ensureTestCollection().eachTest((test, browserId) => {
-            if (test.disabled || this._isSilentlySkipped(test)) {
+            if (test.disabled || test.isSilentlySkipped()) {
                 return;
             }
 
@@ -302,18 +305,14 @@ export class ToolRunner {
             this._tests[testId] = _.extend(test, {browserId});
 
             if (test.pending) {
-                queue.add(async () => reportBuilder.addTestResult(formatTestResult(test, SKIPPED)));
+                queue.add(async () => reportBuilder.addTestResult(test.formatTestResult(SKIPPED)));
             } else {
-                queue.add(async () => reportBuilder.addTestResult(formatTestResult(test, IDLE)));
+                queue.add(async () => reportBuilder.addTestResult(test.formatTestResult(IDLE)));
             }
         });
 
         await queue.onIdle();
         await this._fillTestsTree();
-    }
-
-    protected _isSilentlySkipped({silentSkip, parent}: TestplaneTest): boolean {
-        return Boolean(silentSkip || parent && this._isSilentlySkipped(parent));
     }
 
     protected _createTestplaneTestResult(updateData: TestRefUpdateData): TestplaneTestResult {
@@ -328,13 +327,14 @@ export class ToolRunner {
             .filter(({stateName, actualImg}) => Boolean(stateName) && Boolean(actualImg))
             .forEach((imageInfo) => {
                 const {stateName, actualImg} = imageInfo as {stateName: string, actualImg: ImageFile};
-                const absoluteRefImgPath = this._toolAdapter.config.browsers[browserId].getScreenshotPath(testplaneTest, stateName);
+                const absoluteRefImgPath = this._toolAdapter.config.getScreenshotPath(testplaneTest, stateName);
                 const relativeRefImgPath = absoluteRefImgPath && path.relative(process.cwd(), absoluteRefImgPath);
                 const refImg: RefImageFile = {path: absoluteRefImgPath, relativePath: relativeRefImgPath, size: actualImg.size};
 
                 assertViewResults.push({stateName, refImg, currImg: actualImg, isUpdated: isUpdatedStatus(imageInfo.status)});
             });
 
+        // TODO: should use original test here from test adapter ???
         const testplaneTestResult: TestplaneTestResult = _.merge({}, testplaneTest, {
             assertViewResults,
             err: updateData.error as TestplaneTestResult['err'],
