@@ -21,7 +21,10 @@ function stubReporterConfig(opts = {}) {
 const stubTestCollection = (testsTree = {}) => {
     return {
         eachTest: (cb) => {
-            Object.keys(testsTree).forEach((test) => cb(testsTree[test]));
+            Object.keys(testsTree).forEach((browserId) => cb(testsTree[browserId], browserId));
+        },
+        mapTests: (cb) => {
+            return Object.keys(testsTree).map((browserId) => cb(testsTree[browserId], browserId));
         }
     };
 };
@@ -52,7 +55,7 @@ function stubTool(config = stubConfig(), events = {}, errors = {}, htmlReporter)
 }
 
 function stubToolAdapter({
-    config = stubConfig(), reporterConfig = stubReporterConfig(), testCollection = stubTestCollection(), htmlReporter
+    config = stubConfig(), reporterConfig = stubReporterConfig(), testCollection = {tests: []}, htmlReporter
 } = {}) {
     const toolAdapter = {
         config,

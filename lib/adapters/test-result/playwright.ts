@@ -61,7 +61,11 @@ export const getStatus = (result: PlaywrightTestResult): TestStatus => {
         return TestStatus.FAIL;
     }
 
-    return TestStatus.SKIPPED;
+    if (result.status === PwtTestStatus.SKIPPED) {
+        return TestStatus.SKIPPED;
+    }
+
+    return TestStatus.IDLE;
 };
 
 const extractErrorMessage = (result: PlaywrightTestResult): string => {

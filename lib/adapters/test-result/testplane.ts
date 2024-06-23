@@ -59,7 +59,11 @@ export class TestplaneTestResultAdapter implements ReporterTestResult {
     private _attempt: number;
     private _status: TestStatus;
 
-    static create<T extends TestplaneTestResultAdapter>(this: new (testResult: TestplaneTestResult, options: TestplaneTestResultAdapterOptions) => T, testResult: TestplaneTestResult, options: TestplaneTestResultAdapterOptions): T {
+    static create(
+        this: new (testResult: TestplaneTest | TestplaneTestResult, options: TestplaneTestResultAdapterOptions) => TestplaneTestResultAdapter,
+        testResult: TestplaneTest | TestplaneTestResult,
+        options: TestplaneTestResultAdapterOptions
+    ): TestplaneTestResultAdapter {
         return new this(testResult, options);
     }
 

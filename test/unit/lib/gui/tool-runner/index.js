@@ -11,6 +11,8 @@ const {stubToolAdapter, stubConfig, stubReporterConfig, mkImagesInfo, mkState, m
 const {SqliteClient} = require('lib/sqlite-client');
 const {PluginEvents, TestStatus, UPDATED} = require('lib/constants');
 const {Cache} = require('lib/cache');
+const {TestplaneTestAdapter} = require('lib/adapters/test/testplane');
+const {TestplaneConfigAdapter} = require('lib/adapters/config/testplane');
 
 describe('lib/gui/tool-runner/index', () => {
     const sandbox = sinon.createSandbox();
@@ -23,19 +25,20 @@ describe('lib/gui/tool-runner/index', () => {
     let getReferencePath;
     let reporterHelpers;
 
-    const mkTestCollection_ = (testsTree = {}) => {
-        return {
-            eachTest: (cb) => {
-                Object.keys(testsTree).forEach((test) => cb(testsTree[test], testsTree[test].browserId));
-            }
-        };
-    };
-
-    const stubTest_ = (opts) => {
+    const stubTest_ = (opts = {}) => {
         return mkState(_.defaults(opts, {
             id: () => 'default-id',
-            fullTitle: () => 'some-title'
+            fullTitle: () => 'some-title',
+            clone: () => stubTest_(opts)
         }));
+    };
+
+    const mkTestAdapter_ = (test = stubTest_()) => {
+        return TestplaneTestAdapter.create(test);
+    };
+
+    const mkConfigAdapter_ = (config = stubConfig()) => {
+        return TestplaneConfigAdapter.create(config);
     };
 
     const initGuiReporter = (opts = {}) => {
@@ -139,7 +142,7 @@ describe('lib/gui/tool-runner/index', () => {
         });
 
         it('should not add disabled test to report', () => {
-            toolAdapter.readTests.resolves(mkTestCollection_({bro: stubTest_({disabled: true})}));
+            toolAdapter.readTests.resolves({tests: [mkTestAdapter_(stubTest_({disabled: true}))]});
 
             const gui = initGuiReporter({toolAdapter, paths: ['foo']});
 
@@ -150,7 +153,8 @@ describe('lib/gui/tool-runner/index', () => {
         });
 
         it('should not add silently skipped test to report', () => {
-            toolAdapter.readTests.resolves(mkTestCollection_({bro: stubTest_({silentSkip: true})}));
+            const testAdapter = mkTestAdapter_(stubTest_({silentSkip: true}));
+            toolAdapter.readTests.resolves({tests: [testAdapter]});
 
             const gui = initGuiReporter({toolAdapter, paths: ['foo']});
 
@@ -162,7 +166,8 @@ describe('lib/gui/tool-runner/index', () => {
 
         it('should not add test from silently skipped suite to report', () => {
             const silentlySkippedSuite = mkSuite({silentSkip: true});
-            toolAdapter.readTests.resolves(mkTestCollection_({bro: stubTest_({parent: silentlySkippedSuite})}));
+            const testAdapter = mkTestAdapter_(stubTest_({parent: silentlySkippedSuite}));
+            toolAdapter.readTests.resolves({tests: [testAdapter]});
 
             const gui = initGuiReporter({toolAdapter, paths: ['foo']});
 
@@ -173,7 +178,8 @@ describe('lib/gui/tool-runner/index', () => {
         });
 
         it('should add skipped test to report', () => {
-            toolAdapter.readTests.resolves(mkTestCollection_({bro: stubTest_({pending: true})}));
+            const testAdapter = mkTestAdapter_(stubTest_({pending: true}));
+            toolAdapter.readTests.resolves({tests: [testAdapter]});
 
             const gui = initGuiReporter({toolAdapter, paths: ['foo']});
 
@@ -182,7 +188,8 @@ describe('lib/gui/tool-runner/index', () => {
         });
 
         it('should add idle test to report', () => {
-            toolAdapter.readTests.resolves(mkTestCollection_({bro: stubTest_()}));
+            const testAdapter = mkTestAdapter_(stubTest_());
+            toolAdapter.readTests.resolves({tests: [testAdapter]});
 
             const gui = initGuiReporter({toolAdapter, paths: ['foo']});
 
@@ -191,7 +198,8 @@ describe('lib/gui/tool-runner/index', () => {
         });
 
         it('should handle test results before read tests', () => {
-            toolAdapter.readTests.resolves(mkTestCollection_({bro: stubTest_()}));
+            const testAdapter = mkTestAdapter_(stubTest_());
+            toolAdapter.readTests.resolves({tests: [testAdapter]});
 
             const gui = initGuiReporter({toolAdapter, paths: ['foo']});
 
@@ -200,7 +208,8 @@ describe('lib/gui/tool-runner/index', () => {
         });
 
         it('should initialize report builder after read tests for the correct order of events', async () => {
-            toolAdapter.readTests.resolves(mkTestCollection_({bro: stubTest_()}));
+            const testAdapter = mkTestAdapter_(stubTest_());
+            toolAdapter.readTests.resolves({tests: [testAdapter]});
             const gui = initGuiReporter({toolAdapter, paths: ['foo']});
 
             await gui.initialize();
@@ -215,6 +224,7 @@ describe('lib/gui/tool-runner/index', () => {
             const testRefUpdateData = [{
                 id: 'some-id',
                 fullTitle: () => 'some-title',
+                clone: () => testRefUpdateData[0],
                 browserId: 'yabro',
                 suite: {path: ['suite1']},
                 state: {},
@@ -229,11 +239,12 @@ describe('lib/gui/tool-runner/index', () => {
             }];
 
             const getScreenshotPath = sandbox.stub().returns('/ref/path1');
-            const config = stubConfig({
+            const config = mkConfigAdapter_(stubConfig({
                 browsers: {yabro: {getScreenshotPath}}
-            });
+            }));
 
-            const testCollection = mkTestCollection_({'some-title.yabro': testRefUpdateData[0]});
+            const testAdapter = mkTestAdapter_(testRefUpdateData[0]);
+            const testCollection = {tests: [testAdapter]};
             const toolAdapter = stubToolAdapter({config, testCollection});
 
             const gui = initGuiReporter({toolAdapter});
@@ -251,6 +262,7 @@ describe('lib/gui/tool-runner/index', () => {
             const tests = [{
                 id: 'some-id',
                 fullTitle: () => 'some-title',
+                clone: () => tests[0],
                 browserId: 'yabro',
                 suite: {path: ['suite1']},
                 state: {},
@@ -277,11 +289,11 @@ describe('lib/gui/tool-runner/index', () => {
                 .onFirstCall().returns('/ref/path1')
                 .onSecondCall().returns('/ref/path2');
 
-            const config = stubConfig({
+            const config = mkConfigAdapter_(stubConfig({
                 browsers: {yabro: {getScreenshotPath}}
-            });
+            }));
 
-            const testCollection = mkTestCollection_({'some-title.yabro': tests[0]});
+            const testCollection = {tests: [mkTestAdapter_(tests[0])]};
             const toolAdapter = stubToolAdapter({config, testCollection});
 
             const gui = initGuiReporter({toolAdapter});
@@ -304,6 +316,7 @@ describe('lib/gui/tool-runner/index', () => {
             const testRefUpdateData = [{
                 id: 'some-id',
                 fullTitle: () => 'some-title',
+                clone: () => testRefUpdateData[0],
                 browserId: 'yabro',
                 suite: {path: ['suite1']},
                 state: {},
@@ -318,11 +331,11 @@ describe('lib/gui/tool-runner/index', () => {
             }];
 
             const getScreenshotPath = sandbox.stub().returns('/ref/path1');
-            const config = stubConfig({
+            const config = mkConfigAdapter_(stubConfig({
                 browsers: {yabro: {getScreenshotPath}}
-            });
+            }));
 
-            const testCollection = mkTestCollection_({'some-title.yabro': testRefUpdateData[0]});
+            const testCollection = {tests: [mkTestAdapter_(testRefUpdateData[0])]};
             const toolAdapter = stubToolAdapter({config, testCollection});
 
             reportBuilder.getLatestAttempt.withArgs({fullName: 'some-title', browserId: 'yabro'}).returns(100500);
@@ -350,6 +363,7 @@ describe('lib/gui/tool-runner/index', () => {
             const tests = [{
                 id: 'some-id',
                 fullTitle: () => 'some-title',
+                clone: () => tests[0],
                 browserId: 'yabro',
                 suite: {path: ['suite1']},
                 state: {},
@@ -366,11 +380,11 @@ describe('lib/gui/tool-runner/index', () => {
             }];
 
             const getScreenshotPath = sandbox.stub().returns('/ref/path1');
-            const config = stubConfig({
+            const config = mkConfigAdapter_(stubConfig({
                 browsers: {yabro: {getScreenshotPath}}
-            });
+            }));
 
-            const testCollection = mkTestCollection_({'some-title.yabro': tests[0]});
+            const testCollection = {tests: [mkTestAdapter_(tests[0])]};
             const toolAdapter = stubToolAdapter({config, testCollection});
 
             const gui = initGuiReporter({toolAdapter});
@@ -424,7 +438,7 @@ describe('lib/gui/tool-runner/index', () => {
                 config: stubConfig({tolerance: 100500, antialiasingTolerance: 500100}),
                 reporterConfig: stubReporterConfig({path: 'report_path'})
             });
-            toolAdapter.readTests.resolves(mkTestCollection_());
+            toolAdapter.readTests.resolves({tests: []});
 
             compareOpts = {
                 tolerance: 100500,
@@ -524,7 +538,7 @@ describe('lib/gui/tool-runner/index', () => {
     describe('run', () => {
         it('should run tool with passed opts', async () => {
             const cliTool = {grep: /some-grep/, set: 'some-set', browser: 'yabro', devtools: true};
-            const collection = mkTestCollection_();
+            const collection = {tests: []};
             toolAdapter.readTests.resolves(collection);
 
             const gui = initGuiReporter({toolAdapter, cli: {tool: cliTool, options: {}}});

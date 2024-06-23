@@ -9,6 +9,7 @@ import {ToolName} from '../../../../../../lib/constants';
 import {GuiApi} from '../../../../../../lib/gui/api';
 import {GuiReportBuilder} from '../../../../../../lib/report-builder/gui';
 import {EventSource} from '../../../../../../lib/gui/event-source';
+import {TestplaneTestCollectionAdapter} from '../../../../../../lib/adapters/test-collection/testplane';
 
 import {stubTool, stubConfig, stubTestCollection} from '../../../../utils';
 import type {ReporterConfig} from '../../../../../../lib/types';
@@ -241,13 +242,13 @@ describe('lib/adapters/tool/testplane/index', () => {
         let collection: TestCollection;
         let runner: {run: SinonStub};
 
-        const run_ = async (testplane: Testplane, collection: TestCollection, tests: TestSpec[], cliTool: CommanderStatic): Promise<void> => {
+        const run_ = async (testplane: Testplane, collectionAdapter: TestplaneTestCollectionAdapter, tests: TestSpec[], cliTool: CommanderStatic): Promise<void> => {
             const toolAdapter = TestplaneToolAdapter.create({toolName: ToolName.Testplane, tool: testplane, reporterConfig: {} as ReporterConfig});
 
-            await toolAdapter.run(collection, tests, cliTool);
+            await toolAdapter.run(collectionAdapter, tests, cliTool);
 
             const runHandler = runner.run.firstCall.args[0];
-            await runHandler(collection);
+            await runHandler(collectionAdapter.original);
         };
 
         beforeEach(() => {
@@ -262,7 +263,7 @@ describe('lib/adapters/tool/testplane/index', () => {
             const tests = [] as TestSpec[];
             const cliTool = {grep: /some-grep/, set: 'some-set', browser: 'yabro', devtools: true} as unknown as CommanderStatic;
 
-            await run_(testplane, collection, tests, cliTool);
+            await run_(testplane, TestplaneTestCollectionAdapter.create(collection), tests, cliTool);
 
             assert.calledOnceWith(testplane.run, collection, sinon.match({
                 grep: cliTool.grep,
@@ -278,7 +279,7 @@ describe('lib/adapters/tool/testplane/index', () => {
                 const tests = [] as TestSpec[];
                 const cliTool = {} as unknown as CommanderStatic;
 
-                await run_(testplane, collection, tests, cliTool);
+                await run_(testplane, TestplaneTestCollectionAdapter.create(collection), tests, cliTool);
 
                 assert.calledOnceWith(testplane.run, collection, sinon.match({
                     replMode: {
@@ -294,7 +295,7 @@ describe('lib/adapters/tool/testplane/index', () => {
                 const tests = [] as TestSpec[];
                 const cliTool = {repl: true} as unknown as CommanderStatic;
 
-                await run_(testplane, collection, tests, cliTool);
+                await run_(testplane, TestplaneTestCollectionAdapter.create(collection), tests, cliTool);
 
                 assert.calledOnceWith(testplane.run, collection, sinon.match({
                     replMode: {
@@ -310,7 +311,7 @@ describe('lib/adapters/tool/testplane/index', () => {
                 const tests = [] as TestSpec[];
                 const cliTool = {replBeforeTest: true} as unknown as CommanderStatic;
 
-                await run_(testplane, collection, tests, cliTool);
+                await run_(testplane, TestplaneTestCollectionAdapter.create(collection), tests, cliTool);
 
                 assert.calledOnceWith(testplane.run, collection, sinon.match({
                     replMode: {
@@ -326,7 +327,7 @@ describe('lib/adapters/tool/testplane/index', () => {
                 const tests = [] as TestSpec[];
                 const cliTool = {replOnFail: true} as unknown as CommanderStatic;
 
-                await run_(testplane, collection, tests, cliTool);
+                await run_(testplane, TestplaneTestCollectionAdapter.create(collection), tests, cliTool);
 
                 assert.calledOnceWith(testplane.run, collection, sinon.match({
                     replMode: {
