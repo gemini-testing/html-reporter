@@ -5,6 +5,8 @@ const fs = require('fs-extra');
 const proxyquire = require('proxyquire');
 const inquirer = require('inquirer');
 
+const {TestplaneTestAdapter} = require('lib/adapters/test/testplane');
+const {TestplaneConfigAdapter} = require('lib/adapters/config/testplane');
 const {SUCCESS, ERROR} = require('lib/constants/test-statuses');
 const {stubToolAdapter, stubConfig, mkState} = require('test/unit/utils');
 
@@ -20,8 +22,16 @@ describe('lib/cli/commands/remove-unused-screens/utils', () => {
         };
     };
 
-    const stubTest_ = (opts) => {
-        return mkState(_.defaults(opts, {id: () => 'default-id'}));
+    const mkConfigAdapter_ = (config = stubConfig()) => {
+        return TestplaneConfigAdapter.create(config);
+    };
+
+    const mkTest_ = (opts = {}) => {
+        return mkState(_.defaults(opts, {id: () => 'default-id', browserId: 'default-bro-id'}));
+    };
+
+    const mkTestAdapter_ = (test = mkTest_()) => {
+        return TestplaneTestAdapter.create(test);
     };
 
     const mkTestsTreeFromDb_ = ({
@@ -76,10 +86,11 @@ describe('lib/cli/commands/remove-unused-screens/utils', () => {
         });
 
         it('should add test tests tree with its screen info', async () => {
-            const test = stubTest_({fullTitle: () => 'first'});
-            const testCollection = mkTestCollection_({bro: test});
+            const test = mkTest_({fullTitle: () => 'first', browserId: 'bro'});
+            const testAdapter = mkTestAdapter_(test);
+            const testCollection = mkTestCollection_({bro: testAdapter});
             getScreenshotPath.withArgs(test, '*').returns('/ref/path/*.png');
-            const config = stubConfig({browsers: {bro: {getScreenshotPath}}});
+            const config = mkConfigAdapter_(stubConfig({browsers: {bro: {getScreenshotPath}}}));
 
             fgMock.withArgs('/ref/path/*.png').resolves(['/ref/path/1.png', '/ref/path/2.png']);
 
@@ -91,7 +102,7 @@ describe('lib/cli/commands/remove-unused-screens/utils', () => {
             assert.deepEqual(
                 tests.byId['first bro'],
                 {
-                    ...test,
+                    ...testAdapter,
                     screenPaths: ['/ref/path/1.png', '/ref/path/2.png'],
                     screenPattern: '/ref/path/*.png'
                 }
@@ -99,14 +110,15 @@ describe('lib/cli/commands/remove-unused-screens/utils', () => {
         });
 
         it('should collect all screen patterns in tests tree', async () => {
-            const test1 = stubTest_({fullTitle: () => 'first'});
-            const test2 = stubTest_({fullTitle: () => 'second'});
-            const testCollection = mkTestCollection_({bro1: test1, bro2: test2});
+            const test1 = mkTest_({fullTitle: () => 'first', browserId: 'bro1'});
+            const test2 = mkTest_({fullTitle: () => 'second', browserId: 'bro2'});
+
+            const testCollection = mkTestCollection_({bro1: mkTestAdapter_(test1), bro2: mkTestAdapter_(test2)});
             getScreenshotPath
                 .withArgs(test1, '*').returns('/ref/path-1/*.png')
                 .withArgs(test2, '*').returns('/ref/path-2/*.png');
 
-            const config = stubConfig({browsers: {bro1: {getScreenshotPath}, bro2: {getScreenshotPath}}});
+            const config = mkConfigAdapter_(stubConfig({browsers: {bro1: {getScreenshotPath}, bro2: {getScreenshotPath}}}));
             const toolAdapter = mkToolAdapter_(testCollection, config);
 
             const tests = await utils.getTestsFromFs(toolAdapter);
@@ -115,14 +127,17 @@ describe('lib/cli/commands/remove-unused-screens/utils', () => {
         });
 
         it('should return the number of unique tests', async () => {
-            const test1 = stubTest_({fullTitle: () => 'first'});
-            const test2 = stubTest_({fullTitle: () => 'second'});
-            const testCollection = mkTestCollection_({bro1: test1, bro2: test1, bro3: test2, bro4: test2});
+            const testCollection = mkTestCollection_({
+                bro1: mkTestAdapter_(mkTest_({fullTitle: () => 'first', browserId: 'bro1'})),
+                bro2: mkTestAdapter_(mkTest_({fullTitle: () => 'first', browserId: 'bro2'})),
+                bro3: mkTestAdapter_(mkTest_({fullTitle: () => 'second', browserId: 'bro3'})),
+                bro4: mkTestAdapter_(mkTest_({fullTitle: () => 'second', browserId: 'bro4'}))
+            });
 
-            const config = stubConfig({browsers: {
+            const config = mkConfigAdapter_(stubConfig({browsers: {
                 bro1: {getScreenshotPath}, bro2: {getScreenshotPath},
                 bro3: {getScreenshotPath}, bro4: {getScreenshotPath}
-            }});
+            }}));
             const toolAdapter = mkToolAdapter_(testCollection, config);
 
             const tests = await utils.getTestsFromFs(toolAdapter);
@@ -131,12 +146,15 @@ describe('lib/cli/commands/remove-unused-screens/utils', () => {
         });
 
         it('should return the list of unique browsers', async () => {
-            const test = stubTest_({fullTitle: () => 'first'});
-            const testCollection = mkTestCollection_({bro1: test, bro2: test, bro3: test});
+            const testCollection = mkTestCollection_({
+                bro1: mkTestAdapter_(mkTest_({fullTitle: () => 'first', browserId: 'bro1'})),
+                bro2: mkTestAdapter_(mkTest_({fullTitle: () => 'first', browserId: 'bro2'})),
+                bro3: mkTestAdapter_(mkTest_({fullTitle: () => 'second', browserId: 'bro3'}))
+            });
 
-            const config = stubConfig({browsers: {
+            const config = mkConfigAdapter_(stubConfig({browsers: {
                 bro1: {getScreenshotPath}, bro2: {getScreenshotPath}, bro3: {getScreenshotPath}
-            }});
+            }}));
             const toolAdapter = mkToolAdapter_(testCollection, config);
 
             const tests = await utils.getTestsFromFs(toolAdapter);

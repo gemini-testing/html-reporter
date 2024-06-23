@@ -21,7 +21,7 @@ function stubReporterConfig(opts = {}) {
 const stubTestCollection = (testsTree = {}) => {
     return {
         eachTest: (cb) => {
-            Object.keys(testsTree).forEach((test) => cb(testsTree[test]));
+            Object.keys(testsTree).forEach((browserId) => cb(testsTree[browserId], browserId));
         }
     };
 };

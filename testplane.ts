@@ -7,6 +7,7 @@ import PQueue from 'p-queue';
 import {CommanderStatic} from '@gemini-testing/commander';
 
 import {TestplaneToolAdapter} from './lib/adapters/tool/testplane';
+import {getStatus} from './lib/adapters/test-result/testplane';
 import {commands as cliCommands} from './lib/cli';
 import {parseConfig} from './lib/config';
 import {ToolName} from './lib/constants';
@@ -18,7 +19,6 @@ import {createWorkers, CreateWorkersRunner} from './lib/workers/create-workers';
 import {SqliteImageStore} from './lib/image-store';
 import {Cache} from './lib/cache';
 import {ImagesInfoSaver} from './lib/images-info-saver';
-import {getStatus} from './lib/adapters/test-result/testplane';
 
 export default (testplane: Testplane, opts: Partial<ReporterOptions>): void => {
     if (testplane.isWorker()) {
