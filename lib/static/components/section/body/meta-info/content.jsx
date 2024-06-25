@@ -1,21 +1,17 @@
 import path from 'path';
-import React, {Component, Fragment} from 'react';
-import {connect} from 'react-redux';
-import ClipboardButton from 'react-clipboard.js';
+import React, { Component, Fragment } from 'react';
+import { connect } from 'react-redux';
+import { ClipboardButton } from '@gravity-ui/uikit';
 import PropTypes from 'prop-types';
-import {map, mapValues, isObject, omitBy, isEmpty} from 'lodash';
-import {isUrl, getUrlWithBase} from '../../../../../common-utils';
+import { map, mapValues, isObject, omitBy, isEmpty } from 'lodash';
+import { isUrl, getUrlWithBase } from '../../../../../common-utils';
 
-const mkTextWithClipboardButton = (text, url)  => {
+const mkTextWithClipboardButton = (text, url) => {
     return <Fragment>
         {url ? <a data-suite-view-link={url} className="custom-icon_view-local" target="_blank" href={url}>
             {text || url}
         </a> : text}
-        <ClipboardButton
-            className="button custom-icon custom-icon_copy-to-clipboard"
-            button-title="copy to clipboard"
-            data-clipboard-text={url || text}>
-        </ClipboardButton>
+        <ClipboardButton text={text || url} size='s' className='copy-button' />
     </Fragment>;
 }
 
@@ -77,17 +73,17 @@ class MetaInfoContent extends Component {
     };
 
     getExtraMetaInfo = () => {
-        const {testName, apiValues: {extraItems, metaInfoExtenders}} = this.props;
+        const { testName, apiValues: { extraItems, metaInfoExtenders } } = this.props;
 
         return omitBy(mapValues(metaInfoExtenders, (extender) => {
             const stringifiedFn = extender.startsWith('return') ? extender : `return ${extender}`;
 
-            return new Function(stringifiedFn)()({testName}, extraItems);
+            return new Function(stringifiedFn)()({ testName }, extraItems);
         }), isEmpty);
     };
 
     render() {
-        const {result, metaInfoBaseUrls, baseHost} = this.props;
+        const { result, metaInfoBaseUrls, baseHost } = this.props;
 
         const serializedMetaValues = serializeMetaValues(result.metaInfo);
         const extraMetaInfo = this.getExtraMetaInfo();
@@ -104,7 +100,7 @@ class MetaInfoContent extends Component {
 }
 
 export default connect(
-    ({tree, config: {metaInfoBaseUrls}, apiValues, view}, {resultId}) => {
+    ({ tree, config: { metaInfoBaseUrls }, apiValues, view }, { resultId }) => {
         const result = tree.results.byId[resultId];
         const browser = tree.browsers.byId[result.parentId];
 
