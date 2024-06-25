@@ -1,15 +1,14 @@
-FROM cimg/node:16.20-browsers
+FROM node:18-alpine3.18
 
-ENV CHROME_VERSION=116
+ENV CHROME_VERSION=119
 
-USER circleci
+ARG DEBIAN_FRONTEND=noninteractive
 
-COPY --chown=circleci browser-utils browser-utils
-WORKDIR browser-utils
+RUN apk update
+RUN apk upgrade
+RUN apk add bash curl openrc iptables dbus openjdk11
 
-RUN npm ci && npm run install-chromium
+RUN apk add chromium=119.0.6045.159-r0
+RUN apk add chromium-chromedriver=119.0.6045.159-r0
 
-RUN npm install selenium-standalone@9.1.1 -g && \
-    selenium-standalone install --drivers.chrome.version=$CHROME_VERSION
-
-ENTRYPOINT selenium-standalone start --drivers.chrome.version=$CHROME_VERSION
+ENTRYPOINT chromedriver --port=4444 --whitelisted-ips=""

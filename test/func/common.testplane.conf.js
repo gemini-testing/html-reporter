@@ -1,6 +1,6 @@
 const path = require('path');
 
-const {GRID_URL, CHROME_BINARY_PATH} = require('./utils/constants');
+const {GRID_URL} = require('./utils/constants');
 
 module.exports.getCommonConfig = (projectDir) => ({
     gridUrl: GRID_URL,
@@ -13,11 +13,10 @@ module.exports.getCommonConfig = (projectDir) => ({
             desiredCapabilities: {
                 browserName: 'chrome',
                 'goog:chromeOptions': {
-                    args: ['headless', 'no-sandbox', 'hide-scrollbars'],
-                    binary: CHROME_BINARY_PATH
+                    args: ['headless', 'no-sandbox', 'hide-scrollbars', 'disable-dev-shm-usage'],
                 }
             },
             waitTimeout: 3000
         }
-    }
+    },
 });
