@@ -1,14 +1,24 @@
-FROM node:18-alpine3.18
+FROM node:18
 
 ENV CHROME_VERSION=119
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apk update
-RUN apk upgrade
-RUN apk add bash curl openrc iptables dbus openjdk11
+ARG BUILDPLATFORM
 
-RUN apk add chromium=119.0.6045.159-r0
-RUN apk add chromium-chromedriver=119.0.6045.159-r0
+RUN if [ "$BUILDPLATFORM" = "linux/arm64" ]; then export PREF=false; export URL="https://github.com/electron/electron/releases/download/v31.1.0/chromedriver-v31.1.0-linux-arm64.zip"; \
+    else export PREF=true; export URL="https://storage.googleapis.com/chrome-for-testing-public/126.0.6478.126/linux64/chromedriver-linux64.zip"; fi && \
+    wget "$URL" -O "chromedriver.zip" && \
+    unzip "chromedriver" && \
+    if [ "$PREF" = true ]; then mv "/chromedriver-linux64/chromedriver" "/chromedriver"; fi && \
+    apt update -y && \
+    apt install libnss3 -y
 
-ENTRYPOINT chromedriver --port=4444 --whitelisted-ips=""
+RUN npx playwright install chromium
+RUN npx playwright install-deps
+
+RUN apt-get install chromium=126.0.6478.126-1~deb12u1 -y
+
+LABEL com.circleci.preserve-entrypoint=true
+
+ENTRYPOINT ./chromedriver --port=4444 --whitelisted-ips=""
