@@ -75,6 +75,10 @@ export class StaticReportBuilder {
         this._workers = workers;
     }
 
+    getLatestAttempt(testInfo: {fullName: string, browserId: string}): number {
+        return this._testAttemptManager.getCurrentAttempt(testInfo);
+    }
+
     /** If passed test result doesn't have attempt, this method registers new attempt and sets attempt number */
     provideAttempt(testResultOriginal: ReporterTestResult): ReporterTestResult {
         let formattedResult = testResultOriginal;

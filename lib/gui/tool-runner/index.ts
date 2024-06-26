@@ -173,8 +173,12 @@ export class ToolRunner {
 
         return Promise.all(tests.map(async (test): Promise<TestBranch> => {
             const updateResult = this._createTestplaneTestResult(test);
-            const currentResult = formatTestResult(updateResult, UPDATED, test.attempt);
-            const estimatedStatus = reportBuilder.getUpdatedReferenceTestStatus(currentResult);
+            const latestAttempt = reportBuilder.getLatestAttempt({
+                fullName: updateResult.fullTitle(),
+                browserId: updateResult.browserId
+            });
+            const latestResult = formatTestResult(updateResult, UPDATED, latestAttempt);
+            const estimatedStatus = reportBuilder.getUpdatedReferenceTestStatus(latestResult);
 
             const formattedResultWithoutAttempt = formatTestResult(updateResult, UPDATED);
             const formattedResult = reportBuilder.provideAttempt(formattedResultWithoutAttempt);

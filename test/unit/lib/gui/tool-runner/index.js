@@ -299,6 +299,44 @@ describe('lib/gui/tool-runner/index', () => {
                 state: 'plain2'
             });
         });
+
+        it('should determine status based on the latest result', async () => {
+            const testRefUpdateData = [{
+                id: 'some-id',
+                fullTitle: () => 'some-title',
+                browserId: 'yabro',
+                suite: {path: ['suite1']},
+                state: {},
+                metaInfo: {},
+                imagesInfo: [{
+                    status: UPDATED,
+                    stateName: 'plain1',
+                    actualImg: {
+                        size: {height: 100, width: 200}
+                    }
+                }]
+            }];
+
+            const getScreenshotPath = sandbox.stub().returns('/ref/path1');
+            const config = stubConfig({
+                browsers: {yabro: {getScreenshotPath}}
+            });
+
+            const testCollection = mkTestCollection_({'some-title.yabro': testRefUpdateData[0]});
+            const toolAdapter = stubToolAdapter({config, testCollection});
+
+            reportBuilder.getLatestAttempt.withArgs({fullName: 'some-title', browserId: 'yabro'}).returns(100500);
+            reportBuilder.getUpdatedReferenceTestStatus.withArgs(sinon.match({attempt: 100500})).returns(TestStatus.UPDATED);
+
+            const gui = initGuiReporter({toolAdapter});
+            await gui.initialize();
+
+            reportBuilder.addTestResult.reset();
+
+            await gui.updateReferenceImage(testRefUpdateData);
+
+            assert.calledOnceWith(reportBuilder.addTestResult, sinon.match.any, {status: TestStatus.UPDATED});
+        });
     });
 
     describe('undoAcceptImages', () => {
