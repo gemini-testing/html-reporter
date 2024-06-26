@@ -25,7 +25,7 @@ class ModalContainer extends Component {
             return null;
         }
 
-        return modals.map(({id, type, className, data}) => {
+        return modals.map(({id, type, className, data = {}}) => {
             const SpecifiedModal = Modals[type];
 
             return (

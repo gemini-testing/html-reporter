@@ -23,5 +23,13 @@ export const configDefaults: ReporterConfig = {
     saveFormat: SaveFormat.SQLITE,
     yandexMetrika: {
         counterNumber: null
+    },
+    staticImageAccepter: {
+        enabled: false,
+        repositoryUrl: '',
+        pullRequestUrl: '',
+        serviceUrl: '',
+        meta: {},
+        axiosRequestOptions: {}
     }
 };

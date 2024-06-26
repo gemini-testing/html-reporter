@@ -1,10 +1,11 @@
-import {SUCCESS, FAIL, ERROR, UPDATED} from 'lib/constants/test-statuses';
+import {SUCCESS, FAIL, ERROR, UPDATED, STAGED, COMMITED} from 'lib/constants/test-statuses';
 import {CHECKED, UNCHECKED, INDETERMINATE} from 'lib/constants/checked-statuses';
 import reducer from 'lib/static/modules/reducers/tree';
 import actionNames from 'lib/static/modules/action-names';
 import {ViewMode} from 'lib/constants/view-modes';
 import {EXPAND_ALL, EXPAND_ERRORS, EXPAND_RETRIES} from 'lib/constants/expand-modes';
 import {mkSuite, mkBrowser, mkResult, mkImage, mkStateTree, mkStateView} from '../../../state-utils';
+import {ErrorName} from 'lib/errors';
 
 describe('lib/static/modules/reducers/tree', () => {
     [actionNames.INIT_GUI_REPORT, actionNames.INIT_STATIC_REPORT].forEach((actionName) => {
@@ -1739,6 +1740,142 @@ describe('lib/static/modules/reducers/tree', () => {
 
                 assert.equal(newState.tree.suites.stateById.s0.checkStatus, CHECKED);
                 assert.equal(newState.tree.suites.stateById.s1.checkStatus, CHECKED);
+            });
+        });
+    });
+
+    describe('static accepter', () => {
+        let state;
+
+        beforeEach(() => {
+            const imagesById = {
+                ...mkImage({id: 'i0', status: FAIL, parentId: 'r0', stateName: 'foo'}),
+                ...mkImage({id: 'i1', status: FAIL, parentId: 'r1', stateName: 'foo'}),
+                ...mkImage({id: 'i2', status: FAIL, parentId: 'r1', stateName: 'bar'}),
+                ...mkImage({id: 'i3', status: FAIL, parentId: 'r2', stateName: 'baz'})
+            };
+            const browsersById = {
+                ...mkBrowser({id: 'b1', name: 'b1', resultIds: ['r0', 'r1'], parentId: 's1'}),
+                ...mkBrowser({id: 'd1', name: 'd1', resultIds: ['r2'], parentId: 's2'})
+            };
+            const resultsById = {
+                ...mkResult({id: 'r0', status: FAIL, error: {name: ErrorName.ASSERT_VIEW}, parentId: 'b1', imageIds: ['i0']}),
+                ...mkResult({id: 'r1', status: FAIL, error: {name: ErrorName.ASSERT_VIEW}, parentId: 'b1', imageIds: ['i1', 'i2']}),
+                ...mkResult({id: 'r2', status: FAIL, error: {name: ErrorName.ASSERT_VIEW}, parentId: 'd1', imageIds: ['i3']})
+            };
+            const browsersStateById = {
+                b1: {checkStatus: CHECKED, shouldBeShown: true},
+                d1: {checkStatus: UNCHECKED, shouldBeShown: true}
+            };
+            const suitesById = {
+                ...mkSuite({id: 's0', status: FAIL, suiteIds: ['s1', 's2'], parentId: null, root: true}),
+                ...mkSuite({id: 's1', status: FAIL, browserIds: ['b1'], parentId: 's0'}),
+                ...mkSuite({id: 's2', status: FAIL, browserIds: ['d1'], parentId: 's0'})
+            };
+            const suitesStateById = {
+                's0': {shouldBeShown: true},
+                's1': {shouldBeShown: true},
+                's2': {shouldBeShown: true}
+            };
+            const suitesAllRootIds = ['s1'];
+            const tree = mkStateTree({suitesById, browsersById, resultsById, imagesById, browsersStateById, suitesAllRootIds, suitesStateById});
+            const view = mkStateView({
+                viewMode: ViewMode.FAILED,
+                testNameFilter: '',
+                strictMatchFilter: false,
+                filteredBrowsers: [{id: 'b1', versions: []}, {id: 'd1', versions: []}]
+            });
+            const staticImageAccepter = {acceptableImages: {
+                'i0': {id: 'i0', originalStatus: FAIL, stateNameImageId: 's0 s1 b1 foo'},
+                'i1': {id: 'i1', originalStatus: FAIL, stateNameImageId: 's0 s1 b1 foo'},
+                'i2': {id: 'i2', originalStatus: FAIL, stateNameImageId: 's0 s1 b1 bar'},
+                'i3': {id: 'i3', originalStatus: FAIL, stateNameImageId: 's0 s2 d1 baz'}
+            }};
+
+            state = {tree, view, staticImageAccepter};
+        });
+
+        [
+            {actionName: actionNames.STATIC_ACCEPTER_STAGE_SCREENSHOT, newStatus: STAGED},
+            {actionName: actionNames.STATIC_ACCEPTER_COMMIT_SCREENSHOT, newStatus: COMMITED}
+        ].forEach(({actionName, newStatus}) => {
+            describe(`${actionName} action`, () => {
+                it('should change image status', () => {
+                    const newState = reducer(state, {type: actionName, payload: ['i1']});
+
+                    assert.equal(newState.tree.images.byId['i1'].status, newStatus);
+                });
+
+                it('should not change result status', () => {
+                    const newState = reducer(state, {type: actionName, payload: ['i1']});
+
+                    assert.equal(newState.tree.results.byId['r1'].status, FAIL);
+                });
+
+                it('should change result status', () => {
+                    const newState = reducer(state, {type: actionName, payload: ['i1', 'i2']});
+
+                    assert.equal(newState.tree.results.byId['r1'].status, newStatus);
+                });
+
+                it('should not change suite status', () => {
+                    const newState = reducer(state, {type: actionName, payload: ['i1', 'i2']});
+
+                    assert.equal(newState.tree.suites.byId['s2'].status, FAIL);
+                });
+
+                it('should change suite status', () => {
+                    const newState = reducer(state, {type: actionName, payload: ['i1', 'i2', 'i3']});
+
+                    assert.equal(newState.tree.suites.byId['s2'].status, newStatus);
+                });
+
+                it('should change suite state', () => {
+                    const newState = reducer(state, {type: actionName, payload: ['i1', 'i2', 'i3']});
+
+                    assert.equal(newState.tree.suites.stateById['s2'].shouldBeShown, false);
+                });
+            });
+        });
+
+        describe(`${actionNames.STATIC_ACCEPTER_STAGE_SCREENSHOT} action`, () => {
+            it('should unstage another staged image', () => {
+                const newState = reducer(state, {type: actionNames.STATIC_ACCEPTER_STAGE_SCREENSHOT, payload: ['i0']});
+
+                assert.equal(newState.tree.images.byId['i0'].status, STAGED);
+
+                const nextState = reducer(newState, {type: actionNames.STATIC_ACCEPTER_STAGE_SCREENSHOT, payload: ['i1']});
+
+                assert.equal(nextState.tree.images.byId['i0'].status, FAIL);
+            });
+        });
+
+        describe(`${actionNames.STATIC_ACCEPTER_UNSTAGE_SCREENSHOT} action`, () => {
+            it('should return original image status', () => {
+                const newState = reducer(state, {type: actionNames.STATIC_ACCEPTER_STAGE_SCREENSHOT, payload: ['i1']});
+
+                const nextState = reducer(newState, {type: actionNames.STATIC_ACCEPTER_UNSTAGE_SCREENSHOT, payload: {imageId: 'i1'}});
+
+                assert.equal(nextState.tree.images.byId['i1'].status, FAIL);
+            });
+
+            it('should return original result status', () => {
+                const firstState = reducer(state, {type: actionNames.STATIC_ACCEPTER_STAGE_SCREENSHOT, payload: ['i1', 'i2']});
+
+                const secondState = reducer(firstState, {type: actionNames.STATIC_ACCEPTER_UNSTAGE_SCREENSHOT, payload: {imageId: 'i1'}});
+                const thirdState = reducer(secondState, {type: actionNames.STATIC_ACCEPTER_UNSTAGE_SCREENSHOT, payload: {imageId: 'i2'}});
+
+                assert.equal(thirdState.tree.results.byId['r1'].status, FAIL);
+            });
+
+            it('should return original suite status', () => {
+                const firstState = reducer(state, {type: actionNames.STATIC_ACCEPTER_STAGE_SCREENSHOT, payload: ['i1', 'i2', 'i3']});
+
+                const secondState = reducer(firstState, {type: actionNames.STATIC_ACCEPTER_UNSTAGE_SCREENSHOT, payload: {imageId: 'i1'}});
+                const thirdState = reducer(secondState, {type: actionNames.STATIC_ACCEPTER_UNSTAGE_SCREENSHOT, payload: {imageId: 'i2'}});
+                const fourthState = reducer(thirdState, {type: actionNames.STATIC_ACCEPTER_UNSTAGE_SCREENSHOT, payload: {imageId: 'i3'}});
+
+                assert.equal(fourthState.tree.suites.byId['s1'].status, FAIL);
             });
         });
     });

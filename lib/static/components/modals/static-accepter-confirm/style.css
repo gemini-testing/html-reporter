@@ -1,0 +1,22 @@
+.static-accepter-confirm {
+    z-index: 99999;
+    width: 400px;
+    position: fixed;
+    left: calc(50% - 200px);
+    top: 60px;
+    padding: 15px;
+}
+
+.static-accepter-confirm__controls {
+    display: flex;
+    gap: 5px;
+    margin-top: 10px;
+}
+
+.static-accepter-confirm__controls button {
+    flex-grow: 1;
+}
+
+.static-accepter-confirm__controls .static-accepter-confirm__cancel {
+    margin-left: auto;
+}

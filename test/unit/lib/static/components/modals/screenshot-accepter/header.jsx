@@ -26,6 +26,7 @@ describe('<ScreenshotAccepterHeader/>', () => {
             retryIndex: 0,
             showMeta: false,
             activeImageIndex: 0,
+            staticImageAccepter: {accepterDelayedImages: []},
             onShowMeta: () => {},
             onClose: () => {},
             onRetryChange: () => {},

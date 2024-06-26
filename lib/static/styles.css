@@ -167,6 +167,26 @@ main.container {
     background: #ffde5a;
 }
 
+.state-controls {
+    display: flex;
+    margin-top: 10px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.button_type_suite-controls {
+    padding: 2px 8px;
+    border-radius: var(--button-border-radius);
+    font-size: 13px;
+    line-height: 18px;
+    margin-right: 10px;
+}
+
+.controls__item > .button_type_suite-controls {
+    margin-right: 0;
+}
+
 .image-box {
     padding: 15px;
     border: 1px solid #ccc;
@@ -450,6 +470,16 @@ main.container {
     border-color: var(--report-color-fail) !important;
 }
 
+.section_status_staged > .section__title,
+.state-title_staged {
+    color: var(--report-color-staged);
+}
+
+.section_status_commited > .section__title,
+.state-title_commited {
+    color: var(--report-color-commited);
+}
+
 .section__body,
 .tests-group__body {
     padding-left: 10px;
@@ -568,6 +598,16 @@ main.container {
 .tab-switcher__button {
     --g-button-padding: 8px;
     margin-right: 2px;
+}
+
+.tab-switcher__button_status_staged {
+    background-color: rgba(255, 235, 206, 1);
+    border-color: rgba(255, 235, 206, 1);
+}
+
+.tab-switcher__button_status_commited {
+    background-color: rgba(207, 231, 252, 1);
+    border-color: rgba(207, 231, 252, 1);
 }
 
 .tab-switcher__button_non-matched {
@@ -886,4 +926,10 @@ a:active {
 
 .bottom-progress-bar:hover .bottom-progress-bar__counter {
     opacity: 1;
+}
+
+.static-image-accepter {
+    display: flex;
+    flex-grow: 1;
+    height: 25px;
 }

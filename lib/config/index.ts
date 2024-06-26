@@ -15,6 +15,10 @@ const ALLOWED_PLUGIN_DESCRIPTION_FIELDS = new Set(['name', 'component', 'point',
 type TypePredicateFn<T> = (value: unknown) => value is T;
 type AssertionFn<T> = (value: unknown) => asserts value is T;
 
+const isPlainObject = (value: unknown): value is Record<string, unknown> => {
+    return _.isPlainObject(value);
+};
+
 const assertType = <T>(name: string, validationFn: (value: unknown) => value is T, type: string): AssertionFn<T> => {
     return (v: unknown): asserts v is T => {
         if (!validationFn(v)) {
@@ -25,6 +29,7 @@ const assertType = <T>(name: string, validationFn: (value: unknown) => value is 
 const assertString = (name: string): AssertionFn<string> => assertType(name, _.isString, 'string');
 const assertBoolean = (name: string): AssertionFn<boolean> => assertType(name, _.isBoolean, 'boolean');
 const assertNumber = (name: string): AssertionFn<number> => assertType(name, _.isNumber, 'number');
+const assertPlainObject = (name: string): AssertionFn<Record<string, unknown>> => assertType(name, isPlainObject, 'plain object');
 
 const assertSaveFormat = (saveFormat: unknown): asserts saveFormat is SaveFormat => {
     const formats = Object.values(SaveFormat);
@@ -219,6 +224,38 @@ const getParser = (): ReturnType<typeof root<ReporterConfig>> => {
             parseEnv: JSON.parse,
             parseCli: JSON.parse,
             validate: assertArrayOf('plugin descriptions', 'plugins', assertPluginDescription)
+        }),
+        staticImageAccepter: section({
+            enabled: option({
+                defaultValue: configDefaults.staticImageAccepter.enabled,
+                parseEnv: JSON.parse,
+                parseCli: JSON.parse,
+                validate: assertBoolean('staticImageAccepter.enabled')
+            }),
+            repositoryUrl: option({
+                defaultValue: configDefaults.staticImageAccepter.repositoryUrl,
+                validate: assertString('staticImageAccepter.repositoryUrl')
+            }),
+            pullRequestUrl: option({
+                defaultValue: configDefaults.staticImageAccepter.pullRequestUrl,
+                validate: assertString('staticImageAccepter.pullRequestUrl')
+            }),
+            serviceUrl: option({
+                defaultValue: configDefaults.staticImageAccepter.serviceUrl,
+                validate: assertString('staticImageAccepter.serviceUrl')
+            }),
+            meta: option({
+                defaultValue: configDefaults.staticImageAccepter.meta,
+                parseEnv: JSON.parse,
+                parseCli: JSON.parse,
+                validate: assertPlainObject('staticImageAccepter.meta')
+            }),
+            axiosRequestOptions: option({
+                defaultValue: configDefaults.staticImageAccepter.axiosRequestOptions,
+                parseEnv: JSON.parse,
+                parseCli: JSON.parse,
+                validate: assertPlainObject('staticImageAccepter.axiosRequestOptions')
+            })
         })
     }), {envPrefix: ENV_PREFIX, cliPrefix: CLI_PREFIX});
 };

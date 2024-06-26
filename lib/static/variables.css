@@ -2,6 +2,8 @@
     --report-color-fail: #d00;
     --report-color-skip: #8c8c8c;
     --report-color-success: #169737;
+    --report-color-staged:  #bd5c0a;
+    --report-color-commited: #3072b3;
     
     --button-border-radius: 6px;
     --button-action-color: #ffeba0;

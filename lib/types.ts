@@ -1,3 +1,4 @@
+import type axios from 'axios';
 import type {LooksSameOptions, CoordBounds} from 'looks-same';
 import type {default as Testplane, TestResult} from 'testplane';
 import {DiffModeId, SaveFormat, SUITES_TABLE_COLUMNS, TestStatus, ViewMode} from './constants';
@@ -200,6 +201,33 @@ export interface CustomGuiItem {
     }) => void | Promise<void>;
 }
 
+type AxiosPost = typeof axios['post'];
+type AxiosRequestOptions = Parameters<AxiosPost>[2];
+
+export interface StaticImageAccepterConfig {
+    enabled: boolean;
+    repositoryUrl: string;
+    pullRequestUrl: string;
+    serviceUrl: string;
+    axiosRequestOptions?: AxiosRequestOptions;
+    meta: Record<string, unknown>;
+}
+
+export interface StaticImageAccepterRequest extends Pick<StaticImageAccepterConfig, 'repositoryUrl' | 'pullRequestUrl'> {
+    message: string;
+    meta?: StaticImageAccepterConfig['meta'];
+    imagesInfo: Array<{
+        /**
+         * @note base64
+         */
+        image: string;
+        /**
+         * @note relative to repository root
+         */
+        path: string;
+    }>;
+}
+
 export interface ReporterConfig {
     baseHost: string;
     commandsWithShortHistory: string[];
@@ -217,6 +245,7 @@ export interface ReporterConfig {
     saveErrorDetails: boolean;
     saveFormat: SaveFormat;
     yandexMetrika: { counterNumber: null | number };
+    staticImageAccepter: StaticImageAccepterConfig;
 }
 
 export type ReporterOptions = Omit<ReporterConfig, 'errorPatterns'> & {errorPatterns: (string | ErrorPattern)[]};
