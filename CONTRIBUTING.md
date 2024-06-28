@@ -39,21 +39,21 @@ If you want a finer-grained control over the process, the following commands may
 - `npm run --workspace=test/func/tests gui:plugins` — launch hermione GUI for the `plugins` tests set
 - `npm run e2e:test` — run e2e tests only, without building packages or generating fixtures
 
-If you want to build an image with browsers or launch the local image, you can use these commands:
+If you want to build an image with browsers or launch a local image, you can use these commands:
 - `npm run e2e:build-browsers` — build the local image
 - `npm run e2e:launch-browsers-local` — launch the local image with browsers
 
 To build a multiplatform image use:
 - `docker buildx build --platform linux/amd64,linux/arm64 test/func/docker`
 
-If you use colima then you can follow these steps to builad a multiplatform image:
+If you use colima then you can follow these steps to build a multiplatform image:
 1. Start 2 instances 
     - `colima start --profile amd --arch amd`
     - `colima start --profile arm --arch arm`
 2. Create a buildx context to use the created instances as nodes
     - `docker buildx create --use --name custom colima-amd`
     - `docker buildx create --append --name custom colima-arm`
-3. Build the image
+3. Build an image
     - `docker buildx build --platform linux/amd64,linux/arm64 test/func/docker`
 
 If you need to update the image on dockerhub, you can run this:
