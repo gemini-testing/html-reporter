@@ -53,7 +53,7 @@ If you use colima then you can follow these steps to build a multiplatform image
 2. Create a buildx context to use the created instances as nodes
     - `docker buildx create --use --name custom colima-amd`
     - `docker buildx create --append --name custom colima-arm`
-3. Build an image
+3. Build the image
     - `docker buildx build --platform linux/amd64,linux/arm64 test/func/docker`
 
 If you need to update the image on dockerhub, you can run this:
