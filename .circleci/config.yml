@@ -3,13 +3,11 @@ jobs:
   build:
     working_directory: ~/html-reporter
     docker:
-      - image: evilhacker2070/html-reporter
+      - image: yinfra/html-reporter-browsers
     environment:
-      CHROME_VERSION: 116
       SERVER_HOST: localhost
-
+      
     steps:
-
       - checkout
 
       - run: npm ci

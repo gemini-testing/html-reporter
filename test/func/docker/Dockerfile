@@ -1,23 +1,25 @@
 FROM node:18
 
-ENV CHROME_VERSION=119
-
 ARG DEBIAN_FRONTEND=noninteractive
 
 ARG BUILDPLATFORM
 
-RUN if [ "$BUILDPLATFORM" = "linux/arm64" ]; then export PREF=false; export URL="https://github.com/electron/electron/releases/download/v31.1.0/chromedriver-v31.1.0-linux-arm64.zip"; \
-    else export PREF=true; export URL="https://storage.googleapis.com/chrome-for-testing-public/126.0.6478.126/linux64/chromedriver-linux64.zip"; fi && \
+ENV CHROMIUM_VERSION="126.0.6478.126-1~deb12u1"
+ENV ARM_CHROMEDRIVER_URL="https://github.com/electron/electron/releases/download/v31.1.0/chromedriver-v31.1.0-linux-arm64.zip"
+ENV ARM_CHROMEDRIVER_RELATIVE_PATH=""
+ENV AMD_CHROMEDRIVER_URL="https://storage.googleapis.com/chrome-for-testing-public/126.0.6478.126/linux64/chromedriver-linux64.zip"
+ENV AMD_CHROMEDRIVER_RELATIVE_PATH="/chromedriver-linux64"
+
+RUN if [ "$BUILDPLATFORM" = "linux/arm64" ]; then export RELATIVE_PATH="$ARM_CHROMEDRIVER_RELATIVE_PATH"; export URL="$ARM_CHROMEDRIVER_URL"; \
+    else export RELATIVE_PATH="$AMD_CHROMEDRIVER_RELATIVE_PATH"; export URL="$AMD_CHROMEDRIVER_URL"; fi && \
     wget "$URL" -O "chromedriver.zip" && \
     unzip "chromedriver" && \
-    if [ "$PREF" = true ]; then mv "/chromedriver-linux64/chromedriver" "/chromedriver"; fi && \
+    if [ "$RELATIVE_PATH" != "" ]; then mv "$RELATIVE_PATH/chromedriver" "/chromedriver"; fi && \
     apt update -y && \
-    apt install libnss3 -y
-
-RUN npx playwright install chromium
-RUN npx playwright install-deps
-
-RUN apt-get install chromium=126.0.6478.126-1~deb12u1 -y
+    apt install libnss3 -y && \
+    npx playwright install chromium && \
+    npx playwright install-deps && \
+    apt-get install chromium="$CHROMIUM_VERSION" -y
 
 LABEL com.circleci.preserve-entrypoint=true
 
