@@ -556,6 +556,10 @@ details[open] > .details__summary:before {
     text-overflow: ellipsis;
 }
 
+.copy-button { 
+    margin-left: 2px;
+}
+
 .meta-info__item .copy-button {
     opacity: 0;
 }
