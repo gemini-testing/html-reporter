@@ -20,7 +20,7 @@ RUN if [ "$BUILDPLATFORM" = "linux/arm64" ]; then export RELATIVE_PATH="$ARM_CHR
     apt update -y && \
     apt install libnss3 -y && \
     rm chromedriver.zip && \
-    rm chromedriver.debug && \
+    (rm chromedriver.debug || true) && \
     apt-get install chromium="$CHROMIUM_VERSION" -y
 
 LABEL com.circleci.preserve-entrypoint=true
