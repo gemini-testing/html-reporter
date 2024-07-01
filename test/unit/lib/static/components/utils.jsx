@@ -3,6 +3,7 @@ import _ from 'lodash';
 import configureStore from 'redux-mock-store';
 import {Provider} from 'react-redux';
 import defaultState from 'lib/static/modules/default-state';
+import { ThemeProvider } from '@gravity-ui/uikit';
 
 exports.mkState = ({initialState} = {}) => {
     return _.defaultsDeep(initialState, defaultState);
@@ -17,7 +18,7 @@ exports.mkStore = ({initialState, state} = {}) => {
 
 exports.mkConnectedComponent = (Component, state) => {
     const store = exports.mkStore(state);
-    return mount(<Provider store={store}>{Component}</Provider>);
+    return mount(<ThemeProvider theme='light'><Provider store={store}>{Component}</Provider></ThemeProvider>);
 };
 
 exports.mkImg_ = (opts = {}) => {

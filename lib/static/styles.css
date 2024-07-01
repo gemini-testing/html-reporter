@@ -530,7 +530,7 @@ details[open] > .details__summary:before {
 .meta-info__item {
     display: flex;
     word-wrap: break-word;
-    margin-bottom: 5px;
+    align-items: center;
 }
 
 .meta-info__item:last-child {
@@ -546,6 +546,7 @@ details[open] > .details__summary:before {
 .meta-info__item-value {
     display: grid;
     grid-template-columns: repeat(2, auto);
+    align-items: center;
 }
 
 .custom-icon_view-local{
@@ -555,11 +556,15 @@ details[open] > .details__summary:before {
     text-overflow: ellipsis;
 }
 
-.meta-info__item .custom-icon_copy-to-clipboard {
+.copy-button { 
+    margin-left: 2px;
+}
+
+.meta-info__item .copy-button {
     opacity: 0;
 }
 
-.meta-info__item:hover .custom-icon_copy-to-clipboard {
+.meta-info__item:hover .copy-button {
     opacity: 1;
 }
 
