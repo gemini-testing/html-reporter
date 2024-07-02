@@ -30,7 +30,7 @@ jobs:
       - run: git config --global user.email "y-infra@yandex.ru"
       - run: git config --global user.name "y-infra"
       - run: npm run release -- --release-as ${{ github.event.inputs.versionType }}
-      - run: npm publish --dry-run
+      - run: npm publish
       - run: git branch
       - run: git push --follow-tags
         env:
