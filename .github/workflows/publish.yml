@@ -1,15 +1,17 @@
 name: NPM publish
 on:
-  workflow_dispatch:
-    inputs:
-      versionType:
-        type: choice
-        description: Version Type
-        required: true
-        options:
-        - patch
-        - minor
-        - major
+  pull_request:
+    branches: [ master ]
+  # workflow_dispatch:
+  #   inputs:
+  #     versionType:
+  #       type: choice
+  #       description: Version Type
+  #       required: true
+  #       options:
+  #       - patch
+  #       - minor
+  #       - major
 permissions:
   contents: write
 jobs:
@@ -28,7 +30,7 @@ jobs:
       - run: npm run build
       - run: git config --global user.email "y-infra@yandex.ru"
       - run: git config --global user.name "y-infra"
-      - run: npm run release -- --release-as ${{ github.event.inputs.versionType }}
+      - run: npm run release -- --release-as patch
       - run: npm publish --dry-run
       - run: git push --follow-tags --dry-run
         env:
