@@ -3,39 +3,21 @@ jobs:
   build:
     working_directory: ~/html-reporter
     docker:
-      - image: cimg/node:16.20-browsers
+      - image: yinfra/html-reporter-browsers
     environment:
-      CHROME_VERSION: 116
       SERVER_HOST: localhost
-
+      
     steps:
-
       - checkout
 
       - run: npm ci
       - run:
           name: Build html-reporter
-
           command: npm run build
-      - run:
-          name: Download Chromium
-          command: >-
-            cd test/func/docker/browser-utils &&
-            npm ci &&
-            npm run install-chromium
+
       - run:
           name: Install Chromium for Playwright
           command: npx playwright install chromium
-
-      - run:
-          name: Download Selenium
-          command: npm install selenium-standalone@9.1.1 -g
-      - run:
-          name: Start Selenium
-          command: >-
-            selenium-standalone install --drivers.chrome.version=$CHROME_VERSION &&
-            selenium-standalone start --drivers.chrome.version=$CHROME_VERSION
-          background: true
 
       - run:
           name: Functional tests
