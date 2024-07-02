@@ -32,6 +32,7 @@ jobs:
       - run: git config --global user.name "y-infra"
       - run: npm run release -- --release-as patch
       - run: npm publish --dry-run
-      - run: git push origin HEAD --follow-tags --dry-run
+      - run: git branch
+      - run: git push --follow-tags --dry-run
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
