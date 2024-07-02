@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.3.2"></a>
+## [10.3.2](https://github.com/gemini-testing/html-reporter/compare/v10.3.1...v10.3.2) (2024-07-02)
+
+
+### Bug Fixes
+
+* fix copy button text ([#563](https://github.com/gemini-testing/html-reporter/issues/563)) ([e197d22](https://github.com/gemini-testing/html-reporter/commit/e197d22))
+
+
+
 <a name="10.3.1"></a>
 ## [10.3.1](https://github.com/gemini-testing/html-reporter/compare/v10.3.0...v10.3.1) (2024-06-26)
 
