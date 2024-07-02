@@ -2,16 +2,16 @@ name: NPM publish
 on:
   pull_request:
     branches: [ master ]
-  # workflow_dispatch:
-  #   inputs:
-  #     versionType:
-  #       type: choice
-  #       description: Version Type
-  #       required: true
-  #       options:
-  #       - patch
-  #       - minor
-  #       - major
+  workflow_dispatch:
+    inputs:
+      versionType:
+        type: choice
+        description: Version Type
+        required: true
+        options:
+        - patch
+        - minor
+        - major
 permissions:
   contents: write
 jobs:
@@ -21,15 +21,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        with:
-          ref: ${{ github.ref_name }}
       - name: Setup Node JS
         uses: actions/setup-node@v2
         with:
           node-version: 18
           registry-url: https://registry.npmjs.org
       - run: npm ci
-      # - run: npm run build
       - run: git config --global user.email "y-infra@yandex.ru"
       - run: git config --global user.name "y-infra"
       - run: npm run release -- --release-as patch
