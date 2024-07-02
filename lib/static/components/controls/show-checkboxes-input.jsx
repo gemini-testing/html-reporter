@@ -3,6 +3,7 @@
 import React from 'react';
 import {Checkbox} from 'semantic-ui-react';
 import useLocalStorage from '../../hooks/useLocalStorage';
+import { Switch } from '@gravity-ui/uikit';
 
 const ShowCheckboxesInput = () => {
     const [showCheckboxes, setShowCheckboxes] = useLocalStorage('showCheckboxes', false);
@@ -10,14 +11,7 @@ const ShowCheckboxesInput = () => {
     const onChange = () => setShowCheckboxes(!showCheckboxes);
 
     return (
-        <div className="toggle-control">
-            <Checkbox
-                toggle
-                label="Checkboxes"
-                onChange={onChange}
-                checked={showCheckboxes}
-            />
-        </div>
+        <Switch content="Checkboxes" onChange={onChange} checked={showCheckboxes}/>
     );
 };
 

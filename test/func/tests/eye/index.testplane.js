@@ -2,7 +2,8 @@ const {Key} = require('webdriverio');
 
 describe('View in browser button behavior', () => {
     beforeEach(async ({browser}) => {
-        await browser.$('button*=Expand all').click();
+        await browser.$('//*[contains(@class, "expand-dropdown")]//button').click();
+        await browser.$('//*[contains(@class, "expand-popup")]//span[contains(normalize-space(), "All")]').click();
     });
 
     it('should be clickable', async ({browser}) => {
@@ -19,7 +20,7 @@ describe('View in browser button behavior', () => {
     });
 
     it('should change in accordance to the baseHost in header', async ({browser}) => {
-        const baseHostInput = await browser.$('input[data-test-id="base-host"]');
+        const baseHostInput = await browser.$('[data-qa="base-host"]').$('input');
         await baseHostInput.click();
         baseHostInput.setValue('http://some-host.dev:33');
         await browser.keys([Key.Enter]);

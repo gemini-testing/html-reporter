@@ -71,13 +71,13 @@ describe('<ScreenshotAccepterHeader/>', () => {
             it('should be disabled if the current image is the last', () => {
                 const component = mkHeaderComponent({stateNameImageIds: ['state1']});
 
-                assert.isTrue(component.find(btnClass).prop('disabled'));
+                assert.isTrue(component.find(`button${btnClass}`).prop('disabled'));
             });
 
             it('should be disabled if there are no images left', () => {
                 const component = mkHeaderComponent({stateNameImageIds: []});
 
-                assert.isTrue(component.find(btnClass).prop('disabled'));
+                assert.isTrue(component.find(`button${btnClass}`).prop('disabled'));
             });
         });
     });
@@ -103,7 +103,7 @@ describe('<ScreenshotAccepterHeader/>', () => {
                     onActiveImageChange
                 });
 
-                component.find('.screenshot-accepter__arrow-up-btn').simulate('click');
+                component.find('button.screenshot-accepter__arrow-up-btn').simulate('click');
 
                 assert.calledOnceWith(onActiveImageChange, expectedActiveImageIndex);
             });
@@ -158,7 +158,7 @@ describe('<ScreenshotAccepterHeader/>', () => {
                     onActiveImageChange
                 });
 
-                component.find('.screenshot-accepter__arrow-down-btn').simulate('click');
+                component.find('button.screenshot-accepter__arrow-down-btn').simulate('click');
 
                 assert.calledOnceWith(onActiveImageChange, expectedActiveImageIndex);
             });
@@ -368,7 +368,7 @@ describe('<ScreenshotAccepterHeader/>', () => {
         it('should be disabled if no screenshotes were accepted', () => {
             const component = mkHeaderComponent({acceptedImages: 0});
 
-            assert.isTrue(component.find('.screenshot-accepter__undo-btn').prop('disabled'));
+            assert.isTrue(component.find('button.screenshot-accepter__undo-btn').prop('disabled'));
         });
 
         it('should call "onScreenshotUndo" handler on click', () => {
@@ -386,7 +386,7 @@ describe('<ScreenshotAccepterHeader/>', () => {
             const onClose = sandbox.stub();
             const component = mkHeaderComponent({onClose});
 
-            component.find('.screenshot-accepter__arrows-close-btn').simulate('click');
+            component.find('button.screenshot-accepter__arrows-close-btn').simulate('click');
 
             assert.calledOnce(onClose);
         });

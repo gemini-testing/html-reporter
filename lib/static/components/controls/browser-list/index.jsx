@@ -5,224 +5,168 @@ import {flatten, isEmpty, get, chain, compact} from 'lodash';
 import PropTypes from 'prop-types';
 import CheckboxTree from 'react-checkbox-tree';
 
-import Label from './label';
 import {mkBrowserIcon, buildComplexId} from './utils';
 import Popup from '../../popup';
 import ArrayContainer from '../../../containers/array';
 
 import 'react-checkbox-tree/lib/react-checkbox-tree.css';
 import './index.styl';
+import { Button, Select, useSelectOptions } from '@gravity-ui/uikit';
 
-const BrowserList = (props) => {
-    const {available, onChange, selected: selectedProp} = props;
-
-    const [expanded, setExpanded] = useState([]);
-    const [selected, setSelected] = useState(buidSelectedItems());
-    const [elements, setElements] = useState([]);
-    const treeDataMap = useMemo(buildTreeDataMap, [available]);
-    const nodes = useMemo(prepareTreeData, [available]);
-    const selectAll = useCallback(_selectAll, [setExpanded, treeDataMap]);
-
-    useEffect(() => {
-        updateLabels();
-        onChange && onChange(formatSelectedData(selected));
-    }, [selected]);
-
-    function buildTreeDataMap() {
-        return available.reduce((acc, {id: browserId, versions}) => {
-            const hasChildren = !isEmpty(versions) && versions.length > 1;
-
-            acc[buildComplexId(browserId)] = {browserId, isLeaf: !hasChildren};
-
-            if (hasChildren) {
-                versions.forEach(version => {
-                    acc[buildComplexId(browserId, version)] = {browserId, version, isLeaf: true};
-                });
+const BrowserList = ({available, onChange, selected: selectedProp}) => {
+    const getOptions = () => {
+        const groups = {};
+        const DEFAULT_GROUP = "other";
+        let hasNestedOptions = false;
+        available.forEach(({id: browserId, versions}) => {
+            if (!versions || versions.length < 2) {
+                groups[DEFAULT_GROUP] = groups[DEFAULT_GROUP] || [];
+                groups[DEFAULT_GROUP].push({value: buildComplexId(browserId), 
+                    content: <div className='browser-name'>{mkBrowserIcon(browserId)}{buildComplexId(browserId)}</div>});
+                return;
             }
+            hasNestedOptions = true;
+            versions.forEach((version) => {
+                groups[browserId] = groups[browserId] || [];
+                groups[browserId].push({value: buildComplexId(browserId, version), 
+                    content: <div className='browser-name'>{mkBrowserIcon(browserId)}{buildComplexId(browserId, version)}</div>});
+            })
+        });
+        if (!hasNestedOptions) {
+            return groups[DEFAULT_GROUP];
+        }
+        else {
+            const optionsList = [];
+            Object.keys(groups).forEach((name) => {
+                optionsList.push({
+                    label: name,
+                    options: groups[name]
+                })
+            })
+            return optionsList;
+        }
 
-            return acc;
-        }, {});
     }
-
-    function buidSelectedItems() {
+    const getMapping = () => {
+        const mapping = {};
+        available.forEach(({id: browserId, versions}) => {
+            if (!versions || !versions.length) {
+                mapping[buildComplexId(browserId)] = {id: browserId};
+                return;
+            }
+            if (versions.length < 2) {
+                mapping[buildComplexId(browserId)] = {id: browserId, version: versions[0]};
+                return;
+            }
+            versions.forEach((version) => {
+                mapping[buildComplexId(browserId, version)] = {id: browserId, version};
+            })
+        });
+        return mapping;
+    }
+    const getSelected = () => {
+        const selectedOptions = [];
         if (!selectedProp || !selectedProp.length) {
             return [];
         }
-
-        const selectedItems = selectedProp.map(({id, versions}) => {
-            if (!versions) {
-                return [];
+        selectedProp.forEach(({id: browserId, versions}) => {
+            if (!versions || versions.length < 2) {
+                selectedOptions.push(buildComplexId(browserId));
+                return;
             }
-
-            const availableNode = available.find((item) => item.id === id);
-            const shouldDrawOnlyRootNode = get(availableNode, 'versions.length', 1) === 1;
-
-            if (shouldDrawOnlyRootNode) {
-                return buildComplexId(id);
-            }
-
-            return versions.length
-                ? versions.map((version) => buildComplexId(id, version))
-                : availableNode.versions.map(version => buildComplexId(id, version));
+            versions.forEach((version) => {
+                selectedOptions.push(buildComplexId(browserId, version));
+            })
         });
+        return selectedOptions;
+    }
+    const rawOptions = useMemo(getOptions, [available]);
+    const getOptionsFrom = (optionsData) => {
+        const allOptionsList = [];
+        optionsData.forEach((option) => {
+            if (option.label) {
+                getOptionsFrom(option.options).forEach((o) => allOptionsList.push(o));
+            }
+            else {
+                allOptionsList.push(option.value);
+            }
+        })
+        return allOptionsList;
+    }
+    const allOptions = useMemo(() => getOptionsFrom(rawOptions), [rawOptions]);
+    const options = useSelectOptions({
+        options: rawOptions
+    });
+    const mapping = useMemo(getMapping, [available]);
+    const [selected, setSelected] = useState(getSelected());
 
-        return flatten(selectedItems);
+    const selectAll = () => {
+        setSelected(allOptions);
     }
 
-    function prepareTreeData() {
-        const mkNode = ({browserId, version, icon}) => ({
-            icon,
-            data: {browserId, version},
-            value: buildComplexId(browserId, version),
-            label: mkLabel({browserId, version, elements})
-        });
-
-        return available.map(({id: browserId, versions}) => {
-            const node = mkNode({browserId, icon: mkBrowserIcon(browserId)});
-
-            if (!isEmpty(versions) && versions.length > 1) {
-                node.children = versions.map(version => mkNode({browserId, version}));
-            }
-
-            return node;
-        });
+    const formatSelectedData = () => {
+        const selectedData = {}
+        selected.forEach((option) => {
+            if (!mapping[option] || !mapping[option].id) return;
+            const {id: browserId, version} = mapping[option];
+            selectedData[browserId] = selectedData[browserId] || [];
+            selectedData[browserId].push(version);
+        })
+        return Object.entries(selectedData).map(([id, versions]) => ({id, versions: compact(versions)}))
     }
 
-    function _selectAll() {
-        const leaves = Object.keys(treeDataMap).filter(key => treeDataMap[key].isLeaf);
-        const cb = selected => selected.length !== leaves.length
-            ? leaves
-            : selected;
-
-        setSelected(cb);
-    }
-
-    function mkLabel({browserId, version, elements}) {
+    const renderFilter = () => {
+        const allSelected = selected.length == options.length;
         return (
-            <Label
-                treeDataMap={treeDataMap}
-                browserId={browserId}
-                version={version}
-                elements={elements}
-                setSelected={setSelected}
-            />
-        );
+            <div className='browserlist__filter'>
+            <Button onClick={selectAll} width='max'>
+                Select All
+            </Button>
+            </div>
+        )
     }
 
-    function buildElements() {
-        const availableVersionsCount = available.reduce((acc, browser) => {
-            acc[browser.id] = browser.versions ? browser.versions.length : undefined;
-            return acc;
-        }, {});
-
-        const selectedBrowsers = selected.reduce((acc, value) => {
-            if (!treeDataMap[value]) {
-                return acc;
-            }
-
-            const {browserId, version} = treeDataMap[value];
-
-            acc[browserId] = acc[browserId] || [];
-
-            if (version) {
-                acc[browserId].push(version);
-            }
-
-            return acc;
-        }, {});
-
-        const elementsNew = [];
-
-        for (const browserId in selectedBrowsers) {
-            const versions = selectedBrowsers[browserId];
-            if (!versions.length || (availableVersionsCount[browserId] === versions.length)) {
-                elementsNew.push(browserId);
-            } else {
-                elementsNew.push(...versions.map(version => buildComplexId(browserId, version)));
-            }
+    const renderOption = (option) => {
+        const isTheOnlySelected = selected.includes(option.value) && selected.length == 1;
+        const selectOnly = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setSelected([option.value]);
         }
-
-        return elementsNew;
-    }
-
-    function updateLabels() {
-        const newElements = buildElements();
-
-        if (get(elements, 'length', 0) !== 1 && get(newElements, 'length', 0) !== 1) {
-            setElements(newElements);
-            return;
+        const selectExcept = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setSelected(allOptions.filter(o => o != option.value));
         }
-
-        const updatingValues = [
-            get(newElements, 'length', undefined) === 1 && newElements[0],
-            get(elements, 'length', undefined) === 1 && elements[0]
-        ];
-
-        const nodesFlat = nodes.reduce((arr, node) => {
-            const children = node.children || [];
-
-            arr.push(node);
-            children.forEach(child => arr.push(child));
-
-            return arr;
-        }, []);
-
-        const updatingNodes = nodesFlat.filter(node => {
-            const {browserId, version} = node.data;
-
-            return updatingValues.includes(buildComplexId(browserId, version));
-        });
-
-        updatingNodes.forEach(node => {
-            const {browserId, version} = node.data;
-            node.label = mkLabel({browserId, version, elements: newElements});
-        });
-
-        setElements(newElements);
+        return (
+        <div className='browserlist__row'>
+            <div className='browserlist__row_content'>
+            {option.content}
+            </div>
+            <Button size='s' onClick={isTheOnlySelected ? selectExcept : selectOnly} className='action-button'>{isTheOnlySelected ? 'Except' : 'Only'}</Button>
+        </div>
+        )
     }
-
-    function formatSelectedData(selectedItems) {
-        return chain(selectedItems)
-            .reduce((acc, value) => {
-                const {browserId, version} = treeDataMap[value] || {};
-
-                if (browserId) {
-                    acc[browserId] = acc[browserId] || [];
-                    acc[browserId].push(version);
-                }
-
-                return acc;
-            }, {})
-            .map((versions, id) => ({id, versions: compact(versions)}))
-            .value();
-    }
-
-    if (isEmpty(available)) {
-        return (<div></div>);
-    }
+    
+    useEffect(() => {
+        onChange && onChange(formatSelectedData(selected));
+    }, [selected]);
 
     return (
-        <div className="browserlist">
-            <Popup
-                target={<ArrayContainer elements={elements} placeholder="Browsers" />}
-                action="click"
-            >
-                <div>
-                    <button className='rct-controls' onClick={selectAll}>
-                        Select all
-                    </button>
-                    <CheckboxTree
-                        nodes={nodes}
-                        checked={selected}
-                        expanded={expanded}
-                        onCheck={setSelected}
-                        onExpand={setExpanded}
-                    />
-                </div>
-            </Popup>
-        </div>
-    );
-};
+        <Select
+            value={selected}
+            options={options}
+            multiple={true}
+            hasCounter
+            filterable
+            renderFilter={renderFilter}
+            renderOption={renderOption}
+            onUpdate={setSelected}
+            popupClassName='browserlist__popup'
+            className='browserlist'
+        />
+    )
+}
 
 BrowserList.propTypes = {
     available: PropTypes.arrayOf(PropTypes.shape({

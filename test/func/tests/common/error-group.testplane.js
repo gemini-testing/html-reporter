@@ -1,10 +1,10 @@
 describe('Error grouping', function() {
     it('should group errors', async ({browser}) => {
-        const groupByDropdown = await browser.$('div[data-test-id="group-by-dropdown"]');
+        const groupByDropdown = await browser.$('[data-qa="group-by-dropdown"]');
 
         await groupByDropdown.click();
 
-        await groupByDropdown.$('div=error').click();
+        await browser.$('div=error').click();
 
         const groupedTestsContainer = await browser.$('.grouped-tests');
 

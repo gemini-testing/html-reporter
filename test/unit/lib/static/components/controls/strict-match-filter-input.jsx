@@ -42,7 +42,7 @@ describe('<StrictMatchFilterInput />', () => {
             initialState: {view: {strictMatchFilter: false}}
         });
 
-        component.find(Checkbox).simulate('change');
+        component.find('input[type="checkbox"]').simulate('change');
 
         assert.calledOnceWith(actionsStub.setStrictMatchFilter, true);
     });
@@ -52,7 +52,7 @@ describe('<StrictMatchFilterInput />', () => {
             initialState: {view: {strictMatchFilter: true}}
         });
 
-        component.find(Checkbox).simulate('change');
+        component.find('input[type="checkbox"]').simulate('change');
 
         assert.calledOnceWith(actionsStub.setStrictMatchFilter, false);
     });

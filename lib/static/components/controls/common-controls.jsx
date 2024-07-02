@@ -12,52 +12,55 @@ import ReportInfo from './report-info';
 import {ViewMode} from '../../../constants/view-modes';
 import {DiffModes} from '../../../constants/diff-modes';
 import {EXPAND_ALL, COLLAPSE_ALL, EXPAND_ERRORS, EXPAND_RETRIES} from '../../../constants/expand-modes';
+import { RadioButton, Select } from '@gravity-ui/uikit';
 
 class ControlButtons extends Component {
+    _onUpdateExpand = (value) => {
+        const {actions} = this.props;
+        const actionsDict = {
+            [EXPAND_ALL]: actions.expandAll,
+            [COLLAPSE_ALL]: actions.collapseAll,
+            [EXPAND_ERRORS]: actions.expandErrors,
+            [EXPAND_RETRIES]: actions.expandRetries
+        }
+        actionsDict[value].call();
+    }
+    
     render() {
         const {actions, view} = this.props;
 
         return (
             <React.Fragment>
                 <ControlSelect
+                    size='s'
                     label="Show tests"
                     value={view.viewMode}
                     handler={actions.changeViewMode}
-                    options = {Object.values(ViewMode).map((value) => ({value, text: capitalize(value)}))}
+                    options = {Object.values(ViewMode).map((value) => ({value, content: capitalize(value)}))}
                 />
-                <div className="control-group">
-                    <ControlButton
-                        label="Expand all"
-                        isControlGroup={true}
-                        isActive={view.expand === EXPAND_ALL}
-                        handler={actions.expandAll}
-                    />
-                    <ControlButton
-                        label="Collapse all"
-                        isControlGroup={true}
-                        isActive={view.expand === COLLAPSE_ALL}
-                        handler={actions.collapseAll}
-                    />
-                    <ControlButton
-                        label="Expand errors"
-                        isControlGroup={true}
-                        isActive={view.expand === EXPAND_ERRORS}
-                        handler={actions.expandErrors}
-                    />
-                    <ControlButton
-                        label="Expand retries"
-                        isControlGroup={true}
-                        isActive={view.expand === EXPAND_RETRIES}
-                        handler={actions.expandRetries}
-                    />
-                </div>
+                <ControlSelect 
+                    size='m'
+                    label="Expand"
+                    value={view.expand}
+                    handler={this._onUpdateExpand} 
+                    qa='expand-dropdown'
+                    options={[
+                        {value: EXPAND_ALL, content: "All"},
+                        {value: COLLAPSE_ALL, content: "Nothing"},
+                        {value: EXPAND_ERRORS, content: "Errors"},
+                        {value: EXPAND_RETRIES, content: "Retries"}
+                    ]}
+                    extendClassNames='expand-dropdown'
+                    extendPopupClassNames='expand-popup'
+                />
                 <GroupTestsSelect />
                 <ControlSelect
+                    size='m'
                     label="Diff mode"
                     value={view.diffMode}
                     handler={actions.changeDiffMode}
                     options = {Object.values(DiffModes).map((dm) => {
-                        return {value: dm.id, text: dm.title};
+                        return {value: dm.id, content: dm.title};
                     })}
                     extendClassNames="diff-mode"
                 />

@@ -1,61 +1,9 @@
-.select
-    display: inline-flex
-    height: 25px
+.custom-label
+    border-top-right-radius: 0
+    border-bottom-right-radius: 0
 
-    .select__label
-        font-size: 11px
-        color: var(--text-color)
-        margin: 0
-        padding: 0 8px
-        line-height: 25px
-        background-color: #e7e7e7
-        border-radius: var(--button-border-radius)
-        border-top-right-radius: 0
-        border-bottom-right-radius: 0
+.group-by-dropdown
+    width: 150px
 
-    .select__dropdown.ui.dropdown
-        min-height: 25px
-        min-width: 70px
-        font-size: 11px
-        line-height: 13px
-        padding: 5px 8px
-        padding-right: 25px
-        border: 1px solid #ccc
-        border-radius: var(--button-border-radius)
-        border-top-left-radius: 0
-        border-bottom-left-radius: 0
-
-        &:hover
-            border: 1px solid var(--button-hover-color);
-
-        &.active
-            .menu
-                border-radius: 0 0 var(--button-border-radius) var(--button-border-radius)
-            &:hover
-                border-radius: 0 var(--button-border-radius) 0 0
-            .menu
-                border-color: var(--button-hover-color)
-
-        .icon.dropdown
-            padding: 0
-            margin: 0
-            line-height: initial
-
-    &.diff-mode
-        .select__dropdown.ui.dropdown
-            min-width: 95px
-
-    &.select_type_group
-        .select__dropdown.ui.dropdown
-            min-width: 110px
-
-            .menu > .header
-                margin: 0
-                padding: 0 0 0 5px
-                border-bottom: 0
-
-            .menu > .divider
-                margin: 5px 0
-
-            .menu > .item
-                padding-left: 10px !important
+.select_type_control, .select_type_group
+    display inline-flex

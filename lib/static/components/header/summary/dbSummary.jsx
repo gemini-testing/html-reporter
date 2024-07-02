@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 
 import DbBtn from './dbBtn';
 import Popup from '../../popup';
+import { Popover } from '@gravity-ui/uikit';
 
 export default class DbSummaryKey extends Component {
     /*
@@ -37,13 +38,17 @@ export default class DbSummaryKey extends Component {
         ));
 
         return (
-            <Popup
-                className="db-info__popup"
-                action="hover"
-                target={<DbBtn fetchDbDetails={fetchDbDetails} />}
+            <div className='db-info-container'>
+            <Popover
+            disablePortal
+            placement={'bottom'}
+                content={
+                    additionalInfo
+                    }
             >
-                {additionalInfo}
-            </Popup>
+                <DbBtn fetchDbDetails={fetchDbDetails} />
+            </Popover>
+            </div>
         );
     }
 }

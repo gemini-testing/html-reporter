@@ -4,6 +4,7 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {bindActionCreators} from 'redux';
 import {connect} from 'react-redux';
+import {TextInput} from '@gravity-ui/uikit';
 import * as actions from '../../modules/actions';
 
 class BaseHostInput extends Component {
@@ -19,12 +20,13 @@ class BaseHostInput extends Component {
 
     render() {
         return (
-            <input
-                className="control-input basehost__text"
+            <TextInput
+                size='m'
+                className='base-host-input'
                 value={this.props.baseHost}
-                placeholder="change original host for view in browser"
+                placeholder="Base host for view in browser"
                 onChange={this._onChange}
-                data-test-id='base-host'
+                qa='base-host'
             />
         );
     }
