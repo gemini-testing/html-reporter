@@ -1,5 +1,4 @@
 name: NPM publish
-
 on:
   workflow_dispatch:
     inputs:
@@ -11,6 +10,8 @@ on:
         - patch
         - minor
         - major
+permissions:
+  contents: write
 jobs:
     name: Publishing to NPM
     runs-on: ubuntu-latest
@@ -26,5 +27,6 @@ jobs:
       - run: npm run build
       - run: npm run release -- --release-as ${{ github.event.inputs.versionType }}
       - run: npm publish --dry-run
+      - run: git push --follow-tags --dry-run
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
