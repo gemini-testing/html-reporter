@@ -11,7 +11,7 @@ const mkTextWithClipboardButton = (text, url) => {
         {url ? <a data-suite-view-link={url} className="custom-icon_view-local" target="_blank" href={url}>
             {text || url}
         </a> : text}
-        <ClipboardButton text={text || url} size='s' className='copy-button' />
+        <ClipboardButton text={url || text} size='s' className='copy-button' />
     </Fragment>;
 }
 
