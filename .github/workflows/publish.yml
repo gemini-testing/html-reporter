@@ -31,7 +31,6 @@ jobs:
       - run: git config --global user.name "y-infra"
       - run: npm run release -- --release-as ${{ github.event.inputs.versionType }}
       - run: npm publish
-      - run: git branch
       - run: git push --follow-tags
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
