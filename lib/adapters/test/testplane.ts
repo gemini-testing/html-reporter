@@ -1,7 +1,7 @@
 import {TestplaneTestResultAdapter} from '../test-result/testplane';
-import {TestStatus, UNKNOWN_ATTEMPT} from '../../constants';
+import {UNKNOWN_ATTEMPT, TESTPLANE_TITLE_DELIMITER} from '../../constants';
 
-import type {TestAdapter} from './';
+import type {TestAdapter, CreateTestResultOpts} from './';
 import type {Test, Suite} from 'testplane';
 import type {ReporterTestResult} from '../test-result';
 
@@ -22,6 +22,18 @@ export class TestplaneTestAdapter implements TestAdapter {
 
     get id(): string {
         return this._test.id;
+    }
+
+    get file(): string {
+        return this._test.file;
+    }
+
+    get title(): string {
+        return this._test.title;
+    }
+
+    get titlePath(): string[] {
+        return this._test.fullTitle().split(TESTPLANE_TITLE_DELIMITER);
     }
 
     get pending(): boolean {
@@ -48,7 +60,21 @@ export class TestplaneTestAdapter implements TestAdapter {
         return Boolean(runnable.silentSkip || runnable.parent && this.isSilentlySkipped(runnable.parent));
     }
 
-    formatTestResult(status: TestStatus, attempt: number = UNKNOWN_ATTEMPT): ReporterTestResult {
-        return TestplaneTestResultAdapter.create(this._test, {attempt, status});
+    createTestResult(opts: CreateTestResultOpts): ReporterTestResult {
+        const {status, assertViewResults, error, sessionId, meta, attempt = UNKNOWN_ATTEMPT} = opts;
+        const test = this._test.clone();
+
+        [
+            {key: 'assertViewResults', value: assertViewResults},
+            {key: 'err', value: error},
+            {key: 'sessionId', value: sessionId},
+            {key: 'meta', value: meta}
+        ].forEach(({key, value}) => {
+            if (value) {
+                test[key] = value;
+            }
+        });
+
+        return TestplaneTestResultAdapter.create(test, {attempt, status});
     }
 }

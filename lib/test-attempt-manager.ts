@@ -34,7 +34,6 @@ export class TestAttemptManager {
 
     registerAttempt(testResult: TestSpec, status: TestStatus, index: number | null = null): number {
         const [hash, data] = this._getData(testResult);
-
         const isManualOverride = index !== null;
         const isLastStatusTemporary = [IDLE, RUNNING].includes(data.statuses.at(-1) as TestStatus);
         const shouldReplace = Number(isManualOverride || isLastStatusTemporary);

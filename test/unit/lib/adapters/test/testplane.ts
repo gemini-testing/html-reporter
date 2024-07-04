@@ -104,18 +104,19 @@ describe('lib/adapters/test/testplane', () => {
         });
     });
 
-    describe('formatTestResult', () => {
-        it('shoult return testplane test result adapter', () => {
+    describe('createTestResult', () => {
+        it('should return testplane test result adapter', () => {
             const testResultAdapter = {} as unknown as TestplaneTestResultAdapter;
-            const test = mkState() as unknown as Test;
+            const clonedTest = mkState();
+            const test = mkState({clone: () => clonedTest}) as unknown as Test;
             const status = TestStatus.SUCCESS;
             const attempt = 0;
-            sandbox.stub(TestplaneTestResultAdapter, 'create').withArgs(test, {status, attempt}).returns(testResultAdapter);
+            sandbox.stub(TestplaneTestResultAdapter, 'create').withArgs(clonedTest, {status, attempt}).returns(testResultAdapter);
 
-            const formattedTestResult = TestplaneTestAdapter.create(test).formatTestResult(status, attempt);
+            const formattedTestResult = TestplaneTestAdapter.create(test).createTestResult({status, attempt});
 
             assert.equal(formattedTestResult, testResultAdapter);
-            assert.calledOnceWith(TestplaneTestResultAdapter.create as SinonStub, test, {status, attempt});
+            assert.calledOnceWith(TestplaneTestResultAdapter.create as SinonStub, clonedTest, {status, attempt});
         });
     });
 });

@@ -4,7 +4,6 @@ import os from 'node:os';
 import {CommanderStatic} from '@gemini-testing/commander';
 import chalk from 'chalk';
 import fs from 'fs-extra';
-import type {Test as TestplaneTest} from 'testplane';
 import _ from 'lodash';
 import looksSame, {CoordBounds} from 'looks-same';
 import PQueue from 'p-queue';
@@ -19,7 +18,7 @@ import {SqliteImageStore} from '../../image-store';
 import * as reporterHelper from '../../reporter-helpers';
 import {logger, getShortMD5, isUpdatedStatus} from '../../common-utils';
 import {formatId, mkFullTitle, mergeDatabasesForReuse, filterByEqualDiffSizes} from './utils';
-import {formatTestResult, getExpectedCacheKey} from '../../server-utils';
+import {getExpectedCacheKey} from '../../server-utils';
 import {getTestsTreeFromDatabase} from '../../db-utils/server';
 import {
     UPDATED,
@@ -28,25 +27,25 @@ import {
     ToolName,
     DATABASE_URLS_JSON_NAME,
     LOCAL_DATABASE_NAME,
-    PluginEvents
+    PluginEvents,
+    UNKNOWN_ATTEMPT
 } from '../../constants';
 
 import type {ToolAdapter} from '../../adapters/tool';
-import type {GuiCliOptions, ServerArgs} from '../index';
-import type {TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../../tests-tree-builder/gui';
+import type {TestAdapter} from '../../adapters/test';
+import type {TestCollectionAdapter} from '../../adapters/test-collection';
 import type {ReporterTestResult} from '../../adapters/test-result';
-import type {Tree, TreeImage} from '../../tests-tree-builder/base';
+import type {ConfigAdapter} from '../../adapters/config';
 import type {TestSpec} from '../../adapters/tool/types';
+import type {GuiCliOptions, ServerArgs} from '../';
+import type {TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../../tests-tree-builder/gui';
+import type {Tree, TreeImage} from '../../tests-tree-builder/base';
 import type {
     AssertViewResult,
-    TestplaneTestResult,
     ImageFile,
     ImageInfoDiff, ImageInfoUpdated, ImageInfoWithState,
     ReporterConfig, TestSpecByPath, RefImageFile
 } from '../../types';
-import type {TestAdapter} from '../../adapters/test/index';
-import type {TestCollectionAdapter} from '../../adapters/test-collection';
-import type {ConfigAdapter} from '../../adapters/config';
 
 export type ToolRunnerTree = GuiReportBuilderResult & Pick<GuiCliOptions, 'autoRun'>;
 
@@ -66,7 +65,7 @@ export class ToolRunner {
     private _reporterConfig: ReporterConfig;
     private _eventSource: EventSource;
     protected _reportBuilder: GuiReportBuilder | null;
-    private _tests: Record<string, TestAdapter>;
+    private _testAdapters: Record<string, TestAdapter>;
     private _expectedImagesCache: Cache<[TestSpecByPath, string | undefined], string>;
 
     static create<T extends ToolRunner>(this: new (args: ServerArgs) => T, args: ServerArgs): T {
@@ -88,7 +87,7 @@ export class ToolRunner {
         this._eventSource = new EventSource();
         this._reportBuilder = null;
 
-        this._tests = {};
+        this._testAdapters = {};
 
         this._expectedImagesCache = new Cache(getExpectedCacheKey);
     }
@@ -114,7 +113,12 @@ export class ToolRunner {
             reportPath: this._toolAdapter.htmlReporter.config.path
         });
 
-        this._reportBuilder = GuiReportBuilder.create(this._toolAdapter.htmlReporter, this._reporterConfig, {dbClient, imagesInfoSaver});
+        this._reportBuilder = GuiReportBuilder.create({
+            htmlReporter: this._toolAdapter.htmlReporter,
+            reporterConfig: this._reporterConfig,
+            dbClient,
+            imagesInfoSaver
+        });
         this._toolAdapter.handleTestResults(this._reportBuilder, this._eventSource);
 
         this._collection = await this._readTests();
@@ -175,17 +179,36 @@ export class ToolRunner {
         const reportBuilder = this._ensureReportBuilder();
 
         return Promise.all(tests.map(async (test): Promise<TestBranch> => {
-            const updateResult = this._createTestplaneTestResult(test);
+            const testAdapter = this._getTestAdapterById(test);
+            const assertViewResults = this._prepareAssertViewResults(test.imagesInfo, testAdapter);
+            const {sessionId, url} = test.metaInfo as {sessionId?: string; url?: string};
+
             const latestAttempt = reportBuilder.getLatestAttempt({
-                fullName: updateResult.fullTitle(),
-                browserId: updateResult.browserId
+                fullName: testAdapter.fullTitle(),
+                browserId: testAdapter.browserId
             });
-            const latestResult = formatTestResult(updateResult, UPDATED, latestAttempt);
+
+            const latestResult = testAdapter.createTestResult({
+                assertViewResults,
+                status: UPDATED,
+                attempt: latestAttempt,
+                error: test.error,
+                sessionId,
+                meta: {url}
+            });
+
             const estimatedStatus = reportBuilder.getUpdatedReferenceTestStatus(latestResult);
 
-            const formattedResultWithoutAttempt = formatTestResult(updateResult, UPDATED);
-            const formattedResult = reportBuilder.provideAttempt(formattedResultWithoutAttempt);
+            const formattedResultWithoutAttempt = testAdapter.createTestResult({
+                assertViewResults,
+                status: UPDATED,
+                attempt: UNKNOWN_ATTEMPT,
+                error: test.error,
+                sessionId,
+                meta: {url}
+            });
 
+            const formattedResult = reportBuilder.provideAttempt(formattedResultWithoutAttempt);
             const formattedResultUpdated = await reporterHelper.updateReferenceImages(formattedResult, this._reportPath, this._handleReferenceUpdate.bind(this));
 
             await reportBuilder.addTestResult(formattedResultUpdated, {status: estimatedStatus});
@@ -199,8 +222,18 @@ export class ToolRunner {
         const reportBuilder = this._ensureReportBuilder();
 
         await Promise.all(tests.map(async (test) => {
-            const updateResult = this._createTestplaneTestResult(test);
-            const formattedResultWithoutAttempt = formatTestResult(updateResult, UPDATED);
+            const testAdapter = this._getTestAdapterById(test);
+            const assertViewResults = this._prepareAssertViewResults(test.imagesInfo, testAdapter);
+            const {sessionId, url} = test.metaInfo as {sessionId?: string; url?: string};
+
+            const formattedResultWithoutAttempt = testAdapter.createTestResult({
+                assertViewResults,
+                status: UPDATED,
+                attempt: UNKNOWN_ATTEMPT,
+                error: test.error,
+                sessionId,
+                meta: {url}
+            });
 
             await Promise.all(formattedResultWithoutAttempt.imagesInfo.map(async (imageInfo) => {
                 const {stateName} = imageInfo as ImageInfoWithState;
@@ -230,10 +263,10 @@ export class ToolRunner {
                     await reporterHelper.revertReferenceImage(removedResult, newResult, stateName);
                 }
 
-                if (previousExpectedPath && (updateResult as TestplaneTest).fullTitle) {
+                if (previousExpectedPath) {
                     this._expectedImagesCache.set([{
-                        testPath: [(updateResult as TestplaneTest).fullTitle()],
-                        browserId: (updateResult as TestplaneTest).browserId
+                        testPath: [testAdapter.fullTitle()],
+                        browserId: testAdapter.browserId
                     }, stateName], previousExpectedPath);
                 }
             }));
@@ -302,12 +335,13 @@ export class ToolRunner {
 
             // TODO: remove toString after publish major version
             const testId = formatId(test.id.toString(), browserId);
-            this._tests[testId] = _.extend(test, {browserId});
+
+            this._testAdapters[testId] = _.extend(test, {browserId});
 
             if (test.pending) {
-                queue.add(async () => reportBuilder.addTestResult(test.formatTestResult(SKIPPED)));
+                queue.add(async () => reportBuilder.addTestResult(test.createTestResult({status: SKIPPED})));
             } else {
-                queue.add(async () => reportBuilder.addTestResult(test.formatTestResult(IDLE)));
+                queue.add(async () => reportBuilder.addTestResult(test.createTestResult({status: IDLE})));
             }
         });
 
@@ -315,38 +349,30 @@ export class ToolRunner {
         await this._fillTestsTree();
     }
 
-    protected _createTestplaneTestResult(updateData: TestRefUpdateData): TestplaneTestResult {
-        const {browserId} = updateData;
+    protected _getTestAdapterById(updateData: TestRefUpdateData): TestAdapter {
         const fullTitle = mkFullTitle(updateData);
-        const testId = formatId(getShortMD5(fullTitle), browserId);
-        const testplaneTest = this._tests[testId];
-        const {sessionId, url} = updateData.metaInfo as {sessionId?: string; url?: string};
+        const testId = this._toolAdapter.toolName === ToolName.Playwright
+            ? formatId(fullTitle, updateData.browserId)
+            : formatId(getShortMD5(fullTitle), updateData.browserId);
+
+        return this._testAdapters[testId];
+    }
+
+    protected _prepareAssertViewResults(imagesInfo: TestRefUpdateData['imagesInfo'], testAdapter: TestAdapter): AssertViewResult[] {
         const assertViewResults: AssertViewResult[] = [];
 
-        updateData.imagesInfo
+        imagesInfo
             .filter(({stateName, actualImg}) => Boolean(stateName) && Boolean(actualImg))
             .forEach((imageInfo) => {
                 const {stateName, actualImg} = imageInfo as {stateName: string, actualImg: ImageFile};
-                const absoluteRefImgPath = this._toolAdapter.config.getScreenshotPath(testplaneTest, stateName);
+                const absoluteRefImgPath = this._toolAdapter.config.getScreenshotPath(testAdapter, stateName);
                 const relativeRefImgPath = absoluteRefImgPath && path.relative(process.cwd(), absoluteRefImgPath);
                 const refImg: RefImageFile = {path: absoluteRefImgPath, relativePath: relativeRefImgPath, size: actualImg.size};
 
                 assertViewResults.push({stateName, refImg, currImg: actualImg, isUpdated: isUpdatedStatus(imageInfo.status)});
             });
 
-        // TODO: should use original test here from test adapter ???
-        const testplaneTestResult: TestplaneTestResult = _.merge({}, testplaneTest, {
-            assertViewResults,
-            err: updateData.error as TestplaneTestResult['err'],
-            sessionId,
-            meta: {url}
-        } satisfies Partial<TestplaneTestResult>) as unknown as TestplaneTestResult;
-
-        // _.merge can't fully clone test object since hermione@7+
-        // TODO: use separate object to represent test results. Do not extend test object with test results
-        return testplaneTest && testplaneTest.clone
-            ? Object.assign(testplaneTest.clone(), testplaneTestResult)
-            : testplaneTestResult;
+        return assertViewResults;
     }
 
     protected _handleReferenceUpdate(testResult: ReporterTestResult, imageInfo: ImageInfoUpdated, state: string): void {
@@ -372,7 +398,7 @@ export class ToolRunner {
         const dbPath = path.resolve(this._reportPath, LOCAL_DATABASE_NAME);
 
         if (await fs.pathExists(dbPath)) {
-            return getTestsTreeFromDatabase(ToolName.Testplane, dbPath, this._reporterConfig.baseHost);
+            return getTestsTreeFromDatabase(dbPath, this._reporterConfig.baseHost);
         }
 
         logger.warn(chalk.yellow(`Nothing to reuse in ${this._reportPath}: can not load data from ${DATABASE_URLS_JSON_NAME}`));

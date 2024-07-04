@@ -103,7 +103,9 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
 
     server.post('/update-reference', (req, res) => {
         app.updateReferenceImage(req.body)
-            .then((updatedTests) => res.json(updatedTests))
+            .then((updatedTests) => {
+                return res.json(updatedTests);
+            })
             .catch(({message}) => res.status(INTERNAL_SERVER_ERROR).send({error: message}));
     });
 

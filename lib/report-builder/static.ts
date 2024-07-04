@@ -24,30 +24,30 @@ import {ImagesInfoSaver} from '../images-info-saver';
 const ignoredStatuses = [RUNNING, IDLE];
 
 export interface StaticReportBuilderOptions {
+    htmlReporter: HtmlReporter,
+    reporterConfig: ReporterConfig,
     dbClient: SqliteClient;
     imagesInfoSaver: ImagesInfoSaver;
 }
 
 export class StaticReportBuilder {
     protected _htmlReporter: HtmlReporter;
-    protected _pluginConfig: ReporterConfig;
+    protected _reporterConfig: ReporterConfig;
     protected _dbClient: SqliteClient;
     protected _imagesInfoSaver: ImagesInfoSaver;
     protected _testAttemptManager: TestAttemptManager;
     private _workers?: RegisterWorkers<['saveDiffTo']>;
 
     static create<T extends StaticReportBuilder>(
-        this: new (htmlReporter: HtmlReporter, pluginConfig: ReporterConfig, options: StaticReportBuilderOptions) => T,
-        htmlReporter: HtmlReporter,
-        pluginConfig: ReporterConfig,
+        this: new (options: StaticReportBuilderOptions) => T,
         options: StaticReportBuilderOptions
     ): T {
-        return new this(htmlReporter, pluginConfig, options);
+        return new this(options);
     }
 
-    constructor(htmlReporter: HtmlReporter, pluginConfig: ReporterConfig, {dbClient, imagesInfoSaver}: StaticReportBuilderOptions) {
+    constructor({htmlReporter, reporterConfig, dbClient, imagesInfoSaver}: StaticReportBuilderOptions) {
         this._htmlReporter = htmlReporter;
-        this._pluginConfig = pluginConfig;
+        this._reporterConfig = reporterConfig;
 
         this._dbClient = dbClient;
 
@@ -63,10 +63,10 @@ export class StaticReportBuilder {
     }
 
     async saveStaticFiles(): Promise<void> {
-        const destPath = this._pluginConfig.path;
+        const destPath = this._reporterConfig.path;
 
         await Promise.all([
-            saveStaticFilesToReportDir(this._htmlReporter, this._pluginConfig, destPath),
+            saveStaticFilesToReportDir(this._htmlReporter, this._reporterConfig, destPath),
             writeDatabaseUrlsFile(destPath, [LOCAL_DATABASE_NAME])
         ]);
     }
@@ -103,8 +103,8 @@ export class StaticReportBuilder {
             testResultWithImagePaths = await this._imagesInfoSaver.save(testResult, this._workers);
         });
 
-        if (this._pluginConfig.saveErrorDetails && testResult.errorDetails) {
-            actions.add(async () => saveErrorDetails(testResult, this._pluginConfig.path));
+        if (this._reporterConfig.saveErrorDetails && testResult.errorDetails) {
+            actions.add(async () => saveErrorDetails(testResult, this._reporterConfig.path));
         }
 
         await actions.onIdle();
@@ -138,7 +138,7 @@ export class StaticReportBuilder {
         const reportsSaver = this._htmlReporter.reportsSaver;
 
         if (reportsSaver) {
-            const reportDir = this._pluginConfig.path;
+            const reportDir = this._reporterConfig.path;
             const src = path.join(reportDir, LOCAL_DATABASE_NAME);
             const dbPath = await reportsSaver.saveReportData(src, {destPath: LOCAL_DATABASE_NAME, reportDir: reportDir});
             await writeDatabaseUrlsFile(reportDir, [dbPath]);

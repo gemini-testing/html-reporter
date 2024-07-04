@@ -36,7 +36,8 @@ describe('lib/gui/tool-runner/index', () => {
     const stubTest_ = (opts = {}) => {
         return mkState(_.defaults(opts, {
             id: () => 'default-id',
-            fullTitle: () => 'some-title'
+            fullTitle: () => 'some-title',
+            clone: () => stubTest_(opts)
         }));
     };
 
@@ -250,7 +251,8 @@ describe('lib/gui/tool-runner/index', () => {
                 browsers: {yabro: {getScreenshotPath}}
             }));
 
-            const testCollection = mkTestCollection_({'some-title.yabro': mkTestAdapter_(testRefUpdateData[0])});
+            const testAdapter = mkTestAdapter_({...testRefUpdateData[0], clone: () => testRefUpdateData[0]});
+            const testCollection = mkTestCollection_({'some-title.yabro': testAdapter});
             const toolAdapter = stubToolAdapter({config, testCollection});
 
             const gui = initGuiReporter({toolAdapter});
@@ -299,7 +301,8 @@ describe('lib/gui/tool-runner/index', () => {
                 browsers: {yabro: {getScreenshotPath}}
             }));
 
-            const testCollection = mkTestCollection_({'some-title.yabro': mkTestAdapter_(tests[0])});
+            const testAdapter = mkTestAdapter_({...tests[0], clone: () => tests[0]});
+            const testCollection = mkTestCollection_({'some-title.yabro': testAdapter});
             const toolAdapter = stubToolAdapter({config, testCollection});
 
             const gui = initGuiReporter({toolAdapter});
@@ -336,11 +339,12 @@ describe('lib/gui/tool-runner/index', () => {
             }];
 
             const getScreenshotPath = sandbox.stub().returns('/ref/path1');
-            const config = stubConfig({
+            const config = mkConfigAdapter_(stubConfig({
                 browsers: {yabro: {getScreenshotPath}}
-            });
+            }));
 
-            const testCollection = mkTestCollection_({'some-title.yabro': testRefUpdateData[0]});
+            const testAdapter = mkTestAdapter_({...testRefUpdateData[0], clone: () => testRefUpdateData[0]});
+            const testCollection = mkTestCollection_({'some-title.yabro': testAdapter});
             const toolAdapter = stubToolAdapter({config, testCollection});
 
             reportBuilder.getLatestAttempt.withArgs({fullName: 'some-title', browserId: 'yabro'}).returns(100500);
@@ -389,7 +393,8 @@ describe('lib/gui/tool-runner/index', () => {
                 browsers: {yabro: {getScreenshotPath}}
             }));
 
-            const testCollection = mkTestCollection_({'some-title.yabro': mkTestAdapter_(tests[0])});
+            const testAdapter = mkTestAdapter_({...tests[0], clone: () => tests[0]});
+            const testCollection = mkTestCollection_({'some-title.yabro': testAdapter});
             const toolAdapter = stubToolAdapter({config, testCollection});
 
             const gui = initGuiReporter({toolAdapter});

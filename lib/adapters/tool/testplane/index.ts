@@ -47,7 +47,7 @@ export class TestplaneToolAdapter implements ToolAdapter {
     private _htmlReporter: HtmlReporter;
     private _guiApi?: GuiApi;
 
-    static create<TestplaneToolAdapter>(
+    static create(
         this: new (options: Options) => TestplaneToolAdapter,
         options: Options
     ): TestplaneToolAdapter {

@@ -5,14 +5,13 @@ import axios, {AxiosRequestConfig} from 'axios';
 import {
     ERROR,
     FAIL,
-    TESTPLANE_TITLE_DELIMITER,
-    IDLE, PWT_TITLE_DELIMITER,
+    DEFAULT_TITLE_DELIMITER,
+    IDLE,
     QUEUED,
     RUNNING,
     SKIPPED,
     SUCCESS,
     TestStatus,
-    ToolName,
     UPDATED
 } from './constants';
 
@@ -161,6 +160,7 @@ export const determineStatus = (testResult: Pick<ReporterTestResult, 'status' | 
     }
 
     const imageErrors = (testResult.imagesInfo ?? []).map(imagesInfo => (imagesInfo as {error: {name?: string}}).error ?? {});
+
     if (hasDiff(imageErrors) || hasNoRefImageErrors({assertViewResults: imageErrors})) {
         return FAIL;
     }
@@ -239,16 +239,12 @@ export const isCheckboxIndeterminate = (status: number): boolean => Number(statu
 export const isCheckboxUnchecked = (status: number): boolean => Number(status) === UNCHECKED;
 export const getToggledCheckboxState = (status: number): number => isCheckboxChecked(status) ? UNCHECKED : CHECKED;
 
-export const getTitleDelimiter = (toolName: ToolName): string => {
-    return toolName === ToolName.Playwright ? PWT_TITLE_DELIMITER : TESTPLANE_TITLE_DELIMITER;
-};
-
 export function getDetailsFileName(testId: string, browserId: string, attempt: number): string {
     return `${testId}-${browserId}_${Number(attempt) + 1}_${Date.now()}.json`;
 }
 
 export const getTestHash = (testResult: ReporterTestResult): string => {
-    return testResult.testPath.concat(testResult.browserId, testResult.attempt.toString()).join(' ');
+    return testResult.testPath.concat(testResult.browserId, testResult.attempt.toString()).join(DEFAULT_TITLE_DELIMITER);
 };
 
 export const isImageBufferData = (imageData: ImageBuffer | ImageFile | ImageBase64 | undefined): imageData is ImageBuffer => {

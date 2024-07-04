@@ -9,7 +9,7 @@ import NestedError from 'nested-error-stacks';
 import {StaticTestsTreeBuilder} from '../tests-tree-builder/static';
 import * as commonSqliteUtils from './common';
 import {isUrl, fetchFile, normalizeUrls, logger} from '../common-utils';
-import {DATABASE_URLS_JSON_NAME, DB_COLUMNS, LOCAL_DATABASE_NAME, TestStatus, ToolName} from '../constants';
+import {DATABASE_URLS_JSON_NAME, DB_COLUMNS, LOCAL_DATABASE_NAME, TestStatus} from '../constants';
 import {DbLoadResult, HandleDatabasesOptions} from './common';
 import {DbUrlsJsonData, RawSuitesRow, ReporterConfig} from '../types';
 import {Tree} from '../tests-tree-builder/base';
@@ -57,10 +57,10 @@ export async function mergeDatabases(srcDbPaths: string[], reportPath: string): 
     }
 }
 
-export function getTestsTreeFromDatabase(toolName: ToolName, dbPath: string, baseHost: string): Tree {
+export function getTestsTreeFromDatabase(dbPath: string, baseHost: string): Tree {
     try {
         const db = new Database(dbPath, {readonly: true, fileMustExist: true});
-        const testsTreeBuilder = StaticTestsTreeBuilder.create({toolName, baseHost});
+        const testsTreeBuilder = StaticTestsTreeBuilder.create({baseHost});
 
         const suitesRows = (db.prepare(commonSqliteUtils.selectAllSuitesQuery())
             .raw()

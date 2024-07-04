@@ -34,8 +34,8 @@ describe('StaticReportBuilder', () => {
         './server-utils': utils
     });
 
-    const mkStaticReportBuilder_ = async ({pluginConfig} = {}) => {
-        pluginConfig = _.defaults(pluginConfig, {baseHost: '', path: TEST_REPORT_PATH, baseTestPath: ''});
+    const mkStaticReportBuilder_ = async ({reporterConfig} = {}) => {
+        reporterConfig = _.defaults(reporterConfig, {baseHost: '', path: TEST_REPORT_PATH, baseTestPath: ''});
 
         htmlReporter = _.extend(HtmlReporter.create({baseHost: ''}), {
             reportsSaver: {
@@ -49,7 +49,7 @@ describe('StaticReportBuilder', () => {
 
         imagesInfoSaver.save.callsFake(_.identity);
 
-        const reportBuilder = StaticReportBuilder.create(htmlReporter, pluginConfig, {dbClient, imagesInfoSaver});
+        const reportBuilder = StaticReportBuilder.create({htmlReporter, reporterConfig, dbClient, imagesInfoSaver});
         workers = {saveDiffTo: sinon.stub()};
 
         reportBuilder.registerWorkers(workers);
@@ -143,7 +143,7 @@ describe('StaticReportBuilder', () => {
 
         it('should not save error details if turned off', async () => {
             const reportBuilder = await mkStaticReportBuilder_({
-                pluginConfig: {saveErrorDetails: false, path: TEST_REPORT_PATH}
+                reporterConfig: {saveErrorDetails: false, path: TEST_REPORT_PATH}
             });
             const testResult = stubTest_({errorDetails: {filePath: 'some-path'}});
 
@@ -154,7 +154,7 @@ describe('StaticReportBuilder', () => {
 
         it('should use server-utils to save error details if needed', async () => {
             const reportBuilder = await mkStaticReportBuilder_({
-                pluginConfig: {saveErrorDetails: true, path: TEST_REPORT_PATH}
+                reporterConfig: {saveErrorDetails: true, path: TEST_REPORT_PATH}
             });
             const testResult = stubTest_({errorDetails: {filePath: 'some-path'}});
 

@@ -1,13 +1,13 @@
 import _ from 'lodash';
 import {StaticReportBuilder, StaticReportBuilderOptions} from './static';
 import {GuiTestsTreeBuilder, TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../tests-tree-builder/gui';
-import {UPDATED, DB_COLUMNS, ToolName, TestStatus, TESTPLANE_TITLE_DELIMITER, SKIPPED, SUCCESS} from '../constants';
+import {UPDATED, DB_COLUMNS, TestStatus, SKIPPED, SUCCESS, DEFAULT_TITLE_DELIMITER} from '../constants';
 import {ConfigForStaticFile, getConfigForStaticFile} from '../server-utils';
 import {ReporterTestResult} from '../adapters/test-result';
 import {Tree, TreeImage} from '../tests-tree-builder/base';
 import {ImageInfoFull, ImageInfoWithState, ReporterConfig} from '../types';
 import {determineStatus, isUpdatedStatus} from '../common-utils';
-import {HtmlReporter, HtmlReporterValues} from '../plugin-api';
+import {HtmlReporterValues} from '../plugin-api';
 import {SkipItem} from '../tests-tree-builder/static';
 import {copyAndUpdate} from '../adapters/test-result/utils';
 
@@ -33,10 +33,10 @@ export class GuiReportBuilder extends StaticReportBuilder {
     private _skips: SkipItem[];
     private _apiValues?: HtmlReporterValues;
 
-    constructor(htmlReporter: HtmlReporter, pluginConfig: ReporterConfig, options: StaticReportBuilderOptions) {
-        super(htmlReporter, pluginConfig, options);
+    constructor(options: StaticReportBuilderOptions) {
+        super(options);
 
-        this._testsTree = GuiTestsTreeBuilder.create({toolName: ToolName.Testplane, baseHost: pluginConfig.baseHost});
+        this._testsTree = GuiTestsTreeBuilder.create({baseHost: this._reporterConfig.baseHost});
         this._skips = [];
     }
 
@@ -51,15 +51,15 @@ export class GuiReportBuilder extends StaticReportBuilder {
         // Fill test attempt manager with data from db
         for (const [, testResult] of Object.entries(tree.results.byId)) {
             this._testAttemptManager.registerAttempt({
-                fullName: testResult.suitePath.join(TESTPLANE_TITLE_DELIMITER),
+                fullName: testResult.suitePath.join(DEFAULT_TITLE_DELIMITER),
                 browserId: testResult.name
             }, testResult.status, testResult.attempt);
         }
     }
 
     getResult(): GuiReportBuilderResult {
-        const {customGui} = this._pluginConfig;
-        const config = {...getConfigForStaticFile(this._pluginConfig), customGui};
+        const {customGui} = this._reporterConfig;
+        const config = {...getConfigForStaticFile(this._reporterConfig), customGui};
 
         this._testsTree.sortTree();
 
@@ -87,7 +87,6 @@ export class GuiReportBuilder extends StaticReportBuilder {
     undoAcceptImage(testResultWithoutAttempt: ReporterTestResult, stateName: string): UndoAcceptImageResult | null {
         const attempt = this._testAttemptManager.getCurrentAttempt(testResultWithoutAttempt);
         const testResult = copyAndUpdate(testResultWithoutAttempt, {attempt});
-
         const resultId = testResult.id;
         const suitePath = testResult.testPath;
         const browserName = testResult.browserId;

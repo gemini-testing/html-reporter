@@ -73,7 +73,12 @@ export default (testplane: Testplane, opts: Partial<ReporterOptions>): void => {
             reportPath: htmlReporter.config.path
         });
 
-        staticReportBuilder = StaticReportBuilder.create(htmlReporter, config, {dbClient, imagesInfoSaver});
+        staticReportBuilder = StaticReportBuilder.create({
+            htmlReporter: toolAdapter.htmlReporter,
+            reporterConfig: config,
+            dbClient,
+            imagesInfoSaver
+        });
 
         handlingTestResults = Promise.all([
             staticReportBuilder.saveStaticFiles(),
