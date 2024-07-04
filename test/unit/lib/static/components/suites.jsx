@@ -41,6 +41,9 @@ describe('<Suites/>', () => {
     });
 
     it('should render few section common components', () => {
+        if (!global.SVGElement) {
+            global.SVGElement = HTMLElement; // Without this line test throws an error "ReferenceError: SVGElement is not defined"
+        }
         getVisibleRootSuiteIds.returns(['suite-id-1', 'suite-id-2']);
 
         const component = mkSuitesComponent();

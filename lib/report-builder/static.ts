@@ -11,13 +11,13 @@ import {
     PluginEvents, UNKNOWN_ATTEMPT, UPDATED
 } from '../constants';
 import type {SqliteClient} from '../sqlite-client';
-import {ReporterTestResult} from '../test-adapter';
+import {ReporterTestResult} from '../adapters/test-result';
 import {saveErrorDetails, saveStaticFilesToReportDir, writeDatabaseUrlsFile} from '../server-utils';
 import {ReporterConfig} from '../types';
 import {HtmlReporter} from '../plugin-api';
 import {getTestFromDb} from '../db-utils/server';
 import {TestAttemptManager} from '../test-attempt-manager';
-import {copyAndUpdate} from '../test-adapter/utils';
+import {copyAndUpdate} from '../adapters/test-result/utils';
 import {RegisterWorkers} from '../workers/create-workers';
 import {ImagesInfoSaver} from '../images-info-saver';
 
@@ -73,6 +73,10 @@ export class StaticReportBuilder {
 
     registerWorkers(workers: RegisterWorkers<['saveDiffTo']>): void {
         this._workers = workers;
+    }
+
+    getLatestAttempt(testInfo: {fullName: string, browserId: string}): number {
+        return this._testAttemptManager.getCurrentAttempt(testInfo);
     }
 
     /** If passed test result doesn't have attempt, this method registers new attempt and sets attempt number */

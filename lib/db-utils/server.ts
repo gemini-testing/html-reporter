@@ -13,7 +13,7 @@ import {DATABASE_URLS_JSON_NAME, DB_COLUMNS, LOCAL_DATABASE_NAME, TestStatus, To
 import {DbLoadResult, HandleDatabasesOptions} from './common';
 import {DbUrlsJsonData, RawSuitesRow, ReporterConfig} from '../types';
 import {Tree} from '../tests-tree-builder/base';
-import {ReporterTestResult} from '../test-adapter';
+import {ReporterTestResult} from '../adapters/test-result';
 import {SqliteClient} from '../sqlite-client';
 
 export * from './common';

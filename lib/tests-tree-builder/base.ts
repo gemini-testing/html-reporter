@@ -1,9 +1,9 @@
 import _ from 'lodash';
 import {determineFinalStatus} from '../common-utils';
 import {BrowserVersions, PWT_TITLE_DELIMITER, TESTPLANE_TITLE_DELIMITER, TestStatus, ToolName} from '../constants';
-import {ReporterTestResult} from '../test-adapter';
+import {ReporterTestResult} from '../adapters/test-result';
 import {ErrorDetails, ImageInfoFull} from '../types';
-import {TreeTestResultTransformer} from '../test-adapter/transformers/tree';
+import {TreeTestResultTransformer} from '../adapters/test-result/transformers/tree';
 import {DbTestResult} from '../sqlite-client';
 
 export type BaseTreeTestResult = Omit<DbTestResult, 'imagesInfo'> & {

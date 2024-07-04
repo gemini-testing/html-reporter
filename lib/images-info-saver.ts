@@ -7,7 +7,7 @@ import _ from 'lodash';
 import PQueue from 'p-queue';
 
 import {RegisterWorkers} from './workers/create-workers';
-import {ReporterTestResult} from './test-adapter';
+import {ReporterTestResult} from './adapters/test-result';
 import {
     DiffOptions, ImageBase64, ImageBuffer,
     ImageFile,
@@ -16,7 +16,7 @@ import {
     ImageInfoFull,
     ImageSize, TestSpecByPath
 } from './types';
-import {copyAndUpdate, removeBufferFromImagesInfo} from './test-adapter/utils';
+import {copyAndUpdate, removeBufferFromImagesInfo} from './adapters/test-result/utils';
 import {cacheDiffImages} from './image-cache';
 import {NEW_ISSUE_LINK, PluginEvents, TestStatus, UPDATED} from './constants';
 import {createHash, getCurrentPath, getDiffPath, getReferencePath, getTempPath, makeDirFor} from './server-utils';

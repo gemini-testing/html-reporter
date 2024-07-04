@@ -4,7 +4,7 @@ const fs = require('fs-extra');
 const _ = require('lodash');
 const proxyquire = require('proxyquire');
 const serverUtils = require('lib/server-utils');
-const {TestplaneTestAdapter} = require('lib/test-adapter/testplane');
+const {TestplaneTestResultAdapter} = require('lib/adapters/test-result/testplane');
 const {SqliteClient} = require('lib/sqlite-client');
 const {GuiTestsTreeBuilder} = require('lib/tests-tree-builder/gui');
 const {HtmlReporter} = require('lib/plugin-api');
@@ -33,7 +33,7 @@ describe('GuiReportBuilder', () => {
             htmlReporter
         };
 
-        TestplaneTestAdapter.create = (obj) => obj;
+        TestplaneTestResultAdapter.create = (obj) => obj;
 
         dbClient = await SqliteClient.create({htmlReporter, reportPath: TEST_REPORT_PATH});
         imagesInfoSaver = sinon.createStubInstance(ImagesInfoSaver);
@@ -100,7 +100,7 @@ describe('GuiReportBuilder', () => {
                 }).StaticReportBuilder
             },
             '../server-utils': {hasImage, deleteFile},
-            '../test-adapter/utils': {copyAndUpdate}
+            '../adapters/test-result/utils': {copyAndUpdate}
         }).GuiReportBuilder;
 
         sandbox.stub(GuiTestsTreeBuilder, 'create').returns(Object.create(GuiTestsTreeBuilder.prototype));

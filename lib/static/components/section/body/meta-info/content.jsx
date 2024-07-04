@@ -1,23 +1,19 @@
 import path from 'path';
-import React, {Component, Fragment} from 'react';
-import {connect} from 'react-redux';
-import ClipboardButton from 'react-clipboard.js';
+import React, { Component, Fragment } from 'react';
+import { connect } from 'react-redux';
+import { ClipboardButton } from '@gravity-ui/uikit';
 import PropTypes from 'prop-types';
-import {map, mapValues, isObject, omitBy, isEmpty} from 'lodash';
-import {isUrl, getUrlWithBase} from '../../../../../common-utils';
+import { map, mapValues, isObject, omitBy, isEmpty } from 'lodash';
+import { isUrl, getUrlWithBase } from '../../../../../common-utils';
 
-const mkLinkToUrl = (url, text = url) => {
+const mkTextWithClipboardButton = (text, url) => {
     return <Fragment>
-        <a data-suite-view-link={url} className="custom-icon_view-local" target="_blank" href={url}>
-            {text}
-        </a>
-        <ClipboardButton
-            className="button custom-icon custom-icon_copy-to-clipboard"
-            button-title="copy to clipboard"
-            data-clipboard-text={url}>
-        </ClipboardButton>
+        {url ? <a data-suite-view-link={url} className="custom-icon_view-local" target="_blank" href={url}>
+            {text || url}
+        </a> : text}
+        <ClipboardButton text={url || text} size='s' className='copy-button' />
     </Fragment>;
-};
+}
 
 const serializeMetaValues = (metaInfo) => mapValues(metaInfo, (v) => isObject(v) ? JSON.stringify(v) : v);
 
@@ -40,13 +36,16 @@ const resolveUrl = (baseUrl, value) => {
 const metaToElements = (metaInfo, metaInfoBaseUrls) => {
     return map(metaInfo, (value, key) => {
         if (isUrl(value)) {
-            value = mkLinkToUrl(value);
+            value = mkTextWithClipboardButton(value, value);
         } else if (metaInfoBaseUrls[key]) {
             const baseUrl = metaInfoBaseUrls[key];
             const link = isUrl(baseUrl) ? resolveUrl(baseUrl, value) : path.join(baseUrl, value);
-            value = mkLinkToUrl(link, value);
+            value = mkTextWithClipboardButton(value, link);
         } else if (typeof value === 'boolean') {
             value = value.toString();
+        }
+        else if (typeof value === 'string') {
+            value = mkTextWithClipboardButton(value);
         }
 
         return <div key={key} className="meta-info__item">
@@ -74,17 +73,17 @@ class MetaInfoContent extends Component {
     };
 
     getExtraMetaInfo = () => {
-        const {testName, apiValues: {extraItems, metaInfoExtenders}} = this.props;
+        const { testName, apiValues: { extraItems, metaInfoExtenders } } = this.props;
 
         return omitBy(mapValues(metaInfoExtenders, (extender) => {
             const stringifiedFn = extender.startsWith('return') ? extender : `return ${extender}`;
 
-            return new Function(stringifiedFn)()({testName}, extraItems);
+            return new Function(stringifiedFn)()({ testName }, extraItems);
         }), isEmpty);
     };
 
     render() {
-        const {result, metaInfoBaseUrls, baseHost} = this.props;
+        const { result, metaInfoBaseUrls, baseHost } = this.props;
 
         const serializedMetaValues = serializeMetaValues(result.metaInfo);
         const extraMetaInfo = this.getExtraMetaInfo();
@@ -93,7 +92,7 @@ class MetaInfoContent extends Component {
             ...extraMetaInfo
         };
         if (result.suiteUrl) {
-            formattedMetaInfo.url = mkLinkToUrl(getUrlWithBase(result.suiteUrl, baseHost), result.metaInfo.url);
+            formattedMetaInfo.url = mkTextWithClipboardButton(result.metaInfo.url, getUrlWithBase(result.suiteUrl, baseHost));
         }
 
         return metaToElements(formattedMetaInfo, metaInfoBaseUrls);
@@ -101,7 +100,7 @@ class MetaInfoContent extends Component {
 }
 
 export default connect(
-    ({tree, config: {metaInfoBaseUrls}, apiValues, view}, {resultId}) => {
+    ({ tree, config: { metaInfoBaseUrls }, apiValues, view }, { resultId }) => {
         const result = tree.results.byId[resultId];
         const browser = tree.browsers.byId[result.parentId];
 

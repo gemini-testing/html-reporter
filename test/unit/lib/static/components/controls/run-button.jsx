@@ -5,10 +5,12 @@ import {mkConnectedComponent, mkState} from '../utils';
 describe('<RunButton />', () => {
     const sandbox = sinon.sandbox.create();
 
-    let RunButton, useLocalStorageStub, actionsStub, selectorsStub;
+    let RunButton, useLocalStorageStub, actionsStub, selectorsStub, writeValueStub;
 
     beforeEach(() => {
+        writeValueStub = sandbox.stub();
         useLocalStorageStub = sandbox.stub().returns([true]);
+        useLocalStorageStub.withArgs('RunMode', 'Failed').returns(['All', writeValueStub]);
         actionsStub = {
             runAllTests: sandbox.stub().returns({type: 'some-type'}),
             runFailedTests: sandbox.stub().returns({type: 'some-type'}),
@@ -69,6 +71,7 @@ describe('<RunButton />', () => {
     });
 
     it('should call "runFailedTests" action on "Run failed tests" click', () => {
+        useLocalStorageStub.withArgs('RunMode', 'Failed').returns(['Failed', () => {}]);
         const failedTests = [{testName: 'suite test', browserName: 'yabro'}];
         const state = mkState({initialState: {tree: {suites: {allRootIds: ['suite']}}, processing: false}});
         selectorsStub.getFailedTests.withArgs(state).returns(failedTests);
@@ -81,6 +84,7 @@ describe('<RunButton />', () => {
     });
 
     it('should call "retrySuite" action on "Run checked tests" click', () => {
+        useLocalStorageStub.withArgs('RunMode', 'Failed').returns(['Checked', () => {}]);
         const checkedTests = [{testName: 'suite test', browserName: 'yabro'}];
         const state = mkState({initialState: {tree: {suites: {allRootIds: ['suite']}}, processing: false}});
         selectorsStub.getCheckedTests.withArgs(state).returns(checkedTests);
@@ -110,33 +114,46 @@ describe('<RunButton />', () => {
             assert.equal(component.find('button').text(), 'Run all tests');
         });
 
-        it('should be "Run checked tests" if there are checked tests', () => {
+        it('should switch to "Run checked tests" if there are checked tests', () => {
             selectorsStub.getCheckedTests.returns([{testName: 'testName', browserName: 'browserName'}]);
             const component = mkConnectedComponent(<RunButton />, {
                 initialState: {tree: {suites: {allRootIds: ['suite']}}, processing: false}
             });
 
-            assert.equal(component.find('button').text(), 'Run checked tests');
+            assert.calledWith(writeValueStub, 'Checked');
+        });
+    });
+
+    describe('localStorage', () => {
+        it('should save "Run all tests" if picked', () => {
+            selectorsStub.getCheckedTests.returns([{testName: 'testName', browserName: 'browserName'}]);
+            selectorsStub.getFailedTests.returns([{testName: 'testName', browserName: 'browserName'}]);
+            const component = mkConnectedComponent(<RunButton />, {
+                initialState: {tree: {suites: {allRootIds: ['suite']}}, processing: false}
+            });
+
+            component.find({children: 'All'}).simulate('click');
+            assert.calledWith(writeValueStub, 'All');
         });
 
-        it('should be "Run failed tests" if picked', () => {
+        it('should save "Run failed tests" if picked', () => {
             selectorsStub.getFailedTests.returns([{testName: 'testName', browserName: 'browserName'}]);
             const component = mkConnectedComponent(<RunButton />, {
                 initialState: {tree: {suites: {allRootIds: ['suite']}}, processing: false}
             });
 
             component.find({children: 'Failed'}).simulate('click');
-            assert.equal(component.find('button').text(), 'Run failed tests');
+            assert.calledOnceWith(writeValueStub, 'Failed');
         });
 
-        it('should be "Run checked tests" if picked', () => {
+        it('should save "Run checked tests" if picked', () => {
             selectorsStub.getCheckedTests.returns([{testName: 'testName', browserName: 'browserName'}]);
             const component = mkConnectedComponent(<RunButton />, {
                 initialState: {tree: {suites: {allRootIds: ['suite']}}, processing: false}
             });
 
             component.find({children: 'Checked'}).simulate('click');
-            assert.equal(component.find('button').text(), 'Run checked tests');
+            assert.calledWith(writeValueStub, 'Checked');
         });
     });
 

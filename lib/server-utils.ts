@@ -5,7 +5,6 @@ import url from 'url';
 import chalk from 'chalk';
 import {Router} from 'express';
 import fs from 'fs-extra';
-import type Testplane from 'testplane';
 import type {Test as TestplaneTest} from 'testplane';
 import _ from 'lodash';
 import tmp from 'tmp';
@@ -13,15 +12,14 @@ import tmp from 'tmp';
 import {getShortMD5, logger, mkTestId} from './common-utils';
 import {UPDATED, RUNNING, IDLE, SKIPPED, IMAGES_PATH, TestStatus, UNKNOWN_ATTEMPT} from './constants';
 import type {HtmlReporter} from './plugin-api';
-import type {ReporterTestResult} from './test-adapter';
+import type {ReporterTestResult} from './adapters/test-result';
 import {
-    CustomGuiItem,
     TestplaneTestResult,
     ImageInfoWithState,
     ReporterConfig,
     TestSpecByPath
 } from './types';
-import {TestplaneTestAdapter} from './test-adapter/testplane';
+import {TestplaneTestResultAdapter} from './adapters/test-result/testplane';
 
 const DATA_FILE_NAME = 'data.js';
 
@@ -243,29 +241,6 @@ export function getDataForStaticFile(htmlReporter: HtmlReporter, pluginConfig: R
     };
 }
 
-export async function initializeCustomGui(testplane: Testplane, {customGui}: ReporterConfig): Promise<void> {
-    await Promise.all(
-        _(customGui)
-            .flatMap<CustomGuiItem>(_.identity)
-            .map((ctx) => ctx.initialize?.({testplane, hermione: testplane, ctx}))
-            .value()
-    );
-}
-
-export interface CustomGuiActionPayload {
-    sectionName: string;
-    groupIndex: number;
-    controlIndex: number;
-}
-
-export async function runCustomGuiAction(testplane: Testplane, {customGui}: ReporterConfig, payload: CustomGuiActionPayload): Promise<void> {
-    const {sectionName, groupIndex, controlIndex} = payload;
-    const ctx = customGui[sectionName][groupIndex];
-    const control = ctx.controls[controlIndex];
-
-    await ctx.action({testplane, hermione: testplane, control, ctx});
-}
-
 export function getPluginClientScriptPath(pluginName: string): string | null {
     try {
         return require.resolve(`${pluginName}/plugin.js`);
@@ -320,7 +295,7 @@ export const formatTestResult = (
     status: TestStatus,
     attempt: number = UNKNOWN_ATTEMPT
 ): ReporterTestResult => {
-    return new TestplaneTestAdapter(rawResult, {attempt, status});
+    return new TestplaneTestResultAdapter(rawResult, {attempt, status});
 };
 
 export const saveErrorDetails = async (testResult: ReporterTestResult, reportPath: string): Promise<void> => {

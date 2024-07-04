@@ -13,7 +13,7 @@ module.exports.getCommonConfig = (projectDir) => ({
             desiredCapabilities: {
                 browserName: 'chrome',
                 'goog:chromeOptions': {
-                    args: ['headless', 'no-sandbox', 'hide-scrollbars'],
+                    args: ['headless', 'no-sandbox', 'hide-scrollbars', 'disable-dev-shm-usage'],
                     binary: CHROME_BINARY_PATH
                 }
             },

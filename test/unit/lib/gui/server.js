@@ -3,7 +3,7 @@
 const _ = require('lodash');
 const proxyquire = require('proxyquire');
 const {App} = require('lib/gui/app');
-const {stubTool} = require('../../utils');
+const {stubToolAdapter} = require('../../utils');
 
 describe('lib/gui/server', () => {
     const sandbox = sinon.createSandbox();
@@ -23,19 +23,12 @@ describe('lib/gui/server', () => {
         static: sandbox.stub()
     });
 
-    const mkApi_ = () => ({
-        initServer: sandbox.stub(),
-        serverReady: sandbox.stub()
-    });
-
     const startServer = (opts = {}) => {
         opts = _.defaults(opts, {
             paths: [],
-            tool: stubTool(),
-            guiApi: mkApi_(),
-            configs: {
-                options: {hostname: 'localhost', port: '4444'},
-                pluginConfig: {path: 'default-path'}
+            toolAdapter: stubToolAdapter(),
+            cli: {
+                options: {hostname: 'localhost', port: '4444'}
             }
         });
 
@@ -71,32 +64,36 @@ describe('lib/gui/server', () => {
     });
 
     it('should init server from api', async () => {
-        const guiApi = mkApi_();
+        const toolAdapter = stubToolAdapter();
+        const {guiApi} = toolAdapter;
 
-        await startServer({guiApi});
+        await startServer({toolAdapter});
 
         assert.calledOnceWith(guiApi.initServer, expressStub);
         assert.calledOnceWith(guiApi.serverReady, {url: 'http://localhost:4444'});
     });
 
     it('should init server only after body is parsed', async () => {
-        const guiApi = mkApi_();
+        const toolAdapter = stubToolAdapter();
+        const {guiApi} = toolAdapter;
 
-        await startServer({guiApi});
+        await startServer({toolAdapter});
 
         assert.callOrder(bodyParserStub.json, guiApi.initServer, guiApi.serverReady);
     });
 
     it('should init server before any static middleware starts', async () => {
-        const guiApi = mkApi_();
+        const toolAdapter = stubToolAdapter();
+        const {guiApi} = toolAdapter;
 
-        await startServer({guiApi});
+        await startServer({toolAdapter});
 
         assert.callOrder(guiApi.initServer, staticMiddleware, guiApi.serverReady);
     });
 
     it('should properly complete app working', async () => {
         sandbox.stub(process, 'kill');
+        sandbox.stub(process, 'exit');
 
         await startServer();
 
@@ -106,28 +103,24 @@ describe('lib/gui/server', () => {
     });
 
     it('should correctly set json replacer', async () => {
-        const guiApi = mkApi_();
+        const toolAdapter = stubToolAdapter();
 
-        await startServer({guiApi});
+        await startServer({toolAdapter});
 
         assert.calledOnceWith(expressStub.set, 'json replacer', sinon.match.func);
     });
 
     it('should try to attach plugins middleware on startup', async () => {
-        const pluginConfig = {
+        const reporterConfig = {
             path: 'test-path',
             plugins: [
                 {name: 'test-plugin', component: 'TestComponent'}
             ]
         };
+        const toolAdapter = stubToolAdapter({reporterConfig});
 
-        await startServer({
-            configs: {
-                options: {hostname: 'localhost', port: '4444'},
-                pluginConfig
-            }
-        });
+        await startServer({toolAdapter});
 
-        assert.calledOnceWith(initPluginRoutesStub, RouterStub, pluginConfig);
+        assert.calledOnceWith(initPluginRoutesStub, RouterStub, reporterConfig);
     });
 });

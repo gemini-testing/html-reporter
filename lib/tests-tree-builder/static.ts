@@ -1,8 +1,8 @@
 import _ from 'lodash';
 import {BaseTestsTreeBuilder, BaseTestsTreeBuilderOptions, Tree} from './base';
 import {BrowserVersions, DB_COLUMN_INDEXES, TestStatus} from '../constants';
-import {ReporterTestResult} from '../test-adapter';
-import {SqliteTestAdapter} from '../test-adapter/sqlite';
+import {ReporterTestResult} from '../adapters/test-result';
+import {SqliteTestResultAdapter} from '../adapters/test-result/sqlite';
 import {getTitleDelimiter} from '../common-utils';
 import {RawSuitesRow} from '../types';
 
@@ -70,7 +70,7 @@ export class StaticTestsTreeBuilder extends BaseTestsTreeBuilder {
             attemptsMap.set(browserId, attemptsMap.has(browserId) ? attemptsMap.get(browserId) as number + 1 : 0);
             const attempt = attemptsMap.get(browserId) as number;
 
-            const formattedResult = new SqliteTestAdapter(row, attempt, {titleDelimiter: getTitleDelimiter(this._toolName)});
+            const formattedResult = new SqliteTestResultAdapter(row, attempt, {titleDelimiter: getTitleDelimiter(this._toolName)});
 
             addBrowserVersion(browsers, formattedResult);
 

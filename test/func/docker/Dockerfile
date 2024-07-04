@@ -1,15 +1,28 @@
-FROM cimg/node:16.20-browsers
+FROM node:18-slim
 
-ENV CHROME_VERSION=116
+ARG DEBIAN_FRONTEND=noninteractive
 
-USER circleci
+ARG BUILDPLATFORM
 
-COPY --chown=circleci browser-utils browser-utils
-WORKDIR browser-utils
+ENV CHROMIUM_VERSION="126.0.6478.126-1~deb12u1"
+ENV ARM_CHROMEDRIVER_URL="https://github.com/electron/electron/releases/download/v31.1.0/chromedriver-v31.1.0-linux-arm64.zip"
+ENV ARM_CHROMEDRIVER_RELATIVE_PATH=""
+ENV AMD_CHROMEDRIVER_URL="https://storage.googleapis.com/chrome-for-testing-public/126.0.6478.126/linux64/chromedriver-linux64.zip"
+ENV AMD_CHROMEDRIVER_RELATIVE_PATH="/chromedriver-linux64"
 
-RUN npm ci && npm run install-chromium
+RUN if [ "$BUILDPLATFORM" = "linux/arm64" ]; then export RELATIVE_PATH="$ARM_CHROMEDRIVER_RELATIVE_PATH"; export URL="$ARM_CHROMEDRIVER_URL"; \
+    else export RELATIVE_PATH="$AMD_CHROMEDRIVER_RELATIVE_PATH"; export URL="$AMD_CHROMEDRIVER_URL"; fi && \
+    apt-get update -y && \
+    apt-get install -y wget unzip git && \
+    wget "$URL" -O "chromedriver.zip" && \
+    unzip "chromedriver" && \
+    if [ "$RELATIVE_PATH" != "" ]; then mv "$RELATIVE_PATH/chromedriver" "/chromedriver"; fi && \
+    apt update -y && \
+    apt install libnss3 -y && \
+    rm chromedriver.zip && \
+    (rm chromedriver.debug || true) && \
+    apt-get install chromium="$CHROMIUM_VERSION" -y
 
-RUN npm install selenium-standalone@9.1.1 -g && \
-    selenium-standalone install --drivers.chrome.version=$CHROME_VERSION
+LABEL com.circleci.preserve-entrypoint=true
 
-ENTRYPOINT selenium-standalone start --drivers.chrome.version=$CHROME_VERSION
+ENTRYPOINT ./chromedriver --port=4444 --whitelisted-ips=""

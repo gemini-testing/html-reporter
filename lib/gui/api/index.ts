@@ -1,22 +1,19 @@
 import {ApiFacade} from './facade';
-import type Testplane from 'testplane';
 import {Express} from 'express';
 
 export interface ServerReadyData {
     url: string;
 }
 
-type TestplaneWithGui = Testplane & { gui: ApiFacade };
-
-export class Api {
+export class GuiApi {
     private _gui: ApiFacade;
 
-    static create<T extends Api>(this: new (testplane: TestplaneWithGui) => T, testplane: TestplaneWithGui): T {
-        return new this(testplane);
+    static create<T extends GuiApi>(this: new () => T): T {
+        return new this();
     }
 
-    constructor(testplane: TestplaneWithGui) {
-        this._gui = testplane.gui = ApiFacade.create();
+    constructor() {
+        this._gui = ApiFacade.create();
     }
 
     async initServer(server: Express): Promise<void> {
@@ -25,5 +22,9 @@ export class Api {
 
     async serverReady(data: ServerReadyData): Promise<void> {
         await this._gui.emitAsync(this._gui.events.SERVER_READY, data);
+    }
+
+    get gui(): ApiFacade {
+        return this._gui;
     }
 }

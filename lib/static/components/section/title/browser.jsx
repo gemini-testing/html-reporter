@@ -3,7 +3,7 @@ import ClipboardButton from 'react-clipboard.js';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import {get} from 'lodash';
+import {get, escapeRegExp} from 'lodash';
 import * as actions from '../../../modules/actions';
 import {appendQuery} from '../../../modules/query-params';
 import {ViewMode} from '../../../../constants/view-modes';
@@ -15,8 +15,8 @@ import Bullet from '../../bullet';
 const BrowserTitle = (props) => {
     const getTestUrl = () => {
         return appendQuery(window.location.href, {
-            browser: props.browserName,
-            testNameFilter: props.testName,
+            browser: escapeRegExp(props.browserName),
+            testNameFilter: escapeRegExp(props.testName),
             strictMatchFilter: true,
             retryIndex: props.retryIndex,
             viewModes: ViewMode.ALL,
