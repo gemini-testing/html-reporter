@@ -113,7 +113,12 @@ export class ToolRunner {
             reportPath: this._toolAdapter.htmlReporter.config.path
         });
 
-        this._reportBuilder = GuiReportBuilder.create(this._toolAdapter.htmlReporter, this._reporterConfig, {dbClient, imagesInfoSaver});
+        this._reportBuilder = GuiReportBuilder.create({
+            htmlReporter: this._toolAdapter.htmlReporter,
+            reporterConfig: this._reporterConfig,
+            dbClient,
+            imagesInfoSaver
+        });
         this._toolAdapter.handleTestResults(this._reportBuilder, this._eventSource);
 
         this._collection = await this._readTests();

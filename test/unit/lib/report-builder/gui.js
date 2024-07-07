@@ -21,9 +21,9 @@ describe('GuiReportBuilder', () => {
     const sandbox = sinon.sandbox.create();
     let hasImage, deleteFile, GuiReportBuilder, dbClient, copyAndUpdate, imagesInfoSaver;
 
-    const mkGuiReportBuilder_ = async ({toolConfig, pluginConfig} = {}) => {
+    const mkGuiReportBuilder_ = async ({toolConfig, reporterConfig} = {}) => {
         toolConfig = _.defaults(toolConfig || {}, {getAbsoluteUrl: _.noop});
-        pluginConfig = _.defaults(pluginConfig || {}, {baseHost: '', path: TEST_REPORT_PATH, baseTestPath: ''});
+        reporterConfig = _.defaults(reporterConfig || {}, {baseHost: '', path: TEST_REPORT_PATH, baseTestPath: ''});
 
         const htmlReporter = HtmlReporter.create({baseHost: ''});
 
@@ -39,7 +39,7 @@ describe('GuiReportBuilder', () => {
         imagesInfoSaver = sinon.createStubInstance(ImagesInfoSaver);
         imagesInfoSaver.save.callsFake(_.identity);
 
-        const reportBuilder = GuiReportBuilder.create(testplane.htmlReporter, pluginConfig, {dbClient, imagesInfoSaver});
+        const reportBuilder = GuiReportBuilder.create({htmlReporter: testplane.htmlReporter, reporterConfig, dbClient, imagesInfoSaver});
 
         const workers = {saveDiffTo: () => {}};
         reportBuilder.registerWorkers(workers);
@@ -226,7 +226,7 @@ describe('GuiReportBuilder', () => {
         });
 
         it('should add base host to result with value from plugin parameter "baseHost"', async () => {
-            const reportBuilder = await mkGuiReportBuilder_({pluginConfig: {baseHost: 'some-host'}});
+            const reportBuilder = await mkGuiReportBuilder_({reporterConfig: {baseHost: 'some-host'}});
 
             assert.equal(reportBuilder.getResult().config.baseHost, 'some-host');
         });

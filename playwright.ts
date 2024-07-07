@@ -55,7 +55,7 @@ class MyReporter implements Reporter {
                 reportPath: htmlReporter.config.path
             });
 
-            this._staticReportBuilder = StaticReportBuilder.create(htmlReporter, config, {dbClient, imagesInfoSaver});
+            this._staticReportBuilder = StaticReportBuilder.create({htmlReporter, reporterConfig: config, dbClient, imagesInfoSaver});
             this._staticReportBuilder.registerWorkers(workers);
 
             await this._staticReportBuilder.saveStaticFiles();
