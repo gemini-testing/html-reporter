@@ -6,7 +6,7 @@ import stripAnsi from 'strip-ansi';
 
 import {ReporterTestResult} from './index';
 import {getError, getShortMD5, isImageDiffError, isNoRefImageError} from '../../common-utils';
-import {ERROR, FAIL, PWT_TITLE_DELIMITER, SUCCESS, TestStatus} from '../../constants';
+import {ERROR, FAIL, DEFAULT_TITLE_DELIMITER, SUCCESS, TestStatus} from '../../constants';
 import {ErrorName} from '../../errors';
 import {
     DiffOptions,
@@ -185,7 +185,7 @@ export class PlaywrightTestResultAdapter implements ReporterTestResult {
     }
 
     get fullName(): string {
-        return this.testPath.join(PWT_TITLE_DELIMITER);
+        return this.testPath.join(DEFAULT_TITLE_DELIMITER);
     }
 
     get history(): string[] {

@@ -18,7 +18,7 @@ interface ReporterOptions {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ParametersExceptFirst<F> = F extends (arg0: any, ...rest: infer R) => any ? R : never;
+type Parameters<F> = F extends (...rest: infer R) => any ? R : never;
 
 export class HtmlReporter extends EventsEmitter2 {
     protected _config: ReporterConfig;
@@ -104,7 +104,7 @@ export class HtmlReporter extends EventsEmitter2 {
         return mergeDatabases(...args);
     }
 
-    getTestsTreeFromDatabase(...args: ParametersExceptFirst<typeof getTestsTreeFromDatabase>): ReturnType<typeof getTestsTreeFromDatabase> {
-        return getTestsTreeFromDatabase(this.values.toolName, ...args);
+    getTestsTreeFromDatabase(...args: Parameters<typeof getTestsTreeFromDatabase>): ReturnType<typeof getTestsTreeFromDatabase> {
+        return getTestsTreeFromDatabase(...args);
     }
 }

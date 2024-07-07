@@ -5,14 +5,12 @@ import axios, {AxiosRequestConfig} from 'axios';
 import {
     ERROR,
     FAIL,
-    TESTPLANE_TITLE_DELIMITER,
-    IDLE, PWT_TITLE_DELIMITER,
+    IDLE,
     QUEUED,
     RUNNING,
     SKIPPED,
     SUCCESS,
     TestStatus,
-    ToolName,
     UPDATED
 } from './constants';
 
@@ -238,10 +236,6 @@ export const isCheckboxChecked = (status: number): boolean => Number(status) ===
 export const isCheckboxIndeterminate = (status: number): boolean => Number(status) === INDETERMINATE;
 export const isCheckboxUnchecked = (status: number): boolean => Number(status) === UNCHECKED;
 export const getToggledCheckboxState = (status: number): number => isCheckboxChecked(status) ? UNCHECKED : CHECKED;
-
-export const getTitleDelimiter = (toolName: ToolName): string => {
-    return toolName === ToolName.Playwright ? PWT_TITLE_DELIMITER : TESTPLANE_TITLE_DELIMITER;
-};
 
 export function getDetailsFileName(testId: string, browserId: string, attempt: number): string {
     return `${testId}-${browserId}_${Number(attempt) + 1}_${Date.now()}.json`;
