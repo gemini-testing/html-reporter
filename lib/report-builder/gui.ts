@@ -7,7 +7,7 @@ import {ReporterTestResult} from '../adapters/test-result';
 import {Tree, TreeImage} from '../tests-tree-builder/base';
 import {ImageInfoFull, ImageInfoWithState, ReporterConfig} from '../types';
 import {determineStatus, isUpdatedStatus} from '../common-utils';
-import {HtmlReporter, HtmlReporterValues} from '../plugin-api';
+import {HtmlReporterValues} from '../plugin-api';
 import {SkipItem} from '../tests-tree-builder/static';
 import {copyAndUpdate} from '../adapters/test-result/utils';
 
@@ -33,10 +33,10 @@ export class GuiReportBuilder extends StaticReportBuilder {
     private _skips: SkipItem[];
     private _apiValues?: HtmlReporterValues;
 
-    constructor(htmlReporter: HtmlReporter, pluginConfig: ReporterConfig, options: StaticReportBuilderOptions) {
-        super(htmlReporter, pluginConfig, options);
+    constructor(options: StaticReportBuilderOptions) {
+        super(options);
 
-        this._testsTree = GuiTestsTreeBuilder.create({toolName: ToolName.Testplane, baseHost: pluginConfig.baseHost});
+        this._testsTree = GuiTestsTreeBuilder.create({toolName: ToolName.Testplane, baseHost: this._reporterConfig.baseHost});
         this._skips = [];
     }
 
@@ -58,8 +58,8 @@ export class GuiReportBuilder extends StaticReportBuilder {
     }
 
     getResult(): GuiReportBuilderResult {
-        const {customGui} = this._pluginConfig;
-        const config = {...getConfigForStaticFile(this._pluginConfig), customGui};
+        const {customGui} = this._reporterConfig;
+        const config = {...getConfigForStaticFile(this._reporterConfig), customGui};
 
         this._testsTree.sortTree();
 
