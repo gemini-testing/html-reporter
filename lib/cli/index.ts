@@ -4,13 +4,36 @@ import {Command} from '@gemini-testing/commander';
 import pkg from '../../package.json';
 
 import {ToolName} from '../constants';
-import {makeToolAdapter} from '../adapters/tool';
+import {makeToolAdapter, type ToolAdapter} from '../adapters/tool';
+import {logger} from '../common-utils';
 
 export const commands = {
     GUI: 'gui',
     MERGE_REPORTS: 'merge-reports',
     REMOVE_UNUSED_SCREENS: 'remove-unused-screens'
 } as const;
+
+let toolAdapter: ToolAdapter;
+
+process.on('uncaughtException', err => {
+    logger.error(err.stack);
+    process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, p) => {
+    const error = new Error([
+        `Unhandled Rejection in ${toolAdapter ? toolAdapter.toolName + ':' : ''}${process.pid}:`,
+        `Promise: ${JSON.stringify(p)}`,
+        `Reason: ${_.get(reason, 'stack', reason)}`
+    ].join('\n'));
+
+    if (toolAdapter) {
+        toolAdapter.halt(error, 60000);
+    } else {
+        logger.error(error);
+        process.exit(1);
+    }
+});
 
 export const run = async (): Promise<void> => {
     const program = new Command(pkg.name)
@@ -26,7 +49,7 @@ export const run = async (): Promise<void> => {
         throw new Error(`Tool with name: "${toolName}" is not supported, try to use one of these: ${availableToolNames.map(t => `"${t}"`).join(', ')}`);
     }
 
-    const toolAdapter = await makeToolAdapter({toolName: toolName as ToolName, configPath});
+    toolAdapter = await makeToolAdapter({toolName: toolName as ToolName, configPath});
 
     for (const commandName of _.values(commands)) {
         const registerCmd = (await import(path.resolve(__dirname, './commands', commandName))).default;
