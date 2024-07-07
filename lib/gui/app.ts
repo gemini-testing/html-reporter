@@ -4,15 +4,13 @@ import _ from 'lodash';
 import {ToolRunner, ToolRunnerTree, UndoAcceptImagesResult} from './tool-runner';
 import {TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../tests-tree-builder/gui';
 
-import type {Config} from 'testplane';
 import type {ServerArgs} from './index';
 import type {TestSpec} from '../adapters/tool/types';
-
-type BrowserConfig = ReturnType<Config['forBrowser']>;
+import type {BrowserConfigAdapter} from '../adapters/config/index';
 
 export class App {
     private _toolRunner: ToolRunner;
-    private _browserConfigs: BrowserConfig[];
+    private _browserConfigs: BrowserConfigAdapter[];
     private _retryCache: Record<string, number>;
 
     static create<T extends App>(this: new (args: ServerArgs) => T, args: ServerArgs): T {
@@ -46,7 +44,7 @@ export class App {
 
     private async _runWithoutRetries(tests: TestSpec[]): Promise<boolean> {
         if (_.isEmpty(this._browserConfigs)) {
-            this._browserConfigs = _.map(this._toolRunner.config.getBrowserIds(), (id) => this._toolRunner.config.forBrowser(id));
+            this._browserConfigs = _.map(this._toolRunner.config.browserIds, (id) => this._toolRunner.config.getBrowserConfig(id));
         }
 
         this._disableRetries();

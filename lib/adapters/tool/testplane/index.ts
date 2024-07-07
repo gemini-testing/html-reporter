@@ -1,7 +1,9 @@
 import _ from 'lodash';
-import Testplane, {type Config, type TestCollection} from 'testplane';
+import Testplane, {type Config} from 'testplane';
 import type {CommanderStatic} from '@gemini-testing/commander';
 
+import {TestplaneTestCollectionAdapter} from '../../test-collection/testplane';
+import {TestplaneConfigAdapter} from '../../config/testplane';
 import {GuiApi} from '../../../gui/api';
 import {parseConfig} from '../../../config';
 import {HtmlReporter} from '../../../plugin-api';
@@ -15,6 +17,7 @@ import {ToolName} from '../../../constants';
 import type {ToolAdapter, ToolAdapterOptionsFromCli, UpdateReferenceOpts} from '../index';
 import type {TestSpec, CustomGuiActionPayload} from '../types';
 import type {ReporterConfig, CustomGuiItem} from '../../../types';
+import type {ConfigAdapter} from '../../config/index';
 
 type HtmlReporterApi = {
     gui: ApiFacade;
@@ -39,6 +42,7 @@ type Options = ToolAdapterOptionsFromCli | OptionsFromPlugin;
 export class TestplaneToolAdapter implements ToolAdapter {
     private _toolName: ToolName;
     private _tool: TestplaneWithHtmlReporter;
+    private _config: ConfigAdapter;
     private _reporterConfig: ReporterConfig;
     private _htmlReporter: HtmlReporter;
     private _guiApi?: GuiApi;
@@ -64,6 +68,7 @@ export class TestplaneToolAdapter implements ToolAdapter {
         }
 
         this._toolName = opts.toolName;
+        this._config = TestplaneConfigAdapter.create(this._tool.config);
         this._htmlReporter = HtmlReporter.create(this._reporterConfig, {toolName: ToolName.Testplane});
 
         // in order to be able to use it from other plugins as an API
@@ -74,8 +79,8 @@ export class TestplaneToolAdapter implements ToolAdapter {
         return this._toolName;
     }
 
-    get config(): Config {
-        return this._tool.config;
+    get config(): ConfigAdapter {
+        return this._config;
     }
 
     get reporterConfig(): ReporterConfig {
@@ -97,17 +102,19 @@ export class TestplaneToolAdapter implements ToolAdapter {
         this._tool.gui = this._guiApi.gui;
     }
 
-    async readTests(paths: string[], cliTool: CommanderStatic): Promise<TestCollection> {
+    async readTests(paths: string[], cliTool: CommanderStatic): Promise<TestplaneTestCollectionAdapter> {
         const {grep, set: sets, browser: browsers} = cliTool;
         const replMode = getReplModeOption(cliTool);
 
-        return this._tool.readTests(paths, {grep, sets, browsers, replMode});
+        const testCollection = await this._tool.readTests(paths, {grep, sets, browsers, replMode});
+
+        return TestplaneTestCollectionAdapter.create(testCollection);
     }
 
-    async run(testCollection: TestCollection, tests: TestSpec[] = [], cliTool: CommanderStatic): Promise<boolean> {
+    async run(testCollectionAdapter: TestplaneTestCollectionAdapter, tests: TestSpec[] = [], cliTool: CommanderStatic): Promise<boolean> {
         const {grep, set: sets, browser: browsers, devtools = false} = cliTool;
         const replMode = getReplModeOption(cliTool);
-        const runner = createTestRunner(testCollection, tests);
+        const runner = createTestRunner(testCollectionAdapter.original, tests);
 
         return runner.run((collection) => this._tool.run(collection, {grep, sets, browsers, devtools, replMode}));
     }

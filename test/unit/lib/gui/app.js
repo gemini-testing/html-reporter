@@ -6,6 +6,7 @@ const Promise = require('bluebird');
 
 const {ToolRunner} = require('lib/gui/tool-runner');
 const {stubTool, stubConfig} = require('../../utils');
+const {TestplaneConfigAdapter} = require('lib/adapters/config/testplane');
 
 describe('lib/gui/app', () => {
     const sandbox = sinon.createSandbox().usingPromise(Promise);
@@ -14,6 +15,10 @@ describe('lib/gui/app', () => {
     let tool;
     let toolRunner;
     let looksSame;
+
+    const mkConfigAdapter_ = (config = stubConfig()) => {
+        return TestplaneConfigAdapter.create(config);
+    };
 
     const mkApp_ = async (opts = {}) => {
         opts = _.defaultsDeep(opts, {
@@ -42,7 +47,8 @@ describe('lib/gui/app', () => {
             bro1: {id: 'bro1', retry: 1},
             bro2: {id: 'bro2', retry: 2}
         };
-        tool = stubTool(stubConfig({browsers: browserConfigs}));
+        const config = mkConfigAdapter_(stubConfig({browsers: browserConfigs}));
+        tool = stubTool(config);
         toolRunner = mkToolRunner_(tool);
         looksSame = sandbox.stub().named('looksSame').resolves({equal: true});
 
@@ -59,7 +65,7 @@ describe('lib/gui/app', () => {
         it('should run all tests with retries from config', async () => {
             let retryBeforeRun;
             toolRunner.run.callsFake(() => {
-                retryBeforeRun = tool.config.forBrowser('bro1').retry;
+                retryBeforeRun = tool.config.getBrowserConfig('bro1').retry;
                 return Promise.resolve();
             });
             const App_ = await mkApp_({tool});
@@ -73,8 +79,8 @@ describe('lib/gui/app', () => {
             let bro1RetryBeforeRun;
             let bro2RetryBeforeRun;
             toolRunner.run.callsFake(() => {
-                bro1RetryBeforeRun = tool.config.forBrowser('bro1').retry;
-                bro2RetryBeforeRun = tool.config.forBrowser('bro2').retry;
+                bro1RetryBeforeRun = tool.config.getBrowserConfig('bro1').retry;
+                bro2RetryBeforeRun = tool.config.getBrowserConfig('bro2').retry;
                 return Promise.resolve();
             });
             const App_ = await mkApp_({tool});
@@ -93,8 +99,8 @@ describe('lib/gui/app', () => {
             return App_
                 .run(['test'])
                 .then(() => {
-                    assert.equal(tool.config.forBrowser('bro1').retry, 1);
-                    assert.equal(tool.config.forBrowser('bro2').retry, 2);
+                    assert.equal(tool.config.getBrowserConfig('bro1').retry, 1);
+                    assert.equal(tool.config.getBrowserConfig('bro2').retry, 2);
                 });
         });
 
@@ -105,8 +111,8 @@ describe('lib/gui/app', () => {
             return App_
                 .run(['test'])
                 .catch(() => {
-                    assert.equal(tool.config.forBrowser('bro1').retry, 1);
-                    assert.equal(tool.config.forBrowser('bro2').retry, 2);
+                    assert.equal(tool.config.getBrowserConfig('bro1').retry, 1);
+                    assert.equal(tool.config.getBrowserConfig('bro2').retry, 2);
                 });
         });
     });
