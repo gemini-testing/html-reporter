@@ -4,6 +4,7 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {isEmpty, isFunction} from 'lodash';
+import { Card, Disclosure } from '@gravity-ui/uikit';
 
 export default class Details extends Component {
     static propTypes = {
@@ -60,12 +61,17 @@ export default class Details extends Component {
                     {title}
                 </div>
             ) : (
-                <details className={className}>
-                    <summary className='details__summary' onClick={this.handleClick}>
-                        {title}
-                    </summary>
-                    {this._renderContent()}
-                </details>
+                <Disclosure className={className} onUpdate={this.handleClick} 
+                     size='l'>
+                        <Disclosure.Summary>
+                            {(props, defaultButton) => (
+                                <div className={className}><div className='details__expand-button'>{defaultButton}</div>{title}</div>
+                            )}
+                        </Disclosure.Summary>
+                    <Card className='details__card'>
+                        {this._renderContent()}
+                    </Card>
+                </Disclosure>
             )
         );
     }

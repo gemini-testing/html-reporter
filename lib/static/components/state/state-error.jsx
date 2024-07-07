@@ -14,6 +14,7 @@ import ErrorDetails from './error-details';
 import Details from '../details';
 import {ERROR_TITLE_TEXT_LENGTH} from '../../../constants/errors';
 import {isAssertViewError, isImageDiffError, isNoRefImageError, mergeSnippetIntoErrorStack, trimArray} from '../../../common-utils';
+import { Card } from '@gravity-ui/uikit';
 
 ansiHtml.setColors({
     reset: ["#", "#"],
@@ -123,11 +124,12 @@ class StateError extends Component {
             <div className="image-box__image image-box__image_single">
                 {
                     this._shouldDrawErrorInfo(extendedError)
-                        ? <div
+                        ? <Card
+                            view='filled'
                             className="error"
                         >
                             {this._errorToElements(mergeSnippetIntoErrorStack(extendedError))}
-                        </div> : null
+                        </Card> : null
                 }
                 {errorDetails && <ErrorDetails errorDetails={errorDetails} />}
                 {this._drawImage()}

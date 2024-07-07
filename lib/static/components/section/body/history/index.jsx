@@ -24,6 +24,6 @@ History.propTypes = {
 
 export default connect(({tree}, {resultId}) => {
     const {history = []} = tree.results.byId[resultId];
-
+    console.log(history);
     return {history};
 })(History);

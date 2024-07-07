@@ -2,6 +2,7 @@ import path from 'path';
 import React, { Component, Fragment } from 'react';
 import { connect } from 'react-redux';
 import { ClipboardButton } from '@gravity-ui/uikit';
+import { DefinitionList } from '@gravity-ui/components';
 import PropTypes from 'prop-types';
 import { map, mapValues, isObject, omitBy, isEmpty } from 'lodash';
 import { isUrl, getUrlWithBase } from '../../../../../common-utils';
@@ -34,6 +35,27 @@ const resolveUrl = (baseUrl, value) => {
 };
 
 const metaToElements = (metaInfo, metaInfoBaseUrls) => {
+    return <DefinitionList className='meta-info__item' items={
+        map(metaInfo, (value, key) => {
+            if (isUrl(value)) {
+                value = mkTextWithClipboardButton(value, value);
+            } else if (metaInfoBaseUrls[key]) {
+                const baseUrl = metaInfoBaseUrls[key];
+                const link = isUrl(baseUrl) ? resolveUrl(baseUrl, value) : path.join(baseUrl, value);
+                value = mkTextWithClipboardButton(value, link);
+            } else if (typeof value === 'boolean') {
+                value = value.toString();
+            }
+            else if (typeof value === 'string') {
+                value = mkTextWithClipboardButton(value);
+            }
+            return {
+                name: key,
+                content: <div className="meta-info__item-value">{value}</div>,
+                copyText: key
+            }
+        })
+    }/>
     return map(metaInfo, (value, key) => {
         if (isUrl(value)) {
             value = mkTextWithClipboardButton(value, value);
