@@ -62,6 +62,7 @@ function stubToolAdapter({
         reporterConfig,
         htmlReporter: htmlReporter || sinon.createStubInstance(HtmlReporter),
         run: sinon.stub().resolves(false),
+        runWithoutRetries: sinon.stub().resolves(false),
         readTests: sinon.stub().resolves(testCollection),
         updateReference: sinon.stub(),
         handleTestResults: sinon.stub(),

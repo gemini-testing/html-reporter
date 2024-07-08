@@ -6,7 +6,7 @@ import * as server from './server';
 import {logger} from '../common-utils';
 import * as utils from '../server-utils';
 
-import type {TestplaneToolAdapter} from '../adapters/tool/testplane';
+import type {ToolAdapter} from '../adapters/tool';
 
 const {logError} = utils;
 
@@ -19,7 +19,7 @@ export interface GuiCliOptions {
 
 export interface ServerArgs {
     paths: string[];
-    toolAdapter: TestplaneToolAdapter;
+    toolAdapter: ToolAdapter;
     cli: {
         options: GuiCliOptions;
         tool: CommanderStatic;

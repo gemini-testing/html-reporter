@@ -1,17 +1,13 @@
 import {Response} from 'express';
-import _ from 'lodash';
 
 import {ToolRunner, ToolRunnerTree, UndoAcceptImagesResult} from './tool-runner';
 import {TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../tests-tree-builder/gui';
 
 import type {ServerArgs} from './index';
 import type {TestSpec} from '../adapters/tool/types';
-import type {BrowserConfigAdapter} from '../adapters/config/index';
 
 export class App {
     private _toolRunner: ToolRunner;
-    private _browserConfigs: BrowserConfigAdapter[];
-    private _retryCache: Record<string, number>;
 
     static create<T extends App>(this: new (args: ServerArgs) => T, args: ServerArgs): T {
         return new this(args);
@@ -19,9 +15,6 @@ export class App {
 
     constructor(args: ServerArgs) {
         this._toolRunner = ToolRunner.create(args);
-
-        this._browserConfigs = [];
-        this._retryCache = {};
     }
 
     get data(): ToolRunnerTree | null {
@@ -37,20 +30,7 @@ export class App {
     }
 
     async run(tests: TestSpec[]): Promise<boolean> {
-        return _.isEmpty(tests)
-            ? this._toolRunner.run()
-            : this._runWithoutRetries(tests);
-    }
-
-    private async _runWithoutRetries(tests: TestSpec[]): Promise<boolean> {
-        if (_.isEmpty(this._browserConfigs)) {
-            this._browserConfigs = _.map(this._toolRunner.config.browserIds, (id) => this._toolRunner.config.getBrowserConfig(id));
-        }
-
-        this._disableRetries();
-
-        return this._toolRunner.run(tests)
-            .finally(() => this._restoreRetries());
+        return this._toolRunner.run(tests);
     }
 
     getTestsDataToUpdateRefs(imageIds: string[] = []): TestRefUpdateData[] {
@@ -75,18 +55,5 @@ export class App {
 
     addClient(connection: Response): void {
         this._toolRunner.addClient(connection);
-    }
-
-    private _disableRetries(): void {
-        this._browserConfigs.forEach((broConfig) => {
-            this._retryCache[broConfig.id] = broConfig.retry;
-            broConfig.retry = 0;
-        });
-    }
-
-    private _restoreRetries(): void {
-        this._browserConfigs.forEach((broConfig) => {
-            broConfig.retry = this._retryCache[broConfig.id];
-        });
     }
 }

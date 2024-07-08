@@ -255,7 +255,7 @@ describe('lib/adapters/tool/testplane/index', () => {
             collection = stubTestCollection() as TestCollection;
             runner = {run: sandbox.stub().resolves()};
 
-            createTestRunnerStub.withArgs(collection, []).returns(runner);
+            createTestRunnerStub.returns(runner);
         });
 
         it('should run testplane with passed opts', async () => {
@@ -337,6 +337,113 @@ describe('lib/adapters/tool/testplane/index', () => {
                     }
                 }));
             });
+        });
+    });
+
+    describe('runWithoutRetries', () => {
+        let collection: TestCollection;
+
+        beforeEach(() => {
+            collection = stubTestCollection() as TestCollection;
+        });
+
+        it('should call "run" method with correct args', async () => {
+            const cliTool = {} as unknown as CommanderStatic;
+            const tests = [
+                {testName: 'foo', browserName: 'yabro'}
+            ];
+            const config = stubConfig({
+                browsers: {
+                    yabro: {id: 'yabro', retry: 1}
+                }
+            });
+            const testplane = stubTool(config);
+            const testCollection = TestplaneTestCollectionAdapter.create(collection);
+
+            const toolAdapter = TestplaneToolAdapter.create({toolName: ToolName.Testplane, tool: testplane, reporterConfig: {} as ReporterConfig});
+            sandbox.stub(toolAdapter, 'run').resolves();
+
+            await toolAdapter.runWithoutRetries(testCollection, tests, cliTool);
+
+            assert.calledOnceWith(toolAdapter.run as SinonStub, testCollection, tests, cliTool);
+        });
+
+        it('should run specified tests with no retries', async () => {
+            const tests = [
+                {testName: 'foo', browserName: 'yabro1'},
+                {testName: 'bar', browserName: 'yabro2'}
+            ];
+            const config = stubConfig({
+                browsers: {
+                    yabro1: {id: 'yabro1', retry: 1},
+                    yabro2: {id: 'yabro2', retry: 2}
+                }
+            });
+            const testplane = stubTool(config);
+
+            let yabro1RetryBeforeRun!: number;
+            let yabro2RetryBeforeRun!: number;
+
+            const toolAdapter = TestplaneToolAdapter.create({toolName: ToolName.Testplane, tool: testplane, reporterConfig: {} as ReporterConfig});
+            sandbox.stub(toolAdapter, 'run').resolves();
+
+            (toolAdapter.run as SinonStub).callsFake(() => {
+                yabro1RetryBeforeRun = testplane.config.forBrowser('yabro1').retry;
+                yabro2RetryBeforeRun = testplane.config.forBrowser('yabro2').retry;
+
+                return Promise.resolve();
+            });
+
+            await toolAdapter.runWithoutRetries(TestplaneTestCollectionAdapter.create(collection), tests, {} as CommanderStatic);
+
+            assert.equal(yabro1RetryBeforeRun, 0);
+            assert.equal(yabro2RetryBeforeRun, 0);
+        });
+
+        it('should restore config retry values after run', async () => {
+            const tests = [
+                {testName: 'foo', browserName: 'yabro1'},
+                {testName: 'bar', browserName: 'yabro2'}
+            ];
+            const config = stubConfig({
+                browsers: {
+                    yabro1: {id: 'yabro1', retry: 1},
+                    yabro2: {id: 'yabro2', retry: 2}
+                }
+            });
+            const testplane = stubTool(config);
+
+            const toolAdapter = TestplaneToolAdapter.create({toolName: ToolName.Testplane, tool: testplane, reporterConfig: {} as ReporterConfig});
+            sandbox.stub(toolAdapter, 'run').resolves();
+
+            await toolAdapter.runWithoutRetries(TestplaneTestCollectionAdapter.create(collection), tests, {} as CommanderStatic);
+
+            assert.equal(testplane.config.forBrowser('yabro1').retry, 1);
+            assert.equal(testplane.config.forBrowser('yabro2').retry, 2);
+        });
+
+        it('should restore config retry values even after error', async () => {
+            const tests = [
+                {testName: 'foo', browserName: 'yabro1'},
+                {testName: 'bar', browserName: 'yabro2'}
+            ];
+            const config = stubConfig({
+                browsers: {
+                    yabro1: {id: 'yabro1', retry: 1},
+                    yabro2: {id: 'yabro2', retry: 2}
+                }
+            });
+            const testplane = stubTool(config);
+
+            const toolAdapter = TestplaneToolAdapter.create({toolName: ToolName.Testplane, tool: testplane, reporterConfig: {} as ReporterConfig});
+            sandbox.stub(toolAdapter, 'run').rejects(new Error('o.O'));
+
+            try {
+                await toolAdapter.runWithoutRetries(TestplaneTestCollectionAdapter.create(collection), tests, {} as CommanderStatic);
+            } catch {
+                assert.equal(testplane.config.forBrowser('yabro1').retry, 1);
+                assert.equal(testplane.config.forBrowser('yabro2').retry, 2);
+            }
         });
     });
 

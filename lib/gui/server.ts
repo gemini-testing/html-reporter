@@ -12,6 +12,7 @@ import {initPluginsRoutes} from './routes/plugins';
 import {ServerArgs} from './index';
 import {ServerReadyData} from './api';
 import {ToolName} from '../constants';
+import type {TestplaneToolAdapter} from '../adapters/tool/testplane';
 
 export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
     const {toolAdapter} = args;
@@ -49,7 +50,7 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
     server.get('/init', async (_req, res) => {
         try {
             if (toolAdapter.toolName === ToolName.Testplane) {
-                await toolAdapter.initGuiHandler();
+                await (toolAdapter as TestplaneToolAdapter).initGuiHandler();
             }
 
             res.json(app.data);
@@ -83,7 +84,7 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
     server.post('/run-custom-gui-action', async ({body: payload}, res) => {
         try {
             if (toolAdapter.toolName === ToolName.Testplane) {
-                await toolAdapter.runCustomGuiAction(payload);
+                await (toolAdapter as TestplaneToolAdapter).runCustomGuiAction(payload);
             }
 
             res.sendStatus(OK);
