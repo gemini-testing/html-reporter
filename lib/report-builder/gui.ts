@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import {StaticReportBuilder, StaticReportBuilderOptions} from './static';
 import {GuiTestsTreeBuilder, TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../tests-tree-builder/gui';
-import {UPDATED, DB_COLUMNS, ToolName, TestStatus, TESTPLANE_TITLE_DELIMITER, SKIPPED, SUCCESS} from '../constants';
+import {UPDATED, DB_COLUMNS, TestStatus, DEFAULT_TITLE_DELIMITER, SKIPPED, SUCCESS} from '../constants';
 import {ConfigForStaticFile, getConfigForStaticFile} from '../server-utils';
 import {ReporterTestResult} from '../adapters/test-result';
 import {Tree, TreeImage} from '../tests-tree-builder/base';
@@ -36,7 +36,7 @@ export class GuiReportBuilder extends StaticReportBuilder {
     constructor(options: StaticReportBuilderOptions) {
         super(options);
 
-        this._testsTree = GuiTestsTreeBuilder.create({toolName: ToolName.Testplane, baseHost: this._reporterConfig.baseHost});
+        this._testsTree = GuiTestsTreeBuilder.create({baseHost: this._reporterConfig.baseHost});
         this._skips = [];
     }
 
@@ -51,7 +51,7 @@ export class GuiReportBuilder extends StaticReportBuilder {
         // Fill test attempt manager with data from db
         for (const [, testResult] of Object.entries(tree.results.byId)) {
             this._testAttemptManager.registerAttempt({
-                fullName: testResult.suitePath.join(TESTPLANE_TITLE_DELIMITER),
+                fullName: testResult.suitePath.join(DEFAULT_TITLE_DELIMITER),
                 browserId: testResult.name
             }, testResult.status, testResult.attempt);
         }

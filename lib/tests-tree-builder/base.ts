@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import {determineFinalStatus} from '../common-utils';
-import {BrowserVersions, PWT_TITLE_DELIMITER, TESTPLANE_TITLE_DELIMITER, TestStatus, ToolName} from '../constants';
+import {BrowserVersions, DEFAULT_TITLE_DELIMITER, TestStatus} from '../constants';
 import {ReporterTestResult} from '../adapters/test-result';
 import {ErrorDetails, ImageInfoFull} from '../types';
 import {TreeTestResultTransformer} from '../adapters/test-result/transformers/tree';
@@ -81,13 +81,11 @@ interface ImagesPayload {
 }
 
 export interface BaseTestsTreeBuilderOptions {
-    toolName: ToolName;
-    baseHost: string;
+    baseHost?: string;
 }
 
 export class BaseTestsTreeBuilder {
     protected _tree: Tree;
-    protected _toolName: ToolName;
     protected _transformer: TreeTestResultTransformer;
 
     static create<T extends BaseTestsTreeBuilder>(
@@ -97,10 +95,8 @@ export class BaseTestsTreeBuilder {
         return new this(options);
     }
 
-    constructor({toolName, baseHost}: BaseTestsTreeBuilderOptions) {
-        this._toolName = toolName;
-
-        this._transformer = new TreeTestResultTransformer({baseHost});
+    constructor(options: BaseTestsTreeBuilderOptions = {}) {
+        this._transformer = new TreeTestResultTransformer(options);
 
         this._tree = {
             suites: {byId: {}, allIds: [], allRootIds: []},
@@ -150,9 +146,7 @@ export class BaseTestsTreeBuilder {
     }
 
     protected _buildId(parentId: string | string[] = [], name: string | string[] = []): string {
-        const delimiter = this._toolName === ToolName.Playwright ? PWT_TITLE_DELIMITER : TESTPLANE_TITLE_DELIMITER;
-
-        return ([] as string[]).concat(parentId, name).join(delimiter);
+        return ([] as string[]).concat(parentId, name).join(DEFAULT_TITLE_DELIMITER);
     }
 
     protected _addSuites(testPath: string[], browserId: string): void {

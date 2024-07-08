@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import {DB_COLUMN_INDEXES, TestStatus} from '../../constants';
+import {DB_COLUMN_INDEXES, TestStatus, DEFAULT_TITLE_DELIMITER} from '../../constants';
 import {
     AssertViewResult,
     TestError,
@@ -21,19 +21,13 @@ const tryParseJson = (json: string): unknown | undefined => {
     }
 };
 
-interface SqliteTestResultAdapterOptions {
-    titleDelimiter: string;
-}
-
 export class SqliteTestResultAdapter implements ReporterTestResult {
     private _testResult: RawSuitesRow;
     private _parsedTestResult: Writable<Partial<ReporterTestResult>>;
-    private _titleDelimiter: string;
 
-    constructor(testResult: RawSuitesRow, attempt: number, options: SqliteTestResultAdapterOptions) {
+    constructor(testResult: RawSuitesRow, attempt: number) {
         this._testResult = testResult;
         this._parsedTestResult = {attempt};
-        this._titleDelimiter = options.titleDelimiter;
     }
 
     get assertViewResults(): AssertViewResult[] {
@@ -76,7 +70,7 @@ export class SqliteTestResultAdapter implements ReporterTestResult {
 
     get fullName(): string {
         if (!_.has(this._parsedTestResult, 'fullName')) {
-            this._parsedTestResult.fullName = this.testPath.join(this._titleDelimiter);
+            this._parsedTestResult.fullName = this.testPath.join(DEFAULT_TITLE_DELIMITER);
         }
 
         return this._parsedTestResult.fullName as string;

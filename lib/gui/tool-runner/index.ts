@@ -397,7 +397,7 @@ export class ToolRunner {
         const dbPath = path.resolve(this._reportPath, LOCAL_DATABASE_NAME);
 
         if (await fs.pathExists(dbPath)) {
-            return getTestsTreeFromDatabase(ToolName.Testplane, dbPath, this._reporterConfig.baseHost);
+            return getTestsTreeFromDatabase(dbPath, this._reporterConfig.baseHost);
         }
 
         logger.warn(chalk.yellow(`Nothing to reuse in ${this._reportPath}: can not load data from ${DATABASE_URLS_JSON_NAME}`));
