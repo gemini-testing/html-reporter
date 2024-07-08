@@ -320,8 +320,13 @@ export class ToolRunner {
 
     async run(tests: TestSpec[] = []): Promise<boolean> {
         const testCollection = this._ensureTestCollection();
+        const shouldRunAllTests = _.isEmpty(tests);
 
-        return this._toolAdapter.run(testCollection, tests, this._globalOpts);
+        // if tests are not passed, then run all tests with all available retries
+        // if tests are specified, then retry only passed tests without retries
+        return shouldRunAllTests
+            ? this._toolAdapter.run(testCollection, tests, this._globalOpts)
+            : this._toolAdapter.runWithoutRetries(testCollection, tests, this._globalOpts);
     }
 
     protected async _handleRunnableCollection(): Promise<void> {

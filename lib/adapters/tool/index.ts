@@ -31,6 +31,7 @@ export interface ToolAdapter {
     initGuiApi(): void;
     readTests(paths: string[], cliTool: CommanderStatic): Promise<TestCollectionAdapter>;
     run(testCollection: TestCollectionAdapter, tests: TestSpec[], cliTool: CommanderStatic): Promise<boolean>;
+    runWithoutRetries(testCollection: TestCollectionAdapter, tests: TestSpec[], cliTool: CommanderStatic): Promise<boolean>;
 
     updateReference(opts: UpdateReferenceOpts): void;
     handleTestResults(reportBuilder: GuiReportBuilder, eventSource: EventSource): void;

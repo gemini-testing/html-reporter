@@ -37,15 +37,19 @@ interface OptionsFromPlugin {
     reporterConfig: ReporterConfig;
 }
 
+type RunTestArgs = [TestplaneTestCollectionAdapter, TestSpec[], CommanderStatic];
+
 type Options = ToolAdapterOptionsFromCli | OptionsFromPlugin;
 
 export class TestplaneToolAdapter implements ToolAdapter {
     private _toolName: ToolName;
     private _tool: TestplaneWithHtmlReporter;
-    private _config: ConfigAdapter;
+    private _config: TestplaneConfigAdapter;
     private _reporterConfig: ReporterConfig;
     private _htmlReporter: HtmlReporter;
     private _guiApi?: GuiApi;
+    private _browserConfigs: ReturnType<Config['forBrowser']>[];
+    private _retryCache: Record<string, number>;
 
     static create<TestplaneToolAdapter>(
         this: new (options: Options) => TestplaneToolAdapter,
@@ -69,7 +73,10 @@ export class TestplaneToolAdapter implements ToolAdapter {
 
         this._toolName = opts.toolName;
         this._config = TestplaneConfigAdapter.create(this._tool.config);
+        this._browserConfigs = _.map(this._config.browserIds, (id) => this._config.getBrowserConfig(id));
         this._htmlReporter = HtmlReporter.create(this._reporterConfig, {toolName: ToolName.Testplane});
+
+        this._retryCache = {};
 
         // in order to be able to use it from other plugins as an API
         this._tool.htmlReporter = this._htmlReporter;
@@ -119,6 +126,13 @@ export class TestplaneToolAdapter implements ToolAdapter {
         return runner.run((collection) => this._tool.run(collection, {grep, sets, browsers, devtools, replMode}));
     }
 
+    async runWithoutRetries(...args: RunTestArgs): Promise<boolean> {
+        this._disableRetries();
+
+        return this.run(...args)
+            .finally(() => this._restoreRetries());
+    }
+
     updateReference(opts: UpdateReferenceOpts): void {
         this._tool.emit(this._tool.events.UPDATE_REFERENCE, opts);
     }
@@ -150,6 +164,19 @@ export class TestplaneToolAdapter implements ToolAdapter {
         const control = ctx.controls[controlIndex];
 
         await ctx.action({testplane: this._tool, hermione: this._tool, control, ctx});
+    }
+
+    private _disableRetries(): void {
+        this._browserConfigs.forEach((broConfig) => {
+            this._retryCache[broConfig.id] = broConfig.retry;
+            broConfig.retry = 0;
+        });
+    }
+
+    private _restoreRetries(): void {
+        this._browserConfigs.forEach((broConfig) => {
+            broConfig.retry = this._retryCache[broConfig.id];
+        });
     }
 }
 

@@ -62,58 +62,13 @@ describe('lib/gui/app', () => {
     afterEach(() => sandbox.restore());
 
     describe('run', () => {
-        it('should run all tests with retries from config', async () => {
-            let retryBeforeRun;
-            toolRunner.run.callsFake(() => {
-                retryBeforeRun = tool.config.getBrowserConfig('bro1').retry;
-                return Promise.resolve();
-            });
+        it('should run passed tests', async () => {
+            const tests = [{testName: 'abc', browserName: 'yabro'}];
             const App_ = await mkApp_({tool});
 
-            return App_
-                .run()
-                .then(() => assert.equal(retryBeforeRun, 1));
-        });
+            await App_.run(tests);
 
-        it('should run specified tests with no retries', async () => {
-            let bro1RetryBeforeRun;
-            let bro2RetryBeforeRun;
-            toolRunner.run.callsFake(() => {
-                bro1RetryBeforeRun = tool.config.getBrowserConfig('bro1').retry;
-                bro2RetryBeforeRun = tool.config.getBrowserConfig('bro2').retry;
-                return Promise.resolve();
-            });
-            const App_ = await mkApp_({tool});
-
-            return App_
-                .run(['test'])
-                .then(() => {
-                    assert.equal(bro1RetryBeforeRun, 0);
-                    assert.equal(bro2RetryBeforeRun, 0);
-                });
-        });
-
-        it('should restore config retry values after run', async () => {
-            const App_ = await mkApp_({tool});
-
-            return App_
-                .run(['test'])
-                .then(() => {
-                    assert.equal(tool.config.getBrowserConfig('bro1').retry, 1);
-                    assert.equal(tool.config.getBrowserConfig('bro2').retry, 2);
-                });
-        });
-
-        it('should restore config retry values even after error', async () => {
-            await toolRunner.run.rejects();
-            const App_ = await mkApp_({tool});
-
-            return App_
-                .run(['test'])
-                .catch(() => {
-                    assert.equal(tool.config.getBrowserConfig('bro1').retry, 1);
-                    assert.equal(tool.config.getBrowserConfig('bro2').retry, 2);
-                });
+            assert.calledOnceWith(toolRunner.run, tests);
         });
     });
 

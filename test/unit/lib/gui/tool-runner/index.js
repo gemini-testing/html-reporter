@@ -536,18 +536,32 @@ describe('lib/gui/tool-runner/index', () => {
     });
 
     describe('run', () => {
-        it('should run tool with passed opts', async () => {
+        it('should call "run" tool method if tests are not passed', async () => {
             const cliTool = {grep: /some-grep/, set: 'some-set', browser: 'yabro', devtools: true};
-            const collection = {tests: []};
+            const tests = [];
+            const collection = {tests};
             toolAdapter.readTests.resolves(collection);
 
             const gui = initGuiReporter({toolAdapter, cli: {tool: cliTool, options: {}}});
-            const tests = [];
 
             await gui.initialize();
             await gui.run(tests);
 
             assert.calledOnceWith(toolAdapter.run, collection, tests, cliTool);
+        });
+
+        it('should call "runWithoutRetries" tool method if tests are not passed', async () => {
+            const cliTool = {grep: /some-grep/, set: 'some-set', browser: 'yabro', devtools: true};
+            const tests = [stubTest_()];
+            const collection = {tests: [mkTestAdapter_(tests[0])]};
+            toolAdapter.readTests.resolves(collection);
+
+            const gui = initGuiReporter({toolAdapter, cli: {tool: cliTool, options: {}}});
+
+            await gui.initialize();
+            await gui.run(tests);
+
+            assert.calledOnceWith(toolAdapter.runWithoutRetries, collection, tests, cliTool);
         });
     });
 
