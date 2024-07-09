@@ -20,6 +20,8 @@ export interface TestAdapter {
     readonly silentlySkipped: boolean;
     readonly browserId: string;
     readonly fullName: string;
+    readonly file: string;
+    readonly titlePath: string[];
 
     createTestResult(opts: CreateTestResultOpts): ReporterTestResult;
 }

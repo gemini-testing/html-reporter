@@ -45,7 +45,9 @@ export const makeToolAdapter = async (opts: ToolAdapterOptionsFromCli): Promise<
 
         return TestplaneToolAdapter.create(opts);
     } else if (opts.toolName === ToolName.Playwright) {
-        throw new Error('Playwright is not supported yet');
+        const {PlaywrightToolAdapter} = await import('./playwright');
+
+        return PlaywrightToolAdapter.create(opts);
     } else {
         throw new Error(`Tool adapter with name: "${opts.toolName}" is not supported`);
     }
