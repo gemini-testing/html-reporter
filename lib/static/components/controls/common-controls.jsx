@@ -46,7 +46,7 @@ class ControlButtons extends Component {
                     qa='expand-dropdown'
                     options={[
                         {value: EXPAND_ALL, content: "All"},
-                        {value: COLLAPSE_ALL, content: "Nothing"},
+                        {value: COLLAPSE_ALL, content: "None"},
                         {value: EXPAND_ERRORS, content: "Errors"},
                         {value: EXPAND_RETRIES, content: "Retries"}
                     ]}
