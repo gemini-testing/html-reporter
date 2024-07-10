@@ -154,6 +154,7 @@ const BrowserList = ({available, onChange, selected: selectedProp}) => {
 
     return (
         <Select
+            disablePortal
             value={selected}
             options={options}
             multiple={true}
