@@ -6,20 +6,27 @@ import stripAnsi from 'strip-ansi';
 
 import {ReporterTestResult} from './index';
 import {getError, getShortMD5, isImageDiffError, isNoRefImageError} from '../../common-utils';
-import {ERROR, FAIL, DEFAULT_TITLE_DELIMITER, SUCCESS, TestStatus} from '../../constants';
+import {ERROR, FAIL, SUCCESS, UPDATED, TestStatus, DEFAULT_TITLE_DELIMITER} from '../../constants';
 import {ErrorName} from '../../errors';
 import {
     DiffOptions,
     ErrorDetails,
     ImageFile,
     ImageInfoDiff,
-    ImageInfoFull, ImageInfoNoRef, ImageInfoPageError, ImageInfoPageSuccess, ImageInfoSuccess,
+    ImageInfoFull, ImageInfoNoRef, ImageInfoPageError, ImageInfoPageSuccess, ImageInfoSuccess, ImageInfoUpdated,
     ImageSize,
     TestError
 } from '../../types';
 import type {CoordBounds} from 'looks-same';
 
-export type PlaywrightAttachment = PlaywrightTestResult['attachments'][number];
+export type PlaywrightAttachment = PlaywrightTestResult['attachments'][number] & {
+    relativePath?: string,
+    size?: {
+        width: number;
+        height: number;
+    },
+    isUpdated?: boolean
+};
 
 type ExtendedError<T> = TestError & {meta?: T & {type: string}};
 
@@ -32,7 +39,7 @@ export enum PwtTestStatus {
     FAILED = 'failed',
     TIMED_OUT = 'timedOut',
     INTERRUPTED = 'interrupted',
-    SKIPPED = 'skipped',
+    SKIPPED = 'skipped'
 }
 
 export enum ImageTitleEnding {
@@ -42,13 +49,25 @@ export enum ImageTitleEnding {
     Previous = '-previous.png'
 }
 
+export interface TestResultWithGuiStatus extends Omit<PlaywrightTestResult, 'status'> {
+    status: PlaywrightTestResult['status'] | TestStatus.RUNNING | TestStatus.UPDATED;
+}
+
 const ANY_IMAGE_ENDING_REGEXP = new RegExp(Object.values(ImageTitleEnding).map(ending => `${ending}$`).join('|'));
 
 export const DEFAULT_DIFF_OPTIONS = {
     diffColor: '#ff00ff'
 } satisfies Partial<DiffOptions>;
 
-export const getStatus = (result: PlaywrightTestResult): TestStatus => {
+export const getStatus = (result: TestResultWithGuiStatus): TestStatus => {
+    if (result.status === TestStatus.RUNNING) {
+        return TestStatus.RUNNING;
+    }
+
+    if (result.status === TestStatus.UPDATED) {
+        return TestStatus.UPDATED;
+    }
+
     if (result.status === PwtTestStatus.PASSED) {
         return TestStatus.SUCCESS;
     }
@@ -127,7 +146,8 @@ const getImageData = (attachment: PlaywrightAttachment | undefined): ImageFile |
 
     return {
         path: attachment.path as string,
-        size: _.pick(sizeOf(attachment.path as string), ['height', 'width']) as ImageSize
+        size: !attachment.size ? _.pick(sizeOf(attachment.path as string), ['height', 'width']) as ImageSize : attachment.size,
+        ...(attachment.relativePath ? {relativePath: attachment.relativePath} : {})
     };
 };
 
@@ -135,6 +155,15 @@ export class PlaywrightTestResultAdapter implements ReporterTestResult {
     private readonly _testCase: PlaywrightTestCase;
     private readonly _testResult: PlaywrightTestResult;
     private _attempt: number;
+
+    static create<T extends PlaywrightTestResultAdapter>(
+        this: new (testCase: PlaywrightTestCase, testResult: PlaywrightTestResult, attempt: number) => T,
+        testCase: PlaywrightTestCase,
+        testResult: PlaywrightTestResult,
+        attempt: number
+    ): T {
+        return new this(testCase, testResult, attempt);
+    }
 
     constructor(testCase: PlaywrightTestCase, testResult: PlaywrightTestResult, attempt: number) {
         this._testCase = testCase;
@@ -165,7 +194,7 @@ export class PlaywrightTestResultAdapter implements ReporterTestResult {
                 result.stack = stack;
             }
 
-            if (message.includes('snapshot doesn\'t exist') && message.includes('.png')) {
+            if (/snapshot .*doesn't exist/.test(message) && message.includes('.png')) {
                 result.name = ErrorName.NO_REF_IMAGE;
             } else if (message.includes('Screenshot comparison failed')) {
                 result.name = ErrorName.IMAGE_DIFF;
@@ -230,6 +259,14 @@ export class PlaywrightTestResultAdapter implements ReporterTestResult {
                     error: _.pick(error, ['message', 'name', 'stack']),
                     actualImg
                 } satisfies ImageInfoNoRef;
+            } else if (expectedAttachment?.isUpdated && expectedImg && actualImg) {
+                return {
+                    status: UPDATED,
+                    stateName: state,
+                    refImg: _.clone(expectedImg),
+                    expectedImg,
+                    actualImg
+                } satisfies ImageInfoUpdated;
             } else if (!error && expectedImg) {
                 return {
                     status: SUCCESS,

@@ -3,6 +3,7 @@
 const _ = require('lodash');
 const EventEmitter2 = require('eventemitter2');
 const {HtmlReporter} = require('lib/plugin-api');
+const {ToolName} = require('lib/constants');
 
 function stubConfig(config = {}) {
     const browsers = config.browsers || {};
@@ -58,6 +59,7 @@ function stubToolAdapter({
     config = stubConfig(), reporterConfig = stubReporterConfig(), testCollection = {tests: []}, htmlReporter
 } = {}) {
     const toolAdapter = {
+        toolName: ToolName.Testplane,
         config,
         reporterConfig,
         htmlReporter: htmlReporter || sinon.createStubInstance(HtmlReporter),

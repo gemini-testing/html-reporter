@@ -1,5 +1,5 @@
 import {TestplaneTestResultAdapter} from '../test-result/testplane';
-import {UNKNOWN_ATTEMPT} from '../../constants';
+import {DEFAULT_TITLE_DELIMITER, UNKNOWN_ATTEMPT} from '../../constants';
 
 import type {TestAdapter, CreateTestResultOpts} from './';
 import type {Test, Suite} from 'testplane';
@@ -42,6 +42,14 @@ export class TestplaneTestAdapter implements TestAdapter {
 
     get fullName(): string {
         return this._test.fullTitle();
+    }
+
+    get file(): string {
+        return this._test.file;
+    }
+
+    get titlePath(): string[] {
+        return this._test.fullTitle().split(DEFAULT_TITLE_DELIMITER);
     }
 
     createTestResult(opts: CreateTestResultOpts): ReporterTestResult {

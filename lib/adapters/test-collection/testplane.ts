@@ -1,5 +1,5 @@
 import {TestplaneTestAdapter} from '../test/testplane';
-import type {TestCollectionAdapter} from './index';
+import type {TestCollectionAdapter} from './';
 import type {TestCollection} from 'testplane';
 
 export class TestplaneTestCollectionAdapter implements TestCollectionAdapter {
