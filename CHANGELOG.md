@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.4.0"></a>
+# [10.4.0](https://github.com/gemini-testing/html-reporter/compare/v10.3.1...v10.4.0) (2024-07-11)
+
+
+### Bug Fixes
+
+* fix copy button text ([#563](https://github.com/gemini-testing/html-reporter/issues/563)) ([e197d22](https://github.com/gemini-testing/html-reporter/commit/e197d22))
+* handle "uncaughtException" and "unhandledRejection" in binary ([031da95](https://github.com/gemini-testing/html-reporter/commit/031da95))
+
+
+### Features
+
+* support playwright in gui mode ([882ad47](https://github.com/gemini-testing/html-reporter/commit/882ad47))
+
+
+
 <a name="10.3.2"></a>
 ## [10.3.2](https://github.com/gemini-testing/html-reporter/compare/v10.3.1...v10.3.2) (2024-07-02)
 
