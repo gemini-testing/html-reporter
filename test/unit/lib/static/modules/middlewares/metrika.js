@@ -13,11 +13,6 @@ describe('lib/static/modules/middlewares/metrika', () => {
         return {getState: sandbox.stub().returns(state)};
     };
 
-    const requireUncached_ = (module) => {
-        delete require.cache[require.resolve(module)];
-        return require(module).default;
-    };
-
     const initReportWithMetrikaCounter = ({eventName = actionNames.INIT_GUI_REPORT, store = mkStore_()} = {}) => {
         const payload = {
             config: {
