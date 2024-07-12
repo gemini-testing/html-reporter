@@ -193,7 +193,7 @@ main.container {
 .image-box__image {
     display: inline-block;
     vertical-align: top;
-    flex-basis: 33.333%;
+    flex-basis: calc(100% / 3);
     flex-grow: 1;
     box-sizing: border-box;
     max-width: 100%;
@@ -288,6 +288,9 @@ main.container {
     cursor: pointer;
     color: var(--text-color);
     margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 2px;
 
     user-select: none;
 }
@@ -342,14 +345,12 @@ main.container {
 }
 
 .section__body .section__title.section__title_type_browser {
+    display: flex;
+    align-items: center;
     font-weight: normal;
 }
 
-.section__title .bullet_type-simple:before,
 .tests-group__title .bullet_type-simple.tests-group__bullet:before,
-.state-title:after,
-.details__summary:after,
-.error .details__summary:before,
 .sticky-header__wrap:before {
     content: '';
     width: 18px;
@@ -383,33 +384,6 @@ main.container {
     flex-shrink: 0;
 }
 
-.state-title:after {
-    margin-right: 0;
-    margin-left: 5px;
-}
-
-.details__summary:after {
-    margin-right: 0;
-    margin-left: 5px;
-    transform: rotate(180deg);
-}
-
-.details__summary:before {
-    margin-right: 0;
-    margin-left: 0;
-    transform: rotate(180deg);
-}
-
-details[open] > .details__summary:after,
-details[open] > .details__summary:before {
-    transform: rotate(0deg);
-}
-
-.error .details__summary:after {
-    content: none;
-}
-
-.section_collapsed .section__title .bullet_type-simple:before,
 .tests-group_collapsed .tests-group__title .tests-group__bullet:before,
 .state-title_collapsed.state-title:after {
     transform: rotate(180deg);
@@ -485,16 +459,11 @@ details[open] > .details__summary:before {
 }
 
 .custom-icon {
-    display: inline-block;
-    width: 16px;
-    height: 19px;
+    width: 18px;
+    height: 18px;
     vertical-align: top;
-    margin-right: 0;
-    padding: 0 2px;
-    border: none;
     opacity: 0.3;
     cursor: pointer;
-    background: transparent;
 }
 
 .section_root > .section__title > .custom-icon {
@@ -591,6 +560,15 @@ details[open] > .details__summary:before {
     user-select: none;
 }
 
+.tab-switcher__button {
+    --g-button-padding: 8px;
+    margin-right: 2px;
+}
+
+.tab-switcher__button_non-matched {
+    opacity: 0.5;
+}
+
 .tab-switcher__button_status_success,
 .tab-switcher__button_status_updated {
     background-color: rgba(123, 204, 123, 1);
@@ -614,8 +592,9 @@ details[open] > .details__summary:before {
 }
 
 .tab-switcher__button_status_fail {
-    background-color: rgba(255, 197, 224, 1);
-    border-color: rgba(255, 197, 224, 1);
+    --g-button-background-color: #fce0ff;
+    --g-button-text-color: #bd1993;
+    --g-button-border-color: #bd1993;
 }
 
 .tab-switcher__button_status_fail.tab-switcher__button_non-matched {
@@ -624,11 +603,9 @@ details[open] > .details__summary:before {
 }
 
 .tab-switcher__button_status_fail_error {
-    background: linear-gradient(135deg, rgba(255, 197, 224, 1) 50%, rgba(255, 154, 154, 1) 50%);
-    border-left-color: rgba(255, 197, 224, 1);
-    border-top-color: rgba(255, 197, 224, 1);
-    border-right-color: rgba(255, 154, 154, 1);
-    border-bottom-color: rgba(255, 154, 154, 1);
+    --g-button-background-color: #fce0ff;
+    --g-button-text-color: #bd1993;
+    --g-button-border-color: #bd1993;
 }
 
 .tab-switcher__button_status_fail_error.tab-switcher__button_non-matched {
@@ -658,6 +635,7 @@ details[open] > .details__summary:before {
 }
 
 .tab-switcher__button.tab-switcher__button_active {
+    --g-button-border-width: 1px;
     border-color: #000;
 }
 
@@ -725,6 +703,10 @@ a:active {
     word-break: break-word;
 }
 
+.details__summary {
+    cursor: pointer;
+}
+
 .details__expand-button {
     display: inline-block;
     vertical-align: text-bottom;
@@ -737,20 +719,6 @@ a:active {
 
 .error > .details + .details {
     margin-top: 5px;
-}
-
-.details__summary {
-    display: block;
-    outline: none;
-}
-
-.details__summary:hover {
-    cursor: pointer;
-    color: #a3a3a3;
-}
-
-.details__summary::-webkit-details-marker {
-    display: none;
 }
 
 /* .details_type_text {

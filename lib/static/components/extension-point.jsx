@@ -1,7 +1,7 @@
 import React, {Component, Fragment} from 'react';
 import PropTypes from 'prop-types';
 import ErrorBoundary from './error-boundary';
-import plugins from '../modules/plugins';
+import * as plugins from '../modules/plugins';
 
 export default class ExtensionPoint extends Component {
     static propTypes = {

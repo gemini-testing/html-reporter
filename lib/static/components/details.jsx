@@ -8,6 +8,7 @@ import { Card, Disclosure } from '@gravity-ui/uikit';
 
 export default class Details extends Component {
     static propTypes = {
+        type: PropTypes.oneOf(['text', 'image']),
         title: PropTypes.oneOfType([PropTypes.element, PropTypes.string]).isRequired,
         content: PropTypes.oneOfType([PropTypes.func, PropTypes.string, PropTypes.element, PropTypes.array]).isRequired,
         extendClassNames: PropTypes.oneOfType([PropTypes.array, PropTypes.string]),
@@ -29,6 +30,10 @@ export default class Details extends Component {
         });
     };
 
+    stopPropagation = (e) => {
+        e.stopPropagation();
+    }
+
     _getContent() {
         const content = this.props.content;
 
@@ -49,7 +54,7 @@ export default class Details extends Component {
     }
 
     render() {
-        const {title, content, extendClassNames} = this.props;
+        const {type, title, content, extendClassNames} = this.props;
         const className = classNames(
             'details',
             extendClassNames
@@ -65,12 +70,18 @@ export default class Details extends Component {
                      size='l'>
                         <Disclosure.Summary>
                             {(props, defaultButton) => (
-                                <div className={className}><div className='details__expand-button'>{defaultButton}</div>{title}</div>
+                                <div className={classNames(className, 'details__summary')} {...props}>
+                                    <div className='details__expand-button' onClick={this.stopPropagation}>
+                                        {defaultButton}
+                                    </div>
+                                    {title}
+                                </div>
                             )}
                         </Disclosure.Summary>
-                    <Card className='details__card'>
+                    {type == 'image' ? this._renderContent() : 
+                    <Card className='details__card' view='filled'>
                         {this._renderContent()}
-                    </Card>
+                    </Card>}
                 </Disclosure>
             )
         );

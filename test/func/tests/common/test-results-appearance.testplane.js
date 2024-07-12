@@ -3,7 +3,8 @@ const {
     getImageSectionSelector,
     getTestStateByNameSelector,
     getElementWithTextSelector,
-    hideHeader, hideScreenshots
+    hideHeader, hideScreenshots,
+    getSpoilerByNameSelector
 } = require('../utils');
 
 describe('Test results appearance', () => {
@@ -16,7 +17,7 @@ describe('Test results appearance', () => {
         it('should have green retry selector', async ({browser}) => {
             const retrySelectorButton = await browser.$(
                 getTestSectionByNameSelector('successfully passed test') +
-                '//button[@data-test-id="retry-switcher"]'
+                '//button[@data-qa="retry-switcher"]'
             );
 
             await hideHeader(browser);
@@ -30,7 +31,7 @@ describe('Test results appearance', () => {
         it('should have pink retry selector', async ({browser}) => {
             const retrySelectorButton = await browser.$(
                 getTestSectionByNameSelector('test with image comparison diff') +
-                '//button[@data-test-id="retry-switcher"]'
+                '//button[@data-qa="retry-switcher"]'
             );
 
             await hideHeader(browser);
@@ -71,7 +72,7 @@ describe('Test results appearance', () => {
         it('should have pink retry selector', async ({browser}) => {
             const retrySelectorButton = await browser.$(
                 getTestSectionByNameSelector('test without screenshot') +
-                '//button[@data-test-id="retry-switcher"]'
+                '//button[@data-qa="retry-switcher"]'
             );
 
             await hideHeader(browser);
@@ -98,7 +99,7 @@ describe('Test results appearance', () => {
         it('should display actual screenshot', async ({browser}) => {
             const imageElement = browser.$(
                 getTestSectionByNameSelector('test without screenshot') +
-                getTestStateByNameSelector('header') +
+                '//' + getSpoilerByNameSelector('header') +
                 '//img'
             );
 
@@ -112,7 +113,7 @@ describe('Test results appearance', () => {
         it('should have red retry selector', async ({browser}) => {
             const retrySelectorButton = await browser.$(
                 getTestSectionByNameSelector('test with long error message') +
-                '//button[@data-test-id="retry-switcher"]'
+                '//button[@data-qa="retry-switcher"]'
             );
 
             await hideHeader(browser);

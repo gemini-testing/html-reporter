@@ -13,6 +13,7 @@ import {types} from '../../modals';
 import useFitImages from './useFitImages';
 
 import './index.styl';
+import { Tabs } from '@gravity-ui/uikit';
 
 const StateFail = ({image, diffMode: diffModeProp, isScreenshotAccepterOpened}) => {
     const [diffMode, setDiffMode] = useState(diffModeProp);
@@ -22,32 +23,12 @@ const StateFail = ({image, diffMode: diffModeProp, isScreenshotAccepterOpened}) 
         setDiffMode(diffModeProp);
     }, [diffModeProp, setDiffMode]);
 
-    const renderDiffModeItem = (mode) => {
-        const className = classNames(
-            'diff-modes__item',
-            {'diff-modes__active': diffMode === mode.id}
-        );
-
-        return (
-            <li
-                key={mode.id}
-                title={mode.description}
-                className={className}
-                onClick={() => setDiffMode(mode.id)}
-            >
-                {mode.title}
-            </li>
-        );
-    };
-
     const renderDiffModeItems = () => {
-        const diffModeItems = Object.values(DiffModes).map(renderDiffModeItem);
-
         return (
-            <ul className="diff-modes">
-                {diffModeItems}
-            </ul>
-        );
+            <div className="diff-modes">
+                <Tabs activeTab={diffMode} items={Object.values(DiffModes)} onSelectTab={(mode) => setDiffMode(mode)} size='m'/>
+            </div>
+        )
     };
 
     const getLabelKey = () => {

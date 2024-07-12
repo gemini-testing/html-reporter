@@ -12,7 +12,7 @@ describe('Test details', function() {
 
         await erroredTestSection.$('.details__summary').click();
 
-        const fileMetaInfo = await erroredTestSection.$('div*=failed-describe').$('..');
+        const fileMetaInfo = await erroredTestSection.$('div.meta-info__item*=failed-describe').$('..');
 
         await expect(fileMetaInfo).toBeDisplayed();
         await expect(await fileMetaInfo.$('span*=file')).toBeDisplayed();
@@ -21,7 +21,7 @@ describe('Test details', function() {
     it('should prevent details summary overflow', async ({browser}) => {
         const selector =
             getTestSectionByNameSelector('test with long error message') +
-            `//summary[.${getElementWithTextSelector('span', 'stack')}/..]`;
+            `//section[contains(@class, 'error__item') and .${getElementWithTextSelector('span', 'stack')}/..]`;
 
         await browser.$(selector).waitForDisplayed();
         await browser.assertView('details summary', selector);

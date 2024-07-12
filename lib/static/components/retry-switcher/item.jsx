@@ -8,6 +8,7 @@ import {
     hasUnrelatedToScreenshotsErrors,
     isFailStatus
 } from '../../../common-utils';
+import { Button } from '@gravity-ui/uikit';
 
 class RetrySwitcherItem extends Component {
     static propTypes = {
@@ -24,16 +25,23 @@ class RetrySwitcherItem extends Component {
 
     render() {
         const {status, attempt, isActive, onClick, title, keyToGroupTestsBy, matchedSelectedGroup} = this.props;
+        const statusToView = {
+            success: 'flat-success',
+            updated: 'flat-success',
+            error: 'flat-danger',
+            fail: 'flat-utility',
+            fail_error: 'flat-utility',
+            skipped: 'normal',
+        }
 
         const className = classNames(
-            'state-button',
             'tab-switcher__button',
-            {[`tab-switcher__button_status_${status}`]: status},
             {'tab-switcher__button_active': isActive},
+            {[`tab-switcher__button_status_${status}`]: status},
             {'tab-switcher__button_non-matched': keyToGroupTestsBy && !matchedSelectedGroup}
         );
 
-        return <button title={title} className={className} onClick={onClick} data-test-id='retry-switcher'>{attempt + 1}</button>;
+        return <Button view={statusToView[status]} selected title={title} className={className} onClick={onClick} qa='retry-switcher'>{attempt + 1}</Button>
     }
 }
 

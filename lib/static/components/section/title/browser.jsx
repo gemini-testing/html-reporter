@@ -1,5 +1,4 @@
 import React from 'react';
-import ClipboardButton from 'react-clipboard.js';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
@@ -11,9 +10,10 @@ import {EXPAND_ALL} from '../../../../constants/expand-modes';
 import {getToggledCheckboxState} from '../../../../common-utils';
 import ViewInBrowserIcon from '../../icons/view-in-browser';
 import Bullet from '../../bullet';
+import { ClipboardButton } from '@gravity-ui/uikit';
 
 const BrowserTitle = (props) => {
-    const getTestUrl = () => {
+    const testUrl = React.useMemo(() => {
         return appendQuery(window.location.href, {
             browser: escapeRegExp(props.browserName),
             testNameFilter: escapeRegExp(props.testName),
@@ -22,7 +22,7 @@ const BrowserTitle = (props) => {
             viewModes: ViewMode.ALL,
             expand: EXPAND_ALL
         });
-    };
+    }, [window.location.href, props.browserName, props.testName, props.retryIndex]);
 
     const onCopyTestLink = (e) => {
         e.stopPropagation();
@@ -45,10 +45,9 @@ const BrowserTitle = (props) => {
             {props.title}
             <ViewInBrowserIcon resultId={props.lastResultId}/>
             <ClipboardButton
-                className="button custom-icon custom-icon_share"
                 onClick={onCopyTestLink}
-                button-title="copy test link"
-                option-text={getTestUrl}>
+                title="copy test link"
+                text={testUrl}>
             </ClipboardButton>
         </div>
     );

@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 import {Dropdown} from 'semantic-ui-react';
 import {isEmpty} from 'lodash';
 import ExtensionPoint from '../extension-point';
-import plugins from '../../modules/plugins';
+import * as plugins from '../../modules/plugins';
 import {MENU_BAR} from '../../../constants/extension-points';
 import { Button, DropdownMenu, Icon, Menu } from '@gravity-ui/uikit';
 import {Bars} from '@gravity-ui/icons';

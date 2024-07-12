@@ -15,6 +15,7 @@ import ArrowsOpen from '../icons/arrows-open';
 import {types as modalTypes} from '../modals';
 import {isAcceptable, isNodeSuccessful, isScreenRevertable} from '../../modules/utils';
 import {isSuccessStatus, isFailStatus, isErrorStatus, isUpdatedStatus, isIdleStatus} from '../../../common-utils';
+import { Disclosure } from '@gravity-ui/uikit';
 
 class State extends Component {
     static propTypes = {
@@ -146,7 +147,6 @@ class State extends Component {
 
         const className = classNames(
             'state-title',
-            {'state-title_collapsed': !shouldImageBeOpened},
             `state-title_${image.status}`
         );
 
@@ -158,19 +158,10 @@ class State extends Component {
             displayedText += ` (diff: ${image.differentPixels}px, ${displayedDiffPercent}%)`;
         }
 
-        return <div className={className} onClick={this.onToggleStateResult}>{displayedText}</div>;
+        return <div className={className}>{displayedText}</div>;
     }
 
     render() {
-        if (!this.props.shouldImageBeOpened) {
-            return (
-                <Fragment>
-                    <hr className="tab__separator" />
-                    {this._getStateTitleWithDiffCount()}
-                </Fragment>
-            );
-        }
-
         const {node, result, image} = this.props;
         const {status, error} = node;
         let elem = null;
@@ -188,12 +179,13 @@ class State extends Component {
         return (
             <Fragment>
                 <hr className="tab__separator"/>
-                {this._getStateTitleWithDiffCount()}
-                {this._drawFailImageControls()}
-                {this._drawUpdatedImageControls()}
-                {elem ? <div className='image-box__container'>{elem}</div> : null}
+                <Disclosure summary={this._getStateTitleWithDiffCount()} onUpdate={this.onToggleStateResult} size='l' defaultExpanded={this.props.shouldImageBeOpened}>
+                    {this._drawFailImageControls()}
+                    {this._drawUpdatedImageControls()}
+                    {elem ? <div className='image-box__container'>{elem}</div> : null}
+                </Disclosure>
             </Fragment>
-        );
+        )
     }
 }
 

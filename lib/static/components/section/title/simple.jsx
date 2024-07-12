@@ -4,11 +4,12 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import PropTypes from 'prop-types';
-import ClipboardButton from 'react-clipboard.js';
 import * as actions from '../../../modules/actions';
 import {mkGetTestsBySuiteId} from '../../../modules/selectors/tree';
 import {getToggledCheckboxState} from '../../../../common-utils';
 import Bullet from '../../bullet';
+import { Button, ClipboardButton } from '@gravity-ui/uikit';
+import {ArrowRotateLeft} from '@gravity-ui/icons';
 
 const SectionTitle = ({name, suiteId, handler, gui, checkStatus, suiteTests, actions}) => {
     const onCopySuiteName = (e) => {
@@ -35,18 +36,20 @@ const SectionTitle = ({name, suiteId, handler, gui, checkStatus, suiteTests, act
     const drawCopyButton = () => (
         <ClipboardButton
             onClick={onCopySuiteName}
-            className="button custom-icon custom-icon_copy-to-clipboard"
-            button-title="copy to clipboard"
-            data-clipboard-text={suiteId}>
+            title="copy to clipboard"
+            text={suiteId}>
         </ClipboardButton>
     );
 
     const drawRetryButton = () => (
-        <button
-            className="button custom-icon custom-icon_retry"
+        <Button
+            view='flat'
             title="retry suite"
             onClick={onSuiteRetry}>
-        </button>
+            <Button.Icon>
+                <ArrowRotateLeft/>
+            </Button.Icon>
+        </Button>
     );
 
     return (

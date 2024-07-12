@@ -35,46 +35,31 @@ const resolveUrl = (baseUrl, value) => {
 };
 
 const metaToElements = (metaInfo, metaInfoBaseUrls) => {
-    return <DefinitionList className='meta-info__item' items={
+    return <DefinitionList className='meta-info' itemClassName='meta-info__item' items={
         map(metaInfo, (value, key) => {
+            let url = value.url;
+            value = value.content;
             if (isUrl(value)) {
-                value = mkTextWithClipboardButton(value, value);
+                url = value;
             } else if (metaInfoBaseUrls[key]) {
                 const baseUrl = metaInfoBaseUrls[key];
                 const link = isUrl(baseUrl) ? resolveUrl(baseUrl, value) : path.join(baseUrl, value);
-                value = mkTextWithClipboardButton(value, link);
+                url = link;
             } else if (typeof value === 'boolean') {
                 value = value.toString();
             }
-            else if (typeof value === 'string') {
-                value = mkTextWithClipboardButton(value);
+            if (url) {
+                value = <a data-suite-view-link={url} className="custom-icon_view-local" target="_blank" href={url}>
+                    {value}
+                </a>
             }
             return {
                 name: key,
                 content: <div className="meta-info__item-value">{value}</div>,
-                copyText: key
+                copyText: url || value
             }
         })
     }/>
-    return map(metaInfo, (value, key) => {
-        if (isUrl(value)) {
-            value = mkTextWithClipboardButton(value, value);
-        } else if (metaInfoBaseUrls[key]) {
-            const baseUrl = metaInfoBaseUrls[key];
-            const link = isUrl(baseUrl) ? resolveUrl(baseUrl, value) : path.join(baseUrl, value);
-            value = mkTextWithClipboardButton(value, link);
-        } else if (typeof value === 'boolean') {
-            value = value.toString();
-        }
-        else if (typeof value === 'string') {
-            value = mkTextWithClipboardButton(value);
-        }
-
-        return <div key={key} className="meta-info__item">
-            <span className="meta-info__item-key">{key}: </span>
-            <div className="meta-info__item-value">{value}</div>
-        </div>;
-    });
 };
 
 class MetaInfoContent extends Component {
@@ -113,8 +98,11 @@ class MetaInfoContent extends Component {
             ...serializedMetaValues,
             ...extraMetaInfo
         };
+        Object.keys(formattedMetaInfo).forEach((key) => {
+            formattedMetaInfo[key] = {content: formattedMetaInfo[key]}
+        })
         if (result.suiteUrl) {
-            formattedMetaInfo.url = mkTextWithClipboardButton(result.metaInfo.url, getUrlWithBase(result.suiteUrl, baseHost));
+            formattedMetaInfo.url = {content: result.metaInfo.url || result.suiteUrl, url: getUrlWithBase(result.suiteUrl, baseHost)}
         }
 
         return metaToElements(formattedMetaInfo, metaInfoBaseUrls);
