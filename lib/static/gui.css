@@ -105,10 +105,6 @@
 }
 
 .button_type_suite-controls {
-    padding: 2px 8px;
-    border-radius: var(--button-border-radius);
-    font-size: 13px;
-    line-height: 18px;
     margin-right: 10px;
 }
 

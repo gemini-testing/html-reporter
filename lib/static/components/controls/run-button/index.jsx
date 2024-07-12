@@ -12,6 +12,7 @@ import {getFailedTests, getCheckedTests} from '../../../modules/selectors/tree';
 import useLocalStorage from '../../../hooks/useLocalStorage';
 
 import './index.styl';
+import { Button, Select } from '@gravity-ui/uikit';
 
 const RunMode = Object.freeze({
     ALL: 'All',
@@ -46,6 +47,18 @@ const RunButton = ({actions, autoRun, isDisabled, isRunning, failedTests, checke
         action();
     };
 
+    const handleSelect = (values) => {
+        if (values.length) {
+            const action = {
+                [RunMode.ALL]: selectAllTests,
+                [RunMode.FAILED]: selectFailedTests,
+                [RunMode.CHECKED]: selectCheckedTests
+            }[values[0]];
+    
+            action();
+        }
+    }
+
     useEffect(() => {
         if (autoRun) {
             runAllTests();
@@ -67,33 +80,20 @@ const RunButton = ({actions, autoRun, isDisabled, isRunning, failedTests, checke
 
     return (
         <div className='run-button'>
-            <button disabled={isDisabled} onClick={handleRunClick} className={btnClassName}>
-                {isRunning ? 'Running' : `Run ${mode.toLowerCase()} tests`}
-            </button>
-            {!isDisabled && <Popup
-                action='hover'
-                hideOnClick={true}
-                target={<div className='run-button__dropdown' />}
-            >
-                <ul className='run-mode'>
-                    <li
-                        className='run-mode__item'
-                        onClick={selectAllTests}
-                    >
-                        {RunMode.ALL}
-                    </li>
-                    <li
-                        className={classNames('run-mode__item', {'run-mode__item_disabled': shouldDisableFailed})}
-                        onClick={selectFailedTests}>{RunMode.FAILED}
-                    </li>
-                    <li
-                        className={classNames('run-mode__item', {'run-mode__item_disabled': shouldDisableChecked})}
-                        onClick={selectCheckedTests}
-                    >
-                        {RunMode.CHECKED}
-                    </li>
-                </ul>
-            </Popup>}
+            <Button pin='round-clear' disabled={isDisabled} onClick={handleRunClick} view='action' className='run-button__button'>
+                {isRunning ? 'Running' : 'Run'}
+            </Button>
+            <Select pin='clear-round' disabled={isDisabled} className='run-button__dropdown' value={[mode]} onUpdate={handleSelect}>
+                <Select.Option value={RunMode.ALL}>
+                {`${RunMode.ALL} Tests`}
+                </Select.Option>
+                <Select.Option value={RunMode.FAILED} disabled={shouldDisableFailed}>
+                {`${RunMode.FAILED} Tests`}
+                </Select.Option>
+                <Select.Option value={RunMode.CHECKED} disabled={shouldDisableChecked}>
+                {`${RunMode.CHECKED} Tests`}
+                </Select.Option>
+            </Select>
         </div>
     );
 };

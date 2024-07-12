@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
+import {Button} from '@gravity-ui/uikit';
 
 interface ControlButtonProps {
     label: string | Component;
@@ -39,7 +40,6 @@ export default class ControlButton extends Component<ControlButtonProps> {
             isActive,
             isAction,
             isSuiteControl,
-            isControlGroup,
             isDisabled = false,
             isRunning = false,
             extendClassNames,
@@ -47,23 +47,20 @@ export default class ControlButton extends Component<ControlButtonProps> {
         } = this.props;
 
         const className = classNames(
-            'button',
             {'button_type_suite-controls': isSuiteControl},
-            {'button_checked': isActive},
-            {'button_type_action': isAction},
-            {'control-group__item': isControlGroup},
-            {'button_blink': isRunning},
             extendClassNames
         );
 
-        return <button
+        return <Button
             title={title}
+            view={isActive ? 'outlined-action' : (isAction ? 'action' : 'outlined')}
+            loading={isRunning}
             onClick={handler}
             className={className}
             disabled={isDisabled}
-            data-test-id={dataTestId}
+            qa={dataTestId?.toString()}
         >
             {label}
-        </button>;
+        </Button>;
     }
 }

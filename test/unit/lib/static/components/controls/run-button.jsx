@@ -33,7 +33,7 @@ describe('<RunButton />', () => {
             initialState: {tree: {suites: {allRootIds: []}}, processing: false}
         });
 
-        assert.isTrue(component.find('button').prop('disabled'));
+        assert.isTrue(component.find('button.run-button__button').prop('disabled'));
     });
 
     it('should be enabled if suites exist to run', () => {
@@ -41,7 +41,7 @@ describe('<RunButton />', () => {
             initialState: {tree: {suites: {allRootIds: ['suite']}}, processing: false}
         });
 
-        assert.isFalse(component.find('button').prop('disabled'));
+        assert.isFalse(component.find('button.run-button__button').prop('disabled'));
     });
 
     it('should be disabled while processing something', () => {
@@ -49,7 +49,7 @@ describe('<RunButton />', () => {
             initialState: {tree: {suites: {allRootIds: ['suite']}}, processing: true}
         });
 
-        assert.isTrue(component.find('button').prop('disabled'));
+        assert.isTrue(component.find('button.run-button__button').prop('disabled'));
     });
 
     it('should run all tests with "autoRun" prop', () => {
@@ -65,7 +65,7 @@ describe('<RunButton />', () => {
             initialState: {tree: {suites: {allRootIds: ['suite']}}, processing: false}
         });
 
-        component.find('button').simulate('click');
+        component.find('button.run-button__button').simulate('click');
 
         assert.calledOnce(actionsStub.runAllTests);
     });
@@ -76,9 +76,9 @@ describe('<RunButton />', () => {
         const state = mkState({initialState: {tree: {suites: {allRootIds: ['suite']}}, processing: false}});
         selectorsStub.getFailedTests.withArgs(state).returns(failedTests);
         const component = mkConnectedComponent(<RunButton />, {state});
-        component.find({children: 'Failed'}).simulate('click');
+        component.find({children: 'Failed Tests'}).simulate('click');
 
-        component.find('button').simulate('click');
+        component.find('button.run-button__button').simulate('click');
 
         assert.calledOnceWith(actionsStub.runFailedTests, failedTests);
     });
@@ -89,9 +89,9 @@ describe('<RunButton />', () => {
         const state = mkState({initialState: {tree: {suites: {allRootIds: ['suite']}}, processing: false}});
         selectorsStub.getCheckedTests.withArgs(state).returns(checkedTests);
         const component = mkConnectedComponent(<RunButton />, {state});
-        component.find({children: 'Checked'}).simulate('click');
+        component.find({children: 'Checked Tests'}).simulate('click');
 
-        component.find('button').simulate('click');
+        component.find('button.run-button__button').simulate('click');
 
         assert.calledOnceWith(actionsStub.retrySuite, checkedTests);
     });
@@ -102,7 +102,7 @@ describe('<RunButton />', () => {
                 initialState: {tree: {suites: {allRootIds: ['suite']}}, processing: false, running: true}
             });
 
-            assert.equal(component.find('button').text(), 'Running');
+            assert.equal(component.find('button.run-button__button').text(), 'Running');
         });
 
         it('should be "Run all tests" by default if there is no checked tests', () => {
@@ -111,7 +111,7 @@ describe('<RunButton />', () => {
                 initialState: {tree: {suites: {allRootIds: ['suite']}}, processing: false}
             });
 
-            assert.equal(component.find('button').text(), 'Run all tests');
+            assert.equal(component.find('div.run-button__dropdown').text(), 'All Tests');
         });
 
         it('should switch to "Run checked tests" if there are checked tests', () => {
@@ -126,13 +126,14 @@ describe('<RunButton />', () => {
 
     describe('localStorage', () => {
         it('should save "Run all tests" if picked', () => {
+            useLocalStorageStub.withArgs('RunMode', 'Failed').returns(['Failed', writeValueStub]);
             selectorsStub.getCheckedTests.returns([{testName: 'testName', browserName: 'browserName'}]);
             selectorsStub.getFailedTests.returns([{testName: 'testName', browserName: 'browserName'}]);
             const component = mkConnectedComponent(<RunButton />, {
                 initialState: {tree: {suites: {allRootIds: ['suite']}}, processing: false}
             });
-
-            component.find({children: 'All'}).simulate('click');
+            component.first().find('button.g-select-control__button').simulate('click')
+            component.first().findWhere(node => node.text() == 'All Tests' && node.hasClass('g-list__item')).simulate('click');
             assert.calledWith(writeValueStub, 'All');
         });
 
@@ -142,7 +143,8 @@ describe('<RunButton />', () => {
                 initialState: {tree: {suites: {allRootIds: ['suite']}}, processing: false}
             });
 
-            component.find({children: 'Failed'}).simulate('click');
+            component.first().find('button.g-select-control__button').simulate('click')
+            component.first().findWhere(node => node.text() == 'Failed Tests' && node.hasClass('g-list__item')).simulate('click');
             assert.calledOnceWith(writeValueStub, 'Failed');
         });
 
@@ -152,7 +154,8 @@ describe('<RunButton />', () => {
                 initialState: {tree: {suites: {allRootIds: ['suite']}}, processing: false}
             });
 
-            component.find({children: 'Checked'}).simulate('click');
+            component.first().find('button.g-select-control__button').simulate('click')
+            component.first().findWhere(node => node.text() == 'Checked Tests' && node.hasClass('g-list__item')).simulate('click');
             assert.calledWith(writeValueStub, 'Checked');
         });
     });

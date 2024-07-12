@@ -1,26 +1,26 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Ref, Button} from 'semantic-ui-react';
+import {Ref} from 'semantic-ui-react';
 import classNames from 'classnames';
+import { Button, ButtonIcon } from '@gravity-ui/uikit';
+import {ChevronDown} from '@gravity-ui/icons';
 
 const DbBtn = ({fetchDbDetails}, ref) => {
     const successFetchDbDetails = fetchDbDetails.filter(d => d.success);
     const isFailed = successFetchDbDetails.length !== fetchDbDetails.length;
     const value = `${successFetchDbDetails.length}/${fetchDbDetails.length}`;
     const content = `Databases loaded: ${value}`;
-    const className = classNames(
-        'db-info',
-        {'db-info_failed': isFailed}
-    );
 
     return (
         <Ref innerRef={ref}>
             <Button
-                content={content}
-                icon="angle down"
-                className={className}
-                basic
-            />
+                view={isFailed ? 'flat-danger' : 'flat'}
+            >
+                <div className='db-info'>
+                    <ChevronDown/>
+                    {content}
+                </div>
+            </Button>
         </Ref>
     );
 };

@@ -8,15 +8,18 @@ import {isEmpty} from 'lodash';
 import ExtensionPoint from '../extension-point';
 import plugins from '../../modules/plugins';
 import {MENU_BAR} from '../../../constants/extension-points';
+import { Button, DropdownMenu, Icon, Menu } from '@gravity-ui/uikit';
+import {Bars} from '@gravity-ui/icons';
+import classNames from 'classnames';
 
 class MenuBar extends Component {
     static propTypes = {extraItems: PropTypes.object.isRequired};
 
     _getItems(extraItems) {
         return Object.keys(extraItems).map((key, i) => (
-            <Dropdown.Item key={i}>
-                <a className="menu-item__link" href={extraItems[key]}>{key}</a>
-            </Dropdown.Item>
+            <Menu.Item key={i} onClick={() => {}} className='menu-bar__content_item'>
+                <a href={extraItems[key]}>{key}</a>
+            </Menu.Item>
         ));
     }
 
@@ -32,13 +35,17 @@ class MenuBar extends Component {
 
         return (
             <div className="menu-bar" data-test-id='menu-bar'>
-                <Dropdown item icon="bars" simple direction="left">
-                    <Dropdown.Menu>
+                <DropdownMenu size='m' renderSwitcher={({className, ...props}) => (
+                    <Button className={classNames('menu-bar__dropdown', className)}{...props} view="flat">
+                    <Icon size={16} data={Bars} />
+                    </Button>
+                )}>
+                    <Menu size='m' className='menu-bar__content'>
                         <ExtensionPoint name={MENU_BAR}>
                             {this._getItems(extraItems)}
                         </ExtensionPoint>
-                    </Dropdown.Menu>
-                </Dropdown>
+                    </Menu>
+                </DropdownMenu>
             </div>
         );
     }

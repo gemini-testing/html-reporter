@@ -7,17 +7,18 @@ describe('<MenuBar />', () => {
         const component = mkConnectedComponent(<MenuBar />, {
             initialState: {apiValues: {extraItems: {some: 'link'}}}
         });
-        const dropdown = component.find('.menu-bar .dropdown .item').first();
+        component.find('button.menu-bar__dropdown').simulate('click');
+        const item = component.first().find('.menu-bar__content_item').first();
 
-        assert.equal(dropdown.text(), 'some');
-        assert.equal(dropdown.first().props().children.props.href, 'link');
+        assert.equal(item.text(), 'some');
+        assert.equal(item.first().props().children.props.href, 'link');
     });
 
     it('should not show dropdown menu if extra items are not passed', () => {
         const component = mkConnectedComponent(<MenuBar />, {
             initialState: {apiValues: {extraItems: {}}}
         });
-        const dropdown = component.find('.menu-bar .dropdown .item').first();
+        const dropdown = component.find('.button.menu-bar__dropdown').first();
 
         assert.equal(dropdown.length, 0);
     });

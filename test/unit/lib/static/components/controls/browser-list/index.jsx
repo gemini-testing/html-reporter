@@ -1,5 +1,6 @@
 import React from 'react';
 import BrowserList from '../../../../../../../lib/static/components/controls/browser-list';
+import { ThemeProvider } from '@gravity-ui/uikit';
 
 describe('<BrowserList />', () => {
     const sandbox = sinon.sandbox.create();
@@ -13,9 +14,10 @@ describe('<BrowserList />', () => {
                 {id: 'bro2'}
             ]
         };
-        const component = mount(<BrowserList {...props} />);
-
-        assert.equal(component.find('.array__container .array__item').length, 0);
+        const component = mount(<ThemeProvider theme='light'><BrowserList {...props} /></ThemeProvider>);
+        component.first().find('.g-select-control__button').simulate('click');
+        
+        assert.equal(component.first().find('.g-list__items .g-list__item_selected').length, 0);
     });
 
     it('should contain selected items', () => {
@@ -30,14 +32,15 @@ describe('<BrowserList />', () => {
                 {id: 'bro3', versions: ['unknown']}
             ]
         };
-        const component = mount(<BrowserList {...props} />);
+        const component = mount(<ThemeProvider theme='light'><BrowserList {...props} /></ThemeProvider>);
+        component.first().find('.g-select-control__button').simulate('click');
 
-        assert.equal(component.find('.array__container .array__item').length, 2);
-        assert.equal(component.find('.array__container .array__item').at(0).text(), 'bro2');
-        assert.equal(component.find('.array__container .array__item').at(1).text(), 'bro3');
+        assert.equal(component.first().find('.g-list__items .g-list__item_selected').length, 2);
+        assert.equal(component.first().find('.g-list__items .g-list__item_selected .browserlist__row_content').at(0).text(), 'bro2');
+        assert.equal(component.first().find('.g-list__items .g-list__item_selected .browserlist__row_content').at(1).text(), 'bro3');
     });
 
-    it('should create nested checkboxes for versions', async () => {
+    it('should create groups for versions', async () => {
         const props = {
             available: [
                 {id: 'bro1', versions: ['v1', 'v2', 'v3']}
@@ -48,11 +51,10 @@ describe('<BrowserList />', () => {
             onChange: () => {}
         };
 
-        const component = mount(<BrowserList {...props} />);
-        component.find('.rct-collapse').first().simulate('click');
+        const component = mount(<ThemeProvider theme='light'><BrowserList {...props} /></ThemeProvider>);
+        component.first().find('.g-select-control__button').simulate('click');
 
-        assert.equal(component.find('.rct-node-leaf .rct-label__title').at(0).text(), 'v1');
-        assert.equal(component.find('.rct-node-leaf .rct-label__title').at(1).text(), 'v2');
+        assert.equal(component.find('.g-select-list__group-label-content').at(0).text(), 'bro1');
     });
 
     it('should trigger "change" event with selected browsers and versions', () => {
@@ -60,23 +62,25 @@ describe('<BrowserList />', () => {
             available: [
                 {id: 'bro'},
                 {id: 'bro1', versions: ['v1']},
-                {id: 'bro2', versions: ['v1', 'v2']}
+                {id: 'bro2', versions: ['v1', 'v2', 'v3']}
             ],
             selected: [
                 {id: 'bro'},
                 {id: 'bro1', versions: ['v1']},
-                {id: 'bro2', versions: ['v1']}
+                {id: 'bro2', versions: ['v1', 'v2', 'v3']}
             ],
             onChange: sandbox.spy()
         };
-        const component = mount(<BrowserList {...props} />);
+        const component = mount(<ThemeProvider theme='light'><BrowserList {...props} /></ThemeProvider>);
 
-        component.find('.rct-checkbox').first().simulate('click');
+        component.first().find('.g-select-control__button').simulate('click');
+        component.first().find('.g-popup .g-select-list__option').last().simulate('click');
 
-        assert.equal(props.onChange.callCount, 1);
-        assert.deepEqual(props.onChange.firstCall.lastArg, [
-            {id: 'bro1', versions: []},
-            {id: 'bro2', versions: ['v1']}
+        assert.equal(props.onChange.callCount, 2);
+        assert.deepEqual(props.onChange.lastCall.lastArg, [
+            {id: 'bro', versions: []},
+            {id: 'bro1', versions: ['v1']},
+            {id: 'bro2', versions: ['v1', 'v2']}
         ]);
     });
 });

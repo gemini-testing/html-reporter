@@ -1,7 +1,5 @@
-const {mkNestedSelector} = require('../../utils');
-
 describe('Test menu bar plugin', function() {
-    const selector = 'div[data-test-id="menu-bar"]';
+    const selector = '.menu-bar__dropdown';
 
     it('should show menu bar with plugins applied', async ({browser}) => {
         await browser.$(selector).waitForDisplayed();
@@ -9,7 +7,7 @@ describe('Test menu bar plugin', function() {
     });
 
     it('should show menu bar item on click', async ({browser}) => {
-        const menuSelector = mkNestedSelector(selector, '.menu');
+        const menuSelector = '.menu-bar__content';
 
         await browser.$(selector).waitForDisplayed();
         await browser.$(selector).click();

@@ -6,6 +6,7 @@ import {bindActionCreators} from 'redux';
 import {connect} from 'react-redux';
 import {debounce} from 'lodash';
 import * as actions from '../../modules/actions';
+import { TextInput } from '@gravity-ui/uikit';
 
 const TestNameFilterInput = ({actions, testNameFilter: testNameFilterProp}) => {
     const [testNameFilter, setTestNameFilter] = useState(testNameFilterProp);
@@ -22,12 +23,13 @@ const TestNameFilterInput = ({actions, testNameFilter: testNameFilterProp}) => {
     };
 
     return (
-        <input
-            className="filter__input-name"
+        <TextInput
+            size='m'
+            className='test-name-filter'
             value={testNameFilter}
             placeholder="Filter by test name or regexp"
             onChange={onChange}
-            data-test-id="header-test-name-filter"
+            qa="header-test-name-filter"
         />
     );
 };

@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
-import {Label} from 'semantic-ui-react';
 import {version} from '../../../../package.json';
+import { Label } from '@gravity-ui/uikit';
 
 class ReportInfo extends Component {
     render() {
@@ -9,17 +9,13 @@ class ReportInfo extends Component {
 
         return (
             <div className="report-info">
-                <Label className="control-label" data-test-id='version-label'>
+                <Label qa='version-label' size='m' className='label'>
                     Version
-                    <Label.Detail>
-                        {version}
-                    </Label.Detail>
+                    <div className='detail'>{version}</div>
                 </Label>
-                {!gui && <Label className="control-label" data-test-id='created-at-label'>
+                {!gui && <Label qa='created-at-label' size='m' className='label'>
                     Created at
-                    <Label.Detail>
-                        {date}
-                    </Label.Detail>
+                    <div className='detail'>{date}</div>
                 </Label>}
             </div>
         );

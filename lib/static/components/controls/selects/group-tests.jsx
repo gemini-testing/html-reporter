@@ -12,6 +12,8 @@ import {SECTIONS, KEY_DELIMITER} from '../../../../constants/group-tests';
 import {getParsedKeyToGroupTestsBy} from '../../../modules/selectors/grouped-tests';
 
 import './index.styl';
+import CustomLabel from './label';
+import { Select } from '@gravity-ui/uikit';
 
 class GroupTestsSelect extends Component {
     static propTypes = {
@@ -23,58 +25,37 @@ class GroupTestsSelect extends Component {
         selectedGroupKey: PropTypes.string
     };
 
-    _groupTestsByKey = (_, dom) => {
-        if (dom.value !== this.props.keyToGroupTestsBy) {
-            this.props.actions.groupTestsByKey(dom.value);
+    _groupTestsByKey = (values) => {
+        const value = values ? values[0] : undefined;
+        if (value !== this.props.keyToGroupTestsBy) {
+            this.props.actions.groupTestsByKey(value);
         }
     };
 
-    _renderSection(sectionName) {
-        const {groupedTests} = this.props;
-        const keys = groupedTests[sectionName].allKeys;
-
-        if (isEmpty(keys)) {
-            return null;
-        }
-
-        return (
-            <Fragment key={sectionName}>
-                <Dropdown.Divider/>
-                <Dropdown.Header content={sectionName} />
-                <Dropdown.Divider/>
-                {keys.map(key => {
-                    const id = getGroupElemId(sectionName, key);
-                    const isActive = id === this.props.keyToGroupTestsBy;
-
-                    return <Dropdown.Item key={id} value={id} active={isActive} onClick={this._groupTestsByKey}>{key}</Dropdown.Item>;
-                })}
-            </Fragment>
-        );
-    }
-
     render() {
-        const {selectedGroupKey} = this.props;
+        const {selectedGroupKey, groupedTests} = this.props;
         const className = classNames(
             'select',
             'select_type_group'
         );
+        const options = Object.values(SECTIONS).map((sectionName) => ({
+            label: sectionName,
+            options: groupedTests[sectionName].allKeys.map((k) => ({ value: `${sectionName}.${k}`, content: k}))
+        }));
 
         return (
             <div className={className}>
-                <Label className="select__label">Group by</Label>
-                <Dropdown
-                    className="select__dropdown selection"
-                    value={selectedGroupKey}
-                    text={selectedGroupKey}
-                    onChange={this._groupTestsByKey}
-                    placeholder="select key"
-                    clearable={Boolean(selectedGroupKey)}
-                    data-test-id='group-by-dropdown'
-                >
-                    <Dropdown.Menu>
-                        {Object.values(SECTIONS).map((sectionName) => this._renderSection(sectionName))}
-                    </Dropdown.Menu>
-                </Dropdown>
+                <CustomLabel size='m' pin='round-brick'>Group By</CustomLabel>
+                <Select
+                    className='group-by-dropdown'
+                    options={options}
+                    value={[selectedGroupKey]}
+                    hasClear
+                    onUpdate={this._groupTestsByKey}
+                    pin='brick-round'
+                    placeholder='select key'
+                    qa='group-by-dropdown'
+                    />
             </div>
         );
     }

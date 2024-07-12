@@ -36,7 +36,8 @@ describe('GUI mode', () => {
         guiProcess = await runGui(projectDir);
 
         await browser.url(guiUrl);
-        await browser.$('button*=Expand all').click();
+        await browser.$('//*[contains(@class, "expand-dropdown")]//button').click();
+        await browser.$('//*[contains(@class, "expand-popup")]//span[contains(normalize-space(), "All")]').click();
     });
 
     afterEach(async () => {
@@ -53,7 +54,7 @@ describe('GUI mode', () => {
         it('should run a single test', async ({browser}) => {
             const retryButton = await browser.$(
                 getTestSectionByNameSelector('successful test') +
-                '//button[contains(text(), "Retry")]'
+                '//button[contains(normalize-space(), "Retry")]'
             );
 
             await retryButton.click();
@@ -83,7 +84,7 @@ describe('GUI mode', () => {
 
                 const acceptButton = await browser.$(
                     getTestSectionByNameSelector(fullTestName) +
-                    '//button[contains(text(), "Accept")]'
+                    '//button[contains(normalize-space(), "Accept")]'
                 );
 
                 await acceptButton.click();

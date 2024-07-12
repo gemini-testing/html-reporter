@@ -281,7 +281,7 @@ describe('<State/>', () => {
 
                 const stateComponent = mkStateComponent({imageId: 'img-id'}, {gui: true, ...initialState});
 
-                assert.lengthOf(stateComponent.find('[title="Open mode with fast screenshot accepting"]'), 2);
+                assert.lengthOf(stateComponent.find('button[title="Open mode with fast screenshot accepting"]'), 1);
             });
 
             it('should not call "getLastImageByStateName" selector if image id is not passed', () => {

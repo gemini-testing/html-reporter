@@ -26,7 +26,8 @@ describe('Tinder mode', () => {
         guiProcess = await runGui(projectDir);
 
         await browser.url(guiUrl);
-        await browser.$('button*=Expand all').click();
+        await browser.$('//*[contains(@class, "expand-dropdown")]//button').click();
+        await browser.$('//*[contains(@class, "expand-popup")]//span[contains(normalize-space(), "All")]').click();
 
         await browser.$('button*=Switch accept mode').click();
     });
@@ -45,7 +46,7 @@ describe('Tinder mode', () => {
         beforeEach(async ({browser}) => {
             const testFullName = await browser.$('span[data-test-id="screenshot-accepter-test-name"]').getText();
 
-            const acceptButton = await browser.$('button[data-test-id="screenshot-accepter-accept"]');
+            const acceptButton = await browser.$('button[data-qa="screenshot-accepter-accept"]');
             await acceptButton.click();
 
             await browser.waitUntil(async () => {
@@ -54,13 +55,13 @@ describe('Tinder mode', () => {
                 return progress === '1/2';
             }, {interval: 100});
 
-            const switchAcceptModeButton = await browser.$('button[data-test-id="screenshot-accepter-switch-accept-mode"]');
+            const switchAcceptModeButton = await browser.$('button[data-qa="screenshot-accepter-switch-accept-mode"]');
             await switchAcceptModeButton.click();
 
-            const testNameFilterInput = await browser.$('input[data-test-id="header-test-name-filter"]');
+            const testNameFilterInput = await browser.$('//*[@data-qa="header-test-name-filter"]//input');
 
             await testNameFilterInput.setValue(testFullName);
-            await browser.$('div[data-test-id="header-strict-match"]').click();
+            await browser.$('*[data-qa="header-strict-match"]').click();
 
             await waitForFsChanges(screensDir);
         });
@@ -73,7 +74,7 @@ describe('Tinder mode', () => {
         });
 
         it('should make the test pass on next run', async ({browser}) => {
-            const retryButton = await browser.$('button[data-test-id="test-retry"]');
+            const retryButton = await browser.$('button[data-qa="test-retry"]');
 
             // TODO: find a correct sign to wait for. Issue is that retry button is totally clickable, but doesn't
             //       work right away after switch accept mode and applying filtering for some reason.
@@ -92,7 +93,7 @@ describe('Tinder mode', () => {
 
     describe(`undo accepting screenshot`, () => {
         it('should leave project files intact', async ({browser}) => {
-            const acceptButton = await browser.$('button[data-test-id="screenshot-accepter-accept"]');
+            const acceptButton = await browser.$('button[data-qa="screenshot-accepter-accept"]');
             await acceptButton.click();
 
             await browser.waitUntil(async () => {
@@ -104,7 +105,7 @@ describe('Tinder mode', () => {
             await waitForFsChanges(screensDir);
             const fsDiffBeforeUndo = getFsDiffFromVcs(screensDir);
 
-            const undoButton = await browser.$('button[data-test-id="screenshot-accepter-undo"]');
+            const undoButton = await browser.$('button[data-qa="screenshot-accepter-undo"]');
             await undoButton.click();
 
             await waitForFsChanges(screensDir, (output) => output.length === 0);
@@ -117,7 +118,7 @@ describe('Tinder mode', () => {
     });
 
     it('should show success screen after accepting all screenshots', async ({browser}) => {
-        const acceptButton = await browser.$('button[data-test-id="screenshot-accepter-accept"]');
+        const acceptButton = await browser.$('button[data-qa="screenshot-accepter-accept"]');
 
         for (let i = 1; i <= 2; i++) {
             await acceptButton.click();

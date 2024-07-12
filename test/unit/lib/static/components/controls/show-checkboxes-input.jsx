@@ -32,7 +32,7 @@ describe('<ShowCheckboxesInput />', () => {
             useLocalStorageStub.withArgs('showCheckboxes', false).returns([checked, hookHandler]);
             const component = mount(<ShowCheckboxesInput />);
 
-            component.find(Checkbox).simulate('change');
+            component.find('input[type="checkbox"]').simulate('change');
 
             assert.calledOnceWith(hookHandler, !checked);
         });

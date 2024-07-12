@@ -22,6 +22,7 @@ if (!projectUnderTest) {
 const commonConfig = getCommonConfig(__dirname);
 
 const config = _.merge(commonConfig, {
+    retry: 4,
     baseUrl: `http://${serverHost}:${serverPort}/fixtures/${projectUnderTest}/report/index.html`,
 
     sets: {

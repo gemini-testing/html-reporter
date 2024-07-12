@@ -8,7 +8,8 @@ const {
 
 describe('Test results appearance', () => {
     beforeEach(async ({browser}) => {
-        await browser.$('button*=Expand all').click();
+        await browser.$('//*[contains(@class, "expand-dropdown")]//button').click();
+        await browser.$('//*[contains(@class, "expand-popup")]//span[contains(normalize-space(), "All")]').click();
     });
 
     describe('Passed test', () => {
