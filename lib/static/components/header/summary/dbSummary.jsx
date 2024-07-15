@@ -3,8 +3,7 @@ import {Dropdown} from 'semantic-ui-react';
 import PropTypes from 'prop-types';
 
 import DbBtn from './dbBtn';
-import Popup from '../../popup';
-import { Popover } from '@gravity-ui/uikit';
+import {Popover} from '@gravity-ui/uikit';
 
 export default class DbSummaryKey extends Component {
     /*
@@ -39,15 +38,15 @@ export default class DbSummaryKey extends Component {
 
         return (
             <div className='db-info-container'>
-            <Popover
-            disablePortal
-            placement={'bottom'}
-                content={
-                    additionalInfo
+                <Popover
+                    disablePortal
+                    placement={'bottom'}
+                    content={
+                        additionalInfo
                     }
-            >
-                <DbBtn fetchDbDetails={fetchDbDetails} />
-            </Popover>
+                >
+                    <DbBtn fetchDbDetails={fetchDbDetails} />
+                </Popover>
             </div>
         );
     }

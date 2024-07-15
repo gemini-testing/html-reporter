@@ -226,7 +226,6 @@
     "ts-node": "^10.9.1",
     "type-fest": "^3.13.1",
     "typescript": "^5.0.4",
-    "uglify-js": "^3.17.4",
     "web-vitals": "^1.1.2",
     "webpack": "^5.89.0",
     "webpack-cli": "^5.1.4",

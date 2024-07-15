@@ -8,7 +8,7 @@ import {
     hasUnrelatedToScreenshotsErrors,
     isFailStatus
 } from '../../../common-utils';
-import { Button } from '@gravity-ui/uikit';
+import {Button} from '@gravity-ui/uikit';
 
 class RetrySwitcherItem extends Component {
     static propTypes = {
@@ -30,9 +30,10 @@ class RetrySwitcherItem extends Component {
             updated: 'flat-success',
             error: 'flat-danger',
             fail: 'flat-utility',
+            // eslint-disable-next-line camelcase
             fail_error: 'flat-utility',
-            skipped: 'normal',
-        }
+            skipped: 'normal'
+        };
 
         const className = classNames(
             'tab-switcher__button',
@@ -41,7 +42,7 @@ class RetrySwitcherItem extends Component {
             {'tab-switcher__button_non-matched': keyToGroupTestsBy && !matchedSelectedGroup}
         );
 
-        return <Button view={statusToView[status]} selected title={title} className={className} onClick={onClick} qa='retry-switcher'>{attempt + 1}</Button>
+        return <Button view={statusToView[status]} selected={status !== 'skipped'} title={title} className={className} onClick={onClick} qa='retry-switcher'>{attempt + 1}</Button>;
     }
 }
 

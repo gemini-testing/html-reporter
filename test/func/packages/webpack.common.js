@@ -32,9 +32,7 @@ module.exports = {
         minimizer: [
             new TerserPlugin({
                 parallel: true,
-                minify: TerserPlugin.uglifyJsMinify,
                 terserOptions: {
-                    annotations: false,
                     output: {
                         comments: false
                     }

@@ -384,6 +384,7 @@ main.container {
     flex-shrink: 0;
 }
 
+.section_collapsed .section__title .bullet_type-simple,
 .tests-group_collapsed .tests-group__title .tests-group__bullet:before,
 .state-title_collapsed.state-title:after {
     transform: rotate(180deg);
@@ -569,37 +570,10 @@ main.container {
     opacity: 0.5;
 }
 
-.tab-switcher__button_status_success,
-.tab-switcher__button_status_updated {
-    background-color: rgba(123, 204, 123, 1);
-    border-color: rgba(123, 204, 123, 1);
-}
-
-.tab-switcher__button_status_success.tab-switcher__button_non-matched,
-.tab-switcher__button_status_updated.tab-switcher__button_non-matched {
-    background-color: rgba(123, 204, 123, .25);
-    border-color: rgba(123, 204, 123, .25);
-}
-
-.tab-switcher__button_status_error {
-    background-color: rgba(255, 154, 154, 1);
-    border-color: rgba(255, 154, 154, 1);
-}
-
-.tab-switcher__button_status_error.tab-switcher__button_non-matched {
-    background-color: rgba(255, 154, 154, .25);
-    border-color: rgba(255, 154, 154, .25);
-}
-
 .tab-switcher__button_status_fail {
     --g-button-background-color: #fce0ff;
     --g-button-text-color: #bd1993;
     --g-button-border-color: #bd1993;
-}
-
-.tab-switcher__button_status_fail.tab-switcher__button_non-matched {
-    background-color: rgba(255, 197, 224, .25);
-    border-color: rgba(255, 197, 224, .25);
 }
 
 .tab-switcher__button_status_fail_error {
@@ -608,35 +582,8 @@ main.container {
     --g-button-border-color: #bd1993;
 }
 
-.tab-switcher__button_status_fail_error.tab-switcher__button_non-matched {
-    background: linear-gradient(135deg, rgba(255, 197, 224, .25) 50%, rgba(255, 154, 154, .25) 50%);
-    border-left-color: rgba(255, 197, 224, .25);
-    border-top-color: rgba(255, 197, 224, .25);
-    border-right-color: rgba(255, 154, 154, .25);
-    border-bottom-color: rgba(255, 154, 154, .25);
-}
-
-.tab-switcher__button_status_skipped  {
-    background-color: rgba(204, 204, 204, 1);
-    border-color: rgba(204, 204, 204, 1);
-}
-
-.tab-switcher__button_status_skipped.tab-switcher__button_non-matched {
-    background-color: rgba(204, 204, 204, .25);
-    border-color: rgba(204, 204, 204, .25);
-}
-
-.tab-switcher__button_non-matched {
-    color: rgba(0, 0, 0, .25);
-}
-
-.tab-switcher .tab-switcher__button:hover {
-    border-color: #888;
-}
-
 .tab-switcher__button.tab-switcher__button_active {
     --g-button-border-width: 1px;
-    border-color: #000;
 }
 
 .collapsed,
@@ -721,10 +668,6 @@ a:active {
     margin-top: 5px;
 }
 
-/* .details_type_text {
-    margin-bottom: 10px;
-} */
-
 .image-box .details_type_text:last-child {
     margin-bottom: 0;
 }
@@ -737,13 +680,6 @@ a:active {
     margin-top: 5px;
     padding: 10px;
 }
-
-/* .details_type_text .details__content {
-    margin: 5px 0;
-    background-color: #f0f2f5;
-    padding: 10px;
-    border-radius: 5px;
-} */
 
 .details_type_image .details__content {
     margin-top: 10px;
