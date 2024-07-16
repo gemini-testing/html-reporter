@@ -34,6 +34,7 @@ class FindSameDiffsButton extends Component {
             isSuiteControl={true}
             isDisabled={isDisabled}
             handler={this._findSameDiffs}
+            dataTestId={'find-same-diffs'}
         />;
     }
 }

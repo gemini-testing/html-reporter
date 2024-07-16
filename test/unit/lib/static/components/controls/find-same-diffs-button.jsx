@@ -47,13 +47,13 @@ describe('<FindSameDiffsButton />', () => {
     it('should be disabled if passed prop "isDisabled" is true', () => {
         const component = mkFindSameDiffsButton({isDisabled: true});
 
-        assert.isTrue(component.find('[label="🔍 Find same diffs"]').prop('isDisabled'));
+        assert.isTrue(component.find('[data-qa="find-same-diffs"]').prop('disabled'));
     });
 
     it('should be enabled if passed prop "isDisabled" is false', () => {
         const component = mkFindSameDiffsButton({isDisabled: false});
 
-        assert.isFalse(component.find('[label="🔍 Find same diffs"]').prop('isDisabled'));
+        assert.isFalse(component.find('[data-qa="find-same-diffs"]').prop('disabled'));
     });
 
     it('should call "findSameDiffs" action on click', () => {
@@ -76,7 +76,7 @@ describe('<FindSameDiffsButton />', () => {
             <FindSameDiffsButton imageId="img-1" browserId="browser-id" isDisabled={false} />,
             {state}
         );
-        component.find('[label="🔍 Find same diffs"]').simulate('click');
+        component.find('[data-qa="find-same-diffs"]').simulate('click');
 
         assert.calledOnceWith(actionsStub.findSameDiffs, 'img-1', failedOpenedImageIds, 'yabro');
     });

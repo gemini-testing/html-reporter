@@ -41,7 +41,7 @@ describe('<Body />', () => {
         it('should render if "gui" is running', () => {
             const component = mkBodyComponent({}, {gui: true});
 
-            assert.equal(component.find('.button_type_suite-controls').first().text(), '↻ Retry');
+            assert.equal(component.find('.button_type_suite-controls').first().text(), 'Retry');
         });
 
         it('should not render if "gui" is not running', () => {
@@ -53,13 +53,13 @@ describe('<Body />', () => {
         it('should be disabled while tests running', () => {
             const component = mkBodyComponent({}, {running: true});
 
-            assert.isTrue(component.find('[label="↻ Retry"]').prop('isDisabled'));
+            assert.isTrue(component.find('[data-qa="test-retry"]').prop('disabled'));
         });
 
         it('should be enabled if tests are not started yet', () => {
             const component = mkBodyComponent({}, {running: false});
 
-            assert.isFalse(component.find('[label="↻ Retry"]').prop('isDisabled'));
+            assert.isFalse(component.find('[data-qa="test-retry"]').prop('disabled'));
         });
 
         it('should call action "retryTest" on "handler" prop calling', () => {
@@ -67,7 +67,7 @@ describe('<Body />', () => {
             const browserName = 'yabro';
             const component = mkBodyComponent({testName, browserName}, {running: false});
 
-            component.find('[label="↻ Retry"]').simulate('click');
+            component.find('[data-qa="test-retry"]').simulate('click');
 
             assert.calledOnceWith(actionsStub.retryTest, {testName, browserName});
         });

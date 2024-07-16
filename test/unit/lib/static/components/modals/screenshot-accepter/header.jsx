@@ -196,13 +196,13 @@ describe('<ScreenshotAccepterHeader/>', () => {
         it('should be disabled if passed empty "images" array', () => {
             const component = mkHeaderComponent({images: []});
 
-            assert.isTrue(component.find('[label="✔ Accept"]').prop('isDisabled'));
+            assert.isTrue(component.find('[data-qa="screenshot-accepter-accept"]').prop('disabled'));
         });
 
         it('should be enabled if passed not empty "images" array', () => {
             const component = mkHeaderComponent({images: [{id: 'img-1', parentId: 'res-1'}]});
 
-            assert.isFalse(component.find('[label="✔ Accept"]').prop('isDisabled'));
+            assert.isFalse(component.find('[data-qa="screenshot-accepter-accept"]').prop('disabled'));
         });
 
         it('should call "onScreenshotAccept" handler with current image id on click', () => {
@@ -216,7 +216,7 @@ describe('<ScreenshotAccepterHeader/>', () => {
                 onScreenshotAccept
             });
 
-            component.find('[label="✔ Accept"]').simulate('click');
+            component.find('[data-qa="screenshot-accepter-accept"]').simulate('click');
 
             assert.calledOnceWith(onScreenshotAccept, 'img-2');
         });
@@ -375,7 +375,7 @@ describe('<ScreenshotAccepterHeader/>', () => {
             const onScreenshotUndo = sandbox.stub();
             const component = mkHeaderComponent({onScreenshotUndo, acceptedImages: 1});
 
-            component.find('[label="⎌ Undo"]').simulate('click');
+            component.find('[data-qa="screenshot-accepter-undo"]').simulate('click');
 
             assert.calledOnce(onScreenshotUndo);
         });

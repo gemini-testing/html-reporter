@@ -91,7 +91,7 @@ describe('<BrowserTitle/>', () => {
             const tree = mkStateTree({browsersById, resultsById, browsersStateById});
 
             const component = mkBrowserTitleComponent({browserId: 'yabro'}, {tree});
-            component.find('ClipboardButton').simulate('click');
+            component.find('button').simulate('click');
 
             assert.calledOnce(actionsStub.copyTestLink);
             assert.calledWithExactly(actionsStub.copyTestLink);

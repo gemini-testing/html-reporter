@@ -89,6 +89,7 @@ class State extends Component {
                     isSuiteControl={true}
                     isDisabled={isAcceptDisabled}
                     handler={this.onTestAccept}
+                    dataTestId={'test-accept'}
                 />
                 <FindSameDiffsButton
                     imageId={imageId}
@@ -129,6 +130,7 @@ class State extends Component {
                     }
                     isSuiteControl={true}
                     handler={this.onScreenshotUndo}
+                    dataTestId={'test-undo'}
                 />
             </div>
         );

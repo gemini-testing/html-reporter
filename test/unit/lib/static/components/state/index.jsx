@@ -65,7 +65,7 @@ describe('<State/>', () => {
         it('should not render button in static report', () => {
             const stateComponent = mkStateComponent({}, {gui: false});
 
-            assert.lengthOf(stateComponent.find('[label="✔ Accept"]'), 0);
+            assert.lengthOf(stateComponent.find('[data-qa="test-accept"]'), 0);
         });
 
         it('should render button in gui report if image is acceptable', () => {
@@ -82,7 +82,7 @@ describe('<State/>', () => {
 
             const stateComponent = mkStateComponent({imageId: 'img-id'}, {gui: true, ...initialState});
 
-            assert.lengthOf(stateComponent.find('[label="✔ Accept"]'), 1);
+            assert.lengthOf(stateComponent.find('[data-qa="test-accept"]'), 1);
         });
 
         it('should not render button if image is not acceptable', () => {
@@ -99,7 +99,7 @@ describe('<State/>', () => {
 
             const stateComponent = mkStateComponent({imageId: 'img-id'}, initialState);
 
-            assert.isEmpty(stateComponent.find('[label="✔ Accept"]'));
+            assert.isEmpty(stateComponent.find('[data-qa="test-accept"]'));
         });
 
         it('should be enabled if image is acceptable', () => {
@@ -116,7 +116,7 @@ describe('<State/>', () => {
 
             const stateComponent = mkStateComponent({imageId: 'img-id'}, initialState);
 
-            assert.isFalse(stateComponent.find('[label="✔ Accept"]').prop('isDisabled'));
+            assert.isFalse(stateComponent.find('[data-qa="test-accept"]').prop('disabled'));
         });
 
         it('should call "acceptTest" action on button click', () => {
@@ -132,7 +132,7 @@ describe('<State/>', () => {
             utilsStub.isAcceptable.withArgs(image).returns(true);
 
             const stateComponent = mkStateComponent({imageId: 'img-id'}, initialState);
-            stateComponent.find('[label="✔ Accept"]').simulate('click');
+            stateComponent.find('[data-qa="test-accept"]').simulate('click');
 
             assert.calledOnceWith(actionsStub.acceptTest, 'img-id');
         });
@@ -152,7 +152,7 @@ describe('<State/>', () => {
             };
             const stateComponent = mkStateComponent({imageId: 'img-id'}, initialState);
 
-            assert.isFalse(stateComponent.find('[label="⎌ Undo"]').exists());
+            assert.isFalse(stateComponent.find('[data-qa="test-undo"]').exists());
         });
 
         it('should not exist, if not gui', () => {
@@ -168,7 +168,7 @@ describe('<State/>', () => {
             });
             const stateComponent = mkStateComponent({imageId: 'img-id'}, initialState);
 
-            assert.isFalse(stateComponent.find('[label="⎌ Undo"]').exists());
+            assert.isFalse(stateComponent.find('[data-qa="test-undo"]').exists());
         });
 
         it('should call "undoAcceptImages" action on button click', () => {
@@ -184,7 +184,7 @@ describe('<State/>', () => {
             };
             const stateComponent = mkStateComponent({imageId: 'img-id'}, initialState);
 
-            stateComponent.find('[label="⎌ Undo"]').simulate('click');
+            stateComponent.find('[data-qa="test-undo"]').simulate('click');
 
             assert.calledOnceWith(actionsStub.undoAcceptImage, 'img-id');
         });
