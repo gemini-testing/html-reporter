@@ -501,6 +501,7 @@ main.container {
     display: flex;
     gap: 2px;
     align-items: center;
+    word-wrap: break-word;
 }
 
 .custom-icon_view-local{
@@ -679,6 +680,7 @@ a:active {
 .details__card {
     margin-top: 5px;
     padding: 10px;
+    word-wrap: break-word;
 }
 
 .details_type_image .details__content {

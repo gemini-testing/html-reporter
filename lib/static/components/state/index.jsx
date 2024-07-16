@@ -189,7 +189,7 @@ class State extends Component {
         return (
             <Fragment>
                 <hr className="tab__separator"/>
-                {this._getStateTitleWithDiffCount() ? <Disclosure summary={this._getStateTitleWithDiffCount()} 
+                {this._getStateTitleWithDiffCount() ? <Disclosure summary={this._getStateTitleWithDiffCount()}
                     onUpdate={this.onToggleStateResult} size='l' defaultExpanded={this.props.shouldImageBeOpened}>
                     {this._drawFailImageControls()}
                     {this._drawUpdatedImageControls()}
