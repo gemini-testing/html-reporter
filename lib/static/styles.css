@@ -770,6 +770,13 @@ a:active {
     padding: 0 !important;
 }
 
+.bullet-container {
+    width: 19px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+}
+
 .bullet_type-checkbox {
     margin-right: 5px;
 }

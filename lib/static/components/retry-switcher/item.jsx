@@ -26,13 +26,35 @@ class RetrySwitcherItem extends Component {
     render() {
         const {status, attempt, isActive, onClick, title, keyToGroupTestsBy, matchedSelectedGroup} = this.props;
         const statusToView = {
-            success: 'flat-success',
-            updated: 'flat-success',
-            error: 'flat-danger',
-            fail: 'flat-utility',
+            success: {
+                view: 'flat-success',
+                selected: true
+            },
+            updated: {
+                view: 'flat-success',
+                selected: true
+            },
+            error: {
+                view: 'flat-danger',
+                selected: true
+            },
+            fail: {
+                view: 'flat-utility',
+                selected: true
+            },
             // eslint-disable-next-line camelcase
-            fail_error: 'flat-utility',
-            skipped: 'normal'
+            fail_error: {
+                view: 'flat-utility',
+                selected: true
+            },
+            skipped: {
+                view: 'normal',
+                selected: false
+            },
+            running: {
+                view: 'outlined',
+                selected: false
+            }
         };
 
         const className = classNames(
@@ -42,7 +64,7 @@ class RetrySwitcherItem extends Component {
             {'tab-switcher__button_non-matched': keyToGroupTestsBy && !matchedSelectedGroup}
         );
 
-        return <Button view={statusToView[status]} selected={status !== 'skipped'} title={title} className={className} onClick={onClick} qa='retry-switcher'>{attempt + 1}</Button>;
+        return <Button {...statusToView[status]} title={title} className={className} onClick={onClick} qa='retry-switcher'>{attempt + 1}</Button>;
     }
 }
 

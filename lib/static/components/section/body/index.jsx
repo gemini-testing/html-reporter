@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {Component, Fragment} from 'react';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import {isNumber} from 'lodash';
@@ -9,6 +9,7 @@ import Result from './result';
 import * as actions from '../../../modules/actions';
 import ExtensionPoint from '../../extension-point';
 import {RESULT} from '../../../../constants/extension-points';
+import {ArrowRotateLeft} from '@gravity-ui/icons';
 
 class Body extends Component {
     static propTypes = {
@@ -63,7 +64,10 @@ class Body extends Component {
             ? (
                 <div className="controls__item">
                     <ControlButton
-                        label="↻ Retry"
+                        label={<Fragment>
+                            <ArrowRotateLeft/>
+                            Retry
+                        </Fragment>}
                         isSuiteControl={true}
                         isDisabled={running}
                         handler={this.onTestRetry}

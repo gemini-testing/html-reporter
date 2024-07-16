@@ -86,6 +86,14 @@
     margin-right: 10px;
 }
 
+.g-button__text {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
 .controls__item > .button_type_suite-controls {
     margin-right: 0;
 }

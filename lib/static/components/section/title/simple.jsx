@@ -8,10 +8,10 @@ import * as actions from '../../../modules/actions';
 import {mkGetTestsBySuiteId} from '../../../modules/selectors/tree';
 import {getToggledCheckboxState} from '../../../../common-utils';
 import Bullet from '../../bullet';
-import { Button, ClipboardButton } from '@gravity-ui/uikit';
+import {Button, ClipboardButton, Spin} from '@gravity-ui/uikit';
 import {ArrowRotateLeft} from '@gravity-ui/icons';
 
-const SectionTitle = ({name, suiteId, handler, gui, checkStatus, suiteTests, actions}) => {
+const SectionTitle = ({name, suiteId, handler, gui, checkStatus, suiteTests, actions, running}) => {
     const onCopySuiteName = (e) => {
         e.stopPropagation();
 
@@ -42,7 +42,7 @@ const SectionTitle = ({name, suiteId, handler, gui, checkStatus, suiteTests, act
     );
 
     const drawRetryButton = () => (
-        <Button
+        running ? <Spin size='xs'/> : <Button
             view='flat'
             title="retry suite"
             onClick={onSuiteRetry}>
@@ -72,7 +72,8 @@ SectionTitle.propTypes = {
     suiteTests: PropTypes.arrayOf(PropTypes.shape({
         testName: PropTypes.string,
         browserName: PropTypes.string
-    })).isRequired
+    })).isRequired,
+    running: PropTypes.bool
 };
 
 export default connect(
@@ -81,6 +82,7 @@ export default connect(
 
         return (state, {suiteId}) => ({
             gui: state.gui,
+            running: state.running,
             checkStatus: state.tree.suites.stateById[suiteId].checkStatus,
             suiteTests: getTestsBySuiteId(state, {suiteId})
         });

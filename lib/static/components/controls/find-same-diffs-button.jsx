@@ -1,10 +1,11 @@
-import React, {Component} from 'react';
+import React, {Component, Fragment} from 'react';
 import {bindActionCreators} from 'redux';
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
 import * as actions from '../../modules/actions';
 import ControlButton from './control-button';
 import {getFailedOpenedImageIds} from '../../modules/selectors/tree';
+import {Magnifier} from '@gravity-ui/icons';
 
 class FindSameDiffsButton extends Component {
     static propTypes = {
@@ -26,7 +27,10 @@ class FindSameDiffsButton extends Component {
         const {isDisabled} = this.props;
 
         return <ControlButton
-            label="🔍 Find same diffs"
+            label={<Fragment>
+                <Magnifier/>
+                Find same diffs
+            </Fragment>}
             isSuiteControl={true}
             isDisabled={isDisabled}
             handler={this._findSameDiffs}

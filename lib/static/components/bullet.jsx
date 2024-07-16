@@ -16,16 +16,16 @@ const Bullet = ({status, onClick, className}) => {
     });
 
     if (!isCheckbox) {
-        return <ChevronUp className={classNames(className, 'bullet_type-simple')}/>;
+        return <div className='bullet-container'><ChevronUp className={classNames(className, 'bullet_type-simple')}/></div>;
     }
 
-    return <div onClick={handleClick}>
-            <Checkbox
+    return <div onClick={handleClick} className='bullet-container'>
+        <Checkbox
             className={classNames('bullet_type-checkbox', className)}
             checked={isCheckboxChecked(status)}
             indeterminate={isCheckboxIndeterminate(status)}
         />
-    </div>
+    </div>;
 };
 
 Bullet.propTypes = {

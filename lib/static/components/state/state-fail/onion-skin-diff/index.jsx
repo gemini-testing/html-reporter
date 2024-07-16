@@ -4,6 +4,7 @@ import withSyncedScale from '../../screenshot/with-synced-scale';
 import {imageType, syncedImageType} from '../prop-types';
 
 import './index.styl';
+import {Slider} from '@gravity-ui/uikit';
 
 const DEFAULT_IMAGE_TRANSPARENCY = 0.5;
 
@@ -18,8 +19,8 @@ class OnionSkinDiff extends Component {
 
     state = {imgTransparency: DEFAULT_IMAGE_TRANSPARENCY};
 
-    _handleChangeTransparency = (e) => {
-        return this.setState({imgTransparency: parseFloat(e.target.value)});
+    _handleChangeTransparency = (value) => {
+        return this.setState({imgTransparency: value});
     };
 
     render() {
@@ -33,7 +34,7 @@ class OnionSkinDiff extends Component {
                     <FullScreenshot className='onion-skin-diff__img' image={image2} imgRef={syncedImage2.containerRef} style={{width: syncedImage2.width, opacity: imgTransparency}} />
                 </div>
                 <div className="onion-skin-diff__footer">
-                    <input className='onion-skin-diff__slider' type="range" min={0} max={1} step={0.01} value={imgTransparency} onChange={this._handleChangeTransparency} />
+                    <Slider className="onion-skin-diff__slider" min={0} max={1} step={0.01} value={imgTransparency} onUpdate={this._handleChangeTransparency} />
                 </div>
             </div>
         );

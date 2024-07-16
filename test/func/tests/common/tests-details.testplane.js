@@ -6,9 +6,10 @@ describe('Test details', function() {
     });
 
     it('should show details', async ({browser}) => {
-        await browser.$('div*=test with long error message').waitForDisplayed();
+        const selector = getTestSectionByNameSelector('test with long error message');
+        await browser.$(selector).waitForDisplayed();
 
-        const erroredTestSection = await browser.$('div*=test with long error message').$('../..');
+        const erroredTestSection = await browser.$(selector).$('../..');
 
         await erroredTestSection.$('.details__summary').click();
 

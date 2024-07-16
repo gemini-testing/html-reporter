@@ -11,11 +11,11 @@ import StateSuccess from './state-success';
 import StateFail from './state-fail';
 import ControlButton from '../controls/control-button';
 import FindSameDiffsButton from '../controls/find-same-diffs-button';
-import ArrowsOpen from '../icons/arrows-open';
 import {types as modalTypes} from '../modals';
 import {isAcceptable, isNodeSuccessful, isScreenRevertable} from '../../modules/utils';
 import {isSuccessStatus, isFailStatus, isErrorStatus, isUpdatedStatus, isIdleStatus} from '../../../common-utils';
-import { Disclosure } from '@gravity-ui/uikit';
+import {Disclosure} from '@gravity-ui/uikit';
+import {ChevronsExpandUpRight, Check, ArrowUturnCcwDown} from '@gravity-ui/icons';
 
 class State extends Component {
     static propTypes = {
@@ -82,7 +82,10 @@ class State extends Component {
         return (
             <div className="state-controls">
                 <ControlButton
-                    label="✔ Accept"
+                    label={<Fragment>
+                        <Check/>
+                        Accept
+                    </Fragment>}
                     isSuiteControl={true}
                     isDisabled={isAcceptDisabled}
                     handler={this.onTestAccept}
@@ -94,7 +97,7 @@ class State extends Component {
                 />
                 <ControlButton
                     label={<Fragment>
-                        <ArrowsOpen />
+                        <ChevronsExpandUpRight />
                         Switch accept mode
                     </Fragment>}
                     title="Open mode with fast screenshot accepting"
@@ -118,7 +121,12 @@ class State extends Component {
         return (
             <div className="state-controls">
                 <ControlButton
-                    label="⎌ Undo"
+                    label={
+                        <Fragment>
+                            <ArrowUturnCcwDown/>
+                            Undo
+                        </Fragment>
+                    }
                     isSuiteControl={true}
                     handler={this.onScreenshotUndo}
                 />
@@ -132,7 +140,7 @@ class State extends Component {
         const percentThreshold = 0.01;
 
         if (percent < percentThreshold) {
-            return `< ${percentThreshold}`
+            return `< ${percentThreshold}`;
         }
 
         return String(percentRounded);
@@ -179,13 +187,18 @@ class State extends Component {
         return (
             <Fragment>
                 <hr className="tab__separator"/>
-                <Disclosure summary={this._getStateTitleWithDiffCount()} onUpdate={this.onToggleStateResult} size='l' defaultExpanded={this.props.shouldImageBeOpened}>
+                {this._getStateTitleWithDiffCount() ? <Disclosure summary={this._getStateTitleWithDiffCount()} 
+                    onUpdate={this.onToggleStateResult} size='l' defaultExpanded={this.props.shouldImageBeOpened}>
                     {this._drawFailImageControls()}
                     {this._drawUpdatedImageControls()}
                     {elem ? <div className='image-box__container'>{elem}</div> : null}
-                </Disclosure>
+                </Disclosure> : <Fragment>
+                    {this._drawFailImageControls()}
+                    {this._drawUpdatedImageControls()}
+                    {elem ? <div className='image-box__container'>{elem}</div> : null}
+                </Fragment>}
             </Fragment>
-        )
+        );
     }
 }
 

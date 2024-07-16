@@ -10,7 +10,28 @@ import {EXPAND_ALL} from '../../../../constants/expand-modes';
 import {getToggledCheckboxState} from '../../../../common-utils';
 import ViewInBrowserIcon from '../../icons/view-in-browser';
 import Bullet from '../../bullet';
-import { ClipboardButton } from '@gravity-ui/uikit';
+import {ActionTooltip, Button, CopyToClipboard} from '@gravity-ui/uikit';
+import {ArrowShapeTurnUpRight} from '@gravity-ui/icons';
+
+const ShareButtonComponent = ({status, ...rest}) => {
+    return (
+        <ActionTooltip
+            title={status === 'success' ? 'Copied' : 'Copy test link'}
+        >
+            <Button
+                view='flat'
+                extraProps={{
+                    'aria-label': 'Copy test link'
+                }}
+                {...rest}
+            >
+                <Button.Icon>
+                    <ArrowShapeTurnUpRight/>
+                </Button.Icon>
+            </Button>
+        </ActionTooltip>
+    );
+};
 
 const BrowserTitle = (props) => {
     const testUrl = React.useMemo(() => {
@@ -22,7 +43,7 @@ const BrowserTitle = (props) => {
             viewModes: ViewMode.ALL,
             expand: EXPAND_ALL
         });
-    }, [window.location.href, props.browserName, props.testName, props.retryIndex]);
+    }, [props.browserName, props.testName, props.retryIndex]);
 
     const onCopyTestLink = (e) => {
         e.stopPropagation();
@@ -44,11 +65,9 @@ const BrowserTitle = (props) => {
             <Bullet status={props.checkStatus} onClick={onToggleCheckbox} />
             {props.title}
             <ViewInBrowserIcon resultId={props.lastResultId}/>
-            <ClipboardButton
-                onClick={onCopyTestLink}
-                title="copy test link"
-                text={testUrl}>
-            </ClipboardButton>
+            <CopyToClipboard text={testUrl} timeout={1000}>
+                {(status) => <ShareButtonComponent onClick={onCopyTestLink} status={status}/>}
+            </CopyToClipboard>
         </div>
     );
 };
