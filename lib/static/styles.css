@@ -539,6 +539,10 @@ main.container {
     word-wrap: break-word;
 }
 
+.error__item .details__content {
+    font-family: monospace;
+}
+
 .state-button {
     font-family: inherit;
     font-size: 13px;
