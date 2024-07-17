@@ -57,8 +57,8 @@ class StateError extends Component {
         return null;
     }
 
-    _wrapInPreformatted = (html) => {
-        return html ? `<pre>${html}</pre>` : html;
+    _wrapInDiv = (html) => {
+        return html ? `<div>${html}</div>` : html;
     }
 
     _errorToElements(error) {
@@ -89,7 +89,7 @@ class StateError extends Component {
                     content = content.join('\n');
                 }
 
-                content = this._wrapInPreformatted(ansiHtml(escapeHtml(content)));
+                content = this._wrapInDiv(ansiHtml(escapeHtml(content)));
             } else {
                 titleText = <span>show more</span>;
                 content = isFunction(value) ? value : () => value;

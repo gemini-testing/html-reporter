@@ -507,7 +507,6 @@ main.container {
 .custom-icon_view-local{
     display: block;
     overflow: hidden;
-    white-space: nowrap;
     text-overflow: ellipsis;
 }
 
