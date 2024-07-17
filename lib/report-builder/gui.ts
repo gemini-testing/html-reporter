@@ -24,8 +24,9 @@ export interface GuiReportBuilderResult {
     tree: Tree;
     skips: SkipItem[];
     config: ConfigForStaticFile & {customGui: ReporterConfig['customGui']};
-    date: string;
+    timestamp: number;
     apiValues?: HtmlReporterValues;
+    date: string;
 }
 
 export class GuiReportBuilder extends StaticReportBuilder {
@@ -62,13 +63,16 @@ export class GuiReportBuilder extends StaticReportBuilder {
         const config = {...getConfigForStaticFile(this._reporterConfig), customGui};
 
         this._testsTree.sortTree();
+        const timestamp = Date.now();
 
         return {
             tree: this._testsTree.tree,
             skips: this._skips,
             config,
-            date: new Date().toString(),
-            apiValues: this._apiValues
+            apiValues: this._apiValues,
+            timestamp,
+            // TODO: remove in next major (should use timestamp instead)
+            date: new Date(timestamp).toString()
         };
     }
 
