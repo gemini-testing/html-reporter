@@ -4,13 +4,14 @@ import {defaultsDeep, set} from 'lodash';
 import {mkConnectedComponent} from 'test/unit/lib/static/components/utils';
 import {mkStateTree} from 'test/unit/lib/static/state-utils';
 import {CHECKED, UNCHECKED, INDETERMINATE} from 'lib/constants/checked-statuses';
-import { Checkbox } from '@gravity-ui/uikit';
+import { Checkbox, Spin } from '@gravity-ui/uikit';
+import { TestStatus } from 'lib/constants';
 
 describe('<SuiteTitle/>', () => {
     const sandbox = sinon.sandbox.create();
     let SuiteTitle, actionsStub, useLocalStorageStub, mkGetTestsBySuiteIdStub;
 
-    const mkSuiteTitleComponent = (checkStatus) => {
+    const mkSuiteTitleComponent = (checkStatus, status) => {
         const props = {
             name: 'suiteName',
             suiteId: 'suiteId',
@@ -18,6 +19,7 @@ describe('<SuiteTitle/>', () => {
         };
         const initialState = defaultsDeep(
             set({}, 'tree.suites.stateById.suiteId.checkStatus', checkStatus),
+            set({}, 'tree.suites.byId.suiteId.status', status),
             set({}, 'tree', mkStateTree),
             set({}, 'gui', true)
         );
@@ -37,6 +39,20 @@ describe('<SuiteTitle/>', () => {
                 '../hooks/useLocalStorage': {default: useLocalStorageStub}
             })
         }).default;
+    });
+
+    describe('<Spin/>', () => {
+        it('should show spinner if running', () => {
+            const component = mkSuiteTitleComponent(CHECKED, TestStatus.RUNNING);
+
+            assert.equal(component.find(Spin).length, 1);
+        });
+
+        it('should not show spinner if not running', () => {
+            const component = mkSuiteTitleComponent(CHECKED, TestStatus.IDLE);
+
+            assert.equal(component.find(Spin).length, 0);
+        });
     });
 
     describe('<Checkbox/>', () => {
