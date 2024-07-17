@@ -10,8 +10,9 @@ import {getToggledCheckboxState} from '../../../../common-utils';
 import Bullet from '../../bullet';
 import {Button, ClipboardButton, Spin} from '@gravity-ui/uikit';
 import {ArrowRotateLeft} from '@gravity-ui/icons';
+import {TestStatus} from '../../../../constants';
 
-const SectionTitle = ({name, suiteId, handler, gui, checkStatus, suiteTests, actions, running}) => {
+const SectionTitle = ({name, suiteId, handler, gui, checkStatus, suiteTests, actions, running, runningThis}) => {
     const onCopySuiteName = (e) => {
         e.stopPropagation();
 
@@ -42,10 +43,11 @@ const SectionTitle = ({name, suiteId, handler, gui, checkStatus, suiteTests, act
     );
 
     const drawRetryButton = () => (
-        running ? <Spin size='xs'/> : <Button
+        runningThis ? <Spin size='xs'/> : <Button
             view='flat'
             title="retry suite"
-            onClick={onSuiteRetry}>
+            onClick={onSuiteRetry}
+            disabled={running}>
             <Button.Icon>
                 <ArrowRotateLeft/>
             </Button.Icon>
@@ -73,19 +75,23 @@ SectionTitle.propTypes = {
         testName: PropTypes.string,
         browserName: PropTypes.string
     })).isRequired,
-    running: PropTypes.bool
+    running: PropTypes.bool,
+    runningThis: PropTypes.bool
 };
 
 export default connect(
     () => {
         const getTestsBySuiteId = mkGetTestsBySuiteId();
 
-        return (state, {suiteId}) => ({
-            gui: state.gui,
-            running: state.running,
-            checkStatus: state.tree.suites.stateById[suiteId].checkStatus,
-            suiteTests: getTestsBySuiteId(state, {suiteId})
-        });
+        return (state, {suiteId}) => {
+            return ({
+                gui: state.gui,
+                running: state.running,
+                runningThis: state.tree.suites.byId[suiteId].status === TestStatus.RUNNING,
+                checkStatus: state.tree.suites.stateById[suiteId].checkStatus,
+                suiteTests: getTestsBySuiteId(state, {suiteId})
+            });
+        };
     },
     (dispatch) => ({actions: bindActionCreators(actions, dispatch)})
 )(SectionTitle);
