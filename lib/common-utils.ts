@@ -11,7 +11,9 @@ import {
     SKIPPED,
     SUCCESS,
     TestStatus,
-    UPDATED
+    UPDATED,
+    STAGED,
+    COMMITED
 } from './constants';
 
 import {CHECKED, INDETERMINATE, UNCHECKED} from './constants/checked-statuses';
@@ -36,7 +38,7 @@ const statusPriority: TestStatus[] = [
     RUNNING, QUEUED,
 
     // final
-    ERROR, FAIL, UPDATED, SUCCESS, IDLE, SKIPPED
+    ERROR, FAIL, STAGED, COMMITED, UPDATED, SUCCESS, IDLE, SKIPPED
 ];
 
 export const logger = pick(console, ['log', 'warn', 'error']);
@@ -48,6 +50,8 @@ export const isRunningStatus = (status: TestStatus): boolean => status === RUNNI
 export const isErrorStatus = (status: TestStatus): boolean => status === ERROR;
 export const isSkippedStatus = (status: TestStatus): boolean => status === SKIPPED;
 export const isUpdatedStatus = (status: TestStatus): boolean => status === UPDATED;
+export const isStagedStatus = (status: TestStatus): boolean => status === STAGED;
+export const isCommitedStatus = (status: TestStatus): boolean => status === COMMITED;
 
 export const determineFinalStatus = (statuses: TestStatus[]): TestStatus | null => {
     if (!statuses.length) {

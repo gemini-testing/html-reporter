@@ -8,6 +8,7 @@ import {ROOT} from '../../constants/extension-points';
 import * as actions from '../modules/actions';
 import Loading from './loading';
 import StickyHeader from './sticky-header/report';
+import ModalContainer from '../containers/modal';
 import MainTree from './main-tree';
 import CustomScripts from './custom-scripts';
 import FaviconChanger from './favicon-changer';
@@ -54,6 +55,7 @@ class Report extends Component {
                     <main className="container">
                         <MainTree />
                     </main>
+                    <ModalContainer />
                     <BottomProgressBar />
                 </ExtensionPoint>
             </Fragment>

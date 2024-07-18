@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {bindActionCreators} from 'redux';
 import {connect} from 'react-redux';
-import {capitalize} from 'lodash';
+import {capitalize, pull} from 'lodash';
 import * as actions from '../../modules/actions';
 import ControlButton from './control-button';
 import ControlSelect from './selects/control';
@@ -26,6 +26,14 @@ class ControlButtons extends Component {
         actionsDict[value].call();
     }
     
+    _getShowTestsOptions() {
+        const viewModes = Object.values(ViewMode).map(value => ({value, content: capitalize(value)}));
+
+        return this.props.isStatisImageAccepterEnabled
+            ? viewModes
+            : viewModes.filter(viewMode => ![ViewMode.STAGED, ViewMode.COMMITED].includes(viewMode.value));
+    }
+
     render() {
         const {actions, view} = this.props;
 
@@ -36,7 +44,7 @@ class ControlButtons extends Component {
                     label="Show tests"
                     value={view.viewMode}
                     handler={actions.changeViewMode}
-                    options = {Object.values(ViewMode).map((value) => ({value, content: capitalize(value)}))}
+                    options = {this._getShowTestsOptions()}
                 />
                 <ControlSelect 
                     size='m'
@@ -73,6 +81,6 @@ class ControlButtons extends Component {
 }
 
 export default connect(
-    ({view}) => ({view}),
+    ({view, staticImageAccepter: {enabled}}) => ({view, isStatisImageAccepterEnabled: enabled}),
     (dispatch) => ({actions: bindActionCreators(actions, dispatch)})
 )(ControlButtons);

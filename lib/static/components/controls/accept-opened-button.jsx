@@ -8,13 +8,18 @@ import {getAcceptableOpenedImageIds} from '../../modules/selectors/tree';
 
 class AcceptOpenedButton extends Component {
     static propTypes = {
+        isSuiteContol: PropTypes.bool,
         // from store
         processing: PropTypes.bool.isRequired,
         acceptableOpenedImageIds: PropTypes.arrayOf(PropTypes.string).isRequired
     };
 
     _acceptOpened = () => {
-        this.props.actions.acceptOpened(this.props.acceptableOpenedImageIds);
+        if (this.props.isStaticImageAccepterEnabled) {
+            this.props.actions.staticAccepterStageScreenshot(this.props.acceptableOpenedImageIds);
+        } else {
+            this.props.actions.acceptOpened(this.props.acceptableOpenedImageIds);
+        }
     };
 
     render() {
@@ -24,6 +29,7 @@ class AcceptOpenedButton extends Component {
             label="Accept opened"
             isDisabled={!acceptableOpenedImageIds.length || processing}
             handler={this._acceptOpened}
+            isSuiteControl={this.props.isSuiteContol}
         />;
     }
 }
@@ -32,7 +38,8 @@ export default connect(
     (state) => {
         return {
             processing: state.processing,
-            acceptableOpenedImageIds: getAcceptableOpenedImageIds(state)
+            acceptableOpenedImageIds: getAcceptableOpenedImageIds(state),
+            isStaticImageAccepterEnabled: state.staticImageAccepter.enabled,
         };
     },
     (dispatch) => ({actions: bindActionCreators(actions, dispatch)})

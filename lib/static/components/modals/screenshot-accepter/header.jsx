@@ -9,6 +9,7 @@ import ControlSelect from '../../controls/selects/control';
 import RetrySwitcher from '../../retry-switcher';
 import {DiffModes} from '../../../../constants/diff-modes';
 import {ChevronsExpandUpRight, ArrowUturnCcwDown, ArrowUp, ArrowDown, Check} from '@gravity-ui/icons';
+import {staticImageAccepterPropType} from "../../../modules/static-image-accepter";
 
 export default class ScreenshotAccepterHeader extends Component {
     static propTypes = {
@@ -27,7 +28,9 @@ export default class ScreenshotAccepterHeader extends Component {
         onActiveImageChange: PropTypes.func.isRequired,
         onScreenshotAccept: PropTypes.func.isRequired,
         onScreenshotUndo: PropTypes.func.isRequired,
-        onShowMeta: PropTypes.func.isRequired
+        onShowMeta: PropTypes.func.isRequired,
+        onCommitChanges: PropTypes.func.isRequired,
+        staticImageAccepter: staticImageAccepterPropType
     };
 
     constructor(props) {
@@ -95,6 +98,11 @@ export default class ScreenshotAccepterHeader extends Component {
         event.preventDefault();
 
         const {images, retryIndex, onScreenshotAccept} = this.props;
+
+        if (retryIndex === null) {
+            return;
+        }
+
         const imageId = images[retryIndex].id;
 
         onScreenshotAccept(imageId);
@@ -108,11 +116,16 @@ export default class ScreenshotAccepterHeader extends Component {
 
     render() {
         const {actions, view, images, stateNameImageIds, retryIndex,
-            showMeta, onClose, onRetryChange, onShowMeta,
-            totalImages, acceptedImages
+            showMeta, onClose, onRetryChange, onShowMeta, onCommitChanges,
+            totalImages, acceptedImages, staticImageAccepter
         } = this.props;
         const resultIds = uniqBy(images, 'id').map((image) => image.parentId);
         const isArrowControlDisabed = stateNameImageIds.length <= 1;
+        const staticAccepterDelayedImages = staticImageAccepter.accepterDelayedImages.length;
+        const imagesToCommitCount = staticImageAccepter.imagesToCommitCount + staticAccepterDelayedImages;
+        const isUndoEnabled = staticImageAccepter.enabled
+            ? Boolean(staticImageAccepter.accepterDelayedImages.length)
+            : Boolean(acceptedImages);
 
         return (
             <Fragment>
@@ -157,7 +170,7 @@ export default class ScreenshotAccepterHeader extends Component {
                                 </Fragment>
                             }
                             title="Revert last updated screenshot"
-                            isDisabled={!acceptedImages}
+                            isDisabled={!isUndoEnabled}
                             isSuiteControl={true}
                             extendClassNames="screenshot-accepter__undo-btn"
                             handler={this.handleScreenUndo}
@@ -199,6 +212,13 @@ export default class ScreenshotAccepterHeader extends Component {
                             handler={onClose}
                             dataTestId="screenshot-accepter-switch-accept-mode"
                         />
+                        {staticImageAccepter.enabled && <ControlButton
+                            label={`Commit ${imagesToCommitCount} images`}
+                            title="Send request with imagesInfo to 'staticImageAccepter.serviceUrl'"
+                            isDisabled={imagesToCommitCount === 0}
+                            isSuiteControl={true}
+                            handler={onCommitChanges}
+                        />}
                         <ProgressBar done={acceptedImages} total={totalImages} dataTestId="screenshot-accepter-progress-bar"/>
                     </div>
                 </header>

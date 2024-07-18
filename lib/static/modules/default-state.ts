@@ -1,10 +1,9 @@
-'use strict';
-
-const {configDefaults} = require('../../constants/defaults');
-const {ViewMode} = require('../../constants/view-modes');
-const {DiffModes} = require('../../constants/diff-modes');
-const {EXPAND_ERRORS} = require('../../constants/expand-modes');
-const {RESULT_KEYS} = require('../../constants/group-tests');
+import {configDefaults} from '../../constants/defaults';
+import {ViewMode} from '../../constants/view-modes';
+import {DiffModes} from '../../constants/diff-modes';
+import {EXPAND_ERRORS} from '../../constants/expand-modes';
+import {RESULT_KEYS} from '../../constants/group-tests';
+import {ToolName} from '../../constants';
 
 export default Object.assign({config: configDefaults}, {
     gui: true,
@@ -48,6 +47,7 @@ export default Object.assign({config: configDefaults}, {
     },
     closeIds: [],
     apiValues: {
+        toolName: ToolName.Testplane,
         extraItems: {},
         metaInfoExtenders: {}
     },
@@ -80,5 +80,11 @@ export default Object.assign({config: configDefaults}, {
     progressBar: {
         currentRootSuiteId: null
     },
-    notifications: []
+    notifications: [],
+    staticImageAccepter: {
+        enabled: false,
+        acceptableImages: {},
+        accepterDelayedImages: [] as {imageId: string; stateName: string; stateNameImageId: string}[],
+        imagesToCommitCount: 0
+    }
 });

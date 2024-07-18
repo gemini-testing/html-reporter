@@ -221,7 +221,8 @@ export function getConfigForStaticFile(pluginConfig: ReporterConfig): ConfigForS
         'customScripts',
         'yandexMetrika',
         'pluginsEnabled',
-        'plugins'
+        'plugins',
+        'staticImageAccepter'
     ]);
 }
 

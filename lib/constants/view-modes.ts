@@ -4,4 +4,6 @@ export enum ViewMode {
     FAILED = 'failed',
     RETRIED = 'retried',
     SKIPPED = 'skipped',
+    STAGED = 'staged',
+    COMMITED = 'commited',
 }

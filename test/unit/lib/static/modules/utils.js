@@ -154,7 +154,7 @@ describe('static/modules/utils', () => {
                     const browsersById = mkBrowser({id: 'browser1', resultIds: ['result1']});
                     const resultsById = mkResult({id: 'result1', status});
 
-                    assert.isTrue(utils.isBrowserMatchViewMode(browsersById.browser1, resultsById.result1, ViewMode.FAILED));
+                    assert.isTrue(utils.isBrowserMatchViewMode(browsersById.browser1, resultsById.result1.status, ViewMode.FAILED));
                 });
             });
 
@@ -163,7 +163,7 @@ describe('static/modules/utils', () => {
                     const browsersById = mkBrowser({id: 'browser1', resultIds: ['result1']});
                     const resultsById = mkResult({id: 'result1', status});
 
-                    assert.isTrue(utils.isBrowserMatchViewMode(browsersById.browser1, resultsById.result1, viewMode));
+                    assert.isTrue(utils.isBrowserMatchViewMode(browsersById.browser1, resultsById.result1.status, viewMode));
                 });
             });
 
@@ -171,7 +171,7 @@ describe('static/modules/utils', () => {
                 const browsersById = mkBrowser({id: 'browser1', resultIds: ['result1', 'result2']});
                 const resultsById = mkResult({id: 'result2', status: IDLE});
 
-                assert.isTrue(utils.isBrowserMatchViewMode(browsersById.browser1, resultsById.result2, ViewMode.RETRIED));
+                assert.isTrue(utils.isBrowserMatchViewMode(browsersById.browser1, resultsById.result2.status, ViewMode.RETRIED));
             });
         });
 

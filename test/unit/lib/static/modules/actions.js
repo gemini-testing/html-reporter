@@ -8,9 +8,6 @@ import {LOCAL_DATABASE_NAME} from 'lib/constants/database';
 import {DiffModes} from 'lib/constants/diff-modes';
 import {ToolName} from 'lib/constants';
 
-// eslint-disable-next-line
-globalThis.performance = globalThis.performance; // node v14 stub
-
 describe('lib/static/modules/actions', () => {
     const sandbox = sinon.sandbox.create();
     let dispatch, actions, notify, getSuitesTableRows, getMainDatabaseUrl, connectToDatabaseStub, pluginsStub;
@@ -29,9 +26,9 @@ describe('lib/static/modules/actions', () => {
 
         actions = proxyquire('lib/static/modules/actions', {
             'reapop': {notify},
-            './database-utils': {getSuitesTableRows},
-            '../../db-utils/client': {getMainDatabaseUrl, connectToDatabase: connectToDatabaseStub},
-            './plugins': pluginsStub
+            '../database-utils': {getSuitesTableRows},
+            '../../../db-utils/client': {getMainDatabaseUrl, connectToDatabase: connectToDatabaseStub},
+            '../plugins': pluginsStub
         });
     });
 
@@ -187,11 +184,11 @@ describe('lib/static/modules/actions', () => {
             };
 
             actions = proxyquire('lib/static/modules/actions', {
-                '../../db-utils/client': {
+                '../../../db-utils/client': {
                     fetchDataFromDatabases: fetchDataFromDatabasesStub,
                     mergeDatabases: mergeDatabasesStub
                 },
-                './plugins': pluginsStub
+                '../plugins': pluginsStub
             });
         });
 

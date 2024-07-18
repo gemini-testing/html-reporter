@@ -12,8 +12,8 @@ import StateFail from './state-fail';
 import ControlButton from '../controls/control-button';
 import FindSameDiffsButton from '../controls/find-same-diffs-button';
 import {types as modalTypes} from '../modals';
-import {isAcceptable, isNodeSuccessful, isScreenRevertable} from '../../modules/utils';
-import {isSuccessStatus, isFailStatus, isErrorStatus, isUpdatedStatus, isIdleStatus} from '../../../common-utils';
+import {isAcceptable, isNodeStaged, isNodeSuccessful, isScreenRevertable} from '../../modules/utils';
+import {isSuccessStatus, isFailStatus, isErrorStatus, isUpdatedStatus, isIdleStatus, isStagedStatus, isCommitedStatus} from '../../../common-utils';
 import {Disclosure} from '@gravity-ui/uikit';
 import {ChevronsExpandUpRight, Check, ArrowUturnCcwDown} from '@gravity-ui/icons';
 
@@ -34,6 +34,7 @@ class State extends Component {
         }).isRequired,
         shouldImageBeOpened: PropTypes.bool.isRequired,
         isScreenshotAccepterDisabled: PropTypes.bool.isRequired,
+        isStaticImageAccepterEnabled: PropTypes.bool.isRequired,
         isLastResult: PropTypes.bool.isRequired
     };
 
@@ -59,21 +60,29 @@ class State extends Component {
     };
 
     onTestAccept = () => {
-        this.props.actions.acceptTest(this.props.imageId);
+        if (this.props.isStaticImageAccepterEnabled) {
+            this.props.actions.staticAccepterStageScreenshot([this.props.imageId]);
+        } else {
+            this.props.actions.acceptTest(this.props.imageId);
+        }
     };
 
     onScreenshotUndo = () => {
-        this.props.actions.undoAcceptImage(this.props.imageId);
+        if (this.props.isStaticImageAccepterEnabled) {
+            this.props.actions.staticAccepterUnstageScreenshot(this.props.imageId);
+        } else {
+            this.props.actions.undoAcceptImage(this.props.imageId);
+        }
     };
 
     _drawFailImageControls() {
-        if (!this.props.gui) {
+        if (!this.props.gui && !this.props.isStaticImageAccepterEnabled) {
             return null;
         }
 
-        const {node, imageId, result, isScreenshotAccepterDisabled} = this.props;
-        const isAcceptDisabled = !isAcceptable(node);
-        const isFindSameDiffDisabled = !isFailStatus(node.status);
+        const {node, imageId, result, isScreenshotAccepterDisabled, isStaticImageAccepterEnabled, isStaticAccepterAcceptDisabled} = this.props;
+        const isAcceptDisabled = !isAcceptable(node) || (isStaticImageAccepterEnabled && isStaticAccepterAcceptDisabled);
+        const isFindSameDiffDisabled = !isFailStatus(node.status) || isStaticImageAccepterEnabled;
 
         if (isAcceptDisabled && isFindSameDiffDisabled && isScreenshotAccepterDisabled) {
             return null;
@@ -113,9 +122,9 @@ class State extends Component {
     }
 
     _drawUpdatedImageControls() {
-        const {gui, image, isLastResult} = this.props;
+        const {gui, image, isLastResult, isStaticImageAccepterEnabled} = this.props;
 
-        if (!isScreenRevertable({image, gui, isLastResult})) {
+        if (!isScreenRevertable({image, gui, isLastResult, isStaticImageAccepterEnabled})) {
             return null;
         }
 
@@ -180,6 +189,8 @@ class State extends Component {
             elem = <StateError result={result} image={image} />;
         } else if (isSuccessStatus(status) || isUpdatedStatus(status) || (isIdleStatus(status) && get(image.expectedImg, 'path'))) {
             elem = <StateSuccess status={status} expectedImg={image.expectedImg} />;
+        } else if (isStagedStatus(status) || isCommitedStatus(status)) {
+            elem = <StateSuccess status={status} expectedImg={image.actualImg} />
         } else if (isFailStatus(status)) {
             elem = error
                 ? <StateError result={result} image={image} />
@@ -210,16 +221,19 @@ export default connect(
 
         return (state, {imageId, result}) => {
             const {gui, tree} = state;
+            const isStaticImageAccepterEnabled = state.staticImageAccepter.enabled;
             const image = tree.images.byId[imageId] || {};
             const shouldImageBeOpened = image.stateName ? tree.images.stateById[imageId].shouldBeOpened : true;
             const node = imageId ? image : result;
             const browser = state.tree.browsers.byId[result.parentId];
             const isLastResult = last(browser.resultIds) === result.id;
             let isScreenshotAccepterDisabled = true;
+            let isStaticAccepterAcceptDisabled = true;
 
-            if (gui && imageId) {
+            if ((gui || isStaticImageAccepterEnabled) && imageId) {
                 const lastImage = getLastImageByStateName(state, {imageId}) || {};
                 isScreenshotAccepterDisabled = isNodeSuccessful(lastImage) || !isAcceptable(node);
+                isStaticAccepterAcceptDisabled = (isNodeSuccessful(lastImage) && !isNodeStaged(lastImage)) || !isAcceptable(node);
             }
 
             return {
@@ -228,6 +242,8 @@ export default connect(
                 node,
                 shouldImageBeOpened,
                 isScreenshotAccepterDisabled,
+                isStaticImageAccepterEnabled,
+                isStaticAccepterAcceptDisabled,
                 isLastResult
             };
         };
