@@ -1,5 +1,6 @@
 import _ from 'lodash';
-import Testplane, {type Config} from 'testplane';
+import type Testplane from 'testplane';
+import type {Config} from 'testplane';
 import type {CommanderStatic} from '@gemini-testing/commander';
 
 import {TestplaneTestCollectionAdapter} from '../../test-collection/testplane';
@@ -41,6 +42,8 @@ type RunTestArgs = [TestplaneTestCollectionAdapter, TestSpec[], CommanderStatic]
 
 type Options = ToolAdapterOptionsFromCli | OptionsFromPlugin;
 
+const SUPPORTED_TOOLS = [ToolName.Testplane, 'hermione'];
+
 export class TestplaneToolAdapter implements ToolAdapter {
     private _toolName: ToolName;
     private _tool: TestplaneWithHtmlReporter;
@@ -65,7 +68,7 @@ export class TestplaneToolAdapter implements ToolAdapter {
         } else {
             // in order to not use static report with gui simultaneously
             process.env['html_reporter_enabled'] = false.toString();
-            this._tool = Testplane.create(opts.configPath) as TestplaneWithHtmlReporter;
+            this._tool = createTool(opts.configPath);
 
             const pluginOpts = getPluginOptions(this._tool.config);
             this._reporterConfig = parseConfig(pluginOpts);
@@ -183,7 +186,7 @@ export class TestplaneToolAdapter implements ToolAdapter {
 function getPluginOptions(config: Config): Partial<ReporterConfig> {
     const defaultOpts = {};
 
-    for (const toolName of [ToolName.Testplane, 'hermione']) {
+    for (const toolName of SUPPORTED_TOOLS) {
         const opts = _.get(config.plugins, `html-reporter/${toolName}`, defaultOpts);
 
         if (!_.isEmpty(opts)) {
@@ -192,6 +195,31 @@ function getPluginOptions(config: Config): Partial<ReporterConfig> {
     }
 
     return defaultOpts;
+}
+
+function createTool(configPath?: string): TestplaneWithHtmlReporter {
+    let tool!: TestplaneWithHtmlReporter;
+
+    for (const toolName of SUPPORTED_TOOLS) {
+        try {
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            const Tool = require(toolName).default;
+            tool = Tool.create(configPath) as TestplaneWithHtmlReporter;
+
+            break;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (err: any) {
+            if (err.code !== 'MODULE_NOT_FOUND') {
+                throw err;
+            }
+        }
+    }
+
+    if (!tool) {
+        throw new Error(`Cannot find any of these modules: ${SUPPORTED_TOOLS.join(', ')}`);
+    }
+
+    return tool;
 }
 
 function getReplModeOption(cliTool: CommanderStatic): ReplModeOption {
