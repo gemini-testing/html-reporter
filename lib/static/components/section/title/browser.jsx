@@ -1,5 +1,4 @@
 import React from 'react';
-import ClipboardButton from 'react-clipboard.js';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
@@ -11,9 +10,31 @@ import {EXPAND_ALL} from '../../../../constants/expand-modes';
 import {getToggledCheckboxState} from '../../../../common-utils';
 import ViewInBrowserIcon from '../../icons/view-in-browser';
 import Bullet from '../../bullet';
+import {ActionTooltip, Button, CopyToClipboard} from '@gravity-ui/uikit';
+import {ArrowShapeTurnUpRight} from '@gravity-ui/icons';
+
+const ShareButtonComponent = ({status, ...rest}) => {
+    return (
+        <ActionTooltip
+            title={status === 'success' ? 'Copied' : 'Copy test link'}
+        >
+            <Button
+                view='flat'
+                extraProps={{
+                    'aria-label': 'Copy test link'
+                }}
+                {...rest}
+            >
+                <Button.Icon>
+                    <ArrowShapeTurnUpRight/>
+                </Button.Icon>
+            </Button>
+        </ActionTooltip>
+    );
+};
 
 const BrowserTitle = (props) => {
-    const getTestUrl = () => {
+    const testUrl = React.useMemo(() => {
         return appendQuery(window.location.href, {
             browser: escapeRegExp(props.browserName),
             testNameFilter: escapeRegExp(props.testName),
@@ -22,7 +43,7 @@ const BrowserTitle = (props) => {
             viewModes: ViewMode.ALL,
             expand: EXPAND_ALL
         });
-    };
+    }, [props.browserName, props.testName, props.retryIndex]);
 
     const onCopyTestLink = (e) => {
         e.stopPropagation();
@@ -44,12 +65,9 @@ const BrowserTitle = (props) => {
             <Bullet status={props.checkStatus} onClick={onToggleCheckbox} />
             {props.title}
             <ViewInBrowserIcon resultId={props.lastResultId}/>
-            <ClipboardButton
-                className="button custom-icon custom-icon_share"
-                onClick={onCopyTestLink}
-                button-title="copy test link"
-                option-text={getTestUrl}>
-            </ClipboardButton>
+            <CopyToClipboard text={testUrl} timeout={1000}>
+                {(status) => <ShareButtonComponent onClick={onCopyTestLink} status={status}/>}
+            </CopyToClipboard>
         </div>
     );
 };

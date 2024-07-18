@@ -60,7 +60,7 @@ describe('<BrowserTitle/>', () => {
 
                 const component = mkBrowserTitleComponent({browserId: 'yabro'}, {tree});
 
-                assert.equal(component.find('.checkbox').exists(), show);
+                assert.equal(component.find('input[type="checkbox"]').exists(), show);
             });
         });
 
@@ -73,7 +73,7 @@ describe('<BrowserTitle/>', () => {
                 const tree = mkStateTree({browsersById, resultsById, browsersStateById});
                 const component = mkBrowserTitleComponent({browserId: 'yabro'}, {tree});
 
-                component.find('.checkbox').simulate('click');
+                component.find('input[type="checkbox"]').simulate('click');
 
                 assert.calledOnceWith(actionsStub.toggleBrowserCheckbox, {
                     suiteBrowserId: 'yabro',
@@ -91,7 +91,7 @@ describe('<BrowserTitle/>', () => {
             const tree = mkStateTree({browsersById, resultsById, browsersStateById});
 
             const component = mkBrowserTitleComponent({browserId: 'yabro'}, {tree});
-            component.find('ClipboardButton').simulate('click');
+            component.find('button').simulate('click');
 
             assert.calledOnce(actionsStub.copyTestLink);
             assert.calledWithExactly(actionsStub.copyTestLink);
@@ -104,9 +104,6 @@ describe('<BrowserTitle/>', () => {
             const tree = mkStateTree({browsersById, resultsById, browsersStateById});
 
             const component = mkBrowserTitleComponent({browserId: 'yabro', browserName: 'yabro'}, {tree});
-
-            // call prop to simulate click due to multiple requires in ClipboardButton
-            component.find('ClipboardButton').prop('option-text')();
 
             assert.calledOnce(queryParams.appendQuery);
             assert.calledWithExactly(queryParams.appendQuery, 'about:blank', {

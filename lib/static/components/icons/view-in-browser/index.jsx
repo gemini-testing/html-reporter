@@ -3,6 +3,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
+import {Eye, EyeSlash} from '@gravity-ui/icons';
 
 import * as actions from '../../../modules/actions';
 import {getUrlWithBase} from '../../../../common-utils';
@@ -27,13 +28,13 @@ class ViewInBrowser extends Component {
     render() {
         const {suiteUrl, baseHost, extendClassNames} = this.props;
         const className = classNames(
-            'fa view-in-browser',
-            suiteUrl ? 'fa-eye view-in-browser_active' : 'fa-eye-slash view-in-browser_disabled',
+            'view-in-browser',
+            suiteUrl ? 'view-in-browser_active' : 'view-in-browser_disabled',
             extendClassNames
         );
 
         if (!suiteUrl) {
-            return <i className={className} aria-hidden="true" />;
+            return <i className={className} aria-hidden="true"><EyeSlash color='black'/></i> ;
         }
 
         return (
@@ -44,7 +45,7 @@ class ViewInBrowser extends Component {
                 title="view in browser"
                 target="_blank"
                 data-test-id='view-in-browser'
-            />
+            ><Eye color='black'/></a>
         );
     }
 }

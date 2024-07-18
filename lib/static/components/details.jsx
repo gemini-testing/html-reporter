@@ -4,14 +4,16 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {isEmpty, isFunction} from 'lodash';
+import {Card, Disclosure} from '@gravity-ui/uikit';
 
 export default class Details extends Component {
     static propTypes = {
+        type: PropTypes.oneOf(['text', 'image']),
         title: PropTypes.oneOfType([PropTypes.element, PropTypes.string]).isRequired,
         content: PropTypes.oneOfType([PropTypes.func, PropTypes.string, PropTypes.element, PropTypes.array]).isRequired,
         extendClassNames: PropTypes.oneOfType([PropTypes.array, PropTypes.string]),
         onClick: PropTypes.func,
-        asHtml: PropTypes.bool,
+        asHtml: PropTypes.bool
     };
 
     state = {isOpened: false};
@@ -28,10 +30,14 @@ export default class Details extends Component {
         });
     };
 
+    stopPropagation = (e) => {
+        e.stopPropagation();
+    };
+
     _getContent() {
         const content = this.props.content;
 
-        return isFunction(content) ? content() : content
+        return isFunction(content) ? content() : content;
     }
 
     _renderContent() {
@@ -44,11 +50,11 @@ export default class Details extends Component {
 
         return <div className='details__content' {...extraProps}>
             {children}
-        </div>
+        </div>;
     }
 
     render() {
-        const {title, content, extendClassNames} = this.props;
+        const {type, title, content, extendClassNames} = this.props;
         const className = classNames(
             'details',
             extendClassNames
@@ -60,12 +66,23 @@ export default class Details extends Component {
                     {title}
                 </div>
             ) : (
-                <details className={className}>
-                    <summary className='details__summary' onClick={this.handleClick}>
-                        {title}
-                    </summary>
-                    {this._renderContent()}
-                </details>
+                <Disclosure className={className} onUpdate={this.handleClick}
+                    size='l'>
+                    <Disclosure.Summary>
+                        {(props, defaultButton) => (
+                            <div className={classNames(className, 'details__summary')} {...props}>
+                                <div className='details__expand-button' onClick={this.stopPropagation}>
+                                    {defaultButton}
+                                </div>
+                                {title}
+                            </div>
+                        )}
+                    </Disclosure.Summary>
+                    {type === 'image' ? this._renderContent() :
+                        <Card className='details__card' view='filled'>
+                            {this._renderContent()}
+                        </Card>}
+                </Disclosure>
             )
         );
     }

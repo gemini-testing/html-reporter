@@ -1,22 +1,9 @@
 import React from 'react';
 import {defaultsDeep, set} from 'lodash';
-import proxyquire from 'proxyquire';
+import History from 'lib/static/components/section/body/history'; 
 import {mkConnectedComponent} from '../../utils';
 
 describe('<History />', () => {
-    const sandbox = sinon.sandbox.create();
-    let History, Details;
-
-    beforeEach(() => {
-        Details = sinon.stub().returns(null);
-
-        History = proxyquire('lib/static/components/section/body/history', {
-            '../../../details': {default: Details}
-        }).default;
-    });
-
-    afterEach(() => sandbox.restore());
-
     const mkHistoryComponent = (props = {}, initialState = {}) => {
         props = defaultsDeep(props, {
             resultId: 'default-result'
@@ -28,24 +15,26 @@ describe('<History />', () => {
     it('should not render if history does not exists', () => {
         const initialState = set({}, 'tree.results.byId.default-result', {});
 
-        mkHistoryComponent({resultId: 'default-result'}, initialState);
+        const component = mkHistoryComponent({resultId: 'default-result'}, initialState);
 
-        assert.notCalled(Details);
+        assert.equal(component.find('.history').length, 0);
     });
 
     it('should render history if exists', () => {
-        const initialState = set({}, 'tree.results.byId.default-result.history', 'some-history');
+        const initialState = set({}, 'tree.results.byId.default-result.history', ['some-history']);
 
         const component = mkHistoryComponent({resultId: 'default-result'}, initialState);
 
-        assert.equal(component.find(Details).prop('content'), 'some-history');
+        component.find('.details__summary').simulate('click');
+
+        assert.equal(component.find('.history-item').text(), 'some-history');
     });
 
     it('should render with "History" title', () => {
-        const initialState = set({}, 'tree.results.byId.default-result.history', 'some-history');
+        const initialState = set({}, 'tree.results.byId.default-result.history', ['some-history']);
 
         const component = mkHistoryComponent({resultId: 'default-result'}, initialState);
 
-        assert.equal(component.find(Details).prop('title'), 'History');
+        assert.equal(component.find('.details__summary').text(), 'History');
     });
 });

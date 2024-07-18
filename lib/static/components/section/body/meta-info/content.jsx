@@ -1,19 +1,10 @@
 import path from 'path';
-import React, { Component, Fragment } from 'react';
-import { connect } from 'react-redux';
-import { ClipboardButton } from '@gravity-ui/uikit';
+import React, {Component} from 'react';
+import {connect} from 'react-redux';
+import {DefinitionList} from '@gravity-ui/components';
 import PropTypes from 'prop-types';
-import { map, mapValues, isObject, omitBy, isEmpty } from 'lodash';
-import { isUrl, getUrlWithBase } from '../../../../../common-utils';
-
-const mkTextWithClipboardButton = (text, url) => {
-    return <Fragment>
-        {url ? <a data-suite-view-link={url} className="custom-icon_view-local" target="_blank" href={url}>
-            {text || url}
-        </a> : text}
-        <ClipboardButton text={url || text} size='s' className='copy-button' />
-    </Fragment>;
-}
+import {map, mapValues, isObject, omitBy, isEmpty} from 'lodash';
+import {isUrl, getUrlWithBase} from '../../../../../common-utils';
 
 const serializeMetaValues = (metaInfo) => mapValues(metaInfo, (v) => isObject(v) ? JSON.stringify(v) : v);
 
@@ -34,25 +25,34 @@ const resolveUrl = (baseUrl, value) => {
 };
 
 const metaToElements = (metaInfo, metaInfoBaseUrls) => {
-    return map(metaInfo, (value, key) => {
-        if (isUrl(value)) {
-            value = mkTextWithClipboardButton(value, value);
-        } else if (metaInfoBaseUrls[key]) {
-            const baseUrl = metaInfoBaseUrls[key];
-            const link = isUrl(baseUrl) ? resolveUrl(baseUrl, value) : path.join(baseUrl, value);
-            value = mkTextWithClipboardButton(value, link);
-        } else if (typeof value === 'boolean') {
-            value = value.toString();
-        }
-        else if (typeof value === 'string') {
-            value = mkTextWithClipboardButton(value);
-        }
+    return <DefinitionList className='meta-info' itemClassName='meta-info__item' items={
+        map(metaInfo, (value, key) => {
+            let url = value.url;
+            value = value.content;
 
-        return <div key={key} className="meta-info__item">
-            <span className="meta-info__item-key">{key}: </span>
-            <div className="meta-info__item-value">{value}</div>
-        </div>;
-    });
+            if (isUrl(value)) {
+                url = value;
+            } else if (metaInfoBaseUrls[key]) {
+                const baseUrl = metaInfoBaseUrls[key];
+                const link = isUrl(baseUrl) ? resolveUrl(baseUrl, value) : path.join(baseUrl, value);
+                url = link;
+            } else if (typeof value === 'boolean') {
+                value = value.toString();
+            }
+
+            if (url) {
+                value = <a data-suite-view-link={url} className="custom-icon_view-local" target="_blank" href={url} rel="noreferrer">
+                    {value}
+                </a>;
+            }
+
+            return {
+                name: key,
+                content: <div className="meta-info__item-value">{value}</div>,
+                copyText: url || value
+            };
+        })
+    }/>;
 };
 
 class MetaInfoContent extends Component {
@@ -73,17 +73,17 @@ class MetaInfoContent extends Component {
     };
 
     getExtraMetaInfo = () => {
-        const { testName, apiValues: { extraItems, metaInfoExtenders } } = this.props;
+        const {testName, apiValues: {extraItems, metaInfoExtenders}} = this.props;
 
         return omitBy(mapValues(metaInfoExtenders, (extender) => {
             const stringifiedFn = extender.startsWith('return') ? extender : `return ${extender}`;
 
-            return new Function(stringifiedFn)()({ testName }, extraItems);
+            return new Function(stringifiedFn)()({testName}, extraItems);
         }), isEmpty);
     };
 
     render() {
-        const { result, metaInfoBaseUrls, baseHost } = this.props;
+        const {result, metaInfoBaseUrls, baseHost} = this.props;
 
         const serializedMetaValues = serializeMetaValues(result.metaInfo);
         const extraMetaInfo = this.getExtraMetaInfo();
@@ -91,8 +91,12 @@ class MetaInfoContent extends Component {
             ...serializedMetaValues,
             ...extraMetaInfo
         };
+        Object.keys(formattedMetaInfo).forEach((key) => {
+            formattedMetaInfo[key] = {content: formattedMetaInfo[key]};
+        });
+
         if (result.suiteUrl) {
-            formattedMetaInfo.url = mkTextWithClipboardButton(result.metaInfo.url, getUrlWithBase(result.suiteUrl, baseHost));
+            formattedMetaInfo.url = {content: result.metaInfo.url || result.suiteUrl, url: getUrlWithBase(result.suiteUrl, baseHost)};
         }
 
         return metaToElements(formattedMetaInfo, metaInfoBaseUrls);
@@ -100,7 +104,7 @@ class MetaInfoContent extends Component {
 }
 
 export default connect(
-    ({ tree, config: { metaInfoBaseUrls }, apiValues, view }, { resultId }) => {
+    ({tree, config: {metaInfoBaseUrls}, apiValues, view}, {resultId}) => {
         const result = tree.results.byId[resultId];
         const browser = tree.browsers.byId[result.parentId];
 

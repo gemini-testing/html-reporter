@@ -58,14 +58,19 @@ describe('<MetaInfoContent />', () => {
                 baz: ((data, extraItems) => `${data.testName}_${extraItems.baz}`).toString()
             }
         };
-        const expectedMetaInfo = ['foo: bar', 'baz: some-suite_qux', 'url: some-url'];
+        const expectedMetaInfo = [
+            ['foo', 'bar'],
+            ['baz', 'some-suite_qux'],
+            ['url', 'some-url']
+        ];
 
         const component = mkMetaInfoContentComponent({resultId: 'some-result'}, {tree, apiValues});
         const metaItems = component.find('.meta-info__item');
 
         assert.equal(metaItems.length, expectedMetaInfo.length);
         metaItems.forEach((node, i) => {
-            assert.equal(node.text(), expectedMetaInfo[i]);
+            assert.equal(node.find('.gc-definition-list__term-wrapper').text(), expectedMetaInfo[i][0]);
+            assert.equal(node.find('.gc-definition-list__definition').text(), expectedMetaInfo[i][1]);
         });
     });
 
@@ -92,9 +97,9 @@ describe('<MetaInfoContent />', () => {
             }
         };
         const expectedMetaInfo = [
-            'foo1: {"bar":"baz"}',
-            'foo2: [{"bar":"baz"}]',
-            'url: some-url'
+            ['foo1', '{"bar":"baz"}'],
+            ['foo2', '[{"bar":"baz"}]'],
+            ['url', 'some-url']
         ];
 
         const component = mkMetaInfoContentComponent({resultId: 'some-result'}, {tree});
@@ -102,7 +107,8 @@ describe('<MetaInfoContent />', () => {
 
         assert.equal(metaItems.length, expectedMetaInfo.length);
         metaItems.forEach((node, i) => {
-            assert.equal(node.text(), expectedMetaInfo[i]);
+            assert.equal(node.find('.gc-definition-list__term-wrapper').text(), expectedMetaInfo[i][0]);
+            assert.equal(node.find('.gc-definition-list__definition').text(), expectedMetaInfo[i][1]);
         });
     });
 
@@ -129,9 +135,9 @@ describe('<MetaInfoContent />', () => {
             }
         };
         const expectedMetaInfo = [
-            'foo1: true',
-            'foo2: false',
-            'url: some-url'
+            ['foo1', 'true'],
+            ['foo2', 'false'],
+            ['url', 'some-url']
         ];
 
         const component = mkMetaInfoContentComponent({resultId: 'some-result'}, {tree});
@@ -139,7 +145,8 @@ describe('<MetaInfoContent />', () => {
 
         assert.equal(metaItems.length, expectedMetaInfo.length);
         metaItems.forEach((node, i) => {
-            assert.equal(node.text(), expectedMetaInfo[i]);
+            assert.equal(node.find('.gc-definition-list__term-wrapper').text(), expectedMetaInfo[i][0]);
+            assert.equal(node.find('.gc-definition-list__definition').text(), expectedMetaInfo[i][1]);
         });
     });
 
@@ -223,7 +230,8 @@ describe('<MetaInfoContent />', () => {
             const config = {metaInfoBaseUrls: stub.metaInfoBaseUrls};
             const component = mkMetaInfoContentComponent({resultId: 'some-result'}, {tree, config});
 
-            assert.equal(component.find('.meta-info__item:first-child').text(), `file: ${stub.metaInfo.file}`);
+            assert.equal(component.find('.meta-info__item:first-child .gc-definition-list__term-wrapper').text(), `file`);
+            assert.equal(component.find('.meta-info__item:first-child .gc-definition-list__definition').text(), `${stub.metaInfo.file}`);
             assert.equal(component.find('.meta-info__item:first-child a').prop('href'), stub.expectedFileUrl);
         });
     });

@@ -16,7 +16,7 @@ const getImageSectionSelector = (status) => `//div[contains(text(), '${status}')
 const getElementWithTextSelector = (tagName, text) => `//${tagName}[contains(normalize-space(),'${text}')]`;
 
 /** Returns <details> element which has summary containing name */
-const getSpoilerByNameSelector = (name) => `details[.//summary[contains(text(), "${name}")]]`;
+const getSpoilerByNameSelector = (name) => `section[.//div[contains(text(), "${name}")]]`;
 
 const hideHeader = async (browser) => {
     await browser.execute(() => {

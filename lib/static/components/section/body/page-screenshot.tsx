@@ -10,9 +10,9 @@ interface PageScreenshotProps {
 export class PageScreenshot extends Component<PageScreenshotProps> {
     render(): JSX.Element {
         return <Details
+            type='image'
             title="Page screenshot"
             content={(): JSX.Element => <ResizedScreenshot image={this.props.image}/>}
-            extendClassNames="details_type_image"
         />;
     }
 }

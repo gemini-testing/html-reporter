@@ -103,7 +103,7 @@ describe('<StateError/> component', () => {
     });
 
     describe('error snippet', () => {
-        it('should be rendered in preformatted tags', () => {
+        it('should be rendered in div tags', () => {
             const error = {snippet: `\x1B[90m   . | // /some-file-path.js\x1B[39m")}
                 . |
                 9 | some line
@@ -113,9 +113,9 @@ describe('<StateError/> component', () => {
             const component = mkStateErrorComponent({result: {error}});
             component.find('.details__summary').last().simulate('click');
 
-            assert.isTrue(component.find('.details__content').html().startsWith('<div class="details__content"><pre>'));
+            assert.isTrue(component.find('.details__content').html().startsWith('<div class="details__content"><div>'));
             assert.isTrue(component.find('.details__content').html().includes('some line'));
-            assert.isTrue(component.find('.details__content').html().endsWith('</pre></div>'));
+            assert.isTrue(component.find('.details__content').html().endsWith('</div></div>'));
         });
 
         it('should resolve colors', () => {

@@ -1,7 +1,7 @@
 import React from 'react';
 import proxyquire from 'proxyquire';
 import {defaultsDeep, set} from 'lodash';
-import {Checkbox} from 'semantic-ui-react';
+import {Checkbox} from '@gravity-ui/uikit';
 import {CHECKED, UNCHECKED, INDETERMINATE} from 'lib/constants/checked-statuses';
 import {isCheckboxChecked} from 'lib/common-utils';
 import {mkConnectedComponent} from 'test/unit/lib/static/components/utils';

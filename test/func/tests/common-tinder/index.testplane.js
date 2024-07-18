@@ -67,7 +67,7 @@ describe('Tinder mode', () => {
         });
 
         it('should create a successful retry', async ({browser}) => {
-            const retrySwitcher = await browser.$(`(//button[@data-test-id="retry-switcher"])[last()]`);
+            const retrySwitcher = await browser.$(`(//button[@data-qa="retry-switcher"])[last()]`);
             await hideScreenshots(browser);
 
             await retrySwitcher.assertView('retry-switcher');
@@ -84,7 +84,7 @@ describe('Tinder mode', () => {
             await retryButton.waitForClickable({reverse: true, timeout: 10000});
             await retryButton.waitForClickable({timeout: 10000});
 
-            const retrySwitcher = await browser.$(`(//button[@data-test-id="retry-switcher"])[last()]`);
+            const retrySwitcher = await browser.$(`(//button[@data-qa="retry-switcher"])[last()]`);
             await hideScreenshots(browser);
 
             await retrySwitcher.assertView('retry-switcher');

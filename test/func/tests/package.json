@@ -16,5 +16,8 @@
     "testplane:plugins": "PROJECT_UNDER_TEST=plugins SERVER_PORT=8064 npx testplane --set plugins",
     "testplane:testplane-tinder": "PROJECT_UNDER_TEST=testplane-gui SERVER_PORT=8084 npx testplane --set common-tinder",
     "test": "run-s testplane:*"
+  },
+  "devDependencies": {
+    "@gravity-ui/components": "^3.7.0"
   }
 }

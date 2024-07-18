@@ -4,13 +4,15 @@ import React from 'react';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import PropTypes from 'prop-types';
-import ClipboardButton from 'react-clipboard.js';
 import * as actions from '../../../modules/actions';
 import {mkGetTestsBySuiteId} from '../../../modules/selectors/tree';
 import {getToggledCheckboxState} from '../../../../common-utils';
 import Bullet from '../../bullet';
+import {Button, ClipboardButton, Spin} from '@gravity-ui/uikit';
+import {ArrowRotateLeft} from '@gravity-ui/icons';
+import {TestStatus} from '../../../../constants';
 
-const SectionTitle = ({name, suiteId, handler, gui, checkStatus, suiteTests, actions}) => {
+const SectionTitle = ({name, suiteId, handler, gui, checkStatus, suiteTests, actions, running, runningThis}) => {
     const onCopySuiteName = (e) => {
         e.stopPropagation();
 
@@ -35,18 +37,21 @@ const SectionTitle = ({name, suiteId, handler, gui, checkStatus, suiteTests, act
     const drawCopyButton = () => (
         <ClipboardButton
             onClick={onCopySuiteName}
-            className="button custom-icon custom-icon_copy-to-clipboard"
-            button-title="copy to clipboard"
-            data-clipboard-text={suiteId}>
+            title="copy to clipboard"
+            text={suiteId}>
         </ClipboardButton>
     );
 
     const drawRetryButton = () => (
-        <button
-            className="button custom-icon custom-icon_retry"
+        runningThis ? <Spin size='xs'/> : <Button
+            view='flat'
             title="retry suite"
-            onClick={onSuiteRetry}>
-        </button>
+            onClick={onSuiteRetry}
+            disabled={running}>
+            <Button.Icon>
+                <ArrowRotateLeft/>
+            </Button.Icon>
+        </Button>
     );
 
     return (
@@ -69,18 +74,24 @@ SectionTitle.propTypes = {
     suiteTests: PropTypes.arrayOf(PropTypes.shape({
         testName: PropTypes.string,
         browserName: PropTypes.string
-    })).isRequired
+    })).isRequired,
+    running: PropTypes.bool,
+    runningThis: PropTypes.bool
 };
 
 export default connect(
     () => {
         const getTestsBySuiteId = mkGetTestsBySuiteId();
 
-        return (state, {suiteId}) => ({
-            gui: state.gui,
-            checkStatus: state.tree.suites.stateById[suiteId].checkStatus,
-            suiteTests: getTestsBySuiteId(state, {suiteId})
-        });
+        return (state, {suiteId}) => {
+            return ({
+                gui: state.gui,
+                running: state.running,
+                runningThis: state.tree.suites.byId[suiteId].status === TestStatus.RUNNING,
+                checkStatus: state.tree.suites.stateById[suiteId].checkStatus,
+                suiteTests: getTestsBySuiteId(state, {suiteId})
+            });
+        };
     },
     (dispatch) => ({actions: bindActionCreators(actions, dispatch)})
 )(SectionTitle);

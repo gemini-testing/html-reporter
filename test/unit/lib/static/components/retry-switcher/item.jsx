@@ -58,8 +58,8 @@ describe('<RetrySwitcherItem />', () => {
 
                 const component = mkRetrySwitcherItem({resultId: 'result-1', isActive: true}, initialState);
 
-                assert.lengthOf(component.find('.tab-switcher__button'), 1);
-                assert.lengthOf(component.find(`.tab-switcher__button_status_${FAIL}`), 1);
+                assert.lengthOf(component.find('button.tab-switcher__button'), 1);
+                assert.lengthOf(component.find(`button.tab-switcher__button_status_${FAIL}`), 1);
             });
         });
 
@@ -77,8 +77,8 @@ describe('<RetrySwitcherItem />', () => {
 
             const component = mkRetrySwitcherItem({resultId: 'result-1', isActive: true}, initialState);
 
-            assert.lengthOf(component.find('.tab-switcher__button'), 1);
-            assert.lengthOf(component.find(`.tab-switcher__button_status_${FAIL}_${ERROR}`), 1);
+            assert.lengthOf(component.find('button.tab-switcher__button'), 1);
+            assert.lengthOf(component.find(`button.tab-switcher__button_status_${FAIL}_${ERROR}`), 1);
         });
 
         it('without non matched class if group is not selected', () => {
@@ -94,8 +94,8 @@ describe('<RetrySwitcherItem />', () => {
 
             const component = mkRetrySwitcherItem({resultId: 'result-1'}, initialState);
 
-            assert.lengthOf(component.find('.tab-switcher__button'), 1);
-            assert.lengthOf(component.find('.tab-switcher__button_non-matched'), 0);
+            assert.lengthOf(component.find('button.tab-switcher__button'), 1);
+            assert.lengthOf(component.find('button.tab-switcher__button_non-matched'), 0);
         });
 
         it('without non matched class if group is selected and result is matched on it', () => {
@@ -111,8 +111,8 @@ describe('<RetrySwitcherItem />', () => {
 
             const component = mkRetrySwitcherItem({resultId: 'result-1'}, initialState);
 
-            assert.lengthOf(component.find('.tab-switcher__button'), 1);
-            assert.lengthOf(component.find('.tab-switcher__button_non-matched'), 0);
+            assert.lengthOf(component.find('button.tab-switcher__button'), 1);
+            assert.lengthOf(component.find('button.tab-switcher__button_non-matched'), 0);
         });
 
         it('with non matched class if group is selected but result is not matched on it', () => {
@@ -128,8 +128,8 @@ describe('<RetrySwitcherItem />', () => {
 
             const component = mkRetrySwitcherItem({resultId: 'result-1'}, initialState);
 
-            assert.lengthOf(component.find('.tab-switcher__button'), 1);
-            assert.lengthOf(component.find('.tab-switcher__button_non-matched'), 1);
+            assert.lengthOf(component.find('button.tab-switcher__button'), 1);
+            assert.lengthOf(component.find('button.tab-switcher__button_non-matched'), 1);
         });
     });
 
@@ -146,7 +146,7 @@ describe('<RetrySwitcherItem />', () => {
         };
 
         const component = mkRetrySwitcherItem({resultId: 'result-1'}, initialState);
-        const text = component.find('.tab-switcher__button').text();
+        const text = component.find('button.tab-switcher__button').text();
 
         assert.equal(text, 100500);
     });
@@ -154,15 +154,15 @@ describe('<RetrySwitcherItem />', () => {
     it('should render button with correct active class name', () => {
         const component = mkRetrySwitcherItem({isActive: true});
 
-        assert.lengthOf(component.find('.tab-switcher__button'), 1);
-        assert.lengthOf(component.find('.tab-switcher__button_active'), 1);
+        assert.lengthOf(component.find('button.tab-switcher__button'), 1);
+        assert.lengthOf(component.find('button.tab-switcher__button_active'), 1);
     });
 
     it('should call "onClick" handler on click in button', () => {
         const onClick = sinon.stub();
 
         const component = mkRetrySwitcherItem({onClick});
-        component.find('.tab-switcher__button').simulate('click');
+        component.find('button.tab-switcher__button').simulate('click');
 
         assert.calledOnceWith(onClick);
     });

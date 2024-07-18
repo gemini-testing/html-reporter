@@ -13,6 +13,6 @@ export default class ErrorDetails extends Component {
         const {title, filePath} = this.props.errorDetails;
         const content = <div className="toggle-open__item"><a href={filePath} target="_blank">{title}</a></div>;
 
-        return <Details title='Error details' content={content} extendClassNames='details_type_text'/>;
+        return <Details type='text' title='Error details' content={content}/>;
     }
 }

@@ -5,16 +5,33 @@ import {isEmpty} from 'lodash';
 import Details from '../../../details';
 
 import './index.styl';
+import {List} from '@gravity-ui/uikit';
 
-const History = ({history}) => (
-    isEmpty(history)
-        ? null
-        : <Details
-            title='History'
-            content={history}
-            extendClassNames='details_type_text history'
-        />
-);
+const History = ({history}) => {
+    const renderHistoryItem = (item) => {
+        const [name, time] = item.split(' <- ');
+        return (
+            <div className='history-item'>
+                <span className='history-item__name'>{name}</span>
+                <span className='history-item__time'>{time}</span>
+            </div>
+        );
+    };
+    return (
+        isEmpty(history)
+            ? null
+            : <Details
+                type='text'
+                title='History'
+                content={
+                    <div style={{display: `flex`}}>
+                        <List items={history} renderItem={renderHistoryItem} filterable={false} virtualized={false}/>
+                    </div>
+                }
+                extendClassNames='history'
+            />
+    );
+};
 
 History.propTypes = {
     resultId: PropTypes.string.isRequired,
@@ -24,6 +41,5 @@ History.propTypes = {
 
 export default connect(({tree}, {resultId}) => {
     const {history = []} = tree.results.byId[resultId];
-
     return {history};
 })(History);

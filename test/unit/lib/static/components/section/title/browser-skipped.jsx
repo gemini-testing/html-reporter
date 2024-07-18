@@ -46,7 +46,7 @@ describe('<BrowserSkippedTitle/>', () => {
 
                 const component = mkBrowserSkippedTitleComponent({browserId: 'yabro'}, {tree});
 
-                assert.equal(component.find('.checkbox').exists(), show);
+                assert.equal(component.find('input[type="checkbox"]').exists(), show);
             });
         });
 
@@ -59,7 +59,7 @@ describe('<BrowserSkippedTitle/>', () => {
                 const tree = mkStateTree({browsersById, resultsById, browsersStateById});
                 const component = mkBrowserSkippedTitleComponent({browserId: 'yabro'}, {tree});
 
-                component.find('.checkbox').simulate('click');
+                component.find('input[type="checkbox"]').simulate('click');
 
                 assert.calledOnceWith(actionsStub.toggleBrowserCheckbox, {
                     suiteBrowserId: 'yabro',

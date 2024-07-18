@@ -1,21 +1,16 @@
 import YandexMetrika from 'lib/static/modules/yandex-metrika';
 import actionNames from 'lib/static/modules/action-names';
-import webVitals from 'lib/static/modules/web-vitals';
+import proxyquire from 'proxyquire';
 
 // eslint-disable-next-line
 globalThis.performance = globalThis.performance; // node v14 stub
 
 describe('lib/static/modules/middlewares/metrika', () => {
     const sandbox = sinon.sandbox.create();
-    let next, metrikaMiddleware;
+    let next, metrikaMiddleware, measurePerformanceStub;
 
     const mkStore_ = (state = {}) => {
         return {getState: sandbox.stub().returns(state)};
-    };
-
-    const requireUncached_ = (module) => {
-        delete require.cache[require.resolve(module)];
-        return require(module).default;
     };
 
     const initReportWithMetrikaCounter = ({eventName = actionNames.INIT_GUI_REPORT, store = mkStore_()} = {}) => {
@@ -31,15 +26,18 @@ describe('lib/static/modules/middlewares/metrika', () => {
 
     beforeEach(() => {
         next = sandbox.stub();
+        measurePerformanceStub = sandbox.stub();
 
-        metrikaMiddleware = requireUncached_('lib/static/modules/middlewares/metrika');
+        metrikaMiddleware = proxyquire.noPreserveCache().noCallThru()('lib/static/modules/middlewares/metrika', {
+            '../web-vitals': {
+                measurePerformance: measurePerformanceStub
+            }
+        }).default;
 
         sandbox.stub(YandexMetrika, 'create').returns(Object.create(YandexMetrika.prototype));
         sandbox.stub(YandexMetrika.prototype, 'acceptScreenshot');
         sandbox.stub(YandexMetrika.prototype, 'acceptOpenedScreenshots');
         sandbox.stub(YandexMetrika.prototype, 'sendVisitParams');
-
-        sandbox.stub(webVitals, 'measurePerformance');
     });
 
     afterEach(() => sandbox.restore());
@@ -84,7 +82,7 @@ describe('lib/static/modules/middlewares/metrika', () => {
 
                     metrikaMiddleware(YandexMetrika)(store)(next)(action);
 
-                    assert.notCalled(webVitals.measurePerformance);
+                    assert.notCalled(measurePerformanceStub);
                 });
             });
 
@@ -125,7 +123,7 @@ describe('lib/static/modules/middlewares/metrika', () => {
                 describe('measure site performance', () => {
                     it('should send some performance info to y.metrika with rounded value', () => {
                         const action = {type: eventName, payload};
-                        webVitals.measurePerformance.callsFake(cb => cb({name: 'XXX', value: 100.999}));
+                        measurePerformanceStub.callsFake(cb => cb({name: 'XXX', value: 100.999}));
 
                         metrikaMiddleware(YandexMetrika)(store)(next)(action);
 
@@ -134,7 +132,7 @@ describe('lib/static/modules/middlewares/metrika', () => {
 
                     it('should send "CLS" performance info to y.metrika with multiplied by 1000 value', () => {
                         const action = {type: eventName, payload};
-                        webVitals.measurePerformance.callsFake(cb => cb({name: 'CLS', value: 0.99999}));
+                        measurePerformanceStub.callsFake(cb => cb({name: 'CLS', value: 0.99999}));
 
                         metrikaMiddleware(YandexMetrika)(store)(next)(action);
 

@@ -4,7 +4,7 @@
     ],
     "presets": [
         "@babel/preset-react",
-        ["@babel/preset-env", { "modules": "commonjs"}],
+        ["@babel/preset-env", { "modules": "auto"}],
         "@babel/preset-typescript"
     ],
     "sourceMaps": true,

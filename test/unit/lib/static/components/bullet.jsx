@@ -39,28 +39,28 @@ describe('<Bullet />', () => {
         it('should be "checked" if status is CHECKED', () => {
             const component = mount(<Bullet status={CHECKED} />);
 
-            assert.isTrue(component.find('.checkbox.checked').exists());
+            assert.isTrue(component.find('.g-checkbox_checked').exists());
         });
 
         it('should be "indeterminate" if status is INDETERMINATE', () => {
             const component = mount(<Bullet status={INDETERMINATE} />);
 
-            assert.isTrue(component.find('.checkbox.indeterminate').exists());
+            assert.isTrue(component.find('.g-checkbox_indeterminate').exists());
         });
 
         it('should be "unchecked" if status is UNCHECKED', () => {
             const component = mount(<Bullet status={UNCHECKED} />);
 
-            assert.isTrue(component.find('.checkbox').exists());
-            assert.isFalse(component.find('.checkbox').hasClass('checked'));
-            assert.isFalse(component.find('.checkbox').hasClass('indeterminate'));
+            assert.isTrue(component.find('label.g-checkbox').exists());
+            assert.isFalse(component.find('label.g-checkbox').hasClass('.g-checkbox_checked'));
+            assert.isFalse(component.find('label.g-checkbox').hasClass('.g-checkbox_indeterminate'));
         });
 
         it('should call "onClick" callback', () => {
             const onClickStub = sandbox.stub();
             const component = mount(<Bullet onClick={onClickStub} />);
 
-            component.find('.checkbox').simulate('click');
+            component.find('label.g-checkbox').simulate('click');
 
             assert.calledOnce(onClickStub);
         });

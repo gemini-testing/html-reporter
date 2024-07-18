@@ -4,12 +4,11 @@ import PropTypes from 'prop-types';
 import {uniqBy} from 'lodash';
 
 import ProgressBar from '../../progress-bar';
-import Arrow from '../../icons/arrow';
-import ArrowsClose from '../../icons/arrows-close';
 import ControlButton from '../../controls/control-button';
 import ControlSelect from '../../controls/selects/control';
 import RetrySwitcher from '../../retry-switcher';
 import {DiffModes} from '../../../../constants/diff-modes';
+import {ChevronsExpandUpRight, ArrowUturnCcwDown, ArrowUp, ArrowDown, Check} from '@gravity-ui/icons';
 
 export default class ScreenshotAccepterHeader extends Component {
     static propTypes = {
@@ -121,7 +120,7 @@ export default class ScreenshotAccepterHeader extends Component {
                 <header className="screenshot-accepter__header container">
                     <div className="screenshot-accepter__controls state-controls">
                         <ControlButton
-                            label={<Arrow />}
+                            label={<ArrowUp />}
                             title="Show previous image (↑,w)"
                             isSuiteControl={true}
                             isDisabled={isArrowControlDisabed}
@@ -129,7 +128,7 @@ export default class ScreenshotAccepterHeader extends Component {
                             handler={this.handlePrevScreenshot}
                         />
                         <ControlButton
-                            label={<Arrow />}
+                            label={<ArrowDown />}
                             title="Show next image (↓,s)"
                             isSuiteControl={true}
                             isDisabled={isArrowControlDisabed}
@@ -137,7 +136,12 @@ export default class ScreenshotAccepterHeader extends Component {
                             handler={this.handleNextScreenshot}
                         />
                         <ControlButton
-                            label="✔ Accept"
+                            label={
+                                <Fragment>
+                                    <Check/>
+                                    Accept
+                                </Fragment>
+                            }
                             title="Accept image (Space,Enter)"
                             isSuiteControl={true}
                             isDisabled={images.length === 0}
@@ -146,7 +150,12 @@ export default class ScreenshotAccepterHeader extends Component {
                             dataTestId="screenshot-accepter-accept"
                         />
                         <ControlButton
-                            label="⎌ Undo"
+                            label={
+                                <Fragment>
+                                    <ArrowUturnCcwDown/>
+                                    Undo
+                                </Fragment>
+                            }
                             title="Revert last updated screenshot"
                             isDisabled={!acceptedImages}
                             isSuiteControl={true}
@@ -164,11 +173,12 @@ export default class ScreenshotAccepterHeader extends Component {
                             handler={onShowMeta}
                         />
                         <ControlSelect
+                            size="m"
                             label="Diff mode"
                             value={view.diffMode}
                             handler={actions.changeDiffMode}
                             options = {Object.values(DiffModes).map((dm) => {
-                                return {value: dm.id, text: dm.title};
+                                return {value: dm.id, content: dm.title};
                             })}
                             extendClassNames="screenshot-accepter__diff-mode-select"
                         />
@@ -180,7 +190,7 @@ export default class ScreenshotAccepterHeader extends Component {
                         />
                         <ControlButton
                             label={<Fragment>
-                                <ArrowsClose />
+                                <ChevronsExpandUpRight />
                                 Switch accept mode
                             </Fragment>}
                             title="Close mode with fast screenshot accepting (Escape)"

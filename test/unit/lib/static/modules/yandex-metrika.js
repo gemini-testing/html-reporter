@@ -1,4 +1,4 @@
-const YandexMetrika = require('lib/static/modules/yandex-metrika');
+import YandexMetrika from 'lib/static/modules/yandex-metrika';
 
 describe('YandexMetrika', () => {
     const sandbox = sinon.createSandbox();

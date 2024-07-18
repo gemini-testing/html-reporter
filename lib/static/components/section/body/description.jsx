@@ -16,9 +16,9 @@ export default class Description extends Component {
 
     render() {
         return <Details
+            type='text'
             title='Description'
             content={this._renderDescription}
-            extendClassNames='details_type_text'
         />;
     }
 }
