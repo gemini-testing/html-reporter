@@ -36,6 +36,7 @@ const SectionTitle = ({name, suiteId, handler, gui, checkStatus, suiteTests, act
 
     const drawCopyButton = () => (
         <ClipboardButton
+            size='s'
             onClick={onCopySuiteName}
             title="copy to clipboard"
             text={suiteId}>
@@ -44,6 +45,7 @@ const SectionTitle = ({name, suiteId, handler, gui, checkStatus, suiteTests, act
 
     const drawRetryButton = () => (
         runningThis ? <Spin size='xs'/> : <Button
+            size='s'
             view='flat'
             title="retry suite"
             onClick={onSuiteRetry}
