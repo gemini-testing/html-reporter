@@ -67,13 +67,17 @@
   "license": "MIT",
   "peerDependencies": {
     "hermione": ">=8.0.0",
-    "testplane": "*"
+    "testplane": "*",
+    "playwright": "*"
   },
   "peerDependenciesMeta": {
     "hermione": {
       "optional": true
     },
     "testplane": {
+      "optional": true
+    },
+    "playwright": {
       "optional": true
     }
   },
