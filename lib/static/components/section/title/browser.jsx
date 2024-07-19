@@ -19,6 +19,7 @@ const ShareButtonComponent = ({status, ...rest}) => {
             title={status === 'success' ? 'Copied' : 'Copy test link'}
         >
             <Button
+                size='s'
                 view='flat'
                 extraProps={{
                     'aria-label': 'Copy test link'
@@ -26,7 +27,7 @@ const ShareButtonComponent = ({status, ...rest}) => {
                 {...rest}
             >
                 <Button.Icon>
-                    <ArrowShapeTurnUpRight/>
+                    <ArrowShapeTurnUpRight width={16} height={16}/>
                 </Button.Icon>
             </Button>
         </ActionTooltip>

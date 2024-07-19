@@ -307,7 +307,6 @@ main.container {
     font-weight: bold;
     cursor: pointer;
     color: var(--text-color);
-    margin-bottom: 5px;
     display: flex;
     align-items: center;
     gap: 2px;
