@@ -230,15 +230,20 @@ export interface DataForStaticFile {
     skips: object[];
     config: ConfigForStaticFile;
     apiValues: HtmlReporter['values'];
+    timestamp: number;
     date: string;
 }
 
 export function getDataForStaticFile(htmlReporter: HtmlReporter, pluginConfig: ReporterConfig): DataForStaticFile {
+    const timestamp = Date.now();
+
     return {
         skips: [],
         config: getConfigForStaticFile(pluginConfig),
         apiValues: htmlReporter.values,
-        date: new Date().toString()
+        timestamp,
+        // TODO: remove in next major (should use timestamp instead)
+        date: new Date(timestamp).toString()
     };
 }
 

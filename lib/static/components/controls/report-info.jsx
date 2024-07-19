@@ -1,11 +1,14 @@
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
+import {Label} from '@gravity-ui/uikit';
+import {isEmpty} from 'lodash';
 import {version} from '../../../../package.json';
-import { Label } from '@gravity-ui/uikit';
 
 class ReportInfo extends Component {
     render() {
-        const {gui, date} = this.props;
+        const {gui, timestamp} = this.props;
+        const lang = isEmpty(navigator.languages) ? navigator.language : navigator.languages[0];
+        const date = new Date(timestamp).toLocaleString(lang);
 
         return (
             <div className="report-info">
@@ -23,5 +26,5 @@ class ReportInfo extends Component {
 }
 
 export default connect(
-    ({gui, date}) => ({gui, date})
+    ({gui, timestamp}) => ({gui, timestamp})
 )(ReportInfo);
