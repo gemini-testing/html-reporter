@@ -6,7 +6,7 @@ import {ValueOf} from 'type-fest';
 
 import {getCommandsHistory} from '../../history-utils';
 import {ERROR, FAIL, SUCCESS, TestStatus, UNKNOWN_SESSION_ID, UPDATED} from '../../constants';
-import {getError, hasFailedImages, isImageDiffError, isNoRefImageError, wrapLinkByTag} from '../../common-utils';
+import {getError, hasUnrelatedToScreenshotsErrors, isImageDiffError, isNoRefImageError, wrapLinkByTag} from '../../common-utils';
 import {
     ErrorDetails,
     TestplaneSuite,
@@ -32,7 +32,7 @@ export const getStatus = (eventName: ValueOf<Testplane['events']>, events: Testp
     } else if (eventName === events.TEST_PENDING) {
         return TestStatus.SKIPPED;
     } else if (eventName === events.RETRY || eventName === events.TEST_FAIL) {
-        return hasFailedImages(testResult.assertViewResults as ImageInfoFull[]) ? TestStatus.FAIL : TestStatus.ERROR;
+        return hasUnrelatedToScreenshotsErrors(testResult.err!) ? TestStatus.ERROR : TestStatus.FAIL;
     } else if (eventName === events.TEST_BEGIN) {
         return TestStatus.RUNNING;
     }

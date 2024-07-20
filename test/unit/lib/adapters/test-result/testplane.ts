@@ -6,13 +6,29 @@ import tmpOriginal from 'tmp';
 
 import {TestStatus} from 'lib/constants/test-statuses';
 import {ERROR_DETAILS_PATH} from 'lib/constants/paths';
-import {TestplaneTestResultAdapter, TestplaneTestResultAdapterOptions} from 'lib/adapters/test-result/testplane';
+import {TestplaneTestResultAdapter, TestplaneTestResultAdapterOptions, getStatus} from 'lib/adapters/test-result/testplane';
 import {TestplaneTestResult} from 'lib/types';
 import * as originalUtils from 'lib/server-utils';
 import * as originalCommonUtils from 'lib/common-utils';
 import * as originalTestAdapterUtils from 'lib/adapters/test-result/utils';
 
+import type Testplane from 'testplane';
 import type {ReporterTestResult} from 'lib/adapters/test-result';
+
+describe('getStatus', () => {
+    it('should be "error" if test has both: runtime errors and assertview fails', () => {
+        const status = getStatus(
+            'failTest',
+            {TEST_FAIL: 'failTest'} as Testplane['events'],
+            {
+                assertViewResults: [{}, {}],
+                err: {name: 'foo', message: 'bar'}
+            } as TestplaneTestResult
+        );
+
+        assert.equal(status, TestStatus.ERROR);
+    });
+});
 
 describe('TestplaneTestResultAdapter', () => {
     const sandbox = sinon.sandbox.create();
