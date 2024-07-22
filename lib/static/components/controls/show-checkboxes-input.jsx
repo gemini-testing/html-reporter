@@ -1,9 +1,8 @@
 'use strict';
 
 import React from 'react';
-import {Checkbox} from 'semantic-ui-react';
 import useLocalStorage from '../../hooks/useLocalStorage';
-import { Switch } from '@gravity-ui/uikit';
+import {Switch} from '@gravity-ui/uikit';
 
 const ShowCheckboxesInput = () => {
     const [showCheckboxes, setShowCheckboxes] = useLocalStorage('showCheckboxes', false);

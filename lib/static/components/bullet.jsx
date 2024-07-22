@@ -31,7 +31,8 @@ const Bullet = ({status, onClick, className}) => {
 Bullet.propTypes = {
     status: PropTypes.oneOf([CHECKED, UNCHECKED, INDETERMINATE]),
     onClick: PropTypes.func,
-    bulletClassName: PropTypes.string
+    bulletClassName: PropTypes.string,
+    className: PropTypes.string
 };
 
 export default Bullet;

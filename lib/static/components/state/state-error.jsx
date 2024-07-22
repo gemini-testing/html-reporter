@@ -6,23 +6,23 @@ import {bindActionCreators} from 'redux';
 import PropTypes from 'prop-types';
 import {isEmpty, map, isFunction} from 'lodash';
 import ReactHtmlParser from 'react-html-parser';
-import escapeHtml from "escape-html";
-import ansiHtml from "ansi-html-community";
+import escapeHtml from 'escape-html';
+import ansiHtml from 'ansi-html-community';
 import * as actions from '../../modules/actions';
 import ResizedScreenshot from './screenshot/resized';
 import ErrorDetails from './error-details';
 import Details from '../details';
 import {ERROR_TITLE_TEXT_LENGTH} from '../../../constants/errors';
 import {isAssertViewError, isImageDiffError, isNoRefImageError, mergeSnippetIntoErrorStack, trimArray} from '../../../common-utils';
-import { Card } from '@gravity-ui/uikit';
+import {Card} from '@gravity-ui/uikit';
 
 ansiHtml.setColors({
-    reset: ["#", "#"],
-    cyan: "ff6188",
-    yellow: "5cb008",
-    magenta: "8e81cd",
-    green: "aa8720",
-})
+    reset: ['#', '#'],
+    cyan: 'ff6188',
+    yellow: '5cb008',
+    magenta: '8e81cd',
+    green: 'aa8720'
+});
 
 class StateError extends Component {
     static propTypes = {
@@ -59,7 +59,7 @@ class StateError extends Component {
 
     _wrapInDiv = (html) => {
         return html ? `<div>${html}</div>` : html;
-    }
+    };
 
     _errorToElements(error) {
         if (isEmpty(error)) {
@@ -96,7 +96,7 @@ class StateError extends Component {
             }
 
             const title = <Fragment><span className="error__item-key">{key}: </span>{titleText}</Fragment>;
-            const asHtml = typeof content === "string";
+            const asHtml = typeof content === 'string';
 
             return <Details
                 key={key}

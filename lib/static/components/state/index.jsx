@@ -21,7 +21,8 @@ class State extends Component {
     static propTypes = {
         result: PropTypes.shape({
             status: PropTypes.string.isRequired,
-            error: PropTypes.object
+            error: PropTypes.object,
+            parentId: PropTypes.string
         }).isRequired,
         imageId: PropTypes.string,
         // from store
@@ -30,12 +31,21 @@ class State extends Component {
             status: PropTypes.string,
             error: PropTypes.object,
             stateName: PropTypes.string,
-            expectedImg: PropTypes.object
+            expectedImg: PropTypes.object,
+            actualImg: PropTypes.object,
+            diffRatio: PropTypes.number,
+            differentPixels: PropTypes.number
         }).isRequired,
+        node: PropTypes.shape({
+            error: PropTypes.object,
+            status: PropTypes.string
+        }),
         shouldImageBeOpened: PropTypes.bool.isRequired,
         isScreenshotAccepterDisabled: PropTypes.bool.isRequired,
         isStaticImageAccepterEnabled: PropTypes.bool.isRequired,
-        isLastResult: PropTypes.bool.isRequired
+        isStaticAccepterAcceptDisabled: PropTypes.bool,
+        isLastResult: PropTypes.bool.isRequired,
+        actions: PropTypes.object.isRequired
     };
 
     toggleModal = () => {
@@ -158,7 +168,7 @@ class State extends Component {
     }
 
     _getStateTitleWithDiffCount() {
-        const {image, shouldImageBeOpened} = this.props;
+        const {image} = this.props;
 
         if (!image.stateName) {
             return null;
@@ -190,7 +200,7 @@ class State extends Component {
         } else if (isSuccessStatus(status) || isUpdatedStatus(status) || (isIdleStatus(status) && get(image.expectedImg, 'path'))) {
             elem = <StateSuccess status={status} expectedImg={image.expectedImg} />;
         } else if (isStagedStatus(status) || isCommitedStatus(status)) {
-            elem = <StateSuccess status={status} expectedImg={image.actualImg} />
+            elem = <StateSuccess status={status} expectedImg={image.actualImg} />;
         } else if (isFailStatus(status)) {
             elem = error
                 ? <StateError result={result} image={image} />

@@ -116,7 +116,7 @@ describe('<RunButton />', () => {
 
         it('should switch to "Run checked tests" if there are checked tests', () => {
             selectorsStub.getCheckedTests.returns([{testName: 'testName', browserName: 'browserName'}]);
-            const component = mkConnectedComponent(<RunButton />, {
+            mkConnectedComponent(<RunButton />, {
                 initialState: {tree: {suites: {allRootIds: ['suite']}}, processing: false}
             });
 
@@ -132,8 +132,8 @@ describe('<RunButton />', () => {
             const component = mkConnectedComponent(<RunButton />, {
                 initialState: {tree: {suites: {allRootIds: ['suite']}}, processing: false}
             });
-            component.first().find('button.g-select-control__button').simulate('click')
-            component.first().findWhere(node => node.text() == 'All Tests' && node.hasClass('g-list__item')).simulate('click');
+            component.first().find('button.g-select-control__button').simulate('click');
+            component.first().findWhere(node => node.text() === 'All Tests' && node.hasClass('g-list__item')).simulate('click');
             assert.calledWith(writeValueStub, 'All');
         });
 
@@ -143,8 +143,8 @@ describe('<RunButton />', () => {
                 initialState: {tree: {suites: {allRootIds: ['suite']}}, processing: false}
             });
 
-            component.first().find('button.g-select-control__button').simulate('click')
-            component.first().findWhere(node => node.text() == 'Failed Tests' && node.hasClass('g-list__item')).simulate('click');
+            component.first().find('button.g-select-control__button').simulate('click');
+            component.first().findWhere(node => node.text() === 'Failed Tests' && node.hasClass('g-list__item')).simulate('click');
             assert.calledOnceWith(writeValueStub, 'Failed');
         });
 
@@ -154,8 +154,8 @@ describe('<RunButton />', () => {
                 initialState: {tree: {suites: {allRootIds: ['suite']}}, processing: false}
             });
 
-            component.first().find('button.g-select-control__button').simulate('click')
-            component.first().findWhere(node => node.text() == 'Checked Tests' && node.hasClass('g-list__item')).simulate('click');
+            component.first().find('button.g-select-control__button').simulate('click');
+            component.first().findWhere(node => node.text() === 'Checked Tests' && node.hasClass('g-list__item')).simulate('click');
             assert.calledWith(writeValueStub, 'Checked');
         });
     });

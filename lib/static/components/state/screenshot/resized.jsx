@@ -17,6 +17,7 @@ class ResizedScreenshot extends Component {
     }
 
     static propTypes = {
+        style: PropTypes.object,
         image: PropTypes.shape({
             path: PropTypes.string.isRequired,
             size: PropTypes.shape({
@@ -27,7 +28,8 @@ class ResizedScreenshot extends Component {
         diffClusters: PropTypes.array,
         overrideWidth: PropTypes.number,
         // from withEncodeUri
-        imageUrl: PropTypes.string.isRequired
+        imageUrl: PropTypes.string.isRequired,
+        className: PropTypes.string
     };
 
     _getScreenshotComponent(elem, diffClusters) {

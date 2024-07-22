@@ -16,6 +16,7 @@ class SectionBrowser extends Component {
         browserId: PropTypes.string.isRequired,
         // from store
         browser: PropTypes.shape({
+            id: PropTypes.string.isRequired,
             name: PropTypes.string.isRequired,
             resultIds: PropTypes.arrayOf(PropTypes.string).isRequired,
             parentId: PropTypes.string.isRequired
@@ -31,7 +32,8 @@ class SectionBrowser extends Component {
         shouldBeShown: PropTypes.bool.isRequired,
         shouldBeOpened: PropTypes.bool.isRequired,
         // from SectionCommonWrapper
-        sectionStatusResolver: PropTypes.func.isRequired
+        sectionStatusResolver: PropTypes.func.isRequired,
+        actions: PropTypes.object.isRequired
     };
 
     onToggleSection = () => {

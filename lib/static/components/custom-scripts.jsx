@@ -1,7 +1,8 @@
 import React, {useEffect, useRef} from 'react';
+import PropTypes from 'prop-types';
 import {isEmpty} from 'lodash';
 
-export default function CustomScripts(props) {
+function CustomScripts(props) {
     const {scripts} = props;
 
     if (isEmpty(scripts)) {
@@ -21,3 +22,9 @@ export default function CustomScripts(props) {
 
     return <div className="custom-scripts" ref={ref}></div>;
 }
+
+CustomScripts.propTypes = {
+    scripts: PropTypes.array.isRequired
+};
+
+export default CustomScripts;

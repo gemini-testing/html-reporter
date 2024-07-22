@@ -2,6 +2,7 @@
 
 import {extend, isNumber} from 'lodash';
 import React from 'react';
+import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 
 import {getVisibleRootSuiteIds} from '../../modules/selectors/tree';
@@ -32,6 +33,11 @@ const BottomProgressBar = (props) => {
             </div>
         </div>
     );
+};
+
+BottomProgressBar.propTypes = {
+    progressBar: PropTypes.object.isRequired,
+    visibleRootSuiteIds: PropTypes.arrayOf(PropTypes.number)
 };
 
 export default connect(

@@ -78,7 +78,8 @@ SectionTitle.propTypes = {
         browserName: PropTypes.string
     })).isRequired,
     running: PropTypes.bool,
-    runningThis: PropTypes.bool
+    runningThis: PropTypes.bool,
+    actions: PropTypes.object.isRequired
 };
 
 export default connect(

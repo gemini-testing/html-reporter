@@ -9,10 +9,13 @@ import ControlSelect from '../../controls/selects/control';
 import RetrySwitcher from '../../retry-switcher';
 import {DiffModes} from '../../../../constants/diff-modes';
 import {ChevronsExpandUpRight, ArrowUturnCcwDown, ArrowUp, ArrowDown, Check} from '@gravity-ui/icons';
-import {staticImageAccepterPropType} from "../../../modules/static-image-accepter";
+import {staticImageAccepterPropType} from '../../../modules/static-image-accepter';
 
 export default class ScreenshotAccepterHeader extends Component {
     static propTypes = {
+        view: PropTypes.shape({
+            diffMode: PropTypes.string.isRequired
+        }),
         images: PropTypes.arrayOf(PropTypes.shape({
             id: PropTypes.string,
             parentId: PropTypes.string
@@ -30,7 +33,8 @@ export default class ScreenshotAccepterHeader extends Component {
         onScreenshotUndo: PropTypes.func.isRequired,
         onShowMeta: PropTypes.func.isRequired,
         onCommitChanges: PropTypes.func.isRequired,
-        staticImageAccepter: staticImageAccepterPropType
+        staticImageAccepter: staticImageAccepterPropType,
+        actions: PropTypes.object.isRequired
     };
 
     constructor(props) {

@@ -35,6 +35,9 @@ describe('<ScreenshotAccepter/>', () => {
     };
 
     const mkScreenshotAccepterComponent = (props = {}, initialState = {}) => {
+        if (!global.Element.prototype.scrollTo) {
+            global.Element.prototype.scrollTo = () => {}; // scrollTo isn't implemented in JSDOM
+        }
         props = defaults(props, {
             image: mkImage(),
             onClose: sandbox.stub()

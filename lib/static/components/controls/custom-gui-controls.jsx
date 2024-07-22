@@ -1,6 +1,7 @@
 'use strict';
 
 import React, {PureComponent} from 'react';
+import PropTypes from 'prop-types';
 import {bindActionCreators} from 'redux';
 import {connect} from 'react-redux';
 import {isEmpty, map} from 'lodash';
@@ -9,6 +10,18 @@ import {Button} from 'semantic-ui-react';
 import * as actions from '../../modules/actions';
 
 class CustomGuiControls extends PureComponent {
+    static propTypes = {
+        actions: PropTypes.object.isRequired,
+        customGui: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.shape({
+            type: PropTypes.string,
+            controls: PropTypes.arrayOf(PropTypes.shape({
+                label: PropTypes.string,
+                value: PropTypes.string,
+                active: PropTypes.bool
+            }))
+        }))).isRequired
+    };
+
     _renderButtons(opts) {
         const {sectionName, groupIndex, controls} = opts;
         const {actions} = this.props;

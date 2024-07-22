@@ -3,12 +3,11 @@
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
-import {Dropdown} from 'semantic-ui-react';
 import {isEmpty} from 'lodash';
 import ExtensionPoint from '../extension-point';
 import * as plugins from '../../modules/plugins';
 import {MENU_BAR} from '../../../constants/extension-points';
-import { Button, DropdownMenu, Icon, Menu } from '@gravity-ui/uikit';
+import {Button, DropdownMenu, Icon, Menu} from '@gravity-ui/uikit';
 import {Bars} from '@gravity-ui/icons';
 import classNames from 'classnames';
 
@@ -37,7 +36,7 @@ class MenuBar extends Component {
             <div className="menu-bar" data-test-id='menu-bar'>
                 <DropdownMenu size='m' renderSwitcher={({className, ...props}) => (
                     <Button className={classNames('menu-bar__dropdown', className)}{...props} view="flat">
-                    <Icon size={16} data={Bars} />
+                        <Icon size={16} data={Bars} />
                     </Button>
                 )}>
                     <Menu size='m' className='menu-bar__content'>

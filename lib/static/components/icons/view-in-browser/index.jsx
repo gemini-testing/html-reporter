@@ -16,7 +16,8 @@ class ViewInBrowser extends Component {
         extendClassNames: PropTypes.oneOfType([PropTypes.array, PropTypes.string]),
         // from store
         suiteUrl: PropTypes.string,
-        baseHost: PropTypes.string
+        baseHost: PropTypes.string,
+        actions: PropTypes.object.isRequired
     };
 
     onViewInBrowser = (e) => {
@@ -44,7 +45,7 @@ class ViewInBrowser extends Component {
                 onClick={this.onViewInBrowser}
                 title="view in browser"
                 target="_blank"
-                data-test-id='view-in-browser'
+                data-test-id='view-in-browser' rel="noreferrer"
             ><Eye color='black'/></a>
         );
     }

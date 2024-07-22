@@ -15,7 +15,8 @@ class FullScreenshot extends Component {
             visibility: PropTypes.string
         }),
         // from withEncodeUri
-        imageUrl: PropTypes.string.isRequired
+        imageUrl: PropTypes.string.isRequired,
+        className: PropTypes.string
     };
 
     render() {

@@ -1,5 +1,6 @@
 import React from 'react';
 
+import PropTypes from 'prop-types';
 import './color-border.css';
 
 const nextColors = {
@@ -9,6 +10,10 @@ const nextColors = {
 };
 
 export class ColorBorder extends React.Component {
+    static propTypes = {
+        children: PropTypes.oneOfType([PropTypes.element, PropTypes.string])
+    };
+
     state = {color: 'red'};
 
     onBorderClick = (e) => {
@@ -18,7 +23,7 @@ export class ColorBorder extends React.Component {
                 color: nextColors[state.color]
             };
         });
-    }
+    };
 
     render() {
         const className = `${this.state.color}-border basic-border`;

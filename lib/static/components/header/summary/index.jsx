@@ -15,7 +15,12 @@ class Summary extends Component {
             failed: PropTypes.number,
             skipped: PropTypes.number,
             retries: PropTypes.number
-        })
+        }),
+        fetchDbDetails: PropTypes.arrayOf(PropTypes.shape({
+            url: PropTypes.string,
+            status: PropTypes.number,
+            success: PropTypes.bool
+        })).isRequired
     };
 
     render() {

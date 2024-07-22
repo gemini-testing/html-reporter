@@ -15,7 +15,14 @@ class Suites extends Component {
     static propTypes = {
         // from store
         visibleRootSuiteIds: PropTypes.arrayOf(PropTypes.string),
-        viewMode: PropTypes.string
+        viewMode: PropTypes.string,
+        actions: PropTypes.object.isRequired,
+        testNameFilter: PropTypes.string,
+        strictMatchFilter: PropTypes.bool,
+        filteredBrowsers: PropTypes.arrayOf(PropTypes.objectOf({
+            id: PropTypes.string,
+            versions: PropTypes.arrayOf(PropTypes.string)
+        }))
     };
 
     _suitesMeasurementCache = new CellMeasurerCache({

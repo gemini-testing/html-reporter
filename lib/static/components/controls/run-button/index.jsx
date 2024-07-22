@@ -1,18 +1,16 @@
 'use strict';
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import {bindActionCreators} from 'redux';
 import {isEmpty} from 'lodash';
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
-import classNames from 'classnames';
 import * as actions from '../../../modules/actions';
-import Popup from '../../popup';
 import {getFailedTests, getCheckedTests} from '../../../modules/selectors/tree';
 import useLocalStorage from '../../../hooks/useLocalStorage';
 
 import './index.styl';
-import { Button, Select } from '@gravity-ui/uikit';
+import {Button, Select} from '@gravity-ui/uikit';
 
 const RunMode = Object.freeze({
     ALL: 'All',
@@ -23,8 +21,6 @@ const RunMode = Object.freeze({
 const RunButton = ({actions, autoRun, isDisabled, isRunning, failedTests, checkedTests}) => {
     const [mode, setMode] = useLocalStorage('RunMode', RunMode.FAILED);
     const [showCheckboxes] = useLocalStorage('showCheckboxes', false);
-
-    const btnClassName = classNames('btn', {'button_blink': isRunning});
 
     const shouldDisableFailed = isEmpty(failedTests);
     const shouldDisableChecked = !showCheckboxes || isEmpty(checkedTests);
@@ -54,10 +50,10 @@ const RunButton = ({actions, autoRun, isDisabled, isRunning, failedTests, checke
                 [RunMode.FAILED]: selectFailedTests,
                 [RunMode.CHECKED]: selectCheckedTests
             }[values[0]];
-    
+
             action();
         }
-    }
+    };
 
     useEffect(() => {
         if (autoRun) {
@@ -85,13 +81,13 @@ const RunButton = ({actions, autoRun, isDisabled, isRunning, failedTests, checke
             </Button>
             <Select pin='clear-round' disabled={isDisabled} className='run-button__dropdown' value={[mode]} onUpdate={handleSelect}>
                 <Select.Option value={RunMode.ALL}>
-                {`${RunMode.ALL} Tests`}
+                    {`${RunMode.ALL} Tests`}
                 </Select.Option>
                 <Select.Option value={RunMode.FAILED} disabled={shouldDisableFailed}>
-                {`${RunMode.FAILED} Tests`}
+                    {`${RunMode.FAILED} Tests`}
                 </Select.Option>
                 <Select.Option value={RunMode.CHECKED} disabled={shouldDisableChecked}>
-                {`${RunMode.CHECKED} Tests`}
+                    {`${RunMode.CHECKED} Tests`}
                 </Select.Option>
             </Select>
         </div>
@@ -110,7 +106,8 @@ RunButton.propTypes = {
     checkedTests: PropTypes.arrayOf(PropTypes.shape({
         testName: PropTypes.string,
         browserName: PropTypes.string
-    })).isRequired
+    })).isRequired,
+    actions: PropTypes.object.isRequired
 };
 
 export default connect(

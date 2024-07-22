@@ -1,5 +1,6 @@
 import React, {useState, useCallback} from 'react';
 import {throttle} from 'lodash';
+import PropTypes from 'prop-types';
 
 import './index.styl';
 import useEventListener from '../../hooks/useEventListener';
@@ -31,6 +32,10 @@ const StickyHeader = ({children}) => {
             </div>
         </div>
     );
+};
+
+StickyHeader.propTypes = {
+    children: PropTypes.oneOfType([PropTypes.element, PropTypes.string])
 };
 
 export default StickyHeader;

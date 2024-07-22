@@ -1,8 +1,9 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
 import './index.styl';
 
-export default ({done, total, dataTestId}) => {
+const ProgressBar = ({done, total, dataTestId}) => {
     const percent = (done / total).toFixed(2) * 100;
 
     return (
@@ -11,3 +12,11 @@ export default ({done, total, dataTestId}) => {
         </span>
     );
 };
+
+ProgressBar.propTypes = {
+    done: PropTypes.number.isRequired,
+    total: PropTypes.number.isRequired,
+    dataTestId: PropTypes.string
+};
+
+export default ProgressBar;

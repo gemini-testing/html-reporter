@@ -1,9 +1,10 @@
 import React, {Component} from 'react';
-import { Portal } from '@gravity-ui/uikit';
+import {Portal} from '@gravity-ui/uikit';
+import PropTypes from 'prop-types';
 import './modal.css';
 
-export default class Modal extends Component {
-    componentWillMount() {
+class Modal extends Component {
+    componentDidMount() {
         document.body.classList.add('modal-open');
     }
 
@@ -20,6 +21,13 @@ export default class Modal extends Component {
                     {children}
                 </div>
             </Portal>
-        )
+        );
     }
 }
+
+Modal.propTypes = {
+    className: PropTypes.string,
+    children: PropTypes.oneOfType([PropTypes.element, PropTypes.string])
+};
+
+export default Modal;

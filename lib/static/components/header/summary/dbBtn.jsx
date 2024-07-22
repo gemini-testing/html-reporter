@@ -1,11 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {Ref} from 'semantic-ui-react';
-import classNames from 'classnames';
-import { Button, ButtonIcon } from '@gravity-ui/uikit';
+import {Button} from '@gravity-ui/uikit';
 import {ChevronDown} from '@gravity-ui/icons';
 
-const DbBtn = ({fetchDbDetails}, ref) => {
+const ForwardedDbBtn = React.forwardRef(function DbBtn({fetchDbDetails}, ref) {
     const successFetchDbDetails = fetchDbDetails.filter(d => d.success);
     const isFailed = successFetchDbDetails.length !== fetchDbDetails.length;
     const value = `${successFetchDbDetails.length}/${fetchDbDetails.length}`;
@@ -23,9 +22,7 @@ const DbBtn = ({fetchDbDetails}, ref) => {
             </Button>
         </Ref>
     );
-};
-
-const ForwardedDbBtn = React.forwardRef(DbBtn);
+});
 
 ForwardedDbBtn.propTypes = {
     fetchDbDetails: PropTypes.arrayOf(PropTypes.shape({

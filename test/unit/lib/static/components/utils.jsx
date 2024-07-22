@@ -3,7 +3,7 @@ import _ from 'lodash';
 import configureStore from 'redux-mock-store';
 import {Provider} from 'react-redux';
 import defaultState from 'lib/static/modules/default-state';
-import { ThemeProvider } from '@gravity-ui/uikit';
+import {ThemeProvider} from '@gravity-ui/uikit';
 
 exports.mkState = ({initialState} = {}) => {
     return _.defaultsDeep(initialState, defaultState);

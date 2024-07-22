@@ -4,9 +4,8 @@ import React, {useState} from 'react';
 import PropTypes from 'prop-types';
 import {bindActionCreators} from 'redux';
 import {connect} from 'react-redux';
-import {Checkbox} from 'semantic-ui-react';
 import * as actions from '../../modules/actions';
-import { Switch } from '@gravity-ui/uikit';
+import {Switch} from '@gravity-ui/uikit';
 
 const StrictMatchFilterInput = ({strictMatchFilter, actions}) => {
     const [checked, setChecked] = useState(strictMatchFilter);

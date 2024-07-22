@@ -1,6 +1,6 @@
 import React from 'react';
 import BrowserList from '../../../../../../../lib/static/components/controls/browser-list';
-import { ThemeProvider } from '@gravity-ui/uikit';
+import {ThemeProvider} from '@gravity-ui/uikit';
 
 describe('<BrowserList />', () => {
     const sandbox = sinon.sandbox.create();
@@ -16,7 +16,7 @@ describe('<BrowserList />', () => {
         };
         const component = mount(<ThemeProvider theme='light'><BrowserList {...props} /></ThemeProvider>);
         component.first().find('.g-select-control__button').simulate('click');
-        
+
         assert.equal(component.first().find('.g-list__items .g-list__item_selected').length, 0);
     });
 

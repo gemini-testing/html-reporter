@@ -3,7 +3,6 @@
 import React, {Fragment, useEffect, useState} from 'react';
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
-import classNames from 'classnames';
 import ResizedScreenshot from '../screenshot/resized';
 import SwipeDiff from './swipe-diff';
 import SwitchDiff from './switch-diff';
@@ -13,7 +12,7 @@ import {types} from '../../modals';
 import useFitImages from './useFitImages';
 
 import './index.styl';
-import { Tabs } from '@gravity-ui/uikit';
+import {Tabs} from '@gravity-ui/uikit';
 
 const StateFail = ({image, diffMode: diffModeProp, isScreenshotAccepterOpened}) => {
     const [diffMode, setDiffMode] = useState(diffModeProp);
@@ -28,7 +27,7 @@ const StateFail = ({image, diffMode: diffModeProp, isScreenshotAccepterOpened}) 
             <div className="diff-modes">
                 <Tabs activeTab={diffMode} items={Object.values(DiffModes)} onSelectTab={(mode) => setDiffMode(mode)} size='m'/>
             </div>
-        )
+        );
     };
 
     const getLabelKey = () => {
@@ -125,7 +124,11 @@ StateFail.propTypes = {
         expectedImg: PropTypes.object.isRequired,
         actualImg: PropTypes.object.isRequired,
         diffImg: PropTypes.object.isRequired,
-        diffClusters: PropTypes.array
+        diffClusters: PropTypes.array,
+        size: PropTypes.shape({
+            width: PropTypes.number,
+            height: PropTypes.number
+        })
     }).isRequired,
     // from store
     diffMode: PropTypes.string,

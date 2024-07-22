@@ -5,7 +5,8 @@ import * as plugins from '../modules/plugins';
 
 export default class ExtensionPoint extends Component {
     static propTypes = {
-        name: PropTypes.string.isRequired
+        name: PropTypes.string.isRequired,
+        children: PropTypes.oneOfType([PropTypes.element, PropTypes.string])
     };
 
     render() {
