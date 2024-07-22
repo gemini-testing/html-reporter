@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.5.0"></a>
+# [10.5.0](https://github.com/gemini-testing/html-reporter/compare/v10.4.0...v10.5.0) (2024-07-22)
+
+
+### Bug Fixes
+
+* remove excessive margins ([#577](https://github.com/gemini-testing/html-reporter/issues/577)) ([a195efc](https://github.com/gemini-testing/html-reporter/commit/a195efc))
+* return correct test result status ([5763ffb](https://github.com/gemini-testing/html-reporter/commit/5763ffb))
+* support hermione ([370af0b](https://github.com/gemini-testing/html-reporter/commit/370af0b))
+
+
+### Features
+
+* add "timestamp" field to redux storage ([c2ed9e2](https://github.com/gemini-testing/html-reporter/commit/c2ed9e2))
+* add static image accepter (experimental feature) ([a5db178](https://github.com/gemini-testing/html-reporter/commit/a5db178))
+
+
+
 <a name="10.4.0"></a>
 # [10.4.0](https://github.com/gemini-testing/html-reporter/compare/v10.3.1...v10.4.0) (2024-07-11)
 
