@@ -1,17 +1,15 @@
 import React, {Component, Fragment} from 'react';
-import ReactDOM from 'react-dom';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import PropTypes from 'prop-types';
-import {isEmpty, isNumber, size, get, findIndex, last, pick, map} from 'lodash';
+import {isEmpty, isNumber, size, get, findIndex, last} from 'lodash';
 
 import * as actions from '../../../modules/actions';
 import ScreenshotAccepterHeader from './header';
 import ScreenshotAccepterMeta from './meta';
 import ScreenshotAccepterBody from './body';
-import StaticAccepterConfirm from "../static-accepter-confirm";
 import {getAcceptableImagesByStateName} from '../../../modules/selectors/tree';
-import {staticImageAccepterPropType} from "../../../modules/static-image-accepter";
+import {staticImageAccepterPropType} from '../../../modules/static-image-accepter';
 import {preloadImage} from '../../../modules/utils';
 
 import './style.css';
@@ -20,6 +18,9 @@ const PRELOAD_IMAGE_COUNT = 3;
 
 class ScreenshotAccepter extends Component {
     static propTypes = {
+        view: PropTypes.shape({
+            diffMode: PropTypes.string.isRequired
+        }),
         image: PropTypes.shape({
             id: PropTypes.string.isRequired,
             parentId: PropTypes.string.isRequired,
@@ -32,6 +33,7 @@ class ScreenshotAccepter extends Component {
         stateNameImageIds: PropTypes.arrayOf(PropTypes.string).isRequired,
         activeImageIndex: PropTypes.number.isRequired,
         staticImageAccepter: staticImageAccepterPropType,
+        actions: PropTypes.object.isRequired
     };
 
     constructor(props) {
@@ -49,6 +51,7 @@ class ScreenshotAccepter extends Component {
             retryIndex,
             showMeta: false
         };
+        this.topRef = React.createRef();
 
         this.totalImagesCount = size(imagesByStateName);
 
@@ -58,7 +61,7 @@ class ScreenshotAccepter extends Component {
     }
 
     componentDidUpdate() {
-        ReactDOM.findDOMNode(this).parentNode.scrollTo(0, 0);
+        this.topRef.current.parentNode.scrollTo(0, 0);
     }
 
     onRetryChange = (retryIndex) => {
@@ -169,7 +172,7 @@ class ScreenshotAccepter extends Component {
 
     onCommitChanges = () => {
         this.props.actions.staticAccepterOpenConfirm();
-    }
+    };
 
     _getActiveImages(
         activeImageIndex = this.state.activeImageIndex,
@@ -227,6 +230,7 @@ class ScreenshotAccepter extends Component {
 
         return (
             <Fragment>
+                <div ref={this.topRef}></div>
                 <ScreenshotAccepterHeader
                     actions={actions}
                     view={view}
@@ -271,7 +275,7 @@ export default connect(
             imagesByStateName,
             stateNameImageIds,
             activeImageIndex,
-            staticImageAccepter,
+            staticImageAccepter
         };
     },
     (dispatch) => ({actions: bindActionCreators(actions, dispatch)})

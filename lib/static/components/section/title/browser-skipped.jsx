@@ -30,7 +30,8 @@ BrowserSkippedTitle.propTypes = {
     title: PropTypes.object.isRequired,
     browserId: PropTypes.string.isRequired,
     // from store
-    checkStatus: PropTypes.number.isRequired
+    checkStatus: PropTypes.number.isRequired,
+    actions: PropTypes.object.isRequired
 };
 
 export default connect(

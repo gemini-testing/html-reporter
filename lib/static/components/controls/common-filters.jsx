@@ -1,6 +1,7 @@
 'use strict';
 
 import React from 'react';
+import PropTypes from 'prop-types';
 import {bindActionCreators} from 'redux';
 import {connect} from 'react-redux';
 import * as actions from '../../modules/actions';
@@ -10,11 +11,12 @@ import ShowCheckboxesInput from './show-checkboxes-input';
 import BrowserList from './browser-list';
 import ControlButton from './control-button';
 import AcceptOpenedButton from './accept-opened-button';
+import {staticImageAccepterPropType} from '../../modules/static-image-accepter';
 
 const CommonFilters = (props) => {
     const onCommitChanges = () => {
         props.actions.staticAccepterOpenConfirm();
-    }
+    };
 
     const renderStaticImageAccepterControls = () => {
         const {staticImageAccepter} = props;
@@ -34,8 +36,8 @@ const CommonFilters = (props) => {
                     handler={onCommitChanges}
                 />
             </div>
-        )
-    }
+        );
+    };
 
     return (
         <div className="control-container control-filters">
@@ -50,14 +52,28 @@ const CommonFilters = (props) => {
             {renderStaticImageAccepterControls()}
         </div>
     );
-}
+};
+
+CommonFilters.propTypes = {
+    gui: PropTypes.bool.isRequired,
+    browsers: PropTypes.arrayOf(PropTypes.shape({
+        id: PropTypes.string,
+        versions: PropTypes.arrayOf(PropTypes.string)
+    })).isRequired,
+    filteredBrowsers: PropTypes.arrayOf(PropTypes.shape({
+        id: PropTypes.string,
+        versions: PropTypes.arrayOf(PropTypes.string)
+    })),
+    staticImageAccepter: staticImageAccepterPropType,
+    actions: PropTypes.object.isRequired
+};
 
 export default connect(
     ({view, browsers, gui, staticImageAccepter}) => ({
         filteredBrowsers: view.filteredBrowsers,
         browsers,
         gui,
-        staticImageAccepter,
+        staticImageAccepter
     }),
     (dispatch) => ({actions: bindActionCreators(actions, dispatch)})
 )(CommonFilters);

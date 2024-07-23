@@ -34,6 +34,10 @@ const ShareButtonComponent = ({status, ...rest}) => {
     );
 };
 
+ShareButtonComponent.propTypes = {
+    status: PropTypes.string.isRequired
+};
+
 const BrowserTitle = (props) => {
     const testUrl = React.useMemo(() => {
         return appendQuery(window.location.href, {
@@ -83,7 +87,8 @@ BrowserTitle.propTypes = {
     checkStatus: PropTypes.number.isRequired,
     testName: PropTypes.string.isRequired,
     retryIndex: PropTypes.number.isRequired,
-    suiteUrl: PropTypes.string
+    suiteUrl: PropTypes.string,
+    actions: PropTypes.object.isRequired
 };
 
 export default connect(

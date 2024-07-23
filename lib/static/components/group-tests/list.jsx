@@ -13,7 +13,8 @@ class GroupTestsList extends Component {
         // from store
         groupedTests: groupedTestsType.isRequired,
         selectedGroupSection: PropTypes.string.isRequired,
-        selectedGroupKey: PropTypes.string.isRequired
+        selectedGroupKey: PropTypes.string.isRequired,
+        actions: PropTypes.object.isRequired
     };
 
     state = {

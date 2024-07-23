@@ -46,6 +46,7 @@ const GroupTestsItem = ({group, isActive, onClick, checkStatus, actions}) => {
 };
 
 GroupTestsItem.propTypes = {
+    actions: PropTypes.object.isRequired,
     group: PropTypes.object.isRequired,
     isActive: PropTypes.bool.isRequired,
     onClick: PropTypes.func.isRequired,

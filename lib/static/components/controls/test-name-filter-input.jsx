@@ -6,7 +6,7 @@ import {bindActionCreators} from 'redux';
 import {connect} from 'react-redux';
 import {debounce} from 'lodash';
 import * as actions from '../../modules/actions';
-import { TextInput } from '@gravity-ui/uikit';
+import {TextInput} from '@gravity-ui/uikit';
 
 const TestNameFilterInput = ({actions, testNameFilter: testNameFilterProp}) => {
     const [testNameFilter, setTestNameFilter] = useState(testNameFilterProp);

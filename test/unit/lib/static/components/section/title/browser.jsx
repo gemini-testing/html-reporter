@@ -103,7 +103,7 @@ describe('<BrowserTitle/>', () => {
             const browsersStateById = {'yabro': {checkStatus: UNCHECKED}};
             const tree = mkStateTree({browsersById, resultsById, browsersStateById});
 
-            const component = mkBrowserTitleComponent({browserId: 'yabro', browserName: 'yabro'}, {tree});
+            mkBrowserTitleComponent({browserId: 'yabro', browserName: 'yabro'}, {tree});
 
             assert.calledOnce(queryParams.appendQuery);
             assert.calledWithExactly(queryParams.appendQuery, 'about:blank', {

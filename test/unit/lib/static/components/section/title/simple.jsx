@@ -4,8 +4,8 @@ import {defaultsDeep, set} from 'lodash';
 import {mkConnectedComponent} from 'test/unit/lib/static/components/utils';
 import {mkStateTree} from 'test/unit/lib/static/state-utils';
 import {CHECKED, UNCHECKED, INDETERMINATE} from 'lib/constants/checked-statuses';
-import { Checkbox, Spin } from '@gravity-ui/uikit';
-import { TestStatus } from 'lib/constants';
+import {Checkbox, Spin} from '@gravity-ui/uikit';
+import {TestStatus} from 'lib/constants';
 
 describe('<SuiteTitle/>', () => {
     const sandbox = sinon.sandbox.create();

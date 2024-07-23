@@ -24,7 +24,9 @@ class Gui extends Component {
             content: PropTypes.string
         }).isRequired,
         customScripts: PropTypes.array,
-        notifications: PropTypes.array
+        notifications: PropTypes.array,
+        actions: PropTypes.object.isRequired,
+        allRootSuiteIds: PropTypes.array.isRequired
     };
 
     componentDidMount() {

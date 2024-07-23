@@ -1,19 +1,17 @@
-import React, {Component, Fragment} from 'react';
+import React, {Component} from 'react';
 import {bindActionCreators} from 'redux';
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
-import {Label, Dropdown} from 'semantic-ui-react';
 import classNames from 'classnames';
-import {isEmpty} from 'lodash';
 
 import * as actions from '../../../modules/actions';
 import {groupedTestsType} from '../../group-tests/prop-types';
-import {SECTIONS, KEY_DELIMITER} from '../../../../constants/group-tests';
+import {SECTIONS} from '../../../../constants/group-tests';
 import {getParsedKeyToGroupTestsBy} from '../../../modules/selectors/grouped-tests';
 
 import './index.styl';
 import CustomLabel from './label';
-import { Select } from '@gravity-ui/uikit';
+import {Select} from '@gravity-ui/uikit';
 
 class GroupTestsSelect extends Component {
     static propTypes = {
@@ -40,7 +38,7 @@ class GroupTestsSelect extends Component {
         );
         const options = Object.values(SECTIONS).map((sectionName) => ({
             label: sectionName,
-            options: groupedTests[sectionName].allKeys.map((k) => ({ value: `${sectionName}.${k}`, content: k}))
+            options: groupedTests[sectionName].allKeys.map((k) => ({value: `${sectionName}.${k}`, content: k}))
         }));
 
         return (
@@ -55,7 +53,7 @@ class GroupTestsSelect extends Component {
                     pin='brick-round'
                     placeholder='select key'
                     qa='group-by-dropdown'
-                    />
+                />
             </div>
         );
     }
@@ -70,7 +68,3 @@ export default connect(
     },
     (dispatch) => ({actions: bindActionCreators(actions, dispatch)})
 )(GroupTestsSelect);
-
-function getGroupElemId(groupName, groupKey) {
-    return `${groupName}${KEY_DELIMITER}${groupKey}`;
-}

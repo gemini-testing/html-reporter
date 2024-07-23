@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 
 import './array.styl';
 
-const ArrayContainer = (props, ref) => {
+const ForwardedArrayContainer = React.forwardRef(function ArrayContainer(props, ref) {
     const {elements, placeholder, ...rest} = props;
 
     const containerRef = useRef(null);
@@ -49,9 +49,7 @@ const ArrayContainer = (props, ref) => {
             </div>
         </div>
     );
-};
-
-const ForwardedArrayContainer = React.forwardRef(ArrayContainer);
+});
 
 ForwardedArrayContainer.propTypes = {
     elements: PropTypes.arrayOf(PropTypes.string).isRequired,

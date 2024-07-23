@@ -11,7 +11,9 @@ class AcceptOpenedButton extends Component {
         isSuiteContol: PropTypes.bool,
         // from store
         processing: PropTypes.bool.isRequired,
-        acceptableOpenedImageIds: PropTypes.arrayOf(PropTypes.string).isRequired
+        acceptableOpenedImageIds: PropTypes.arrayOf(PropTypes.string).isRequired,
+        isStaticImageAccepterEnabled: PropTypes.bool,
+        actions: PropTypes.object.isRequired
     };
 
     _acceptOpened = () => {
@@ -39,7 +41,7 @@ export default connect(
         return {
             processing: state.processing,
             acceptableOpenedImageIds: getAcceptableOpenedImageIds(state),
-            isStaticImageAccepterEnabled: state.staticImageAccepter.enabled,
+            isStaticImageAccepterEnabled: state.staticImageAccepter.enabled
         };
     },
     (dispatch) => ({actions: bindActionCreators(actions, dispatch)})

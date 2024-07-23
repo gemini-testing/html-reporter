@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import './color-border.css';
 
 export default [
@@ -13,11 +14,19 @@ export default [
         {pluginName}
     ) {
         class ColorBorder extends React.Component {
+            static propTypes = {
+                actions: PropTypes.object.isRequired,
+                children: PropTypes.oneOfType([PropTypes.element, PropTypes.string]),
+                resultId: PropTypes.string.isRequired,
+                color: PropTypes.string.isRequired,
+                changesCount: PropTypes.number.isRequired
+            };
+
             onBorderClick = (e) => {
                 e.stopPropagation();
                 // "result" point provides resultId in props
                 this.props.actions.changeBorderColor(this.props.resultId, this.props.color);
-            }
+            };
 
             render() {
                 const className = `${this.props.color}-border redux-server-border`;

@@ -20,7 +20,8 @@ class Body extends Component {
         // from store
         gui: PropTypes.bool.isRequired,
         running: PropTypes.bool.isRequired,
-        retryIndex: PropTypes.number
+        retryIndex: PropTypes.number,
+        actions: PropTypes.object.isRequired
     };
 
     onRetrySwitcherChange = (index) => {

@@ -15,7 +15,8 @@ class ModalContainer extends Component {
             type: PropTypes.string,
             className: PropTypes.string,
             data: PropTypes.object
-        })).isRequired
+        })).isRequired,
+        actions: PropTypes.object.isRequired
     };
 
     render() {

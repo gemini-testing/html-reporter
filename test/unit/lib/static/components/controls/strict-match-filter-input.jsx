@@ -1,7 +1,6 @@
 import React from 'react';
 import {mkConnectedComponent} from '../utils';
 import proxyquire from 'proxyquire';
-import {Checkbox} from 'semantic-ui-react';
 
 describe('<StrictMatchFilterInput />', () => {
     const sandbox = sinon.sandbox.create();

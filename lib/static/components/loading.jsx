@@ -7,7 +7,8 @@ import {Dimmer, Loader} from 'semantic-ui-react';
 export default class Loading extends Component {
     static propTypes = {
         active: PropTypes.bool,
-        content: PropTypes.string
+        content: PropTypes.string,
+        children: PropTypes.oneOfType([PropTypes.element, PropTypes.string])
     };
 
     render() {

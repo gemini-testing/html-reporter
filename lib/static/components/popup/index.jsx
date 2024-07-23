@@ -83,7 +83,8 @@ const Popup = (props) => {
 Popup.propTypes = {
     action: PropTypes.oneOf(['hover', 'click']).isRequired,
     target: PropTypes.node.isRequired,
-    hideOnClick: PropTypes.bool
+    hideOnClick: PropTypes.bool,
+    children: PropTypes.oneOfType([PropTypes.element, PropTypes.string])
 };
 
 export default Popup;

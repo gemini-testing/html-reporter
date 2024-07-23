@@ -142,8 +142,8 @@ describe('<StateError/> component', () => {
             const component = mkStateErrorComponent({result: {error}});
             component.find('.details__summary').last().simulate('click');
 
-            assert.isFalse(component.find('.details__content').html().includes("some<line>"));
-            assert.isTrue(component.find('.details__content').html().includes("some&lt;line&gt;"));
+            assert.isFalse(component.find('.details__content').html().includes('some<line>'));
+            assert.isTrue(component.find('.details__content').html().includes('some&lt;line&gt;'));
         });
     });
 });

@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import './color-border.css';
 
 const nextColors = {
@@ -12,11 +13,18 @@ export default ['react', 'redux', 'react-redux', function(React, {bindActionCrea
         // allow the component to be placed only on "result" extension point
         static point = 'result';
 
+        static propTypes = {
+            actions: PropTypes.object.isRequired,
+            children: PropTypes.oneOfType([PropTypes.element, PropTypes.string]),
+            resultId: PropTypes.string.isRequired,
+            color: PropTypes.string.isRequired
+        };
+
         onBorderClick = (e) => {
             e.stopPropagation();
             // "result" point provides resultId in props
             this.props.actions.changeBorderColor(this.props.resultId);
-        }
+        };
 
         render() {
             const className = `${this.props.color}-border redux-border`;

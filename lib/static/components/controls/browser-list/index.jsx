@@ -1,52 +1,47 @@
 'use strict';
 
-import React, {useState, useMemo, useEffect, useCallback} from 'react';
-import {flatten, isEmpty, get, chain, compact} from 'lodash';
+import React, {useState, useMemo, useEffect} from 'react';
+import {compact} from 'lodash';
 import PropTypes from 'prop-types';
-import CheckboxTree from 'react-checkbox-tree';
 
 import {mkBrowserIcon, buildComplexId} from './utils';
-import Popup from '../../popup';
-import ArrayContainer from '../../../containers/array';
 
 import 'react-checkbox-tree/lib/react-checkbox-tree.css';
 import './index.styl';
-import { Button, Select, useSelectOptions } from '@gravity-ui/uikit';
+import {Button, Select, useSelectOptions} from '@gravity-ui/uikit';
 
 const BrowserList = ({available, onChange, selected: selectedProp}) => {
     const getOptions = () => {
         const groups = {};
-        const DEFAULT_GROUP = "other";
+        const DEFAULT_GROUP = 'other';
         let hasNestedOptions = false;
         available.forEach(({id: browserId, versions}) => {
             if (!versions || versions.length < 2) {
                 groups[DEFAULT_GROUP] = groups[DEFAULT_GROUP] || [];
-                groups[DEFAULT_GROUP].push({value: buildComplexId(browserId), 
+                groups[DEFAULT_GROUP].push({value: buildComplexId(browserId),
                     content: <div className='browser-name'>{mkBrowserIcon(browserId)}{buildComplexId(browserId)}</div>});
                 return;
             }
             hasNestedOptions = true;
             versions.forEach((version) => {
                 groups[browserId] = groups[browserId] || [];
-                groups[browserId].push({value: buildComplexId(browserId, version), 
+                groups[browserId].push({value: buildComplexId(browserId, version),
                     content: <div className='browser-name'>{mkBrowserIcon(browserId)}{buildComplexId(browserId, version)}</div>});
-            })
+            });
         });
         if (!hasNestedOptions) {
             return groups[DEFAULT_GROUP];
-        }
-        else {
+        } else {
             const optionsList = [];
             Object.keys(groups).forEach((name) => {
                 optionsList.push({
                     label: name,
                     options: groups[name]
-                })
-            })
+                });
+            });
             return optionsList;
         }
-
-    }
+    };
     const getMapping = () => {
         const mapping = {};
         available.forEach(({id: browserId, versions}) => {
@@ -60,10 +55,10 @@ const BrowserList = ({available, onChange, selected: selectedProp}) => {
             }
             versions.forEach((version) => {
                 mapping[buildComplexId(browserId, version)] = {id: browserId, version};
-            })
+            });
         });
         return mapping;
-    }
+    };
     const getSelected = () => {
         const selectedOptions = [];
         if (!selectedProp || !selectedProp.length) {
@@ -76,23 +71,22 @@ const BrowserList = ({available, onChange, selected: selectedProp}) => {
             }
             versions.forEach((version) => {
                 selectedOptions.push(buildComplexId(browserId, version));
-            })
+            });
         });
         return selectedOptions;
-    }
+    };
     const rawOptions = useMemo(getOptions, [available]);
     const getOptionsFrom = (optionsData) => {
         const allOptionsList = [];
         optionsData.forEach((option) => {
             if (option.label) {
                 getOptionsFrom(option.options).forEach((o) => allOptionsList.push(o));
-            }
-            else {
+            } else {
                 allOptionsList.push(option.value);
             }
-        })
+        });
         return allOptionsList;
-    }
+    };
     const allOptions = useMemo(() => getOptionsFrom(rawOptions), [rawOptions]);
     const options = useSelectOptions({
         options: rawOptions
@@ -102,52 +96,53 @@ const BrowserList = ({available, onChange, selected: selectedProp}) => {
 
     const selectAll = () => {
         setSelected(allOptions);
-    }
+    };
 
     const formatSelectedData = () => {
-        const selectedData = {}
+        const selectedData = {};
         selected.forEach((option) => {
-            if (!mapping[option] || !mapping[option].id) return;
+            if (!mapping[option] || !mapping[option].id) {
+                return;
+            }
             const {id: browserId, version} = mapping[option];
             selectedData[browserId] = selectedData[browserId] || [];
             selectedData[browserId].push(version);
-        })
-        return Object.entries(selectedData).map(([id, versions]) => ({id, versions: compact(versions)}))
-    }
+        });
+        return Object.entries(selectedData).map(([id, versions]) => ({id, versions: compact(versions)}));
+    };
 
     const renderFilter = () => {
-        const allSelected = selected.length == options.length;
         return (
             <div className='browserlist__filter'>
-            <Button onClick={selectAll} width='max'>
+                <Button onClick={selectAll} width='max'>
                 Select All
-            </Button>
+                </Button>
             </div>
-        )
-    }
+        );
+    };
 
     const renderOption = (option) => {
-        const isTheOnlySelected = selected.includes(option.value) && selected.length == 1;
+        const isTheOnlySelected = selected.includes(option.value) && selected.length === 1;
         const selectOnly = (e) => {
             e.preventDefault();
             e.stopPropagation();
             setSelected([option.value]);
-        }
+        };
         const selectExcept = (e) => {
             e.preventDefault();
             e.stopPropagation();
-            setSelected(allOptions.filter(o => o != option.value));
-        }
+            setSelected(allOptions.filter(o => o !== option.value));
+        };
         return (
-        <div className='browserlist__row'>
-            <div className='browserlist__row_content'>
-            {option.content}
+            <div className='browserlist__row'>
+                <div className='browserlist__row_content'>
+                    {option.content}
+                </div>
+                <Button size='s' onClick={isTheOnlySelected ? selectExcept : selectOnly} className='action-button'>{isTheOnlySelected ? 'Except' : 'Only'}</Button>
             </div>
-            <Button size='s' onClick={isTheOnlySelected ? selectExcept : selectOnly} className='action-button'>{isTheOnlySelected ? 'Except' : 'Only'}</Button>
-        </div>
-        )
-    }
-    
+        );
+    };
+
     useEffect(() => {
         onChange && onChange(formatSelectedData(selected));
     }, [selected]);
@@ -166,8 +161,8 @@ const BrowserList = ({available, onChange, selected: selectedProp}) => {
             popupClassName='browserlist__popup'
             className='browserlist'
         />
-    )
-}
+    );
+};
 
 BrowserList.propTypes = {
     available: PropTypes.arrayOf(PropTypes.shape({

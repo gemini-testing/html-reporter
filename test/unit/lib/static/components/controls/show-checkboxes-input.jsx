@@ -1,6 +1,5 @@
 import React from 'react';
 import proxyquire from 'proxyquire';
-import {Checkbox} from 'semantic-ui-react';
 
 describe('<ShowCheckboxesInput />', () => {
     const sandbox = sinon.sandbox.create();

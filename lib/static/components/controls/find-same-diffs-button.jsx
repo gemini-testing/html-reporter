@@ -14,7 +14,8 @@ class FindSameDiffsButton extends Component {
         isDisabled: PropTypes.bool.isRequired,
         // from store
         browserName: PropTypes.string.isRequired,
-        failedOpenedImageIds: PropTypes.arrayOf(PropTypes.string).isRequired
+        failedOpenedImageIds: PropTypes.arrayOf(PropTypes.string).isRequired,
+        actions: PropTypes.object.isRequired
     };
 
     _findSameDiffs = () => {

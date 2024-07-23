@@ -1,10 +1,16 @@
 import React, {Component} from 'react';
+import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {Label} from '@gravity-ui/uikit';
 import {isEmpty} from 'lodash';
 import {version} from '../../../../package.json';
 
 class ReportInfo extends Component {
+    static propTypes = {
+        gui: PropTypes.bool.isRequired,
+        timestamp: PropTypes.number.isRequired
+    };
+
     render() {
         const {gui, timestamp} = this.props;
         const lang = isEmpty(navigator.languages) ? navigator.language : navigator.languages[0];

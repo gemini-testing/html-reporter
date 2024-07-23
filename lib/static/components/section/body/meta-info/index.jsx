@@ -8,7 +8,8 @@ import Details from '../../../details';
 
 class MetaInfo extends Component {
     static propTypes = {
-        resultId: PropTypes.string.isRequired
+        resultId: PropTypes.string.isRequired,
+        actions: PropTypes.object.isRequired
     };
 
     onToggleMetaInfo = () => {

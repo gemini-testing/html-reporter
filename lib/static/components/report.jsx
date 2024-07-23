@@ -21,7 +21,8 @@ class Report extends Component {
         allRootSuiteIds: PropTypes.arrayOf(PropTypes.string).isRequired,
         fetchDbDetails: PropTypes.array.isRequired,
         customScripts: PropTypes.array,
-        notifications: PropTypes.array
+        notifications: PropTypes.array,
+        actions: PropTypes.object.isRequired
     };
 
     componentDidMount() {

@@ -19,7 +19,8 @@ class SectionCommon extends Component {
         shouldBeShown: PropTypes.bool.isRequired,
         shouldBeOpened: PropTypes.bool.isRequired,
         // from SectionCommonWrapper
-        sectionStatusResolver: PropTypes.func.isRequired
+        sectionStatusResolver: PropTypes.func.isRequired,
+        actions: PropTypes.object.isRequired
     };
 
     onToggleSection = () => {

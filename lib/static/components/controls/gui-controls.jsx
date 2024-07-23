@@ -16,7 +16,8 @@ class GuiControls extends Component {
     static propTypes = {
         // from store
         running: PropTypes.bool.isRequired,
-        stopping: PropTypes.bool.isRequired
+        stopping: PropTypes.bool.isRequired,
+        actions: PropTypes.object.isRequired
     };
 
     render() {

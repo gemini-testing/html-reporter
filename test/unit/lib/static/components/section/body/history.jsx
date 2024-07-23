@@ -1,6 +1,6 @@
 import React from 'react';
 import {defaultsDeep, set} from 'lodash';
-import History from 'lib/static/components/section/body/history'; 
+import History from 'lib/static/components/section/body/history';
 import {mkConnectedComponent} from '../../utils';
 
 describe('<History />', () => {

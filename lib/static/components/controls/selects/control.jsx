@@ -1,10 +1,9 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {Dropdown} from 'semantic-ui-react';
 import classNames from 'classnames';
 
 import './index.styl';
-import { Button, Label, Select } from '@gravity-ui/uikit';
+import {Select} from '@gravity-ui/uikit';
 import CustomLabel from './label';
 
 export default class ControlSelect extends Component {
@@ -19,22 +18,17 @@ export default class ControlSelect extends Component {
         })).isRequired,
         extendClassNames: PropTypes.oneOfType([PropTypes.array, PropTypes.string]),
         extendPopupClassNames: PropTypes.oneOfType([PropTypes.array, PropTypes.string]),
-        qa: PropTypes.string,
+        qa: PropTypes.string
     };
 
     _onUpdate = (values) => {
         if (values.length) {
             this.props.handler(values[0]);
         }
-    }
+    };
 
     render() {
         const {size, value, label, options, extendClassNames, extendPopupClassNames, qa} = this.props;
-        const formattedOpts = options.map(({value, text}) => ({
-            value,
-            text,
-            key: value
-        }));
 
         const className = classNames(
             'select',
