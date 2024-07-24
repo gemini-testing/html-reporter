@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.6.0"></a>
+# [10.6.0](https://github.com/gemini-testing/html-reporter/compare/v10.5.0...v10.6.0) (2024-07-24)
+
+
+### Bug Fixes
+
+* **pwt:** correctly import ts config with types ([bf26015](https://github.com/gemini-testing/html-reporter/commit/bf26015))
+* move "[@gemini](https://github.com/gemini)-testing/commander" from devDeps to deps ([250b841](https://github.com/gemini-testing/html-reporter/commit/250b841))
+
+
+
 <a name="10.5.0"></a>
 # [10.5.0](https://github.com/gemini-testing/html-reporter/compare/v10.4.0...v10.5.0) (2024-07-22)
 
