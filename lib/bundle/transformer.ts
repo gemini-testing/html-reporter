@@ -10,6 +10,7 @@ export const setupTransformHook = (): VoidFunction => {
         babelrc: false,
         configFile: false,
         compact: false,
+        presets: [require('@babel/preset-typescript')],
         plugins: [
             require('@babel/plugin-transform-modules-commonjs')
         ]
