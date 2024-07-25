@@ -133,8 +133,9 @@ export async function saveStaticFilesToReportDir(htmlReporter: HtmlReporter, plu
             prepareCommonJSData(getDataForStaticFile(htmlReporter, pluginConfig)),
             'utf8'
         ),
-        copyToReportDir(destPath, ['report.min.js', 'report.min.css'], staticFolder),
+        copyToReportDir(destPath, ['report.min.js', 'report.min.css', 'newReport.min.js', 'newReport.min.css'], staticFolder),
         fs.copy(path.resolve(staticFolder, 'index.html'), path.resolve(destPath, 'index.html')),
+        fs.copy(path.resolve(staticFolder, 'new-ui-report.html'), path.resolve(destPath, 'new-ui.html')),
         fs.copy(path.resolve(staticFolder, 'icons'), path.resolve(destPath, 'icons')),
         fs.copy(require.resolve('@gemini-testing/sql.js/dist/sql-wasm.js'), path.resolve(destPath, 'sql-wasm.js')),
         fs.copy(require.resolve('@gemini-testing/sql.js/dist/sql-wasm.wasm'), path.resolve(destPath, 'sql-wasm.wasm')),

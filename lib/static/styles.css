@@ -946,3 +946,153 @@ a:active {
     flex-grow: 1;
     height: 25px;
 }
+
+.g-root_theme_light {
+    --g-color-base-brand: var(--g-color-private-color-400);
+    --g-color-base-brand-hover: var(--g-color-private-color-150);
+    --g-color-base-selection: var(--g-color-private-color-100);
+    --g-color-base-selection-hover: var(--g-color-private-color-150);
+    --g-color-line-brand: var(--g-color-private-color-200);
+    --g-color-text-brand: var(--g-color-private-color-300);
+    --g-color-text-link: var(--g-color-private-color-300);
+    --g-color-text-link-hover: var(--g-color-private-color-500);
+    --gn-aside-header-decoration-collapsed-background-color: var(--g-color-private-color-150);
+
+    --g-color-private-color-50: rgba(108,71,255,0.1);
+    --g-color-private-color-100: rgba(108,71,255,0.15);
+    --g-color-private-color-150: rgba(108,71,255,0.2);
+    --g-color-private-color-200: rgba(108,71,255,0.3);
+    --g-color-private-color-250: rgba(108,71,255,0.4);
+    --g-color-private-color-300: rgba(108,71,255,0.5);
+    --g-color-private-color-350: rgba(108,71,255,0.6);
+    --g-color-private-color-400: rgba(108,71,255,0.7);
+    --g-color-private-color-450: rgba(108,71,255,0.8);
+    --g-color-private-color-500: rgba(108,71,255,0.9);
+
+    --g-color-private-color-50-solid: rgb(240,237,255);
+    --g-color-private-color-100-solid: rgb(233,227,255);
+    --g-color-private-color-150-solid: rgb(226,218,255);
+    --g-color-private-color-200-solid: rgb(211,200,255);
+    --g-color-private-color-250-solid: rgb(196,181,255);
+    --g-color-private-color-300-solid: rgb(182,163,255);
+    --g-color-private-color-350-solid: rgb(167,145,255);
+    --g-color-private-color-400-solid: rgb(152,126,255);
+    --g-color-private-color-450-solid: rgb(137,108,255);
+    --g-color-private-color-500-solid: rgb(123,89,255);
+    --g-color-private-color-550-solid: rgb(108,71,255);
+    --g-color-private-color-600-solid: rgb(102,68,235);
+    --g-color-private-color-650-solid: rgb(95,66,214);
+    --g-color-private-color-700-solid: rgb(89,63,194);
+    --g-color-private-color-750-solid: rgb(83,60,173);
+    --g-color-private-color-800-solid: rgb(77,58,153);
+    --g-color-private-color-850-solid: rgb(70,55,133);
+    --g-color-private-color-900-solid: rgb(64,52,112);
+    --g-color-private-color-950-solid: rgb(58,49,92);
+    --g-color-private-color-1000-solid: rgb(54,48,82);
+}
+
+.split {
+    display: flex;
+    flex-direction: row;
+    height: 100vh;
+}
+
+.split > div {
+    overflow: scroll;
+}
+
+.gutter {
+    background-color: #eee;
+    background-repeat: no-repeat;
+    background-position: 50%;
+}
+
+.gutter.gutter-horizontal {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==');
+    cursor: col-resize;
+}
+
+/* Gravity UI Font Styles */
+.text-display-1 {
+    font-family: Jost, sans-serif;
+    font-weight: 600;
+    font-size: var(--g-text-display-1-font-size);
+    line-height: var(--g-text-display-1-line-height);
+    margin: 0;
+}
+
+.text-display-2 {
+    font-family: Jost, sans-serif;
+    font-weight: 600;
+    font-size: 32px;
+    line-height: 40px;
+}
+
+.text-display-3 {
+    font-family: Jost, sans-serif;
+    font-weight: 600;
+    font-size: var(--g-text-display-3-font-size);
+    line-height: var(--g-text-display-3-line-height);
+}
+
+.text-header-1 {
+    font-family: Jost, sans-serif;
+    font-weight: 600;
+    font-size: var(--g-text-header-1-font-size);
+    line-height: var(--g-text-header-1-line-height);
+}
+
+.text-subheader-1 {
+    font-family: Jost, sans-serif;
+    font-weight: 600;
+    font-size: var(--g-text-subheader-1-font-size);
+    line-height: var(--g-text-subheader-1-line-height);
+}
+
+.text-subheader-3 {
+    font-family: Jost, sans-serif;
+    font-weight: 600;
+    font-size: var(--g-text-subheader-3-font-size);
+    line-height: var(--g-text-subheader-3-line-height);
+}
+
+.controls {
+    display: flex;
+    flex-direction: column;
+    margin: var(--g-spacing-2);
+}
+    .controls-row {
+        align-items: center;
+        display: flex;
+        height: 28px;
+        margin-top: var(--g-spacing-2);
+    }
+        .controls-row:first-child {
+            margin-top: 0;
+        }
+
+        .controls-row__heading {
+            margin-right: auto;
+        }
+
+        .controls-row > * {
+            margin-left: var(--g-spacing-2);
+        }
+
+            .controls-row > *:first-child {
+                margin-left: 0;
+            }
+
+.status-switcher__option {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+}
+
+    .status-switcher__option > *:first-child {
+        margin-right: 2px;
+    }
+
+.g-radio-button__option-text {
+    margin: 0 4px !important;
+}
