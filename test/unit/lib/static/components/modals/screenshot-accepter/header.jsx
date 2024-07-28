@@ -288,7 +288,7 @@ describe('<ScreenshotAccepterHeader/>', () => {
                 onRetryChange
             }, DEFAULT_PROPS)}/>, store);
 
-            await user.click(component.getByText('1', {selector: 'button[data-testid="retry-switcher"] > *'}));
+            await user.click(component.getByText('1', {selector: 'button[data-qa="retry-switcher"] > *'}));
 
             assert.calledOnceWith(onRetryChange, 0);
         });

@@ -37,7 +37,9 @@ describe('<StateError/> component', () => {
         }).default;
     });
 
-    afterEach(() => sandbox.restore());
+    afterEach(() => {
+        sandbox.restore();
+    });
 
     describe('"errorPatterns" is not specified', () => {
         it('should render error "message" and "stack" if "errorPatterns" is empty', () => {

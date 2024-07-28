@@ -118,7 +118,7 @@ describe('<ScreenshotAccepter/>', () => {
 
         const component = renderWithStore(<ScreenshotAccepter image={tree.images.byId[currentImageId]}/>, store);
         // By default, last failed attempt is selected. We select first one.
-        await user.click(component.getByText('1', {selector: 'button[data-testid="retry-switcher"] > *'}));
+        await user.click(component.getByText('1', {selector: 'button[data-qa="retry-switcher"] > *'}));
 
         const imageElements = component.getAllByRole('img');
         imageElements.every(imageElement => expect(imageElement.src).to.include('img1'));

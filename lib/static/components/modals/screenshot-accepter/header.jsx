@@ -133,7 +133,7 @@ export default class ScreenshotAccepterHeader extends Component {
 
         return (
             <Fragment>
-                <GlobalHotKeys keyMap={this._keyMap} handlers={this._keyHandlers} data-testid="screenshot-accepter-header-hotkeys" />
+                <GlobalHotKeys keyMap={this._keyMap} handlers={this._keyHandlers} />
                 <header className="screenshot-accepter__header container">
                     <div className="screenshot-accepter__controls state-controls">
                         <ControlButton
