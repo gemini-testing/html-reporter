@@ -44,13 +44,13 @@ describe('Tinder mode', () => {
 
     describe(`accepting screenshot`, () => {
         beforeEach(async ({browser}) => {
-            const testFullName = await browser.$('span[data-test-id="screenshot-accepter-test-name"]').getText();
+            const testFullName = await browser.$('span[data-qa="screenshot-accepter-test-name"]').getText();
 
             const acceptButton = await browser.$('button[data-qa="screenshot-accepter-accept"]');
             await acceptButton.click();
 
             await browser.waitUntil(async () => {
-                const progress = await browser.$('span[data-test-id="screenshot-accepter-progress-bar"]').getAttribute('data-content');
+                const progress = await browser.$('span[data-qa="screenshot-accepter-progress-bar"]').getAttribute('data-content');
 
                 return progress === '1/2';
             }, {interval: 100});
@@ -97,7 +97,7 @@ describe('Tinder mode', () => {
             await acceptButton.click();
 
             await browser.waitUntil(async () => {
-                const progress = await browser.$('span[data-test-id="screenshot-accepter-progress-bar"]').getAttribute('data-content');
+                const progress = await browser.$('span[data-qa="screenshot-accepter-progress-bar"]').getAttribute('data-content');
 
                 return progress === '1/2';
             }, {interval: 100});
@@ -124,7 +124,7 @@ describe('Tinder mode', () => {
             await acceptButton.click();
 
             await browser.waitUntil(async () => {
-                const progress = await browser.$('span[data-test-id="screenshot-accepter-progress-bar"]').getAttribute('data-content');
+                const progress = await browser.$('span[data-qa="screenshot-accepter-progress-bar"]').getAttribute('data-content');
 
                 return progress === `${i}/2`;
             }, {interval: 100});

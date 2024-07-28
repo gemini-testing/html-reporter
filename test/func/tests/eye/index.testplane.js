@@ -13,7 +13,7 @@ describe('View in browser button behavior', () => {
     });
 
     it('should have correct link on startup', async ({browser}) => {
-        const eyeElement = await browser.$('a[data-test-id="view-in-browser"]');
+        const eyeElement = await browser.$('a[data-qa="view-in-browser"]');
         const link = await eyeElement.getAttribute('href');
 
         expect(link).toBe('https://example.com:123/fixtures/testplane-eye/index.html');
@@ -25,7 +25,7 @@ describe('View in browser button behavior', () => {
         baseHostInput.setValue('http://some-host.dev:33');
         await browser.keys([Key.Enter]);
 
-        const eyeElement = await browser.$('a[data-test-id="view-in-browser"]');
+        const eyeElement = await browser.$('a[data-qa="view-in-browser"]');
         const link = await eyeElement.getAttribute('href');
 
         expect(link).toBe('http://some-host.dev:33/fixtures/testplane-eye/index.html');
