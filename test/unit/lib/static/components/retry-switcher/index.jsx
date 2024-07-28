@@ -1,3 +1,4 @@
+import {render} from '@testing-library/react';
 import React from 'react';
 import proxyquire from 'proxyquire';
 import {defaults} from 'lodash';
@@ -13,7 +14,7 @@ describe('<RetrySwitcher >', () => {
             onChange: sinon.stub()
         });
 
-        return mount(<RetrySwitcher {...props} />);
+        return render(<RetrySwitcher {...props} />);
     };
 
     beforeEach(() => {

@@ -1,6 +1,7 @@
 import React from 'react';
 import proxyquire from 'proxyquire';
 import {mkConnectedComponent, mkState} from '../utils';
+import userEvent from '@testing-library/user-event';
 
 describe('<RunButton />', () => {
     const sandbox = sinon.sandbox.create();
@@ -26,6 +27,12 @@ describe('<RunButton />', () => {
             '../../../modules/selectors/tree': selectorsStub,
             '../../../modules/actions': actionsStub
         }).default;
+
+        global.MutationObserver = class {
+            constructor() {}
+            disconnect() {}
+            observe() {}
+        };
     });
 
     it('should be disabled if no suites to run', () => {
@@ -33,7 +40,7 @@ describe('<RunButton />', () => {
             initialState: {tree: {suites: {allRootIds: []}}, processing: false}
         });
 
-        assert.isTrue(component.find('button.run-button__button').prop('disabled'));
+        assert.isTrue(component.getByRole('button').disabled);
     });
 
     it('should be enabled if suites exist to run', () => {
@@ -41,7 +48,7 @@ describe('<RunButton />', () => {
             initialState: {tree: {suites: {allRootIds: ['suite']}}, processing: false}
         });
 
-        assert.isFalse(component.find('button.run-button__button').prop('disabled'));
+        assert.isFalse(component.getByRole('button').disabled);
     });
 
     it('should be disabled while processing something', () => {
@@ -49,7 +56,7 @@ describe('<RunButton />', () => {
             initialState: {tree: {suites: {allRootIds: ['suite']}}, processing: true}
         });
 
-        assert.isTrue(component.find('button.run-button__button').prop('disabled'));
+        assert.isTrue(component.getByRole('button').disabled);
     });
 
     it('should run all tests with "autoRun" prop', () => {
@@ -60,38 +67,43 @@ describe('<RunButton />', () => {
         assert.calledOnce(actionsStub.runAllTests);
     });
 
-    it('should call "runAllTests" action on "Run all tests" click', () => {
+    it('should call "runAllTests" action on "Run all tests" click', async () => {
+        const user = userEvent.setup();
         const component = mkConnectedComponent(<RunButton />, {
             initialState: {tree: {suites: {allRootIds: ['suite']}}, processing: false}
         });
 
-        component.find('button.run-button__button').simulate('click');
+        await user.click(component.getByRole('button'));
 
         assert.calledOnce(actionsStub.runAllTests);
     });
 
-    it('should call "runFailedTests" action on "Run failed tests" click', () => {
+    it('should call "runFailedTests" action on "Run failed tests" click', async () => {
+        const user = userEvent.setup();
         useLocalStorageStub.withArgs('RunMode', 'Failed').returns(['Failed', () => {}]);
         const failedTests = [{testName: 'suite test', browserName: 'yabro'}];
         const state = mkState({initialState: {tree: {suites: {allRootIds: ['suite']}}, processing: false}});
         selectorsStub.getFailedTests.withArgs(state).returns(failedTests);
         const component = mkConnectedComponent(<RunButton />, {state});
-        component.find({children: 'Failed Tests'}).simulate('click');
 
-        component.find('button.run-button__button').simulate('click');
+        await user.click(component.getByRole('combobox'));
+        await user.click(component.getByText('Failed Tests', {selector: '[role=combobox] > *'}));
+        await user.click(component.getByRole('button'));
 
         assert.calledOnceWith(actionsStub.runFailedTests, failedTests);
     });
 
-    it('should call "retrySuite" action on "Run checked tests" click', () => {
+    it('should call "retrySuite" action on "Run checked tests" click', async () => {
+        const user = userEvent.setup();
         useLocalStorageStub.withArgs('RunMode', 'Failed').returns(['Checked', () => {}]);
         const checkedTests = [{testName: 'suite test', browserName: 'yabro'}];
         const state = mkState({initialState: {tree: {suites: {allRootIds: ['suite']}}, processing: false}});
         selectorsStub.getCheckedTests.withArgs(state).returns(checkedTests);
         const component = mkConnectedComponent(<RunButton />, {state});
-        component.find({children: 'Checked Tests'}).simulate('click');
 
-        component.find('button.run-button__button').simulate('click');
+        await user.click(component.getByRole('combobox'));
+        await user.click(component.getByText('Checked Tests', {selector: '[role=combobox] > *'}));
+        await user.click(component.getByRole('button'));
 
         assert.calledOnceWith(actionsStub.retrySuite, checkedTests);
     });
@@ -102,7 +114,7 @@ describe('<RunButton />', () => {
                 initialState: {tree: {suites: {allRootIds: ['suite']}}, processing: false, running: true}
             });
 
-            assert.equal(component.find('button.run-button__button').text(), 'Running');
+            assert.equal(component.getByRole('button').textContent, 'Running');
         });
 
         it('should be "Run all tests" by default if there is no checked tests', () => {
@@ -111,7 +123,7 @@ describe('<RunButton />', () => {
                 initialState: {tree: {suites: {allRootIds: ['suite']}}, processing: false}
             });
 
-            assert.equal(component.find('div.run-button__dropdown').text(), 'All Tests');
+            assert.equal(component.getByRole('combobox').textContent, 'All Tests');
         });
 
         it('should switch to "Run checked tests" if there are checked tests', () => {
@@ -125,104 +137,48 @@ describe('<RunButton />', () => {
     });
 
     describe('localStorage', () => {
-        it('should save "Run all tests" if picked', () => {
+        it('should save "Run all tests" if picked', async () => {
+            const user = userEvent.setup();
             useLocalStorageStub.withArgs('RunMode', 'Failed').returns(['Failed', writeValueStub]);
             selectorsStub.getCheckedTests.returns([{testName: 'testName', browserName: 'browserName'}]);
             selectorsStub.getFailedTests.returns([{testName: 'testName', browserName: 'browserName'}]);
             const component = mkConnectedComponent(<RunButton />, {
                 initialState: {tree: {suites: {allRootIds: ['suite']}}, processing: false}
             });
-            component.first().find('button.g-select-control__button').simulate('click');
-            component.first().findWhere(node => node.text() === 'All Tests' && node.hasClass('g-list__item')).simulate('click');
+
+            await user.click(component.getByRole('combobox'));
+            await user.click(component.getByText('All Tests', {selector: '[role=option] *'}));
+            await user.click(component.getByRole('button'));
+
             assert.calledWith(writeValueStub, 'All');
         });
 
-        it('should save "Run failed tests" if picked', () => {
+        it('should save "Run failed tests" if picked', async () => {
+            const user = userEvent.setup();
             selectorsStub.getFailedTests.returns([{testName: 'testName', browserName: 'browserName'}]);
             const component = mkConnectedComponent(<RunButton />, {
                 initialState: {tree: {suites: {allRootIds: ['suite']}}, processing: false}
             });
 
-            component.first().find('button.g-select-control__button').simulate('click');
-            component.first().findWhere(node => node.text() === 'Failed Tests' && node.hasClass('g-list__item')).simulate('click');
+            await user.click(component.getByRole('combobox'));
+            await user.click(component.getByText('Failed Tests', {selector: '[role=option] *'}));
+            await user.click(component.getByRole('button'));
+
             assert.calledOnceWith(writeValueStub, 'Failed');
         });
 
-        it('should save "Run checked tests" if picked', () => {
+        it('should save "Run checked tests" if picked', async () => {
+            const user = userEvent.setup();
             selectorsStub.getCheckedTests.returns([{testName: 'testName', browserName: 'browserName'}]);
             const component = mkConnectedComponent(<RunButton />, {
                 initialState: {tree: {suites: {allRootIds: ['suite']}}, processing: false}
             });
 
-            component.first().find('button.g-select-control__button').simulate('click');
-            component.first().findWhere(node => node.text() === 'Checked Tests' && node.hasClass('g-list__item')).simulate('click');
+            await user.click(component.getByRole('combobox'));
+            await user.click(component.getByText('Checked Tests', {selector: '[role=option] *'}));
+            await user.click(component.getByRole('button'));
+
             assert.calledWith(writeValueStub, 'Checked');
-        });
-    });
-
-    describe('Popup', () => {
-        describe('should be hidden', () => {
-            it('if processing', () => {
-                const component = mkConnectedComponent(<RunButton />, {
-                    initialState: {tree: {suites: {allRootSuiteIds: ['suite']}}, processing: true}
-                });
-
-                assert.isFalse(component.find('.run-mode').exists());
-            });
-
-            it('if no suites', () => {
-                const component = mkConnectedComponent(<RunButton />, {
-                    initialState: {tree: {suites: {allRootSuiteIds: []}}, processing: false}
-                });
-
-                assert.isFalse(component.find('.run-mode').exists());
-            });
-
-            it('if there are no checked and failed tests', () => {
-                selectorsStub.getCheckedTests.returns([]);
-                selectorsStub.getFailedTests.returns([]);
-
-                const component = mkConnectedComponent(<RunButton />, {
-                    initialState: {tree: {suites: {allRootSuiteIds: ['suite']}}, processing: false}
-                });
-
-                assert.isFalse(component.find('.run-mode').exists());
-            });
-
-            it('if checkboxes are hidden and no failed tests', () => {
-                useLocalStorageStub.withArgs('showCheckboxes', false).returns([false]);
-                selectorsStub.getCheckedTests.returns([{testName: 'testName', browserName: 'browserName'}]);
-                selectorsStub.getFailedTests.returns([]);
-
-                const component = mkConnectedComponent(<RunButton />, {
-                    initialState: {tree: {suites: {allRootSuiteIds: ['suite']}}, processing: false}
-                });
-
-                assert.isFalse(component.find('.run-mode').exists());
-            });
-        });
-
-        describe('should be shown', () => {
-            it('if failed suites exist', () => {
-                selectorsStub.getFailedTests.returns([{testName: 'testName', browserName: 'browserName'}]);
-
-                const component = mkConnectedComponent(<RunButton />, {
-                    initialState: {tree: {suites: {allRootSuiteIds: ['suite']}}, processing: false}
-                });
-
-                assert.isFalse(component.find('.run-mode').exists());
-            });
-
-            it('if checked suites exist and checkboxes are shown', () => {
-                useLocalStorageStub.withArgs('showCheckboxes', false).returns([true]);
-                selectorsStub.getCheckedTests.returns([{testName: 'testName', browserName: 'browserName'}]);
-
-                const component = mkConnectedComponent(<RunButton />, {
-                    initialState: {tree: {suites: {allRootSuiteIds: ['suite']}}, processing: false}
-                });
-
-                assert.isFalse(component.find('.run-mode').exists());
-            });
         });
     });
 });

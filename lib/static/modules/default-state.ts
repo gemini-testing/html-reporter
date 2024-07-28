@@ -37,6 +37,7 @@ export default Object.assign({config: configDefaults}, {
         },
         results: {
             byId: {},
+            stateById: {},
             allIds: []
         },
         images: {

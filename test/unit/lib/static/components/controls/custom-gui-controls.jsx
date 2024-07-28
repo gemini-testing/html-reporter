@@ -1,7 +1,8 @@
+import {expect} from 'chai';
 import React from 'react';
-import {Button} from 'semantic-ui-react';
 import proxyquire from 'proxyquire';
 import {mkConnectedComponent} from '../utils';
+import userEvent from '@testing-library/user-event';
 
 describe('<CustomGuiControls />', () => {
     const sandbox = sinon.sandbox.create();
@@ -26,7 +27,7 @@ describe('<CustomGuiControls />', () => {
     it('should display nothing if custom-gui-config is empty', () => {
         const component = mkConnectedComponent(<CustomGuiControls />, mkInitialState({}));
 
-        assert.equal(component.html().length, 0);
+        assert.equal(component.container.innerHTML.length, 0);
     });
 
     it('should display nothing if control type is not supported', () => {
@@ -36,7 +37,7 @@ describe('<CustomGuiControls />', () => {
             ]
         }));
 
-        assert.equal(component.html().length, 0);
+        assert.equal(component.container.innerHTML.length, 0);
     });
 
     it('should display buttons from custom-gui-config', () => {
@@ -46,17 +47,23 @@ describe('<CustomGuiControls />', () => {
             ]
         }));
 
-        assert.equal(component.find(Button).length, 1);
+        expect(component.getByRole('button')).to.exist;
     });
 
     it('should display radiobuttons from custom-gui-config', () => {
         const component = mkConnectedComponent(<CustomGuiControls />, mkInitialState({
             'some-section': [
-                {type: 'radiobutton'}
+                {
+                    type: 'radiobutton', controls: [
+                        {label: 'opt-1', value: 'val-1', active: false},
+                        {label: 'opt-2', value: 'val-2', active: true}
+                    ]
+                }
             ]
         }));
 
-        assert.equal(component.find(Button.Group).length, 1);
+        expect(component.getByText('opt-1', {selector: 'button'})).to.exist;
+        expect(component.getByText('opt-2', {selector: 'button'})).to.exist;
     });
 
     ['button', 'radiobutton'].forEach((controlType) => {
@@ -69,7 +76,7 @@ describe('<CustomGuiControls />', () => {
                     }]
                 }));
 
-                assert.equal(component.children().find(Button).length, 2);
+                assert.equal(component.getAllByRole('button').length, 2);
             });
 
             it(`should give all ${controlType}s correct labels`, () => {
@@ -80,8 +87,8 @@ describe('<CustomGuiControls />', () => {
                     }]
                 }));
 
-                assert.equal(component.children().find('[content="foo"]').length, 1);
-                assert.equal(component.children().find('[content="bar"]').length, 1);
+                expect(component.getByText('foo', {selector: 'button'})).to.exist;
+                expect(component.getByText('bar', {selector: 'button'})).to.exist;
             });
 
             it(`should give all ${controlType}s correct values`, () => {
@@ -95,11 +102,12 @@ describe('<CustomGuiControls />', () => {
                     }]
                 }));
 
-                assert.equal(component.children().find('[content="foo"]').prop('value'), 'foo-value');
-                assert.equal(component.children().find('[content="bar"]').prop('value'), 'bar-value');
+                expect(component.getByText('foo', {selector: 'button'}).value).to.equal('foo-value');
+                expect(component.getByText('bar', {selector: 'button'}).value).to.equal('bar-value');
             });
 
-            it('should run custom action on click', () => {
+            it('should run custom action on click', async () => {
+                const user = userEvent.setup();
                 const component = mkConnectedComponent(<CustomGuiControls />, mkInitialState({
                     'some-section': [{
                         type: `${controlType}`,
@@ -107,7 +115,7 @@ describe('<CustomGuiControls />', () => {
                     }]
                 }));
 
-                component.children().find(Button).simulate('click');
+                await user.click(component.getByRole('button'));
 
                 assert.calledOnceWith(actionsStub.runCustomGuiAction);
             });
@@ -123,8 +131,8 @@ describe('<CustomGuiControls />', () => {
                     }]
                 }));
 
-                assert.isTrue(component.children().find('[content="foo"]').prop('active'));
-                assert.isFalse(component.children().find('[content="bar"]').prop('active'));
+                expect(component.getByText('foo', {selector: 'button'}).classList.contains('active')).to.be.true;
+                expect(component.getByText('bar', {selector: 'button'}).classList.contains('active')).to.be.false;
             });
         });
     });

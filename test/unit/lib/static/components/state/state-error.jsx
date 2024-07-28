@@ -1,3 +1,5 @@
+import userEvent from '@testing-library/user-event';
+import {expect} from 'chai';
 import React from 'react';
 import {defaults} from 'lodash';
 import proxyquire from 'proxyquire';
@@ -43,67 +45,72 @@ describe('<StateError/> component', () => {
 
             const component = mkStateErrorComponent({result: {error}}, {config: {errorPatterns: []}});
 
-            assert.equal(component.find('.error__item').at(0).text(), 'message: some-msg');
-            assert.equal(component.find('.error__item').at(1).text(), 'stack: some-stack');
+            expect(component.getByText('some-msg')).to.exist;
+            expect(component.getByText('some-stack')).to.exist;
         });
 
-        it('should break error fields by line break', () => {
+        it('should break error fields by line break', async () => {
+            const user = userEvent.setup();
             const error = {message: 'msg-title\nmsg-content'};
 
             const component = mkStateErrorComponent({result: {error}}, {config: {errorPatterns: []}});
-            component.find('.details__summary').first().simulate('click');
+            await user.click(component.getByText('message', {exact: false}));
 
-            assert.equal(component.find('.details__summary').first().text(), 'message: msg-title');
-            assert.equal(component.find('.details__content').first().text(), 'msg-content');
+            expect(component.getByText('msg-title', {selector: '.details__summary'})).to.exist;
+            expect(component.getByText('msg-content', {selector: '.details__content>*'})).to.exist;
         });
 
-        it(`should not break error fields if theirs length is less than ${ERROR_TITLE_TEXT_LENGTH} charachters`, () => {
+        it(`should not break error fields if theirs length is less than ${ERROR_TITLE_TEXT_LENGTH} characters`, () => {
             const error = {message: Array(ERROR_TITLE_TEXT_LENGTH - 1).join('a')};
 
             const component = mkStateErrorComponent({result: {error}}, {config: {errorPatterns: []}});
 
-            assert.equal(component.find('.error__item').first().text(), `message: ${error.message}`);
+            expect(component.getByText(error.message, {selector: '.error__item'})).to.exist;
         });
 
-        it(`should break error fields by spaces if theirs length more than ${ERROR_TITLE_TEXT_LENGTH} characters`, () => {
+        it(`should break error fields by spaces if theirs length more than ${ERROR_TITLE_TEXT_LENGTH} characters`, async () => {
+            const user = userEvent.setup();
             const messageTitle = Array(ERROR_TITLE_TEXT_LENGTH - 50).join('a');
             const messageContent = Array(ERROR_TITLE_TEXT_LENGTH).join('b');
             const error = {message: `${messageTitle} ${messageContent}`};
 
             const component = mkStateErrorComponent({result: {error}}, {config: {errorPatterns: []}});
-            component.find('.details__summary').first().simulate('click');
+            await user.click(component.getByText('message', {exact: false}));
 
-            assert.equal(component.find('.details__summary').first().text(), `message: ${messageTitle}`);
-            assert.equal(component.find('.details__content').first().text(), messageContent);
+            expect(component.getByText(messageTitle, {selector: '.details__summary'})).to.exist;
+            expect(component.getByText(messageContent, {selector: '.details__content>*'})).to.exist;
         });
     });
 
     describe('"errorPatterns" is specified', () => {
-        it('should render error "message" with starting "name" of "errorPattern" prop', () => {
+        it('should render error "message" with starting "name" of "errorPattern" prop', async () => {
+            const user = userEvent.setup();
             const error = {message: 'some-msg'};
             const errorPatterns = [{name: 'some-name'}];
 
             const component = mkStateErrorComponent({result: {error}}, {config: {errorPatterns}});
-            component.find('.details__summary').first().simulate('click');
+            await user.click(component.getByText('message', {exact: false}));
 
-            assert.equal(component.find('.details__summary').first().text(), 'message: some-name');
-            assert.equal(component.find('.details__content').first().text(), 'some-msg');
+            expect(component.getByText('some-name', {selector: '.details__summary'})).to.exist;
+            expect(component.getByText('some-msg', {selector: '.details__content>*'})).to.exist;
         });
 
-        it('should render "hint" as html string', () => {
+        it('should render "hint" as html string', async () => {
+            const user = userEvent.setup();
             const error = {message: 'some-msg'};
             const errorPatterns = [{name: 'some-name', hint: '<span class="foo-bar">some-hint</span>'}];
 
             const component = mkStateErrorComponent({result: {error}}, {config: {errorPatterns}});
-            component.find('.details__summary').last().simulate('click');
+            await user.click(component.getByText('hint', {exact: false}));
 
-            assert.equal(component.find('.details__summary').at(1).text(), 'hint: show more');
-            assert.equal(component.find('.details__content .foo-bar').text(), ['some-hint']);
+            expect(component.getByText('show more')).to.exist;
+            expect(component.getByText('some-hint')).to.exist;
         });
     });
 
     describe('error snippet', () => {
-        it('should be rendered in div tags', () => {
+        it('should be rendered in div tags', async () => {
+            const user = userEvent.setup();
             const error = {snippet: `\x1B[90m   . | // /some-file-path.js\x1B[39m")}
                 . |
                 9 | some line
@@ -111,14 +118,16 @@ describe('<StateError/> component', () => {
             `};
 
             const component = mkStateErrorComponent({result: {error}});
-            component.find('.details__summary').last().simulate('click');
+            await user.click(component.getByText('stack', {exact: false}));
+            const errorStackHtml = component.container.querySelector('.details__content').parentNode.innerHTML;
 
-            assert.isTrue(component.find('.details__content').html().startsWith('<div class="details__content"><div>'));
-            assert.isTrue(component.find('.details__content').html().includes('some line'));
-            assert.isTrue(component.find('.details__content').html().endsWith('</div></div>'));
+            assert.isTrue(errorStackHtml.startsWith('<div class="details__content"><div>'));
+            assert.isTrue(errorStackHtml.includes('some line'));
+            assert.isTrue(errorStackHtml.endsWith('</div></div>'));
         });
 
-        it('should resolve colors', () => {
+        it('should resolve colors', async () => {
+            const user = userEvent.setup();
             const error = {snippet: `\x1B[90m   . | // /some-file-path.js\x1B[39m)}
                 . |
                 9 | some line
@@ -126,13 +135,15 @@ describe('<StateError/> component', () => {
             `};
 
             const component = mkStateErrorComponent({result: {error}});
-            component.find('.details__summary').last().simulate('click');
+            await user.click(component.getByText('stack', {exact: false}));
+            const errorStackHtml = component.container.querySelector('.details__content').parentNode.innerHTML;
 
             const expectedSpan = '<span style="color:#888;">   . | // /some-file-path.js</span>';
-            assert.isTrue(component.find('.details__content').html().includes(expectedSpan));
+            assert.isTrue(errorStackHtml.includes(expectedSpan));
         });
 
-        it('should escape html', () => {
+        it('should escape html', async () => {
+            const user = userEvent.setup();
             const error = {snippet: `\x1B[90m   . | // /some-file-path.js\x1B[39m")}
                 . |
                 9 | some<line>
@@ -140,10 +151,11 @@ describe('<StateError/> component', () => {
             `};
 
             const component = mkStateErrorComponent({result: {error}});
-            component.find('.details__summary').last().simulate('click');
+            await user.click(component.getByText('stack', {exact: false}));
+            const errorStackHtml = component.container.querySelector('.details__content').parentNode.innerHTML;
 
-            assert.isFalse(component.find('.details__content').html().includes('some<line>'));
-            assert.isTrue(component.find('.details__content').html().includes('some&lt;line&gt;'));
+            assert.isFalse(errorStackHtml.includes('some<line>'));
+            assert.isTrue(errorStackHtml.includes('some&lt;line&gt;'));
         });
     });
 });

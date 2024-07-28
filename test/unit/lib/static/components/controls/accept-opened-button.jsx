@@ -1,6 +1,7 @@
 import React from 'react';
 import proxyquire from 'proxyquire';
 import {mkState, mkConnectedComponent} from '../utils';
+import userEvent from '@testing-library/user-event';
 
 describe('<AcceptOpenedButton />', () => {
     const sandbox = sinon.sandbox.create();
@@ -28,7 +29,7 @@ describe('<AcceptOpenedButton />', () => {
 
         const component = mkConnectedComponent(<AcceptOpenedButton />, state);
 
-        assert.isTrue(component.find('[label="Accept opened"]').prop('isDisabled'));
+        assert.isTrue(component.getByRole('button').disabled);
     });
 
     it('should be disabled while processing something', () => {
@@ -38,7 +39,7 @@ describe('<AcceptOpenedButton />', () => {
 
         const component = mkConnectedComponent(<AcceptOpenedButton />, state);
 
-        assert.isTrue(component.find('[label="Accept opened"]').prop('isDisabled'));
+        assert.isTrue(component.getByRole('button').disabled);
     });
 
     it('should be enabled if acceptable opened images are present', () => {
@@ -48,16 +49,17 @@ describe('<AcceptOpenedButton />', () => {
 
         const component = mkConnectedComponent(<AcceptOpenedButton />, state);
 
-        assert.isFalse(component.find('[label="Accept opened"]').prop('isDisabled'));
+        assert.isFalse(component.getByRole('button').disabled);
     });
 
-    it('should call "acceptOpened" action on click', () => {
+    it('should call "acceptOpened" action on click', async () => {
+        const user = userEvent.setup();
         const state = mkState({initialState: {processing: false}});
         const acceptableOpenedImageIds = ['img-id-1'];
         selectors.getAcceptableOpenedImageIds.withArgs(state).returns(acceptableOpenedImageIds);
 
         const component = mkConnectedComponent(<AcceptOpenedButton />, state);
-        component.find('[label="Accept opened"]').simulate('click');
+        await user.click(component.getByRole('button'));
 
         assert.calledOnceWith(actionsStub.acceptOpened, acceptableOpenedImageIds);
     });

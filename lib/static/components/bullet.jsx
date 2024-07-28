@@ -16,7 +16,7 @@ const Bullet = ({status, onClick, className}) => {
     });
 
     if (!isCheckbox) {
-        return <div className='bullet-container'><ChevronUp className={classNames(className, 'bullet_type-simple')}/></div>;
+        return <div className='bullet-container'><ChevronUp className={classNames(className, 'bullet_type-simple')} data-testid={'bullet-icon'}/></div>;
     }
 
     return <div onClick={handleClick} className='bullet-container'>

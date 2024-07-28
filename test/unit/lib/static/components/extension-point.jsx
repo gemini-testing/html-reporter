@@ -1,5 +1,6 @@
 import React from 'react';
 import proxyquire from 'proxyquire';
+import {render} from '@testing-library/react';
 
 describe('<ExtensionPoint />', () => {
     const sandbox = sinon.sandbox.create();
@@ -42,22 +43,22 @@ describe('<ExtensionPoint />', () => {
     afterEach(() => sandbox.restore());
 
     it('should skip plugin components composition when extension point does not match', () => {
-        const component = mount(
+        const component = render(
             <ExtensionPoint name='no match example'>
                 child
             </ExtensionPoint>
         );
 
-        assert.strictEqual(component.first().html(), 'child');
+        assert.strictEqual(component.container.innerHTML, 'child');
     });
 
     it('should render combined plugin components on matching extension point', () => {
-        const component = mount(
+        const component = render(
             <ExtensionPoint name='example'>
                 child
             </ExtensionPoint>
         );
 
-        assert.strictEqual(component.first().html(), '<div>Before<div>child</div>After</div>');
+        assert.strictEqual(component.container.innerHTML, '<div>Before<div>child</div>After</div>');
     });
 });

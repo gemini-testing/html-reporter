@@ -1,3 +1,4 @@
+import {expect} from 'chai';
 import React from 'react';
 import {defaults} from 'lodash';
 import proxyquire from 'proxyquire';
@@ -68,11 +69,7 @@ describe('<ScreenshotAccepterBody/>', () => {
     it('should render completion information if "image" is not passed', () => {
         const component = mkBodyComponent({image: null});
 
-        assert.equal(
-            component.find('.screenshot-accepter__completion-info').text(),
-            'All screenshots are accepted. Well done! 🎉'
-        );
-        assert.isEmpty(component.find('.screenshot-accepter__title'));
+        expect(component.getByText('All screenshots are accepted. Well done! 🎉')).to.exist;
     });
 
     it('should render full title of image state with image description', () => {
@@ -83,10 +80,8 @@ describe('<ScreenshotAccepterBody/>', () => {
 
         const component = mkBodyComponent({image}, {tree});
 
-        assert.equal(
-            component.find('.screenshot-accepter__title').text(),
-            'suite/yabro/state (expected, actual, diff)'
-        );
+        expect(component.container.querySelector('.screenshot-accepter__title').textContent)
+            .to.equal('suite/yabro/state (expected, actual, diff)');
     });
 
     describe('no reference image error', () => {
@@ -119,10 +114,8 @@ describe('<ScreenshotAccepterBody/>', () => {
 
             const component = mkBodyComponent({image}, {tree});
 
-            assert.equal(
-                component.find('.screenshot-accepter__title').text(),
-                'suite/yabro/state (actual)'
-            );
+            expect(component.container.querySelector('.screenshot-accepter__title').textContent)
+                .to.equal('suite/yabro/state (actual)');
         });
     });
 

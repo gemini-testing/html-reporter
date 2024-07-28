@@ -1,11 +1,12 @@
+import {expect} from 'chai';
 import React from 'react';
 import proxyquire from 'proxyquire';
 import {defaultsDeep, set} from 'lodash';
 import {mkConnectedComponent} from 'test/unit/lib/static/components/utils';
 import {mkStateTree} from 'test/unit/lib/static/state-utils';
 import {CHECKED, UNCHECKED, INDETERMINATE} from 'lib/constants/checked-statuses';
-import {Checkbox, Spin} from '@gravity-ui/uikit';
 import {TestStatus} from 'lib/constants';
+import userEvent from '@testing-library/user-event';
 
 describe('<SuiteTitle/>', () => {
     const sandbox = sinon.sandbox.create();
@@ -45,54 +46,61 @@ describe('<SuiteTitle/>', () => {
         it('should show spinner if running', () => {
             const component = mkSuiteTitleComponent(CHECKED, TestStatus.RUNNING);
 
-            assert.equal(component.find(Spin).length, 1);
+            expect(component.container.querySelector('.g-spin')).to.exist;
         });
 
         it('should not show spinner if not running', () => {
             const component = mkSuiteTitleComponent(CHECKED, TestStatus.IDLE);
 
-            assert.equal(component.find(Spin).length, 0);
+            expect(component.container.querySelector('.g-spin')).to.not.exist;
         });
     });
 
     describe('<Checkbox/>', () => {
-        [CHECKED, UNCHECKED].forEach(show => {
-            it(`should ${show ? '' : 'not '}exist if "showCheckboxes" is ${show ? '' : 'not '}set`, () => {
-                useLocalStorageStub.withArgs('showCheckboxes', false).returns([show]);
+        it(`should exist if "showCheckboxes" is set`, () => {
+            useLocalStorageStub.withArgs('showCheckboxes', false).returns([true]);
 
-                const component = mkSuiteTitleComponent();
+            const component = mkSuiteTitleComponent();
 
-                assert.equal(component.find(Checkbox).exists(), +show);
-            });
+            expect(component.queryByRole('checkbox')).to.exist;
+        });
+
+        it(`should not exist if "showCheckboxes" is not set`, () => {
+            useLocalStorageStub.withArgs('showCheckboxes', false).returns([false]);
+
+            const component = mkSuiteTitleComponent();
+
+            expect(component.queryByRole('checkbox')).to.not.exist;
         });
 
         it('should not be checked', () => {
             useLocalStorageStub.withArgs('showCheckboxes', false).returns([true]);
             const component = mkSuiteTitleComponent(UNCHECKED);
 
-            assert.equal(component.find(Checkbox).prop('checked'), UNCHECKED);
+            expect(component.queryByRole('checkbox').checked).to.equal(false);
         });
 
         it(`should be indeterminate`, () => {
             useLocalStorageStub.withArgs('showCheckboxes', false).returns([true]);
             const component = mkSuiteTitleComponent(INDETERMINATE);
 
-            assert.isTrue(component.find(Checkbox).prop('indeterminate'));
+            expect(component.queryByRole('checkbox').indeterminate).to.equal(true);
         });
 
         it(`should be checked`, () => {
             useLocalStorageStub.withArgs('showCheckboxes', false).returns([true]);
             const component = mkSuiteTitleComponent(CHECKED);
 
-            assert.equal(component.find(Checkbox).prop('checked'), CHECKED);
+            expect(component.queryByRole('checkbox').checked).to.equal(true);
         });
 
         [CHECKED, UNCHECKED].forEach(checked => {
-            it(`should call "toggleBrowserCheckbox" action with ${checked ? 'unchecked' : 'checked'} state on click`, () => {
+            it(`should call "toggleBrowserCheckbox" action with ${checked ? 'unchecked' : 'checked'} state on click`, async () => {
+                const user = userEvent.setup();
                 useLocalStorageStub.withArgs('showCheckboxes', false).returns([true]);
                 const component = mkSuiteTitleComponent(checked);
 
-                component.find(Checkbox).simulate('click');
+                await user.click(component.queryByRole('checkbox'));
 
                 assert.calledOnceWith(actionsStub.toggleSuiteCheckbox, {
                     suiteId: 'suiteId',

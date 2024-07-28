@@ -37,7 +37,7 @@ const BottomProgressBar = (props) => {
 
 BottomProgressBar.propTypes = {
     progressBar: PropTypes.object.isRequired,
-    visibleRootSuiteIds: PropTypes.arrayOf(PropTypes.number)
+    visibleRootSuiteIds: PropTypes.arrayOf(PropTypes.string)
 };
 
 export default connect(

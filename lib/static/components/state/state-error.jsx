@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import PropTypes from 'prop-types';
 import {isEmpty, map, isFunction} from 'lodash';
-import ReactHtmlParser from 'react-html-parser';
+import ReactHtmlParser from 'html-react-parser';
 import escapeHtml from 'escape-html';
 import ansiHtml from 'ansi-html-community';
 import * as actions from '../../modules/actions';

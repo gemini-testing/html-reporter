@@ -1,8 +1,10 @@
+import {expect} from 'chai';
 import React from 'react';
 import proxyquire from 'proxyquire';
 import {defaults} from 'lodash';
 import {mkConnectedComponent} from '../../utils';
 import {mkStateTree} from '../../../state-utils';
+import userEvent from '@testing-library/user-event';
 
 describe('<Body />', () => {
     const sandbox = sinon.sandbox.create();
@@ -41,33 +43,34 @@ describe('<Body />', () => {
         it('should render if "gui" is running', () => {
             const component = mkBodyComponent({}, {gui: true});
 
-            assert.equal(component.find('.button_type_suite-controls').first().text(), 'Retry');
+            expect(component.getByText('Retry', {selector: 'button > *'})).to.exist;
         });
 
         it('should not render if "gui" is not running', () => {
             const component = mkBodyComponent({}, {gui: false});
 
-            assert.lengthOf(component.find('.button_type_suite-controls'), 0);
+            expect(component.container.querySelector('.button_type_suite-controls')).to.not.exist;
         });
 
         it('should be disabled while tests running', () => {
             const component = mkBodyComponent({}, {running: true});
 
-            assert.isTrue(component.find('[data-qa="test-retry"]').prop('disabled'));
+            assert.isTrue(component.getByTestId('test-retry').disabled);
         });
 
         it('should be enabled if tests are not started yet', () => {
             const component = mkBodyComponent({}, {running: false});
 
-            assert.isFalse(component.find('[data-qa="test-retry"]').prop('disabled'));
+            assert.isFalse(component.getByTestId('test-retry').disabled);
         });
 
-        it('should call action "retryTest" on "handler" prop calling', () => {
+        it('should call action "retryTest" on "handler" prop calling', async () => {
+            const user = userEvent.setup();
             const testName = 'suite test';
             const browserName = 'yabro';
             const component = mkBodyComponent({testName, browserName}, {running: false});
 
-            component.find('[data-qa="test-retry"]').simulate('click');
+            await user.click(component.getByTestId('test-retry'));
 
             assert.calledOnceWith(actionsStub.retryTest, {testName, browserName});
         });

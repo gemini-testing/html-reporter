@@ -32,7 +32,7 @@ export const getStatus = (eventName: ValueOf<Testplane['events']>, events: Testp
     } else if (eventName === events.TEST_PENDING) {
         return TestStatus.SKIPPED;
     } else if (eventName === events.RETRY || eventName === events.TEST_FAIL) {
-        return hasUnrelatedToScreenshotsErrors(testResult.err!) ? TestStatus.ERROR : TestStatus.FAIL;
+        return hasUnrelatedToScreenshotsErrors(testResult.err as Error) ? TestStatus.ERROR : TestStatus.FAIL;
     } else if (eventName === events.TEST_BEGIN) {
         return TestStatus.RUNNING;
     }

@@ -1,9 +1,103 @@
-import React, {Component} from 'react';
+import useResizeObserver from '@react-hook/resize-observer';
 import PropTypes from 'prop-types';
-import ResizeObserver from 'rc-resize-observer';
+import React, {useEffect, useRef, useState} from 'react';
 
-export default (WrappedComponent) => class WithSyncedScale extends Component {
-    static propTypes = {
+export default (WrappedComponent) => {
+    function WithSyncedScale(props) {
+        const {image1, image2} = props;
+
+        const scaleFactor = useRef(1);
+        const shouldScale = useRef(image1.size.width !== image2.size.width);
+        const isFirstImageWider = useRef(image1.size.width > image2.size.width);
+
+        const [state, setState] = useState({
+            syncedImage1: {
+                containerRef: useRef(null),
+                width: image1.size.width
+            },
+            syncedImage2: {
+                containerRef: useRef(null),
+                width: image2.size.width
+            },
+            resizesNum: 0
+        });
+
+        const getRenderedImgWidth = (syncedImage) => {
+            return syncedImage.containerRef.current
+                ? syncedImage.containerRef.current.offsetWidth
+                : syncedImage.width;
+        };
+
+        const _calcScaleFactor = () => {
+            if (!shouldScale.current) {
+                return scaleFactor.current;
+            }
+
+            const {image1, image2} = props;
+            const {syncedImage1, syncedImage2} = state;
+
+            const imgWidth = isFirstImageWider.current ? image1.size.width : image2.size.width;
+            const renderedImgWidth = isFirstImageWider.current
+                ? getRenderedImgWidth(syncedImage1)
+                : getRenderedImgWidth(syncedImage2);
+
+            return renderedImgWidth / imgWidth;
+        };
+
+        const _getScaledWidth = (image) => {
+            if (!shouldScale.current) {
+                return image.size.width;
+            }
+
+            const scaledWidth = Math.ceil(image.size.width * scaleFactor.current);
+
+            return Math.min(scaledWidth, image.size.width);
+        };
+
+        const _handleResize = () => {
+            if (!shouldScale.current) {
+                return;
+            }
+
+            const {image1, image2} = props;
+            scaleFactor.current = _calcScaleFactor();
+
+            setState({
+                syncedImage1: {
+                    ...state.syncedImage1,
+                    width: isFirstImageWider.current ? image1.size.width : _getScaledWidth(image1)
+                },
+                syncedImage2: {
+                    ...state.syncedImage2,
+                    width: isFirstImageWider.current ? _getScaledWidth(image2) : image2.size.width
+                },
+                resizesNum: state.resizesNum + 1
+            });
+        };
+
+        useEffect(() => {
+            _handleResize();
+        }, []);
+
+        const containerRef = useRef(null);
+        useResizeObserver(containerRef, _handleResize);
+
+        const {syncedImage1, syncedImage2, resizesNum} = state;
+
+        return (
+            <div ref={containerRef}>
+                <WrappedComponent
+                    syncedImage1={syncedImage1}
+                    syncedImage2={syncedImage2}
+                    resizesNum={resizesNum}
+                    getRenderedImgWidth={getRenderedImgWidth}
+                    {...props}
+                />
+            </div>
+        );
+    }
+
+    WithSyncedScale.propTypes = {
         image1: PropTypes.shape({
             size: PropTypes.shape({
                 width: PropTypes.number,
@@ -18,99 +112,5 @@ export default (WrappedComponent) => class WithSyncedScale extends Component {
         }).isRequired
     };
 
-    constructor(props) {
-        super(props);
-
-        const {image1, image2} = props;
-
-        this._scaleFactor = 1;
-        this._shouldScale = image1.size.width !== image2.size.width;
-        this._isFirstImageWider = image1.size.width > image2.size.width;
-
-        this.state = {
-            syncedImage1: {
-                containerRef: React.createRef(),
-                width: image1.size.width
-            },
-            syncedImage2: {
-                containerRef: React.createRef(),
-                width: image2.size.width
-            },
-            resizesNum: 0
-        };
-    }
-
-    componentDidMount() {
-        this._handleResize();
-    }
-
-    _calcScaleFactor = () => {
-        if (!this._shouldScale) {
-            return this._scaleFactor;
-        }
-
-        const {image1, image2} = this.props;
-        const {syncedImage1, syncedImage2} = this.state;
-
-        const imgWidth = this._isFirstImageWider ? image1.size.width : image2.size.width;
-        const renderedImgWidth = this._isFirstImageWider
-            ? this.getRenderedImgWidth(syncedImage1)
-            : this.getRenderedImgWidth(syncedImage2);
-
-        return renderedImgWidth / imgWidth;
-    };
-
-    _getScaledWidth = (image) => {
-        if (!this._shouldScale) {
-            return image.size.width;
-        }
-
-        const scaledWidth = Math.ceil(image.size.width * this._scaleFactor);
-
-        return Math.min(scaledWidth, image.size.width);
-    };
-
-    getRenderedImgWidth(syncedImage) {
-        return syncedImage.containerRef.current
-            ? syncedImage.containerRef.current.offsetWidth
-            : syncedImage.width;
-    }
-
-    _handleResize = () => {
-        if (!this._shouldScale) {
-            return;
-        }
-
-        const {image1, image2} = this.props;
-        this._scaleFactor = this._calcScaleFactor();
-
-        this.setState(prevState => ({
-            syncedImage1: {
-                ...prevState.syncedImage1,
-                width: this._isFirstImageWider ? image1.size.width : this._getScaledWidth(image1)
-            },
-            syncedImage2: {
-                ...prevState.syncedImage2,
-                width: this._isFirstImageWider ? this._getScaledWidth(image2) : image2.size.width
-            },
-            resizesNum: prevState.resizesNum + 1
-        }));
-    };
-
-    render() {
-        const {syncedImage1, syncedImage2, resizesNum} = this.state;
-
-        return (
-            <ResizeObserver onResize={this._handleResize}>
-                <WrappedComponent
-                    syncedImage1={syncedImage1}
-                    syncedImage2={syncedImage2}
-                    resizesNum={resizesNum}
-                    getRenderedImgWidth={this.getRenderedImgWidth}
-
-                    {...this.props}
-                />
-            </ResizeObserver>
-        );
-    }
+    return WithSyncedScale;
 };

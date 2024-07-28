@@ -1,3 +1,4 @@
+import {expect} from 'chai';
 import React from 'react';
 import proxyquire from 'proxyquire';
 import {set, defaults, defaultsDeep} from 'lodash';
@@ -5,6 +6,7 @@ import {SUCCESS, FAIL, ERROR, UPDATED} from 'lib/constants/test-statuses';
 import {EXPAND_ALL} from 'lib/constants/expand-modes';
 import {types as modalTypes} from 'lib/static/components/modals';
 import {mkConnectedComponent} from '../utils';
+import userEvent from '@testing-library/user-event';
 
 describe('<State/>', () => {
     const sandbox = sinon.sandbox.create();
@@ -65,7 +67,7 @@ describe('<State/>', () => {
         it('should not render button in static report', () => {
             const stateComponent = mkStateComponent({}, {gui: false});
 
-            assert.lengthOf(stateComponent.find('[data-qa="test-accept"]'), 0);
+            expect(stateComponent.queryByTestId('test-accept')).to.not.exist;
         });
 
         it('should render button in gui report if image is acceptable', () => {
@@ -82,7 +84,7 @@ describe('<State/>', () => {
 
             const stateComponent = mkStateComponent({imageId: 'img-id'}, {gui: true, ...initialState});
 
-            assert.lengthOf(stateComponent.find('[data-qa="test-accept"]'), 1);
+            expect(stateComponent.getByTestId('test-accept')).to.exist;
         });
 
         it('should not render button if image is not acceptable', () => {
@@ -99,7 +101,7 @@ describe('<State/>', () => {
 
             const stateComponent = mkStateComponent({imageId: 'img-id'}, initialState);
 
-            assert.isEmpty(stateComponent.find('[data-qa="test-accept"]'));
+            expect(stateComponent.queryByTestId('test-accept')).to.not.exist;
         });
 
         it('should be enabled if image is acceptable', () => {
@@ -116,10 +118,11 @@ describe('<State/>', () => {
 
             const stateComponent = mkStateComponent({imageId: 'img-id'}, initialState);
 
-            assert.isFalse(stateComponent.find('[data-qa="test-accept"]').prop('disabled'));
+            assert.isFalse(stateComponent.queryByTestId('test-accept').disabled);
         });
 
-        it('should call "acceptTest" action on button click', () => {
+        it('should call "acceptTest" action on button click', async () => {
+            const user = userEvent.setup();
             const image = {stateName: 'some-name', status: FAIL};
             const initialState = {
                 tree: {
@@ -132,7 +135,7 @@ describe('<State/>', () => {
             utilsStub.isAcceptable.withArgs(image).returns(true);
 
             const stateComponent = mkStateComponent({imageId: 'img-id'}, initialState);
-            stateComponent.find('[data-qa="test-accept"]').simulate('click');
+            await user.click(stateComponent.queryByTestId('test-accept'));
 
             assert.calledOnceWith(actionsStub.acceptTest, 'img-id');
         });
@@ -152,7 +155,7 @@ describe('<State/>', () => {
             };
             const stateComponent = mkStateComponent({imageId: 'img-id'}, initialState);
 
-            assert.isFalse(stateComponent.find('[data-qa="test-undo"]').exists());
+            expect(stateComponent.queryByTestId('test-undo')).to.not.exist;
         });
 
         it('should not exist, if not gui', () => {
@@ -168,10 +171,11 @@ describe('<State/>', () => {
             });
             const stateComponent = mkStateComponent({imageId: 'img-id'}, initialState);
 
-            assert.isFalse(stateComponent.find('[data-qa="test-undo"]').exists());
+            expect(stateComponent.queryByTestId('test-undo')).to.not.exist;
         });
 
-        it('should call "undoAcceptImages" action on button click', () => {
+        it('should call "undoAcceptImages" action on button click', async () => {
+            const user = userEvent.setup();
             const image = {stateName: 'some-name', status: UPDATED};
             const initialState = {
                 gui: true,
@@ -184,7 +188,7 @@ describe('<State/>', () => {
             };
             const stateComponent = mkStateComponent({imageId: 'img-id'}, initialState);
 
-            stateComponent.find('[data-qa="test-undo"]').simulate('click');
+            await user.click(stateComponent.queryByTestId('test-undo'));
 
             assert.calledOnceWith(actionsStub.undoAcceptImage, 'img-id');
         });
@@ -256,7 +260,7 @@ describe('<State/>', () => {
             it('should not render button', () => {
                 const stateComponent = mkStateComponent({}, {gui: false});
 
-                assert.lengthOf(stateComponent.find('[label$="Switch accept mode"]'), 0);
+                expect(stateComponent.queryByText('Switch accept mode', {selector: 'label'})).to.not.exist;
             });
 
             it('should not call "getLastImageByStateName" selector', () => {
@@ -281,7 +285,7 @@ describe('<State/>', () => {
 
                 const stateComponent = mkStateComponent({imageId: 'img-id'}, {gui: true, ...initialState});
 
-                assert.lengthOf(stateComponent.find('button[title="Open mode with fast screenshot accepting"]'), 1);
+                expect(stateComponent.getByTitle('Open mode with fast screenshot accepting')).to.exist;
             });
 
             it('should not call "getLastImageByStateName" selector if image id is not passed', () => {
@@ -306,7 +310,7 @@ describe('<State/>', () => {
 
                 const stateComponent = mkStateComponent({imageId: 'img-id'}, initialState);
 
-                assert.isTrue(stateComponent.find('[title="Open mode with fast screenshot accepting"]').first().prop('isDisabled'));
+                assert.isTrue(stateComponent.getByTitle('Open mode with fast screenshot accepting').disabled);
             });
 
             it('should be disabled if last image is not acceptable', () => {
@@ -325,7 +329,7 @@ describe('<State/>', () => {
 
                 const stateComponent = mkStateComponent({imageId: 'img-id'}, initialState);
 
-                assert.isTrue(stateComponent.find('[title="Open mode with fast screenshot accepting"]').first().prop('isDisabled'));
+                assert.isTrue(stateComponent.getByTitle('Open mode with fast screenshot accepting').disabled);
             });
 
             it('should be enabled if last image is acceptable', () => {
@@ -343,10 +347,11 @@ describe('<State/>', () => {
 
                 const stateComponent = mkStateComponent({imageId: 'img-id'}, initialState);
 
-                assert.isFalse(stateComponent.find('[title="Open mode with fast screenshot accepting"]').first().prop('isDisabled'));
+                assert.isFalse(stateComponent.getByTitle('Open mode with fast screenshot accepting').disabled);
             });
 
-            it('should call "openModal" action on button click', () => {
+            it('should call "openModal" action on button click', async () => {
+                const user = userEvent.setup();
                 const image = {stateName: 'some-name', status: FAIL};
                 const initialState = {
                     tree: {
@@ -360,7 +365,7 @@ describe('<State/>', () => {
                 getLastImageByStateName.returns(image);
 
                 const stateComponent = mkStateComponent({imageId: 'img-id'}, initialState);
-                stateComponent.find('[title="Open mode with fast screenshot accepting"]').first().simulate('click');
+                await user.click(stateComponent.getByTitle('Open mode with fast screenshot accepting'));
 
                 assert.calledOnceWith(actionsStub.openModal, {
                     id: modalTypes.SCREENSHOT_ACCEPTER,
@@ -373,7 +378,8 @@ describe('<State/>', () => {
     });
 
     describe('"toggleStateResult" action', () => {
-        it('should call on click in state name', () => {
+        it('should call on click in state name', async () => {
+            const user = userEvent.setup();
             const image = {stateName: 'some-name', status: SUCCESS};
             const initialState = {
                 tree: {
@@ -386,7 +392,7 @@ describe('<State/>', () => {
             };
 
             const stateComponent = mkStateComponent({imageId: 'img-id'}, initialState);
-            stateComponent.find('.state-title').simulate('click');
+            await user.click(stateComponent.getByText('some-name'));
 
             assert.calledOnceWith(
                 actionsStub.toggleStateResult,

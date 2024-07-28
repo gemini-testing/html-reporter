@@ -1,10 +1,10 @@
-import React, {Component} from 'react';
+import React, {ButtonHTMLAttributes, Component} from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {Button} from '@gravity-ui/uikit';
 
 interface ControlButtonProps {
-    label: string | Component;
+    label: React.ReactNode;
     title?: string;
     handler: () => void;
     isActive?: boolean;
@@ -58,7 +58,7 @@ export default class ControlButton extends Component<ControlButtonProps> {
             onClick={handler}
             className={className}
             disabled={isDisabled}
-            qa={dataTestId?.toString()}
+            extraProps={{'data-testid': dataTestId?.toString()} as ButtonHTMLAttributes<HTMLButtonElement>}
         >
             {label}
         </Button>;

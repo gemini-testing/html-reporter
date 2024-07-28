@@ -1,406 +1,417 @@
+import userEvent from '@testing-library/user-event';
+import {expect} from 'chai';
+import {http, HttpResponse} from 'msw';
+import {setupServer} from 'msw/node';
 import React from 'react';
-import ReactDOM from 'react-dom';
-import {defaults} from 'lodash';
 import proxyquire from 'proxyquire';
 import {EXPAND_ALL} from 'lib/constants/expand-modes';
-import {mkConnectedComponent} from '../../utils';
+import {
+    addBrowserToTree,
+    addImageToTree,
+    addResultToTree,
+    addSuiteToTree, generateImageId,
+    mkEmptyTree, mkRealStore, renderWithStore
+} from '../../utils';
+
+const handlers = [
+    http.post('/reference-data-to-update', () => {
+        return HttpResponse.json({});
+    }),
+    http.post('/update-reference', () => {
+        return HttpResponse.json([{
+            images: [{id: 'test-1 bro-1 0 state-1', stateName: 'state-1'}]
+        }]);
+    }),
+    http.post('/undo-accept-images', () => {
+        return HttpResponse.json({});
+    })
+];
+
+const server = setupServer(...handlers);
 
 describe('<ScreenshotAccepter/>', () => {
     const sandbox = sinon.sandbox.create();
-    let ScreenshotAccepter, ScreenshotAccepterHeader, ScreenshotAccepterMeta, ScreenshotAccepterBody;
-    let actionsStub, selectors, parentNode, preloadImageStub;
+    let ScreenshotAccepter;
+    let preloadImageStub;
 
-    const mkResult = (opts) => {
-        const result = defaults(opts, {
-            id: 'default-result-id',
-            parentId: 'default-bro-id',
-            imageIds: []
-        });
+    before(() => server.listen());
 
-        return {[result.id]: result};
-    };
-
-    const mkImage = (opts) => {
-        return defaults(opts, {
-            id: 'default-image-id',
-            parentId: 'default-result-id',
-            stateName: 'default-state-name'
-        });
-    };
-
-    const mkStateTree = ({resultsById = {}} = {}) => {
-        return {
-            results: {byId: resultsById}
-        };
-    };
-
-    const mkScreenshotAccepterComponent = (props = {}, initialState = {}) => {
-        if (!global.Element.prototype.scrollTo) {
-            global.Element.prototype.scrollTo = () => {}; // scrollTo isn't implemented in JSDOM
-        }
-        props = defaults(props, {
-            image: mkImage(),
-            onClose: sandbox.stub()
-        });
-        initialState = defaults(initialState, {
-            tree: mkStateTree(),
-            view: {expand: EXPAND_ALL}
-        });
-
-        return mkConnectedComponent(<ScreenshotAccepter {...props} />, {initialState});
-    };
+    after(() => server.close());
 
     beforeEach(() => {
-        actionsStub = {
-            changeDiffMode: sandbox.stub().returns({type: 'some-type'}),
-            screenshotAccepterAccept: sandbox.stub().returns({type: 'some-type'}),
-            undoAcceptImage: sandbox.stub().returns({type: 'some-type'}),
-            applyDelayedTestResults: sandbox.stub().returns({type: 'some-type'})
-        };
+        global.Element.prototype.scrollTo = () => {};
 
-        selectors = {
-            getAcceptableImagesByStateName: sandbox.stub().returns({})
-        };
-
-        parentNode = {
-            scrollTo: sandbox.stub()
-        };
-
-        ScreenshotAccepterHeader = sandbox.stub().returns(null);
-        ScreenshotAccepterMeta = sandbox.stub().returns(null);
-        ScreenshotAccepterBody = sandbox.stub().returns(null);
-
-        sandbox.stub(ReactDOM, 'findDOMNode').returns({parentNode});
         preloadImageStub = sandbox.stub();
 
         ScreenshotAccepter = proxyquire('lib/static/components/modals/screenshot-accepter', {
-            './header': {default: ScreenshotAccepterHeader},
-            './meta': {default: ScreenshotAccepterMeta},
-            './body': {default: ScreenshotAccepterBody},
-            '../../../modules/actions': actionsStub,
-            '../../../modules/selectors/tree': selectors,
             '../../../modules/utils': {preloadImage: preloadImageStub}
         }).default;
     });
 
-    afterEach(() => sandbox.restore());
+    afterEach(() => {
+        sandbox.restore();
+        server.resetHandlers();
+    });
 
-    describe('"ScreenshotAccepterHeader"', () => {
-        it('should render with correct props', () => {
-            const image = mkImage({id: 'img-1', parentId: 'res-1', stateName: 'plain'});
-            const resultsById = mkResult({id: 'res-1', parentId: 'bro-1', imageIds: ['img-1']});
-            const tree = mkStateTree({resultsById});
-            selectors.getAcceptableImagesByStateName.returns({'bro-1 plain': [image]});
-
-            mkScreenshotAccepterComponent({image}, {tree});
-
-            assert.calledWithMatch(
-                ScreenshotAccepterHeader,
-                {
-                    actions: {
-                        changeDiffMode: sinon.match.func
-                    },
-                    view: {
-                        diffMode: '3-up'
-                    },
-                    images: [image],
-                    stateNameImageIds: ['bro-1 plain'],
-                    retryIndex: 0,
-                    activeImageIndex: 0,
-                    showMeta: false,
-                    acceptedImages: 0,
-                    totalImages: 1,
-                    onClose: sinon.match.func,
-                    onRetryChange: sinon.match.func,
-                    onActiveImageChange: sinon.match.func,
-                    onScreenshotAccept: sinon.match.func,
-                    onScreenshotUndo: sinon.match.func,
-                    onShowMeta: sinon.match.func
-                }
-            );
+    it('should render header with correct images counter', () => {
+        const tree = mkEmptyTree();
+        addSuiteToTree({tree, suiteName: 'test-1'});
+        addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
+        addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0});
+        addImageToTree({
+            tree,
+            suiteName: 'test-1',
+            browserName: 'bro-1',
+            attempt: 0,
+            stateName: 'state-1',
+            expectedImgPath: 'img1-expected.png',
+            actualImgPath: 'img1-actual.png',
+            diffImgPath: 'img1-diff.png'
         });
-
-        describe('"onRetryChange" handler', () => {
-            it('should change retry index on call', () => {
-                const image1 = mkImage({id: 'img-1', parentId: 'res-1', stateName: 'plain'});
-                const image2 = mkImage({id: 'img-2', parentId: 'res-2', stateName: 'plain'});
-                const resultsById = {
-                    ...mkResult({id: 'res-1', parentId: 'bro-1', imageIds: ['img-1']}),
-                    ...mkResult({id: 'res-2', parentId: 'bro-1', imageIds: ['img-2']})
-                };
-                const tree = mkStateTree({resultsById});
-                selectors.getAcceptableImagesByStateName.returns({'bro-1 plain': [image1, image2]});
-
-                mkScreenshotAccepterComponent({image: image1}, {tree});
-                ScreenshotAccepterHeader.firstCall.args[0].onRetryChange(1);
-
-                assert.calledWithMatch(ScreenshotAccepterHeader.firstCall, {retryIndex: 0});
-                assert.calledWithMatch(ScreenshotAccepterHeader.secondCall, {retryIndex: 1});
-            });
+        addImageToTree({
+            tree,
+            suiteName: 'test-1',
+            browserName: 'bro-1',
+            attempt: 0,
+            stateName: 'state-2',
+            expectedImgPath: 'img2-expected.png',
+            actualImgPath: 'img2-actual.png',
+            diffImgPath: 'img2-diff.png'
         });
+        const store = mkRealStore({initialState: {tree}});
+        const currentImageId = generateImageId({suiteName: 'test-1', browserName: 'bro-1', attempt: 0, stateName: 'state-1'});
 
-        describe('"onActiveImageChange" handler', () => {
-            [
-                {
-                    name: 'retry index on last in active images',
-                    expectedFirst: {retryIndex: 0},
-                    expectedSecond: {retryIndex: 0}
-                },
-                {
-                    name: 'active image index on passed',
-                    expectedFirst: {activeImageIndex: 0},
-                    expectedSecond: {activeImageIndex: 1}
-                }
-            ].forEach(({name, expectedFirst, expectedSecond}) => {
-                it(`should change ${name}`, () => {
-                    const image1 = mkImage({id: 'img-1', parentId: 'res-1', stateName: 'plain'});
-                    const image2 = mkImage({id: 'img-2', parentId: 'res-2', stateName: 'plain2'});
-                    const resultsById = {
-                        ...mkResult({id: 'res-1', parentId: 'bro-1', imageIds: ['img-1']}),
-                        ...mkResult({id: 'res-2', parentId: 'bro-1', imageIds: ['img-2']})
+        const component = renderWithStore(<ScreenshotAccepter image={tree.images.byId[currentImageId]}/>, store);
+
+        expect(component.getByTestId('screenshot-accepter-progress-bar').dataset.content).to.equal('0/2');
+    });
+
+    it('should change attempt by clicking on retry-switcher', async () => {
+        const user = userEvent.setup();
+        const tree = mkEmptyTree();
+        addSuiteToTree({tree, suiteName: 'test-1'});
+        addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
+        addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0});
+        addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 1});
+        addImageToTree({
+            tree,
+            suiteName: 'test-1',
+            browserName: 'bro-1',
+            attempt: 0,
+            stateName: 'state-1',
+            expectedImgPath: 'img1-expected.png',
+            actualImgPath: 'img1-actual.png',
+            diffImgPath: 'img1-diff.png'
+        });
+        addImageToTree({
+            tree,
+            suiteName: 'test-1',
+            browserName: 'bro-1',
+            attempt: 1,
+            stateName: 'state-1',
+            expectedImgPath: 'img2-expected.png',
+            actualImgPath: 'img2-actual.png',
+            diffImgPath: 'img2-diff.png'
+        });
+        const store = mkRealStore({initialState: {tree}});
+        const currentImageId = generateImageId({suiteName: 'test-1', browserName: 'bro-1', attempt: 1, stateName: 'state-1'});
+
+        const component = renderWithStore(<ScreenshotAccepter image={tree.images.byId[currentImageId]}/>, store);
+        // By default, last failed attempt is selected. We select first one.
+        await user.click(component.getByText('1', {selector: 'button[data-testid="retry-switcher"] > *'}));
+
+        const imageElements = component.getAllByRole('img');
+        imageElements.every(imageElement => expect(imageElement.src).to.include('img1'));
+    });
+
+    it('should change image by clicking on "next" button', async () => {
+        const user = userEvent.setup();
+        const tree = mkEmptyTree();
+        addSuiteToTree({tree, suiteName: 'test-1'});
+        addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
+        addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0});
+        addImageToTree({
+            tree,
+            suiteName: 'test-1',
+            browserName: 'bro-1',
+            attempt: 0,
+            stateName: 'state-1',
+            expectedImgPath: 'img1-expected.png',
+            actualImgPath: 'img1-actual.png',
+            diffImgPath: 'img1-diff.png'
+        });
+        addImageToTree({
+            tree,
+            suiteName: 'test-1',
+            browserName: 'bro-1',
+            attempt: 0,
+            stateName: 'state-2',
+            expectedImgPath: 'img2-expected.png',
+            actualImgPath: 'img2-actual.png',
+            diffImgPath: 'img2-diff.png'
+        });
+        const store = mkRealStore({initialState: {tree}});
+        const currentImageId = generateImageId({suiteName: 'test-1', browserName: 'bro-1', attempt: 0, stateName: 'state-1'});
+
+        const component = renderWithStore(<ScreenshotAccepter image={tree.images.byId[currentImageId]}/>, store);
+        await user.click(component.getByTitle('Show next image', {exact: false}));
+
+        const imageElements = component.getAllByRole('img');
+        imageElements.every(imageElement => expect(imageElement.src).to.include('img2'));
+    });
+
+    it('should show a success message after accepting last screenshot', async () => {
+        const user = userEvent.setup();
+        const tree = mkEmptyTree();
+        addSuiteToTree({tree, suiteName: 'test-1'});
+        addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
+        addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0});
+        addImageToTree({
+            tree,
+            suiteName: 'test-1',
+            browserName: 'bro-1',
+            attempt: 0,
+            stateName: 'state-1',
+            expectedImgPath: 'img1-expected.png',
+            actualImgPath: 'img1-actual.png',
+            diffImgPath: 'img1-diff.png'
+        });
+        const store = mkRealStore({initialState: {tree}});
+        const currentImageId = generateImageId({suiteName: 'test-1', browserName: 'bro-1', attempt: 0, stateName: 'state-1'});
+
+        const component = renderWithStore(<ScreenshotAccepter image={tree.images.byId[currentImageId]}/>, store);
+        await user.click(component.getByText('Accept', {selector: 'button > *'}));
+
+        await component.findByText('All screenshots are accepted', {exact: false, timeout: 1500});
+    });
+
+    it('should should display meta info', async () => {
+        const user = userEvent.setup();
+        const tree = mkEmptyTree();
+        addSuiteToTree({tree, suiteName: 'test-1'});
+        addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
+        addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0, metaInfo: {
+            key1: 'some-value-1',
+            key2: 'some-value-2'
+        }});
+        addImageToTree({
+            tree,
+            suiteName: 'test-1',
+            browserName: 'bro-1',
+            attempt: 0,
+            stateName: 'state-1',
+            expectedImgPath: 'img1-expected.png',
+            actualImgPath: 'img1-actual.png',
+            diffImgPath: 'img1-diff.png'
+        });
+        const store = mkRealStore({initialState: {tree}});
+        const currentImageId = generateImageId({suiteName: 'test-1', browserName: 'bro-1', attempt: 0, stateName: 'state-1'});
+
+        const component = renderWithStore(<ScreenshotAccepter image={tree.images.byId[currentImageId]}/>, store);
+        await user.click(component.getByText('Show meta', {selector: 'button > *'}));
+
+        expect(component.getByText('some-value-1')).to.exist;
+        expect(component.getByText('some-value-2')).to.exist;
+    });
+
+    it('should return to original state after clicking "undo"', async () => {
+        const user = userEvent.setup();
+        const tree = mkEmptyTree();
+        addSuiteToTree({tree, suiteName: 'test-1'});
+        addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
+        addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0});
+        addImageToTree({
+            tree,
+            suiteName: 'test-1',
+            browserName: 'bro-1',
+            attempt: 0,
+            stateName: 'state-1',
+            expectedImgPath: 'img1-expected.png',
+            actualImgPath: 'img1-actual.png',
+            diffImgPath: 'img1-diff.png'
+        });
+        const store = mkRealStore({initialState: {tree}});
+        const currentImageId = generateImageId({suiteName: 'test-1', browserName: 'bro-1', attempt: 0, stateName: 'state-1'});
+
+        const component = renderWithStore(<ScreenshotAccepter image={tree.images.byId[currentImageId]}/>, store);
+        await user.click(component.getByText('Accept', {selector: 'button > *'}));
+        await user.click(component.getByText('Undo', {selector: 'button > *'}));
+
+        expect(component.getByTestId('screenshot-accepter-progress-bar').dataset.content).to.equal('0/1');
+        const imageElements = component.getAllByRole('img');
+        imageElements.every(imageElement => expect(imageElement.src).to.include('img1'));
+    });
+
+    describe('exiting from screenshot accepter', () => {
+        const mkDispatchInterceptorMiddleware = (interceptor) => {
+            return () => {
+                return function wrapDispatch(next) {
+                    return function handler(action) {
+                        interceptor(action);
+                        next(action);
                     };
-                    const tree = mkStateTree({resultsById});
-                    selectors.getAcceptableImagesByStateName.returns({
-                        'bro-1 plain': [image1],
-                        'bro-1 plain2': [image2]
-                    });
+                };
+            };
+        };
 
-                    mkScreenshotAccepterComponent({image: image1}, {tree});
-                    ScreenshotAccepterHeader.firstCall.args[0].onActiveImageChange(1);
-
-                    assert.calledWithMatch(ScreenshotAccepterHeader.firstCall, expectedFirst);
-                    assert.calledWithMatch(ScreenshotAccepterHeader.secondCall, expectedSecond);
-                });
+        it('should not apply delayed test result, if no screens were accepted', async () => {
+            const reduxAction = sinon.stub();
+            const user = userEvent.setup();
+            const tree = mkEmptyTree();
+            addSuiteToTree({tree, suiteName: 'test-1'});
+            addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
+            addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0});
+            addImageToTree({
+                tree,
+                suiteName: 'test-1',
+                browserName: 'bro-1',
+                attempt: 0,
+                stateName: 'state-1',
+                expectedImgPath: 'img1-expected.png',
+                diffImgPath: 'img1-diff.png',
+                actualImgPath: 'img1-actual.png'
             });
-        });
 
-        describe('"onScreenshotAccept" handler', () => {
-            it('should call "screenshotAccepterAccept" action', async () => {
-                const image = mkImage({id: 'img-1', parentId: 'res-1', stateName: 'plain'});
-                const resultsById = mkResult({id: 'res-1', parentId: 'bro-1', imageIds: ['img-1']});
-                const tree = mkStateTree({resultsById});
-                selectors.getAcceptableImagesByStateName.returns({'bro-1 plain': [image]});
+            const middleware = mkDispatchInterceptorMiddleware(reduxAction);
+            const store = mkRealStore({initialState: {tree, view: {expand: EXPAND_ALL}}, middlewares: [middleware]});
+            const currentImageId = generateImageId({suiteName: 'test-1', browserName: 'bro-1', attempt: 0, stateName: 'state-1'});
 
-                mkScreenshotAccepterComponent({image}, {tree});
-                await ScreenshotAccepterHeader.firstCall.args[0].onScreenshotAccept('img-1');
+            const component = renderWithStore(<ScreenshotAccepter image={tree.images.byId[currentImageId]}/>, store);
 
-                assert.calledOnceWith(actionsStub.screenshotAccepterAccept, 'img-1');
-            });
-        });
+            await user.click(component.getByTitle('Close mode with fast screenshot accepting', {exact: false}));
 
-        describe('"onShowMeta" handler', () => {
-            it('should invert state "showMeta"', () => {
-                const image = mkImage({id: 'img-1', parentId: 'res-1', stateName: 'plain'});
-                const resultsById = mkResult({id: 'res-1', parentId: 'bro-1', imageIds: ['img-1']});
-                const tree = mkStateTree({resultsById});
-                selectors.getAcceptableImagesByStateName.returns({'bro-1 plain': [image]});
-
-                mkScreenshotAccepterComponent({image}, {tree});
-
-                ScreenshotAccepterHeader.firstCall.args[0].onShowMeta();
-
-                assert.calledTwice(ScreenshotAccepterHeader);
-                assert.calledWith(ScreenshotAccepterHeader.secondCall, sinon.match({
-                    showMeta: true
-                }));
-            });
-        });
-
-        describe('"onScreenshotUndo" handler', () => {
-            it('should call "undoAcceptImages" action', async () => {
-                const image = mkImage({id: 'img-1', parentId: 'res-1', stateName: 'plain'});
-                const resultsById = mkResult({id: 'res-1', parentId: 'bro-1', imageIds: ['img-1']});
-                const tree = mkStateTree({resultsById});
-                selectors.getAcceptableImagesByStateName.returns({'bro-1 plain': [image]});
-                mkScreenshotAccepterComponent({image}, {tree});
-                await ScreenshotAccepterHeader.firstCall.args[0].onScreenshotAccept('img-1');
-
-                await ScreenshotAccepterHeader.firstCall.args[0].onScreenshotUndo();
-
-                assert.calledOnceWith(actionsStub.undoAcceptImage, sinon.match.any, {skipTreeUpdate: true});
-            });
-        });
-    });
-
-    describe('"ScreenshotAccepterMeta"', () => {
-        it('should render with correct props', () => {
-            const image = mkImage({id: 'img-1', parentId: 'res-1', stateName: 'plain'});
-            const resultsById = mkResult({id: 'res-1', parentId: 'bro-1', imageIds: ['img-1']});
-            const tree = mkStateTree({resultsById});
-            selectors.getAcceptableImagesByStateName.returns({'bro-1 plain': [image]});
-
-            mkScreenshotAccepterComponent({image}, {tree});
-
-            assert.calledOnceWith(
-                ScreenshotAccepterMeta,
-                {
-                    showMeta: false,
-                    image
-                }
-            );
-        });
-    });
-
-    describe('"ScreenshotAccepterBody"', () => {
-        it('should render body with "image" props', () => {
-            const image = mkImage({id: 'img-1', parentId: 'res-1', stateName: 'plain'});
-            const resultsById = mkResult({id: 'res-1', parentId: 'bro-1', imageIds: ['img-1']});
-            const tree = mkStateTree({resultsById});
-            selectors.getAcceptableImagesByStateName.returns({'bro-1 plain': [image]});
-
-            mkScreenshotAccepterComponent({image}, {tree});
-
-            assert.calledOnceWith(ScreenshotAccepterBody, {image});
-        });
-
-        describe('"onRetryChange" handler', () => {
-            it('should change passed image on switch retry index', () => {
-                const image1 = mkImage({id: 'img-1', parentId: 'res-1', stateName: 'plain'});
-                const image2 = mkImage({id: 'img-2', parentId: 'res-1', stateName: 'plain'});
-                const resultsById = mkResult({id: 'res-1', parentId: 'bro-1', imageIds: ['img-1', 'img-2']});
-                const tree = mkStateTree({resultsById});
-                selectors.getAcceptableImagesByStateName.returns({'bro-1 plain': [image1, image2]});
-
-                mkScreenshotAccepterComponent({image: image1}, {tree});
-                ScreenshotAccepterHeader.firstCall.args[0].onRetryChange(1);
-
-                assert.calledWithMatch(ScreenshotAccepterBody.firstCall, {image: image1});
-                assert.calledWithMatch(ScreenshotAccepterBody.secondCall, {image: image2});
-            });
-        });
-
-        describe('"onActiveImageChange" handler', () => {
-            it('should change passed image on switch to the next image', () => {
-                const image1 = mkImage({id: 'img-1', parentId: 'res-1', stateName: 'plain'});
-                const image2 = mkImage({id: 'img-2', parentId: 'res-2', stateName: 'plain2'});
-                const resultsById = mkResult({id: 'res-1', parentId: 'bro-1', imageIds: ['img-1', 'img-2']});
-                const tree = mkStateTree({resultsById});
-                selectors.getAcceptableImagesByStateName.returns({
-                    'bro-1 plain': [image1],
-                    'bro-1 plain2': [image2]
-                });
-
-                mkScreenshotAccepterComponent({image: image1}, {tree});
-                ScreenshotAccepterHeader.firstCall.args[0].onActiveImageChange(1);
-
-                assert.calledWithMatch(ScreenshotAccepterBody.firstCall, {image: image1});
-                assert.calledWithMatch(ScreenshotAccepterBody.secondCall, {image: image2});
-            });
-        });
-    });
-
-    describe('onClose', () => {
-        beforeEach(() => {
-            const image = mkImage({id: 'img-1', parentId: 'res-1', stateName: 'plain'});
-            const resultsById = mkResult({id: 'res-1', parentId: 'bro-1', imageIds: ['img-1']});
-            const tree = mkStateTree({resultsById});
-            selectors.getAcceptableImagesByStateName.returns({'bro-1 plain': [image]});
-
-            mkScreenshotAccepterComponent({image}, {tree});
-        });
-
-        it('should not apply delayed test result, if no screens were accepted', () => {
-            ScreenshotAccepterHeader.firstCall.args[0].onClose();
-
-            assert.notCalled(actionsStub.applyDelayedTestResults);
+            assert.neverCalledWith(reduxAction, sinon.match({type: 'APPLY_DELAYED_TEST_RESULTS'}));
         });
 
         it('should apply delayed test result, if some screens were accepted', async () => {
-            await ScreenshotAccepterHeader.firstCall.args[0].onScreenshotAccept('img-1');
+            const reduxAction = sinon.stub();
+            const user = userEvent.setup();
+            const tree = mkEmptyTree();
+            addSuiteToTree({tree, suiteName: 'test-1'});
+            addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
+            addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0});
+            addImageToTree({
+                tree,
+                suiteName: 'test-1',
+                browserName: 'bro-1',
+                attempt: 0,
+                stateName: 'state-1',
+                expectedImgPath: 'img1-expected.png',
+                diffImgPath: 'img1-diff.png',
+                actualImgPath: 'img1-actual.png'
+            });
 
-            ScreenshotAccepterHeader.firstCall.args[0].onClose();
+            const middleware = mkDispatchInterceptorMiddleware(reduxAction);
+            const store = mkRealStore({initialState: {tree, view: {expand: EXPAND_ALL}}, middlewares: [middleware]});
+            const currentImageId = generateImageId({suiteName: 'test-1', browserName: 'bro-1', attempt: 0, stateName: 'state-1'});
 
-            assert.calledOnce(actionsStub.applyDelayedTestResults);
+            const component = renderWithStore(<ScreenshotAccepter image={tree.images.byId[currentImageId]}/>, store);
+
+            await user.click(component.getByText('Accept', {selector: 'button > *'}));
+            await user.click(component.getByTitle('Close mode with fast screenshot accepting', {exact: false}));
+
+            assert.calledWith(reduxAction, sinon.match({type: 'APPLY_DELAYED_TEST_RESULTS'}));
         });
 
         it('should not apply delayed test result, if it is cancelled by "Undo"', async () => {
-            await ScreenshotAccepterHeader.firstCall.args[0].onScreenshotAccept('img-1');
-            await ScreenshotAccepterHeader.firstCall.args[0].onScreenshotUndo();
+            const reduxAction = sinon.stub();
+            const user = userEvent.setup();
+            const tree = mkEmptyTree();
+            addSuiteToTree({tree, suiteName: 'test-1'});
+            addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
+            addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0});
+            addImageToTree({
+                tree,
+                suiteName: 'test-1',
+                browserName: 'bro-1',
+                attempt: 0,
+                stateName: 'state-1',
+                expectedImgPath: 'img1-expected.png',
+                diffImgPath: 'img1-diff.png',
+                actualImgPath: 'img1-actual.png'
+            });
 
-            ScreenshotAccepterHeader.firstCall.args[0].onClose();
+            const middleware = mkDispatchInterceptorMiddleware(reduxAction);
+            const store = mkRealStore({initialState: {tree, view: {expand: EXPAND_ALL}}, middlewares: [middleware]});
+            const currentImageId = generateImageId({suiteName: 'test-1', browserName: 'bro-1', attempt: 0, stateName: 'state-1'});
 
-            assert.notCalled(actionsStub.applyDelayedTestResults);
+            const component = renderWithStore(<ScreenshotAccepter image={tree.images.byId[currentImageId]}/>, store);
+
+            await user.click(component.getByText('Accept', {selector: 'button > *'}));
+            await user.click(component.getByText('Undo', {selector: 'button > *'}));
+            await user.click(component.getByTitle('Close mode with fast screenshot accepting', {exact: false}));
+
+            assert.neverCalledWith(reduxAction, sinon.match({type: 'APPLY_DELAYED_TEST_RESULTS'}));
         });
     });
 
-    describe('should preload images', () => {
-        const mkImgPath_ = (label, imageId) => `${label}-${imageId}`;
-        const mkBrowserId_ = (fullName, browserName) => `${fullName} ${browserName}`;
-        const mkStateName_ = (browserId, stateName) => `${browserId} ${stateName}`;
-        const mkImgId_ = (browserId, retry, state) => `${browserId} ${retry} ${state}`;
-        const mkImg_ = (label, imageId) => ({path: mkImgPath_(label, imageId)});
-
-        const mkImgs_ = (id) => ({
-            id,
-            actualImg: mkImg_('actual', id),
-            expectedImg: mkImg_('expected', id),
-            diffImg: mkImg_('diff', id)
-        });
+    describe('images preloading', () => {
+        let component;
 
         const eachLabel_ = (cb) => ['expected', 'actual', 'diff'].forEach(cb);
 
         beforeEach(() => {
-            const browserIds = Array(10).fill(0).map((_, ind) => mkBrowserId_(`test-${ind + 1}`, 'bro-1'));
-            const image = mkImage({id: 'img-2', parentId: 'res-1', stateName: 'plain'});
-            const resultsById = mkResult({id: 'res-1', parentId: mkBrowserId_('test-2', 'bro-1'), imageIds: ['img-2']});
-            const tree = mkStateTree({resultsById});
-            selectors.getAcceptableImagesByStateName.returns(browserIds.reduce((acc, browserId) => {
-                const stateName = mkStateName_(browserId, 'plain');
-                const images = [1, 2].map(retry => mkImgs_(mkImgId_(browserId, retry, 'plain')));
+            const tree = mkEmptyTree();
+            addSuiteToTree({tree, suiteName: 'test-1'});
+            addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
+            addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0});
+            for (let i = 1; i <= 10; i++) {
+                addImageToTree({
+                    tree,
+                    suiteName: 'test-1',
+                    browserName: 'bro-1',
+                    attempt: 0,
+                    stateName: `state-${i}`,
+                    expectedImgPath: `img${i}-expected.png`,
+                    diffImgPath: `img${i}-diff.png`,
+                    actualImgPath: `img${i}-actual.png`
+                });
+            }
+            const store = mkRealStore({initialState: {tree, view: {expand: EXPAND_ALL}}});
 
-                acc[stateName] = images;
+            const currentImageId = generateImageId({
+                suiteName: 'test-1',
+                browserName: 'bro-1',
+                attempt: 0,
+                stateName: 'state-5'
+            });
 
-                return acc;
-            }, {}));
-
-            mkScreenshotAccepterComponent({image}, {tree});
+            component = renderWithStore(<ScreenshotAccepter image={tree.images.byId[currentImageId]}/>, store);
         });
 
-        it('from adjacent screens', () => {
-            [9, 10, 1, 3, 4, 5].forEach(ind => {
+        it('should preload 3 adjacent images on mount', () => {
+            // Current image is 5.
+            [2, 3, 4, 6, 7, 8].forEach(ind => {
                 eachLabel_(label => {
-                    const browserId = mkBrowserId_(`test-${ind}`, 'bro-1');
-                    const imageId = mkImgId_(browserId, 2, 'plain');
-                    const imagePath = mkImgPath_(label, imageId);
-
-                    assert.calledWith(preloadImageStub, imagePath);
+                    assert.calledWith(preloadImageStub, `img${ind}-${label}.png`);
                 });
             });
         });
 
-        it('only from last retry', () => {
-            eachLabel_(label => {
-                const browserId = mkBrowserId_(`test-${3}`, 'bro-1');
-                const firstImageId = mkImgId_(browserId, 1, 'plain');
-                const secondImageId = mkImgId_(browserId, 2, 'plain');
-
-                assert.neverCalledWith(preloadImageStub, mkImgPath_(label, firstImageId));
-                assert.calledWith(preloadImageStub, mkImgPath_(label, secondImageId));
+        it('should not preload other images', () => {
+            [1, 9, 10].forEach(ind => {
+                eachLabel_(label => {
+                    assert.neverCalledWith(preloadImageStub, `img${ind}-${label}.png`);
+                });
             });
         });
 
-        it('on active image change', () => {
-            const browserId = mkBrowserId_('test-6', 'bro-1');
-            const imageId = mkImgId_(browserId, 2, 'plain');
+        it('should preload one more image when switching to next image', async () => {
+            const user = userEvent.setup();
+            await user.click(component.getByTitle('Show next image', {exact: false}));
 
-            eachLabel_(label => assert.neverCalledWith(preloadImageStub, mkImgPath_(label, imageId)));
-
-            ScreenshotAccepterHeader.firstCall.args[0].onActiveImageChange(2);
-
-            eachLabel_(label => assert.calledWith(preloadImageStub, mkImgPath_(label, imageId)));
+            eachLabel_(label => {
+                assert.calledWith(preloadImageStub, `img9-${label}.png`);
+            });
         });
 
-        it('on image accept', async () => {
-            const preloadingBrowserId = mkBrowserId_('test-6', 'bro-1');
-            const preloadingImageId = mkImgId_(preloadingBrowserId, 2, 'plain');
-            const acceptingBrowserId = mkBrowserId_('test-2', 'bro-1');
-            const acceptingImageId = mkImgId_(acceptingBrowserId, 2, 'plain');
+        it('should preload one more image after accepting', async () => {
+            const user = userEvent.setup();
+            await user.click(component.getByText('Accept', {selector: 'button > *'}));
 
-            eachLabel_(label => assert.neverCalledWith(preloadImageStub, mkImgPath_(label, preloadingImageId)));
-
-            await ScreenshotAccepterHeader.firstCall.args[0].onScreenshotAccept(acceptingImageId);
-
-            eachLabel_(label => assert.calledWith(preloadImageStub, mkImgPath_(label, preloadingImageId)));
+            eachLabel_(label => {
+                assert.calledWith(preloadImageStub, `img9-${label}.png`);
+            });
         });
     });
 });

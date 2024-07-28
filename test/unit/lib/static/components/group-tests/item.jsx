@@ -1,11 +1,11 @@
+import {expect} from 'chai';
 import React from 'react';
 import proxyquire from 'proxyquire';
 import {defaultsDeep, set} from 'lodash';
-import {Checkbox} from '@gravity-ui/uikit';
-import {CHECKED, UNCHECKED, INDETERMINATE} from 'lib/constants/checked-statuses';
-import {isCheckboxChecked} from 'lib/common-utils';
+import {CHECKED, UNCHECKED} from 'lib/constants/checked-statuses';
 import {mkConnectedComponent} from 'test/unit/lib/static/components/utils';
 import {mkStateTree} from 'test/unit/lib/static/state-utils';
+import userEvent from '@testing-library/user-event';
 
 describe('<GroupTestsItem/>', () => {
     const sandbox = sinon.sandbox.create();
@@ -40,50 +40,64 @@ describe('<GroupTestsItem/>', () => {
     });
 
     describe('<Checkbox/>', () => {
-        [true, false].forEach(show => {
-            it(`should ${show ? '' : 'not '}exist if "showCheckboxes" is ${show ? '' : 'not '}set`, () => {
-                useLocalStorageStub.withArgs('showCheckboxes', false).returns([show]);
+        it(`should exist if "showCheckboxes" is set`, () => {
+            useLocalStorageStub.withArgs('showCheckboxes', false).returns([true]);
 
-                const component = mkGroupTestsItemComponent();
+            const component = mkGroupTestsItemComponent();
 
-                assert.equal(component.find(Checkbox).exists(), show);
-            });
+            expect(component.queryByRole('checkbox')).to.exist;
         });
 
-        it('should not be checked when no childs checked', () => {
+        it(`should not exist if "showCheckboxes" is not set`, () => {
+            useLocalStorageStub.withArgs('showCheckboxes', false).returns([false]);
+
+            const component = mkGroupTestsItemComponent();
+
+            expect(component.queryByRole('checkbox')).to.not.exist;
+        });
+
+        it('should not be checked when no children are checked', () => {
             useLocalStorageStub.withArgs('showCheckboxes', false).returns([true]);
             const browserIds = ['b1'];
             const browsersStateById = {'b1': {shouldBeChecked: UNCHECKED}};
             const component = mkGroupTestsItemComponent(browserIds, browsersStateById);
 
-            assert.equal(component.find(Checkbox).prop('checked'), UNCHECKED);
+            assert.isFalse(component.getByRole('checkbox').checked);
         });
 
-        [
-            {checked: INDETERMINATE, state: 'indeterminate', childChecked: 'some'},
-            {checked: CHECKED, state: 'checked', childChecked: 'all'}
-        ].forEach(({checked, state, childChecked}) => {
-            it(`should be ${state} when ${childChecked} child checked`, () => {
-                useLocalStorageStub.withArgs('showCheckboxes', false).returns([true]);
-                const browserIds = ['b1', 'b2'];
-                const browsersStateById = {
-                    'b1': {checkStatus: CHECKED},
-                    'b2': {checkStatus: checked === CHECKED ? CHECKED : UNCHECKED}
-                };
-                const component = mkGroupTestsItemComponent(browserIds, browsersStateById);
+        it(`should be indeterminate when some children are checked`, () => {
+            useLocalStorageStub.withArgs('showCheckboxes', false).returns([true]);
+            const browserIds = ['b1', 'b2'];
+            const browsersStateById = {
+                'b1': {checkStatus: CHECKED},
+                'b2': {checkStatus: UNCHECKED}
+            };
+            const component = mkGroupTestsItemComponent(browserIds, browsersStateById);
 
-                assert.equal(component.find(Checkbox).prop('checked'), isCheckboxChecked(checked));
-            });
+            assert.isTrue(component.getByRole('checkbox').indeterminate);
+        });
+
+        it(`should be checked when all children are checked`, () => {
+            useLocalStorageStub.withArgs('showCheckboxes', false).returns([true]);
+            const browserIds = ['b1', 'b2'];
+            const browsersStateById = {
+                'b1': {checkStatus: CHECKED},
+                'b2': {checkStatus: CHECKED}
+            };
+            const component = mkGroupTestsItemComponent(browserIds, browsersStateById);
+
+            assert.isTrue(component.getByRole('checkbox').checked);
         });
 
         [CHECKED, UNCHECKED].forEach(checked => {
-            it(`should call "toggleBrowserCheckbox" action with ${checked ? 'un' : ''}checked state on click`, () => {
+            it(`should call "toggleBrowserCheckbox" action with ${checked ? 'un' : ''}checked state on click`, async () => {
+                const user = userEvent.setup();
                 useLocalStorageStub.withArgs('showCheckboxes', false).returns([true]);
                 const browserIds = ['b1'];
                 const browsersStateById = {'b1': {checkStatus: checked}};
                 const component = mkGroupTestsItemComponent(browserIds, browsersStateById);
 
-                component.find(Checkbox).simulate('click');
+                await user.click(component.getByRole('checkbox'));
 
                 assert.calledOnceWith(actionsStub.toggleGroupCheckbox, {
                     browserIds: ['b1'],

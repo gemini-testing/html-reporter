@@ -64,7 +64,7 @@ class RetrySwitcherItem extends Component {
             {'tab-switcher__button_non-matched': keyToGroupTestsBy && !matchedSelectedGroup}
         );
 
-        return <Button {...statusToView[status]} title={title} className={className} onClick={onClick} qa='retry-switcher'>{attempt + 1}</Button>;
+        return <Button {...statusToView[status]} title={title} className={className} onClick={onClick} extraProps={{'data-testid': 'retry-switcher'}}>{attempt + 1}</Button>;
     }
 }
 

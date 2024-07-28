@@ -8,9 +8,11 @@ import {mkStorage} from '../../../../utils';
 
 describe('lib/static/modules/reducers/view', () => {
     let baseUrl;
+    let originalWindow;
 
     beforeEach(() => {
         baseUrl = 'http://localhost/';
+        originalWindow = global.window;
         global.window = {
             location: {
                 href: new URL(baseUrl)
@@ -20,7 +22,7 @@ describe('lib/static/modules/reducers/view', () => {
     });
 
     afterEach(() => {
-        global.window = undefined;
+        global.window = originalWindow;
     });
 
     [actionNames.INIT_GUI_REPORT, actionNames.INIT_STATIC_REPORT].forEach((type) => {

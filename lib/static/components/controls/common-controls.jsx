@@ -18,8 +18,7 @@ class ControlButtons extends Component {
         view: PropTypes.shape({
             expand: PropTypes.string.isRequired,
             viewMode: PropTypes.string.isRequired,
-            diffMode: PropTypes.string.isRequired,
-            changeViewMode: PropTypes.func.isRequired
+            diffMode: PropTypes.string.isRequired
         }),
         isStatisImageAccepterEnabled: PropTypes.bool,
         actions: PropTypes.object.isRequired

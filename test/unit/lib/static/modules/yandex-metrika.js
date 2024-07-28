@@ -2,13 +2,15 @@ import YandexMetrika from 'lib/static/modules/yandex-metrika';
 
 describe('YandexMetrika', () => {
     const sandbox = sinon.createSandbox();
+    let originalWindow;
 
     beforeEach(() => {
+        originalWindow = global.window;
         global.window = {ym: sandbox.stub()};
     });
 
     afterEach(() => {
-        global.window = undefined;
+        global.window = originalWindow;
         sandbox.restore();
     });
 

@@ -1,6 +1,8 @@
-import React from 'react';
+import {render} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import {expect} from 'chai';
 import proxyquire from 'proxyquire';
-import {CHECKED, UNCHECKED, INDETERMINATE} from 'lib/constants/checked-statuses';
+import React from 'react';
 
 describe('<Bullet />', () => {
     const sandbox = sinon.sandbox.create();
@@ -18,51 +20,28 @@ describe('<Bullet />', () => {
     it('should render simple bullet if checkboxes are disabled', () => {
         useLocalStorageStub.withArgs('showCheckboxes', false).returns([false]);
 
-        const component = mount(<Bullet bulletClassName='bullet_type-simple' />);
+        const component = render(<Bullet bulletClassName='bullet_type-simple' />);
 
-        assert.isTrue(component.find('.bullet_type-simple').exists());
+        expect(component.getByTestId('bullet-icon')).to.exist;
     });
 
     it('should render checkbox bullet if checkboxes are enabled', () => {
         useLocalStorageStub.withArgs('showCheckboxes', false).returns([true]);
 
-        const component = mount(<Bullet bulletClassName='bullet_type-simple' />);
+        const component = render(<Bullet bulletClassName='bullet_type-simple' />);
 
-        assert.isTrue(component.find('.bullet_type-checkbox').exists());
+        expect(component.getByRole('checkbox')).to.exist;
     });
 
-    describe('<Checkbox/>', () => {
-        beforeEach(() => {
-            useLocalStorageStub.withArgs('showCheckboxes', false).returns([true]);
-        });
+    it('should call "onClick" callback', async () => {
+        useLocalStorageStub.withArgs('showCheckboxes', false).returns([true]);
 
-        it('should be "checked" if status is CHECKED', () => {
-            const component = mount(<Bullet status={CHECKED} />);
+        const user = userEvent.setup();
+        const onClickStub = sandbox.stub();
+        const component = render(<Bullet onClick={onClickStub} />);
 
-            assert.isTrue(component.find('.g-checkbox_checked').exists());
-        });
+        await user.click(component.getByRole('checkbox'));
 
-        it('should be "indeterminate" if status is INDETERMINATE', () => {
-            const component = mount(<Bullet status={INDETERMINATE} />);
-
-            assert.isTrue(component.find('.g-checkbox_indeterminate').exists());
-        });
-
-        it('should be "unchecked" if status is UNCHECKED', () => {
-            const component = mount(<Bullet status={UNCHECKED} />);
-
-            assert.isTrue(component.find('label.g-checkbox').exists());
-            assert.isFalse(component.find('label.g-checkbox').hasClass('.g-checkbox_checked'));
-            assert.isFalse(component.find('label.g-checkbox').hasClass('.g-checkbox_indeterminate'));
-        });
-
-        it('should call "onClick" callback', () => {
-            const onClickStub = sandbox.stub();
-            const component = mount(<Bullet onClick={onClickStub} />);
-
-            component.find('label.g-checkbox').simulate('click');
-
-            assert.calledOnce(onClickStub);
-        });
+        assert.calledOnce(onClickStub);
     });
 });

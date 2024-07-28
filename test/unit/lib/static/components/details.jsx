@@ -1,5 +1,7 @@
 import React from 'react';
 import Details from 'lib/static/components/details';
+import {render} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 describe('<Details />', () => {
     const sandbox = sinon.sandbox.create();
@@ -12,8 +14,8 @@ describe('<Details />', () => {
             content: 'foo bar'
         };
 
-        const component = mount(<Details {...props} />);
-        const title = component.find('.details__summary').text();
+        const component = render(<Details {...props} />);
+        const title = component.container.querySelector('.details__summary').textContent;
 
         assert.equal(title, props.title);
     });
@@ -24,8 +26,8 @@ describe('<Details />', () => {
             content: ''
         };
 
-        const component = mount(<Details {...props} />);
-        const text = component.find('div.details').text();
+        const component = render(<Details {...props} />);
+        const text = component.container.querySelector('div.details').textContent;
 
         assert.equal(text, 'some-title');
     });
@@ -41,37 +43,39 @@ describe('<Details />', () => {
             };
         });
 
-        it('should call on click in title', () => {
-            const component = mount(<Details {...props} />);
+        it('should call on click in title', async () => {
+            const user = userEvent.setup();
+            const component = render(<Details {...props} />);
 
-            component.find('.details__summary').simulate('click');
+            await user.click(component.container.querySelector('.details__summary'));
 
             assert.calledOnce(props.onClick);
         });
 
-        it('should call with changed state on each call', () => {
-            const component = mount(<Details {...props} />);
+        it('should call with changed state on each call', async () => {
+            const user = userEvent.setup();
+            const component = render(<Details {...props} />);
 
-            component.find('.details__summary')
-                .simulate('click')
-                .simulate('click');
+            await user.click(component.container.querySelector('.details__summary'));
+            await user.click(component.container.querySelector('.details__summary'));
 
             assert.calledWith(props.onClick.firstCall, {isOpened: true});
             assert.calledWith(props.onClick.secondCall, {isOpened: false});
         });
     });
 
-    it('should render html, if specified', () => {
+    it('should render html, if specified', async () => {
+        const user = userEvent.setup();
         const props = {
             title: 'some-title',
             content: '<pre><span>some content</span></pre>',
             asHtml: true
         };
 
-        const component = mount(<Details {...props} />);
-        component.find('.details__summary').simulate('click');
+        const component = render(<Details {...props} />);
+        await user.click(component.container.querySelector('.details__summary'));
 
         const expectedHtml = '<div class="details__content">' + props.content + '</div>';
-        assert.equal(component.find('.details__content').html(), expectedHtml);
+        assert.equal(component.container.querySelector('.details__content').parentNode.innerHTML, expectedHtml);
     });
 });

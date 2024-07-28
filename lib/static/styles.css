@@ -539,7 +539,7 @@ main.container {
     text-overflow: ellipsis;
 }
 
-.copy-button { 
+.copy-button {
     margin-left: 2px;
 }
 
@@ -880,6 +880,12 @@ a:active {
     z-index: 1;
     opacity: 0.3;
     background-color: #FF00FF;
+}
+
+@keyframes diff-bubbles {
+    100% {
+        transform: scale(var(--diff-bubbles-scale))
+    }
 }
 
 .ui.loader {

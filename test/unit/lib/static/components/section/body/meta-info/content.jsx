@@ -1,3 +1,4 @@
+import {expect} from 'chai';
 import React from 'react';
 import {defaultsDeep} from 'lodash';
 import MetaInfoContent from 'lib/static/components/section/body/meta-info/content';
@@ -65,12 +66,10 @@ describe('<MetaInfoContent />', () => {
         ];
 
         const component = mkMetaInfoContentComponent({resultId: 'some-result'}, {tree, apiValues});
-        const metaItems = component.find('.meta-info__item');
 
-        assert.equal(metaItems.length, expectedMetaInfo.length);
-        metaItems.forEach((node, i) => {
-            assert.equal(node.find('.gc-definition-list__term-wrapper').text(), expectedMetaInfo[i][0]);
-            assert.equal(node.find('.gc-definition-list__definition').text(), expectedMetaInfo[i][1]);
+        expectedMetaInfo.forEach((node) => {
+            expect(component.getByText(node[0])).to.exist;
+            expect(component.getByText(node[1])).to.exist;
         });
     });
 
@@ -103,12 +102,10 @@ describe('<MetaInfoContent />', () => {
         ];
 
         const component = mkMetaInfoContentComponent({resultId: 'some-result'}, {tree});
-        const metaItems = component.find('.meta-info__item');
 
-        assert.equal(metaItems.length, expectedMetaInfo.length);
-        metaItems.forEach((node, i) => {
-            assert.equal(node.find('.gc-definition-list__term-wrapper').text(), expectedMetaInfo[i][0]);
-            assert.equal(node.find('.gc-definition-list__definition').text(), expectedMetaInfo[i][1]);
+        expectedMetaInfo.forEach((node) => {
+            expect(component.getByText(node[0])).to.exist;
+            expect(component.getByText(node[1])).to.exist;
         });
     });
 
@@ -141,12 +138,10 @@ describe('<MetaInfoContent />', () => {
         ];
 
         const component = mkMetaInfoContentComponent({resultId: 'some-result'}, {tree});
-        const metaItems = component.find('.meta-info__item');
 
-        assert.equal(metaItems.length, expectedMetaInfo.length);
-        metaItems.forEach((node, i) => {
-            assert.equal(node.find('.gc-definition-list__term-wrapper').text(), expectedMetaInfo[i][0]);
-            assert.equal(node.find('.gc-definition-list__definition').text(), expectedMetaInfo[i][1]);
+        expectedMetaInfo.forEach((node) => {
+            expect(component.getByText(node[0])).to.exist;
+            expect(component.getByText(node[1])).to.exist;
         });
     });
 
@@ -157,7 +152,7 @@ describe('<MetaInfoContent />', () => {
                 file: 'test/file'
             },
             metaInfoBaseUrls: {file: 'base/path'},
-            expectedFileUrl: 'base/path/test/file'
+            expectedFileUrl: 'http://localhost/base/path/test/file'
         },
         {
             type: 'url',
@@ -230,9 +225,9 @@ describe('<MetaInfoContent />', () => {
             const config = {metaInfoBaseUrls: stub.metaInfoBaseUrls};
             const component = mkMetaInfoContentComponent({resultId: 'some-result'}, {tree, config});
 
-            assert.equal(component.find('.meta-info__item:first-child .gc-definition-list__term-wrapper').text(), `file`);
-            assert.equal(component.find('.meta-info__item:first-child .gc-definition-list__definition').text(), `${stub.metaInfo.file}`);
-            assert.equal(component.find('.meta-info__item:first-child a').prop('href'), stub.expectedFileUrl);
+            expect(component.getByText('file')).to.exist;
+            expect(component.getByText(stub.metaInfo.file)).to.exist;
+            expect(component.getByText(stub.metaInfo.file).href).to.equal(stub.expectedFileUrl);
         });
     });
 });

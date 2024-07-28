@@ -1,3 +1,4 @@
+import {expect} from 'chai';
 import React from 'react';
 import {defaults} from 'lodash';
 import proxyquire from 'proxyquire';
@@ -7,6 +8,7 @@ import {SUCCESS} from 'lib/constants/test-statuses';
 import {ViewMode} from 'lib/constants/view-modes';
 import {EXPAND_ALL} from 'lib/constants/expand-modes';
 import {CHECKED, UNCHECKED} from 'lib/constants/checked-statuses';
+import userEvent from '@testing-library/user-event';
 
 describe('<BrowserTitle/>', () => {
     const sandbox = sinon.sandbox.create();
@@ -60,12 +62,17 @@ describe('<BrowserTitle/>', () => {
 
                 const component = mkBrowserTitleComponent({browserId: 'yabro'}, {tree});
 
-                assert.equal(component.find('input[type="checkbox"]').exists(), show);
+                if (show) {
+                    expect(component.queryByRole('checkbox')).to.exist;
+                } else {
+                    expect(component.queryByRole('checkbox')).to.not.exist;
+                }
             });
         });
 
         [CHECKED, UNCHECKED].forEach(checked => {
-            it(`should call "toggleBrowserCheckbox" action with ${checked ? 'unchecked' : 'checked'} state on click`, () => {
+            it(`should call "toggleBrowserCheckbox" action with ${checked ? 'unchecked' : 'checked'} state on click`, async () => {
+                const user = userEvent.setup();
                 useLocalStorageStub.withArgs('showCheckboxes', false).returns([true]);
                 const browsersById = mkBrowser({id: 'yabro', name: 'yabro', resultIds: ['default_res']});
                 const resultsById = mkResult({id: 'default_res', status: SUCCESS, skipReason: 'some-reason'});
@@ -73,25 +80,28 @@ describe('<BrowserTitle/>', () => {
                 const tree = mkStateTree({browsersById, resultsById, browsersStateById});
                 const component = mkBrowserTitleComponent({browserId: 'yabro'}, {tree});
 
-                component.find('input[type="checkbox"]').simulate('click');
+                await user.click(component.queryByRole('checkbox'));
 
                 assert.calledOnceWith(actionsStub.toggleBrowserCheckbox, {
                     suiteBrowserId: 'yabro',
                     checkStatus: checked ? UNCHECKED : CHECKED
                 });
-            });
+            }, `should call "toggleBrowserCheckbox" action with ${checked ? 'unchecked' : 'checked'} state on click`);
         });
     });
 
     describe('<ClipboardButton/>', () => {
-        it('should call action "onCopyTestLink" on click', () => {
+        it('should call action "onCopyTestLink" on click', async () => {
+            window.prompt = sinon.stub();
+            const user = userEvent.setup();
+
             const browsersById = mkBrowser({id: 'yabro', name: 'yabro', resultIds: ['default_res']});
             const resultsById = mkResult({id: 'default_res', status: SUCCESS, skipReason: 'some-reason'});
             const browsersStateById = {'yabro': {checkStatus: UNCHECKED}};
             const tree = mkStateTree({browsersById, resultsById, browsersStateById});
 
             const component = mkBrowserTitleComponent({browserId: 'yabro'}, {tree});
-            component.find('button').simulate('click');
+            await user.click(component.queryByRole('button'));
 
             assert.calledOnce(actionsStub.copyTestLink);
             assert.calledWithExactly(actionsStub.copyTestLink);
@@ -106,7 +116,7 @@ describe('<BrowserTitle/>', () => {
             mkBrowserTitleComponent({browserId: 'yabro', browserName: 'yabro'}, {tree});
 
             assert.calledOnce(queryParams.appendQuery);
-            assert.calledWithExactly(queryParams.appendQuery, 'about:blank', {
+            assert.calledWithExactly(queryParams.appendQuery, 'http://localhost/', {
                 browser: 'yabro',
                 testNameFilter: 'test',
                 strictMatchFilter: true,
@@ -117,15 +127,16 @@ describe('<BrowserTitle/>', () => {
         });
     });
 
-    it('should call "toggleBrowserSection" action on click in browser title', () => {
+    it('should call "toggleBrowserSection" action on click in browser title', async () => {
+        const user = userEvent.setup();
         const handler = sandbox.stub();
         const browsersById = mkBrowser({id: 'yabro', name: 'yabro', resultIds: ['res-1'], parentId: 'test'});
-        const browsersStateById = {'yabro': {shouldBeShown: true, shouldBeOpened: false}};
+        const browsersStateById = {'yabro': {shouldBeShown: true, shouldBeOpened: false, checkStatus: 0}};
         const resultsById = mkResult({id: 'res-1', status: SUCCESS});
         const tree = mkStateTree({browsersById, browsersStateById, resultsById});
         const component = mkBrowserTitleComponent({browserId: 'yabro', browserName: 'yabro', handler}, {tree});
 
-        component.find('.section__title').simulate('click');
+        await user.click(component.getByText('default_title'));
 
         assert.calledOnce(handler);
     });

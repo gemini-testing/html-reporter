@@ -1,9 +1,11 @@
+import {expect} from 'chai';
 import React from 'react';
 import {defaults} from 'lodash';
 import RetrySwitcherItem from 'lib/static/components/retry-switcher/item';
 import {FAIL, ERROR, SUCCESS} from 'lib/constants/test-statuses';
 import {mkConnectedComponent} from '../utils';
 import {ErrorName} from 'lib/errors';
+import userEvent from '@testing-library/user-event';
 
 describe('<RetrySwitcherItem />', () => {
     const sandbox = sinon.sandbox.create();
@@ -58,8 +60,7 @@ describe('<RetrySwitcherItem />', () => {
 
                 const component = mkRetrySwitcherItem({resultId: 'result-1', isActive: true}, initialState);
 
-                assert.lengthOf(component.find('button.tab-switcher__button'), 1);
-                assert.lengthOf(component.find(`button.tab-switcher__button_status_${FAIL}`), 1);
+                expect(component.container.querySelector(`button[data-testid="retry-switcher"].tab-switcher__button_status_${FAIL}`)).to.exist;
             });
         });
 
@@ -77,8 +78,7 @@ describe('<RetrySwitcherItem />', () => {
 
             const component = mkRetrySwitcherItem({resultId: 'result-1', isActive: true}, initialState);
 
-            assert.lengthOf(component.find('button.tab-switcher__button'), 1);
-            assert.lengthOf(component.find(`button.tab-switcher__button_status_${FAIL}_${ERROR}`), 1);
+            expect(component.container.querySelector(`button[data-testid="retry-switcher"].tab-switcher__button_status_${FAIL}_${ERROR}`)).to.exist;
         });
 
         it('without non matched class if group is not selected', () => {
@@ -94,8 +94,8 @@ describe('<RetrySwitcherItem />', () => {
 
             const component = mkRetrySwitcherItem({resultId: 'result-1'}, initialState);
 
-            assert.lengthOf(component.find('button.tab-switcher__button'), 1);
-            assert.lengthOf(component.find('button.tab-switcher__button_non-matched'), 0);
+            expect(component.container.querySelector('button[data-testid="retry-switcher"]')).to.exist;
+            expect(component.container.querySelector('button[data-testid="retry-switcher"].tab-switcher__button_non-matched')).to.not.exist;
         });
 
         it('without non matched class if group is selected and result is matched on it', () => {
@@ -111,8 +111,8 @@ describe('<RetrySwitcherItem />', () => {
 
             const component = mkRetrySwitcherItem({resultId: 'result-1'}, initialState);
 
-            assert.lengthOf(component.find('button.tab-switcher__button'), 1);
-            assert.lengthOf(component.find('button.tab-switcher__button_non-matched'), 0);
+            expect(component.container.querySelector('button[data-testid="retry-switcher"]')).to.exist;
+            expect(component.container.querySelector('button[data-testid="retry-switcher"].tab-switcher__button_non-matched')).to.not.exist;
         });
 
         it('with non matched class if group is selected but result is not matched on it', () => {
@@ -128,8 +128,8 @@ describe('<RetrySwitcherItem />', () => {
 
             const component = mkRetrySwitcherItem({resultId: 'result-1'}, initialState);
 
-            assert.lengthOf(component.find('button.tab-switcher__button'), 1);
-            assert.lengthOf(component.find('button.tab-switcher__button_non-matched'), 1);
+            expect(component.container.querySelector('button[data-testid="retry-switcher"]')).to.exist;
+            expect(component.container.querySelector('button[data-testid="retry-switcher"].tab-switcher__button_non-matched')).to.exist;
         });
     });
 
@@ -146,23 +146,22 @@ describe('<RetrySwitcherItem />', () => {
         };
 
         const component = mkRetrySwitcherItem({resultId: 'result-1'}, initialState);
-        const text = component.find('button.tab-switcher__button').text();
 
-        assert.equal(text, 100500);
+        expect(component.getByText('100500', {selector: 'button[data-testid="retry-switcher"] > *'})).to.exist;
     });
 
     it('should render button with correct active class name', () => {
         const component = mkRetrySwitcherItem({isActive: true});
 
-        assert.lengthOf(component.find('button.tab-switcher__button'), 1);
-        assert.lengthOf(component.find('button.tab-switcher__button_active'), 1);
+        expect(component.container.querySelector('button[data-testid="retry-switcher"].tab-switcher__button_active')).to.exist;
     });
 
-    it('should call "onClick" handler on click in button', () => {
+    it('should call "onClick" handler on click in button', async () => {
+        const user = userEvent.setup();
         const onClick = sinon.stub();
 
         const component = mkRetrySwitcherItem({onClick});
-        component.find('button.tab-switcher__button').simulate('click');
+        await user.click(component.getByTestId('retry-switcher'));
 
         assert.calledOnceWith(onClick);
     });

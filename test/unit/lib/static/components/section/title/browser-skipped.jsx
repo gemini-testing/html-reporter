@@ -1,3 +1,4 @@
+import {expect} from 'chai';
 import React from 'react';
 import {defaults} from 'lodash';
 import proxyquire from 'proxyquire';
@@ -5,6 +6,7 @@ import {mkConnectedComponent} from 'test/unit/lib/static/components/utils';
 import {mkBrowser, mkResult, mkStateTree} from 'test/unit/lib/static/state-utils';
 import {SKIPPED} from 'lib/constants/test-statuses';
 import {CHECKED, UNCHECKED} from 'lib/constants/checked-statuses';
+import userEvent from '@testing-library/user-event';
 
 describe('<BrowserSkippedTitle/>', () => {
     const sandbox = sinon.sandbox.create();
@@ -46,12 +48,17 @@ describe('<BrowserSkippedTitle/>', () => {
 
                 const component = mkBrowserSkippedTitleComponent({browserId: 'yabro'}, {tree});
 
-                assert.equal(component.find('input[type="checkbox"]').exists(), show);
+                if (show) {
+                    expect(component.queryByRole('checkbox')).to.exist;
+                } else {
+                    expect(component.queryByRole('checkbox')).to.not.exist;
+                }
             });
         });
 
         [CHECKED, UNCHECKED].forEach(checked => {
-            it(`should call "toggleBrowserCheckbox" action with ${checked ? 'unchecked' : 'checked'} stat on click`, () => {
+            it(`should call "toggleBrowserCheckbox" action with ${checked ? 'unchecked' : 'checked'} stat on click`, async () => {
+                const user = userEvent.setup();
                 useLocalStorageStub.withArgs('showCheckboxes', false).returns([true]);
                 const browsersById = mkBrowser({id: 'yabro', name: 'yabro', resultIds: ['default_res']});
                 const resultsById = mkResult({id: 'default_res', status: SKIPPED, skipReason: 'some-reason'});
@@ -59,7 +66,7 @@ describe('<BrowserSkippedTitle/>', () => {
                 const tree = mkStateTree({browsersById, resultsById, browsersStateById});
                 const component = mkBrowserSkippedTitleComponent({browserId: 'yabro'}, {tree});
 
-                component.find('input[type="checkbox"]').simulate('click');
+                await user.click(component.queryByRole('checkbox'));
 
                 assert.calledOnceWith(actionsStub.toggleBrowserCheckbox, {
                     suiteBrowserId: 'yabro',
