@@ -40,7 +40,15 @@ module.exports = {
         rules: [
             {
                 test: /\.css$/,
-                use: [MiniCssExtractPlugin.loader, 'css-loader']
+                use: [MiniCssExtractPlugin.loader, {
+                    loader: 'css-loader',
+                    options: {
+                        modules: {
+                            auto: true,
+                            exportLocalsConvention: 'camelCase'
+                        }
+                    }
+                }]
             },
             {
                 test: /\.less$/,

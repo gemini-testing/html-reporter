@@ -9,6 +9,7 @@ import {InfoPage} from './pages/InfoPage';
 
 import '@gravity-ui/uikit/styles/fonts.css';
 import '@gravity-ui/uikit/styles/styles.css';
+import '../new-ui.css';
 import {Provider} from 'react-redux';
 import store from '../modules/store';
 

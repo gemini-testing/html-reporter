@@ -1,0 +1,22 @@
+.g-root {
+    --g-font-family-sans: 'Jost', sans-serif;
+
+    /*--g-text-header-font-weight: 600;*/
+    /*--g-text-subheader-font-weight: 600;*/
+    /*--g-text-display-font-weight: 600;*/
+    /*--g-text-accent-font-weight: 600;*/
+
+    /*--g-color-base-brand: rgb(117, 155, 255);*/
+    /*--g-color-base-brand-hover: rgb(99, 143, 255);*/
+    /*--g-color-base-selection: rgba(82, 130, 255, 0.05);*/
+    /*--g-color-base-selection-hover: rgba(82, 130, 255, 0.1);*/
+    /*--g-color-line-brand: rgb(117, 155, 255);*/
+    /*--g-color-text-brand: rgb(117, 155, 255);*/
+    /*--g-color-text-brand-contrast: rgb(255, 255 ,255);*/
+    /*--g-color-text-link: rgb(117, 155, 255);*/
+    /*--g-color-text-link-hover: rgb(82, 130, 255);*/
+}
+
+.report {
+    font-family: var(--g-font-family-sans), sans-serif !important;
+}
