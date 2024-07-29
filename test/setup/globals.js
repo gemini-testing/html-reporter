@@ -19,4 +19,4 @@ chai.use(require('chai-as-promised'));
 chai.use(require('chai-dom'));
 sinon.assert.expose(chai.assert, {prefix: ''});
 
-require('app-module-path').addPath(path.resolve(__dirname, '..'));
+require('app-module-path').addPath(path.resolve(__dirname, '..', '..'));

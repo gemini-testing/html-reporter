@@ -7,8 +7,10 @@ import userEvent from '@testing-library/user-event';
 
 describe('<BrowserList />', () => {
     const sandbox = sinon.sandbox.create();
+    let mutationObserverOriginal;
 
     beforeEach(() => {
+        mutationObserverOriginal = global.MutationObserver;
         global.MutationObserver = class {
             constructor() {}
             disconnect() {}
@@ -16,7 +18,10 @@ describe('<BrowserList />', () => {
         };
     });
 
-    afterEach(() => sandbox.restore());
+    afterEach(() => {
+        sandbox.restore();
+        global.MutationObserver = mutationObserverOriginal;
+    });
 
     it('should not contain selected items', async () => {
         const user = userEvent.setup();

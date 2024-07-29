@@ -6,7 +6,7 @@ import userEvent from '@testing-library/user-event';
 describe('<RunButton />', () => {
     const sandbox = sinon.sandbox.create();
 
-    let RunButton, useLocalStorageStub, actionsStub, selectorsStub, writeValueStub;
+    let RunButton, useLocalStorageStub, actionsStub, selectorsStub, writeValueStub, mutationObserverOriginal;
 
     beforeEach(() => {
         writeValueStub = sandbox.stub();
@@ -28,11 +28,17 @@ describe('<RunButton />', () => {
             '../../../modules/actions': actionsStub
         }).default;
 
+        mutationObserverOriginal = global.MutationObserver;
         global.MutationObserver = class {
             constructor() {}
             disconnect() {}
             observe() {}
         };
+    });
+
+    afterEach(() => {
+        sandbox.restore();
+        global.MutationObserver = mutationObserverOriginal;
     });
 
     it('should be disabled if no suites to run', () => {
