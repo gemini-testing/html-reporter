@@ -30,7 +30,7 @@ describe('<BottomProgressBar/> component', () => {
                 visibleRootSuiteIds: ['id1', 'id2', 'id3', 'id4', 'id5']
             });
 
-            assert.equal(component.find('.bottom-progress-bar__progress-bar').prop('style').width, '0%');
+            assert.equal(component.container.querySelector('.bottom-progress-bar__progress-bar').style.width, '0%');
         });
 
         it('50%', () => {
@@ -39,7 +39,7 @@ describe('<BottomProgressBar/> component', () => {
                 visibleRootSuiteIds: ['id1', 'id2', 'id3', 'id4', 'id5']
             });
 
-            assert.equal(component.find('.bottom-progress-bar__progress-bar').prop('style').width, '50%');
+            assert.equal(component.container.querySelector('.bottom-progress-bar__progress-bar').style.width, '50%');
         });
 
         it('100%', () => {
@@ -48,7 +48,7 @@ describe('<BottomProgressBar/> component', () => {
                 visibleRootSuiteIds: ['id1', 'id2', 'id3', 'id4', 'id5']
             });
 
-            assert.equal(component.find('.bottom-progress-bar__progress-bar').prop('style').width, '100%');
+            assert.equal(component.container.querySelector('.bottom-progress-bar__progress-bar').style.width, '100%');
         });
     });
 
@@ -58,6 +58,6 @@ describe('<BottomProgressBar/> component', () => {
             visibleRootSuiteIds: ['id1', 'id2', 'id3']
         });
 
-        assert.equal(component.find('.bottom-progress-bar__counter').text(), 'id2 (2 suite of 3)');
+        assert.equal(component.container.querySelector('.bottom-progress-bar__counter').textContent, 'id2 (2 suite of 3)');
     });
 });

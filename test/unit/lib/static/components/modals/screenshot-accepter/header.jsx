@@ -1,84 +1,74 @@
-import React from 'react';
+import userEvent from '@testing-library/user-event';
+import {expect} from 'chai';
 import {defaults} from 'lodash';
-import proxyquire from 'proxyquire';
-import {mkConnectedComponent} from '../../utils';
+import React from 'react';
 import {DiffModes} from 'lib/constants';
+import ScreenshotAccepterHeader from 'lib/static/components/modals/screenshot-accepter/header';
+import {
+    addBrowserToTree, addResultToTree,
+    addSuiteToTree, generateResultId,
+    mkConnectedComponent,
+    mkEmptyTree,
+    mkRealStore,
+    renderWithStore
+} from '../../utils';
 
 describe('<ScreenshotAccepterHeader/>', () => {
     const sandbox = sinon.sandbox.create();
-    let ScreenshotAccepterHeader, RetrySwitcher, GlobalHotKeys, events;
 
-    const mkKeyDownEvent = (opts = {}) => {
-        return {...opts, preventDefault: () => {}};
+    const DEFAULT_PROPS = {
+        view: {diffMode: DiffModes.THREE_UP_SCALED},
+        actions: {changeDiffMode: sinon.stub().returns({type: 'some-type'})},
+        totalImages: 2,
+        acceptedImages: 0,
+        images: [{
+            id: 'default-image-id',
+            parentId: 'default-result-id'
+        }],
+        stateNameImageIds: ['default-browser default-state-name'],
+        retryIndex: 0,
+        showMeta: false,
+        activeImageIndex: 0,
+        staticImageAccepter: {accepterDelayedImages: []},
+        onShowMeta: () => {},
+        onClose: () => {},
+        onRetryChange: () => {},
+        onActiveImageChange: () => {},
+        onScreenshotAccept: () => {},
+        onScreenshotUndo: () => {}
     };
 
     const mkHeaderComponent = (props = {}) => {
-        props = defaults(props, {
-            view: {diffMode: DiffModes.THREE_UP_SCALED},
-            actions: {changeDiffMode: sinon.stub().returns({type: 'some-type'})},
-            totalImages: 2,
-            acceptedImages: 0,
-            images: [{
-                id: 'default-image-id',
-                parentId: 'default-result-id'
-            }],
-            stateNameImageIds: ['default-browser default-state-name'],
-            retryIndex: 0,
-            showMeta: false,
-            activeImageIndex: 0,
-            staticImageAccepter: {accepterDelayedImages: []},
-            onShowMeta: () => {},
-            onClose: () => {},
-            onRetryChange: () => {},
-            onActiveImageChange: () => {},
-            onScreenshotAccept: () => {},
-            onScreenshotUndo: () => {}
-        });
+        props = defaults(props, DEFAULT_PROPS);
 
         return mkConnectedComponent(<ScreenshotAccepterHeader {...props} />);
     };
 
-    beforeEach(() => {
-        events = {};
-        global.window.addEventListener = sandbox.stub().callsFake((event, cb) => {
-            events[event] = cb;
-        });
-
-        RetrySwitcher = sandbox.stub().returns(null);
-        GlobalHotKeys = sandbox.stub().returns(null);
-
-        ScreenshotAccepterHeader = proxyquire('lib/static/components/modals/screenshot-accepter/header', {
-            'react-hotkeys': {GlobalHotKeys},
-            '../../retry-switcher': {default: RetrySwitcher}
-        }).default;
-    });
-
     afterEach(() => {
-        global.window.addEventListener = () => {};
         sandbox.restore();
     });
 
     [
         {
             btnName: 'Arrow Up',
-            btnClass: '.screenshot-accepter__arrow-up-btn'
+            btnTitle: 'Show previous image'
         },
         {
             btnName: 'Arrow Down',
-            btnClass: '.screenshot-accepter__arrow-down-btn'
+            btnTitle: 'Show next image'
         }
-    ].forEach(({btnName, btnClass}) => {
+    ].forEach(({btnName, btnTitle}) => {
         describe(`"${btnName}" button`, () => {
             it('should be disabled if the current image is the last', () => {
                 const component = mkHeaderComponent({stateNameImageIds: ['state1']});
 
-                assert.isTrue(component.find(`button${btnClass}`).prop('disabled'));
+                assert.isTrue(component.getByTitle(btnTitle, {exact: false}).disabled);
             });
 
             it('should be disabled if there are no images left', () => {
                 const component = mkHeaderComponent({stateNameImageIds: []});
 
-                assert.isTrue(component.find(`button${btnClass}`).prop('disabled'));
+                assert.isTrue(component.getByTitle(btnTitle, {exact: false}).disabled);
             });
         });
     });
@@ -96,7 +86,8 @@ describe('<ScreenshotAccepterHeader/>', () => {
                 expectedActiveImageIndex: 2
             }
         ].forEach(({name, activeImageIndex, expectedActiveImageIndex}) => {
-            it(`should call "onActiveImageChange" ${name} on click`, () => {
+            it(`should call "onActiveImageChange" ${name} on click`, async () => {
+                const user = userEvent.setup();
                 const onActiveImageChange = sandbox.stub();
                 const component = mkHeaderComponent({
                     activeImageIndex,
@@ -104,7 +95,7 @@ describe('<ScreenshotAccepterHeader/>', () => {
                     onActiveImageChange
                 });
 
-                component.find('button.screenshot-accepter__arrow-up-btn').simulate('click');
+                await user.click(component.getByTitle('Show previous image', {exact: false}));
 
                 assert.calledOnceWith(onActiveImageChange, expectedActiveImageIndex);
             });
@@ -122,16 +113,16 @@ describe('<ScreenshotAccepterHeader/>', () => {
                 expectedActiveImageIndex: 2
             }
         ].forEach(({name, activeImageIndex, expectedActiveImageIndex}) => {
-            it(`should call "onActiveImageChange" ${name} on press on related keys`, () => {
+            it(`should call "onActiveImageChange" ${name} on press on related keys`, async () => {
+                const user = userEvent.setup();
                 const onActiveImageChange = sandbox.stub();
-                const component = mkHeaderComponent({
+                mkHeaderComponent({
                     activeImageIndex,
                     stateNameImageIds: ['state1', 'state2', 'state3'],
                     onActiveImageChange
                 });
 
-                const {PREV_SCREENSHOT: handler} = component.find(GlobalHotKeys).prop('handlers');
-                handler(mkKeyDownEvent());
+                await user.keyboard('{ArrowUp}');
 
                 assert.calledOnceWith(onActiveImageChange, expectedActiveImageIndex);
             });
@@ -151,7 +142,8 @@ describe('<ScreenshotAccepterHeader/>', () => {
                 expectedActiveImageIndex: 0
             }
         ].forEach(({name, activeImageIndex, expectedActiveImageIndex}) => {
-            it(`should call "onActiveImageChange" ${name} on click`, () => {
+            it(`should call "onActiveImageChange" ${name} on click`, async () => {
+                const user = userEvent.setup();
                 const onActiveImageChange = sandbox.stub();
                 const component = mkHeaderComponent({
                     activeImageIndex,
@@ -159,7 +151,7 @@ describe('<ScreenshotAccepterHeader/>', () => {
                     onActiveImageChange
                 });
 
-                component.find('button.screenshot-accepter__arrow-down-btn').simulate('click');
+                await user.click(component.getByTitle('Show next image', {exact: false}));
 
                 assert.calledOnceWith(onActiveImageChange, expectedActiveImageIndex);
             });
@@ -177,16 +169,16 @@ describe('<ScreenshotAccepterHeader/>', () => {
                 expectedActiveImageIndex: 0
             }
         ].forEach(({name, activeImageIndex, expectedActiveImageIndex}) => {
-            it(`should call "onActiveImageChange" ${name} on press on related keys`, () => {
+            it(`should call "onActiveImageChange" ${name} on press on related keys`, async () => {
+                const user = userEvent.setup();
                 const onActiveImageChange = sandbox.stub();
-                const component = mkHeaderComponent({
+                mkHeaderComponent({
                     activeImageIndex,
                     stateNameImageIds: ['state1', 'state2', 'state3'],
                     onActiveImageChange
                 });
 
-                const {NEXT_SCREENSHOT: handler} = component.find(GlobalHotKeys).prop('handlers');
-                handler(mkKeyDownEvent());
+                await user.keyboard('{ArrowDown}');
 
                 assert.calledOnceWith(onActiveImageChange, expectedActiveImageIndex);
             });
@@ -197,152 +189,203 @@ describe('<ScreenshotAccepterHeader/>', () => {
         it('should be disabled if passed empty "images" array', () => {
             const component = mkHeaderComponent({images: []});
 
-            assert.isTrue(component.find('[data-qa="screenshot-accepter-accept"]').prop('disabled'));
+            assert.isTrue(component.getByTestId('screenshot-accepter-accept').disabled);
         });
 
         it('should be enabled if passed not empty "images" array', () => {
             const component = mkHeaderComponent({images: [{id: 'img-1', parentId: 'res-1'}]});
 
-            assert.isFalse(component.find('[data-qa="screenshot-accepter-accept"]').prop('disabled'));
+            assert.isFalse(component.getByTestId('screenshot-accepter-accept').disabled);
         });
 
-        it('should call "onScreenshotAccept" handler with current image id on click', () => {
+        it('should call "onScreenshotAccept" handler with current image id on click', async () => {
+            const user = userEvent.setup();
             const onScreenshotAccept = sandbox.stub();
-            const component = mkHeaderComponent({
+            const tree = mkEmptyTree();
+            addSuiteToTree({tree, suiteName: 'test-1'});
+            addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
+            addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0});
+            addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 1});
+            const store = mkRealStore({initialState: {tree}});
+
+            const component = renderWithStore(<ScreenshotAccepterHeader {...defaults({
                 images: [
-                    {id: 'img-1', parentId: 'res-1'},
-                    {id: 'img-2', parentId: 'res-2'}
+                    {id: 'img-1', parentId: generateResultId({suiteName: 'test-1', browserName: 'bro-1', attempt: 0})},
+                    {id: 'img-2', parentId: generateResultId({suiteName: 'test-1', browserName: 'bro-1', attempt: 1})}
                 ],
                 retryIndex: 1,
                 onScreenshotAccept
-            });
+            }, DEFAULT_PROPS)}/>, store);
 
-            component.find('[data-qa="screenshot-accepter-accept"]').simulate('click');
+            await user.click(component.getByTestId('screenshot-accepter-accept'));
 
             assert.calledOnceWith(onScreenshotAccept, 'img-2');
         });
 
-        it('should call "onScreenshotAccept" handler with current image id on press on related keys', () => {
+        it('should call "onScreenshotAccept" handler with current image id on press on related keys', async () => {
+            const user = userEvent.setup();
             const onScreenshotAccept = sandbox.stub();
-            const component = mkHeaderComponent({
+            const tree = mkEmptyTree();
+            addSuiteToTree({tree, suiteName: 'test-1'});
+            addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
+            addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0});
+            addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 1});
+            const store = mkRealStore({initialState: {tree}});
+
+            renderWithStore(<ScreenshotAccepterHeader {...defaults({
                 images: [
-                    {id: 'img-1', parentId: 'res-1'},
-                    {id: 'img-2', parentId: 'res-2'}
+                    {id: 'img-1', parentId: generateResultId({suiteName: 'test-1', browserName: 'bro-1', attempt: 0})},
+                    {id: 'img-2', parentId: generateResultId({suiteName: 'test-1', browserName: 'bro-1', attempt: 1})}
                 ],
                 retryIndex: 1,
                 onScreenshotAccept
-            });
+            }, DEFAULT_PROPS)}/>, store);
 
-            const {ACCEPT_SCREENSHOT: handler} = component.find(GlobalHotKeys).prop('handlers');
-            handler(mkKeyDownEvent());
+            await user.keyboard('{Enter}');
 
             assert.calledOnceWith(onScreenshotAccept, 'img-2');
         });
     });
 
     describe('<RetrySwitcher /> component', () => {
-        it('should render with correct props', () => {
+        it('should render correctly', () => {
             const onRetryChange = sandbox.stub();
-            mkHeaderComponent({
-                images: [
-                    {id: 'img-1', parentId: 'res-1'},
-                    {id: 'img-2', parentId: 'res-2'}
-                ],
-                retryIndex: 0,
-                onRetryChange
-            });
+            const tree = mkEmptyTree();
+            addSuiteToTree({tree, suiteName: 'test-1'});
+            addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
+            addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0});
+            addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 1});
+            const store = mkRealStore({initialState: {tree}});
 
-            assert.calledOnceWith(RetrySwitcher, {
-                title: 'Switch to selected attempt (left: ←,a; right: →,d)',
-                resultIds: ['res-1', 'res-2'],
-                retryIndex: 0,
-                onChange: onRetryChange
-            });
+            const component = renderWithStore(<ScreenshotAccepterHeader {...defaults({
+                images: [
+                    {id: 'img-1', parentId: generateResultId({suiteName: 'test-1', browserName: 'bro-1', attempt: 0})},
+                    {id: 'img-2', parentId: generateResultId({suiteName: 'test-1', browserName: 'bro-1', attempt: 1})}
+                ],
+                retryIndex: 1,
+                onRetryChange
+            }, DEFAULT_PROPS)}/>, store);
+
+            expect(component.queryAllByTitle('Switch to selected attempt (left: ←,a; right: →,d)').length).to.equal(2);
         });
 
-        it('should call "onRetryChange" handler on call "onChange" prop with new retry index', () => {
+        it('should call "onRetryChange" handler on call "onChange" prop with new retry index', async () => {
+            const user = userEvent.setup();
             const onRetryChange = sandbox.stub();
-            mkHeaderComponent({
+            const tree = mkEmptyTree();
+            addSuiteToTree({tree, suiteName: 'test-1'});
+            addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
+            addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0});
+            addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 1});
+            const store = mkRealStore({initialState: {tree}});
+
+            const component = renderWithStore(<ScreenshotAccepterHeader {...defaults({
                 images: [
-                    {id: 'img-1', parentId: 'res-1'},
-                    {id: 'img-2', parentId: 'res-2'}
+                    {id: 'img-1', parentId: generateResultId({suiteName: 'test-1', browserName: 'bro-1', attempt: 0})},
+                    {id: 'img-2', parentId: generateResultId({suiteName: 'test-1', browserName: 'bro-1', attempt: 1})}
                 ],
-                retryIndex: 0,
+                retryIndex: 1,
                 onRetryChange
-            });
+            }, DEFAULT_PROPS)}/>, store);
 
-            RetrySwitcher.firstCall.args[0].onChange(1);
+            await user.click(component.getByText('1', {selector: 'button[data-qa="retry-switcher"] > *'}));
 
-            assert.calledOnceWith(onRetryChange, 1);
+            assert.calledOnceWith(onRetryChange, 0);
         });
 
         describe('on press on related keys', () => {
-            it('should call "onRetryChange" with previous retry index', () => {
+            it('should call "onRetryChange" with previous retry index', async () => {
+                const user = userEvent.setup();
                 const onRetryChange = sandbox.stub();
-                const component = mkHeaderComponent({
+                const tree = mkEmptyTree();
+                addSuiteToTree({tree, suiteName: 'test-1'});
+                addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
+                addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0});
+                addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 1});
+                const store = mkRealStore({initialState: {tree}});
+
+                renderWithStore(<ScreenshotAccepterHeader {...defaults({
                     images: [
-                        {id: 'img-1', parentId: 'res-1'},
-                        {id: 'img-2', parentId: 'res-2'}
+                        {id: 'img-1', parentId: generateResultId({suiteName: 'test-1', browserName: 'bro-1', attempt: 0})},
+                        {id: 'img-2', parentId: generateResultId({suiteName: 'test-1', browserName: 'bro-1', attempt: 1})}
                     ],
                     retryIndex: 1,
                     onRetryChange
-                });
+                }, DEFAULT_PROPS)}/>, store);
 
-                const {PREV_RETRY: handler} = component.find(GlobalHotKeys).prop('handlers');
-                handler(mkKeyDownEvent());
+                await user.keyboard('{ArrowLeft}');
 
                 assert.calledOnceWith(onRetryChange, 0);
             });
 
-            it('should call "onRetryChange" with last retry index if current retry is first', () => {
+            it('should call "onRetryChange" with last retry index if current retry is first', async () => {
+                const user = userEvent.setup();
                 const onRetryChange = sandbox.stub();
-                const component = mkHeaderComponent({
+                const tree = mkEmptyTree();
+                addSuiteToTree({tree, suiteName: 'test-1'});
+                addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
+                addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0});
+                addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 1});
+                const store = mkRealStore({initialState: {tree}});
+
+                renderWithStore(<ScreenshotAccepterHeader {...defaults({
                     images: [
-                        {id: 'img-1', parentId: 'res-1'},
-                        {id: 'img-2', parentId: 'res-2'}
+                        {id: 'img-1', parentId: generateResultId({suiteName: 'test-1', browserName: 'bro-1', attempt: 0})},
+                        {id: 'img-2', parentId: generateResultId({suiteName: 'test-1', browserName: 'bro-1', attempt: 1})}
                     ],
                     retryIndex: 0,
                     onRetryChange
-                });
+                }, DEFAULT_PROPS)}/>, store);
 
-                const {PREV_RETRY: handler} = component.find(GlobalHotKeys).prop('handlers');
-                handler(mkKeyDownEvent());
-
-                assert.calledOnceWith(onRetryChange, 1);
-            });
-        });
-
-        describe('on press on related keys', () => {
-            it('should call "onRetryChange" with next retry index', () => {
-                const onRetryChange = sandbox.stub();
-                const component = mkHeaderComponent({
-                    images: [
-                        {id: 'img-1', parentId: 'res-1'},
-                        {id: 'img-2', parentId: 'res-2'}
-                    ],
-                    retryIndex: 0,
-                    onRetryChange
-                });
-
-                const {NEXT_RETRY: handler} = component.find(GlobalHotKeys).prop('handlers');
-                handler(mkKeyDownEvent());
+                await user.keyboard('{ArrowLeft}');
 
                 assert.calledOnceWith(onRetryChange, 1);
             });
 
-            it('should call "onRetryChange" with first retry index if current retry is last', () => {
+            it('should call "onRetryChange" with next retry index', async () => {
+                const user = userEvent.setup();
                 const onRetryChange = sandbox.stub();
-                const component = mkHeaderComponent({
+                const tree = mkEmptyTree();
+                addSuiteToTree({tree, suiteName: 'test-1'});
+                addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
+                addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0});
+                addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 1});
+                const store = mkRealStore({initialState: {tree}});
+
+                renderWithStore(<ScreenshotAccepterHeader {...defaults({
                     images: [
-                        {id: 'img-1', parentId: 'res-1'},
-                        {id: 'img-2', parentId: 'res-2'}
+                        {id: 'img-1', parentId: generateResultId({suiteName: 'test-1', browserName: 'bro-1', attempt: 0})},
+                        {id: 'img-2', parentId: generateResultId({suiteName: 'test-1', browserName: 'bro-1', attempt: 1})}
+                    ],
+                    retryIndex: 0,
+                    onRetryChange
+                }, DEFAULT_PROPS)}/>, store);
+
+                await user.keyboard('{ArrowRight}');
+
+                assert.calledOnceWith(onRetryChange, 1);
+            });
+
+            it('should call "onRetryChange" with first retry index if current retry is last', async () => {
+                const user = userEvent.setup();
+                const onRetryChange = sandbox.stub();
+                const tree = mkEmptyTree();
+                addSuiteToTree({tree, suiteName: 'test-1'});
+                addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
+                addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0});
+                addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 1});
+                const store = mkRealStore({initialState: {tree}});
+
+                renderWithStore(<ScreenshotAccepterHeader {...defaults({
+                    images: [
+                        {id: 'img-1', parentId: generateResultId({suiteName: 'test-1', browserName: 'bro-1', attempt: 0})},
+                        {id: 'img-2', parentId: generateResultId({suiteName: 'test-1', browserName: 'bro-1', attempt: 1})}
                     ],
                     retryIndex: 1,
                     onRetryChange
-                });
+                }, DEFAULT_PROPS)}/>, store);
 
-                const {NEXT_RETRY: handler} = component.find(GlobalHotKeys).prop('handlers');
-                handler(mkKeyDownEvent());
+                await user.keyboard('{ArrowRight}');
 
                 assert.calledOnceWith(onRetryChange, 0);
             });
@@ -350,18 +393,16 @@ describe('<ScreenshotAccepterHeader/>', () => {
     });
 
     describe('"Show meta" button', () => {
-        const metaSelector = '[label="Show meta"]';
-
         it('should be disabled if there are no images to accept', () => {
             const component = mkHeaderComponent({images: []});
 
-            assert.isTrue(component.find(metaSelector).prop('isDisabled'));
+            assert.isTrue(component.getByTitle('Show test meta info').disabled);
         });
 
         it('should be enabled if passed not empty "images" array', () => {
             const component = mkHeaderComponent({images: [{id: 'img-1', parentId: 'res-1'}]});
 
-            assert.isFalse(component.find(metaSelector).prop('isDisabled'));
+            assert.isFalse(component.getByTitle('Show test meta info').disabled);
         });
     });
 
@@ -369,35 +410,37 @@ describe('<ScreenshotAccepterHeader/>', () => {
         it('should be disabled if no screenshotes were accepted', () => {
             const component = mkHeaderComponent({acceptedImages: 0});
 
-            assert.isTrue(component.find('button.screenshot-accepter__undo-btn').prop('disabled'));
+            assert.isTrue(component.getByTestId('screenshot-accepter-undo').disabled);
         });
 
-        it('should call "onScreenshotUndo" handler on click', () => {
+        it('should call "onScreenshotUndo" handler on click', async () => {
+            const user = userEvent.setup();
             const onScreenshotUndo = sandbox.stub();
             const component = mkHeaderComponent({onScreenshotUndo, acceptedImages: 1});
 
-            component.find('[data-qa="screenshot-accepter-undo"]').simulate('click');
+            await user.click(component.getByTestId('screenshot-accepter-undo'));
 
             assert.calledOnce(onScreenshotUndo);
         });
     });
 
     describe('"Close screenshot accepting mode" button', () => {
-        it('should call "onClose" handler on click', () => {
+        it('should call "onClose" handler on click', async () => {
+            const user = userEvent.setup();
             const onClose = sandbox.stub();
             const component = mkHeaderComponent({onClose});
 
-            component.find('button.screenshot-accepter__arrows-close-btn').simulate('click');
+            await user.click(component.getByTestId('screenshot-accepter-switch-accept-mode'));
 
             assert.calledOnce(onClose);
         });
 
-        it('should call "onClose" handler on press on related keys', () => {
+        it('should call "onClose" handler on press on related keys', async () => {
+            const user = userEvent.setup();
             const onClose = sandbox.stub();
-            const component = mkHeaderComponent({onClose});
+            mkHeaderComponent({onClose});
 
-            const {CLOSE_MODAL: handler} = component.find(GlobalHotKeys).prop('handlers');
-            handler(mkKeyDownEvent());
+            await user.keyboard('{Esc}');
 
             assert.calledOnce(onClose);
         });

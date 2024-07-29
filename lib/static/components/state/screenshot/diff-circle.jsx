@@ -2,7 +2,6 @@
 
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {keyframes} from 'styled-components';
 import {CIRCLE_RADIUS} from '../../../../constants/defaults';
 
 export default class DiffCircle extends Component {
@@ -48,16 +47,10 @@ export default class DiffCircle extends Component {
         };
         const radius = diffRect.minSize + CIRCLE_RADIUS;
 
-        const animation = keyframes`
-            100% {
-                transform: scale(${radius / diffRect.minSize})
-            }
-        `;
-
         return (
             <div
                 className='diff-circle'
-                style={{animation: `${animation} 1s ease-out`, ...diffCircle}}
+                style={{'--diff-bubbles-scale': `${radius / diffRect.minSize}`, animation: `diff-bubbles 1s ease-out`, ...diffCircle}}
                 onAnimationEnd={() => toggleDiff()}
             >
             </div>

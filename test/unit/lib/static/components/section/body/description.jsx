@@ -1,3 +1,5 @@
+import userEvent from '@testing-library/user-event';
+import {expect} from 'chai';
 import React from 'react';
 import Description from 'lib/static/components/section/body/description';
 import {mkConnectedComponent} from '../../utils';
@@ -7,30 +9,29 @@ describe('<Description />', () => {
         return mkConnectedComponent(<Description content={content} />, {});
     };
 
-    it('should render component', () => {
+    it('should render component', async () => {
+        const user = userEvent.setup();
+
         const component = mkDescriptionComponent('simple text');
+        await user.click(component.getByText('Description'));
 
-        const descContent = component.find(Description).prop('content');
-
-        assert.equal(descContent, 'simple text');
+        expect(component.getByText('simple text')).to.exist;
     });
 
     it('should render with "Description" title', () => {
         const component = mkDescriptionComponent('simple text');
 
-        const detailsTitle = component.find('Details').prop('title');
-
-        assert.equal(detailsTitle, 'Description');
+        expect(component.getByText('Description', {exact: false})).to.exist;
     });
 
-    it('should render markdown syntax', () => {
+    it('should render markdown syntax', async () => {
+        const user = userEvent.setup();
         const component = mkDescriptionComponent('### simple text');
 
-        const detailsSummary = component.find('.details__summary');
-        detailsSummary.simulate('click');
+        await user.click(component.getByText('Description'));
 
-        const detailsContent = component.find('.details__content');
+        const transformedMarkdown = component.getByText('simple text').parentNode.innerHTML;
 
-        assert.isTrue(detailsContent.contains(<h3>simple text</h3>));
+        expect(transformedMarkdown).to.equal('<h3>simple text</h3>');
     });
 });

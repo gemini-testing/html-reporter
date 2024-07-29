@@ -169,11 +169,13 @@ describe('lib/static/modules/actions', () => {
         let fetchDataFromDatabasesStub;
         let mergeDatabasesStub;
         let actions;
+        let originalWindow;
 
         beforeEach(() => {
             fetchDataFromDatabasesStub = sandbox.stub().resolves();
             mergeDatabasesStub = sandbox.stub().resolves();
 
+            originalWindow = global.window;
             global.window = {
                 data: {
                     apiValues: {toolName: ToolName.Testplane}
@@ -195,7 +197,7 @@ describe('lib/static/modules/actions', () => {
         afterEach(() => {
             sandbox.restore();
 
-            global.window = undefined;
+            global.window = originalWindow;
         });
 
         it('should fetch databaseUrls.json for default html page', async () => {

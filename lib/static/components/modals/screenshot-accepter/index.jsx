@@ -56,7 +56,7 @@ class ScreenshotAccepter extends Component {
         this.totalImagesCount = size(imagesByStateName);
 
         for (let i = 1; i <= PRELOAD_IMAGE_COUNT; i++) {
-            this._preloadAdjacentImages(i);
+            this._preloadAdjacentImages(activeImageIndex, stateNameImageIds, i);
         }
     }
 
@@ -72,7 +72,7 @@ class ScreenshotAccepter extends Component {
         const images = this._getActiveImages(activeImageIndex);
 
         this.setState({retryIndex: images.length - 1, activeImageIndex});
-        this._preloadAdjacentImages();
+        this._preloadAdjacentImages(activeImageIndex, this.state.stateNameImageIds);
     };
 
     onScreenshotAccept = async (imageId) => {
@@ -117,7 +117,7 @@ class ScreenshotAccepter extends Component {
             stateNameImageIds: stateNameIds,
             retryIndex: newImages.length - 1
         });
-        this._preloadAdjacentImages();
+        this._preloadAdjacentImages(activeImageIndex, stateNameIds);
     };
 
     onScreenshotUndo = async () => {
@@ -147,7 +147,7 @@ class ScreenshotAccepter extends Component {
             stateNameImageIds: previousStateNameImageId,
             retryIndex: images.length - 1
         });
-        this._preloadAdjacentImages();
+        this._preloadAdjacentImages(ind, previousStateNameImageId);
     };
 
     onShowMeta = () => {
@@ -208,13 +208,13 @@ class ScreenshotAccepter extends Component {
         return imageId;
     }
 
-    _preloadAdjacentImages(offset = PRELOAD_IMAGE_COUNT) {
-        const screensCount = size(this.state.stateNameImageIds);
-        const previosImagesIndex = (screensCount + this.state.activeImageIndex - offset) % screensCount;
-        const nextImagesIndex = (this.state.activeImageIndex + offset) % screensCount;
+    _preloadAdjacentImages(activeImageIndex, stateNameImageIds, offset = PRELOAD_IMAGE_COUNT) {
+        const screensCount = size(stateNameImageIds);
+        const previosImagesIndex = (screensCount + activeImageIndex - offset) % screensCount;
+        const nextImagesIndex = (activeImageIndex + offset) % screensCount;
 
         [previosImagesIndex, nextImagesIndex].filter(ind => ind >= 0).forEach(preloadingImagesIndex => {
-            const stateNameImageId = this.state.stateNameImageIds[preloadingImagesIndex];
+            const stateNameImageId = stateNameImageIds[preloadingImagesIndex];
             const {expectedImg, actualImg, diffImg} = last(this.props.imagesByStateName[stateNameImageId]);
 
             [expectedImg, actualImg, diffImg].filter(Boolean).forEach(({path}) => preloadImage(path));

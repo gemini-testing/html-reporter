@@ -1,5 +1,3 @@
-'use strict';
-
 import React, {Component} from 'react';
 import Markdown from 'react-markdown';
 import PropTypes from 'prop-types';

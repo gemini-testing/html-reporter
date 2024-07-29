@@ -3,13 +3,15 @@ import {mkStorage} from '../../../utils';
 
 describe('lib/static/modules/local-storage-wrapper', () => {
     const prefix = 'html-reporter';
+    let originalWindow = global.window;
 
     beforeEach(() => {
+        originalWindow = global.window;
         global.window = {localStorage: mkStorage()};
     });
 
     afterEach(() => {
-        global.window = undefined;
+        global.window = originalWindow;
     });
 
     describe('setItem', () => {

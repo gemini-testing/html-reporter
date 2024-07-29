@@ -27,7 +27,7 @@ describe('<ScreenshotAccepterMeta/>', () => {
                 image: {id: 'some-id'}
             });
 
-            assert.isEmpty(component.html());
+            assert.isEmpty(component.container.innerHTML);
         });
 
         it('if "image" property is empty', () => {
@@ -36,7 +36,7 @@ describe('<ScreenshotAccepterMeta/>', () => {
                 image: null
             });
 
-            assert.isEmpty(component.html());
+            assert.isEmpty(component.container.innerHTML);
         });
     });
 });

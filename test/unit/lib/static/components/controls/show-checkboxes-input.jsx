@@ -1,5 +1,7 @@
 import React from 'react';
 import proxyquire from 'proxyquire';
+import {render} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 describe('<ShowCheckboxesInput />', () => {
     const sandbox = sinon.sandbox.create();
@@ -21,17 +23,18 @@ describe('<ShowCheckboxesInput />', () => {
         it(`should set checkbox to ${checked ? '' : 'un'}checked if showCheckboxes is ${checked ? '' : 'not '}set`, () => {
             useLocalStorageStub.withArgs('showCheckboxes', false).returns([checked, () => {}]);
 
-            const component = mount(<ShowCheckboxesInput />);
+            const component = render(<ShowCheckboxesInput />);
 
-            assert.equal(component.find('input[type="checkbox"]').prop('checked'), checked);
+            assert.equal(component.getByRole('switch').checked, checked);
         });
 
-        it(`should call hook handler on ${checked ? '' : 'un'}checked click`, () => {
+        it(`should call hook handler on ${checked ? '' : 'un'}checked click`, async () => {
+            const user = userEvent.setup();
             const hookHandler = sandbox.stub();
             useLocalStorageStub.withArgs('showCheckboxes', false).returns([checked, hookHandler]);
-            const component = mount(<ShowCheckboxesInput />);
+            const component = render(<ShowCheckboxesInput />);
 
-            component.find('input[type="checkbox"]').simulate('change');
+            await user.click(component.getByRole('switch'));
 
             assert.calledOnceWith(hookHandler, !checked);
         });

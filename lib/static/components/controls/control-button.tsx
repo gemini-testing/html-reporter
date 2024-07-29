@@ -4,7 +4,7 @@ import classNames from 'classnames';
 import {Button} from '@gravity-ui/uikit';
 
 interface ControlButtonProps {
-    label: string | Component;
+    label: React.ReactNode;
     title?: string;
     handler: () => void;
     isActive?: boolean;

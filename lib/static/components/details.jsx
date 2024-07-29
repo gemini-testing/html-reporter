@@ -70,8 +70,8 @@ export default class Details extends Component {
                     size='l'>
                     <Disclosure.Summary>
                         {(props, defaultButton) => (
-                            <div className={classNames(className, 'details__summary')} {...props}>
-                                <div className='details__expand-button' onClick={this.stopPropagation}>
+                            <div className={classNames(className, 'details__summary')} aria-controls={props.ariaControls} onClick={props.onClick} id={props.id}>
+                                <div className="details__expand-button" onClick={this.stopPropagation}>
                                     {defaultButton}
                                 </div>
                                 {title}

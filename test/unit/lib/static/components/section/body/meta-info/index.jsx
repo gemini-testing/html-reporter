@@ -2,6 +2,7 @@ import React from 'react';
 import {defaultsDeep} from 'lodash';
 import proxyquire from 'proxyquire';
 import {mkConnectedComponent} from '../../../utils';
+import userEvent from '@testing-library/user-event';
 
 describe('<MetaInfo />', () => {
     const sandbox = sinon.sandbox.create();
@@ -31,10 +32,11 @@ describe('<MetaInfo />', () => {
     };
 
     describe('"MetaInfoContent"', () => {
-        it('should render with correct props', () => {
+        it('should render with correct props', async () => {
+            const user = userEvent.setup();
             const component = mkMetaInfoComponent({resultId: 'some-result'});
 
-            component.find('.details__summary').simulate('click');
+            await user.click(component.getByText('Meta'));
 
             assert.calledOnceWith(
                 MetaInfoContent,
@@ -44,10 +46,11 @@ describe('<MetaInfo />', () => {
     });
 
     describe('"toggleMetaInfo" action', () => {
-        it('should call on click in details', () => {
+        it('should call on click in details', async () => {
+            const user = userEvent.setup();
             const component = mkMetaInfoComponent();
 
-            component.find('.details__summary').simulate('click');
+            await user.click(component.getByText('Meta'));
 
             assert.calledOnceWith(actionsStub.toggleMetaInfo);
         });

@@ -1,3 +1,4 @@
+import {expect} from 'chai';
 import React from 'react';
 import proxyquire from 'proxyquire';
 import {defaultsDeep} from 'lodash';
@@ -48,7 +49,7 @@ describe('<Tabs />', () => {
 
         const component = mkTabs({result});
 
-        assert.lengthOf(component.find('.tab'), 0);
+        expect(component.container.querySelector('.tab')).to.not.exist;
         assert.notCalled(State);
     });
 
@@ -57,7 +58,7 @@ describe('<Tabs />', () => {
 
         const component = mkTabs({result});
 
-        assert.lengthOf(component.find('.tab'), 1);
+        expect(component.container.querySelector('.tab')).to.exist;
         assert.calledOnceWith(State, {result, imageId: null});
     });
 
@@ -66,7 +67,7 @@ describe('<Tabs />', () => {
 
         const component = mkTabs({result});
 
-        assert.lengthOf(component.find('.tab'), 2);
+        expect(component.container.querySelectorAll('.tab').length).to.equal(2);
         assert.calledTwice(State);
         assert.calledWith(State.firstCall, {result, imageId: 'img-1'});
         assert.calledWith(State.secondCall, {result, imageId: 'img-2'});
@@ -77,7 +78,7 @@ describe('<Tabs />', () => {
 
         const component = mkTabs({result});
 
-        assert.lengthOf(component.find('.tab'), 1);
+        expect(component.container.querySelector('.tab')).to.exist;
         assert.calledOnceWith(State, {result, imageId: 'img-1'});
     });
 
@@ -86,7 +87,7 @@ describe('<Tabs />', () => {
 
         const component = mkTabs({result});
 
-        assert.lengthOf(component.find('.tab'), 2);
+        expect(component.container.querySelectorAll('.tab').length).to.equal(2);
         assert.calledTwice(State);
         assert.calledWith(State.firstCall, {result, imageId: 'img-1'});
         assert.calledWith(State.secondCall, {result, imageId: null});

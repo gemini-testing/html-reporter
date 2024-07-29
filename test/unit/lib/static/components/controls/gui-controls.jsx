@@ -1,6 +1,7 @@
 import React from 'react';
 import proxyquire from 'proxyquire';
 import {mkConnectedComponent} from '../utils';
+import userEvent from '@testing-library/user-event';
 
 describe('<GuiControls />', () => {
     const sandbox = sinon.sandbox.create();
@@ -48,8 +49,8 @@ describe('<GuiControls />', () => {
                 initialState: {running: false, stopping: false}
             });
 
-            const stop = component.find('[label="Stop tests"]');
-            assert.isTrue(stop.prop('isDisabled'));
+            const stop = component.getByText((_, el) => el.textContent === 'Stop tests', {selector: 'button'});
+            assert.isTrue(stop.disabled);
         });
 
         describe ('should be disabled when tests are', () => {
@@ -58,8 +59,8 @@ describe('<GuiControls />', () => {
                     initialState: {running: true, stopping: false}
                 });
 
-                const stop = component.find('[label="Stop tests"]');
-                assert.isFalse(stop.prop('isDisabled'));
+                const stop = component.getByText((_, el) => el.textContent === 'Stop tests', {selector: 'button'});
+                assert.isFalse(stop.disabled);
             });
 
             it('stopping', () => {
@@ -67,17 +68,20 @@ describe('<GuiControls />', () => {
                     initialState: {running: true, stopping: true}
                 });
 
-                const stop = component.find('[label="Stop tests"]');
-                assert.isTrue(stop.prop('isDisabled'));
+                const stop = component.getByText((_, el) => el.textContent === 'Stop tests', {selector: 'button'});
+                assert.isTrue(stop.disabled);
             });
         });
 
-        it('should call "stopTests" action on click', () => {
+        it('should call "stopTests" action on click', async () => {
+            const user = userEvent.setup();
             const component = mkConnectedComponent(<GuiControls />, {
                 initialState: {running: true}
             });
+            const stop = component.getByText((_, el) => el.textContent === 'Stop tests', {selector: 'button'});
 
-            component.find('[label="Stop tests"]').simulate('click');
+            await user.click(stop);
+
             assert.calledOnce(actionsStub.stopTests);
         });
     });

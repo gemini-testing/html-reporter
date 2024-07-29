@@ -1,20 +1,21 @@
+import {render} from '@testing-library/react';
 import React from 'react';
 import ResizedScreenshot from 'lib/static/components/state/screenshot/resized';
 
 describe('"ResizedScreenshot" component', () => {
     it('should encode symbols in path', () => {
-        const screenshotComponent = mount(<ResizedScreenshot image={{path: 'images/$/path'}} />);
+        const screenshotComponent = render(<ResizedScreenshot image={{path: 'images/$/path'}} />);
 
-        const image = screenshotComponent.find('img');
+        const image = screenshotComponent.getByRole('img');
 
-        assert.equal(image.getDOMNode().src, 'images/%24/path');
+        assert.include(image.src, 'images/%24/path');
     });
 
     it('should replace backslashes with slashes for screenshots', () => {
-        const screenshotComponent = mount(<ResizedScreenshot image={{path: 'images\\path'}} />);
+        const screenshotComponent = render(<ResizedScreenshot image={{path: 'images\\path'}} />);
 
-        const image = screenshotComponent.find('img');
+        const image = screenshotComponent.getByRole('img');
 
-        assert.equal(image.getDOMNode().src, 'images/path');
+        assert.include(image.src, 'images/path');
     });
 });

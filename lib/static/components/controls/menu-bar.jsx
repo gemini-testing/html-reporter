@@ -33,7 +33,7 @@ class MenuBar extends Component {
         }
 
         return (
-            <div className="menu-bar" data-test-id='menu-bar'>
+            <div className="menu-bar" data-qa='menu-bar'>
                 <DropdownMenu size='m' renderSwitcher={({className, ...props}) => (
                     <Button className={classNames('menu-bar__dropdown', className)}{...props} view="flat">
                         <Icon size={16} data={Bars} />

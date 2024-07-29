@@ -1,5 +1,7 @@
+import {expect} from 'chai';
 import React from 'react';
 import CustomScripts from 'lib/static/components/custom-scripts';
+import {render} from '@testing-library/react';
 
 describe('<CustomScripts />', () => {
     it('should render component for scripts', () => {
@@ -7,10 +9,8 @@ describe('<CustomScripts />', () => {
             scripts: [function(): void {}]
         };
 
-        const component = mount(<CustomScripts {...props} />);
-        const node = component.find('.custom-scripts');
-
-        assert.lengthOf(node, 1);
+        const component = render(<CustomScripts {...props} />);
+        expect(component.container.querySelector('.custom-scripts')).to.exist;
     });
 
     it('should not render component if no scripts to inject', () => {
@@ -18,10 +18,8 @@ describe('<CustomScripts />', () => {
             scripts: []
         };
 
-        const component = mount(<CustomScripts {...props} />);
-        const node = component.find('.custom-scripts');
-
-        assert.lengthOf(node, 0);
+        const component = render(<CustomScripts {...props} />);
+        expect(component.container.querySelector('.custom-scripts')).to.not.exist;
     });
 
     it('should wrap function with IIFE', () => {
@@ -29,8 +27,8 @@ describe('<CustomScripts />', () => {
             scripts: [function foo(): void {}]
         };
 
-        const component = mount(<CustomScripts {...props} />);
-        const script = component.text();
+        const component = render(<CustomScripts {...props} />);
+        const script = component.container.textContent;
 
         assert.equal(script, '(function foo() {})();');
     });
@@ -43,8 +41,8 @@ describe('<CustomScripts />', () => {
             ]
         };
 
-        const component = mount(<CustomScripts {...props} />);
-        const script = component.text();
+        const component = render(<CustomScripts {...props} />);
+        const script = component.container.textContent;
 
         assert.equal(script, '(function foo() {})();(function bar() {})();');
     });

@@ -1,5 +1,6 @@
 import React from 'react';
 import ErrorBoundary from 'lib/static/components/error-boundary';
+import {render} from '@testing-library/react';
 
 describe('<ErrorBoundary />', () => {
     const sandbox = sinon.sandbox.create();
@@ -11,8 +12,8 @@ describe('<ErrorBoundary />', () => {
     afterEach(() => sandbox.restore());
 
     it('should render child component if it is ok', () => {
-        const component = mount(<ErrorBoundary>ok text</ErrorBoundary>);
-        const textContent = component.text();
+        const component = render(<ErrorBoundary>ok text</ErrorBoundary>);
+        const textContent = component.container.textContent;
 
         assert.equal(textContent, 'ok text');
     });
@@ -21,12 +22,12 @@ describe('<ErrorBoundary />', () => {
         const FailingComponent = function() {
             throw new Error('Failed functional component.');
         };
-        const component = mount(
+        const component = render(
             <ErrorBoundary>
                 <FailingComponent/>
             </ErrorBoundary>
         );
-        const textContent = component.text();
+        const textContent = component.container.textContent;
 
         assert.equal(textContent, '');
     });
@@ -35,13 +36,13 @@ describe('<ErrorBoundary />', () => {
         const FailingComponent = function() {
             throw new Error('Failed functional component.');
         };
-        const component = mount(
+        const component = render(
             <ErrorBoundary fallback='fallback text'>
                 <FailingComponent/>
                 ignored text
             </ErrorBoundary>
         );
-        const textContent = component.text();
+        const textContent = component.container.textContent;
 
         assert.equal(textContent, 'fallback text');
     });

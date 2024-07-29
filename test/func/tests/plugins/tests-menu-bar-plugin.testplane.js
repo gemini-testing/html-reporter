@@ -12,6 +12,9 @@ describe('Test menu bar plugin', function() {
         await browser.$(selector).waitForDisplayed();
         await browser.$(selector).click();
         await browser.$(menuSelector).waitForDisplayed();
+
+        // Pause prevents flaky screenshots due to dropdown shadow rendering. No, screenshot delay doesn't help.
+        await browser.pause(1000);
         await browser.assertView('menu bar plugins clicked', [selector, menuSelector]);
     });
 });

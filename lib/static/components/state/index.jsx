@@ -125,7 +125,7 @@ class State extends Component {
                     isDisabled={isScreenshotAccepterDisabled}
                     extendClassNames="screenshot-accepter__arrows-open-btn"
                     handler={() => this.toggleModal()}
-                    data-test-id="test-switch-accept-mode"
+                    data-qa="test-switch-accept-mode"
                 />
             </div>
         );

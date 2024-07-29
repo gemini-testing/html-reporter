@@ -1,3 +1,4 @@
+import {fireEvent} from '@testing-library/react';
 import React from 'react';
 import DiffCircle from 'lib/static/components/state/screenshot/diff-circle';
 import {mkConnectedComponent} from '../../utils';
@@ -18,7 +19,7 @@ describe('DiffCircle component', () => {
             />
         );
 
-        const {width, height, top, left} = stateComponent.find('.diff-circle').prop('style');
+        const {width, height, top, left} = stateComponent.container.querySelector('.diff-circle').style;
 
         assert.deepEqual({width, height, top, left}, {width: '1px', height: '1px', top: '15px', left: '15px'});
     });
@@ -35,7 +36,7 @@ describe('DiffCircle component', () => {
             />
         );
 
-        stateComponent.find('.diff-circle').prop('onAnimationEnd')();
+        fireEvent.animationEnd(stateComponent.container.querySelector('.diff-circle'));
 
         assert.calledOnce(toggleDiff);
     });
