@@ -1,12 +1,13 @@
 import React, {useEffect} from 'react';
-import ReactDOM from 'react-dom';
+import {createRoot} from 'react-dom/client';
 import {App} from './App';
 import store from '../modules/store';
 import {finGuiReport, initGuiReport} from '../modules/actions';
 
-const rootEl = document.getElementById('app');
+const rootEl = document.getElementById('app') as HTMLDivElement;
+const root = createRoot(rootEl);
 
-function Gui(): JSX.Element {
+function Gui(): React.JSX.Element {
     useEffect(() => {
         store.dispatch(initGuiReport());
 
@@ -18,4 +19,4 @@ function Gui(): JSX.Element {
     return <App/>;
 }
 
-ReactDOM.render(<Gui />, rootEl);
+root.render(<Gui />);
