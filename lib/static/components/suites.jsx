@@ -14,7 +14,7 @@ import {getVisibleRootSuiteIds} from '../modules/selectors/tree';
 function VirtualizedRow(props) {
     const resizeObserverRef = useRef(null);
 
-    useResizeObserver(resizeObserverRef, () => props.onResize);
+    useResizeObserver(resizeObserverRef, props.onResize);
 
     return <div ref={props.onInit} style={props.style} className="virtualized__row">
         <div ref={resizeObserverRef}>
