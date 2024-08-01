@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.6.1"></a>
+## [10.6.1](https://github.com/gemini-testing/html-reporter/compare/v10.6.0...v10.6.1) (2024-08-01)
+
+
+### Bug Fixes
+
+* apply baseHost to urls that have metaBaseUrls set to auto ([28ddc84](https://github.com/gemini-testing/html-reporter/commit/28ddc84))
+* do not fail when extend error with snippet ([d6ff05f](https://github.com/gemini-testing/html-reporter/commit/d6ff05f))
+* fix critical bug when section height doesn't react to resizes ([93d0111](https://github.com/gemini-testing/html-reporter/commit/93d0111))
+
+
+
 <a name="10.6.0"></a>
 # [10.6.0](https://github.com/gemini-testing/html-reporter/compare/v10.5.0...v10.6.0) (2024-07-24)
 
