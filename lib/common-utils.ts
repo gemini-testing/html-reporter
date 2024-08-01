@@ -331,7 +331,7 @@ const cloneError = <T extends Error>(error: T): T => {
 };
 
 export const mergeSnippetIntoErrorStack = <T extends Error>(error: T & { snippet?: string }): T => {
-    if (!error.snippet) {
+    if (!error || !error.snippet) {
         return error;
     }
 
