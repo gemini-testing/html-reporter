@@ -1,6 +1,6 @@
 import {ReporterTestResult} from '../index';
 import {DbTestResult} from '../../../sqlite-client';
-import {getError, getRelativeUrl, getUrlWithBase} from '../../../common-utils';
+import {getError, getUrlWithBase} from '../../../common-utils';
 import _ from 'lodash';
 
 interface Options {
@@ -18,7 +18,7 @@ export class DbTestResultTransformer {
         const suiteUrl = getUrlWithBase(testResult.url, this._options.baseHost);
 
         const metaInfoFull = _.merge(_.cloneDeep(testResult.meta), {
-            url: getRelativeUrl(suiteUrl) ?? '',
+            url: testResult.meta?.url ?? suiteUrl ?? '',
             file: testResult.file,
             sessionId: testResult.sessionId
         });

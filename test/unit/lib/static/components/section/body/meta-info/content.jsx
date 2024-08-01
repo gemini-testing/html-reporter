@@ -193,14 +193,37 @@ describe('<MetaInfoContent />', () => {
             expectedFileUrl: 'http://127.0.0.1/path/test/file'
         },
         {
-            type: 'url with query params and meta value with query params',
+            type: 'url when baseHost is not set and metaBaseUrls is not set',
             metaInfo: {
-                file: 'test/file?a=b'
+                file: 'http://localhost/test/file?a=b'
+            },
+            metaInfoBaseUrls: {},
+            baseHost: 'http://example.com/',
+            expectedFileLabel: 'http://localhost/test/file?a=b',
+            expectedFileUrl: 'http://localhost/test/file?a=b'
+        },
+        {
+            type: 'url when baseHost is not set and metaBaseUrls set to auto',
+            metaInfo: {
+                file: 'http://localhost/test/file?a=b'
             },
             metaInfoBaseUrls: {
-                file: 'http://127.0.0.1/?c=d&e=f'
+                file: 'auto'
             },
-            expectedFileUrl: 'http://127.0.0.1/test/file?a=b&c=d&e=f'
+            expectedFileLabel: '/test/file?a=b',
+            expectedFileUrl: 'http://localhost/test/file?a=b'
+        },
+        {
+            type: 'url when baseHost is set and metaBaseUrls set to auto',
+            metaInfo: {
+                file: 'http://localhost/test/file?a=b'
+            },
+            metaInfoBaseUrls: {
+                file: 'auto'
+            },
+            baseHost: 'http://example.com/',
+            expectedFileLabel: '/test/file?a=b',
+            expectedFileUrl: 'http://example.com/test/file?a=b'
         }
     ].forEach((stub) => {
         it(`should render link in meta info based upon metaInfoBaseUrls ${stub.type}`, () => {
@@ -223,11 +246,13 @@ describe('<MetaInfoContent />', () => {
                 }
             };
             const config = {metaInfoBaseUrls: stub.metaInfoBaseUrls};
-            const component = mkMetaInfoContentComponent({resultId: 'some-result'}, {tree, config});
+            const view = {baseHost: stub.baseHost};
+            const component = mkMetaInfoContentComponent({resultId: 'some-result'}, {tree, config, view});
 
+            const label = stub.expectedFileLabel ?? stub.metaInfo.file;
             expect(component.getByText('file')).to.exist;
-            expect(component.getByText(stub.metaInfo.file)).to.exist;
-            expect(component.getByText(stub.metaInfo.file).href).to.equal(stub.expectedFileUrl);
+            expect(component.getByText(label)).to.exist;
+            expect(component.getByText(label).href).to.equal(stub.expectedFileUrl);
         });
     });
 });

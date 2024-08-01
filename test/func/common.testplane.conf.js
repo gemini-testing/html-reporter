@@ -9,6 +9,9 @@ module.exports.getCommonConfig = (projectDir) => ({
 
     browsers: {
         chrome: {
+            assertViewOpts: {
+                ignoreDiffPixelCount: 4
+            },
             windowSize: '1280x1024',
             desiredCapabilities: {
                 browserName: 'chrome',
