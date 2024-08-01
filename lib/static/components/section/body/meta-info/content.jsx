@@ -4,7 +4,7 @@ import {connect} from 'react-redux';
 import {DefinitionList} from '@gravity-ui/components';
 import PropTypes from 'prop-types';
 import {map, mapValues, isObject, omitBy, isEmpty} from 'lodash';
-import {isUrl, getUrlWithBase} from '../../../../../common-utils';
+import {isUrl, getUrlWithBase, getRelativeUrl} from '../../../../../common-utils';
 
 const serializeMetaValues = (metaInfo) => mapValues(metaInfo, (v) => isObject(v) ? JSON.stringify(v) : v);
 
@@ -32,7 +32,7 @@ const metaToElements = (metaInfo, metaInfoBaseUrls) => {
 
             if (isUrl(value)) {
                 url = value;
-            } else if (metaInfoBaseUrls[key]) {
+            } else if (metaInfoBaseUrls[key] && metaInfoBaseUrls[key] !== 'auto') {
                 const baseUrl = metaInfoBaseUrls[key];
                 const link = isUrl(baseUrl) ? resolveUrl(baseUrl, value) : path.join(baseUrl, value);
                 url = link;
@@ -95,8 +95,19 @@ class MetaInfoContent extends Component {
             formattedMetaInfo[key] = {content: formattedMetaInfo[key]};
         });
 
-        if (result.suiteUrl) {
-            formattedMetaInfo.url = {content: result.metaInfo.url || result.suiteUrl, url: getUrlWithBase(result.suiteUrl, baseHost)};
+        for (const [key, value] of Object.entries(formattedMetaInfo)) {
+            if (isUrl(value.content) && (key === 'url' || metaInfoBaseUrls[key] === 'auto')) {
+                formattedMetaInfo[key] = {
+                    content: getRelativeUrl(value.content),
+                    url: getUrlWithBase(getRelativeUrl(value.content), baseHost)
+                };
+            }
+        }
+        if (!formattedMetaInfo.url && result.suiteUrl) {
+            formattedMetaInfo.url = {
+                content: getRelativeUrl(result.suiteUrl),
+                url: getUrlWithBase(getRelativeUrl(result.suiteUrl), baseHost)
+            };
         }
 
         return metaToElements(formattedMetaInfo, metaInfoBaseUrls);

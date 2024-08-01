@@ -250,6 +250,17 @@ For example:
 }
 ```
 
+When value of any key is set to `auto`, the base url will be set base host specified in the UI or kept intact if there base host isn't specified.
+
+For example, if you have the following `metaInfoBaseUrls` value:
+```javascript
+{ custom_url: 'auto' }
+```
+
+And set `meta.custom_url` field to `https://example.com/some/path` in your tests, you'll see in meta:
+- A link to `https://example.com/some/path` when base host is not set in the UI
+- A link to `https://another-host.com/some/path` when base host in the UI is set to 'https://another-host.com'
+
 ### saveFormat
 
 **DEPRECATED**
