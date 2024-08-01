@@ -21,6 +21,9 @@ import {
 import styles from './index.module.css';
 import {useVirtualizer} from '@tanstack/react-virtual';
 import {trimArray} from '../../../../common-utils';
+import {bindActionCreators} from 'redux';
+import * as actions from '../../../modules/actions';
+import {suitesPageUpdateList} from '../../../modules/actions/suites-page';
 
 interface SuitesPageInternalProps {
     suites: any;
@@ -107,10 +110,12 @@ function ImageWithMagnifier({
             borderRadius: '5px',
             backgroundImage: `url('${src}')`,
             backgroundRepeat: 'no-repeat',
+            top: `${y + magnifierHeight / 2}px`,
+            left: `${x + magnifierWidth / 2}px`,
             // top: `${y - magnifierHeight / 2}px`,
             // left: `${x - magnifierWidth / 2}px`,
-            top: '20px',
-            right: '20px',
+            // top: '20px',
+            // right: '20px',
             backgroundSize: `${imgWidth * zoomLevel}px ${imgHeight * zoomLevel}px`,
             backgroundPositionX: `${-x * zoomLevel + magnifierWidth / 2}px`,
             backgroundPositionY: `${-y * zoomLevel + magnifierHeight / 2}px`,
@@ -237,7 +242,12 @@ function SuitesPageInternal(props: SuitesPageInternalProps): JSX.Element {
     //     return result;
     // }, []);
 
-    const list = useList({items: itemsOriginal});
+    const list = useList({items: itemsOriginal, withExpandedState: true});
+    // console.log(props.actions);
+
+    useEffect(() => {
+        props.actions.suitesPageUpdateList({list});
+    }, [list]);
     // console.log(items);
     console.log(list);
     console.log('length:' + list.structure.items.length);
@@ -281,7 +291,7 @@ function SuitesPageInternal(props: SuitesPageInternalProps): JSX.Element {
 
     const [magnifierStyle, setMagnifierStyle] = useState({display: 'none'});
 
-    const items = virtualizer.getVirtualItems()
+    const items = virtualizer.getVirtualItems();
 
     return <SplitViewLayout>
         <div>
@@ -329,7 +339,11 @@ function SuitesPageInternal(props: SuitesPageInternalProps): JSX.Element {
                                         <ListItemViewMemo key={virtualRow.key} {...getItemRenderState({
                                             qa: '',
                                             list: list,
-                                            onItemClick,
+                                            onItemClick: (...args) => {
+                                                console.log('item clicked!');
+                                                list.state.setExpanded(args[0].id, !list.state.expandedById[args[0].id]);
+                                                console.log(args);
+                                            },
                                             mapItemDataToProps: (x) => {
                                                 let statusIcon;
                                                 if (x.status === 'fail' || x.status === 'error') {
@@ -346,7 +360,7 @@ function SuitesPageInternal(props: SuitesPageInternalProps): JSX.Element {
                                                 let subtitle;
                                                 if (x.diffImg) {
                                                     // subtitle = <img src={x.diffImg.path} style={{maxWidth:'99%', marginTop: '4px', maxHeight: '20vh' }} />
-                                                    subtitle = <ImageWithMagnifier onStyleUpdate={setMagnifierStyle} src={x.diffImg.path} style={{maxWidth:'99%', marginTop: '4px', maxHeight: '20vh' }} />
+                                                    subtitle = <ImageWithMagnifier onStyleUpdate={setMagnifierStyle} src={x.diffImg.path} style={{maxWidth:'99%', marginTop: '4px', maxHeight: '40vh' }} />
                                                 } else if (x.errorStack) {
                                                     subtitle = <div className={styles['tree-item__error-stack']}>
                                                         {x.errorStack}
@@ -478,5 +492,6 @@ export const SuitesPage = connect(
         browsers: state.tree.browsers,
         results: state.tree.results,
         images: state.tree.images,
-    })
+    }),
+    (dispatch) => ({actions: bindActionCreators(actions, dispatch)})
 )(SuitesPageInternal);
