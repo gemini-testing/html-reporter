@@ -112,7 +112,16 @@ function Suites(props) {
 
     const {visibleRootSuiteIds} = props;
 
-    if (isEmpty(visibleRootSuiteIds)) {
+    if (props.isReportEmpty) {
+        return <div className="sections sections_type_empty">
+            There are no tests to show. Please, try the following:
+            <ul>
+                <li>Check if your project contains any tests;</li>
+                <li>Check if the tool you are using is configured correctly and is able to find your tests;</li>
+                <li>Check if some critical error has occurred in logs that prevented HTML reporter from collecting any results.</li>
+            </ul>
+        </div>;
+    } else if (isEmpty(visibleRootSuiteIds)) {
         const selectedFiltersMsgs = _getSelectedFiltersInfo();
 
         return <div className="sections sections_type_empty">
@@ -159,6 +168,7 @@ Suites.propTypes = {
     actions: PropTypes.object.isRequired,
     testNameFilter: PropTypes.string,
     strictMatchFilter: PropTypes.bool,
+    isReportEmpty: PropTypes.bool,
     filteredBrowsers: PropTypes.arrayOf(PropTypes.shape({
         id: PropTypes.string,
         versions: PropTypes.arrayOf(PropTypes.string)
@@ -171,7 +181,8 @@ export default connect(
         viewMode: state.view.viewMode,
         filteredBrowsers: state.view.filteredBrowsers,
         testNameFilter: state.view.testNameFilter,
-        strictMatchFilter: state.view.strictMatchFilter
+        strictMatchFilter: state.view.strictMatchFilter,
+        isReportEmpty: isEmpty(state.tree.browsers.byId)
     }),
     (dispatch) => ({actions: bindActionCreators(actions, dispatch)})
 )(Suites);
