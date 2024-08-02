@@ -335,7 +335,7 @@ export class ToolRunner {
 
         for (const test of this._ensureTestCollection().tests) {
             if (test.disabled || test.silentlySkipped) {
-                return;
+                continue;
             }
 
             // TODO: remove toString after publish major version
