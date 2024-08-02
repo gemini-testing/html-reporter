@@ -30,7 +30,7 @@ const BrowserList = ({available, onChange, selected: selectedProp}) => {
             });
         });
         if (!hasNestedOptions) {
-            return groups[DEFAULT_GROUP];
+            return groups[DEFAULT_GROUP] ?? [];
         } else {
             const optionsList = [];
             Object.keys(groups).forEach((name) => {

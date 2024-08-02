@@ -48,12 +48,28 @@ describe('<Suites/>', () => {
         sandbox.restore();
     });
 
-    it('should not render List component if there are no visible root suite ids', () => {
+    it('should render hint when the report is completely empty', () => {
         getVisibleRootSuiteIds.returns([]);
 
         const component = mkSuitesComponent();
 
-        expect(component.getByText('There are no tests', {exact: false})).to.exist;
+        expect(component.getByText('There are no tests to show. Please, try the following', {exact: false})).to.exist;
+    });
+
+    it('should render hint when no tests matched filters', () => {
+        getVisibleRootSuiteIds.returns([]);
+
+        const component = mkSuitesComponent({
+            tree: {
+                browsers: {
+                    byId: {
+                        'bro-1': {}
+                    }
+                }
+            }
+        });
+
+        expect(component.getByText('There are no tests that match to selected filters', {exact: false})).to.exist;
     });
 
     it('should render few section common components', async () => {
@@ -72,6 +88,11 @@ describe('<Suites/>', () => {
                     stateById: {
                         'suite-id-1': {shouldBeShown: true, shouldBeOpened: false},
                         'suite-id-2': {shouldBeShown: true, shouldBeOpened: false}
+                    }
+                },
+                browsers: {
+                    byId: {
+                        'bro-1': {}
                     }
                 }
             }
