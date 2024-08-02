@@ -136,6 +136,14 @@ main.container {
     transition: border-color 200ms, background-color 200ms;
 }
 
+.g-button__text {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
 .button:hover {
     border-color: var(--button-hover-color);
 }
