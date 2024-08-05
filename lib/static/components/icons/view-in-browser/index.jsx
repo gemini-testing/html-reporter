@@ -6,7 +6,7 @@ import classNames from 'classnames';
 import {Eye, EyeSlash} from '@gravity-ui/icons';
 
 import * as actions from '../../../modules/actions';
-import {getUrlWithBase} from '../../../../common-utils';
+import {getRelativeUrl, getUrlWithBase} from '../../../../common-utils';
 
 import './index.styl';
 
@@ -41,7 +41,7 @@ class ViewInBrowser extends Component {
         return (
             <a
                 className={className}
-                href={getUrlWithBase(suiteUrl, baseHost)}
+                href={getUrlWithBase(getRelativeUrl(suiteUrl), baseHost)}
                 onClick={this.onViewInBrowser}
                 title="view in browser"
                 target="_blank"
@@ -53,8 +53,10 @@ class ViewInBrowser extends Component {
 
 export default connect(
     ({tree, view}, {resultId}) => {
+        const result = tree.results.byId[resultId];
+
         return {
-            suiteUrl: tree.results.byId[resultId].suiteUrl,
+            suiteUrl: result.metaInfo?.url ?? result.suiteUrl,
             baseHost: view.baseHost
         };
     },
