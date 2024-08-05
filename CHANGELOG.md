@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.6.2"></a>
+## [10.6.2](https://github.com/gemini-testing/html-reporter/compare/v10.6.1...v10.6.2) (2024-08-05)
+
+
+### Bug Fixes
+
+* display a human-readable error message when report is completely empty ([#585](https://github.com/gemini-testing/html-reporter/issues/585)) ([4584b67](https://github.com/gemini-testing/html-reporter/commit/4584b67))
+* do not return after first disabled test ([#586](https://github.com/gemini-testing/html-reporter/issues/586)) ([52b83be](https://github.com/gemini-testing/html-reporter/commit/52b83be))
+* fix button styles ([#587](https://github.com/gemini-testing/html-reporter/issues/587)) ([ed0a2c3](https://github.com/gemini-testing/html-reporter/commit/ed0a2c3))
+* prefer to use url from meta instead of suiteUrl ([#588](https://github.com/gemini-testing/html-reporter/issues/588)) ([cd4c30c](https://github.com/gemini-testing/html-reporter/commit/cd4c30c))
+
+
+
 <a name="10.6.1"></a>
 ## [10.6.1](https://github.com/gemini-testing/html-reporter/compare/v10.6.0...v10.6.1) (2024-08-01)
 
