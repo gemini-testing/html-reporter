@@ -42,7 +42,7 @@ describe('Test results appearance', () => {
 
         it('should display 3 images', async ({browser}) => {
             for (const imageStatus of ['Expected', 'Actual', 'Diff']) {
-                const imageElement = browser.$(
+                const imageElement = await browser.$(
                     getTestSectionByNameSelector('test with image comparison diff') +
                     getImageSectionSelector(imageStatus) +
                     '//img'
@@ -57,7 +57,7 @@ describe('Test results appearance', () => {
 
         it('should not display error info', async ({browser}) => {
             for (const field of ['message', 'name', 'stack']) {
-                const errorMessage = browser.$(
+                const errorMessage = await browser.$(
                     getTestSectionByNameSelector('test with image comparison diff') +
                     getTestStateByNameSelector('header') +
                     getElementWithTextSelector('span', field) + '/..'
@@ -86,7 +86,7 @@ describe('Test results appearance', () => {
 
         it('should display error message, name and stack', async ({browser}) => {
             for (const field of ['message', 'name', 'stack']) {
-                const errorMessage = browser.$(
+                const errorMessage = await browser.$(
                     getTestSectionByNameSelector('test without screenshot') +
                     getTestStateByNameSelector('header') +
                     getElementWithTextSelector('span', field) + '/..'
@@ -97,7 +97,7 @@ describe('Test results appearance', () => {
         });
 
         it('should display actual screenshot', async ({browser}) => {
-            const imageElement = browser.$(
+            const imageElement = await browser.$(
                 getTestSectionByNameSelector('test without screenshot') +
                 '//' + getSpoilerByNameSelector('header') +
                 '//img'
@@ -124,13 +124,22 @@ describe('Test results appearance', () => {
 
         it('should display error message, name and stack', async ({browser}) => {
             for (const field of ['message', 'name', 'stack']) {
-                const errorMessage = browser.$(
+                const errorMessage = await browser.$(
                     getTestSectionByNameSelector('test with long error message') +
                     getElementWithTextSelector('span', field) + '/..'
                 );
 
                 await expect(errorMessage).toBeDisplayed();
             }
+        });
+
+        it('should show message without ansi markup', async ({browser}) => {
+            const expectedErrorText = 'expect(received).toMatchObject(expected)';
+            const testElem = await browser.$(getTestSectionByNameSelector('failed test with ansi markup'));
+
+            const errorText = await testElem.$('.tab .error__item.details__summary').getText();
+
+            assert.equal(errorText, `message: ${expectedErrorText}`);
         });
     });
 
