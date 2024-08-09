@@ -29,6 +29,10 @@ describe('failed describe', function() {
         throw new Error('Some error');
     });
 
+    it('failed test with ansi markup', async () => {
+        await expect({a: {b: 'c'}}).toMatchObject({c: {b: 'a'}});
+    });
+
     it.skip('test skipped', async ({browser}) => {
         await browser.url(browser.options.baseUrl);
     });

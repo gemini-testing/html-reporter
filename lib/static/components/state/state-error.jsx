@@ -8,6 +8,7 @@ import {isEmpty, map, isFunction} from 'lodash';
 import ReactHtmlParser from 'html-react-parser';
 import escapeHtml from 'escape-html';
 import ansiHtml from 'ansi-html-community';
+import stripAnsi from 'strip-ansi';
 import * as actions from '../../modules/actions';
 import ResizedScreenshot from './screenshot/resized';
 import ErrorDetails from './error-details';
@@ -95,7 +96,7 @@ class StateError extends Component {
                 content = isFunction(value) ? value : () => value;
             }
 
-            const title = <Fragment><span className="error__item-key">{key}: </span>{titleText}</Fragment>;
+            const title = <Fragment><span className="error__item-key">{key}: </span>{stripAnsi(titleText)}</Fragment>;
             const asHtml = typeof content === 'string';
 
             return <Details
