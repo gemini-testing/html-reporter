@@ -4,6 +4,7 @@ import {DiffModes} from '../../constants/diff-modes';
 import {EXPAND_ERRORS} from '../../constants/expand-modes';
 import {RESULT_KEYS} from '../../constants/group-tests';
 import {ToolName} from '../../constants';
+import {State} from '@/static/new-ui/types/store';
 
 export default Object.assign({config: configDefaults}, {
     gui: true,
@@ -28,7 +29,8 @@ export default Object.assign({config: configDefaults}, {
             byId: {},
             allIds: [],
             allRootIds: [],
-            failedRootIds: []
+            failedRootIds: [],
+            stateById: {}
         },
         browsers: {
             byId: {},
@@ -87,5 +89,9 @@ export default Object.assign({config: configDefaults}, {
         acceptableImages: {},
         accepterDelayedImages: [] as {imageId: string; stateName: string; stateNameImageId: string}[],
         imagesToCommitCount: 0
+    },
+    app: {
+        isInitialized: false,
+        currentSuiteId: null
     }
-});
+}) satisfies State;

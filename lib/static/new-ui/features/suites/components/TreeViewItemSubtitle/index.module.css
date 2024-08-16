@@ -1,0 +1,7 @@
+.tree-view-item-subtitle__error-stack {
+    white-space: pre;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 22px;
+    margin-top: 8px;
+}

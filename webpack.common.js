@@ -12,14 +12,19 @@ const {ProgressPlugin} = require('webpack');
 
 const staticPath = path.resolve(__dirname, 'build', 'lib', 'static');
 
+console.log('here is resolved path; ' + path.resolve(__dirname, 'src'));
+
 module.exports = {
     entry: {
         report: ['./index.jsx', './variables.css', './styles.css'],
         gui: ['./gui.jsx', './variables.css', './styles.css', './gui.css'],
-        newReport: ['./new-ui/report.tsx', './variables.css', './styles.css'],
-        newGui: ['./new-ui/gui.tsx', './variables.css', './styles.css', './gui.css']
+        newReport: ['./new-ui/app/report.tsx', './variables.css', './styles.css'],
+        newGui: ['./new-ui/app/gui.tsx', './variables.css', './styles.css', './gui.css']
     },
     resolve: {
+        alias: {
+            '@': path.resolve(__dirname, 'lib')
+        },
         extensions: ['.js', '.jsx', '.ts', '.tsx'],
         fallback: {
             buffer: require.resolve('buffer'),

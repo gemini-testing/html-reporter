@@ -188,7 +188,7 @@ root.render(
                                                 height={height}
                                                 itemCount={treeItems.length}
                                                 itemData={treeItems}
-                                                itemSize={(index) => 30}
+                                                itemSize={() => 30}
                                             >
                                                 {({index, style, data}) => (
                                                     <div style={style} key={index} className='testing-1'>

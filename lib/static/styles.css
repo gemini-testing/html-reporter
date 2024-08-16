@@ -1096,3 +1096,15 @@ a:active {
 .g-radio-button__option-text {
     margin: 0 4px !important;
 }
+
+.icon-fail {
+    color: var(--g-color-private-red-600-solid);
+}
+
+.icon-success {
+    color: var(--g-color-private-green-600-solid);
+}
+
+.icon-skip {
+    color: var(--g-color-private-cool-grey-600-solid);
+}
