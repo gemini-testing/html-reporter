@@ -55,7 +55,6 @@ export function ImageWithMagnifier({
     useEffect(() => {
         setMagnifierStyle({
             display: showMagnifier ? '' : 'none',
-            // position: 'absolute',
             position: 'fixed',
             pointerEvents: 'none',
             height: `${magnifierHeight}px`,

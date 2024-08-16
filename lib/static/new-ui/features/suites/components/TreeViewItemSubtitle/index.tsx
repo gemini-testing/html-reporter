@@ -1,7 +1,7 @@
 import React, {ReactNode} from 'react';
 import {TreeViewData, TreeViewItemType} from '@/static/new-ui/features/suites/components/SuitesPage/types';
 import styles from './index.module.css';
-import {ImageWithMagnifier} from '@/static/new-ui/features/suites/components/ImageWithMagnifier';
+import {ImageWithMagnifier} from '@/static/new-ui/components/ImageWithMagnifier';
 
 export function TreeViewItemSubtitle(props: {item: TreeViewData}): ReactNode {
     if (props.item.type === TreeViewItemType.Browser && props.item.diffImg) {

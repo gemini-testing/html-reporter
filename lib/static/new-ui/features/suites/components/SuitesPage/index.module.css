@@ -6,10 +6,6 @@
 }
 
 .tree-view {
-    /*--g-text-subheader-1-font-size: 50px;*/
-    /*--g-text-subheader-1-line-height: 50px;*/
-    /*font-size: var(--g-text-body-3-font-size);*/
-    /*user-select: none;*/
     margin-top: var(--g-spacing-2);
 }
     .tree-view__container {

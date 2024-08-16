@@ -1,5 +1,5 @@
 import {ThemeProvider} from '@gravity-ui/uikit';
-import React, {StrictMode} from 'react';
+import React, {ReactNode, StrictMode} from 'react';
 import {MainLayout} from '../components/MainLayout';
 import {HashRouter, Navigate, Route, Routes} from 'react-router-dom';
 import {CircleInfo, Eye, ListCheck} from '@gravity-ui/icons';
@@ -13,7 +13,7 @@ import '../../new-ui.css';
 import {Provider} from 'react-redux';
 import store from '../../modules/store';
 
-export function App(): JSX.Element {
+export function App(): ReactNode {
     const pages = [
         {
             title: 'Suites',
