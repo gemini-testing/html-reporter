@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.6.4"></a>
+## [10.6.4](https://github.com/gemini-testing/html-reporter/compare/v10.6.3...v10.6.4) (2024-08-16)
+
+
+### Bug Fixes
+
+* undo accept image ([e48634c](https://github.com/gemini-testing/html-reporter/commit/e48634c))
+
+
+
 <a name="10.6.3"></a>
 ## [10.6.3](https://github.com/gemini-testing/html-reporter/compare/v10.6.2...v10.6.3) (2024-08-09)
 
