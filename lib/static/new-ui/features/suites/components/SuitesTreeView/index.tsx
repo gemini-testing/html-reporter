@@ -11,7 +11,6 @@ import {useNavigate, useParams} from 'react-router-dom';
 import {bindActionCreators} from 'redux';
 
 import * as actions from '@/static/modules/actions';
-import styles from '@/static/new-ui/features/suites/components/SuitesPage/index.module.css';
 import {
     TreeViewBrowserData,
     TreeViewItem,
@@ -26,6 +25,7 @@ import {
     getTreeViewExpandedById,
     getTreeViewItems
 } from '@/static/new-ui/features/suites/components/SuitesTreeView/selectors';
+import styles from './index.module.css';
 
 interface SuitesTreeViewProps {
     treeViewItems: TreeViewItem<TreeViewSuiteData | TreeViewBrowserData>[];
@@ -109,12 +109,12 @@ function SuitesTreeViewInternal(props: SuitesTreeViewProps): ReactNode {
                         const item = list.structure.itemsById[virtualRow.key];
                         const classes = [styles['tree-view__item']];
                         if (item.fullTitle === props.currentSuiteId) {
-                            classes.push(styles['tree-item--current']);
+                            classes.push(styles['tree-view__item--current']);
                         } else if ((item.status === 'fail' || item.status === 'error') && item.type === TreeViewItemType.Browser) {
-                            classes.push(styles['tree-item--error']);
+                            classes.push(styles['tree-view__item--error']);
                         }
                         if (item.type === TreeViewItemType.Browser) {
-                            classes.push(styles['tree-item--browser']);
+                            classes.push(styles['tree-view__item--browser']);
                         }
 
                         return <Box
