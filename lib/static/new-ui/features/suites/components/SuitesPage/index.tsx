@@ -1,5 +1,5 @@
 import React, {ChangeEvent, useCallback, useEffect, useState} from 'react';
-import {Flex, TextInput} from '@gravity-ui/uikit';
+import {Box, Flex, TextInput} from '@gravity-ui/uikit';
 import {debounce} from 'lodash';
 import classNames from 'classnames';
 import {connect} from 'react-redux';
@@ -55,7 +55,7 @@ function SuitesPageInternal(props: SuitesPageInternalProps): JSX.Element {
         }
     });
 
-    const onItemClick = ({id}: {id: string}): void => {
+    const onItemClick = useCallback(({id}: {id: string}): void => {
         const item = list.structure.itemsById[id];
 
         if (item.type === TreeViewItemType.Suite && list.state.expandedById && id in list.state.expandedById && list.state.setExpanded) {
@@ -65,7 +65,7 @@ function SuitesPageInternal(props: SuitesPageInternalProps): JSX.Element {
 
             navigate(encodeURIComponent(item.fullTitle));
         }
-    };
+    }, [list, props.actions, props.treeViewExpandedById]);
 
     const updateTestNameFilter = useCallback(debounce(
         (testName) => props.actions.updateTestNameFilter(testName),
@@ -78,9 +78,9 @@ function SuitesPageInternal(props: SuitesPageInternalProps): JSX.Element {
     const virtualizer = useVirtualizer({
         count: list.structure.visibleFlattenIds.length,
         getScrollElement: () => parentRef.current,
-        estimateSize: () => 24,
+        estimateSize: () => 28,
         getItemKey: useCallback((index: number) => list.structure.visibleFlattenIds[index], [list]),
-        overscan: 100
+        overscan: 200
     });
 
     useEffect(() => {
@@ -103,10 +103,10 @@ function SuitesPageInternal(props: SuitesPageInternalProps): JSX.Element {
     }, [props.isInitialized]);
 
     const [testNameFilter, setTestNameFilter] = useState(props.testNameFilter);
-    const onChange = (event: ChangeEvent<HTMLInputElement>): void => {
+    const onChange = useCallback((event: ChangeEvent<HTMLInputElement>): void => {
         setTestNameFilter(event.target.value);
         updateTestNameFilter(event.target.value);
-    };
+    }, [setTestNameFilter, updateTestNameFilter]);
 
     const items = virtualizer.getVirtualItems();
 
@@ -139,24 +139,28 @@ function SuitesPageInternal(props: SuitesPageInternalProps): JSX.Element {
                                         classes.push(styles['tree-item--browser']);
                                     }
 
-                                    return <ListItemView
+                                    return <Box
                                         key={virtualRow.key}
                                         data-index={virtualRow.index}
                                         ref={virtualizer.measureElement}
-                                        height={0}
-                                        className={classNames(classes)}
-                                        {...getItemRenderState({
-                                            id: virtualRow.key.toString(),
-                                            list,
-                                            onItemClick,
-                                            mapItemDataToContentProps: (x) => {
-                                                return {
-                                                    startSlot: getIconByStatus(x.status),
-                                                    title: <TreeViewItemTitle item={x}/>,
-                                                    subtitle: <TreeViewItemSubtitle item={x}/>
-                                                };
-                                            }
-                                        }).props}/>;
+                                        spacing={{pt: 1}}
+                                    >
+                                        <ListItemView
+                                            height={0}
+                                            className={classNames(classes)}
+                                            {...getItemRenderState({
+                                                id: virtualRow.key.toString(),
+                                                list,
+                                                onItemClick,
+                                                mapItemDataToContentProps: (x) => {
+                                                    return {
+                                                        startSlot: getIconByStatus(x.status),
+                                                        title: <TreeViewItemTitle item={x}/>,
+                                                        subtitle: <TreeViewItemSubtitle item={x}/>
+                                                    };
+                                                }
+                                            }).props}/>
+                                    </Box>;
                                 })}
                             </div>
                         </div>
