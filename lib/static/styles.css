@@ -1067,3 +1067,7 @@ a:active {
 .icon-skip {
     color: var(--g-color-private-cool-grey-600-solid);
 }
+
+.icon-retry {
+    color: var(--g-color-private-orange-600-solid);
+}

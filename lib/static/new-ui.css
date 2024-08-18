@@ -2,6 +2,10 @@
     --g-font-family-sans: 'Jost', sans-serif;
 }
 
+body {
+    margin: 0;
+}
+
 .report {
     font-family: var(--g-font-family-sans), sans-serif !important;
 }

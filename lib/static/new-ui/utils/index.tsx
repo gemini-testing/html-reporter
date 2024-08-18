@@ -1,5 +1,5 @@
 import {TestStatus} from '@/constants';
-import {CircleCheck, CircleDashed, CircleXmark, CircleMinus} from '@gravity-ui/icons';
+import {ArrowRotateLeft, CircleCheck, CircleDashed, CircleMinus, CircleXmark} from '@gravity-ui/icons';
 import React from 'react';
 
 export const getIconByStatus = (status: TestStatus): React.JSX.Element => {
@@ -9,6 +9,8 @@ export const getIconByStatus = (status: TestStatus): React.JSX.Element => {
         return <CircleCheck className={'icon-success'} />;
     } else if (status === TestStatus.SKIPPED) {
         return <CircleMinus className={'icon-skip'} />;
+    } else if (status === TestStatus.RETRY) {
+        return <ArrowRotateLeft className={'icon-retry'}/>;
     }
 
     return <CircleDashed />;

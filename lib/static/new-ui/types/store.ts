@@ -1,4 +1,4 @@
-import {TestStatus} from '@/constants';
+import {TestStatus, ViewMode} from '@/constants';
 import {ImageFile} from '@/types';
 
 export interface SuiteEntityNode {
@@ -23,8 +23,11 @@ export interface BrowserEntity {
 }
 
 export interface ResultEntityCommon {
+    parentId: string;
+    attempt: number;
     imageIds: string[];
     status: TestStatus;
+    timestamp: number;
 }
 
 export interface ResultEntityError extends ResultEntityCommon {
@@ -54,6 +57,10 @@ export interface SuiteState {
     shouldBeShown: boolean;
 }
 
+export interface BrowserState {
+    shouldBeShown: boolean;
+}
+
 export interface State {
     app: {
         isInitialized: boolean;
@@ -61,7 +68,9 @@ export interface State {
     }
     tree: {
         browsers: {
-            byId: Record<string, BrowserEntity>
+            allIds: string[];
+            byId: Record<string, BrowserEntity>;
+            stateById: Record<string, BrowserState>
         };
         images: {
             byId: Record<string, ImageEntity>;
@@ -77,5 +86,6 @@ export interface State {
     }
     view: {
         testNameFilter: string;
+        viewMode: ViewMode;
     }
 }

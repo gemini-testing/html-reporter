@@ -16,7 +16,7 @@ import {
 import {TestStatus} from '@/constants';
 import {
     getAllRootSuiteIds,
-    getBrowsers,
+    getBrowsers, getBrowsersState,
     getImages,
     getResults,
     getSuites,
@@ -28,8 +28,8 @@ import {getFullTitleByTitleParts} from '@/static/new-ui/utils';
 
 // Converts the existing store structure to the one that can be consumed by GravityUI
 export const getTreeViewItems = createSelector(
-    [getSuites, getSuitesState, getAllRootSuiteIds, getBrowsers, getResults, getImages],
-    (suites, suitesState, rootSuiteIds, browsers, results, images): TreeViewItem<TreeViewSuiteData | TreeViewBrowserData>[] => {
+    [getSuites, getSuitesState, getAllRootSuiteIds, getBrowsers, getBrowsersState, getResults, getImages],
+    (suites, suitesState, rootSuiteIds, browsers, browsersState, results, images): TreeViewItem<TreeViewSuiteData | TreeViewBrowserData>[] => {
         const EMPTY_SUITE: TreeViewSuiteData = {
             type: TreeViewItemType.Suite,
             title: '',
@@ -37,7 +37,7 @@ export const getTreeViewItems = createSelector(
             status: TestStatus.IDLE
         };
 
-        const formatBrowser = (browserData: BrowserEntity, parentSuite: TreeViewSuiteData): TreeViewItem<TreeViewBrowserData> => {
+        const formatBrowser = (browserData: BrowserEntity, parentSuite: TreeViewSuiteData): TreeViewItem<TreeViewBrowserData> | null => {
             // Assuming test in concrete browser always has at least one result, even never launched (idle result)
             const lastResult = results[last(browserData.resultIds) as string];
 
@@ -62,6 +62,10 @@ export const getTreeViewItems = createSelector(
                 diffImg
             };
 
+            if (!browsersState[data.fullTitle].shouldBeShown) {
+                return null;
+            }
+
             return {data};
         };
 
@@ -80,7 +84,9 @@ export const getTreeViewItems = createSelector(
             if (isSuiteEntityLeaf(suiteData)) {
                 return {
                     data,
-                    children: suiteData.browserIds.map((browserId) => formatBrowser(browsers[browserId], data))
+                    children: suiteData.browserIds
+                        .map((browserId) => formatBrowser(browsers[browserId], data))
+                        .filter(Boolean) as TreeViewItem<TreeViewBrowserData>[]
                 };
             } else {
                 return {
