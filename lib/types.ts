@@ -275,3 +275,8 @@ export type RawSuitesRow = [
 export type LabeledSuitesRow = {
     [K in (typeof SUITES_TABLE_COLUMNS)[number]['name']]: string;
 };
+
+export interface BrowserItem {
+    id: string;
+    versions: string[];
+}
