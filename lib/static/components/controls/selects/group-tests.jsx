@@ -45,6 +45,7 @@ class GroupTestsSelect extends Component {
             <div className={className}>
                 <CustomLabel size='m' pin='round-brick'>Group By</CustomLabel>
                 <Select
+                    disablePortal
                     className='group-by-dropdown'
                     options={options}
                     value={[selectedGroupKey]}
