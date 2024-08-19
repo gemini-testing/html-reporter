@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.6.5"></a>
+## [10.6.5](https://github.com/gemini-testing/html-reporter/compare/v10.6.4...v10.6.5) (2024-08-19)
+
+
+### Bug Fixes
+
+* disable portal for header select elements ([#594](https://github.com/gemini-testing/html-reporter/issues/594)) ([29d9ac0](https://github.com/gemini-testing/html-reporter/commit/29d9ac0))
+
+
+
 <a name="10.6.4"></a>
 ## [10.6.4](https://github.com/gemini-testing/html-reporter/compare/v10.6.3...v10.6.4) (2024-08-16)
 
