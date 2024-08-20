@@ -14,7 +14,7 @@ export default function Details(props) {
         const newIsOpened = !isOpened;
 
         setIsOpened(newIsOpened);
-        props.onClick?.(newIsOpened);
+        props.onClick?.({isOpened: newIsOpened});
     };
 
     const getContent = () => {

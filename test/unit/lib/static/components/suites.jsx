@@ -11,7 +11,6 @@ describe('<Suites/>', () => {
     let Suites, getVisibleRootSuiteIds;
     const originalOffsetHeight = Object.getOwnPropertyDescriptor(global.HTMLElement.prototype, 'offsetHeight');
     const originalOffsetWidth = Object.getOwnPropertyDescriptor(global.HTMLElement.prototype, 'offsetWidth');
-    const originalResizeObserver = window.ResizeObserver;
 
     const mkSuitesComponent = (initialState = {}) => {
         initialState = defaultsDeep(initialState, {
@@ -27,11 +26,6 @@ describe('<Suites/>', () => {
         Object.defineProperty(global.HTMLElement.prototype, 'offsetHeight', {configurable: true, value: 50});
         Object.defineProperty(global.HTMLElement.prototype, 'offsetWidth', {configurable: true, value: 50});
 
-        window.ResizeObserver = sinon.stub();
-        window.ResizeObserver.prototype.observe = sinon.stub();
-        window.ResizeObserver.prototype.unobserve = sinon.stub();
-        window.ResizeObserver.prototype.disconnect = sinon.stub();
-
         getVisibleRootSuiteIds = sinon.stub().returns([]);
 
         Suites = proxyquire('lib/static/components/suites', {
@@ -42,8 +36,6 @@ describe('<Suites/>', () => {
     afterEach(() => {
         Object.defineProperty(global.HTMLElement.prototype, 'offsetHeight', originalOffsetHeight);
         Object.defineProperty(global.HTMLElement.prototype, 'offsetWidth', originalOffsetWidth);
-
-        window.ResizeObserver = originalResizeObserver;
 
         sandbox.restore();
     });
