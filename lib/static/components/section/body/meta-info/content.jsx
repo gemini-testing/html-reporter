@@ -5,6 +5,7 @@ import {DefinitionList} from '@gravity-ui/components';
 import PropTypes from 'prop-types';
 import {map, mapValues, isObject, omitBy, isEmpty} from 'lodash';
 import {isUrl, getUrlWithBase, getRelativeUrl} from '../../../../../common-utils';
+import {Card} from '@gravity-ui/uikit';
 
 const serializeMetaValues = (metaInfo) => mapValues(metaInfo, (v) => isObject(v) ? JSON.stringify(v) : v);
 
@@ -25,34 +26,36 @@ const resolveUrl = (baseUrl, value) => {
 };
 
 const metaToElements = (metaInfo, metaInfoBaseUrls) => {
-    return <DefinitionList className='meta-info' itemClassName='meta-info__item' items={
-        map(metaInfo, (value, key) => {
-            let url = value.url;
-            value = value.content;
+    return <Card className='details__card' view='filled'>
+        <DefinitionList className='meta-info' itemClassName='meta-info__item' items={
+            map(metaInfo, (value, key) => {
+                let url = value.url;
+                value = value.content;
 
-            if (isUrl(value)) {
-                url = value;
-            } else if (metaInfoBaseUrls[key] && metaInfoBaseUrls[key] !== 'auto') {
-                const baseUrl = metaInfoBaseUrls[key];
-                const link = isUrl(baseUrl) ? resolveUrl(baseUrl, value) : path.join(baseUrl, value);
-                url = link;
-            } else if (typeof value === 'boolean') {
-                value = value.toString();
-            }
+                if (isUrl(value)) {
+                    url = value;
+                } else if (metaInfoBaseUrls[key] && metaInfoBaseUrls[key] !== 'auto') {
+                    const baseUrl = metaInfoBaseUrls[key];
+                    const link = isUrl(baseUrl) ? resolveUrl(baseUrl, value) : path.join(baseUrl, value);
+                    url = link;
+                } else if (typeof value === 'boolean') {
+                    value = value.toString();
+                }
 
-            if (url) {
-                value = <a data-suite-view-link={url} className="custom-icon_view-local" target="_blank" href={url} rel="noreferrer">
-                    {value}
-                </a>;
-            }
+                if (url) {
+                    value = <a data-suite-view-link={url} className="custom-icon_view-local" target="_blank" href={url} rel="noreferrer">
+                        {value}
+                    </a>;
+                }
 
-            return {
-                name: key,
-                content: <div className="meta-info__item-value">{value}</div>,
-                copyText: url || value
-            };
-        })
-    }/>;
+                return {
+                    name: key,
+                    content: <div className="meta-info__item-value">{value}</div>,
+                    copyText: url || value
+                };
+            })
+        }/>
+    </Card>;
 };
 
 class MetaInfoContent extends Component {
