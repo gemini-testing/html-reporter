@@ -1,31 +1,24 @@
-import React, {useRef} from 'react';
+import React, {forwardRef} from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {isEmpty, flatMap, find, once, throttle} from 'lodash';
 import {List, AutoSizer, CellMeasurer, CellMeasurerCache, WindowScroller} from 'react-virtualized';
-import useResizeObserver from '@react-hook/resize-observer';
 import {bindActionCreators} from 'redux';
 
 import * as actions from '../modules/actions';
 import SectionCommon from './section/section-common';
 import {ViewMode} from '../../constants/view-modes';
 import {getVisibleRootSuiteIds} from '../modules/selectors/tree';
+import {MeasurementContext} from './measurement-context';
 
-function VirtualizedRow(props) {
-    const resizeObserverRef = useRef(null);
-
-    useResizeObserver(resizeObserverRef, props.onResize);
-
-    return <div ref={props.onInit} style={props.style} className="virtualized__row">
-        <div ref={resizeObserverRef}>
-            <SectionCommon {...props.sectionProps} />
-        </div>
+const VirtualizedRow = forwardRef(function VirtualizedRow(props, ref) {
+    return <div ref={ref} style={props.style} className="virtualized__row">
+        <SectionCommon {...props.sectionProps} />
     </div>;
-}
+});
 
 VirtualizedRow.propTypes = {
     onInit: PropTypes.func,
-    onResize: PropTypes.func,
     style: PropTypes.object,
     sectionProps: PropTypes.object
 };
@@ -54,7 +47,9 @@ function Suites(props) {
                 rowIndex={index}
             >
                 {({measure, registerChild}) => {
-                    return <VirtualizedRow onInit={registerChild} onResize={measure} key={key} style={style} sectionProps={sectionProps} />;
+                    return <MeasurementContext.Provider value={{measure}}>
+                        <VirtualizedRow ref={registerChild} key={key} style={style} sectionProps={sectionProps} />
+                    </MeasurementContext.Provider>;
                 }}
             </CellMeasurer>
         );

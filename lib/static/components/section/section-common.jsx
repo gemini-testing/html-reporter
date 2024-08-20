@@ -1,88 +1,86 @@
-import React, {Component} from 'react';
+import React, {useContext, useLayoutEffect} from 'react';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import PropTypes from 'prop-types';
 import * as actions from '../../modules/actions';
-import SectionWrapper from './section-wrapper';
 import SectionBrowser from './section-browser';
 import Title from './title/simple';
+import {sectionStatusResolver} from './utils';
+import {MeasurementContext} from '../measurement-context';
 
-class SectionCommon extends Component {
-    static propTypes = {
-        suiteId: PropTypes.string.isRequired,
-        sectionRoot: PropTypes.bool.isRequired,
-        // from store
-        suiteName: PropTypes.string.isRequired,
-        suiteStatus: PropTypes.string.isRequired,
-        suiteChildIds: PropTypes.array,
-        suiteBrowserIds: PropTypes.array,
-        shouldBeShown: PropTypes.bool.isRequired,
-        shouldBeOpened: PropTypes.bool.isRequired,
-        // from SectionCommonWrapper
-        sectionStatusResolver: PropTypes.func.isRequired,
-        actions: PropTypes.object.isRequired
+function SectionCommon(props) {
+    const {
+        suiteId,
+        suiteName,
+        suiteStatus,
+        suiteChildIds,
+        suiteBrowserIds,
+        sectionRoot,
+        shouldBeOpened,
+        shouldBeShown
+    } = props;
+
+    const {measure} = useContext(MeasurementContext);
+
+    useLayoutEffect(() => {
+        measure?.();
+    }, [shouldBeShown, shouldBeOpened]);
+
+    if (!shouldBeShown) {
+        return null;
+    }
+
+    const onToggleSection = () => {
+        const {suiteId, shouldBeOpened} = props;
+        props.actions.toggleSuiteSection({suiteId, shouldBeOpened: !shouldBeOpened});
     };
 
-    onToggleSection = () => {
-        const {suiteId, shouldBeOpened} = this.props;
-
-        this.props.actions.toggleSuiteSection({suiteId, shouldBeOpened: !shouldBeOpened});
-    };
-
-    _drawSection() {
-        const {
-            suiteId,
-            suiteName,
-            suiteStatus,
-            suiteChildIds,
-            suiteBrowserIds,
-            sectionRoot,
-            sectionStatusResolver,
-            shouldBeOpened
-        } = this.props;
-
-        if (!shouldBeOpened) {
-            return (
-                <div className={sectionStatusResolver({status: suiteStatus, shouldBeOpened, sectionRoot})}>
-                    <Title name={suiteName} suiteId={suiteId} handler={this.onToggleSection} />
-                </div>
-            );
-        }
-
-        const childSuitesTmpl = suiteChildIds && suiteChildIds.map((suiteId) => {
-            // eslint-disable-next-line no-use-before-define
-            return <SectionCommonWrapper
-                key={suiteId}
-                suiteId={suiteId}
-                sectionRoot={false}
-            />;
-        });
-
-        const browsersTmpl = suiteBrowserIds && suiteBrowserIds.map((browserId) => {
-            return <SectionBrowser key={browserId} browserId={browserId} />;
-        });
-
+    if (!shouldBeOpened) {
         return (
             <div className={sectionStatusResolver({status: suiteStatus, shouldBeOpened, sectionRoot})}>
-                <Title name={suiteName} suiteId={suiteId} handler={this.onToggleSection} />
-                <div className="section__body">
-                    {childSuitesTmpl}
-                    {browsersTmpl}
-                </div>
+                <Title name={suiteName} suiteId={suiteId} handler={onToggleSection} />
             </div>
         );
     }
 
-    render() {
-        if (!this.props.shouldBeShown) {
-            return null;
-        }
+    const childSuitesTmpl = suiteChildIds && suiteChildIds.map((suiteId) => {
+        // eslint-disable-next-line no-use-before-define
+        return <SectionCommonConnected
+            key={suiteId}
+            suiteId={suiteId}
+            sectionRoot={false}
+        />;
+    });
 
-        return this._drawSection();
-    }
+    const browsersTmpl = suiteBrowserIds && suiteBrowserIds.map((browserId) => {
+        return <SectionBrowser key={browserId} browserId={browserId} />;
+    });
+
+    return (
+        <div className={sectionStatusResolver({status: suiteStatus, shouldBeOpened, sectionRoot})}>
+            <Title name={suiteName} suiteId={suiteId} handler={onToggleSection} />
+            <div className="section__body">
+                {childSuitesTmpl}
+                {browsersTmpl}
+            </div>
+        </div>
+    );
 }
 
-const SectionCommonWrapper = connect(
+SectionCommon.propTypes = {
+    suiteId: PropTypes.string.isRequired,
+    sectionRoot: PropTypes.bool.isRequired,
+    // from store
+    suiteName: PropTypes.string.isRequired,
+    suiteStatus: PropTypes.string.isRequired,
+    suiteChildIds: PropTypes.array,
+    suiteBrowserIds: PropTypes.array,
+    shouldBeShown: PropTypes.bool.isRequired,
+    shouldBeOpened: PropTypes.bool.isRequired,
+    actions: PropTypes.object.isRequired
+};
+
+const SectionCommonConnected = connect(
     ({tree}, {suiteId}) => {
         const suite = tree.suites.byId[suiteId];
         const {shouldBeOpened, shouldBeShown} = tree.suites.stateById[suiteId];
@@ -97,6 +95,6 @@ const SectionCommonWrapper = connect(
         };
     },
     (dispatch) => ({actions: bindActionCreators(actions, dispatch)})
-)(SectionWrapper(SectionCommon));
+)(SectionCommon);
 
-export default SectionCommonWrapper;
+export default SectionCommonConnected;

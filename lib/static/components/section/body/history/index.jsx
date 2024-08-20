@@ -5,7 +5,7 @@ import {isEmpty} from 'lodash';
 import Details from '../../../details';
 
 import './index.styl';
-import {List} from '@gravity-ui/uikit';
+import {Card, List} from '@gravity-ui/uikit';
 
 const History = ({history}) => {
     const renderHistoryItem = (item) => {
@@ -21,12 +21,13 @@ const History = ({history}) => {
         isEmpty(history)
             ? null
             : <Details
-                type='text'
                 title='History'
                 content={
-                    <div style={{display: `flex`}}>
-                        <List items={history} renderItem={renderHistoryItem} filterable={false} virtualized={false}/>
-                    </div>
+                    <Card className='details__card' view='filled'>
+                        <div style={{display: `flex`}}>
+                            <List items={history} renderItem={renderHistoryItem} filterable={false} virtualized={false}/>
+                        </div>
+                    </Card>
                 }
                 extendClassNames='history'
             />

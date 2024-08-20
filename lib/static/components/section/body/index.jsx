@@ -1,4 +1,4 @@
-import React, {Component, Fragment} from 'react';
+import React, {Fragment, useContext, useRef} from 'react';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import {isNumber} from 'lodash';
@@ -10,38 +10,28 @@ import * as actions from '../../../modules/actions';
 import ExtensionPoint from '../../extension-point';
 import {RESULT} from '../../../../constants/extension-points';
 import {ArrowRotateLeft} from '@gravity-ui/icons';
+import useResizeObserver from '@react-hook/resize-observer';
+import {MeasurementContext} from '../../measurement-context';
 
-class Body extends Component {
-    static propTypes = {
-        browserId: PropTypes.string.isRequired,
-        browserName: PropTypes.string.isRequired,
-        testName: PropTypes.string.isRequired,
-        resultIds: PropTypes.array.isRequired,
-        // from store
-        gui: PropTypes.bool.isRequired,
-        running: PropTypes.bool.isRequired,
-        retryIndex: PropTypes.number,
-        actions: PropTypes.object.isRequired
-    };
-
-    onRetrySwitcherChange = (index) => {
-        const {browserId, retryIndex} = this.props;
+function Body(props) {
+    const onRetrySwitcherChange = (index) => {
+        const {browserId, retryIndex} = props;
 
         if (index === retryIndex) {
             return;
         }
 
-        this.props.actions.changeTestRetry({browserId, retryIndex: index});
+        props.actions.changeTestRetry({browserId, retryIndex: index});
     };
 
-    onTestRetry = () => {
-        const {testName, browserName} = this.props;
+    const onTestRetry = () => {
+        const {testName, browserName} = props;
 
-        this.props.actions.retryTest({testName, browserName});
+        props.actions.retryTest({testName, browserName});
     };
 
-    _addRetrySwitcher = () => {
-        const {resultIds, retryIndex} = this.props;
+    const addRetrySwitcher = () => {
+        const {resultIds, retryIndex} = props;
 
         if (resultIds.length <= 1) {
             return;
@@ -52,14 +42,14 @@ class Body extends Component {
                 <RetrySwitcher
                     resultIds={resultIds}
                     retryIndex={retryIndex}
-                    onChange={this.onRetrySwitcherChange}
+                    onChange={onRetrySwitcherChange}
                 />
             </div>
         );
     };
 
-    _addRetryButton = () => {
-        const {gui, running} = this.props;
+    const addRetryButton = () => {
+        const {gui, running} = props;
 
         return gui
             ? (
@@ -71,7 +61,7 @@ class Body extends Component {
                         </Fragment>}
                         isSuiteControl={true}
                         isDisabled={running}
-                        handler={this.onTestRetry}
+                        handler={onTestRetry}
                         dataTestId="test-retry"
                     />
                 </div>
@@ -79,29 +69,46 @@ class Body extends Component {
             : null;
     };
 
-    _getActiveResultId = () => {
-        return this.props.resultIds[this.props.retryIndex];
+    const getActiveResultId = () => {
+        return props.resultIds[props.retryIndex];
     };
 
-    render() {
-        const {testName} = this.props;
-        const activeResultId = this._getActiveResultId();
+    const {testName} = props;
+    const activeResultId = getActiveResultId();
 
-        return (
-            <div className="section__body">
-                <div className="image-box">
-                    <div className="controls">
-                        {this._addRetrySwitcher()}
-                        {this._addRetryButton()}
-                    </div>
-                    <ExtensionPoint name={RESULT} resultId={activeResultId} testName={testName}>
-                        <Result resultId={activeResultId} testName={testName} />
-                    </ExtensionPoint>
+    const {measure} = useContext(MeasurementContext);
+    const resizeObserverRef = useRef(null);
+    useResizeObserver(resizeObserverRef, () => {
+        measure();
+    });
+
+    return (
+        <div className="section__body" ref={resizeObserverRef}>
+            <div className="image-box">
+                <div className="controls">
+                    {addRetrySwitcher()}
+                    {addRetryButton()}
                 </div>
+                <ExtensionPoint name={RESULT} resultId={activeResultId} testName={testName}>
+                    <Result resultId={activeResultId} testName={testName} />
+                </ExtensionPoint>
             </div>
-        );
-    }
+        </div>
+    );
 }
+
+Body.propTypes = {
+    browserId: PropTypes.string.isRequired,
+    browserName: PropTypes.string.isRequired,
+    testName: PropTypes.string.isRequired,
+    resultIds: PropTypes.array.isRequired,
+    onResize: PropTypes.func,
+    // from store
+    gui: PropTypes.bool.isRequired,
+    running: PropTypes.bool.isRequired,
+    retryIndex: PropTypes.number,
+    actions: PropTypes.object.isRequired
+};
 
 export default connect(
     ({gui, running, view: {retryIndex: viewRetryIndex}, tree}, {browserId}) => {

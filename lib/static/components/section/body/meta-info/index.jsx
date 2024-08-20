@@ -20,7 +20,6 @@ class MetaInfo extends Component {
         const {resultId} = this.props;
 
         return <Details
-            type='text'
             title='Meta'
             content={<MetaInfoContent resultId={resultId}/>}
             onClick={this.onToggleMetaInfo}
