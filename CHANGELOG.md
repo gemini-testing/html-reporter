@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.6.6"></a>
+## [10.6.6](https://github.com/gemini-testing/html-reporter/compare/v10.6.5...v10.6.6) (2024-08-20)
+
+
+### Bug Fixes
+
+* fix flickering when expanding/collapsing sections ([#595](https://github.com/gemini-testing/html-reporter/issues/595)) ([4594a6c](https://github.com/gemini-testing/html-reporter/commit/4594a6c))
+
+
+
 <a name="10.6.5"></a>
 ## [10.6.5](https://github.com/gemini-testing/html-reporter/compare/v10.6.4...v10.6.5) (2024-08-19)
 
