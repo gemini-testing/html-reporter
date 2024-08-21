@@ -30,3 +30,4 @@ test/func/**/report-backup
 test/func/**/reports
 test/func/packages/*/plugin.js
 test/func/fixtures/playwright/test-results
+@

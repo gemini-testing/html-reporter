@@ -24,6 +24,7 @@ import {
 } from '@/static/new-ui/store/selectors';
 import {trimArray} from '@/common-utils';
 import {ImageFile} from '@/types';
+import {getFullTitleByTitleParts} from '@/static/new-ui/utils';
 
 // Converts the existing store structure to the one that can be consumed by GravityUI
 export const getTreeViewItems = createSelector(
@@ -54,7 +55,7 @@ export const getTreeViewItems = createSelector(
             const data: TreeViewBrowserData = {
                 type: TreeViewItemType.Browser,
                 title: browserData.name,
-                fullTitle: (parentSuite.fullTitle + ' ' + browserData.name).trim(),
+                fullTitle: getFullTitleByTitleParts([parentSuite.fullTitle, browserData.name]),
                 status: lastResult.status,
                 errorTitle,
                 errorStack,
@@ -68,7 +69,7 @@ export const getTreeViewItems = createSelector(
             const data: TreeViewSuiteData = {
                 type: TreeViewItemType.Suite,
                 title: suiteData.name,
-                fullTitle: (parentSuite.fullTitle + ' ' + suiteData.name).trim(),
+                fullTitle: getFullTitleByTitleParts([parentSuite.fullTitle, suiteData.name]),
                 status: suiteData.status
             };
 

@@ -12,8 +12,6 @@ const {ProgressPlugin} = require('webpack');
 
 const staticPath = path.resolve(__dirname, 'build', 'lib', 'static');
 
-console.log('here is resolved path; ' + path.resolve(__dirname, 'src'));
-
 module.exports = {
     entry: {
         report: ['./index.jsx', './variables.css', './styles.css'],

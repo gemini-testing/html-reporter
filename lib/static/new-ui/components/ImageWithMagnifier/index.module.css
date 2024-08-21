@@ -1,0 +1,10 @@
+.magnifier {
+    background-color: white;
+    background-repeat: no-repeat;
+    border: 1px solid lightgrey;
+    border-radius: 5px;
+    opacity: 1;
+    pointer-events: none;
+    position: fixed;
+    z-index: 1000
+}

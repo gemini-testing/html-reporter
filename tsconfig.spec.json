@@ -6,7 +6,8 @@
         "jsx": "react",
         "noEmit": true,
         "paths": {
-            "lib/*": ["./lib/*"]
+            "lib/*": ["./lib/*"],
+            "@/*": ["./lib/*"]
         }
     },
 }

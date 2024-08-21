@@ -50,15 +50,15 @@
 
         .tree-view__item--current {
             background: #a28aff !important;
-            color: #fff;
+            color: #fff !important;
         }
 
-        .tree-view__item--current:hover {
+        .tree-view__item.tree-view__item--current:hover {
             background: #af9aff !important;
         }
 
         .tree-view__item--current svg {
-            color: #fff;
+            color: #fff !important;
         }
 
         .tree-view__item--browser {

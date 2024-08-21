@@ -13,3 +13,9 @@ export const getIconByStatus = (status: TestStatus): React.JSX.Element => {
 
     return <CircleDashed />;
 };
+
+export const getFullTitleByTitleParts = (titleParts: string[]): string => {
+    const DELIMITER = ' ';
+
+    return titleParts.join(DELIMITER).trim();
+};

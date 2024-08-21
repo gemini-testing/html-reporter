@@ -1,7 +1,9 @@
 import {Box} from '@gravity-ui/uikit';
 import {
-    unstable_getItemRenderState as getItemRenderState, unstable_ListContainerView as ListContainerView,
-    unstable_ListItemView as ListItemView, unstable_useList as useList
+    unstable_getItemRenderState as getItemRenderState,
+    unstable_ListContainerView as ListContainerView,
+    unstable_ListItemView as ListItemView,
+    unstable_useList as useList
 } from '@gravity-ui/uikit/unstable';
 import {useVirtualizer} from '@tanstack/react-virtual';
 import classNames from 'classnames';
@@ -26,6 +28,7 @@ import {
     getTreeViewItems
 } from '@/static/new-ui/features/suites/components/SuitesTreeView/selectors';
 import styles from './index.module.css';
+import {TestStatus} from '@/constants';
 
 interface SuitesTreeViewProps {
     treeViewItems: TreeViewItem<TreeViewSuiteData | TreeViewBrowserData>[];
@@ -64,12 +67,6 @@ function SuitesTreeViewInternal(props: SuitesTreeViewProps): ReactNode {
 
     // Effects
     useEffect(() => {
-        if (!suiteId && props.currentSuiteId && suiteId !== props.currentSuiteId) {
-            navigate(encodeURIComponent(props.currentSuiteId));
-        }
-    }, []);
-
-    useEffect(() => {
         if (!props.isInitialized) {
             return;
         }
@@ -86,7 +83,7 @@ function SuitesTreeViewInternal(props: SuitesTreeViewProps): ReactNode {
     const onItemClick = useCallback(({id}: {id: string}): void => {
         const item = list.structure.itemsById[id];
 
-        if (item.type === TreeViewItemType.Suite && list.state.expandedById && id in list.state.expandedById && list.state.setExpanded) {
+        if (item.type === TreeViewItemType.Suite) {
             props.actions.toggleSuiteSection({suiteId: item.fullTitle, shouldBeOpened: !props.treeViewExpandedById[item.fullTitle]});
         } else if (item.type === TreeViewItemType.Browser) {
             props.actions.suitesPageSetCurrentSuite(id);
@@ -107,15 +104,14 @@ function SuitesTreeViewInternal(props: SuitesTreeViewProps): ReactNode {
                 >
                     {virtualizedItems.map((virtualRow) => {
                         const item = list.structure.itemsById[virtualRow.key];
-                        const classes = [styles['tree-view__item']];
-                        if (item.fullTitle === props.currentSuiteId) {
-                            classes.push(styles['tree-view__item--current']);
-                        } else if ((item.status === 'fail' || item.status === 'error') && item.type === TreeViewItemType.Browser) {
-                            classes.push(styles['tree-view__item--error']);
-                        }
-                        if (item.type === TreeViewItemType.Browser) {
-                            classes.push(styles['tree-view__item--browser']);
-                        }
+                        const classes = [
+                            styles['tree-view__item'],
+                            {
+                                [styles['tree-view__item--current']]: item.fullTitle === props.currentSuiteId,
+                                [styles['tree-view__item--browser']]: item.type === TreeViewItemType.Browser,
+                                [styles['tree-view__item--error']]: item.type === TreeViewItemType.Browser && (item.status === TestStatus.FAIL || item.status === TestStatus.ERROR)
+                            }
+                        ];
 
                         return <Box
                             key={virtualRow.key}
@@ -124,7 +120,7 @@ function SuitesTreeViewInternal(props: SuitesTreeViewProps): ReactNode {
                             spacing={{pt: 1}}
                         >
                             <ListItemView
-                                height={0}
+                                height={0} // To prevent GravityUI from setting incorrect min-height
                                 className={classNames(classes)}
                                 {...getItemRenderState({
                                     id: virtualRow.key.toString(),
@@ -134,7 +130,7 @@ function SuitesTreeViewInternal(props: SuitesTreeViewProps): ReactNode {
                                         return {
                                             startSlot: getIconByStatus(x.status),
                                             title: <TreeViewItemTitle item={x}/>,
-                                            subtitle: <TreeViewItemSubtitle item={x}/>
+                                            subtitle: <TreeViewItemSubtitle item={x} scrollContainerRef={parentRef}/>
                                         };
                                     }
                                 }).props}/>

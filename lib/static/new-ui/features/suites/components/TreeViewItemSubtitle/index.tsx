@@ -3,9 +3,15 @@ import {TreeViewData, TreeViewItemType} from '@/static/new-ui/features/suites/co
 import styles from './index.module.css';
 import {ImageWithMagnifier} from '@/static/new-ui/components/ImageWithMagnifier';
 
-export function TreeViewItemSubtitle(props: {item: TreeViewData}): ReactNode {
+interface TreeViewItemSubtitleProps {
+    item: TreeViewData;
+    // Passed to image with magnifier to detect parent container scrolling and update magnifier position
+    scrollContainerRef: React.RefObject<HTMLElement>;
+}
+
+export function TreeViewItemSubtitle(props: TreeViewItemSubtitleProps): ReactNode {
     if (props.item.type === TreeViewItemType.Browser && props.item.diffImg) {
-        return <ImageWithMagnifier src={props.item.diffImg.path} alt={'diff-image'} style={{maxWidth: '99%', marginTop: '4px', maxHeight: '40vh'}} />;
+        return <ImageWithMagnifier src={props.item.diffImg.path} alt={'diff-image'} style={{maxWidth: '99%', marginTop: '4px', maxHeight: '40vh'}} scrollContainerRef={props.scrollContainerRef} />;
     } else if (props.item.type === TreeViewItemType.Browser && props.item.errorStack) {
         return <div className={styles['tree-view-item-subtitle__error-stack']}>
             {props.item.errorStack}

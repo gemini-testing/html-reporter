@@ -7,7 +7,7 @@ import {initStaticReport, finStaticReport} from '../../modules/actions';
 const rootEl = document.getElementById('app') as HTMLDivElement;
 const root = createRoot(rootEl);
 
-function Gui(): ReactNode {
+function Report(): ReactNode {
     useEffect(() => {
         store.dispatch(initStaticReport());
 
@@ -19,4 +19,4 @@ function Gui(): ReactNode {
     return <App/>;
 }
 
-root.render(<Gui />);
+root.render(<Report />);
