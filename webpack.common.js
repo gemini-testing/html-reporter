@@ -15,9 +15,14 @@ const staticPath = path.resolve(__dirname, 'build', 'lib', 'static');
 module.exports = {
     entry: {
         report: ['./index.jsx', './variables.css', './styles.css'],
-        gui: ['./gui.jsx', './variables.css', './styles.css', './gui.css']
+        gui: ['./gui.jsx', './variables.css', './styles.css', './gui.css'],
+        newReport: ['./new-ui/app/report.tsx', './variables.css', './styles.css'],
+        newGui: ['./new-ui/app/gui.tsx', './variables.css', './styles.css', './gui.css']
     },
     resolve: {
+        alias: {
+            '@': path.resolve(__dirname, 'lib')
+        },
         extensions: ['.js', '.jsx', '.ts', '.tsx'],
         fallback: {
             buffer: require.resolve('buffer'),
@@ -38,7 +43,15 @@ module.exports = {
         rules: [
             {
                 test: /\.css$/,
-                use: [MiniCssExtractPlugin.loader, 'css-loader']
+                use: [MiniCssExtractPlugin.loader, {
+                    loader: 'css-loader',
+                    options: {
+                        modules: {
+                            auto: true,
+                            exportLocalsConvention: 'camelCase'
+                        }
+                    }
+                }]
             },
             {
                 test: /\.less$/,
@@ -62,7 +75,7 @@ module.exports = {
                     }
                 },
                 generator: {
-                    filename: path.resolve(__dirname, 'lib', 'static', 'assets', '[contenthash][ext][query]')
+                    filename: path.join('assets', '[contenthash][ext][query]')
                 }
             }
 
@@ -105,6 +118,28 @@ module.exports = {
         }),
         new HtmlWebpackTagsPlugin({
             files: ['gui.html'],
+            scripts: ['sql-wasm.js'],
+            append: false
+        }),
+        new HtmlWebpackPlugin({
+            title: 'HTML report (New UI)',
+            filename: 'new-ui-report.html',
+            template: 'template.html',
+            chunks: ['newReport']
+        }),
+        new HtmlWebpackTagsPlugin({
+            files: ['new-ui-report.html'],
+            scripts: ['data.js', 'sql-wasm.js'],
+            append: false
+        }),
+        new HtmlWebpackPlugin({
+            title: 'GUI report (New UI)',
+            filename: 'new-ui-gui.html',
+            template: 'template.html',
+            chunks: ['newGui']
+        }),
+        new HtmlWebpackTagsPlugin({
+            files: ['new-ui-gui.html'],
             scripts: ['sql-wasm.js'],
             append: false
         })

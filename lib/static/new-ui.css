@@ -1,0 +1,7 @@
+.g-root {
+    --g-font-family-sans: 'Jost', sans-serif;
+}
+
+.report {
+    font-family: var(--g-font-family-sans), sans-serif !important;
+}
