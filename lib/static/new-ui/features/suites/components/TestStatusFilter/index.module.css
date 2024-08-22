@@ -4,6 +4,6 @@
     justify-content: center;
 }
 
-    .test-status-filter-option__count {
-        margin-left: var(--g-spacing-1);
-    }
+.test-status-filter-option__count {
+    margin-left: var(--g-spacing-1);
+}

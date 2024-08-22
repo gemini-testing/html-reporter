@@ -29,11 +29,11 @@ interface TestStatusFilterProps {
 
 function TestStatusFilterInternal({statusCounts, actions, viewMode}: TestStatusFilterProps): ReactNode {
     return <RadioButton width={'max'} onChange={(e): void => void actions.changeViewMode(e.target.value)} value={viewMode}>
-        <RadioButton.Option value={ViewMode.ALL} content={<TestStatusFilterOption status={'total'} count={statusCounts.total}/>} />
-        <RadioButton.Option value={ViewMode.PASSED} content={<TestStatusFilterOption status={TestStatus.SUCCESS} count={statusCounts.success}/>} />
-        <RadioButton.Option value={ViewMode.FAILED} content={<TestStatusFilterOption status={TestStatus.FAIL} count={statusCounts.fail}/>} />
-        <RadioButton.Option value={ViewMode.RETRIED} content={<TestStatusFilterOption status={TestStatus.RETRY} count={statusCounts.retried}/>} />
-        <RadioButton.Option value={ViewMode.SKIPPED} content={<TestStatusFilterOption status={TestStatus.SKIPPED} count={statusCounts.skipped}/>} />
+        <RadioButton.Option title={'All'} value={ViewMode.ALL} content={<TestStatusFilterOption status={'total'} count={statusCounts.total}/>} />
+        <RadioButton.Option title={'Passed'} value={ViewMode.PASSED} content={<TestStatusFilterOption status={TestStatus.SUCCESS} count={statusCounts.success}/>} />
+        <RadioButton.Option title={'Failed'} value={ViewMode.FAILED} content={<TestStatusFilterOption status={TestStatus.FAIL} count={statusCounts.fail}/>} />
+        <RadioButton.Option title={'Retried'} value={ViewMode.RETRIED} content={<TestStatusFilterOption status={TestStatus.RETRY} count={statusCounts.retried}/>} />
+        <RadioButton.Option title={'Skipped'} value={ViewMode.SKIPPED} content={<TestStatusFilterOption status={TestStatus.SKIPPED} count={statusCounts.skipped}/>} />
     </RadioButton>;
 }
 
