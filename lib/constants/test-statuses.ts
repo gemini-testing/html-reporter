@@ -15,6 +15,10 @@ export enum TestStatus {
      * @note used by staticImageAccepter only
      */
     COMMITED = 'commited',
+    /**
+     * @note used in new UI only for rendering icons
+     */
+    RETRY = 'retry'
 }
 
 export const IDLE = TestStatus.IDLE;
