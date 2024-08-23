@@ -3,7 +3,7 @@ import {BaseTestsTreeBuilder, BaseTestsTreeBuilderOptions, Tree} from './base';
 import {BrowserVersions, DB_COLUMN_INDEXES, TestStatus} from '../constants';
 import {ReporterTestResult} from '../adapters/test-result';
 import {SqliteTestResultAdapter} from '../adapters/test-result/sqlite';
-import {RawSuitesRow} from '../types';
+import {BrowserItem, RawSuitesRow} from '../types';
 
 interface Stats {
     total: number;
@@ -25,11 +25,6 @@ export interface SkipItem {
     browser: string;
     suite: string;
     comment?: string;
-}
-
-interface BrowserItem {
-    id: string;
-    versions: string[];
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface

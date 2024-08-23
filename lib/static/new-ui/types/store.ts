@@ -1,5 +1,5 @@
 import {TestStatus, ViewMode} from '@/constants';
-import {ImageFile} from '@/types';
+import {BrowserItem, ImageFile} from '@/types';
 
 export interface SuiteEntityNode {
     name: string;
@@ -65,7 +65,8 @@ export interface State {
     app: {
         isInitialized: boolean;
         currentSuiteId: string | null;
-    }
+    };
+    browsers: BrowserItem[];
     tree: {
         browsers: {
             allIds: string[];
@@ -83,9 +84,10 @@ export interface State {
             byId: Record<string, SuiteEntity>;
             stateById: Record<string, SuiteState>;
         };
-    }
+    };
     view: {
         testNameFilter: string;
         viewMode: ViewMode;
-    }
+        filteredBrowsers: BrowserItem[];
+    };
 }
