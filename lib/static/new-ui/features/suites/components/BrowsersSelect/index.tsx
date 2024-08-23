@@ -69,16 +69,18 @@ function BrowsersSelectInternal({browsers, filteredBrowsers, actions}: BrowsersS
         const browsersWithMultipleVersions = browsers.filter(browser => browser.versions.length > 1);
         const browsersWithSingleVersion = browsers.filter(browser => browser.versions.length === 1);
 
+        const getOptionProps = (browser: BrowserItem, version: string): {value: string; content: string; data: Record<string, unknown>} => ({
+            value: serializeBrowserData(browser.id, version),
+            content: browser.id,
+            data: {id: browser.id, version}
+        });
+
         if (browsersWithMultipleVersions.length === 0) {
             // If there are no browsers with multiple versions, we want to render a simple plain list
-            return browsers.map(browser => (
-                <Select.Option
-                    key={serializeBrowserData(browser.id, browser.versions[0])}
-                    value={serializeBrowserData(browser.id, browser.versions[0])}
-                    content={browser.id}
-                    data={{id: browser.id, version: browser.versions[0]}}
-                />
-            ));
+            return browsers.map(browser => <Select.Option
+                key={browser.id}
+                {...getOptionProps(browser, browser.versions[0])}
+            />);
         } else {
             // Otherwise render browser version groups and place all browsers with single version into "Other" group
             return (
@@ -87,10 +89,8 @@ function BrowsersSelectInternal({browsers, filteredBrowsers, actions}: BrowsersS
                         <Select.OptionGroup key={browser.id} label={browser.id}>
                             {browser.versions.map(version => (
                                 <Select.Option
-                                    key={serializeBrowserData(browser.id, version)}
-                                    value={serializeBrowserData(browser.id, version)}
-                                    content={`${browser.id} ${version}`}
-                                    data={{id: browser.id, version}}
+                                    key={version}
+                                    {...getOptionProps(browser, version)}
                                 />
                             ))}
                         </Select.OptionGroup>
@@ -98,10 +98,8 @@ function BrowsersSelectInternal({browsers, filteredBrowsers, actions}: BrowsersS
                     <Select.OptionGroup label="Other">
                         {browsersWithSingleVersion.map(browser => (
                             <Select.Option
-                                key={serializeBrowserData(browser.id, browser.versions[0])}
-                                value={serializeBrowserData(browser.id, browser.versions[0])}
-                                content={browser.id}
-                                data={{id: browser.id, version: browser.versions[0]}}
+                                key={browser.id}
+                                {...getOptionProps(browser, browser.versions[0])}
                             />
                         ))}
                     </Select.OptionGroup>
@@ -119,7 +117,7 @@ function BrowsersSelectInternal({browsers, filteredBrowsers, actions}: BrowsersS
     const selected = selectedBrowsers.flatMap(browser => browser.versions.map(version => serializeBrowserData(browser.id, version)));
 
     const onClose = (): void => {
-        actions.selectBrowsers(selectedBrowsers);
+        actions.selectBrowsers(selectedBrowsers.filter(browser => browser.versions.length > 0));
     };
 
     const onFocus = (): void => {

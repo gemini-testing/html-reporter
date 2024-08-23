@@ -2,9 +2,9 @@
     z-index: 9999;
 }
 
-    .browserlist__filter {
-        padding: 4px;
-    }
+.browserlist__filter {
+    padding: 4px;
+}
 
 .action-button {
     width: 60px;
@@ -15,7 +15,7 @@
     --g-color-text-info: var(--g-color-private-color-500-solid);
 }
 
-    .browserlist__popup :global(.g-select-list__option) {
-        gap: 8px;
-        flex-direction: row-reverse;
-    }
+.browserlist__popup :global(.g-select-list__option) {
+    gap: 8px;
+    flex-direction: row-reverse;
+}
