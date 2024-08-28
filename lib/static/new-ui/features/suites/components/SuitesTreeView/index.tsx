@@ -19,7 +19,6 @@ import {
     TreeViewItemType,
     TreeViewSuiteData
 } from '@/static/new-ui/features/suites/components/SuitesPage/types';
-import {getIconByStatus} from '@/static/new-ui/utils';
 import {TreeViewItemTitle} from '@/static/new-ui/features/suites/components/TreeViewItemTitle';
 import {TreeViewItemSubtitle} from '@/static/new-ui/features/suites/components/TreeViewItemSubtitle';
 import {State} from '@/static/new-ui/types/store';
@@ -29,6 +28,7 @@ import {
 } from '@/static/new-ui/features/suites/components/SuitesTreeView/selectors';
 import styles from './index.module.css';
 import {TestStatus} from '@/constants';
+import {TreeViewItemIcon} from '@/static/new-ui/features/suites/components/TreeViewItemIcon';
 
 interface SuitesTreeViewProps {
     treeViewItems: TreeViewItem<TreeViewSuiteData | TreeViewBrowserData>[];
@@ -128,7 +128,7 @@ function SuitesTreeViewInternal(props: SuitesTreeViewProps): ReactNode {
                                     onItemClick,
                                     mapItemDataToContentProps: (x) => {
                                         return {
-                                            startSlot: getIconByStatus(x.status),
+                                            startSlot: <TreeViewItemIcon status={x.status}/>,
                                             title: <TreeViewItemTitle item={x}/>,
                                             subtitle: <TreeViewItemSubtitle item={x} scrollContainerRef={parentRef}/>
                                         };

@@ -10,19 +10,17 @@ import {BrowsersSelect} from '@/static/new-ui/features/suites/components/Browser
 
 function SuitesPageInternal(): ReactNode {
     return <SplitViewLayout>
-        <div>
-            <Flex direction={'column'} spacing={{p: '2'}} style={{height: '100vh'}}>
-                <h2 className="text-display-1">Suites</h2>
-                <Flex gap={2}>
-                    <TestNameFilter/>
-                    <BrowsersSelect/>
-                </Flex>
-                <Flex spacing={{mt: 2}}>
-                    <TestStatusFilter/>
-                </Flex>
-                <SuitesTreeView/>
+        <Flex direction={'column'} spacing={{p: '2'}} style={{height: '100vh'}}>
+            <h2 className="text-display-1">Suites</h2>
+            <Flex gap={2}>
+                <TestNameFilter/>
+                <BrowsersSelect/>
             </Flex>
-        </div>
+            <Flex spacing={{mt: 2}}>
+                <TestStatusFilter/>
+            </Flex>
+            <SuitesTreeView/>
+        </Flex>
         <div></div>
     </SplitViewLayout>;
 }

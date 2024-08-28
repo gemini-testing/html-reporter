@@ -8,4 +8,5 @@ body {
 
 .report {
     font-family: var(--g-font-family-sans), sans-serif !important;
+    margin-bottom: 0 !important;;
 }
