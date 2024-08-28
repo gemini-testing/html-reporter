@@ -6,6 +6,7 @@ import {
     DEFAULT_DIFF_OPTIONS,
     ImageTitleEnding,
     PlaywrightAttachment,
+    PlaywrightImageFile,
     PwtTestStatus
 } from 'lib/adapters/test-result/playwright';
 import {ErrorName} from 'lib/errors';
@@ -189,14 +190,35 @@ describe('PlaywrightTestResultAdapter', () => {
             assert.equal(adapter.imagesInfo.length, 2);
             assert.deepEqual(adapter.imagesInfo.find(info => (info as ImageInfoDiff).stateName === undefined), {
                 status: ERROR,
-                actualImg: {path: `test-results/test-name-1.png`, size: {height: 100, width: 200}}
+                actualImg: {
+                    path: `test-results/test-name-1.png`,
+                    relativePath: `test-results/test-name-1.png`,
+                    size: {height: 100, width: 200}
+                } as PlaywrightImageFile
             });
             assert.deepEqual(adapter.imagesInfo.find(info => (info as ImageInfoDiff).stateName === 'header'), {
                 status: FAIL,
                 stateName: 'header',
-                actualImg: {path: `test-results/header-actual.png`, size: {height: 100, width: 200}},
-                expectedImg: {path: 'project-dir/header-expected.png', size: {height: 100, width: 200}},
-                diffImg: {path: 'test-results/header-diff.png', size: {height: 100, width: 200}},
+                actualImg: {
+                    path: `test-results/header-actual.png`,
+                    relativePath: `test-results/header-actual.png`,
+                    size: {height: 100, width: 200}
+                } as PlaywrightImageFile,
+                expectedImg: {
+                    path: 'project-dir/header-expected.png',
+                    relativePath: 'project-dir/header-expected.png',
+                    size: {height: 100, width: 200}
+                } as PlaywrightImageFile,
+                refImg: {
+                    path: 'project-dir/header-expected.png',
+                    relativePath: 'project-dir/header-expected.png',
+                    size: {height: 100, width: 200}
+                } as PlaywrightImageFile,
+                diffImg: {
+                    path: 'test-results/header-diff.png',
+                    relativePath: 'test-results/header-diff.png',
+                    size: {height: 100, width: 200}
+                } as PlaywrightImageFile,
                 diffClusters: [],
                 diffOptions: {current: 'test-results/header-actual.png', reference: 'project-dir/header-expected.png', ...DEFAULT_DIFF_OPTIONS}
             });
@@ -214,7 +236,11 @@ describe('PlaywrightTestResultAdapter', () => {
             assert.equal(adapter.imagesInfo.length, 2);
             assert.deepEqual(adapter.imagesInfo.find(info => (info as ImageInfoNoRef).stateName === undefined), {
                 status: ERROR,
-                actualImg: {path: `test-results/test-name-1.png`, size: {height: 100, width: 200}}
+                actualImg: {
+                    path: `test-results/test-name-1.png`,
+                    relativePath: `test-results/test-name-1.png`,
+                    size: {height: 100, width: 200}
+                } as PlaywrightImageFile
             });
             assert.deepEqual(adapter.imagesInfo.find(info => (info as ImageInfoNoRef).stateName === 'header'), {
                 status: ERROR,
@@ -224,7 +250,11 @@ describe('PlaywrightTestResultAdapter', () => {
                     message: 'snapshot doesn\'t exist at some.png',
                     stack: ''
                 },
-                actualImg: {path: `test-results/header-actual.png`, size: {height: 100, width: 200}}
+                actualImg: {
+                    path: `test-results/header-actual.png`,
+                    relativePath: `test-results/header-actual.png`,
+                    size: {height: 100, width: 200}
+                } as PlaywrightImageFile
             });
         });
     });

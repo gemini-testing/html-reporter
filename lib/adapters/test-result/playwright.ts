@@ -34,6 +34,8 @@ export type PwtImageDiffError = ExtendedError<{snapshotName: string, diffCluster
 
 export type PwtNoRefImageError = ExtendedError<{snapshotName: string}>;
 
+export type PlaywrightImageFile = ImageFile & { relativePath: string };
+
 export enum PwtTestStatus {
     PASSED = 'passed',
     FAILED = 'failed',
@@ -139,7 +141,7 @@ const extractToMatchScreenshotError = (result: PlaywrightTestResult, {state, exp
     } : null;
 };
 
-const getImageData = (attachment: PlaywrightAttachment | undefined): ImageFile | null => {
+const getImageData = (attachment: PlaywrightAttachment | undefined): PlaywrightImageFile | null => {
     if (!attachment) {
         return null;
     }
@@ -147,7 +149,7 @@ const getImageData = (attachment: PlaywrightAttachment | undefined): ImageFile |
     return {
         path: attachment.path as string,
         size: !attachment.size ? _.pick(sizeOf(attachment.path as string), ['height', 'width']) as ImageSize : attachment.size,
-        ...(attachment.relativePath ? {relativePath: attachment.relativePath} : {})
+        relativePath: attachment.relativePath || path.relative(process.cwd(), attachment.path as string)
     };
 };
 
@@ -239,7 +241,7 @@ export class PlaywrightTestResultAdapter implements ReporterTestResult {
 
             const error = extractToMatchScreenshotError(this._testResult, {state, expectedAttachment, diffAttachment, actualAttachment}) || this.error;
 
-            // We don't provide refImg here, because on some pwt versions it's impossible to provide correct path:
+            // We now provide refImg here, though on some pwt versions it's impossible to provide correct path:
             // older pwt versions had test-results directory in expected path instead of project directory.
             if (error?.name === ErrorName.IMAGE_DIFF && expectedImg && diffImg && actualImg) {
                 return {
@@ -248,6 +250,7 @@ export class PlaywrightTestResultAdapter implements ReporterTestResult {
                     diffImg,
                     actualImg,
                     expectedImg,
+                    refImg: _.clone(expectedImg),
                     diffClusters: _.get(error, 'diffClusters', []),
                     // TODO: extract diffOptions from config
                     diffOptions: {current: actualImg.path, reference: expectedImg.path, ...DEFAULT_DIFF_OPTIONS}
@@ -257,7 +260,8 @@ export class PlaywrightTestResultAdapter implements ReporterTestResult {
                     status: ERROR,
                     stateName: state,
                     error: _.pick(error, ['message', 'name', 'stack']),
-                    actualImg
+                    actualImg,
+                    ...(expectedImg ? {refImg: _.clone(expectedImg)} : {})
                 } satisfies ImageInfoNoRef;
             } else if (expectedAttachment?.isUpdated && expectedImg && actualImg) {
                 return {
