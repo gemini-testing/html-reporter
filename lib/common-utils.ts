@@ -123,6 +123,10 @@ export const isNoRefImageError = (error?: unknown): error is NoRefImageError => 
     return (error as {name?: string})?.name === ErrorName.NO_REF_IMAGE;
 };
 
+export const isImageError = (error?: unknown): boolean => {
+    return isAssertViewError(error) || isImageDiffError(error) || isNoRefImageError(error);
+};
+
 export const hasNoRefImageErrors = ({assertViewResults = []}: {assertViewResults?: {name?: string}[]}): boolean => {
     return assertViewResults.some((assertViewResult) => isNoRefImageError(assertViewResult));
 };
