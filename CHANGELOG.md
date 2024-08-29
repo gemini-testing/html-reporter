@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.6.7"></a>
+## [10.6.7](https://github.com/gemini-testing/html-reporter/compare/v10.6.6...v10.6.7) (2024-08-29)
+
+
+### Bug Fixes
+
+* pwt static image accepter ([a9fcd4c](https://github.com/gemini-testing/html-reporter/commit/a9fcd4c))
+
+
+### Features
+
+* implement basic suites page in new UI ([#590](https://github.com/gemini-testing/html-reporter/issues/590)) ([fea8cf5](https://github.com/gemini-testing/html-reporter/commit/fea8cf5))
+* implement filtering by browser in new ui ([#593](https://github.com/gemini-testing/html-reporter/issues/593)) ([e526ec3](https://github.com/gemini-testing/html-reporter/commit/e526ec3))
+* implement filtering by status in new ui ([#592](https://github.com/gemini-testing/html-reporter/issues/592)) ([549a42f](https://github.com/gemini-testing/html-reporter/commit/549a42f))
+
+
+
 <a name="10.6.6"></a>
 ## [10.6.6](https://github.com/gemini-testing/html-reporter/compare/v10.6.5...v10.6.6) (2024-08-20)
 
