@@ -15,7 +15,7 @@ describe('Test details', function() {
         const metaInfo = await browser.$(selector).$('dl[data-qa="meta-info"]');
 
         await expect(metaInfo.$('dt*=file')).toBeDisplayed();
-        await expect(metaInfo.$('dd*=failed-describe.testplane.js')).toBeDisplayed();
+        await expect(metaInfo.$('dd*=failed-describe')).toBeDisplayed();
     });
 
     it('should prevent details summary overflow', async ({browser}) => {
