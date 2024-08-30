@@ -534,29 +534,8 @@ main.container {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath transform='scale(0.027,-0.027) translate(0,-448)' d=' M561.938 289.94L417.94 433.908C387.926 463.922 336 442.903 336 399.968V342.77C293.55 340.89 251.97 336.2200000000001 215.24 324.7800000000001C180.07 313.8300000000001 152.17 297.2000000000001 132.33 275.36C108.22 248.8 96 215.4 96 176.06C96 114.363 129.178 63.605 180.87 31.3C218.416 7.792 266.118 43.951 251.89 87.04C236.375 134.159 234.734 157.963 336 165.8V112C336 69.007 387.968 48.087 417.94 78.06L561.938 222.06C580.688 240.8 580.688 271.2 561.938 289.94zM384 112V215.84C255.309 213.918 166.492 192.65 206.31 72C176.79 90.45 144 123.92 144 176.06C144 285.394 273.14 295.007 384 295.91V400L528 256L384 112zM408.74 27.507A82.658 82.658 0 0 1 429.714 36.81C437.69 41.762 448 35.984 448 26.596V-16C448 -42.51 426.51 -64 400 -64H48C21.49 -64 0 -42.51 0 -16V336C0 362.51 21.49 384 48 384H180C186.627 384 192 378.627 192 372V367.514C192 362.597 189.013 358.145 184.431 356.362C170.729 351.031 158.035 344.825 146.381 337.777A12.138 12.138 0 0 0 140.101 336H54A6 6 0 0 1 48 330V-10A6 6 0 0 1 54 -16H394A6 6 0 0 1 400 -10V15.966C400 21.336 403.579 26.025 408.74 27.507z' /%3E%3C/svg%3E");
 }
 
-.meta-info__item-value {
-    display: flex;
-    gap: 2px;
-    align-items: center;
-    word-wrap: break-word;
-}
-
-.custom-icon_view-local{
-    display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
 .copy-button {
     margin-left: 2px;
-}
-
-.meta-info__item .copy-button {
-    opacity: 0;
-}
-
-.meta-info__item:hover .copy-button {
-    opacity: 1;
 }
 
 .error {
@@ -600,41 +579,6 @@ main.container {
 .state-title {
     cursor: pointer;
     user-select: none;
-}
-
-.tab-switcher__button {
-    --g-button-padding: 8px;
-    margin-right: 2px;
-}
-
-.tab-switcher__button_status_staged {
-    background-color: rgba(255, 235, 206, 1);
-    border-color: rgba(255, 235, 206, 1);
-}
-
-.tab-switcher__button_status_commited {
-    background-color: rgba(207, 231, 252, 1);
-    border-color: rgba(207, 231, 252, 1);
-}
-
-.tab-switcher__button_non-matched {
-    opacity: 0.5;
-}
-
-.tab-switcher__button_status_fail {
-    --g-button-background-color: #fce0ff;
-    --g-button-text-color: #bd1993;
-    --g-button-border-color: #bd1993;
-}
-
-.tab-switcher__button_status_fail_error {
-    --g-button-background-color: #fce0ff;
-    --g-button-text-color: #bd1993;
-    --g-button-border-color: #bd1993;
-}
-
-.tab-switcher__button.tab-switcher__button_active {
-    --g-button-border-width: 1px;
 }
 
 .collapsed,
@@ -1024,8 +968,9 @@ a:active {
 .text-display-2 {
     font-family: Jost, sans-serif;
     font-weight: 600;
-    font-size: 32px;
-    line-height: 40px;
+    font-size: var(--g-text-display-2-font-size);
+    line-height: var(--g-text-display-2-line-height);
+    margin: 0;
 }
 
 .text-display-3 {
@@ -1033,6 +978,7 @@ a:active {
     font-weight: 600;
     font-size: var(--g-text-display-3-font-size);
     line-height: var(--g-text-display-3-line-height);
+    margin: 0;
 }
 
 .text-header-1 {
@@ -1040,6 +986,7 @@ a:active {
     font-weight: 600;
     font-size: var(--g-text-header-1-font-size);
     line-height: var(--g-text-header-1-line-height);
+    margin: 0;
 }
 
 .text-subheader-1 {

@@ -119,21 +119,21 @@ describe('static/modules/utils', () => {
             });
 
             it('test name is contains name from filter', () => {
-                assert.isTrue(utils.isTestNameMatchFilters('some-test-name', 'test'));
+                assert.isTrue(utils.isTestNameMatchFilters('some-test-name', 'some-browser', 'test'));
             });
 
             it('test name matches on filter strictly', () => {
-                assert.isTrue(utils.isTestNameMatchFilters('some-test-name', 'some-test-name', true));
+                assert.isTrue(utils.isTestNameMatchFilters('some-test-name', 'some-browser', 'some-test-name', true));
             });
         });
 
         it('should return "false" if', () => {
             it('test name does not contain name from filter', () => {
-                assert.isFalse(utils.isTestNameMatchFilters('some-test-name', 'another'));
+                assert.isFalse(utils.isTestNameMatchFilters('some-test-name', 'some-browser', 'another'));
             });
 
             it('test name does not match on filter strictly', () => {
-                assert.isTrue(utils.isTestNameMatchFilters('some-test-name', 'some-test-nam', true));
+                assert.isTrue(utils.isTestNameMatchFilters('some-test-name', 'some-browser', 'some-test-nam', true));
             });
         });
     });

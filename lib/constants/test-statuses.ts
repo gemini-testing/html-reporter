@@ -18,7 +18,9 @@ export enum TestStatus {
     /**
      * @note used in new UI only for rendering icons
      */
-    RETRY = 'retry'
+    RETRY = 'retry',
+    /** @note used to display tests that have both failed screenshots and errors */
+    FAIL_ERROR = 'fail_error',
 }
 
 export const IDLE = TestStatus.IDLE;
@@ -29,6 +31,7 @@ export const FAIL = TestStatus.FAIL;
 export const ERROR = TestStatus.ERROR;
 export const SKIPPED = TestStatus.SKIPPED;
 export const UPDATED = TestStatus.UPDATED;
+export const FAIL_ERROR = TestStatus.FAIL_ERROR;
 /**
  * @note used by staticImageAccepter only
  */

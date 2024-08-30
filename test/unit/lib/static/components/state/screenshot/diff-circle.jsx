@@ -1,7 +1,7 @@
 import {fireEvent} from '@testing-library/react';
 import React from 'react';
 import DiffCircle from 'lib/static/components/state/screenshot/diff-circle';
-import {mkConnectedComponent} from '../../utils';
+import {mkConnectedComponent} from '../../../utils';
 
 describe('DiffCircle component', () => {
     const sandbox = sinon.createSandbox();

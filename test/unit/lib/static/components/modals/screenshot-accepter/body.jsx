@@ -2,7 +2,7 @@ import {expect} from 'chai';
 import React from 'react';
 import {defaults} from 'lodash';
 import proxyquire from 'proxyquire';
-import {mkConnectedComponent} from '../../utils';
+import {mkConnectedComponent} from '../../../utils';
 
 describe('<ScreenshotAccepterBody/>', () => {
     const sandbox = sinon.sandbox.create();

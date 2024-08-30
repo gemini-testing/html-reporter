@@ -1,3 +1,8 @@
+:root {
+    --color-link: #4f46e5;
+    --color-link-hover: #818cf8;
+}
+
 .g-root {
     --g-font-family-sans: 'Jost', sans-serif;
 }

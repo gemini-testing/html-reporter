@@ -1,11 +1,13 @@
+import {RenderResult} from '@testing-library/react';
 import {expect} from 'chai';
-import React from 'react';
 import {defaultsDeep} from 'lodash';
-import MetaInfoContent from 'lib/static/components/section/body/meta-info/content';
-import {mkConnectedComponent} from '../../../utils';
+import React from 'react';
 
-describe('<MetaInfoContent />', () => {
-    const mkMetaInfoContentComponent = (props = {}, initialState = {}) => {
+import {MetaInfo, MetaInfoProps} from 'lib/static/new-ui/components/MetaInfo';
+import {mkConnectedComponent} from '../../utils';
+
+describe('<MetaInfo />', () => {
+    const mkMetaInfoComponent = (props: MetaInfoProps, initialState = {}): RenderResult => {
         props = defaultsDeep(props, {
             resultId: 'default-result-id',
             testName: 'default suite test'
@@ -31,7 +33,7 @@ describe('<MetaInfoContent />', () => {
             }
         });
 
-        return mkConnectedComponent(<MetaInfoContent {...props} />, {initialState});
+        return mkConnectedComponent(<MetaInfo {...props} />, {initialState});
     };
 
     it('should render meta info from result, extra meta and link to url', () => {
@@ -56,7 +58,7 @@ describe('<MetaInfoContent />', () => {
         const apiValues = {
             extraItems: {baz: 'qux'},
             metaInfoExtenders: {
-                baz: ((data, extraItems) => `${data.testName}_${extraItems.baz}`).toString()
+                baz: ((data: {testName: string}, extraItems: Record<string, string>): string => `${data.testName}_${extraItems.baz}`).toString()
             }
         };
         const expectedMetaInfo = [
@@ -65,7 +67,7 @@ describe('<MetaInfoContent />', () => {
             ['url', 'some-url']
         ];
 
-        const component = mkMetaInfoContentComponent({resultId: 'some-result'}, {tree, apiValues});
+        const component = mkMetaInfoComponent({resultId: 'some-result'}, {tree, apiValues});
 
         expectedMetaInfo.forEach((node) => {
             expect(component.getByText(node[0])).to.exist;
@@ -101,7 +103,7 @@ describe('<MetaInfoContent />', () => {
             ['url', 'some-url']
         ];
 
-        const component = mkMetaInfoContentComponent({resultId: 'some-result'}, {tree});
+        const component = mkMetaInfoComponent({resultId: 'some-result'}, {tree});
 
         expectedMetaInfo.forEach((node) => {
             expect(component.getByText(node[0])).to.exist;
@@ -137,7 +139,7 @@ describe('<MetaInfoContent />', () => {
             ['url', 'some-url']
         ];
 
-        const component = mkMetaInfoContentComponent({resultId: 'some-result'}, {tree});
+        const component = mkMetaInfoComponent({resultId: 'some-result'}, {tree});
 
         expectedMetaInfo.forEach((node) => {
             expect(component.getByText(node[0])).to.exist;
@@ -247,12 +249,12 @@ describe('<MetaInfoContent />', () => {
             };
             const config = {metaInfoBaseUrls: stub.metaInfoBaseUrls};
             const view = {baseHost: stub.baseHost};
-            const component = mkMetaInfoContentComponent({resultId: 'some-result'}, {tree, config, view});
+            const component = mkMetaInfoComponent({resultId: 'some-result'}, {tree, config, view});
 
             const label = stub.expectedFileLabel ?? stub.metaInfo.file;
             expect(component.getByText('file')).to.exist;
             expect(component.getByText(label)).to.exist;
-            expect(component.getByText(label).href).to.equal(stub.expectedFileUrl);
+            expect((component.getByText(label) as HTMLLinkElement).href).to.equal(stub.expectedFileUrl);
         });
     });
 });

@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import RetrySwitcherItem from './item';
+import {AttemptPickerItem} from '@/static/new-ui/components/AttemptPickerItem';
 
 export default class RetrySwitcher extends Component {
     static propTypes = {
@@ -22,7 +22,7 @@ export default class RetrySwitcher extends Component {
                 {resultIds.map((resultId, ind) => {
                     const isActive = ind === retryIndex;
 
-                    return <RetrySwitcherItem
+                    return <AttemptPickerItem
                         key={resultId}
                         resultId={resultId}
                         isActive={isActive}

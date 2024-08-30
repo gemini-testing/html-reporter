@@ -46,6 +46,10 @@
             flex-shrink: 0;
         }
 
+        .tree-view__item :global(.g-list-item-view__icon) {
+            margin-top: 2px;
+        }
+
         .tree-view__item > div > div {
             align-items: start !important;
         }

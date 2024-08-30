@@ -3,7 +3,7 @@ import {defaults, set} from 'lodash';
 import proxyquire from 'proxyquire';
 import {SUCCESS, SKIPPED, ERROR} from 'lib/constants/test-statuses';
 import {UNCHECKED} from 'lib/constants/checked-statuses';
-import {mkConnectedComponent} from '../utils';
+import {mkConnectedComponent} from '../../utils';
 import {mkBrowser, mkResult, mkStateTree} from '../../state-utils';
 
 describe('<SectionBrowser/>', () => {

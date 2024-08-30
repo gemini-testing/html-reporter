@@ -1,7 +1,7 @@
 import React from 'react';
 import proxyquire from 'proxyquire';
 import {defaults} from 'lodash';
-import {mkState, mkConnectedComponent} from '../utils';
+import {mkState, mkConnectedComponent} from '../../utils';
 import userEvent from '@testing-library/user-event';
 
 describe('<FindSameDiffsButton />', () => {

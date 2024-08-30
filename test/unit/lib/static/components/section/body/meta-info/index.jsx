@@ -1,7 +1,7 @@
 import React from 'react';
 import {defaultsDeep} from 'lodash';
 import proxyquire from 'proxyquire';
-import {mkConnectedComponent} from '../../../utils';
+import {mkConnectedComponent} from '../../../../utils';
 import userEvent from '@testing-library/user-event';
 
 describe('<MetaInfo />', () => {
@@ -16,7 +16,7 @@ describe('<MetaInfo />', () => {
         MetaInfoContent = sinon.stub().returns(null);
 
         MetaInfo = proxyquire('lib/static/components/section/body/meta-info', {
-            './content': {default: MetaInfoContent},
+            '@/static/new-ui/components/MetaInfo': {MetaInfo: MetaInfoContent},
             '../../../../modules/actions': actionsStub
         }).default;
     });

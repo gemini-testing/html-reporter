@@ -1,0 +1,22 @@
+.separator {
+    margin: 0 4px;
+    display: inline-block;
+    width: 16px;
+    position: relative;
+}
+
+.invisible-space {
+    position: absolute;
+}
+
+.copy-button {
+    margin-left: 8px;
+}
+
+.title-part-wrapper {}
+
+.title-part-wrapper:last-child {
+    align-items: center;
+    display: inline-flex;
+    white-space: nowrap;
+}

@@ -44,7 +44,7 @@ const statusPriority: TestStatus[] = [
 export const logger = pick(console, ['log', 'warn', 'error']);
 
 export const isSuccessStatus = (status: TestStatus): boolean => status === SUCCESS;
-export const isFailStatus = (status: TestStatus): boolean => status === FAIL;
+export const isFailStatus = (status: TestStatus): status is TestStatus.FAIL => status === FAIL;
 export const isIdleStatus = (status: TestStatus): boolean => status === IDLE;
 export const isRunningStatus = (status: TestStatus): boolean => status === RUNNING;
 export const isErrorStatus = (status: TestStatus): boolean => status === ERROR;
@@ -83,6 +83,10 @@ export const getUrlWithBase = (url: string | undefined, base: string | undefined
             userUrl.port = baseUrl.port;
             userUrl.username = baseUrl.username;
             userUrl.password = baseUrl.password;
+
+            for (const [key, value] of baseUrl.searchParams) {
+                userUrl.searchParams.append(key, value);
+            }
         }
 
         return userUrl.href;

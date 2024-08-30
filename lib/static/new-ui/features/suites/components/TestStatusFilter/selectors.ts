@@ -1,5 +1,5 @@
 import {createSelector} from 'reselect';
-import {getAllBrowserIds, getResults} from '@/static/new-ui/store/selectors';
+import {getBrowsersState, getResults} from '@/static/new-ui/store/selectors';
 
 export interface StatusCounts {
     success: number;
@@ -12,14 +12,17 @@ export interface StatusCounts {
 }
 
 export const getStatusCounts = createSelector(
-    [getResults, getAllBrowserIds],
-    (results, browserIds) => {
+    [getResults, getBrowsersState],
+    (results, browsersState) => {
         const latestAttempts: Record<string, {attempt: number; status: string, timestamp: number}> = {};
         const retriedTests = new Set<string>();
 
         let retries = 0;
         Object.values(results).forEach(result => {
             const {parentId: testId, attempt, status, timestamp} = result;
+            if (!browsersState[testId].shouldBeShown && !browsersState[testId].isHiddenBecauseOfStatus) {
+                return;
+            }
             if (attempt > 0) {
                 retriedTests.add(testId);
             }
@@ -35,7 +38,7 @@ export const getStatusCounts = createSelector(
             success: 0,
             fail: 0,
             skipped: 0,
-            total: browserIds.length,
+            total: Object.keys(latestAttempts).length,
             retried: retriedTests.size,
             retries,
             idle: 0

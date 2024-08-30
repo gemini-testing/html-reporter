@@ -3,7 +3,7 @@ import React from 'react';
 import proxyquire from 'proxyquire';
 import {defaultsDeep} from 'lodash';
 
-import {mkConnectedComponent} from './utils';
+import {mkConnectedComponent} from '../utils';
 import {ViewMode} from 'lib/constants/view-modes';
 
 describe('<Suites/>', () => {

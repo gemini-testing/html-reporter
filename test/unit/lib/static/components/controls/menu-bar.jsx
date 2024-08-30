@@ -1,6 +1,6 @@
 import {expect} from 'chai';
 import React from 'react';
-import {mkConnectedComponent} from '../utils';
+import {mkConnectedComponent} from '../../utils';
 import MenuBar from 'lib/static/components/controls/common-controls';
 import userEvent from '@testing-library/user-event';
 

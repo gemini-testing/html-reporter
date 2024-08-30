@@ -11,7 +11,7 @@ import {
     mkEmptyTree,
     mkRealStore,
     renderWithStore
-} from '../../utils';
+} from '../../../utils';
 
 describe('<ScreenshotAccepterHeader/>', () => {
     const sandbox = sinon.sandbox.create();
