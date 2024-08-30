@@ -24,22 +24,28 @@ interface SuitesPageProps {
 
 function SuitesPageInternal(props: SuitesPageProps): ReactNode {
     return <SplitViewLayout>
-        <Flex direction={'column'} spacing={{p: '2'}} style={{height: '100vh'}}>
-            <h2 className="text-display-1">Suites</h2>
-            <Flex gap={2}>
-                <TestNameFilter/>
-                <BrowsersSelect/>
+        <div>
+            <Flex direction={'column'} spacing={{p: '2'}} style={{height: '100vh'}}>
+                <h2 className="text-display-1">Suites</h2>
+                <Flex gap={2}>
+                    <TestNameFilter/>
+                    <BrowsersSelect/>
+                </Flex>
+                <Flex spacing={{mt: 2}}>
+                    <TestStatusFilter/>
+                </Flex>
+                <SuitesTreeView/>
             </Flex>
-            <Flex spacing={{mt: 2}}>
-                <TestStatusFilter/>
+        </div>
+        <div>
+            <Flex direction={'column'} spacing={{p: '2'}} style={{height: '100vh'}} gap={4}>
+                <SuiteTitle/>
+                <AttemptPicker onChange={(browserId, _, retryIndex): unknown => props.actions.changeTestRetry({browserId, retryIndex})} />
+                <CollapsibleSection title={'Overview'} body={props.currentResultId && <div className={styles['collapsible-section__body']}>
+                    <MetaInfo resultId={props.currentResultId} />
+                </div>} id={'overview'}/>
             </Flex>
-            <SuitesTreeView/>
-        </Flex>
-        <Flex direction={'column'} spacing={{p: '2'}} style={{height: '100vh'}} gap={4}>
-            <SuiteTitle/>
-            <AttemptPicker onChange={(browserId, _, retryIndex): unknown => props.actions.changeTestRetry({browserId, retryIndex})} />
-            <CollapsibleSection title={'Overview'} body={props.currentResultId && <div className={styles['collapsible-section__body']}><MetaInfo resultId={props.currentResultId}/></div>} id={'overview'}/>
-        </Flex>
+        </div>
     </SplitViewLayout>;
 }
 

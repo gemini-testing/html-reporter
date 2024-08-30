@@ -23,7 +23,7 @@ class MetaInfo extends Component {
 
         return <Details
             title='Meta'
-            content={<Card className='details__card' view='filled'><MetaInfoContent resultId={resultId}/></Card>}
+            content={<Card className='details__card' view='filled'><MetaInfoContent resultId={resultId} qa={'meta-info'}/></Card>}
             onClick={this.onToggleMetaInfo}
         />;
     }

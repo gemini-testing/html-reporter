@@ -9,14 +9,13 @@ describe('Test details', function() {
         const selector = getTestSectionByNameSelector('test with long error message');
         await browser.$(selector).waitForDisplayed();
 
-        const erroredTestSection = await browser.$(selector).$('../..');
+        await browser.$(selector).$('.details__summary').scrollIntoView();
+        await browser.$(selector).$('.details__summary').click();
 
-        await erroredTestSection.$('.details__summary').click();
+        const metaInfo = await browser.$(selector).$('dl[data-qa="meta-info"]');
 
-        const fileMetaInfo = await erroredTestSection.$('div.meta-info__item*=failed-describe').$('..');
-
-        await expect(fileMetaInfo).toBeDisplayed();
-        await expect(await fileMetaInfo.$('span*=file')).toBeDisplayed();
+        await expect(metaInfo.$('dt*=file')).toBeDisplayed();
+        await expect(metaInfo.$('dd*=failed-describe.testplane.js')).toBeDisplayed();
     });
 
     it('should prevent details summary overflow', async ({browser}) => {

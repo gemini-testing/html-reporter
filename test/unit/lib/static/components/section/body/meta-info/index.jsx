@@ -40,7 +40,7 @@ describe('<MetaInfo />', () => {
 
             assert.calledOnceWith(
                 MetaInfoContent,
-                {resultId: 'some-result'}
+                {qa: 'meta-info', resultId: 'some-result'}
             );
         });
     });

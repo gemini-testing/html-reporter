@@ -29,6 +29,7 @@ interface MetaInfoItem {
 
 export interface MetaInfoProps {
     resultId: string,
+    qa?: string;
 }
 
 interface MetaInfoInternalProps extends MetaInfoProps {
@@ -108,12 +109,12 @@ function MetaInfoInternal(props: MetaInfoInternalProps): ReactNode {
         });
     }
 
-    return <DefinitionList className={styles.metaInfo} items={
+    return <DefinitionList className={styles.metaInfo} qa={props.qa} items={
         metaInfoItemsWithResolvedUrls.map((item) => {
             if (item.url) {
                 return {
                     name: item.label,
-                    content: <a data-suite-view-link={item.url} target="_blank" href={item.url} rel="noreferrer">
+                    content: <a className={styles.metaInfoValue} data-suite-view-link={item.url} target="_blank" href={item.url} rel="noreferrer">
                         {item.content}
                     </a>,
                     copyText: item.copyText ?? item.content
@@ -122,7 +123,7 @@ function MetaInfoInternal(props: MetaInfoInternalProps): ReactNode {
 
             return {
                 name: item.label,
-                content: item.content,
+                content: <span className={styles.metaInfoValue}>{item.content}</span>,
                 copyText: item.copyText ?? item.content
             };
         })

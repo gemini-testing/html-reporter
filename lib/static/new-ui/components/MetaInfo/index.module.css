@@ -1,3 +1,11 @@
 .meta-info {
     padding-right: 30px;
 }
+
+.meta-info-value {
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+}

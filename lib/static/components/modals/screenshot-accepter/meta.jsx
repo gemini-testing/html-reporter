@@ -23,6 +23,7 @@ export default class ScreenshotAccepterMeta extends Component {
                 <div className="screenshot-accepter__meta container">
                     <MetaInfoContent
                         resultId={image.parentId}
+                        qa={'meta-info'}
                     />
                 </div>
                 <hr className='tab__separator' />
