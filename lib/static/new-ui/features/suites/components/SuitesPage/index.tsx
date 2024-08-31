@@ -9,13 +9,15 @@ import {SuitesTreeView} from '@/static/new-ui/features/suites/components/SuitesT
 import {TestStatusFilter} from '@/static/new-ui/features/suites/components/TestStatusFilter';
 import {BrowsersSelect} from '@/static/new-ui/features/suites/components/BrowsersSelect';
 import {SuiteTitle} from '@/static/new-ui/features/suites/components/SuiteTitle';
-import {AttemptPicker} from '../../../../components/AttemptPicker';
 import * as actions from '@/static/modules/actions';
 import {CollapsibleSection} from '@/static/new-ui/features/suites/components/CollapsibleSection';
 import {MetaInfo} from '@/static/new-ui/components/MetaInfo';
 import {State} from '@/static/new-ui/types/store';
+import {Card} from '@/static/new-ui/components/Card';
+import {AttemptPicker} from '../../../../components/AttemptPicker';
 
 import styles from './index.module.css';
+import classNames from 'classnames';
 
 interface SuitesPageProps {
     actions: typeof actions;
@@ -25,26 +27,24 @@ interface SuitesPageProps {
 function SuitesPageInternal(props: SuitesPageProps): ReactNode {
     return <SplitViewLayout>
         <div>
-            <Flex direction={'column'} spacing={{p: '2'}} style={{height: '100vh'}}>
-                <h2 className="text-display-1">Suites</h2>
+            <Card className={classNames(styles.card, styles.treeViewCard)}>
+                <h2 className={classNames('text-display-1', styles['card__title'])}>Suites</h2>
                 <Flex gap={2}>
                     <TestNameFilter/>
                     <BrowsersSelect/>
                 </Flex>
-                <Flex spacing={{mt: 2}}>
-                    <TestStatusFilter/>
-                </Flex>
+                <TestStatusFilter/>
                 <SuitesTreeView/>
-            </Flex>
+            </Card>
         </div>
         <div>
-            <Flex direction={'column'} spacing={{p: '2'}} style={{height: '100vh'}} gap={4}>
-                <SuiteTitle/>
+            <Card className={classNames(styles.card, styles.testViewCard)}>
+                <SuiteTitle className={styles['card__title']} />
                 <AttemptPicker onChange={(browserId, _, retryIndex): unknown => props.actions.changeTestRetry({browserId, retryIndex})} />
                 <CollapsibleSection title={'Overview'} body={props.currentResultId && <div className={styles['collapsible-section__body']}>
                     <MetaInfo resultId={props.currentResultId} />
                 </div>} id={'overview'}/>
-            </Flex>
+            </Card>
         </div>
     </SplitViewLayout>;
 }

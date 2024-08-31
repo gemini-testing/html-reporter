@@ -10,3 +10,28 @@
 .collapsible-section__body a:hover {
     color: var(--color-link-hover);
 }
+
+.card {
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    margin: 10px;
+    padding: 15px 20px 20px;
+    border-radius: 10px;
+}
+
+.card__title {
+    margin-bottom: 8px !important;
+}
+
+.tree-view-card {
+    height: calc(100vh - 20px);
+    margin-right: 2px;
+    gap: 8px;
+}
+
+.test-view-card {
+    margin-left: 2px;
+    max-height: calc(100vh - 20px);
+    gap: 12px;
+}

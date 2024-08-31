@@ -1,3 +1,7 @@
+.test-status-filter {
+    --g-color-base-background: #fff;
+}
+
 .test-status-filter-option {
     display: flex;
     align-items: center;

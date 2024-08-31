@@ -959,23 +959,23 @@ a:active {
 /* Gravity UI Font Styles */
 .text-display-1 {
     font-family: Jost, sans-serif;
-    font-weight: 600;
-    font-size: var(--g-text-display-1-font-size);
-    line-height: var(--g-text-display-1-line-height);
+    font-weight: 500;
+    font-size: 24px;
+    line-height: 28px;
     margin: 0;
 }
 
 .text-display-2 {
     font-family: Jost, sans-serif;
-    font-weight: 600;
-    font-size: var(--g-text-display-2-font-size);
-    line-height: var(--g-text-display-2-line-height);
+    font-weight: 500;
+    font-size: 18px;
+    line-height: 24px;
     margin: 0;
 }
 
 .text-display-3 {
     font-family: Jost, sans-serif;
-    font-weight: 600;
+    font-weight: 500;
     font-size: var(--g-text-display-3-font-size);
     line-height: var(--g-text-display-3-line-height);
     margin: 0;
@@ -983,7 +983,7 @@ a:active {
 
 .text-header-1 {
     font-family: Jost, sans-serif;
-    font-weight: 600;
+    font-weight: 500;
     font-size: var(--g-text-header-1-font-size);
     line-height: var(--g-text-header-1-line-height);
     margin: 0;
@@ -991,14 +991,14 @@ a:active {
 
 .text-subheader-1 {
     font-family: Jost, sans-serif;
-    font-weight: 600;
+    font-weight: 500;
     font-size: var(--g-text-subheader-1-font-size);
     line-height: var(--g-text-subheader-1-line-height);
 }
 
 .text-subheader-3 {
     font-family: Jost, sans-serif;
-    font-weight: 600;
+    font-weight: 500;
     font-size: var(--g-text-subheader-3-font-size);
     line-height: var(--g-text-subheader-3-line-height);
 }

@@ -79,7 +79,7 @@ export interface BrowserState {
     shouldBeShown: boolean;
     retryIndex: number;
     // True if test is not shown because of its status. Useful when computing counts by status.
-    isHiddenBecauseOfStatus: boolean;
+    isHiddenBecauseOfStatus?: boolean;
 }
 
 export interface ResultState {

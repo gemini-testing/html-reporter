@@ -1,3 +1,9 @@
+.heading {}
+
+.heading:hover .copy-button {
+    opacity: 1;
+}
+
 .separator {
     margin: 0 4px;
     display: inline-block;
@@ -11,6 +17,8 @@
 
 .copy-button {
     margin-left: 8px;
+    opacity: 0;
+    transition: opacity 0.1s ease;
 }
 
 .title-part-wrapper {}

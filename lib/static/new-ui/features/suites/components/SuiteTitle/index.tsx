@@ -5,20 +5,25 @@ import {ClipboardButton, Flex} from '@gravity-ui/uikit';
 import {ChevronRight} from '@gravity-ui/icons';
 
 import styles from './index.module.css';
+import classNames from 'classnames';
 
 interface SuiteTitleProps {
+    className?: string;
+}
+
+interface SuiteTitlePropsInternal extends SuiteTitleProps {
     suitePath: string[];
 }
 
-function SuiteTitleInternal(props: SuiteTitleProps): ReactNode {
+function SuiteTitleInternal(props: SuiteTitlePropsInternal): ReactNode {
     return <Flex wrap={true}>
-        <h2 className='text-display-1'>
+        <h2 className={classNames('text-display-1', styles.heading, props.className)}>
             {props.suitePath.map((item, index) => (
                 <span key={index} className={styles.titlePartWrapper}>
                     {item}
                     {index !== props.suitePath.length - 1 ?
                         <div className={styles.separator}><ChevronRight /><span className={styles.invisibleSpace}>&nbsp;</span></div> :
-                        <ClipboardButton className={styles.copyButton} text={props.suitePath.join(' ')} view={'outlined'}/>}
+                        <ClipboardButton className={styles.copyButton} text={props.suitePath.join(' ')} view={'flat'} size={'s'} />}
                 </span>
             ))}
         </h2>

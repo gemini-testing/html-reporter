@@ -1,6 +1,4 @@
-.tree-view {
-    margin-top: var(--g-spacing-2);
-}
+.tree-view {}
 
     .tree-view :global(.g-text_ellipsis) {
         white-space: normal;
