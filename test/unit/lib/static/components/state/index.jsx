@@ -5,7 +5,7 @@ import {set, defaults, defaultsDeep} from 'lodash';
 import {SUCCESS, FAIL, ERROR, UPDATED} from 'lib/constants/test-statuses';
 import {EXPAND_ALL} from 'lib/constants/expand-modes';
 import {types as modalTypes} from 'lib/static/components/modals';
-import {mkConnectedComponent} from '../utils';
+import {mkConnectedComponent} from '../../utils';
 import userEvent from '@testing-library/user-event';
 
 describe('<State/>', () => {

@@ -1,8 +1,10 @@
+import {Card} from '@gravity-ui/uikit';
+import PropTypes from 'prop-types';
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import PropTypes from 'prop-types';
-import MetaInfoContent from './content';
+
+import {MetaInfo as MetaInfoContent} from '@/static/new-ui/components/MetaInfo';
 import * as actions from '../../../../modules/actions';
 import Details from '../../../details';
 
@@ -21,7 +23,7 @@ class MetaInfo extends Component {
 
         return <Details
             title='Meta'
-            content={<MetaInfoContent resultId={resultId}/>}
+            content={<Card className='details__card' view='filled'><MetaInfoContent resultId={resultId} qa={'meta-info'}/></Card>}
             onClick={this.onToggleMetaInfo}
         />;
     }

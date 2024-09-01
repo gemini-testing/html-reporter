@@ -1,4 +1,12 @@
-import {determineFinalStatus, getError, hasDiff, getUrlWithBase, getDetailsFileName, trimArray, mergeSnippetIntoErrorStack} from 'lib/common-utils';
+import {
+    determineFinalStatus,
+    getError,
+    hasDiff,
+    getUrlWithBase,
+    getDetailsFileName,
+    trimArray,
+    mergeSnippetIntoErrorStack
+} from 'lib/common-utils';
 import {RUNNING, QUEUED, ERROR, FAIL, UPDATED, SUCCESS, IDLE, SKIPPED} from 'lib/constants/test-statuses';
 import {ErrorName} from 'lib/errors';
 import sinon from 'sinon';

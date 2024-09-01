@@ -14,6 +14,9 @@ global.assert = chai.assert;
 require.extensions['.styl'] = () => {};
 require.extensions['.css'] = () => {};
 require.extensions['.less'] = () => {};
+require.extensions['.module.css'] = function(module) {
+    module.exports = require('./css-modules-mock').cssModulesMock;
+};
 
 chai.use(require('chai-as-promised'));
 chai.use(require('chai-dom'));

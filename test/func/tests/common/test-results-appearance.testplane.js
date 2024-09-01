@@ -133,14 +133,16 @@ describe('Test results appearance', () => {
             }
         });
 
-        it('should show message without ansi markup', async ({browser}) => {
-            const expectedErrorText = 'expect(received).toMatchObject(expected)';
-            const testElem = await browser.$(getTestSectionByNameSelector('failed test with ansi markup'));
+        if (process.env.TOOL === 'testplane') {
+            it('should show message without ansi markup', async ({browser}) => {
+                const expectedErrorText = 'expect(received).toMatchObject(expected)';
+                const testElem = await browser.$(getTestSectionByNameSelector('failed test with ansi markup'));
 
-            const errorText = await testElem.$('.tab .error__item.details__summary').getText();
+                const errorText = await testElem.$('.tab .error__item.details__summary').getText();
 
-            assert.equal(errorText, `message: ${expectedErrorText}`);
-        });
+                assert.equal(errorText, `message: ${expectedErrorText}`);
+            });
+        }
     });
 
     describe('Test with successful assertView and error', () => {

@@ -2,7 +2,7 @@ import React from 'react';
 import {defaults} from 'lodash';
 import proxyquire from 'proxyquire';
 import {FAIL, SUCCESS} from 'lib/constants/test-statuses';
-import {mkConnectedComponent} from '../utils';
+import {mkConnectedComponent} from '../../utils';
 import {mkSuite, mkStateTree} from '../../state-utils';
 
 describe('<SectionCommon/>', () => {

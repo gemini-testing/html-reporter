@@ -14,6 +14,8 @@ describe('Test redux plugin', function() {
 
         await browser.$(screenSelector).waitForDisplayed();
         await browser.$(clickSelector).click();
+        // Letting browser handle re-renders
+        await browser.pause(300);
         await browser.assertView('redux plugin clicked', screenSelector);
     });
 });

@@ -11,7 +11,7 @@ import {
     addResultToTree,
     addSuiteToTree, generateImageId,
     mkEmptyTree, mkRealStore, renderWithStore
-} from '../../utils';
+} from '../../../utils';
 
 const handlers = [
     http.post('/reference-data-to-update', () => {

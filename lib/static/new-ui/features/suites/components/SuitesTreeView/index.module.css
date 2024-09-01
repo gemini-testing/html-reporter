@@ -1,6 +1,4 @@
-.tree-view {
-    margin-top: var(--g-spacing-2);
-}
+.tree-view {}
 
     .tree-view :global(.g-text_ellipsis) {
         white-space: normal;
@@ -44,6 +42,10 @@
 
         .tree-view__item svg {
             flex-shrink: 0;
+        }
+
+        .tree-view__item :global(.g-list-item-view__icon) {
+            margin-top: 2px;
         }
 
         .tree-view__item > div > div {

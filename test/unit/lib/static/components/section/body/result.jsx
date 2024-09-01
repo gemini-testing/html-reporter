@@ -2,7 +2,7 @@ import React from 'react';
 import proxyquire from 'proxyquire';
 import {defaults, set} from 'lodash';
 import {FAIL, SUCCESS} from 'lib/constants/test-statuses';
-import {mkConnectedComponent} from '../../utils';
+import {mkConnectedComponent} from '../../../utils';
 
 describe('<Result />', () => {
     const sandbox = sinon.sandbox.create();

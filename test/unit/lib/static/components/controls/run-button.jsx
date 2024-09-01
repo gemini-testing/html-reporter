@@ -1,6 +1,6 @@
 import React from 'react';
 import proxyquire from 'proxyquire';
-import {mkConnectedComponent, mkState} from '../utils';
+import {mkConnectedComponent, mkState} from '../../utils';
 import userEvent from '@testing-library/user-event';
 
 describe('<RunButton />', () => {

@@ -1,0 +1,34 @@
+.attempt-picker-item {
+    --g-button-padding: 8px;
+    margin-right: 2px;
+}
+
+.attempt-picker-item--active {
+    --g-button-border-width: 1px;
+}
+
+.attempt-picker-item--staged {
+    background-color: rgba(255, 235, 206, 1);
+    border-color: rgba(255, 235, 206, 1);
+}
+
+.attempt-picker-item--commited {
+    background-color: rgba(207, 231, 252, 1);
+    border-color: rgba(207, 231, 252, 1);
+}
+
+.attempt-picker-item--fail {
+    --g-button-background-color: #fce0ff;
+    --g-button-text-color: #bd1993;
+    --g-button-border-color: #bd1993;
+}
+
+.attempt-picker-item--fail_error {
+    --g-button-background-color: #fce0ff;
+    --g-button-text-color: #bd1993;
+    --g-button-border-color: #bd1993;
+}
+
+.attempt-picker-item--non-matched {
+    opacity: 0.5;
+}

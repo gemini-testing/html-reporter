@@ -1,0 +1,16 @@
+.expand-arrow {
+    transition: opacity .1s ease, transform .1s ease;
+}
+
+.summary {
+    cursor: pointer;
+    user-select: none;
+}
+
+.summary:hover {
+    opacity: .8;
+}
+
+.expand-arrow--expanded {
+    transform: rotate(180deg);
+}

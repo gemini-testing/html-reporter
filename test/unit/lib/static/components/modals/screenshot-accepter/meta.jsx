@@ -1,6 +1,6 @@
 import React from 'react';
 import proxyquire from 'proxyquire';
-import {mkConnectedComponent} from '../../utils';
+import {mkConnectedComponent} from '../../../utils';
 
 describe('<ScreenshotAccepterMeta/>', () => {
     const sandbox = sinon.sandbox.create();

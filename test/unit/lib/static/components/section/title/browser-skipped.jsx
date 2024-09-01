@@ -2,7 +2,7 @@ import {expect} from 'chai';
 import React from 'react';
 import {defaults} from 'lodash';
 import proxyquire from 'proxyquire';
-import {mkConnectedComponent} from 'test/unit/lib/static/components/utils';
+import {mkConnectedComponent} from '../../../utils';
 import {mkBrowser, mkResult, mkStateTree} from 'test/unit/lib/static/state-utils';
 import {SKIPPED} from 'lib/constants/test-statuses';
 import {CHECKED, UNCHECKED} from 'lib/constants/checked-statuses';

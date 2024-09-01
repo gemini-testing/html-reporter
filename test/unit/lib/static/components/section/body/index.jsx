@@ -2,7 +2,7 @@ import {expect} from 'chai';
 import React from 'react';
 import proxyquire from 'proxyquire';
 import {defaults} from 'lodash';
-import {mkConnectedComponent} from '../../utils';
+import {mkConnectedComponent} from '../../../utils';
 import {mkStateTree} from '../../../state-utils';
 import userEvent from '@testing-library/user-event';
 

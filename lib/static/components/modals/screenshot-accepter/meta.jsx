@@ -1,7 +1,7 @@
 import React, {Component, Fragment} from 'react';
 import PropTypes from 'prop-types';
 
-import MetaInfoContent from '../../section/body/meta-info/content';
+import {MetaInfo as MetaInfoContent} from '@/static/new-ui/components/MetaInfo';
 
 export default class ScreenshotAccepterMeta extends Component {
     static propTypes = {
@@ -23,6 +23,7 @@ export default class ScreenshotAccepterMeta extends Component {
                 <div className="screenshot-accepter__meta container">
                     <MetaInfoContent
                         resultId={image.parentId}
+                        qa={'meta-info'}
                     />
                 </div>
                 <hr className='tab__separator' />

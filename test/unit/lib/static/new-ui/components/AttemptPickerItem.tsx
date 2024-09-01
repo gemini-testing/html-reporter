@@ -1,16 +1,20 @@
-import {expect} from 'chai';
-import React from 'react';
-import {defaults} from 'lodash';
-import RetrySwitcherItem from 'lib/static/components/retry-switcher/item';
-import {FAIL, ERROR, SUCCESS} from 'lib/constants/test-statuses';
-import {mkConnectedComponent} from '../utils';
-import {ErrorName} from 'lib/errors';
+import {RenderResult} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import {expect} from 'chai';
+import {defaults} from 'lodash';
+import React from 'react';
+import sinon from 'sinon';
 
-describe('<RetrySwitcherItem />', () => {
+import styles from 'lib/static/new-ui/components/AttemptPickerItem/index.module.css';
+import {FAIL, ERROR, SUCCESS, FAIL_ERROR} from 'lib/constants/test-statuses';
+import {ErrorName} from 'lib/errors';
+import {AttemptPickerItem, AttemptPickerItemProps} from 'lib/static/new-ui/components/AttemptPickerItem';
+import {mkConnectedComponent} from '../../utils';
+
+describe('<AttemptPickerItem />', () => {
     const sandbox = sinon.sandbox.create();
 
-    const mkRetrySwitcherItem = (props = {}, initialState = {}) => {
+    const mkAttemptPickerItem = (props: AttemptPickerItemProps, initialState = {}): RenderResult => {
         props = defaults(props, {
             resultId: 'default-id',
             isActive: true,
@@ -26,7 +30,7 @@ describe('<RetrySwitcherItem />', () => {
             }
         });
 
-        return mkConnectedComponent(<RetrySwitcherItem {...props} />, {initialState});
+        return mkConnectedComponent(<AttemptPickerItem {...props} />, {initialState});
     };
 
     afterEach(() => sandbox.restore());
@@ -58,9 +62,9 @@ describe('<RetrySwitcherItem />', () => {
                     }
                 };
 
-                const component = mkRetrySwitcherItem({resultId: 'result-1', isActive: true}, initialState);
+                const component = mkAttemptPickerItem({resultId: 'result-1', isActive: true}, initialState);
 
-                expect(component.container.querySelector(`button[data-qa="retry-switcher"].tab-switcher__button_status_${FAIL}`)).to.exist;
+                expect(component.container.querySelector(`button[data-qa="retry-switcher"].${styles[`attempt-picker-item--${FAIL}`]}`)).to.exist;
             });
         });
 
@@ -76,9 +80,9 @@ describe('<RetrySwitcherItem />', () => {
                 }
             };
 
-            const component = mkRetrySwitcherItem({resultId: 'result-1', isActive: true}, initialState);
+            const component = mkAttemptPickerItem({resultId: 'result-1', isActive: true}, initialState);
 
-            expect(component.container.querySelector(`button[data-qa="retry-switcher"].tab-switcher__button_status_${FAIL}_${ERROR}`)).to.exist;
+            expect(component.container.querySelector(`button[data-qa="retry-switcher"].${styles[`attempt-picker-item--${FAIL_ERROR}`]}`)).to.exist;
         });
 
         it('without non matched class if group is not selected', () => {
@@ -92,7 +96,7 @@ describe('<RetrySwitcherItem />', () => {
                 view: {keyToGroupTestsBy: ''}
             };
 
-            const component = mkRetrySwitcherItem({resultId: 'result-1'}, initialState);
+            const component = mkAttemptPickerItem({resultId: 'result-1'}, initialState);
 
             expect(component.container.querySelector('button[data-qa="retry-switcher"]')).to.exist;
             expect(component.container.querySelector('button[data-qa="retry-switcher"].tab-switcher__button_non-matched')).to.not.exist;
@@ -109,7 +113,7 @@ describe('<RetrySwitcherItem />', () => {
                 view: {keyToGroupTestsBy: 'some-key'}
             };
 
-            const component = mkRetrySwitcherItem({resultId: 'result-1'}, initialState);
+            const component = mkAttemptPickerItem({resultId: 'result-1'}, initialState);
 
             expect(component.container.querySelector('button[data-qa="retry-switcher"]')).to.exist;
             expect(component.container.querySelector('button[data-qa="retry-switcher"].tab-switcher__button_non-matched')).to.not.exist;
@@ -126,10 +130,10 @@ describe('<RetrySwitcherItem />', () => {
                 view: {keyToGroupTestsBy: 'some-key'}
             };
 
-            const component = mkRetrySwitcherItem({resultId: 'result-1'}, initialState);
+            const component = mkAttemptPickerItem({resultId: 'result-1'}, initialState);
 
             expect(component.container.querySelector('button[data-qa="retry-switcher"]')).to.exist;
-            expect(component.container.querySelector('button[data-qa="retry-switcher"].tab-switcher__button_non-matched')).to.exist;
+            expect(component.container.querySelector(`button[data-qa="retry-switcher"].${styles['attempt-picker-item--non-matched']}`)).to.exist;
         });
     });
 
@@ -145,22 +149,22 @@ describe('<RetrySwitcherItem />', () => {
             }
         };
 
-        const component = mkRetrySwitcherItem({resultId: 'result-1'}, initialState);
+        const component = mkAttemptPickerItem({resultId: 'result-1'}, initialState);
 
         expect(component.getByText('100500', {selector: 'button[data-qa="retry-switcher"] > *'})).to.exist;
     });
 
     it('should render button with correct active class name', () => {
-        const component = mkRetrySwitcherItem({isActive: true});
+        const component = mkAttemptPickerItem({resultId: 'default-id', isActive: true});
 
-        expect(component.container.querySelector('button[data-qa="retry-switcher"].tab-switcher__button_active')).to.exist;
+        expect(component.container.querySelector(`button[data-qa="retry-switcher"].${styles['attempt-picker-item--active']}`)).to.exist;
     });
 
     it('should call "onClick" handler on click in button', async () => {
         const user = userEvent.setup();
         const onClick = sinon.stub();
 
-        const component = mkRetrySwitcherItem({onClick});
+        const component = mkAttemptPickerItem({resultId: 'default-id', onClick});
         await user.click(component.getByTestId('retry-switcher'));
 
         assert.calledOnceWith(onClick);

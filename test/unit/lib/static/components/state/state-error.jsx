@@ -4,7 +4,7 @@ import React from 'react';
 import {defaults} from 'lodash';
 import proxyquire from 'proxyquire';
 import {ERROR_TITLE_TEXT_LENGTH} from 'lib/constants/errors';
-import {mkConnectedComponent} from '../utils';
+import {mkConnectedComponent} from '../../utils';
 
 describe('<StateError/> component', () => {
     const sandbox = sinon.sandbox.create();

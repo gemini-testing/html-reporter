@@ -2,7 +2,7 @@ import {expect} from 'chai';
 import React from 'react';
 import {defaultsDeep, set} from 'lodash';
 import History from 'lib/static/components/section/body/history';
-import {mkConnectedComponent} from '../../utils';
+import {mkConnectedComponent} from '../../../utils';
 import userEvent from '@testing-library/user-event';
 
 describe('<History />', () => {

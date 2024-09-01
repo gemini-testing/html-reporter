@@ -1,7 +1,8 @@
 import {AsideHeader, MenuItem as GravityMenuItem} from '@gravity-ui/navigation';
 import React from 'react';
 import {useNavigate, matchPath, useLocation} from 'react-router-dom';
-import TestplaneIcon from '../../icons/testplane.svg';
+import TestplaneIcon from '../../../icons/testplane-mono.svg';
+import styles from './index.module.css';
 
 interface MenuItem {
     title: string;
@@ -27,7 +28,7 @@ export function MainLayout(props: MainLayoutProps): JSX.Element {
     }));
 
     return <AsideHeader logo={{text: 'Testplane UI', iconSrc: TestplaneIcon, iconSize: 32, onClick: () => navigate('/')}} compact={true}
-        headerDecoration={true} menuItems={gravityMenuItems}
+        headerDecoration={false} menuItems={gravityMenuItems} customBackground={<div className={styles.asideHeaderBg}/>} customBackgroundClassName={styles.asideHeaderBgWrapper}
         renderContent={(): React.ReactNode => props.children} hideCollapseButton={true}
     />;
 }

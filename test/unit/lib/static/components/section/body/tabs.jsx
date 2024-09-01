@@ -3,7 +3,7 @@ import React from 'react';
 import proxyquire from 'proxyquire';
 import {defaultsDeep} from 'lodash';
 import {ERROR, FAIL, SUCCESS} from 'lib/constants/test-statuses';
-import {mkConnectedComponent} from '../../utils';
+import {mkConnectedComponent} from '../../../utils';
 
 describe('<Tabs />', () => {
     const sandbox = sinon.sandbox.create();

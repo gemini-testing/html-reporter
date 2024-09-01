@@ -52,7 +52,9 @@ export default Object.assign({config: configDefaults}, {
     apiValues: {
         toolName: ToolName.Testplane,
         extraItems: {},
-        metaInfoExtenders: {}
+        metaInfoExtenders: {},
+        imagesSaver: {saveImg: () => ''},
+        reportsSaver: {saveReportData: () => ''}
     },
     loading: {},
     modals: [],
@@ -93,5 +95,10 @@ export default Object.assign({config: configDefaults}, {
     app: {
         isInitialized: false,
         currentSuiteId: null
+    },
+    ui: {
+        suitesPage: {
+            expandedSectionsById: {}
+        }
     }
 }) satisfies State;
