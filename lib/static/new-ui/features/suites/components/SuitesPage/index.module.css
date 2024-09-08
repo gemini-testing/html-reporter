@@ -34,4 +34,12 @@
     margin-left: 2px;
     max-height: calc(100vh - 20px);
     gap: 12px;
+    overflow: scroll;
+}
+
+.sticky-header {
+    background-color: white;
+    position: sticky;
+    top: 0;
+    z-index: 1;
 }

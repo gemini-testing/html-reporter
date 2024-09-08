@@ -57,6 +57,15 @@
             color: #fff !important;
         }
 
+        .tree-view__item__title--current {
+            color: #fff !important;
+        }
+
+        .tree-view__item__error--current {
+            background-color: #8c72ee;
+            border: 1px solid #00000024;
+        }
+
         .tree-view__item.tree-view__item--current:hover {
             background: #af9aff !important;
         }

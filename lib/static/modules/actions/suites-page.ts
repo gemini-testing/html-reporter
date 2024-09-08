@@ -17,6 +17,15 @@ type SetSectionExpandedStateAction = Action<typeof actionNames.SUITES_PAGE_SET_S
 export const setSectionExpandedState = (payload: SetSectionExpandedStateAction['payload']): SetSectionExpandedStateAction =>
     ({type: actionNames.SUITES_PAGE_SET_SECTION_EXPANDED, payload});
 
+type SetStepsExpandedStateAction = Action<typeof actionNames.SUITES_PAGE_SET_STEPS_EXPANDED, {
+    resultId: string;
+    expandedById: Record<string, boolean>;
+}>;
+
+export const setStepsExpandedState = (payload: SetStepsExpandedStateAction['payload']): SetStepsExpandedStateAction =>
+    ({type: actionNames.SUITES_PAGE_SET_STEPS_EXPANDED, payload});
+
 export type SuitesPageAction =
     | SuitesPageSetCurrentSuiteAction
-    | SetSectionExpandedStateAction;
+    | SetSectionExpandedStateAction
+    | SetStepsExpandedStateAction;

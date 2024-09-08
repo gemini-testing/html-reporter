@@ -15,7 +15,7 @@ import {
     ImageInfoDiff,
     ImageInfoFull, ImageInfoNoRef, ImageInfoPageError, ImageInfoPageSuccess, ImageInfoSuccess, ImageInfoUpdated,
     ImageSize,
-    TestError
+    TestError, TestStepCompressed, TestStepKey
 } from '../../types';
 import type {CoordBounds} from 'looks-same';
 
@@ -153,6 +153,17 @@ const getImageData = (attachment: PlaywrightAttachment | undefined): PlaywrightI
     };
 };
 
+const getHistory = (steps?: PlaywrightTestResult['steps']): TestStepCompressed[] => {
+    return steps?.map(step => ({
+        [TestStepKey.Name]: step.title,
+        [TestStepKey.Args]: [],
+        [TestStepKey.IsFailed]: Boolean(step.error),
+        [TestStepKey.Duration]: step.duration,
+        [TestStepKey.Children]: getHistory(step.steps),
+        [TestStepKey.IsGroup]: step.steps?.length > 0
+    })) ?? [];
+};
+
 export class PlaywrightTestResultAdapter implements ReporterTestResult {
     private readonly _testCase: PlaywrightTestCase;
     private readonly _testResult: PlaywrightTestResult;
@@ -219,8 +230,8 @@ export class PlaywrightTestResultAdapter implements ReporterTestResult {
         return this.testPath.join(DEFAULT_TITLE_DELIMITER);
     }
 
-    get history(): string[] {
-        return this._testResult.steps.map(step => `${step.title} <- ${step.duration}ms\n`);
+    get history(): TestStepCompressed[] {
+        return getHistory(this._testResult.steps);
     }
 
     get id(): string {

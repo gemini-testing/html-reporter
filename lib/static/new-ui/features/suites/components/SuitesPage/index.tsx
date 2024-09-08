@@ -18,6 +18,7 @@ import {AttemptPicker} from '../../../../components/AttemptPicker';
 
 import styles from './index.module.css';
 import classNames from 'classnames';
+import {TestSteps} from '@/static/new-ui/features/suites/components/TestSteps';
 
 interface SuitesPageProps {
     actions: typeof actions;
@@ -39,11 +40,14 @@ function SuitesPageInternal(props: SuitesPageProps): ReactNode {
         </div>
         <div>
             <Card className={classNames(styles.card, styles.testViewCard)}>
-                <SuiteTitle className={styles['card__title']} />
-                <AttemptPicker onChange={(browserId, _, retryIndex): unknown => props.actions.changeTestRetry({browserId, retryIndex})} />
+                <div className={styles.stickyHeader}>
+                    <SuiteTitle className={styles['card__title']} />
+                    <AttemptPicker onChange={(browserId, _, retryIndex): unknown => props.actions.changeTestRetry({browserId, retryIndex})} />
+                </div>
                 <CollapsibleSection title={'Overview'} body={props.currentResultId && <div className={styles['collapsible-section__body']}>
                     <MetaInfo resultId={props.currentResultId} />
                 </div>} id={'overview'}/>
+                <TestSteps />
             </Card>
         </div>
     </SplitViewLayout>;

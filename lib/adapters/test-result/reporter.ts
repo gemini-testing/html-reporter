@@ -1,5 +1,5 @@
 import {TestStatus} from '../../constants';
-import {TestError, ErrorDetails, ImageInfoFull, ImageBase64, ImageFile} from '../../types';
+import {TestError, ErrorDetails, ImageInfoFull, ImageBase64, ImageFile, TestStepCompressed} from '../../types';
 import {ReporterTestResult} from './index';
 import _ from 'lodash';
 import {extractErrorDetails} from './utils';
@@ -52,7 +52,7 @@ export class ReporterTestAdapter implements ReporterTestResult {
         return this._testResult.fullName;
     }
 
-    get history(): string[] {
+    get history(): TestStepCompressed[] {
         return this._testResult.history;
     }
 

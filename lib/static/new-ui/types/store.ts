@@ -1,5 +1,5 @@
 import {TestStatus, ViewMode} from '@/constants';
-import {BrowserItem, ImageFile, ReporterConfig, TestError} from '@/types';
+import {BrowserItem, ImageFile, ReporterConfig, TestError, TestStepCompressed} from '@/types';
 import {HtmlReporterValues} from '@/plugin-api';
 
 export interface SuiteEntityNode {
@@ -38,6 +38,8 @@ export interface ResultEntityCommon {
     timestamp: number;
     metaInfo: Record<string, string>;
     suiteUrl?: string;
+    history?: TestStepCompressed[];
+    error?: TestError;
 }
 
 export interface ResultEntityError extends ResultEntityCommon {
@@ -56,6 +58,9 @@ interface ImageEntityCommon {
 
 export interface ImageEntityError extends ImageEntityCommon {
     status: TestStatus.ERROR;
+    // TODO: can a screenshot in error status even have stateName?
+    stateName?: string;
+    actualImg: ImageFile;
 }
 
 export interface ImageEntityFail extends ImageEntityCommon {
@@ -114,6 +119,7 @@ export interface State {
     ui: {
         suitesPage: {
             expandedSectionsById: Record<string, boolean>;
+            expandedStepsByResultId: Record<string, Record<string, boolean>>;
         }
     };
     browsers: BrowserItem[];

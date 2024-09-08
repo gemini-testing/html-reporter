@@ -11,7 +11,8 @@ import {
 } from 'lib/adapters/test-result/playwright';
 import {ErrorName} from 'lib/errors';
 import {ERROR, FAIL, TestStatus, UNKNOWN_ATTEMPT} from 'lib/constants';
-import {ImageInfoDiff, ImageInfoNoRef} from 'lib/types';
+import {ImageInfoDiff, ImageInfoNoRef, TestStepKey} from 'lib/types';
+import {mkTestStepCompressed} from '../../../utils';
 
 describe('PlaywrightTestResultAdapter', () => {
     let sandbox: sinon.SinonSandbox;
@@ -153,7 +154,15 @@ describe('PlaywrightTestResultAdapter', () => {
                 {title: 'Step2', duration: 200}
             ];
             const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({steps} as any), UNKNOWN_ATTEMPT);
-            const expectedHistory = ['Step1 <- 100ms\n', 'Step2 <- 200ms\n'];
+            const expectedHistory = [mkTestStepCompressed({
+                [TestStepKey.Name]: 'Step1',
+                [TestStepKey.Duration]: 100,
+                [TestStepKey.Children]: []
+            }), mkTestStepCompressed({
+                [TestStepKey.Name]: 'Step2',
+                [TestStepKey.Duration]: 200,
+                [TestStepKey.Children]: []
+            })];
 
             assert.deepEqual(adapter.history, expectedHistory);
         });

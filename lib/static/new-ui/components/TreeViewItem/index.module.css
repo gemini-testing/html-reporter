@@ -1,0 +1,28 @@
+.tree-view-item {
+    --g-text-subheader-1-font-size: 18px;
+    --g-text-subheader-1-line-height: 22px;
+    --g-text-subheader-font-weight: normal;
+
+    --g-text-body-1-font-size: 18px;
+    --g-text-body-1-line-height: 22px;
+    --g-text-body-font-weight: normal;
+
+    line-height: 20px;
+
+    padding: 4px 0;
+    font-size: 18px;
+
+    user-select: none;
+    cursor: pointer;
+
+    padding-left: calc(var(--indent) * 24px);
+}
+
+.tree-view-item--error {
+    background: var(--g-color-private-red-100);
+    color: var(--g-color-private-red-600-solid);
+}
+
+.tree-view-item--error:hover {
+    background: var(--g-color-private-red-50) !important;
+}

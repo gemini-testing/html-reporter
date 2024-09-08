@@ -7,7 +7,7 @@ import {
     ImageInfoFull,
     ImageBase64,
     ImageFile,
-    RawSuitesRow
+    RawSuitesRow, TestStepCompressed
 } from '../../types';
 import {ReporterTestResult} from './index';
 import {Writable} from 'type-fest';
@@ -76,12 +76,12 @@ export class SqliteTestResultAdapter implements ReporterTestResult {
         return this._parsedTestResult.fullName as string;
     }
 
-    get history(): string[] {
+    get history(): TestStepCompressed[] {
         if (!_.has(this._parsedTestResult, 'history')) {
-            this._parsedTestResult.history = tryParseJson(this._testResult[DB_COLUMN_INDEXES.history]) as string[];
+            this._parsedTestResult.history = tryParseJson(this._testResult[DB_COLUMN_INDEXES.history]) as TestStepCompressed[];
         }
 
-        return this._parsedTestResult.history as string[];
+        return this._parsedTestResult.history as TestStepCompressed[];
     }
 
     get id(): string {

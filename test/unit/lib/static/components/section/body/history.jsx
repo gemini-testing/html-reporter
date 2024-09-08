@@ -4,6 +4,8 @@ import {defaultsDeep, set} from 'lodash';
 import History from 'lib/static/components/section/body/history';
 import {mkConnectedComponent} from '../../../utils';
 import userEvent from '@testing-library/user-event';
+import {mkTestStepCompressed} from '../../../../../utils';
+import {TestStepKey} from '@/types';
 
 describe('<History />', () => {
     const mkHistoryComponent = (props = {}, initialState = {}) => {
@@ -24,7 +26,9 @@ describe('<History />', () => {
 
     it('should render history if exists', async () => {
         const user = userEvent.setup();
-        const initialState = set({}, 'tree.results.byId.default-result.history', ['some-history']);
+        const initialState = set({}, 'tree.results.byId.default-result.history', [mkTestStepCompressed({
+            [TestStepKey.Name]: 'some-history'
+        })]);
 
         const component = mkHistoryComponent({resultId: 'default-result'}, initialState);
 
@@ -34,7 +38,9 @@ describe('<History />', () => {
     });
 
     it('should render with "History" title', () => {
-        const initialState = set({}, 'tree.results.byId.default-result.history', ['some-history']);
+        const initialState = set({}, 'tree.results.byId.default-result.history', [mkTestStepCompressed({
+            [TestStepKey.Name]: 'some-history'
+        })]);
 
         const component = mkHistoryComponent({resultId: 'default-result'}, initialState);
 

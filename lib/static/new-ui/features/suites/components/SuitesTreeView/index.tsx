@@ -28,7 +28,8 @@ import {
 } from '@/static/new-ui/features/suites/components/SuitesTreeView/selectors';
 import styles from './index.module.css';
 import {TestStatus} from '@/constants';
-import {TreeViewItemIcon} from '@/static/new-ui/features/suites/components/TreeViewItemIcon';
+import {TreeViewItemIcon} from '../../../../components/TreeViewItemIcon';
+import {getIconByStatus} from '@/static/new-ui/utils';
 
 interface SuitesTreeViewProps {
     treeViewItems: TreeViewItem<TreeViewSuiteData | TreeViewBrowserData>[];
@@ -104,10 +105,11 @@ function SuitesTreeViewInternal(props: SuitesTreeViewProps): ReactNode {
                 >
                     {virtualizedItems.map((virtualRow) => {
                         const item = list.structure.itemsById[virtualRow.key];
+                        const isSelected = item.fullTitle === props.currentSuiteId;
                         const classes = [
                             styles['tree-view__item'],
                             {
-                                [styles['tree-view__item--current']]: item.fullTitle === props.currentSuiteId,
+                                [styles['tree-view__item--current']]: isSelected,
                                 [styles['tree-view__item--browser']]: item.type === TreeViewItemType.Browser,
                                 [styles['tree-view__item--error']]: item.type === TreeViewItemType.Browser && (item.status === TestStatus.FAIL || item.status === TestStatus.ERROR)
                             }
@@ -128,9 +130,9 @@ function SuitesTreeViewInternal(props: SuitesTreeViewProps): ReactNode {
                                     onItemClick,
                                     mapItemDataToContentProps: (x) => {
                                         return {
-                                            startSlot: <TreeViewItemIcon status={x.status}/>,
-                                            title: <TreeViewItemTitle item={x}/>,
-                                            subtitle: <TreeViewItemSubtitle item={x} scrollContainerRef={parentRef}/>
+                                            startSlot: <TreeViewItemIcon>{getIconByStatus(x.status)}</TreeViewItemIcon>,
+                                            title: <TreeViewItemTitle item={x} className={isSelected ? styles['tree-view__item__title--current'] : ''} />,
+                                            subtitle: <TreeViewItemSubtitle item={x} className={isSelected ? styles['tree-view__item__error--current'] : ''} scrollContainerRef={parentRef}/>
                                         };
                                     }
                                 }).props}/>

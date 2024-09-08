@@ -1,0 +1,24 @@
+.step-content {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+}
+
+.step-args-wrapper {
+    display: flex;
+    min-width: 0;
+}
+
+.error-info {
+    color: red;
+    margin: 8px 0;
+}
+
+.step-duration {
+    margin-left: auto;
+    padding: 0 8px;
+    font-size: 14px;
+    line-height: 14px;
+    opacity: .4;
+    white-space: nowrap;
+}

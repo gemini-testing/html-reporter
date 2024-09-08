@@ -18,15 +18,15 @@
 }
 
 .attempt-picker-item--fail {
-    --g-button-background-color: #fce0ff;
-    --g-button-text-color: #bd1993;
-    --g-button-border-color: #bd1993;
+    --g-button-background-color: var(--color-pink-100);
+    --g-button-text-color: var(--color-pink-600);
+    --g-button-border-color: var(--color-pink-600);
 }
 
 .attempt-picker-item--fail_error {
-    --g-button-background-color: #fce0ff;
-    --g-button-text-color: #bd1993;
-    --g-button-border-color: #bd1993;
+    --g-button-background-color: var(--color-pink-100);
+    --g-button-text-color: var(--color-pink-600);
+    --g-button-border-color: var(--color-pink-600);
 }
 
 .attempt-picker-item--non-matched {

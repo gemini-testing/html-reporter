@@ -9,7 +9,7 @@ declare module 'tmp' {
     export const tmpdir: string;
 }
 
-export {Suite as TestplaneSuite} from 'testplane';
+export type {Suite as TestplaneSuite} from 'testplane';
 
 export interface HermioneTestResult extends TestResult {
     timestamp?: number;
@@ -279,4 +279,22 @@ export type LabeledSuitesRow = {
 export interface BrowserItem {
     id: string;
     versions: string[];
+}
+
+export enum TestStepKey {
+    Name = 'n',
+    Args = 'a',
+    Duration = 'd',
+    IsFailed = 'f',
+    Children = 'c',
+    IsGroup = 'g'
+}
+
+export interface TestStepCompressed {
+    [TestStepKey.Name]: string;
+    [TestStepKey.Args]: string[];
+    [TestStepKey.Duration]: number;
+    [TestStepKey.IsFailed]: boolean;
+    [TestStepKey.IsGroup]: boolean;
+    [TestStepKey.Children]?: TestStepCompressed[];
 }

@@ -18,6 +18,21 @@ export default (state: State, action: SuitesPageAction): State => {
                 }
             }) as State;
         }
+        case actionNames.SUITES_PAGE_SET_STEPS_EXPANDED: {
+            if (!action.payload.resultId) {
+                return state;
+            }
+
+            return applyStateUpdate(state, {
+                ui: {
+                    suitesPage: {
+                        expandedStepsByResultId: {
+                            [action.payload.resultId]: action.payload.expandedById
+                        }
+                    }
+                }
+            }) as State;
+        }
         default:
             return state;
     }

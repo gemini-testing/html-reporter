@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import {TestplaneTestResultAdapter} from '../test-result/testplane';
 import {DEFAULT_TITLE_DELIMITER, UNKNOWN_ATTEMPT} from '../../constants';
 
@@ -63,7 +64,7 @@ export class TestplaneTestAdapter implements TestAdapter {
             {key: 'meta', value: meta}
         ].forEach(({key, value}) => {
             if (value) {
-                test[key] = value;
+                _.set(test, key, value);
             }
         });
 

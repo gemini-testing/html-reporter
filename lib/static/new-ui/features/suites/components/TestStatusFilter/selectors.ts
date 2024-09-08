@@ -1,5 +1,6 @@
 import {createSelector} from 'reselect';
 import {getBrowsersState, getResults} from '@/static/new-ui/store/selectors';
+import {TestStatus} from '@/constants';
 
 export interface StatusCounts {
     success: number;
@@ -44,7 +45,8 @@ export const getStatusCounts = createSelector(
             idle: 0
         };
 
-        Object.values(latestAttempts).forEach(({status}) => {
+        Object.values(latestAttempts).forEach(({status: resultStatus}) => {
+            const status = resultStatus === TestStatus.ERROR ? 'fail' : resultStatus;
             if (Object.prototype.hasOwnProperty.call(counts, status)) {
                 counts[status as keyof StatusCounts]++;
             }

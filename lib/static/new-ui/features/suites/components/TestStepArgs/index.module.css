@@ -1,0 +1,37 @@
+.wrapper {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow: hidden;
+}
+
+.item {
+    white-space: nowrap;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: max-content;
+
+    border-radius: 4px;
+    font-size: 16px;
+    color: var(--g-color-private-black-400);
+    background-color: var(--g-color-base-generic);
+    margin-left: 8px;
+    padding: 0 4px;
+}
+
+.item--failed {
+    background: var(--g-color-private-red-50);
+    color: var(--g-color-private-red-500-solid);
+}
+
+.collapse-first {
+    flex-shrink: 0;
+    flex-grow: 1;
+    flex-basis: 0;
+    min-width: 0;
+}
+
+.collapse-second {
+    flex-shrink: 1;
+    flex-grow: 0;
+}
