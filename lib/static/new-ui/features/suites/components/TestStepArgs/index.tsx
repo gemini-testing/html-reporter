@@ -17,7 +17,7 @@ export function TestStepArgs(props: TestStepArgsProps): ReactNode {
         return <div className={classNames(styles.wrapper, styles.collapseFirst)}>
             <span className={classNames([styles.item, styles.collapseSecond, {
                 [styles['item--failed']]: props.isFailed
-            }])}>{props.args[index]}</span>
+            }])}>{props.args[index] ?? 'null'}</span>
             {renderItems(index + 1)}
         </div>;
     };

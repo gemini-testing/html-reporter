@@ -10,17 +10,18 @@ import {TestStepKey} from '@/types';
 
 const History = ({history}) => {
     function transformHistoryTreeToNestedArrays(item, level) {
-        item[TestStepKey.Name] = `${'\t'.repeat(level)}${item[TestStepKey.Name]}`;
+        const transformedItem = Object.assign({}, item);
+        transformedItem[TestStepKey.Name] = `${'\t'.repeat(level)}${transformedItem[TestStepKey.Name]}`;
 
-        if (item[TestStepKey.Args] && item[TestStepKey.Args].length > 0) {
-            item[TestStepKey.Name] += `(${item[TestStepKey.Args].map(arg => `"${arg}"`).join(', ')})`;
+        if (transformedItem[TestStepKey.Args] && transformedItem[TestStepKey.Args].length > 0) {
+            transformedItem[TestStepKey.Name] += `(${transformedItem[TestStepKey.Args].map(arg => `"${arg}"`).join(', ')})`;
         }
 
-        if (!item[TestStepKey.Children]) {
-            return item;
+        if (!transformedItem[TestStepKey.Children]) {
+            return transformedItem;
         }
 
-        return [item, ...item[TestStepKey.Children].map(childItem => transformHistoryTreeToNestedArrays(childItem, level + 1))];
+        return [transformedItem, ...transformedItem[TestStepKey.Children].map(childItem => transformHistoryTreeToNestedArrays(childItem, level + 1))];
     }
 
     const flatHistory = history.map(item => transformHistoryTreeToNestedArrays(item, 0)).flat(Infinity);

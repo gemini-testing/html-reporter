@@ -44,7 +44,7 @@ function SuitesPageInternal(props: SuitesPageProps): ReactNode {
                     <SuiteTitle className={styles['card__title']} />
                     <AttemptPicker onChange={(browserId, _, retryIndex): unknown => props.actions.changeTestRetry({browserId, retryIndex})} />
                 </div>
-                <CollapsibleSection title={'Overview'} body={props.currentResultId && <div className={styles['collapsible-section__body']}>
+                <CollapsibleSection className={styles['collapsible-section-overview']} title={'Overview'} body={props.currentResultId && <div className={styles['collapsible-section__body']}>
                     <MetaInfo resultId={props.currentResultId} />
                 </div>} id={'overview'}/>
                 <TestSteps />

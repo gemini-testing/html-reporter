@@ -37,14 +37,9 @@ function TestStepsInternal(props: TestStepsProps): ReactNode {
             expandedById: props.stepsExpandedById
         }
     });
-    console.log(items);
-    console.log(props.testSteps);
 
     const onItemClick = useCallback(({id}: {id: string}): void => {
         if (props.stepsExpandedById[id] === undefined) {
-            console.log('no such item with id');
-            console.log(id);
-
             return;
         }
 

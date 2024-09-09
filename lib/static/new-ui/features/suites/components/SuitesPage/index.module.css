@@ -11,13 +11,18 @@
     color: var(--color-link-hover);
 }
 
+.collapsible-section-overview {
+    margin-top: -4px;
+}
+
 .card {
     background-color: #fff;
     display: flex;
     flex-direction: column;
     margin: 10px;
-    padding: 15px 20px 20px;
     border-radius: 10px;
+    border: 20px solid white;
+    border-top: 15px solid white;
 }
 
 .card__title {
@@ -42,4 +47,5 @@
     position: sticky;
     top: 0;
     z-index: 1;
+    padding-bottom: 4px;
 }

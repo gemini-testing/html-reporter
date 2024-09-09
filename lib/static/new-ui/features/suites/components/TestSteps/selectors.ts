@@ -14,8 +14,6 @@ export const getTestSteps = createSelector(
             return [];
         }
 
-        console.log(result);
-
         const formatTestSteps = (steps: TestStepCompressed[], parentId?: string): ListTreeItemType<Step>[] => {
             return steps.map((step, index): ListTreeItemType<Step> => {
                 const formattedStep: ListTreeItemType<Step> = {

@@ -14,6 +14,7 @@ interface CollapsibleSectionProps {
     id: string;
     title: string;
     body: ReactNode;
+    className?: string;
 }
 
 interface CollapsibleSectionInternalProps extends CollapsibleSectionProps{
@@ -27,7 +28,7 @@ export function CollapsibleSectionInternal(props: CollapsibleSectionInternalProp
         props.actions.setSectionExpandedState({sectionId: props.sectionId, isExpanded: !props.expanded});
     };
 
-    return <Disclosure expanded={props.expanded} size={'l'} arrowPosition={'end'} key={props.sectionId}>
+    return <Disclosure expanded={props.expanded} size={'l'} arrowPosition={'end'} key={props.sectionId} className={props.className}>
         <Disclosure.Summary>
             {(): ReactElement => {
                 return <Flex gap={2} alignItems={'center'} onClick={onUpdateHandler} className={styles.summary}>

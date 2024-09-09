@@ -1,7 +1,8 @@
 .code {
     white-space: pre;
     font-family: monospace;
-    overflow: scroll;
+    overflow-x: scroll;
+    overflow-y: hidden;
     background: #101827;
     border-radius: 5px;
     border: 12px solid #101827;
