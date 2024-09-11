@@ -53,7 +53,6 @@ function TestStepsInternal(props: TestStepsProps): ReactNode {
         <ListContainerView>
             {items.structure.visibleFlattenIds.map(itemId => {
                 const item = items.structure.itemsById[itemId];
-                // const isLeaf = items.state.expandedById?.[itemId] === undefined;
 
                 if (item.type === StepType.Action) {
                     const shouldHighlightFail = item.status === TestStatus.ERROR && !item.isGroup;

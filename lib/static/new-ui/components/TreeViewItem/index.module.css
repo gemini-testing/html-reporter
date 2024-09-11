@@ -19,10 +19,7 @@
 }
 
 .tree-view-item--error {
+    --g-color-base-simple-hover: var(--g-color-private-red-50);
     background: var(--g-color-private-red-100);
     color: var(--g-color-private-red-600-solid);
-}
-
-.tree-view-item--error:hover {
-    background: var(--g-color-private-red-50) !important;
 }

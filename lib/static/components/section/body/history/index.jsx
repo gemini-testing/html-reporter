@@ -13,15 +13,16 @@ const History = ({history}) => {
         const transformedItem = Object.assign({}, item);
         transformedItem[TestStepKey.Name] = `${'\t'.repeat(level)}${transformedItem[TestStepKey.Name]}`;
 
-        if (transformedItem[TestStepKey.Args] && transformedItem[TestStepKey.Args].length > 0) {
-            transformedItem[TestStepKey.Name] += `(${transformedItem[TestStepKey.Args].map(arg => `"${arg}"`).join(', ')})`;
+        const stepArgs = transformedItem[TestStepKey.Args];
+        if (stepArgs && stepArgs.length > 0) {
+            transformedItem[TestStepKey.Name] += `(${stepArgs.map(arg => `"${arg}"`).join(', ')})`;
         }
 
         if (!transformedItem[TestStepKey.Children]) {
-            return transformedItem;
+            return [transformedItem];
         }
 
-        return [transformedItem, ...transformedItem[TestStepKey.Children].map(childItem => transformHistoryTreeToNestedArrays(childItem, level + 1))];
+        return [transformedItem].concat(transformedItem[TestStepKey.Children].map(childItem => transformHistoryTreeToNestedArrays(childItem, level + 1)));
     }
 
     const flatHistory = history.map(item => transformHistoryTreeToNestedArrays(item, 0)).flat(Infinity);

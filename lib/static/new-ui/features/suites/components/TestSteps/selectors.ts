@@ -63,7 +63,7 @@ export const getTestSteps = createSelector(
             };
 
             if (lastErroredStep && lastErroredStep.children && lastErroredStep.children.length > 0) {
-                lastErroredStep.children.unshift({
+                lastErroredStep.children.push({
                     id: `${lastErroredStep.id} error`,
                     data: {
                         type: StepType.Attachment,
