@@ -4,6 +4,7 @@ const _ = require('lodash');
 const EventEmitter2 = require('eventemitter2');
 const {HtmlReporter} = require('lib/plugin-api');
 const {ToolName} = require('lib/constants');
+const {TestStepKey} = require('@/types');
 
 function stubConfig(config = {}) {
     const browsers = config.browsers || {};
@@ -167,6 +168,16 @@ function mkFormattedTest(result) {
     });
 }
 
+const mkTestStepCompressed = (step) => {
+    return _.defaults(step, {
+        [TestStepKey.Name]: 'some-name',
+        [TestStepKey.Duration]: 100,
+        [TestStepKey.Args]: [],
+        [TestStepKey.IsGroup]: false,
+        [TestStepKey.IsFailed]: false
+    });
+};
+
 class NoRefImageError extends Error {
     name = 'NoRefImageError';
 }
@@ -200,5 +211,6 @@ module.exports = {
     mkStorage,
     mkFormattedTest,
     NoRefImageError,
-    ImageDiffError
+    ImageDiffError,
+    mkTestStepCompressed
 };

@@ -19,6 +19,11 @@
   font-style: normal;
 }
 
+:root {
+    --color-pink-100: #fce0ff;
+    --color-pink-600: #be00ffbf;
+}
+
 .report {
     font: 15px YS Text, Helvetica Neue, Arial, sans-serif;
     line-height: 15px;

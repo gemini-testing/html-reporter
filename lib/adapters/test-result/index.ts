@@ -1,5 +1,5 @@
 import {TestStatus} from '../../constants';
-import {ErrorDetails, ImageBase64, ImageFile, ImageInfoFull, TestError} from '../../types';
+import {ErrorDetails, ImageBase64, ImageFile, ImageInfoFull, TestError, TestStepCompressed} from '../../types';
 
 export interface ReporterTestResult {
     readonly attempt: number;
@@ -9,7 +9,7 @@ export interface ReporterTestResult {
     readonly errorDetails: ErrorDetails | null;
     readonly file: string;
     readonly fullName: string;
-    readonly history: string[];
+    readonly history: TestStepCompressed[];
     readonly id: string;
     readonly imageDir: string;
     readonly imagesInfo: ImageInfoFull[];

@@ -21,6 +21,7 @@ sqlite.db
 .DS_Store
 .nyc_output
 tmp
+**/.testplane
 
 **/playwright-report
 hermione-report

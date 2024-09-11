@@ -4,7 +4,6 @@ import type Testplane from 'testplane';
 import type {Test as TestplaneTest} from 'testplane';
 import {ValueOf} from 'type-fest';
 
-import {getCommandsHistory} from '../../history-utils';
 import {ERROR, FAIL, SUCCESS, TestStatus, UNKNOWN_SESSION_ID, UPDATED} from '../../constants';
 import {getError, hasUnrelatedToScreenshotsErrors, isImageDiffError, isNoRefImageError, wrapLinkByTag} from '../../common-utils';
 import {
@@ -20,7 +19,7 @@ import {
     ImageInfoPageSuccess,
     ImageInfoSuccess,
     ImageInfoUpdated,
-    TestError
+    TestError, TestStepCompressed, TestStepKey
 } from '../../types';
 import {ReporterTestResult} from './index';
 import {getSuitePath} from '../../plugin-utils';
@@ -45,6 +44,24 @@ const getSkipComment = (suite: TestplaneTestResult | TestplaneSuite): string | n
 
 const wrapSkipComment = (skipComment: string | null | undefined): string => {
     return skipComment ? wrapLinkByTag(skipComment) : 'Unknown reason';
+};
+
+const getHistory = (history?: TestplaneTestResult['history']): TestStepCompressed[] => {
+    return history?.map(h => {
+        const result: TestStepCompressed = {
+            [TestStepKey.Name]: h[TestStepKey.Name],
+            [TestStepKey.Args]: h[TestStepKey.Args],
+            [TestStepKey.Duration]: h[TestStepKey.Duration],
+            [TestStepKey.IsFailed]: h[TestStepKey.IsFailed],
+            [TestStepKey.IsGroup]: h[TestStepKey.IsGroup]
+        };
+
+        if (h[TestStepKey.Children] && h[TestStepKey.IsFailed]) {
+            result[TestStepKey.Children] = getHistory(h[TestStepKey.Children]);
+        }
+
+        return result;
+    }) ?? [];
 };
 
 export interface TestplaneTestResultAdapterOptions {
@@ -163,8 +180,8 @@ export class TestplaneTestResultAdapter implements ReporterTestResult {
         return this._attempt;
     }
 
-    get history(): string[] {
-        return getCommandsHistory((this._testResult as TestplaneTestResult).history) as string[];
+    get history(): TestStepCompressed[] {
+        return getHistory((this._testResult as TestplaneTestResult).history);
     }
 
     get error(): undefined | TestError {

@@ -98,7 +98,8 @@ export default Object.assign({config: configDefaults}, {
     },
     ui: {
         suitesPage: {
-            expandedSectionsById: {}
+            expandedSectionsById: {},
+            expandedStepsByResultId: {}
         }
     }
 }) satisfies State;
