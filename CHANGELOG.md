@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.6.8"></a>
+## [10.6.8](https://github.com/gemini-testing/html-reporter/compare/v10.6.7...v10.6.8) (2024-09-13)
+
+
+### Bug Fixes
+
+* **gui:** wrong base url for tests in gui mode ([82a9e7a](https://github.com/gemini-testing/html-reporter/commit/82a9e7a))
+
+
+
 <a name="10.6.7"></a>
 ## [10.6.7](https://github.com/gemini-testing/html-reporter/compare/v10.6.6...v10.6.7) (2024-08-29)
 
