@@ -65,7 +65,7 @@ function MetaInfoInternal(props: MetaInfoInternalProps): ReactNode {
 
     const metaInfoItemsWithResolvedUrls = metaInfoItems.map((item) => {
         if (item.label === 'url' || metaInfoBaseUrls[item.label] === 'auto') {
-            const url = getUrlWithBase(getRelativeUrl(item.content), baseHost);
+            const url = getUrlWithBase(item.content, baseHost);
             return {
                 label: item.label,
                 content: getRelativeUrl(item.content),
@@ -105,7 +105,7 @@ function MetaInfoInternal(props: MetaInfoInternalProps): ReactNode {
         metaInfoItemsWithResolvedUrls.push({
             label: 'url',
             content: getRelativeUrl(result.suiteUrl),
-            url: getUrlWithBase(getRelativeUrl(result.suiteUrl), baseHost)
+            url: getUrlWithBase(result.suiteUrl, baseHost)
         });
     }
 

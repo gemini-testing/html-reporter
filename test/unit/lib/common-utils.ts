@@ -38,9 +38,9 @@ describe('common-utils', () => {
         });
 
         it('should work without baseUrl', () => {
-            const result = getUrlWithBase('some-url', '');
+            const result = getUrlWithBase('http://some-url.com/path', '');
 
-            assert.equal(result, 'some-url');
+            assert.equal(result, 'http://some-url.com/path');
         });
     });
 

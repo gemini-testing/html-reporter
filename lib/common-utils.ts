@@ -71,22 +71,24 @@ export const determineFinalStatus = (statuses: TestStatus[]): TestStatus | null 
 };
 
 export const getUrlWithBase = (url: string | undefined, base: string | undefined): string => {
+    if (isEmpty(base)) {
+        return url ?? '';
+    }
+
     try {
         const userUrl = new URL(url ?? '', base);
 
-        // Manually overriding properties, because if url is absolute, the above won't work
-        if (!isEmpty(base)) {
-            const baseUrl = new URL(base as string);
+        // Manually overriding properties, because if userUrl is absolute, the above won't work
+        const baseUrl = new URL(base as string);
 
-            userUrl.host = baseUrl.host;
-            userUrl.protocol = baseUrl.protocol;
-            userUrl.port = baseUrl.port;
-            userUrl.username = baseUrl.username;
-            userUrl.password = baseUrl.password;
+        userUrl.host = baseUrl.host;
+        userUrl.protocol = baseUrl.protocol;
+        userUrl.port = baseUrl.port;
+        userUrl.username = baseUrl.username;
+        userUrl.password = baseUrl.password;
 
-            for (const [key, value] of baseUrl.searchParams) {
-                userUrl.searchParams.append(key, value);
-            }
+        for (const [key, value] of baseUrl.searchParams) {
+            userUrl.searchParams.append(key, value);
         }
 
         return userUrl.href;
