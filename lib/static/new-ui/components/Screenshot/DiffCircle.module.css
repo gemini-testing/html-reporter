@@ -1,0 +1,13 @@
+.diff-circle {
+    position: fixed;
+    border-radius: 50%;
+    z-index: 9999999;
+    opacity: 0.3;
+    background-color: #FF00FF;
+}
+
+@keyframes :global(diff-bubbles) {
+    100% {
+        transform: scale(var(--diff-bubbles-scale))
+    }
+}

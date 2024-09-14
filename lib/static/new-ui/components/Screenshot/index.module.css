@@ -1,0 +1,13 @@
+.container {
+    position: relative;
+    display: inline-flex;
+}
+
+.container--clickable {
+    cursor: pointer;
+}
+
+.image {
+    box-shadow: 0 0 0 1px #ccc;
+    max-width: 100%;
+}

@@ -6,7 +6,7 @@ import {mkConnectedComponent} from '../../../utils';
 
 describe('<ScreenshotAccepterBody/>', () => {
     const sandbox = sinon.sandbox.create();
-    let ScreenshotAccepterBody, ResizedScreenshot, StateFail;
+    let ScreenshotAccepterBody, Screenshot, StateFail;
 
     const mkBrowser = (opts) => {
         const browser = defaults(opts, {
@@ -55,11 +55,11 @@ describe('<ScreenshotAccepterBody/>', () => {
     };
 
     beforeEach(() => {
-        ResizedScreenshot = sandbox.stub().returns(null);
+        Screenshot = sandbox.stub().returns(null);
         StateFail = sandbox.stub().returns(null);
 
         ScreenshotAccepterBody = proxyquire('lib/static/components/modals/screenshot-accepter/body', {
-            '../../state/screenshot/resized': {default: ResizedScreenshot},
+            '@/static/new-ui/components/Screenshot': {Screenshot},
             '../../state/state-fail': {default: StateFail}
         }).default;
     });
@@ -104,7 +104,7 @@ describe('<ScreenshotAccepterBody/>', () => {
 
             mkBodyComponent({image}, {tree});
 
-            assert.calledOnceWith(ResizedScreenshot, {image: image.actualImg});
+            assert.calledOnceWith(Screenshot, {size: image.actualImg.size, src: image.actualImg.path});
         });
 
         it('should contain description only for actual image', () => {

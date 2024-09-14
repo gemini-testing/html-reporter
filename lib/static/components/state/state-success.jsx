@@ -2,8 +2,8 @@
 
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import ResizedScreenshot from './screenshot/resized';
 import {isUpdatedStatus} from '../../../common-utils';
+import {Screenshot} from '@/static/new-ui/components/Screenshot';
 
 export default class StateSuccess extends Component {
     static propTypes = {
@@ -15,9 +15,7 @@ export default class StateSuccess extends Component {
         const {status, expectedImg} = this.props;
 
         return (
-            <div className="image-box__image">
-                <ResizedScreenshot noCache={isUpdatedStatus(status)} image={expectedImg}/>
-            </div>
+            <Screenshot disableCache={isUpdatedStatus(status)} src={expectedImg.path} size={expectedImg.size} />
         );
     }
 }

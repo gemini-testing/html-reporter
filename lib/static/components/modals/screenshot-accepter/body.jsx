@@ -1,10 +1,10 @@
 import React, {Component, Fragment} from 'react';
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
-import ResizedScreenshot from '../../state/screenshot/resized';
 import StateFail from '../../state/state-fail';
 import {isNoRefImageError} from '../../../../common-utils';
 import ViewInBrowserIcon from '../../icons/view-in-browser';
+import {Screenshot} from '@/static/new-ui/components/Screenshot';
 
 class ScreenshotAccepterBody extends Component {
     static propTypes = {
@@ -36,11 +36,7 @@ class ScreenshotAccepterBody extends Component {
     }
 
     _renderImageBox(image) {
-        return (
-            <div className="image-box__image">
-                <ResizedScreenshot image={image} />
-            </div>
-        );
+        return <Screenshot src={image.path} size={image.size} />;
     }
 
     _renderTitle() {

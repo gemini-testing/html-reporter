@@ -1,0 +1,14 @@
+.side-by-side-to-fit-mode {
+    display: flex;
+    justify-content: space-between;
+}
+
+.image-wrapper {
+    flex: var(--natural-width) 0 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.image {
+    max-height: max(var(--desired-height), calc(var(--natural-height) * 1px / 2));
+}
