@@ -1,6 +1,6 @@
 .container {
     position: relative;
-    display: inline-flex;
+    /*display: inline-flex;*/
 }
 
 .container--clickable {
@@ -8,6 +8,8 @@
 }
 
 .image {
+    aspect-ratio: var(--natural-width) / var(--natural-height);
     box-shadow: 0 0 0 1px #ccc;
-    max-width: 100%;
+    max-width: calc(var(--natural-width) * 1px);
+    width: 100%;
 }

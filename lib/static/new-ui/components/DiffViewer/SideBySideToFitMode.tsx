@@ -3,6 +3,7 @@ import {Screenshot} from '@/static/new-ui/components/Screenshot';
 
 import styles from './SideBySideToFitMode.module.css';
 import {ScreenshotDisplayData} from './types';
+import {getImageSizeCssVars} from '@/static/new-ui/components/DiffViewer/utils';
 
 interface SideBySideToFitModeProps {
     actual: ScreenshotDisplayData;
@@ -16,18 +17,20 @@ interface SideBySideToFitModeProps {
 }
 
 export function SideBySideToFitMode(props: SideBySideToFitModeProps): ReactNode {
+    const {expected, actual, diff} = props;
+
     return <div className={styles.sideBySideToFitMode} style={{'--desired-height': props.desiredHeight} as React.CSSProperties}>
-        <div className={styles.imageWrapper}>
-            {props.expected.label}
-            <Screenshot imageClassName={styles.image} image={props.expected} />
+        <div className={styles.imageWrapper} style={getImageSizeCssVars(expected.size)}>
+            {expected.label}
+            <Screenshot imageClassName={styles.image} image={expected} />
         </div>
-        <div className={styles.imageWrapper}>
-            {props.actual.label}
-            <Screenshot imageClassName={styles.image} image={props.actual} />
+        <div className={styles.imageWrapper} style={getImageSizeCssVars(actual.size)}>
+            {actual.label}
+            <Screenshot imageClassName={styles.image} image={actual} />
         </div>
-        <div className={styles.imageWrapper}>
-            {props.diff.label}
-            <Screenshot imageClassName={styles.image} image={props.diff} diffClusters={props.diff.diffClusters}/>
+        <div className={styles.imageWrapper} style={getImageSizeCssVars(diff.size)}>
+            {diff.label}
+            <Screenshot imageClassName={styles.image} image={diff} diffClusters={diff.diffClusters}/>
         </div>
     </div>;
 }
