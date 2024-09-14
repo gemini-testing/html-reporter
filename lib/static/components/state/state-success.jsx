@@ -15,7 +15,7 @@ export default class StateSuccess extends Component {
         const {status, expectedImg} = this.props;
 
         return (
-            <Screenshot disableCache={isUpdatedStatus(status)} src={expectedImg.path} size={expectedImg.size} />
+            <Screenshot disableCache={isUpdatedStatus(status)} image={expectedImg} />
         );
     }
 }

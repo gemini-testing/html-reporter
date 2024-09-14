@@ -36,7 +36,7 @@ class ScreenshotAccepterBody extends Component {
     }
 
     _renderImageBox(image) {
-        return <Screenshot src={image.path} size={image.size} />;
+        return <Screenshot image={image} />;
     }
 
     _renderTitle() {

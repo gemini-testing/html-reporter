@@ -15,9 +15,11 @@ interface ScreenshotProps {
     diffClusters?: CoordBounds[];
     /** When cache is disabled, current timestamp is added to image src to prevent it from caching. */
     disableCache?: boolean;
-    /** URL or path to the image. Local paths will be automatically encoded. */
-    src: string;
-    size?: ImageSize;
+    image: {
+        /** URL or path to the image. Local paths will be automatically encoded. */
+        path: string;
+        size?: ImageSize;
+    };
     style?: React.CSSProperties;
 }
 
@@ -35,29 +37,31 @@ export function Screenshot(props: ScreenshotProps): ReactNode {
         }
     }, [circlesRef]);
 
-    const encodedImageSrc = encodePathSegments(props.src);
+    const {image} = props;
+
+    const encodedImageSrc = encodePathSegments(image.path);
     const imageSrc = props.disableCache ? addTimestamp(encodedImageSrc) : encodedImageSrc;
 
     const containerClassName = classNames(styles.container, props.containerClassName, {
         [styles['container--clickable']]: props.diffClusters?.length
     });
     const containerStyle: React.CSSProperties = Object.assign({}, props.containerStyle);
-    if (props.size) {
+    if (image.size) {
         type CSSProperty = 'width';
-        containerStyle['--natural-width' as CSSProperty] = props.size.width;
-        containerStyle['--natural-height' as CSSProperty] = props.size.height;
+        containerStyle['--natural-width' as CSSProperty] = image.size.width;
+        containerStyle['--natural-height' as CSSProperty] = image.size.height;
     }
 
     const imageClassName = classNames(styles.image, props.imageClassName);
     const imageStyle: React.CSSProperties = Object.assign({}, props.style);
-    if (props.size) {
-        imageStyle.aspectRatio = `${props.size.width} / ${props.size.height} auto`;
+    if (image.size) {
+        imageStyle.aspectRatio = `${image.size.width} / ${image.size.height} auto`;
     }
 
     return <div className={containerClassName} onClick={handleDiffClick} style={containerStyle}>
         <img className={imageClassName} src={imageSrc} ref={imageRef} style={imageStyle}/>
-        {props.diffClusters?.length && props.diffClusters.map((c, id) => props.size && createPortal(<DiffCircle
-            diffImageOriginalSize={props.size}
+        {props.diffClusters?.length && props.diffClusters.map((c, id) => image.size && createPortal(<DiffCircle
+            diffImageOriginalSize={image.size}
             diffImageRef={imageRef}
             diffCluster={c}
             ref={(handle): void => {

@@ -4,7 +4,7 @@ import {Screenshot} from '@/static/new-ui/components/Screenshot';
 
 describe('"FullScreenshot" component', () => {
     it('should encode symbols in path', () => {
-        const screenshotComponent = render(<Screenshot src='images/$/path' />);
+        const screenshotComponent = render(<Screenshot image={{path: 'images/$/path'}} />);
 
         const image = screenshotComponent.getByRole('img') as HTMLImageElement;
 
@@ -12,7 +12,7 @@ describe('"FullScreenshot" component', () => {
     });
 
     it('should replace backslashes with slashes for screenshots', () => {
-        const screenshotComponent = render(<Screenshot src='images\path' />);
+        const screenshotComponent = render(<Screenshot image={{path: 'images\\path'}} />);
 
         const image = screenshotComponent.getByRole('img') as HTMLImageElement;
 

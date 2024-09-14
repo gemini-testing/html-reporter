@@ -52,7 +52,7 @@ class StateError extends Component {
         const {image, error} = this.props;
 
         if (image.actualImg && isNoRefImageError(error)) {
-            return <Screenshot src={image.actualImg.path} size={image.actualImg.size} />;
+            return <Screenshot image={image.actualImg} />;
         }
 
         return null;

@@ -14,15 +14,15 @@ export function ListMode(props: SideBySideToFitModeProps): ReactNode {
     return <div className={styles.listMode}>
         <div>
             {props.expected.label}
-            <Screenshot src={props.expected.path} size={props.expected.size}/>
+            <Screenshot image={props.expected} />
         </div>
         <div>
             {props.actual.label}
-            <Screenshot src={props.actual.path} size={props.actual.size}/>
+            <Screenshot image={props.actual} />
         </div>
         <div>
             {props.diff.label}
-            <Screenshot src={props.diff.path} size={props.diff.size} diffClusters={props.diff.diffClusters}/>
+            <Screenshot image={props.diff} diffClusters={props.diff.diffClusters}/>
         </div>
     </div>;
 }

@@ -11,7 +11,7 @@ export class PageScreenshot extends Component<PageScreenshotProps> {
     render(): JSX.Element {
         return <Details
             title="Page screenshot"
-            content={(): JSX.Element => <Screenshot src={this.props.image.path} size={this.props.image.size}/>}
+            content={(): JSX.Element => <Screenshot image={this.props.image} />}
         />;
     }
 }

@@ -23,13 +23,12 @@ export function OnionSkinMode(props: OnionSkinModeProps): ReactNode {
     };
 
     const wrapperStyle = {'--max-natural-width': maxNaturalWidth, '--max-natural-height': maxNaturalHeight} as React.CSSProperties;
-    const leftImageStyle = {'--natural-height': expected.size.height, '--natural-width': expected.size.width} as React.CSSProperties;
-    const rightImageStyle = {'--natural-height': actual.size.height, '--natural-width': actual.size.width, opacity: rightImageOpacity} as React.CSSProperties;
+    const actualImageStyle: React.CSSProperties = {opacity: rightImageOpacity};
 
     return <div style={wrapperStyle}>
         <div className={styles.imagesContainer}>
-            <Screenshot containerClassName={styles.imageWrapper} imageClassName={styles.image} src={expected.path} containerStyle={leftImageStyle}/>
-            <Screenshot containerClassName={classNames(styles.imageWrapper, styles.rightImageWrapper)} imageClassName={styles.image} src={actual.path} containerStyle={rightImageStyle}/>
+            <Screenshot containerClassName={styles.imageWrapper} imageClassName={styles.image} image={expected} />
+            <Screenshot containerClassName={classNames(styles.imageWrapper, styles.rightImageWrapper)} imageClassName={styles.image} image={actual} style={actualImageStyle} />
         </div>
         <div className={styles.sliderContainer}>
             <Slider className={styles.slider} min={0} max={1} step={0.01} value={rightImageOpacity} onUpdate={onUpdateHandler} />

@@ -104,7 +104,7 @@ describe('<ScreenshotAccepterBody/>', () => {
 
             mkBodyComponent({image}, {tree});
 
-            assert.calledOnceWith(Screenshot, {size: image.actualImg.size, src: image.actualImg.path});
+            assert.calledOnceWith(Screenshot, {image: image.actualImg});
         });
 
         it('should contain description only for actual image', () => {

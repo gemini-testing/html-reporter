@@ -15,20 +15,20 @@ export function SwitchMode(props: SwitchModeProps): ReactNode {
     const maxNaturalWidth = Math.max(expected.size.width, actual.size.width);
     const maxNaturalHeight = Math.max(expected.size.height, actual.size.height);
 
-    const [showLeft, setShowLeft] = useState(true);
-    const rightImageVisibility = showLeft ? 'visible' : 'hidden';
-    const leftImageVisibility = !showLeft ? 'visible' : 'hidden';
+    const [showExpected, setShowExpected] = useState(true);
+    const actualImageVisibility = showExpected ? 'visible' : 'hidden';
+    const expectedImageVisibility = !showExpected ? 'visible' : 'hidden';
 
     const onClickHandler = (): void=> {
-        setShowLeft(!showLeft);
+        setShowExpected(!showExpected);
     };
 
     const wrapperStyle = {'--max-natural-width': maxNaturalWidth, '--max-natural-height': maxNaturalHeight} as React.CSSProperties;
-    const leftImageStyle = {'--natural-height': expected.size.height, '--natural-width': expected.size.width, visibility: leftImageVisibility} as React.CSSProperties;
-    const rightImageStyle = {'--natural-height': actual.size.height, '--natural-width': actual.size.width, visibility: rightImageVisibility} as React.CSSProperties;
+    const expectedImageStyle: React.CSSProperties = {visibility: expectedImageVisibility};
+    const actualImageStyle: React.CSSProperties = {visibility: actualImageVisibility};
 
     return <div className={styles.switchMode} onClick={onClickHandler} style={wrapperStyle}>
-        <Screenshot containerClassName={styles.imageWrapper} imageClassName={styles.image} src={expected.path} containerStyle={leftImageStyle}/>
-        <Screenshot containerClassName={classNames(styles.imageWrapper, styles.rightImageWrapper)} imageClassName={styles.image} src={actual.path} containerStyle={rightImageStyle}/>
+        <Screenshot containerClassName={styles.imageWrapper} imageClassName={styles.image} image={expected} containerStyle={expectedImageStyle} />
+        <Screenshot containerClassName={classNames(styles.imageWrapper, styles.rightImageWrapper)} imageClassName={styles.image} image={actual} containerStyle={actualImageStyle} />
     </div>;
 }

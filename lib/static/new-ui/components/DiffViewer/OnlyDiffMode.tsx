@@ -8,5 +8,5 @@ interface OnlyDiffModeProps {
 }
 
 export function OnlyDiffMode(props: OnlyDiffModeProps): ReactNode {
-    return <Screenshot src={props.diff.path} size={props.diff.size} diffClusters={props.diff.diffClusters} />;
+    return <Screenshot image={props.diff} diffClusters={props.diff.diffClusters} />;
 }
