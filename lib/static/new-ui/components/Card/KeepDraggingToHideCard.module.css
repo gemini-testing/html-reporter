@@ -1,0 +1,48 @@
+
+@keyframes appear {
+    0% { opacity: 0; visibility: hidden; }
+    100% { opacity: 1; visibility: visible; }
+}
+
+.overlay-container {
+    align-items: center;
+    background: #9176ffa9;
+    box-shadow: inset 0 0 0 4px #9176ff;
+    display: flex;
+    height: 100%;
+    justify-content: center;
+    opacity: 0;
+    overflow: hidden;
+    position: absolute;
+    top: 0;
+    transition: opacity .5s ease, visibility .5s ease;
+    width: 100%;
+    visibility: hidden;
+    z-index: 999;
+}
+
+@keyframes overlay-pulse {
+    0% { box-shadow: inset 0 0 0 0 #9176ff; }
+    95% { box-shadow: inset 0 0 0 30px #9176ff; }
+    100% {  opacity: 0; }
+}
+
+.pulsing {
+    animation: overlay-pulse 2s ease infinite;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+@container (max-width: 400px) {
+    :global(.is-resizing) .overlay-container {
+        visibility: visible;
+        opacity: 1;
+    }
+}
+
+.hint {
+    font-size: 18px;
+    color: white;
+    font-weight: 500;
+}

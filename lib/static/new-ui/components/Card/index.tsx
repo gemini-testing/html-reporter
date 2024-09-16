@@ -9,5 +9,9 @@ interface CardProps {
 }
 
 export function Card(props: CardProps): React.ReactNode {
-    return <div className={classNames(styles.card, props.className)}>{props.children}</div>;
+    return <div className={styles.wrapper}>
+        <div className={classNames(styles.commonCard, styles.card, props.className)}>
+            {props.children}
+        </div>
+    </div>;
 }
