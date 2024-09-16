@@ -1,6 +1,7 @@
 import {DiffModeId, TestStatus, ViewMode} from '@/constants';
 import {BrowserItem, ImageFile, ReporterConfig, TestError, TestStepCompressed} from '@/types';
 import {HtmlReporterValues} from '@/plugin-api';
+import {CoordBounds} from 'looks-same';
 
 export interface SuiteEntityNode {
     id: string;
@@ -56,22 +57,35 @@ interface ImageEntityCommon {
     parentId: string;
 }
 
+export interface ImageEntitySuccess extends ImageEntityCommon {
+    status: TestStatus.SUCCESS;
+    stateName: string;
+    expectedImg: ImageFile;
+}
+
+export interface ImageEntityUpdated extends ImageEntityCommon {
+    status: TestStatus.UPDATED;
+    stateName: string;
+    expectedImg: ImageFile;
+}
+
 export interface ImageEntityError extends ImageEntityCommon {
     status: TestStatus.ERROR;
-    // TODO: can a screenshot in error status even have stateName?
     stateName?: string;
     actualImg: ImageFile;
+    error?: TestError;
 }
 
 export interface ImageEntityFail extends ImageEntityCommon {
     status: TestStatus.FAIL;
     stateName: string;
+    diffClusters: CoordBounds[];
     diffImg: ImageFile;
     actualImg: ImageFile;
     expectedImg: ImageFile;
 }
 
-export type ImageEntity = ImageEntityError | ImageEntityFail;
+export type ImageEntity = ImageEntityError | ImageEntityFail | ImageEntitySuccess | ImageEntityUpdated;
 
 export const isImageEntityFail = (image: ImageEntity): image is ImageEntityFail => Boolean((image as ImageEntityFail).stateName);
 

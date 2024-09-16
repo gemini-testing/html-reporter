@@ -42,3 +42,9 @@ export const getExpandedStepsById = (state: State): Record<string, boolean> => {
 
     return resultId ? state.ui.suitesPage.expandedStepsByResultId[resultId] ?? {} : {};
 };
+
+export const getCurrentResultImages = (state: State): ImageEntity[] => {
+    const result = getCurrentResult(state);
+
+    return result?.imageIds.map(imageId => state.tree.images.byId[imageId]) ?? [];
+};

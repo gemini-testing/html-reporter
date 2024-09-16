@@ -979,6 +979,6 @@ a:active {
     color: var(--g-color-private-cool-grey-600-solid);
 }
 
-.icon-retry {
+.icon-retry, .icon-updated {
     color: var(--g-color-private-orange-600-solid);
 }
