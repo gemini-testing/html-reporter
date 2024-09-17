@@ -1,0 +1,43 @@
+.divider {
+    cursor: col-resize;
+    background-color: #000;
+    height: 100%;
+    position: relative;
+    width: 1px;
+    z-index: 2;
+}
+
+.divider-icons {
+    display: flex;
+    gap: 10px;
+    left: 50%;
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(1.2);
+    transition: .3s opacity ease;
+}
+
+.is-dragging {
+    cursor: col-resize;
+}
+
+.is-dragging .divider-icons {
+    opacity: 0;
+}
+
+.image {
+    max-width: none;
+    pointer-events: none;
+    width: auto;
+}
+
+.left-section {
+    background-color: white;
+    max-width: fit-content;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.right-section {
+    position: absolute;
+}

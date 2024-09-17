@@ -26,7 +26,7 @@ const hideHeader = async (browser) => {
 
 const hideScreenshots = async (browser) => {
     await browser.execute(() => {
-        document.querySelectorAll('.image-box__image').forEach(el => {
+        document.querySelectorAll('.image-box__container').forEach(el => {
             el.style.display = 'none';
         });
     });

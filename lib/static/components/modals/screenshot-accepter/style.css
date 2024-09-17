@@ -136,6 +136,9 @@
     padding-left: 15px;
     padding-right: 15px;
     margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
 .screenshot-accepter__body .screenshot-accepter__icon_view-in-browser {

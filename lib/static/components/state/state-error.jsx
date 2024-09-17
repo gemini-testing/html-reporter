@@ -10,12 +10,12 @@ import escapeHtml from 'escape-html';
 import ansiHtml from 'ansi-html-community';
 import stripAnsi from 'strip-ansi';
 import * as actions from '../../modules/actions';
-import ResizedScreenshot from './screenshot/resized';
 import ErrorDetails from './error-details';
 import Details from '../details';
 import {ERROR_TITLE_TEXT_LENGTH} from '../../../constants/errors';
 import {isAssertViewError, isImageDiffError, isNoRefImageError, mergeSnippetIntoErrorStack, trimArray} from '../../../common-utils';
 import {Card} from '@gravity-ui/uikit';
+import {Screenshot} from '@/static/new-ui/components/Screenshot';
 
 ansiHtml.setColors({
     reset: ['#', '#'],
@@ -52,7 +52,7 @@ class StateError extends Component {
         const {image, error} = this.props;
 
         if (image.actualImg && isNoRefImageError(error)) {
-            return <ResizedScreenshot image={image.actualImg} />;
+            return <Screenshot image={image.actualImg} />;
         }
 
         return null;
@@ -122,7 +122,7 @@ class StateError extends Component {
             : {...error, message: `${errorPattern.name}\n${error?.message}`, hint: () => parseHtmlString(errorPattern.hint)};
 
         return (
-            <div className="image-box__image image-box__image_single">
+            <div>
                 {
                     this._shouldDrawErrorInfo(extendedError)
                         ? <Card

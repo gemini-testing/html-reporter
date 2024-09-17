@@ -3,7 +3,8 @@ const chai = require('chai');
 const Promise = require('bluebird');
 
 require('jsdom-global')(``, {
-    url: 'http://localhost'
+    url: 'http://localhost',
+    pretendToBeVisual: true
 });
 
 Promise.config({longStackTraces: true});

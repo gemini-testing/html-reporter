@@ -1,4 +1,4 @@
-import {TestStatus, ViewMode} from '@/constants';
+import {DiffModeId, TestStatus, ViewMode} from '@/constants';
 import {BrowserItem, ImageFile, ReporterConfig, TestError, TestStepCompressed} from '@/types';
 import {HtmlReporterValues} from '@/plugin-api';
 
@@ -125,6 +125,7 @@ export interface State {
     browsers: BrowserItem[];
     tree: TreeEntity;
     view: {
+        diffMode: DiffModeId;
         testNameFilter: string;
         viewMode: ViewMode;
         filteredBrowsers: BrowserItem[];
