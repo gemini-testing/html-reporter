@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.7.0"></a>
+# [10.7.0](https://github.com/gemini-testing/html-reporter/compare/v10.6.8...v10.7.0) (2024-09-17)
+
+
+### Features
+
+* **new-ui:** implement drag to hide hint card ([#602](https://github.com/gemini-testing/html-reporter/issues/602)) ([f3227da](https://github.com/gemini-testing/html-reporter/commit/f3227da))
+
+
+
 <a name="10.6.8"></a>
 ## [10.6.8](https://github.com/gemini-testing/html-reporter/compare/v10.6.7...v10.6.8) (2024-09-13)
 
