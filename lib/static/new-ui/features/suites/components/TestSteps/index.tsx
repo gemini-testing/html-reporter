@@ -11,7 +11,6 @@ import {bindActionCreators} from 'redux';
 import {CollapsibleSection} from '@/static/new-ui/features/suites/components/CollapsibleSection';
 import {State} from '@/static/new-ui/types/store';
 import {TreeViewItemIcon} from '@/static/new-ui/components/TreeViewItemIcon';
-import {TestStatus} from '@/constants';
 import {TestStepArgs} from '@/static/new-ui/features/suites/components/TestStepArgs';
 import {getIconByStatus} from '@/static/new-ui/utils';
 import {ErrorInfo} from '@/static/new-ui/components/ErrorInfo';
@@ -21,6 +20,10 @@ import {getStepsExpandedById, getTestSteps} from './selectors';
 import {Step, StepType} from './types';
 import {ListItemViewContentType, TreeViewItem} from '../../../../components/TreeViewItem';
 import styles from './index.module.css';
+import {Screenshot} from '@/static/new-ui/components/Screenshot';
+import {AssertViewResult} from '@/static/new-ui/components/AssertViewResult';
+import {getIndentStyle} from '@/static/new-ui/features/suites/components/TestSteps/utils';
+import {isErrorStatus, isFailStatus} from '@/common-utils';
 
 interface TestStepsProps {
     resultId: string;
@@ -55,7 +58,7 @@ function TestStepsInternal(props: TestStepsProps): ReactNode {
                 const item = items.structure.itemsById[itemId];
 
                 if (item.type === StepType.Action) {
-                    const shouldHighlightFail = item.status === TestStatus.ERROR && !item.isGroup;
+                    const shouldHighlightFail = (isErrorStatus(item.status) || isFailStatus(item.status)) && !item.isGroup;
 
                     return <TreeViewItem id={itemId} key={itemId} list={items} isFailed={shouldHighlightFail} onItemClick={onItemClick}
                         mapItemDataToContentProps={(): ListItemViewContentType => {
@@ -63,7 +66,7 @@ function TestStepsInternal(props: TestStepsProps): ReactNode {
                                 title: <div className={styles.stepContent}>
                                     <span className={styles.stepTitle}>{item.title}</span>
                                     <TestStepArgs args={item.args} isFailed={shouldHighlightFail}/>
-                                    <span className={styles.stepDuration}>{item.duration} ms</span>
+                                    {item.duration !== undefined && <span className={styles.stepDuration}>{item.duration} ms</span>}
                                 </div>,
                                 startSlot: <TreeViewItemIcon>{getIconByStatus(item.status)}</TreeViewItemIcon>
                             };
@@ -79,6 +82,10 @@ function TestStepsInternal(props: TestStepsProps): ReactNode {
                 } else if (item.type === StepType.ErrorInfo) {
                     const indent = items.structure.itemsState[itemId].indentation;
                     return <ErrorInfo className={styles.errorInfo} key={itemId} {...item} style={{marginLeft: `${indent * 24}px`}}/>;
+                } else if (item.type === StepType.SingleImage) {
+                    return <Screenshot containerClassName={styles.pageScreenshot} image={item.image} key={itemId} />;
+                } else if (item.type === StepType.AssertViewResult) {
+                    return <AssertViewResult result={item.result} key={itemId} style={getIndentStyle(items, itemId)} />;
                 }
 
                 return null;

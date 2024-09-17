@@ -1,11 +1,13 @@
 import {TestStatus} from '@/constants';
 import {ImageFile} from '@/types';
+import {ImageEntity} from '@/static/new-ui/types/store';
 
 export enum StepType {
     Action,
     Attachment,
     ErrorInfo,
-    SingleImage
+    SingleImage,
+    AssertViewResult
 }
 
 export interface Action {
@@ -13,7 +15,7 @@ export interface Action {
     status: TestStatus;
     title: string;
     args: string[];
-    duration: number;
+    duration?: number;
     isGroup: boolean;
 }
 
@@ -33,4 +35,9 @@ export interface SingleImage {
     image: ImageFile;
 }
 
-export type Step = Action | Attachment | ErrorInfo | SingleImage;
+export interface AssertViewResult {
+    type: StepType.AssertViewResult;
+    result: ImageEntity;
+}
+
+export type Step = Action | Attachment | ErrorInfo | SingleImage | AssertViewResult;

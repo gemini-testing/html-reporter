@@ -982,3 +982,7 @@ a:active {
 .icon-retry {
     color: var(--g-color-private-orange-600-solid);
 }
+
+.icon-updated {
+    color: var(--color-pink-600);
+}

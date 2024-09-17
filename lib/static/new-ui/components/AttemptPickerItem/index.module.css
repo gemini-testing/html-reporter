@@ -1,6 +1,5 @@
 .attempt-picker-item {
     --g-button-padding: 8px;
-    margin-right: 2px;
 }
 
 .attempt-picker-item--active {
