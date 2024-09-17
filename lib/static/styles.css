@@ -608,8 +608,10 @@ a:active {
 }
 
 .tab-switcher {
-    display: inline-block;
+    display: inline-flex;
     margin-bottom: 5px;
+    gap: 2px;
+    flex-wrap: wrap;
 }
 
 .tab-switcher:before {
