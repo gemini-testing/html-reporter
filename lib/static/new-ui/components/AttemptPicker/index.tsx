@@ -28,7 +28,7 @@ function AttemptPickerInternal(props: AttemptPickerInternalProps): ReactNode {
 
     return <Flex alignItems={'center'} gap={5}>
         <h3 className='text-header-1'>Attempts</h3>
-        <div>
+        <Flex gap={0.5} wrap={'wrap'}>
             {resultIds.map((resultId, index) => {
                 const isActive = resultId === currentResultId;
 
@@ -39,7 +39,7 @@ function AttemptPickerInternal(props: AttemptPickerInternalProps): ReactNode {
                     onClick={(): unknown => onClickHandler(resultId, index)}
                 />;
             })}
-        </div>
+        </Flex>
     </Flex>;
 }
 

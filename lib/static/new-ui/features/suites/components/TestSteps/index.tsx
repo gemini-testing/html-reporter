@@ -11,7 +11,6 @@ import {bindActionCreators} from 'redux';
 import {CollapsibleSection} from '@/static/new-ui/features/suites/components/CollapsibleSection';
 import {State} from '@/static/new-ui/types/store';
 import {TreeViewItemIcon} from '@/static/new-ui/components/TreeViewItemIcon';
-import {TestStatus} from '@/constants';
 import {TestStepArgs} from '@/static/new-ui/features/suites/components/TestStepArgs';
 import {getIconByStatus} from '@/static/new-ui/utils';
 import {ErrorInfo} from '@/static/new-ui/components/ErrorInfo';
@@ -24,6 +23,7 @@ import styles from './index.module.css';
 import {Screenshot} from '@/static/new-ui/components/Screenshot';
 import {AssertViewResult} from '@/static/new-ui/components/AssertViewResult';
 import {getIndentStyle} from '@/static/new-ui/features/suites/components/TestSteps/utils';
+import {isErrorStatus, isFailStatus} from '@/common-utils';
 
 interface TestStepsProps {
     resultId: string;
@@ -58,7 +58,7 @@ function TestStepsInternal(props: TestStepsProps): ReactNode {
                 const item = items.structure.itemsById[itemId];
 
                 if (item.type === StepType.Action) {
-                    const shouldHighlightFail = (item.status === TestStatus.ERROR || item.status === TestStatus.FAIL) && !item.isGroup;
+                    const shouldHighlightFail = (isErrorStatus(item.status) || isFailStatus(item.status)) && !item.isGroup;
 
                     return <TreeViewItem id={itemId} key={itemId} list={items} isFailed={shouldHighlightFail} onItemClick={onItemClick}
                         mapItemDataToContentProps={(): ListItemViewContentType => {

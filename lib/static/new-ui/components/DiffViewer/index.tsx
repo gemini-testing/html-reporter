@@ -68,15 +68,15 @@ export function DiffViewer(props: DiffViewerProps): ReactNode {
             return <OnionSkinMode expected={expectedImg} actual={actualImg} />;
 
         case DiffModes.THREE_UP_SCALED.id:
-            return <SideBySideMode actual={actualImg} diff={diffImg} expected={expectedImg} />;
+            return <SideBySideMode expected={expectedImg} actual={actualImg} diff={diffImg} />;
 
         case DiffModes.THREE_UP_SCALED_TO_FIT.id: {
             const desiredHeight = props.desiredHeight ?? 'calc(100vh - 180px)';
 
-            return <SideBySideToFitMode desiredHeight={desiredHeight} actual={actualImg} diff={diffImg} expected={expectedImg} />;
+            return <SideBySideToFitMode desiredHeight={desiredHeight} expected={expectedImg} actual={actualImg} diff={diffImg} />;
         }
         case DiffModes.THREE_UP.id:
         default:
-            return <ListMode actual={actualImg} diff={diffImg} expected={expectedImg} />;
+            return <ListMode expected={expectedImg} actual={actualImg} diff={diffImg} />;
     }
 }
