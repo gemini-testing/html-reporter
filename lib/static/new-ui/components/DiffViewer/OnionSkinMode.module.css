@@ -1,20 +1,8 @@
-.images-container {
-    aspect-ratio: var(--max-natural-width) / var(--max-natural-height);
-    box-shadow: 0 0 0 1px #ccc;
+.onion-skin {
     cursor: pointer;
-    display: flex;
-    max-width: calc(var(--max-natural-width) * 1px);
-    overflow: hidden;
-    position: relative;
-    user-select: none;
-    width: 100%;
 }
 
-.image-wrapper {
-    height: calc(var(--natural-height) / var(--max-natural-height) * 100%);
-}
-
-.right-image-wrapper {
+.image-wrapper--actual {
     position: absolute;
 }
 

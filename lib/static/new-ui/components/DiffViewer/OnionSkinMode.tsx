@@ -3,6 +3,7 @@ import React, {ReactNode, useState} from 'react';
 
 import {Screenshot} from '@/static/new-ui/components/Screenshot';
 import {ImageFile} from '@/types';
+import commonStyles from './common.module.css';
 import styles from './OnionSkinMode.module.css';
 import {Slider} from '@gravity-ui/uikit';
 
@@ -26,9 +27,9 @@ export function OnionSkinMode(props: OnionSkinModeProps): ReactNode {
     const actualImageStyle: React.CSSProperties = {opacity: rightImageOpacity};
 
     return <div style={wrapperStyle}>
-        <div className={styles.imagesContainer}>
-            <Screenshot containerClassName={styles.imageWrapper} imageClassName={styles.image} image={expected} />
-            <Screenshot containerClassName={classNames(styles.imageWrapper, styles.rightImageWrapper)} imageClassName={styles.image} image={actual} style={actualImageStyle} />
+        <div className={classNames(commonStyles.imagesContainer, styles.onionSkin)}>
+            <Screenshot containerClassName={commonStyles.screenshotContainer} imageClassName={styles.image} image={expected} />
+            <Screenshot containerClassName={classNames(commonStyles.screenshotContainer, styles['image-wrapper--actual'])} imageClassName={styles.image} image={actual} style={actualImageStyle} />
         </div>
         <div className={styles.sliderContainer}>
             <Slider className={styles.slider} min={0} max={1} step={0.01} value={rightImageOpacity} onUpdate={onUpdateHandler} />

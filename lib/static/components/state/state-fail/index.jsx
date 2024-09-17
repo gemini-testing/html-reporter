@@ -40,11 +40,11 @@ const StateFail = ({image, diffMode: diffModeProp, isScreenshotAccepterOpened}) 
     };
 
     const renderImages = () => {
-        const actualImg = Object.assign({}, image.actualImg, {
-            label: getImageLabel('Actual', image.actualImg)
-        });
         const expectedImg = Object.assign({}, image.expectedImg, {
             label: getImageLabel('Expected', image.expectedImg)
+        });
+        const actualImg = Object.assign({}, image.actualImg, {
+            label: getImageLabel('Actual', image.actualImg)
         });
         const diffImg = Object.assign({}, image.diffImg, {
             label: getImageLabel('Diff', image.diffImg),
@@ -65,18 +65,18 @@ const StateFail = ({image, diffMode: diffModeProp, isScreenshotAccepterOpened}) 
                 return <OnionSkinMode expected={expectedImg} actual={actualImg} />;
 
             case DiffModes.THREE_UP_SCALED.id:
-                return <SideBySideMode actual={actualImg} diff={diffImg} expected={expectedImg} />;
+                return <SideBySideMode expected={expectedImg} actual={actualImg} diff={diffImg} />;
 
             case DiffModes.THREE_UP_SCALED_TO_FIT.id: {
                 // In screenshot accepter we want images to fit .image-box__container height by making it container-type: size and specifying 100cqh.
                 // In regular view we want images to fit viewport minus approximate header and accept buttons height.
                 const desiredHeight = isScreenshotAccepterOpened ? '100cqh' : 'calc(100vh - 180px)';
 
-                return <SideBySideToFitMode desiredHeight={desiredHeight} actual={actualImg} diff={diffImg} expected={expectedImg} />;
+                return <SideBySideToFitMode desiredHeight={desiredHeight} expected={expectedImg} actual={actualImg} diff={diffImg} />;
             }
             case DiffModes.THREE_UP.id:
             default:
-                return <ListMode actual={actualImg} diff={diffImg} expected={expectedImg} />;
+                return <ListMode expected={expectedImg} actual={actualImg} diff={diffImg} />;
         }
     };
 

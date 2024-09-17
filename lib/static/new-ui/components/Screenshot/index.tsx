@@ -58,9 +58,9 @@ export function Screenshot(props: ScreenshotProps): ReactNode {
         imageStyle.aspectRatio = `${image.size.width} / ${image.size.height} auto`;
     }
 
-    return <div className={containerClassName} onClick={handleDiffClick} style={containerStyle}>
-        <img className={imageClassName} src={imageSrc} ref={imageRef} style={imageStyle}/>
-        {props.diffClusters?.length && props.diffClusters.map((c, id) => image.size && createPortal(<DiffCircle
+    let diffCircles: ReactNode[] = [];
+    if (props.diffClusters?.length) {
+        diffCircles = props.diffClusters.map((c, id) => image.size && createPortal(<DiffCircle
             diffImageOriginalSize={image.size}
             diffImageRef={imageRef}
             diffCluster={c}
@@ -70,6 +70,11 @@ export function Screenshot(props: ScreenshotProps): ReactNode {
                 }
             }}
             key={id}
-        />, document.body))}
+        />, document.body));
+    }
+
+    return <div className={containerClassName} onClick={handleDiffClick} style={containerStyle}>
+        <img className={imageClassName} src={imageSrc} ref={imageRef} style={imageStyle}/>
+        {diffCircles}
     </div>;
 }

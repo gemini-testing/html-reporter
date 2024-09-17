@@ -53,9 +53,12 @@ describe('<DiffCircle />', () => {
             const diffCircleElement = container.querySelector(`.${styles.diffCircle}`) as HTMLDivElement;
 
             expect(diffCircleElement).to.not.be.null;
+            // Circle size should be equal to sqrt(diffClusterHeight^2 + diffClusterWidth^2) = sqrt(100^2 + 100^2) = 142
             expect(diffCircleElement?.style.width).to.equal('142px');
             expect(diffCircleElement?.style.height).to.equal('142px');
+            // Circle left should be equal to clusterMiddleY - circleSize / 2 = (50 + 150) / 2 - 142 / 2 = 29
             expect(diffCircleElement?.style.top).to.equal('29px');
+            // Circle left should be equal to clusterMiddleX - circleSize / 2 = (100 + 200) / 2 - 142 / 2 = 79
             expect(diffCircleElement?.style.left).to.equal('79px');
         });
     });

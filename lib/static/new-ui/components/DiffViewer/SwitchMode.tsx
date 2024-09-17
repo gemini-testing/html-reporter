@@ -3,6 +3,7 @@ import React, {ReactNode, useState} from 'react';
 
 import {Screenshot} from '@/static/new-ui/components/Screenshot';
 import {ImageFile} from '@/types';
+import commonStyles from './common.module.css';
 import styles from './SwitchMode.module.css';
 
 interface SwitchModeProps {
@@ -15,20 +16,16 @@ export function SwitchMode(props: SwitchModeProps): ReactNode {
     const maxNaturalWidth = Math.max(expected.size.width, actual.size.width);
     const maxNaturalHeight = Math.max(expected.size.height, actual.size.height);
 
-    const [showExpected, setShowExpected] = useState(true);
-    const actualImageVisibility = showExpected ? 'visible' : 'hidden';
-    const expectedImageVisibility = !showExpected ? 'visible' : 'hidden';
+    const [isExpectedHidden, setIsExpectedHidden] = useState(true);
 
     const onClickHandler = (): void=> {
-        setShowExpected(!showExpected);
+        setIsExpectedHidden(!isExpectedHidden);
     };
 
     const wrapperStyle = {'--max-natural-width': maxNaturalWidth, '--max-natural-height': maxNaturalHeight} as React.CSSProperties;
-    const expectedImageStyle: React.CSSProperties = {visibility: expectedImageVisibility};
-    const actualImageStyle: React.CSSProperties = {visibility: actualImageVisibility};
 
-    return <div className={styles.switchMode} onClick={onClickHandler} style={wrapperStyle}>
-        <Screenshot containerClassName={styles.imageWrapper} imageClassName={styles.image} image={expected} containerStyle={expectedImageStyle} />
-        <Screenshot containerClassName={classNames(styles.imageWrapper, styles.rightImageWrapper)} imageClassName={styles.image} image={actual} containerStyle={actualImageStyle} />
+    return <div className={classNames(commonStyles.imagesContainer, styles.switchMode)} onClick={onClickHandler} style={wrapperStyle}>
+        <Screenshot containerClassName={classNames(commonStyles.screenshotContainer, {[styles['image--hidden']]: isExpectedHidden})} imageClassName={styles.image} image={expected} />
+        <Screenshot containerClassName={classNames(commonStyles.screenshotContainer, styles.screenshotContainer, {[styles['image--hidden']]: !isExpectedHidden})} imageClassName={styles.image} image={actual} />
     </div>;
 }

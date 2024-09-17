@@ -5,6 +5,7 @@ import React, {MouseEventHandler, ReactNode, useEffect, useRef, useState} from '
 
 import {Screenshot} from '@/static/new-ui/components/Screenshot';
 import {ImageFile} from '@/types';
+import commonStyles from './common.module.css';
 import styles from './SwipeMode.module.css';
 
 interface SwitchModeProps {
@@ -55,9 +56,9 @@ export function SwipeMode(props: SwitchModeProps): ReactNode {
 
     const wrapperStyle = {'--max-natural-width': maxNaturalWidth, '--max-natural-height': maxNaturalHeight} as React.CSSProperties;
 
-    return <div className={classNames(styles.swipeMode, {[styles.isDragging]: isDragging})} style={wrapperStyle} ref={swipeContainer} onMouseDown={handleMouseDown}>
+    return <div className={classNames(commonStyles.imagesContainer, {[styles.isDragging]: isDragging})} style={wrapperStyle} ref={swipeContainer} onMouseDown={handleMouseDown}>
         <div className={styles.leftSection} style={{width: dividerPosition}}>
-            <Screenshot containerClassName={styles.imageWrapper} imageClassName={styles.image} image={expected} />
+            <Screenshot containerClassName={commonStyles.screenshotContainer} imageClassName={styles.image} image={expected} />
         </div>
         <div className={styles.divider}>
             <div className={styles.dividerIcons}>
@@ -65,6 +66,6 @@ export function SwipeMode(props: SwitchModeProps): ReactNode {
                 <ChevronRight/>
             </div>
         </div>
-        <Screenshot containerClassName={classNames(styles.imageWrapper, styles.rightSection)} imageClassName={styles.image} image={actual} />
+        <Screenshot containerClassName={classNames(commonStyles.screenshotContainer, styles.rightSection)} imageClassName={styles.image} image={actual} />
     </div>;
 }

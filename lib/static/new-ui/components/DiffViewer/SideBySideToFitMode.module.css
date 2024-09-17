@@ -1,6 +1,7 @@
 .side-by-side-to-fit-mode {
     display: flex;
     justify-content: space-between;
+    column-gap: 4px;
 }
 
 .image-wrapper {

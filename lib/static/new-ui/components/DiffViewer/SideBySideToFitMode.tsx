@@ -6,9 +6,9 @@ import {ScreenshotDisplayData} from './types';
 import {getImageSizeCssVars} from '@/static/new-ui/components/DiffViewer/utils';
 
 interface SideBySideToFitModeProps {
+    expected: ScreenshotDisplayData;
     actual: ScreenshotDisplayData;
     diff: ScreenshotDisplayData;
-    expected: ScreenshotDisplayData;
     /**
      * A valid CSS value assignable to height, e.g. `10px` or `calc(100vh - 50px)`.
      * Images will try to fit the `desiredHeight`, but will only shrink no more than 2 times.
