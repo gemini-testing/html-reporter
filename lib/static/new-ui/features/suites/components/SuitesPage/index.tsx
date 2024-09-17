@@ -26,31 +26,27 @@ interface SuitesPageProps {
 }
 
 function SuitesPageInternal(props: SuitesPageProps): ReactNode {
-    return <SplitViewLayout>
-        <div>
-            <Card className={classNames(styles.card, styles.treeViewCard)}>
-                <h2 className={classNames('text-display-1', styles['card__title'])}>Suites</h2>
-                <Flex gap={2}>
-                    <TestNameFilter/>
-                    <BrowsersSelect/>
-                </Flex>
-                <TestStatusFilter/>
-                <SuitesTreeView/>
-            </Card>
-        </div>
-        <div>
-            <Card className={classNames(styles.card, styles.testViewCard)}>
-                <div className={styles.stickyHeader}>
-                    <SuiteTitle className={styles['card__title']} />
-                    <AttemptPicker onChange={(browserId, _, retryIndex): unknown => props.actions.changeTestRetry({browserId, retryIndex})} />
-                </div>
-                <CollapsibleSection className={styles['collapsible-section-overview']} title={'Overview'} body={props.currentResultId && <div className={styles['collapsible-section__body']}>
-                    <MetaInfo resultId={props.currentResultId} />
-                </div>} id={'overview'}/>
-                <TestSteps />
-            </Card>
-        </div>
-    </SplitViewLayout>;
+    return <SplitViewLayout sections={[
+        <Card key='tree-view' className={classNames(styles.card, styles.treeViewCard)}>
+            <h2 className={classNames('text-display-1', styles['card__title'])}>Suites</h2>
+            <Flex gap={2}>
+                <TestNameFilter/>
+                <BrowsersSelect/>
+            </Flex>
+            <TestStatusFilter/>
+            <SuitesTreeView/>
+        </Card>,
+        <Card key='test-view' className={classNames(styles.card, styles.testViewCard)}>
+            <div className={styles.stickyHeader}>
+                <SuiteTitle className={styles['card__title']} />
+                <AttemptPicker onChange={(browserId, _, retryIndex): unknown => props.actions.changeTestRetry({browserId, retryIndex})} />
+            </div>
+            <CollapsibleSection className={styles['collapsible-section-overview']} title={'Overview'} body={props.currentResultId && <div className={styles['collapsible-section__body']}>
+                <MetaInfo resultId={props.currentResultId} />
+            </div>} id={'overview'}/>
+            <TestSteps />
+        </Card>
+    ]} />;
 }
 
 export const SuitesPage = connect(

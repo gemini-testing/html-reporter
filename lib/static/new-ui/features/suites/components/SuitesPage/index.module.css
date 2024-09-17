@@ -19,25 +19,22 @@
     background-color: #fff;
     display: flex;
     flex-direction: column;
-    margin: 10px;
-    border-radius: 10px;
-    border: 20px solid white;
-    border-top: 15px solid white;
+    padding: 0 20px 20px 20px;
+    overflow: hidden;
+    position: relative;
+    height: calc(100vh - 20px);
 }
 
 .card__title {
     margin-bottom: 8px !important;
+    padding-top: 15px;
 }
 
 .tree-view-card {
-    height: calc(100vh - 20px);
-    margin-right: 2px;
     gap: 8px;
 }
 
 .test-view-card {
-    margin-left: 2px;
-    max-height: calc(100vh - 20px);
     gap: 12px;
     overflow: scroll;
 }
