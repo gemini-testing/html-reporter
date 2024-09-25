@@ -3,7 +3,7 @@ import classNames from 'classnames';
 
 import styles from './index.module.css';
 
-interface CardProps {
+export interface CardProps {
     className?: string;
     children?: React.ReactNode;
 }

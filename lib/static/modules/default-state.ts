@@ -94,7 +94,12 @@ export default Object.assign({config: configDefaults}, {
     },
     app: {
         isInitialized: false,
-        currentSuiteId: null
+        suitesPage: {
+            currentBrowserId: null
+        },
+        visualChecksPage: {
+            currentNamedImageId: null
+        }
     },
     ui: {
         suitesPage: {

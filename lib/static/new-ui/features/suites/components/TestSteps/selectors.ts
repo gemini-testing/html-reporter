@@ -1,5 +1,4 @@
 import {createSelector} from 'reselect';
-import {getCurrentResult, getCurrentResultImages, getExpandedStepsById} from '@/static/new-ui/store/selectors';
 import {AssertViewResult, Attachment, ErrorInfo, Step, StepType} from './types';
 import {TestStepCompressed, TestStepKey} from '@/types';
 import {unstable_ListTreeItemType as ListTreeItemType} from '@gravity-ui/uikit/unstable';
@@ -7,6 +6,11 @@ import {TestStatus} from '@/constants';
 import {isAssertViewError, isImageDiffError, mergeSnippetIntoErrorStack} from '@/common-utils';
 import {traverseTree} from '@/static/new-ui/features/suites/components/TestSteps/utils';
 import {ImageEntityError} from '@/static/new-ui/types/store';
+import {
+    getCurrentResult,
+    getCurrentResultImages,
+    getExpandedStepsById
+} from '@/static/new-ui/features/suites/selectors';
 
 export const getTestSteps = createSelector(
     [getCurrentResult, getCurrentResultImages],
@@ -17,6 +21,8 @@ export const getTestSteps = createSelector(
 
         const formatTestSteps = (steps: TestStepCompressed[], parentId?: string): ListTreeItemType<Step>[] => {
             return steps.map((step, index): ListTreeItemType<Step> => {
+                const hasChildren = Boolean(step[TestStepKey.Children] && step[TestStepKey.Children]?.length > 0);
+
                 const formattedStep: ListTreeItemType<Step> = {
                     id: `${parentId} ${index}`,
                     data: {
@@ -25,12 +31,13 @@ export const getTestSteps = createSelector(
                         duration: step[TestStepKey.Duration],
                         status: step[TestStepKey.IsFailed] ? TestStatus.ERROR : TestStatus.SUCCESS,
                         args: step[TestStepKey.Args],
-                        isGroup: step[TestStepKey.IsGroup]
+                        isGroup: step[TestStepKey.IsGroup],
+                        hasChildren
                     }
                 };
 
-                if (step[TestStepKey.Children] && step[TestStepKey.Children]?.length > 0) {
-                    formattedStep.children = formatTestSteps(step[TestStepKey.Children], formattedStep.id);
+                if (hasChildren) {
+                    formattedStep.children = formatTestSteps(step[TestStepKey.Children] as TestStepCompressed[], formattedStep.id);
                 }
 
                 return formattedStep;
@@ -69,7 +76,8 @@ export const getTestSteps = createSelector(
                     id: `${lastErroredStep.id} error`,
                     data: {
                         type: StepType.Attachment,
-                        title: 'Error'
+                        title: 'Error',
+                        hasChildren: true
                     } satisfies Attachment,
                     children: [errorAttachment]
                 });
@@ -100,7 +108,8 @@ export const getTestSteps = createSelector(
                         title: 'assertView',
                         status: image.status,
                         args: [image.stateName],
-                        isGroup: false
+                        isGroup: false,
+                        hasChildren: true
                     }
                 };
                 steps.push(matchedStep);
@@ -119,7 +128,8 @@ export const getTestSteps = createSelector(
                     id: `${image.id} assertView error`,
                     data: {
                         type: StepType.Attachment,
-                        title: 'Error'
+                        title: 'Error',
+                        hasChildren: true
                     } satisfies Attachment,
                     children: [errorInfo]
                 };
@@ -148,7 +158,8 @@ export const getTestSteps = createSelector(
                     id: `${matchedStep.id} attachment`,
                     data: {
                         type: StepType.Attachment,
-                        title: 'Screenshots'
+                        title: 'Screenshots',
+                        hasChildren: true
                     },
                     children: [imageStep]
                 });
@@ -164,7 +175,8 @@ export const getTestSteps = createSelector(
                 id: 'page-screenshot',
                 data: {
                     type: StepType.Attachment,
-                    title: 'Page Screenshot'
+                    title: 'Page Screenshot',
+                    hasChildren: true
                 },
                 children: [{
                     id: 'page-screenshot-image',

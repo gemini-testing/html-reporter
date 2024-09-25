@@ -1,6 +1,8 @@
 import {isString} from 'lodash';
 import React, {ReactNode} from 'react';
 
+import styles from './BrowserIcon.module.css';
+
 const valueToIcon = {
     google: 'chrome',
     chrome: 'chrome',
@@ -19,7 +21,7 @@ const valueToIcon = {
 } as const;
 
 export function BrowserIcon({name: browser}: {name: string}): ReactNode {
-    const getIcon = (iconName: string): ReactNode => <i className={`fa fa-${iconName}`} aria-hidden="true" />;
+    const getIcon = (iconName: string): ReactNode => <i className={`fa fa-${iconName} ${styles.icon}`} aria-hidden="true" />;
 
     if (!isString(browser)) {
         return getIcon('browser');

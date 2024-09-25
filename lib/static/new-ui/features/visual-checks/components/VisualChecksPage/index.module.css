@@ -1,0 +1,8 @@
+.card {
+    height: calc(100vh - 20px);
+}
+
+.card__title {
+    margin-bottom: 8px !important;
+    padding-top: 20px;
+}

@@ -9,7 +9,6 @@ import {
 } from '@/static/new-ui/types/store';
 import {
     TreeViewBrowserData,
-    TreeViewItem,
     TreeViewItemType,
     TreeViewSuiteData
 } from '@/static/new-ui/features/suites/components/SuitesPage/types';
@@ -25,17 +24,25 @@ import {
 import {trimArray} from '@/common-utils';
 import {ImageFile} from '@/types';
 import {getFullTitleByTitleParts} from '@/static/new-ui/utils';
+import {TreeViewItem} from '@/static/new-ui/types';
+
+interface TreeViewData {
+    tree: TreeViewItem<TreeViewSuiteData | TreeViewBrowserData>[];
+    visibleBrowserIds: string[];
+}
 
 // Converts the existing store structure to the one that can be consumed by GravityUI
 export const getTreeViewItems = createSelector(
     [getSuites, getSuitesState, getAllRootSuiteIds, getBrowsers, getBrowsersState, getResults, getImages],
-    (suites, suitesState, rootSuiteIds, browsers, browsersState, results, images): TreeViewItem<TreeViewSuiteData | TreeViewBrowserData>[] => {
+    (suites, suitesState, rootSuiteIds, browsers, browsersState, results, images): TreeViewData => {
         const EMPTY_SUITE: TreeViewSuiteData = {
             type: TreeViewItemType.Suite,
             title: '',
             fullTitle: '',
             status: TestStatus.IDLE
         };
+
+        const visibleBrowserIds: string[] = [];
 
         const formatBrowser = (browserData: BrowserEntity, parentSuite: TreeViewSuiteData): TreeViewItem<TreeViewBrowserData> | null => {
             // Assuming test in concrete browser always has at least one result, even never launched (idle result)
@@ -65,6 +72,8 @@ export const getTreeViewItems = createSelector(
             if (!browsersState[data.fullTitle].shouldBeShown) {
                 return null;
             }
+
+            visibleBrowserIds.push(data.fullTitle);
 
             return {data};
         };
@@ -98,11 +107,16 @@ export const getTreeViewItems = createSelector(
             }
         };
 
-        return rootSuiteIds
+        const tree = rootSuiteIds
             .map((rootId) => {
                 return formatSuite(suites[rootId], EMPTY_SUITE);
             })
             .filter(Boolean) as TreeViewItem<TreeViewSuiteData | TreeViewBrowserData>[];
+
+        return {
+            visibleBrowserIds,
+            tree
+        };
     });
 
 export const getTreeViewExpandedById = createSelector(

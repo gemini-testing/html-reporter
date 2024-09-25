@@ -42,7 +42,7 @@ export function CollapsibleSectionInternal(props: CollapsibleSectionInternalProp
 }
 
 export const CollapsibleSection = connect((state: State, props: CollapsibleSectionProps) => {
-    const browserId = state.app.currentSuiteId;
+    const browserId = state.app.suitesPage.currentBrowserId;
     let sectionId = '';
 
     if (browserId && state.tree.browsers.byId[browserId]) {

@@ -16,18 +16,12 @@
 }
 
 .card {
-    background-color: #fff;
-    display: flex;
-    flex-direction: column;
-    padding: 0 20px 20px 20px;
-    overflow: hidden;
-    position: relative;
     height: calc(100vh - 20px);
 }
 
 .card__title {
     margin-bottom: 8px !important;
-    padding-top: 15px;
+    padding-top: 20px;
 }
 
 .tree-view-card {
@@ -37,6 +31,7 @@
 .test-view-card {
     gap: 12px;
     overflow: scroll;
+    container-type: size;
 }
 
 .sticky-header {

@@ -41,6 +41,9 @@ export interface ResultEntityCommon {
     suiteUrl?: string;
     history?: TestStepCompressed[];
     error?: TestError;
+    suitePath: string[];
+    /** @node Browser Name/ID, e.g. `chrome-desktop` */
+    name: string;
 }
 
 export interface ResultEntityError extends ResultEntityCommon {
@@ -128,13 +131,18 @@ export interface TreeEntity {
 export interface State {
     app: {
         isInitialized: boolean;
-        currentSuiteId: string | null;
+        suitesPage: {
+            currentBrowserId: string | null;
+        };
+        visualChecksPage: {
+            currentNamedImageId: string | null;
+        }
     };
     ui: {
         suitesPage: {
             expandedSectionsById: Record<string, boolean>;
             expandedStepsByResultId: Record<string, Record<string, boolean>>;
-        }
+        },
     };
     browsers: BrowserItem[];
     tree: TreeEntity;
