@@ -100,7 +100,11 @@ export const getTestSteps = createSelector(
                 }
             });
 
-            if (!matchedStep) {
+            if (matchedStep) {
+                if (matchedStep.data.type === StepType.Action) {
+                    matchedStep.data.hasChildren = true;
+                }
+            } else {
                 matchedStep = {
                     id: `${image.id} assertView`,
                     data: {
