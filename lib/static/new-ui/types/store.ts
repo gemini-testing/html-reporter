@@ -21,7 +21,8 @@ export interface SuiteEntityLeaf {
 
 export type SuiteEntity = SuiteEntityNode | SuiteEntityLeaf;
 
-export const isSuiteEntityLeaf = (suite: SuiteEntity): suite is SuiteEntityLeaf => Boolean((suite as SuiteEntityLeaf).browserIds);
+export const hasBrowsers = (suite: SuiteEntity): suite is SuiteEntityLeaf => Boolean((suite as SuiteEntityLeaf).browserIds);
+export const hasSuites = (suite: SuiteEntity): suite is SuiteEntityNode => Boolean((suite as SuiteEntityNode).suiteIds);
 
 export interface BrowserEntity {
     id: string;

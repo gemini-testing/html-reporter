@@ -3,7 +3,8 @@ import {get, last} from 'lodash';
 import {
     isImageEntityFail,
     isResultEntityError,
-    isSuiteEntityLeaf,
+    hasBrowsers,
+    hasSuites,
     BrowserEntity,
     SuiteEntity
 } from '@/static/new-ui/types/store';
@@ -90,21 +91,19 @@ export const getTreeViewItems = createSelector(
                 return null;
             }
 
-            if (isSuiteEntityLeaf(suiteData)) {
-                return {
-                    data,
-                    children: suiteData.browserIds
-                        .map((browserId) => formatBrowser(browsers[browserId], data))
-                        .filter(Boolean) as TreeViewItem<TreeViewBrowserData>[]
-                };
-            } else {
-                return {
-                    data,
-                    children: suiteData.suiteIds
-                        .map((suiteId) => formatSuite(suites[suiteId], data))
-                        .filter(Boolean) as TreeViewItem<TreeViewSuiteData | TreeViewBrowserData>[]
-                };
+            const children: TreeViewItem<TreeViewSuiteData | TreeViewBrowserData>[] = [];
+            if (hasBrowsers(suiteData)) {
+                children.push(...suiteData.browserIds
+                    .map((browserId) => formatBrowser(browsers[browserId], data))
+                    .filter(Boolean) as TreeViewItem<TreeViewBrowserData>[]);
             }
+            if (hasSuites(suiteData)) {
+                children.push(...suiteData.suiteIds
+                    .map((suiteId) => formatSuite(suites[suiteId], data))
+                    .filter(Boolean) as TreeViewItem<TreeViewSuiteData | TreeViewBrowserData>[]);
+            }
+
+            return {data, children};
         };
 
         const tree = rootSuiteIds
