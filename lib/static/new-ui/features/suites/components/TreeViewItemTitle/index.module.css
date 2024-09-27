@@ -1,0 +1,4 @@
+.tree-view-item__error-title {
+    color: var(--g-color-private-red-600-solid);
+    margin-left: var(--g-spacing-1);
+}

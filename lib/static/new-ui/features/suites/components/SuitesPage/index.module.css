@@ -1,0 +1,48 @@
+.collapsible-section__body {
+    padding: 10px 30px 10px 2px;
+    word-break: break-all;
+}
+
+.collapsible-section__body a:link, .collapsible-section__body a:visited {
+    color: var(--color-link);
+}
+
+.collapsible-section__body a:hover {
+    color: var(--color-link-hover);
+}
+
+.collapsible-section-overview {
+    margin-top: -4px;
+}
+
+.card {
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    padding: 0 20px 20px 20px;
+    overflow: hidden;
+    position: relative;
+    height: calc(100vh - 20px);
+}
+
+.card__title {
+    margin-bottom: 8px !important;
+    padding-top: 15px;
+}
+
+.tree-view-card {
+    gap: 8px;
+}
+
+.test-view-card {
+    gap: 12px;
+    overflow: scroll;
+}
+
+.sticky-header {
+    background-color: white;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    padding-bottom: 4px;
+}

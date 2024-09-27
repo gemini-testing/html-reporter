@@ -2,7 +2,7 @@ import {expect} from 'chai';
 import React from 'react';
 import proxyquire from 'proxyquire';
 import {defaultsDeep, set} from 'lodash';
-import {mkConnectedComponent} from 'test/unit/lib/static/components/utils';
+import {mkConnectedComponent} from '../../../utils';
 import {mkStateTree} from 'test/unit/lib/static/state-utils';
 import {CHECKED, UNCHECKED, INDETERMINATE} from 'lib/constants/checked-statuses';
 import {TestStatus} from 'lib/constants';

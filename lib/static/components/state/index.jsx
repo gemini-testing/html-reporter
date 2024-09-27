@@ -16,6 +16,7 @@ import {isAcceptable, isNodeStaged, isNodeSuccessful, isScreenRevertable} from '
 import {isSuccessStatus, isFailStatus, isErrorStatus, isUpdatedStatus, isIdleStatus, isStagedStatus, isCommitedStatus} from '../../../common-utils';
 import {Disclosure} from '@gravity-ui/uikit';
 import {ChevronsExpandUpRight, Check, ArrowUturnCcwDown} from '@gravity-ui/icons';
+import {getDisplayedDiffPercentValue} from '@/static/new-ui/components/DiffViewer/utils';
 
 class State extends Component {
     static propTypes = {
@@ -155,18 +156,6 @@ class State extends Component {
         );
     }
 
-    _getDisplayedDiffPercentValue() {
-        const percent = this.props.image.diffRatio * 100;
-        const percentRounded = Math.ceil(percent * 100) / 100;
-        const percentThreshold = 0.01;
-
-        if (percent < percentThreshold) {
-            return `< ${percentThreshold}`;
-        }
-
-        return String(percentRounded);
-    }
-
     _getStateTitleWithDiffCount() {
         const {image} = this.props;
 
@@ -182,7 +171,7 @@ class State extends Component {
         let displayedText = image.stateName;
 
         if (image.differentPixels && image.diffRatio) {
-            const displayedDiffPercent = this._getDisplayedDiffPercentValue();
+            const displayedDiffPercent = getDisplayedDiffPercentValue(image.diffRatio);
 
             displayedText += ` (diff: ${image.differentPixels}px, ${displayedDiffPercent}%)`;
         }

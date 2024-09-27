@@ -1,5 +1,5 @@
 import React from 'react';
-import {mkConnectedComponent} from '../utils';
+import {mkConnectedComponent} from '../../utils';
 import proxyquire from 'proxyquire';
 import userEvent from '@testing-library/user-event';
 

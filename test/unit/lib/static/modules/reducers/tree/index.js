@@ -1877,6 +1877,18 @@ describe('lib/static/modules/reducers/tree', () => {
 
                 assert.equal(fourthState.tree.suites.byId['s1'].status, FAIL);
             });
+
+            it('should fail parent suites', () => {
+                state.tree.suites.byId['s0'].status = SUCCESS;
+                state.tree.suites.byId['s1'].status = SUCCESS;
+                state.tree.results.byId['r1'].status = STAGED;
+                state.tree.images.byId['i1'].status = STAGED;
+
+                const nextState = reducer(state, {type: actionNames.STATIC_ACCEPTER_UNSTAGE_SCREENSHOT, payload: {imageId: 'i1'}});
+
+                assert.equal(nextState.tree.suites.byId['s0'].status, FAIL);
+                assert.equal(nextState.tree.suites.byId['s1'].status, FAIL);
+            });
         });
     });
 });

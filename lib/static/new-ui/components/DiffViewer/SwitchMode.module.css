@@ -1,0 +1,15 @@
+.switch-mode {
+    cursor: pointer;
+}
+
+.screenshot-container {
+    position: absolute;
+}
+
+.image {
+    max-width: none;
+}
+
+.image--hidden {
+    visibility: hidden;
+}

@@ -44,6 +44,7 @@ export default class ControlSelect extends Component {
             <div className={className}>
                 <CustomLabel size='m' pin='round-brick'>{label}</CustomLabel>
                 <Select
+                    disablePortal
                     className={`select__dropdown-${size || 's'}`}
                     selection
                     options={options}

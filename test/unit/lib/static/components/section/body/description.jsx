@@ -2,7 +2,7 @@ import userEvent from '@testing-library/user-event';
 import {expect} from 'chai';
 import React from 'react';
 import Description from 'lib/static/components/section/body/description';
-import {mkConnectedComponent} from '../../utils';
+import {mkConnectedComponent} from '../../../utils';
 
 describe('<Description />', () => {
     const mkDescriptionComponent = (content) => {

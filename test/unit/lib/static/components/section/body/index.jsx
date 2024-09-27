@@ -2,13 +2,14 @@ import {expect} from 'chai';
 import React from 'react';
 import proxyquire from 'proxyquire';
 import {defaults} from 'lodash';
-import {mkConnectedComponent} from '../../utils';
+import {mkConnectedComponent} from '../../../utils';
 import {mkStateTree} from '../../../state-utils';
 import userEvent from '@testing-library/user-event';
 
 describe('<Body />', () => {
     const sandbox = sinon.sandbox.create();
     let Body, Result, RetrySwitcher, actionsStub;
+    const originalResizeObserver = window.ResizeObserver;
 
     const mkBodyComponent = (props = {}, initialState = {}) => {
         props = defaults(props, {
@@ -35,9 +36,18 @@ describe('<Body />', () => {
             './result': {default: Result},
             '../../retry-switcher': {default: RetrySwitcher}
         }).default;
+
+        window.ResizeObserver = sinon.stub();
+        window.ResizeObserver.prototype.observe = sinon.stub();
+        window.ResizeObserver.prototype.unobserve = sinon.stub();
+        window.ResizeObserver.prototype.disconnect = sinon.stub();
     });
 
-    afterEach(() => sandbox.restore());
+    afterEach(() => {
+        window.ResizeObserver = originalResizeObserver;
+
+        sandbox.restore();
+    });
 
     describe('"Retry" button', () => {
         it('should render if "gui" is running', () => {

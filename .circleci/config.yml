@@ -4,9 +4,10 @@ jobs:
     working_directory: ~/html-reporter
     docker:
       - image: yinfra/html-reporter-browsers
+    resource_class: medium+
     environment:
       SERVER_HOST: localhost
-      
+
     steps:
       - checkout
 

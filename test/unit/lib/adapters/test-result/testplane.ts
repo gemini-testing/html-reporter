@@ -7,13 +7,14 @@ import tmpOriginal from 'tmp';
 import {TestStatus} from 'lib/constants/test-statuses';
 import {ERROR_DETAILS_PATH} from 'lib/constants/paths';
 import {TestplaneTestResultAdapter, TestplaneTestResultAdapterOptions, getStatus} from 'lib/adapters/test-result/testplane';
-import {TestplaneTestResult} from 'lib/types';
+import {ImageFile, TestplaneTestResult, TestStepKey} from 'lib/types';
 import * as originalUtils from 'lib/server-utils';
 import * as originalCommonUtils from 'lib/common-utils';
 import * as originalTestAdapterUtils from 'lib/adapters/test-result/utils';
 
 import type Testplane from 'testplane';
 import type {ReporterTestResult} from 'lib/adapters/test-result';
+import {mkTestStepCompressed} from '../../../utils';
 
 describe('getStatus', () => {
     it('should be "error" if test has both: runtime errors and assertview fails', () => {
@@ -34,7 +35,6 @@ describe('TestplaneTestResultAdapter', () => {
     const sandbox = sinon.sandbox.create();
 
     let TestplaneTestResultAdapter: new (testResult: TestplaneTestResult, options: TestplaneTestResultAdapterOptions) => ReporterTestResult;
-    let getCommandsHistory: sinon.SinonStub;
     let getSuitePath: sinon.SinonStub;
     let utils: sinon.SinonStubbedInstance<typeof originalUtils>;
     let commonUtils: sinon.SinonStubbedInstance<typeof originalCommonUtils>;
@@ -58,7 +58,6 @@ describe('TestplaneTestResultAdapter', () => {
         tmp = {tmpdir: 'default/dir'} as typeof tmpOriginal;
         fs = sinon.stub(_.clone(fsOriginal));
         getSuitePath = sandbox.stub();
-        getCommandsHistory = sandbox.stub();
 
         const originalUtils = proxyquire('lib/server-utils', {
             'fs-extra': fs
@@ -77,7 +76,6 @@ describe('TestplaneTestResultAdapter', () => {
             tmp,
             'fs-extra': fs,
             '../../plugin-utils': {getSuitePath},
-            '../../history-utils': {getCommandsHistory},
             '../server-utils': utils,
             './utils': testAdapterUtils
         }).TestplaneTestResultAdapter;
@@ -93,10 +91,9 @@ describe('TestplaneTestResultAdapter', () => {
     afterEach(() => sandbox.restore());
 
     it('should return full test error', () => {
-        getCommandsHistory.withArgs([{name: 'foo'}], ['foo']).returns(['some-history']);
         const testResult = mkTestResult_({
             file: 'bar',
-            history: [{name: 'foo'}] as any,
+            history: [],
             err: {
                 message: 'some-message',
                 stack: 'some-stack',
@@ -116,10 +113,9 @@ describe('TestplaneTestResultAdapter', () => {
     });
 
     it('should return test history', () => {
-        getCommandsHistory.withArgs([{name: 'foo'}]).returns(['some-history']);
         const testResult = mkTestResult_({
             file: 'bar',
-            history: [{name: 'foo'}] as any,
+            history: [mkTestStepCompressed({[TestStepKey.Name]: 'some-name'})],
             err: {
                 message: 'some-message',
                 stack: 'some-stack',
@@ -130,7 +126,7 @@ describe('TestplaneTestResultAdapter', () => {
 
         const TestplaneTestResultAdapter = mkTestplaneTestResultAdapter(testResult);
 
-        assert.deepEqual(TestplaneTestResultAdapter.history, ['some-history']);
+        assert.deepEqual(TestplaneTestResultAdapter.history, [mkTestStepCompressed({[TestStepKey.Name]: 'some-name'})]);
     });
 
     it('should return test state', () => {
@@ -251,7 +247,7 @@ describe('TestplaneTestResultAdapter', () => {
                     diffOpts: {diffColor: '#000'} as any,
                     message: 'diff message',
                     name: 'ImageDiffError',
-                    refImg: {path: 'ref-path', size: {width: 25, height: 15}},
+                    refImg: {path: 'ref-path', size: {width: 25, height: 15}, relativePath: 'some-path'},
                     stack: 'some-stack',
                     stateName: 'some-state',
                     differentPixels: 100,
@@ -266,8 +262,8 @@ describe('TestplaneTestResultAdapter', () => {
                     status: TestStatus.FAIL,
                     stateName: 'some-state',
                     actualImg: {path: 'curr-path', size: {height: 10, width: 20}},
-                    expectedImg: {path: 'ref-path', size: {height: 15, width: 25}},
-                    refImg: {path: 'ref-path', size: {height: 15, width: 25}},
+                    expectedImg: {path: 'ref-path', size: {height: 15, width: 25}, relativePath: 'some-path'} as ImageFile,
+                    refImg: {path: 'ref-path', size: {height: 15, width: 25}, relativePath: 'some-path'},
                     diffClusters: [],
                     diffOptions: {diffColor: '#000'} as any,
                     differentPixels: 100,
@@ -283,7 +279,7 @@ describe('TestplaneTestResultAdapter', () => {
                     currImg: {path: 'curr-path', size: {height: 10, width: 20}},
                     message: 'no ref message',
                     name: 'NoRefImageError',
-                    refImg: {path: 'ref-path', size: {height: 15, width: 25}},
+                    refImg: {path: 'ref-path', size: {height: 15, width: 25}, relativePath: 'some-path'},
                     stack: 'some-stack',
                     stateName: 'some-state'
                 }]
@@ -301,7 +297,7 @@ describe('TestplaneTestResultAdapter', () => {
                         stack: 'some-stack'
                     },
                     actualImg: {path: 'curr-path', size: {height: 10, width: 20}},
-                    refImg: {path: 'ref-path', size: {height: 15, width: 25}}
+                    refImg: {path: 'ref-path', size: {height: 15, width: 25}, relativePath: 'some-path'}
                 }
             ]);
         });
@@ -314,7 +310,7 @@ describe('TestplaneTestResultAdapter', () => {
                     stateName: 'some-state',
                     currImg: {path: 'curr-path', size: {height: 10, width: 20}},
                     refImg: {path: 'ref-path', size: {height: 15, width: 25}}
-                } as TestplaneTestResult['assertViewResults'][number]]
+                } as unknown as TestplaneTestResult['assertViewResults'][number]]
             });
 
             const TestplaneTestResultAdapter = mkTestplaneTestResultAdapter(testResult);
@@ -335,7 +331,7 @@ describe('TestplaneTestResultAdapter', () => {
                 timestamp: 100500,
                 assertViewResults: [{
                     stateName: 'some-state',
-                    refImg: {path: 'ref-path', size: {height: 15, width: 25}}
+                    refImg: {path: 'ref-path', size: {height: 15, width: 25}, relativePath: 'some-path'}
                 }]
             });
 
@@ -345,8 +341,8 @@ describe('TestplaneTestResultAdapter', () => {
                 {
                     status: TestStatus.SUCCESS,
                     stateName: 'some-state',
-                    expectedImg: {path: 'ref-path', size: {height: 15, width: 25}},
-                    refImg: {path: 'ref-path', size: {height: 15, width: 25}}
+                    expectedImg: {path: 'ref-path', size: {height: 15, width: 25}, relativePath: 'some-path'} as ImageFile,
+                    refImg: {path: 'ref-path', size: {height: 15, width: 25}, relativePath: 'some-path'}
                 }
             ]);
         });

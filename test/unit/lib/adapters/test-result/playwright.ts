@@ -6,11 +6,13 @@ import {
     DEFAULT_DIFF_OPTIONS,
     ImageTitleEnding,
     PlaywrightAttachment,
+    PlaywrightImageFile,
     PwtTestStatus
 } from 'lib/adapters/test-result/playwright';
 import {ErrorName} from 'lib/errors';
 import {ERROR, FAIL, TestStatus, UNKNOWN_ATTEMPT} from 'lib/constants';
-import {ImageInfoDiff, ImageInfoNoRef} from 'lib/types';
+import {ImageInfoDiff, ImageInfoNoRef, TestStepKey} from 'lib/types';
+import {mkTestStepCompressed} from '../../../utils';
 
 describe('PlaywrightTestResultAdapter', () => {
     let sandbox: sinon.SinonSandbox;
@@ -152,7 +154,15 @@ describe('PlaywrightTestResultAdapter', () => {
                 {title: 'Step2', duration: 200}
             ];
             const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({steps} as any), UNKNOWN_ATTEMPT);
-            const expectedHistory = ['Step1 <- 100ms\n', 'Step2 <- 200ms\n'];
+            const expectedHistory = [mkTestStepCompressed({
+                [TestStepKey.Name]: 'Step1',
+                [TestStepKey.Duration]: 100,
+                [TestStepKey.Children]: []
+            }), mkTestStepCompressed({
+                [TestStepKey.Name]: 'Step2',
+                [TestStepKey.Duration]: 200,
+                [TestStepKey.Children]: []
+            })];
 
             assert.deepEqual(adapter.history, expectedHistory);
         });
@@ -189,14 +199,35 @@ describe('PlaywrightTestResultAdapter', () => {
             assert.equal(adapter.imagesInfo.length, 2);
             assert.deepEqual(adapter.imagesInfo.find(info => (info as ImageInfoDiff).stateName === undefined), {
                 status: ERROR,
-                actualImg: {path: `test-results/test-name-1.png`, size: {height: 100, width: 200}}
+                actualImg: {
+                    path: `test-results/test-name-1.png`,
+                    relativePath: `test-results/test-name-1.png`,
+                    size: {height: 100, width: 200}
+                } as PlaywrightImageFile
             });
             assert.deepEqual(adapter.imagesInfo.find(info => (info as ImageInfoDiff).stateName === 'header'), {
                 status: FAIL,
                 stateName: 'header',
-                actualImg: {path: `test-results/header-actual.png`, size: {height: 100, width: 200}},
-                expectedImg: {path: 'project-dir/header-expected.png', size: {height: 100, width: 200}},
-                diffImg: {path: 'test-results/header-diff.png', size: {height: 100, width: 200}},
+                actualImg: {
+                    path: `test-results/header-actual.png`,
+                    relativePath: `test-results/header-actual.png`,
+                    size: {height: 100, width: 200}
+                } as PlaywrightImageFile,
+                expectedImg: {
+                    path: 'project-dir/header-expected.png',
+                    relativePath: 'project-dir/header-expected.png',
+                    size: {height: 100, width: 200}
+                } as PlaywrightImageFile,
+                refImg: {
+                    path: 'project-dir/header-expected.png',
+                    relativePath: 'project-dir/header-expected.png',
+                    size: {height: 100, width: 200}
+                } as PlaywrightImageFile,
+                diffImg: {
+                    path: 'test-results/header-diff.png',
+                    relativePath: 'test-results/header-diff.png',
+                    size: {height: 100, width: 200}
+                } as PlaywrightImageFile,
                 diffClusters: [],
                 diffOptions: {current: 'test-results/header-actual.png', reference: 'project-dir/header-expected.png', ...DEFAULT_DIFF_OPTIONS}
             });
@@ -214,7 +245,11 @@ describe('PlaywrightTestResultAdapter', () => {
             assert.equal(adapter.imagesInfo.length, 2);
             assert.deepEqual(adapter.imagesInfo.find(info => (info as ImageInfoNoRef).stateName === undefined), {
                 status: ERROR,
-                actualImg: {path: `test-results/test-name-1.png`, size: {height: 100, width: 200}}
+                actualImg: {
+                    path: `test-results/test-name-1.png`,
+                    relativePath: `test-results/test-name-1.png`,
+                    size: {height: 100, width: 200}
+                } as PlaywrightImageFile
             });
             assert.deepEqual(adapter.imagesInfo.find(info => (info as ImageInfoNoRef).stateName === 'header'), {
                 status: ERROR,
@@ -224,7 +259,11 @@ describe('PlaywrightTestResultAdapter', () => {
                     message: 'snapshot doesn\'t exist at some.png',
                     stack: ''
                 },
-                actualImg: {path: `test-results/header-actual.png`, size: {height: 100, width: 200}}
+                actualImg: {
+                    path: `test-results/header-actual.png`,
+                    relativePath: `test-results/header-actual.png`,
+                    size: {height: 100, width: 200}
+                } as PlaywrightImageFile
             });
         });
     });

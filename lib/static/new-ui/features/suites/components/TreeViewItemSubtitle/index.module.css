@@ -1,0 +1,17 @@
+.tree-view-item-subtitle__error-stack {
+    white-space: pre;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 22px;
+    margin-top: 8px;
+
+    border-radius: 5px;
+    margin-right: 8px;
+    margin-bottom: 4px;
+    padding: 8px;
+    font-family: monospace;
+    font-size: 15px;
+    border: 1px solid #ff000024;
+
+    background-color: var(--g-color-private-red-50);
+}

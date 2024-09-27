@@ -44,7 +44,7 @@ const statusPriority: TestStatus[] = [
 export const logger = pick(console, ['log', 'warn', 'error']);
 
 export const isSuccessStatus = (status: TestStatus): boolean => status === SUCCESS;
-export const isFailStatus = (status: TestStatus): boolean => status === FAIL;
+export const isFailStatus = (status: TestStatus): status is TestStatus.FAIL => status === FAIL;
 export const isIdleStatus = (status: TestStatus): boolean => status === IDLE;
 export const isRunningStatus = (status: TestStatus): boolean => status === RUNNING;
 export const isErrorStatus = (status: TestStatus): boolean => status === ERROR;
@@ -71,18 +71,24 @@ export const determineFinalStatus = (statuses: TestStatus[]): TestStatus | null 
 };
 
 export const getUrlWithBase = (url: string | undefined, base: string | undefined): string => {
+    if (isEmpty(base)) {
+        return url ?? '';
+    }
+
     try {
         const userUrl = new URL(url ?? '', base);
 
-        // Manually overriding properties, because if url is absolute, the above won't work
-        if (!isEmpty(base)) {
-            const baseUrl = new URL(base as string);
+        // Manually overriding properties, because if userUrl is absolute, the above won't work
+        const baseUrl = new URL(base as string);
 
-            userUrl.host = baseUrl.host;
-            userUrl.protocol = baseUrl.protocol;
-            userUrl.port = baseUrl.port;
-            userUrl.username = baseUrl.username;
-            userUrl.password = baseUrl.password;
+        userUrl.host = baseUrl.host;
+        userUrl.protocol = baseUrl.protocol;
+        userUrl.port = baseUrl.port;
+        userUrl.username = baseUrl.username;
+        userUrl.password = baseUrl.password;
+
+        for (const [key, value] of baseUrl.searchParams) {
+            userUrl.searchParams.append(key, value);
         }
 
         return userUrl.href;
@@ -121,6 +127,10 @@ export const isImageDiffError = (error?: unknown): error is ImageDiffError => {
 
 export const isNoRefImageError = (error?: unknown): error is NoRefImageError => {
     return (error as {name?: string})?.name === ErrorName.NO_REF_IMAGE;
+};
+
+export const isImageError = (error?: unknown): boolean => {
+    return isAssertViewError(error) || isImageDiffError(error) || isNoRefImageError(error);
 };
 
 export const hasNoRefImageErrors = ({assertViewResults = []}: {assertViewResults?: {name?: string}[]}): boolean => {

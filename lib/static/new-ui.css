@@ -1,0 +1,39 @@
+* {
+    box-sizing: border-box;
+}
+
+:root {
+    --color-link: #4f46e5;
+    --color-link-hover: #818cf8;
+    --color-bg-dark: #101827;
+    --color-bg-gray: #eee;
+
+    --color-pink-100: #fce0ff;
+    --color-pink-600: #be00ffbf;
+}
+
+.g-root {
+    --g-font-family-sans: 'Jost', sans-serif;
+    --g-color-base-background: #eee;
+}
+
+body {
+    margin: 0;
+}
+
+.report {
+    font-family: var(--g-font-family-sans), sans-serif !important;
+    margin-bottom: 0 !important;;
+}
+
+/* Aside header styles */
+:root {
+    --gn-aside-header-item-current-background-color: #1f2937;
+    --gn-aside-header-item-background-color-hover: #1f2937;
+    --gn-aside-header-item-current-icon-color: #fff;
+    --gn-aside-header-item-icon-color: #9ca3af;
+}
+
+.gn-aside-header__header:after {
+    display: none;
+}

@@ -78,8 +78,8 @@ describe('lib/static/modules/reducers/grouped-tests/helpers', () => {
                 const resultCb = sinon.spy().named('onResultCb');
 
                 isTestNameMatchFilters
-                    .withArgs('test-1', 'test-1', strictMatchFilter).returns(true)
-                    .withArgs('test-2', 'test-1', strictMatchFilter).returns(false);
+                    .withArgs('test-1', 'default-bro', 'test-1', strictMatchFilter).returns(true)
+                    .withArgs('test-2', 'default-bro', 'test-1', strictMatchFilter).returns(false);
 
                 module.handleActiveResults({tree, resultCb, testNameFilter: 'test-1', strictMatchFilter});
 

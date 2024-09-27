@@ -3,7 +3,7 @@ import React from 'react';
 import proxyquire from 'proxyquire';
 import {defaultsDeep, set} from 'lodash';
 import {CHECKED, UNCHECKED} from 'lib/constants/checked-statuses';
-import {mkConnectedComponent} from 'test/unit/lib/static/components/utils';
+import {mkConnectedComponent} from '../../utils';
 import {mkStateTree} from 'test/unit/lib/static/state-utils';
 import userEvent from '@testing-library/user-event';
 

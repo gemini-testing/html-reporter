@@ -1,0 +1,23 @@
+.onion-skin {
+    cursor: pointer;
+}
+
+.image-wrapper--actual {
+    position: absolute;
+}
+
+.image {
+    max-width: none;
+}
+
+.slider-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.slider {
+    cursor: pointer;
+    margin-top: 10px;
+    width: 250px;
+}

@@ -21,7 +21,7 @@ describe('<RetrySwitcher >', () => {
         RetrySwitcherItem = sinon.stub().returns(null);
 
         RetrySwitcher = proxyquire('lib/static/components/retry-switcher', {
-            './item': {default: RetrySwitcherItem}
+            '@/static/new-ui/components/AttemptPickerItem': {AttemptPickerItem: RetrySwitcherItem}
         }).default;
     });
 

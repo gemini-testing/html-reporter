@@ -1,22 +1,23 @@
 'use strict';
 
+import {Tabs} from '@gravity-ui/uikit';
+import PropTypes from 'prop-types';
 import React, {Fragment, useEffect, useState} from 'react';
 import {connect} from 'react-redux';
-import PropTypes from 'prop-types';
-import ResizedScreenshot from '../screenshot/resized';
-import SwipeDiff from './swipe-diff';
-import SwitchDiff from './switch-diff';
-import OnionSkinDiff from './onion-skin-diff';
-import {DiffModes} from '../../../../constants/diff-modes';
-import {types} from '../../modals';
-import useFitImages from './useFitImages';
 
+import {DiffModes} from '@/constants';
+import {SwitchMode} from '@/static/new-ui/components/DiffViewer/SwitchMode';
+import {SwipeMode} from '@/static/new-ui/components/DiffViewer/SwipeMode';
+import {OnionSkinMode} from '@/static/new-ui/components/DiffViewer/OnionSkinMode';
+import {OnlyDiffMode} from '@/static/new-ui/components/DiffViewer/OnlyDiffMode';
+import {SideBySideToFitMode} from '@/static/new-ui/components/DiffViewer/SideBySideToFitMode';
+import {SideBySideMode} from '@/static/new-ui/components/DiffViewer/SideBySideMode';
+import {ListMode} from '@/static/new-ui/components/DiffViewer/ListMode';
 import './index.styl';
-import {Tabs} from '@gravity-ui/uikit';
+import {types} from '../../modals';
 
 const StateFail = ({image, diffMode: diffModeProp, isScreenshotAccepterOpened}) => {
     const [diffMode, setDiffMode] = useState(diffModeProp);
-    const [fitWidths, {expectedRef, actualRef}] = useFitImages(image, isScreenshotAccepterOpened);
 
     useEffect(() => {
         setDiffMode(diffModeProp);
@@ -30,84 +31,52 @@ const StateFail = ({image, diffMode: diffModeProp, isScreenshotAccepterOpened}) 
         );
     };
 
-    const getLabelKey = () => {
-        const images = [image.expectedImg, image.actualImg];
-        const sizes = images.map(image => `${image.size.width}${image.size.height}`);
-        const key = sizes.join('');
+    const getImageLabel = (text, image) => {
+        if (isScreenshotAccepterOpened) {
+            return null;
+        }
 
-        return key;
-    };
-
-    const drawImageBox = (image, {label, diffClusters, width, ref} = {}) => {
-        const titleText = `${label} (${image.size.width}x${image.size.height})`;
-        const titleKey = getLabelKey();
-
-        return (
-            <div className="image-box__image" style={{flex: image.size.width}}>
-                {label && !isScreenshotAccepterOpened && <div key={titleKey} ref={ref} className="image-box__title">{titleText}</div>}
-                <ResizedScreenshot
-                    image={image}
-                    diffClusters={diffClusters}
-                    overrideWidth={width}
-                />
-            </div>
-        );
-    };
-
-    const renderOnlyDiff = () => {
-        const {diffImg, diffClusters} = image;
-
-        return drawImageBox(diffImg, {diffClusters});
-    };
-
-    const drawExpectedAndActual = ({expectedImg, expectedWidth}, {actualImg, actualWidth}) => {
-        return (
-            <Fragment>
-                {drawImageBox(expectedImg, {label: 'Expected', width: expectedWidth, ref: expectedRef})}
-                {drawImageBox(actualImg, {label: 'Actual', width: actualWidth, ref: actualRef})}
-            </Fragment>
-        );
-    };
-
-    const renderThreeImages = (fitWidths = []) => {
-        const {expectedImg, actualImg, diffImg, diffClusters} = image;
-        const [expectedWidth, actualWidth, diffWidth] = fitWidths;
-
-        return <Fragment>
-            {drawExpectedAndActual({expectedImg, expectedWidth}, {actualImg, actualWidth})}
-            {drawImageBox(diffImg, {label: 'Diff', diffClusters, width: diffWidth})}
-        </Fragment>;
+        return <div className="image-box__title">{`${text} (${image.size.width}x${image.size.height})`}</div>;
     };
 
     const renderImages = () => {
-        const {expectedImg, actualImg} = image;
+        const expectedImg = Object.assign({}, image.expectedImg, {
+            label: getImageLabel('Expected', image.expectedImg)
+        });
+        const actualImg = Object.assign({}, image.actualImg, {
+            label: getImageLabel('Actual', image.actualImg)
+        });
+        const diffImg = Object.assign({}, image.diffImg, {
+            label: getImageLabel('Diff', image.diffImg),
+            diffClusters: image.diffClusters
+        });
 
         switch (diffMode) {
             case DiffModes.ONLY_DIFF.id:
-                return renderOnlyDiff();
+                return <OnlyDiffMode diff={diffImg} />;
 
             case DiffModes.SWITCH.id:
-                return <SwitchDiff image1={expectedImg} image2={actualImg} />;
+                return <SwitchMode expected={expectedImg} actual={actualImg} />;
 
             case DiffModes.SWIPE.id:
-                return <SwipeDiff image1={expectedImg} image2={actualImg} />;
+                return <SwipeMode expected={expectedImg} actual={actualImg} />;
 
             case DiffModes.ONION_SKIN.id:
-                return <OnionSkinDiff image1={expectedImg} image2={actualImg} />;
+                return <OnionSkinMode expected={expectedImg} actual={actualImg} />;
 
             case DiffModes.THREE_UP_SCALED.id:
-                return <div className="image-box__scaled">
-                    {renderThreeImages()}
-                </div>;
+                return <SideBySideMode expected={expectedImg} actual={actualImg} diff={diffImg} />;
 
-            case DiffModes.THREE_UP_SCALED_TO_FIT.id:
-                return <div className="image-box__scaled">
-                    {renderThreeImages(fitWidths)}
-                </div>;
+            case DiffModes.THREE_UP_SCALED_TO_FIT.id: {
+                // In screenshot accepter we want images to fit .image-box__container height by making it container-type: size and specifying 100cqh.
+                // In regular view we want images to fit viewport minus approximate header and accept buttons height.
+                const desiredHeight = isScreenshotAccepterOpened ? '100cqh' : 'calc(100vh - 180px)';
 
+                return <SideBySideToFitMode desiredHeight={desiredHeight} expected={expectedImg} actual={actualImg} diff={diffImg} />;
+            }
             case DiffModes.THREE_UP.id:
             default:
-                return renderThreeImages();
+                return <ListMode expected={expectedImg} actual={actualImg} diff={diffImg} />;
         }
     };
 

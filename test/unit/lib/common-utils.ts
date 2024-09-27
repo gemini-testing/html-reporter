@@ -1,4 +1,12 @@
-import {determineFinalStatus, getError, hasDiff, getUrlWithBase, getDetailsFileName, trimArray, mergeSnippetIntoErrorStack} from 'lib/common-utils';
+import {
+    determineFinalStatus,
+    getError,
+    hasDiff,
+    getUrlWithBase,
+    getDetailsFileName,
+    trimArray,
+    mergeSnippetIntoErrorStack
+} from 'lib/common-utils';
 import {RUNNING, QUEUED, ERROR, FAIL, UPDATED, SUCCESS, IDLE, SKIPPED} from 'lib/constants/test-statuses';
 import {ErrorName} from 'lib/errors';
 import sinon from 'sinon';
@@ -30,9 +38,9 @@ describe('common-utils', () => {
         });
 
         it('should work without baseUrl', () => {
-            const result = getUrlWithBase('some-url', '');
+            const result = getUrlWithBase('http://some-url.com/path', '');
 
-            assert.equal(result, 'some-url');
+            assert.equal(result, 'http://some-url.com/path');
         });
     });
 

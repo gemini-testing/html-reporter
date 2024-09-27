@@ -63,6 +63,7 @@ export class TestplaneTestAdapter implements TestAdapter {
             {key: 'meta', value: meta}
         ].forEach(({key, value}) => {
             if (value) {
+                // @ts-expect-error TODO: fix this assignment.
                 test[key] = value;
             }
         });

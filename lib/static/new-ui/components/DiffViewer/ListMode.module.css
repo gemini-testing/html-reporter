@@ -1,0 +1,4 @@
+.list-mode {
+    display: flex;
+    flex-direction: column;
+}

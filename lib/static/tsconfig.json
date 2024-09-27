@@ -3,6 +3,9 @@
     "include": ["."],
     "compilerOptions": {
         "jsx": "react",
-        "noEmit": true
+        "noEmit": true,
+        "paths": {
+            "@/*": ["../*"]
+        }
     }
 }

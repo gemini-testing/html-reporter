@@ -1,6 +1,6 @@
 import {TestplaneSuite} from './types';
 
-export const getSuitePath = (suite?: TestplaneSuite): string[] => {
+export const getSuitePath = (suite?: TestplaneSuite | null): string[] => {
     if (!suite) {
         return [];
     }

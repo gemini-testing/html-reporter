@@ -1,4 +1,5 @@
-import Testplane, {type TestCollection} from 'testplane';
+import type Testplane from 'testplane';
+import type {TestCollection} from 'testplane';
 import proxyquire from 'proxyquire';
 import sinon, {SinonStub} from 'sinon';
 import P from 'bluebird';
@@ -21,9 +22,11 @@ describe('lib/adapters/tool/testplane/index', () => {
     let parseConfigStub: SinonStub;
     let createTestRunnerStub: SinonStub;
     let handleTestResultsStub: SinonStub;
+    const Testplane = {create(): any {}};
 
     beforeEach(() => {
         sandbox.stub(Testplane, 'create').returns(stubTool());
+        // Testplane.create = (): any => stubTool();
         sandbox.stub(HtmlReporter, 'create').returns({});
         sandbox.stub(GuiApi, 'create').returns({});
 
@@ -34,7 +37,11 @@ describe('lib/adapters/tool/testplane/index', () => {
         TestplaneToolAdapter = proxyquire('../../../../../../lib/adapters/tool/testplane', {
             '../../../config': {parseConfig: parseConfigStub},
             './runner': {createTestRunner: createTestRunnerStub},
-            './test-results-handler': {handleTestResults: handleTestResultsStub}
+            './test-results-handler': {handleTestResults: handleTestResultsStub},
+            'testplane': {
+                default: Testplane,
+                '@noCallThru': true
+            }
         }).TestplaneToolAdapter;
     });
 

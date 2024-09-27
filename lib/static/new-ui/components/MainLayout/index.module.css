@@ -1,0 +1,8 @@
+.aside-header-bg-wrapper {
+    width: 100%;
+}
+
+.aside-header-bg {
+    background-color: var(--color-bg-dark);
+    width: 100%;
+}

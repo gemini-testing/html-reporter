@@ -1,0 +1,90 @@
+.tree-view {}
+
+    .tree-view :global(.g-text_ellipsis) {
+        white-space: normal;
+    }
+
+    .tree-view__container {
+        height: 100%;
+        width: 100%;
+        overflow-y: auto;
+        contain: strict;
+    }
+
+    .tree-view__total-size-wrapper {
+        width: 100%;
+        position: relative;
+    }
+
+    .tree-view__visible-window {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+    }
+
+    .tree-view__item {
+        --g-text-subheader-1-font-size: 18px;
+        --g-text-subheader-1-line-height: 22px;
+        --g-text-subheader-font-weight: normal;
+
+        --g-text-body-1-font-size: 18px;
+        --g-text-body-1-line-height: 22px;
+        --g-text-body-font-weight: normal;
+
+        line-height: 20px;
+
+        padding: 4px 0;
+        font-size: 18px;
+
+        user-select: none;
+    }
+
+        .tree-view__item svg {
+            flex-shrink: 0;
+        }
+
+        .tree-view__item :global(.g-list-item-view__icon) {
+            margin-top: 2px;
+        }
+
+        .tree-view__item > div > div {
+            align-items: start !important;
+        }
+
+        .tree-view__item--current {
+            background: #a28aff !important;
+            color: #fff !important;
+        }
+
+        .tree-view__item__title--current {
+            color: #fff !important;
+        }
+
+        .tree-view__item__error--current {
+            background-color: #8c72ee;
+            border: 1px solid #00000024;
+        }
+
+        .tree-view__item.tree-view__item--current:hover {
+            background: #af9aff !important;
+        }
+
+        .tree-view__item--current svg {
+            color: #fff !important;
+        }
+
+        .tree-view__item--browser {
+            padding-left: 8px;
+        }
+
+        .tree-view__item--error {
+            --g-color-base-simple-hover: var(--g-color-private-red-50);
+            background: var(--g-color-private-red-100);
+            color: var(--g-color-private-red-600-solid);
+        }
+
+
+        .tree-view__item--error svg {
+            color: var(--g-color-private-red-600-solid);
+        }
