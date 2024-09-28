@@ -128,7 +128,7 @@
     "@babel/preset-react": "^7.22.5",
     "@babel/preset-typescript": "^7.22.5",
     "@gravity-ui/components": "^3.7.0",
-    "@gravity-ui/uikit": "^6.23.1",
+    "@gravity-ui/uikit": "^6.27.2",
     "@playwright/test": "^1.44.1",
     "@react-hook/resize-observer": "^2.0.1",
     "@swc/core": "^1.3.64",
