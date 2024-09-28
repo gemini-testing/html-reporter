@@ -1,9 +1,10 @@
-import {Flex} from '@gravity-ui/uikit';
 import React, {ReactNode} from 'react';
 import {connect} from 'react-redux';
 
 import {State} from '@/static/new-ui/types/store';
 import {AttemptPickerItem} from '@/static/new-ui/components/AttemptPickerItem';
+import styles from './index.module.css';
+import classNames from 'classnames';
 
 interface AttemptPickerProps {
     onChange?: (browserId: string, resultId: string, attemptIndex: number) => unknown;
@@ -26,9 +27,9 @@ function AttemptPickerInternal(props: AttemptPickerInternalProps): ReactNode {
         props.onChange?.(props.browserId, resultId, attemptIndex);
     };
 
-    return <Flex alignItems={'center'} gap={5}>
-        <h3 className='text-header-1'>Attempts</h3>
-        <Flex gap={0.5} wrap={'wrap'}>
+    return <div className={styles.container}>
+        <h3 className={classNames('text-header-1', styles.heading)}>Attempts</h3>
+        <div className={styles.attemptsContainer}>
             {resultIds.map((resultId, index) => {
                 const isActive = resultId === currentResultId;
 
@@ -39,8 +40,8 @@ function AttemptPickerInternal(props: AttemptPickerInternalProps): ReactNode {
                     onClick={(): unknown => onClickHandler(resultId, index)}
                 />;
             })}
-        </Flex>
-    </Flex>;
+        </div>
+    </div>;
 }
 
 export const AttemptPicker = connect((state: State) => {

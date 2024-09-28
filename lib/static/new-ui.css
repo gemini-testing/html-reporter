@@ -15,6 +15,7 @@
 .g-root {
     --g-font-family-sans: 'Jost', sans-serif;
     --g-color-base-background: #eee;
+    --g-color-text-danger-heavy: #e9043a;
 }
 
 body {

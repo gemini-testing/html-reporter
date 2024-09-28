@@ -1,0 +1,14 @@
+.container {
+    display: flex;
+    gap: 16px;
+}
+
+.heading {
+    line-height: 28px;
+}
+
+.attempts-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}

@@ -950,8 +950,8 @@ h1, h2, h3, h4, h5, h6 {
 
 .text-header-1 {
     font-family: Jost, sans-serif;
-    font-weight: 500;
-    font-size: var(--g-text-header-1-font-size);
+    font-weight: 450;
+    font-size: 18px;
     line-height: var(--g-text-header-1-line-height);
 }
 
