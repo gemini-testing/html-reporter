@@ -3,7 +3,6 @@ import React, {ReactNode} from 'react';
 import {Button, Icon, Label} from '@gravity-ui/uikit';
 import {Camera, ChevronRight, PlanetEarth, ChevronUp, ChevronDown} from '@gravity-ui/icons';
 
-import {TestStatus} from '@/constants';
 import styles from './index.module.css';
 
 interface SuiteTitleProps {
@@ -14,7 +13,6 @@ interface SuiteTitlePropsInternal extends SuiteTitleProps {
     suitePath: string[];
     browserName: string;
     stateName?: string;
-    imageStatus?: TestStatus;
     index: number;
     totalItems: number;
     onPrevious: () => void;
@@ -24,13 +22,6 @@ interface SuiteTitlePropsInternal extends SuiteTitleProps {
 export function SuiteTitle(props: SuiteTitlePropsInternal): ReactNode {
     const suiteName = props.suitePath[props.suitePath.length - 1];
     const suitePath = props.suitePath.slice(0, -1);
-
-    let stateNameLabelTheme: 'normal' | 'danger' | 'success' = 'normal';
-    if (props.imageStatus === TestStatus.FAIL || props.imageStatus === TestStatus.ERROR) {
-        stateNameLabelTheme = 'danger';
-    } else if (props.imageStatus === TestStatus.SUCCESS) {
-        stateNameLabelTheme = 'success';
-    }
 
     return <div className={classNames(styles.container, props.className)}>
         <div className={styles.content}>
@@ -53,7 +44,7 @@ export function SuiteTitle(props: SuiteTitlePropsInternal): ReactNode {
                 <div className={styles.labelsContainer}>
                     <Label theme={'normal'} size={'xs'} className={styles.label}><PlanetEarth/>{props.browserName}
                     </Label>
-                    {props.stateName && <Label theme={stateNameLabelTheme} size={'xs'} className={classNames(styles.label)}><Camera/>{props.stateName}</Label>}
+                    {props.stateName && <Label theme='utility' size={'xs'} className={classNames(styles.label)}><Camera/>{props.stateName}</Label>}
                 </div>
             </div>
         </div>

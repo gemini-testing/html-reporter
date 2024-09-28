@@ -43,8 +43,7 @@ export function VisualChecksPageInternal({currentNamedImage, currentImage, visib
                     totalItems={visibleNamedImageIds.length}
                     onPrevious={onPreviousImageHandler}
                     stateName={currentNamedImage.stateName}
-                    onNext={onNextImageHandler}
-                    imageStatus={currentNamedImage.status}/>}
+                    onNext={onNextImageHandler}/>}
             </div>
             {currentImage && <AssertViewResult result={currentImage}/>}
         </UiCard>

@@ -98,7 +98,15 @@ export const getCurrentImage = (state: State): ImageEntity | null => {
     }
 
     const retryIndex = state.tree.browsers.stateById[currentNamedImage.browserId].retryIndex;
-    const currentImageId = currentNamedImage.imageIds[retryIndex];
+    const currentImageId = currentNamedImage.imageIds.find(imageId => {
+        const resultId = state.tree.images.byId[imageId].parentId;
+
+        return state.tree.results.byId[resultId].attempt === retryIndex;
+    });
+
+    if (!currentImageId) {
+        return null;
+    }
 
     return getImages(state)[currentImageId];
 };

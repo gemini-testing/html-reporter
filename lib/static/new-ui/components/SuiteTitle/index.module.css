@@ -52,11 +52,6 @@
     gap: 8px;
 }
 
-.label:global(.g-label_theme_danger) {
-    --_--text-color: var(--color-pink-600);
-    --_--bg-color: var(--color-pink-100);
-}
-
 .label :global(.g-label__content) {
     display: flex;
     align-items: center;
