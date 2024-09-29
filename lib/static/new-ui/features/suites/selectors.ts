@@ -1,4 +1,13 @@
-import {ImageEntity, ResultEntity, State} from '@/static/new-ui/types/store';
+import {BrowserEntity, ImageEntity, ResultEntity, State} from '@/static/new-ui/types/store';
+
+export const getCurrentBrowser = (state: State): BrowserEntity | null => {
+    const browserId = state.app.suitesPage.currentBrowserId;
+    if (!browserId) {
+        return null;
+    }
+
+    return state.tree.browsers.byId[browserId];
+};
 
 export const getCurrentResultId = (state: State): string | null => {
     const browserId = state.app.suitesPage.currentBrowserId;

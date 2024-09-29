@@ -858,15 +858,16 @@ a:active {
 }
 
 .g-root_theme_light {
-    --g-color-base-brand: var(--g-color-private-color-400);
-    --g-color-base-brand-hover: var(--g-color-private-color-150);
+    --g-color-base-brand: var(--g-color-private-color-550-solid);
+    --g-color-base-brand-hover: var(--g-color-private-color-450-solid);
     --g-color-base-selection: var(--g-color-private-color-100);
     --g-color-base-selection-hover: var(--g-color-private-color-150);
-    --g-color-line-brand: var(--g-color-private-color-200);
+    --g-color-line-brand: var(--g-color-private-color-500);
     --g-color-text-brand: var(--g-color-private-color-300);
     --g-color-text-link: var(--g-color-private-color-300);
     --g-color-text-link-hover: var(--g-color-private-color-500);
     --gn-aside-header-decoration-collapsed-background-color: var(--g-color-private-color-150);
+    --g-color-text-brand-contrast: var(--g-color-private-color-50-solid);
 
     --g-color-private-color-50: rgba(108,71,255,0.1);
     --g-color-private-color-100: rgba(108,71,255,0.15);

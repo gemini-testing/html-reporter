@@ -1,4 +1,4 @@
-import {DiffModeId, TestStatus, ViewMode} from '@/constants';
+import {DiffModeId, Feature, TestStatus, ViewMode} from '@/constants';
 import {BrowserItem, ImageFile, ReporterConfig, TestError, TestStepCompressed} from '@/types';
 import {HtmlReporterValues} from '@/plugin-api';
 import {CoordBounds} from 'looks-same';
@@ -132,6 +132,7 @@ export interface TreeEntity {
 export interface State {
     app: {
         isInitialized: boolean;
+        availableFeatures: Feature[],
         suitesPage: {
             currentBrowserId: string | null;
         };
@@ -155,6 +156,7 @@ export interface State {
         keyToGroupTestsBy: string;
         baseHost: string;
     };
+    running: boolean;
     apiValues: HtmlReporterValues;
     config: ReporterConfig;
 }

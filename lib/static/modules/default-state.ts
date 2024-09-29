@@ -94,6 +94,7 @@ export default Object.assign({config: configDefaults}, {
     },
     app: {
         isInitialized: false,
+        availableFeatures: [],
         suitesPage: {
             currentBrowserId: null
         },

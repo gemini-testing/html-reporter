@@ -38,3 +38,8 @@ body {
 .gn-aside-header__header:after {
     display: none;
 }
+
+.action-button {
+    font-size: 15px;
+    font-weight: 450;
+}

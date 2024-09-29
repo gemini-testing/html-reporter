@@ -3,6 +3,7 @@ export * from './database';
 export * from './defaults';
 export * from './diff-modes';
 export * from './errors';
+export * from './features';
 export * from './group-tests';
 export * from './paths';
 export * from './tests';

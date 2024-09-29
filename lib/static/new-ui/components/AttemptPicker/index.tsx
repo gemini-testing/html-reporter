@@ -1,10 +1,15 @@
 import React, {ReactNode} from 'react';
-import {connect} from 'react-redux';
+import {connect, useDispatch, useSelector} from 'react-redux';
+import {ArrowRotateRight} from '@gravity-ui/icons';
 
 import {State} from '@/static/new-ui/types/store';
 import {AttemptPickerItem} from '@/static/new-ui/components/AttemptPickerItem';
 import styles from './index.module.css';
 import classNames from 'classnames';
+import {Button, Icon, Spin} from '@gravity-ui/uikit';
+import {RunTestsFeature} from '@/constants';
+import {retryTest} from '@/static/modules/actions';
+import {getCurrentBrowser} from '@/static/new-ui/features/suites/selectors';
 
 interface AttemptPickerProps {
     onChange?: (browserId: string, resultId: string, attemptIndex: number) => unknown;
@@ -19,12 +24,24 @@ interface AttemptPickerInternalProps extends AttemptPickerProps {
 function AttemptPickerInternal(props: AttemptPickerInternalProps): ReactNode {
     const {resultIds, currentResultId} = props;
 
-    const onClickHandler = (resultId: string, attemptIndex: number): void => {
+    const dispatch = useDispatch();
+    const currentBrowser = useSelector(getCurrentBrowser);
+    const isRunTestsAvailable = useSelector((state: State) => state.app.availableFeatures)
+        .find(feature => feature.name === RunTestsFeature.name);
+    const isRunning = useSelector((state: State) => state.running);
+
+    const onAttemptPickHandler = (resultId: string, attemptIndex: number): void => {
         if (!props.browserId || currentResultId === resultId) {
             return;
         }
 
         props.onChange?.(props.browserId, resultId, attemptIndex);
+    };
+
+    const onRetryTestHandler = (): void => {
+        if (currentBrowser) {
+            dispatch(retryTest({testName: currentBrowser.parentId, browserName: currentBrowser.name}));
+        }
     };
 
     return <div className={styles.container}>
@@ -37,10 +54,13 @@ function AttemptPickerInternal(props: AttemptPickerInternalProps): ReactNode {
                     key={resultId}
                     resultId={resultId}
                     isActive={isActive}
-                    onClick={(): unknown => onClickHandler(resultId, index)}
+                    onClick={(): unknown => onAttemptPickHandler(resultId, index)}
                 />;
             })}
         </div>
+        {isRunTestsAvailable && <Button view={'action'} className={styles.retryButton} onClick={onRetryTestHandler} disabled={isRunning}>
+            {isRunning ? <Spin size={'xs'} /> : <Icon data={ArrowRotateRight}/>}Retry
+        </Button>}
     </div>;
 }
 

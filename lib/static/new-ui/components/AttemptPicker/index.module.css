@@ -12,3 +12,10 @@
     flex-wrap: wrap;
     gap: 4px;
 }
+
+.retry-button {
+    composes: action-button from global;
+    margin-left: auto;
+    /* Sets spinner color */
+    --g-color-line-brand: var(--g-color-text-hint);
+}
