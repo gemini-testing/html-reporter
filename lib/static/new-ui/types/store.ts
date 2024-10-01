@@ -157,6 +157,7 @@ export interface State {
         baseHost: string;
     };
     running: boolean;
+    gui: boolean;
     apiValues: HtmlReporterValues;
     config: ReporterConfig;
 }

@@ -1,0 +1,44 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    padding-left: calc(var(--indent) * 24px);
+    padding-right: 1px
+}
+
+.toolbar-container {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    gap: 8px;
+}
+
+.toolbar-container:has(> div:only-child) {
+    justify-content: center;
+}
+
+.accept-button {
+    composes: action-button from global;
+}
+
+.diff-mode-container {
+    container-type: size;
+    flex-grow: 1;
+}
+
+.diff-mode-switcher {
+    --g-color-base-background: #fff;
+}
+
+.diff-mode-select {
+    display: none;
+}
+
+@container (max-width: 500px) {
+    .diff-mode-switcher {
+        display: none !important;
+    }
+
+    .diff-mode-select {
+        display: block;
+    }
+}

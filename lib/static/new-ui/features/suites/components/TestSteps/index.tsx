@@ -21,9 +21,9 @@ import {Step, StepType} from './types';
 import {ListItemViewContentType, TreeViewItem} from '../../../../components/TreeViewItem';
 import styles from './index.module.css';
 import {Screenshot} from '@/static/new-ui/components/Screenshot';
-import {AssertViewResult} from '@/static/new-ui/components/AssertViewResult';
 import {getIndentStyle} from '@/static/new-ui/features/suites/components/TestSteps/utils';
 import {isErrorStatus, isFailStatus} from '@/common-utils';
+import {ScreenshotsTreeViewItem} from '@/static/new-ui/features/suites/components/ScreenshotsTreeViewItem';
 
 interface TestStepsProps {
     resultId: string;
@@ -85,7 +85,7 @@ function TestStepsInternal(props: TestStepsProps): ReactNode {
                 } else if (item.type === StepType.SingleImage) {
                     return <Screenshot containerClassName={styles.pageScreenshot} image={item.image} key={itemId} />;
                 } else if (item.type === StepType.AssertViewResult) {
-                    return <AssertViewResult result={item.result} key={itemId} style={getIndentStyle(items, itemId)} />;
+                    return <ScreenshotsTreeViewItem key={itemId} result={item.result} style={getIndentStyle(items, itemId)} />;
                 }
 
                 return null;
