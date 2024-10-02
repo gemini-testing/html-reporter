@@ -4,8 +4,10 @@ import {connect} from 'react-redux';
 import {ImageEntity, State} from '@/static/new-ui/types/store';
 import {DiffModeId, TestStatus} from '@/constants';
 import {DiffViewer} from '../DiffViewer';
-import styles from './index.module.css';
 import {Screenshot} from '@/static/new-ui/components/Screenshot';
+import {ImageLabel} from '@/static/new-ui/components/ImageLabel';
+import {getImageDisplayedSize} from '@/static/new-ui/utils';
+import styles from './index.module.css';
 
 interface AssertViewResultProps {
     result: ImageEntity;
@@ -17,9 +19,15 @@ function AssertViewResultInternal({result, diffMode, style}: AssertViewResultPro
     if (result.status === TestStatus.FAIL) {
         return <DiffViewer diffMode={diffMode} {...result} />;
     } else if (result.status === TestStatus.ERROR) {
-        return <Screenshot containerStyle={style} containerClassName={styles.screenshot} image={result.actualImg} />;
+        return <div className={styles.screenshotContainer}>
+            <ImageLabel title={'Actual'} subtitle={getImageDisplayedSize(result.actualImg)} />
+            <Screenshot containerStyle={style} containerClassName={styles.screenshot} image={result.actualImg} />
+        </div>;
     } else if (result.status === TestStatus.SUCCESS || result.status === TestStatus.UPDATED) {
-        return <Screenshot containerStyle={style} containerClassName={styles.screenshot} image={result.expectedImg} />;
+        return <div className={styles.screenshotContainer}>
+            <ImageLabel title={'Expected'} subtitle={getImageDisplayedSize(result.expectedImg)} />
+            <Screenshot containerStyle={style} containerClassName={styles.screenshot} image={result.expectedImg} />
+        </div>;
     }
 
     return null;

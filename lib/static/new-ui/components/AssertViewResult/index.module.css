@@ -1,3 +1,8 @@
 .screenshot {
     padding-right: 1px;
 }
+
+.screenshot-container {
+    display: flex;
+    flex-direction: column;
+}

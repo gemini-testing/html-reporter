@@ -42,7 +42,7 @@ export function CompactAttemptPicker(): ReactNode {
     }
 
     return <div className={styles.container}>
-        <Button view={'outlined'} onClick={onPreviousClick}><Icon data={ChevronLeft}/></Button>
+        <Button view={'outlined'} onClick={onPreviousClick} disabled={currentAttemptIndex === 0}><Icon data={ChevronLeft}/></Button>
         <Select renderControl={({onClick, onKeyDown, ref}): React.JSX.Element => {
             return <Button className={styles.attemptSelect} onClick={onClick} extraProps={{onKeyDown}} ref={ref} view={'flat'}>
                 Attempt <span className={styles.attemptNumber}>
@@ -63,6 +63,8 @@ export function CompactAttemptPicker(): ReactNode {
                 return <Select.Option key={index} value={index.toString()} content={`Attempt #${index + 1}`} data={{resultId}}></Select.Option>;
             })}
         </Select>
-        <Button view={'outlined'} onClick={onNextClick}><Icon data={ChevronRight}/></Button>
+        <Button view={'outlined'} onClick={onNextClick} disabled={totalAttemptsCount === null || currentAttemptIndex === totalAttemptsCount - 1}>
+            <Icon data={ChevronRight}/>
+        </Button>
     </div>;
 }

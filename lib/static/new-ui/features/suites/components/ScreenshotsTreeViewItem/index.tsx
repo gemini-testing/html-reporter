@@ -4,12 +4,11 @@ import React, {ReactNode} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {AssertViewResult} from '@/static/new-ui/components/AssertViewResult';
-import {ImageEntity, ImageEntityError, State} from '@/static/new-ui/types/store';
+import {ImageEntity, ImageEntityFail, State} from '@/static/new-ui/types/store';
 import {DiffModeId, DiffModes, EditScreensFeature, TestStatus} from '@/constants';
 import {acceptTest, changeDiffMode, undoAcceptImage} from '@/static/modules/actions';
 import {isAcceptable, isScreenRevertable} from '@/static/modules/utils';
 import {getCurrentBrowser, getCurrentResult} from '@/static/new-ui/features/suites/selectors';
-import {isNoRefImageError} from '@/common-utils';
 import {AssertViewStatus} from '@/static/new-ui/components/AssertViewStatus';
 import styles from './index.module.css';
 
@@ -43,9 +42,10 @@ export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): Re
     };
 
     return <div style={props.style} className={styles.container}>
-        {props.image.status !== TestStatus.UPDATED && props.image.status !== TestStatus.SUCCESS && <div className={styles.toolbarContainer}>
-            {isNoRefImageError((props.image as ImageEntityError).error) ?
-                <AssertViewStatus image={props.image}/> :
+        {props.image.status !== TestStatus.SUCCESS && <div className={styles.toolbarContainer}>
+            {!(props.image as ImageEntityFail).diffImg &&
+                <AssertViewStatus image={props.image}/>}
+            {(props.image as ImageEntityFail).diffImg &&
                 <div className={styles.diffModeContainer}>
                     <RadioButton onUpdate={onDiffModeChangeHandler} value={diffMode} className={styles.diffModeSwitcher}>
                         {Object.values(DiffModes).map(diffMode =>
@@ -62,7 +62,8 @@ export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): Re
                             <Select.Option value={diffMode.id} content={diffMode.title} title={diffMode.description} key={diffMode.id}/>
                         )}
                     </Select>
-                </div>}
+                </div>
+            }
             {isEditScreensAvailable && <div className={styles.buttonsContainer}>
                 {isUndoAvailable && <Button view={'action'} className={styles.acceptButton} disabled={isRunning} onClick={onScreenshotUndo}>
                     <Icon data={ArrowUturnCcwLeft}/>Undo

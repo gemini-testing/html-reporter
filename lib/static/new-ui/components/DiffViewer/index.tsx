@@ -11,7 +11,8 @@ import {SideBySideToFitMode} from '@/static/new-ui/components/DiffViewer/SideByS
 import {ListMode} from '@/static/new-ui/components/DiffViewer/ListMode';
 import {getDisplayedDiffPercentValue} from '@/static/new-ui/components/DiffViewer/utils';
 
-import styles from './index.module.css';
+import {ImageLabel} from '@/static/new-ui/components/ImageLabel';
+import {getImageDisplayedSize} from '@/static/new-ui/utils';
 
 interface DiffViewerProps {
     actualImg: ImageFile;
@@ -31,26 +32,18 @@ interface DiffViewerProps {
 }
 
 export function DiffViewer(props: DiffViewerProps): ReactNode {
-    const getImageDisplayedSize = (image: ImageFile): string => `${image.size.width}×${image.size.height}`;
-    const getImageLabel = (title: string, subtitle?: string): ReactNode => {
-        return <div className={styles.imageLabel}>
-            <span>{title}</span>
-            {subtitle && <span className={styles.imageLabelSubtitle}>{subtitle}</span>}
-        </div>;
-    };
-
     const expectedImg = Object.assign({}, props.expectedImg, {
-        label: getImageLabel('Expected', getImageDisplayedSize(props.expectedImg))
+        label: <ImageLabel title={'Expected'} subtitle={getImageDisplayedSize(props.expectedImg)} />
     });
     const actualImg = Object.assign({}, props.actualImg, {
-        label: getImageLabel('Actual', getImageDisplayedSize(props.actualImg))
+        label: <ImageLabel title={'Actual'} subtitle={getImageDisplayedSize(props.actualImg)} />
     });
     let diffSubtitle: string | undefined;
     if (props.differentPixels !== undefined && props.diffRatio !== undefined) {
         diffSubtitle = `${props.differentPixels}px ⋅ ${getDisplayedDiffPercentValue(props.diffRatio)}%`;
     }
     const diffImg = Object.assign({}, props.diffImg, {
-        label: getImageLabel('Diff', diffSubtitle),
+        label: <ImageLabel title={'Diff'} subtitle={diffSubtitle} />,
         diffClusters: props.diffClusters
     });
 

@@ -1,0 +1,8 @@
+.image-label, .image-label + div {
+    margin-bottom: 8px;
+}
+
+.image-label-subtitle {
+    color: var(--g-color-private-black-400);
+    margin-left: 4px;
+}
