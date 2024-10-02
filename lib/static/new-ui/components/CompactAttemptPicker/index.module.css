@@ -1,0 +1,21 @@
+.container {
+    display: flex;
+    gap: 4px;
+}
+
+.attempt-select {
+    font-size: 15px;
+}
+
+.attempt-number {
+    font-weight: 450;
+}
+
+.attempt-option {
+    display: flex;
+    gap: 8px;
+}
+
+.attempt-select-popup {
+    max-height: 40vh;
+}

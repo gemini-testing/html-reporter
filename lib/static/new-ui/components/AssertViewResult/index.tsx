@@ -1,8 +1,9 @@
 import React, {ReactNode} from 'react';
+import {connect} from 'react-redux';
+
 import {ImageEntity, State} from '@/static/new-ui/types/store';
 import {DiffModeId, TestStatus} from '@/constants';
 import {DiffViewer} from '../DiffViewer';
-import {connect} from 'react-redux';
 import styles from './index.module.css';
 import {Screenshot} from '@/static/new-ui/components/Screenshot';
 

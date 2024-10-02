@@ -1,18 +1,20 @@
-import {Check, ArrowUturnCcwLeft} from '@gravity-ui/icons';
+import {ArrowUturnCcwLeft, Check} from '@gravity-ui/icons';
 import {Button, Icon, RadioButton, Select} from '@gravity-ui/uikit';
 import React, {ReactNode} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {AssertViewResult} from '@/static/new-ui/components/AssertViewResult';
-import {ImageEntity, State} from '@/static/new-ui/types/store';
-import {DiffModeId, DiffModes, EditScreensFeature} from '@/constants';
+import {ImageEntity, ImageEntityError, State} from '@/static/new-ui/types/store';
+import {DiffModeId, DiffModes, EditScreensFeature, TestStatus} from '@/constants';
 import {acceptTest, changeDiffMode, undoAcceptImage} from '@/static/modules/actions';
-import styles from './index.module.css';
 import {isAcceptable, isScreenRevertable} from '@/static/modules/utils';
 import {getCurrentBrowser, getCurrentResult} from '@/static/new-ui/features/suites/selectors';
+import {isNoRefImageError} from '@/common-utils';
+import {AssertViewStatus} from '@/static/new-ui/components/AssertViewStatus';
+import styles from './index.module.css';
 
 interface ScreenshotsTreeViewItemProps {
-    result: ImageEntity;
+    image: ImageEntity;
     style?: React.CSSProperties;
 }
 
@@ -27,40 +29,49 @@ export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): Re
     const currentBrowser = useSelector(getCurrentBrowser);
     const currentResult = useSelector(getCurrentResult);
     const isLastResult = currentResult && currentBrowser && currentResult.id === currentBrowser.resultIds[currentBrowser.resultIds.length - 1];
-    const isUndoAvailable = isScreenRevertable({gui: isGui, image: props.result, isLastResult, isStaticImageAccepterEnabled: false});
+    const isUndoAvailable = isScreenRevertable({gui: isGui, image: props.image, isLastResult, isStaticImageAccepterEnabled: false});
 
-    const onChangeHandler = (diffMode: DiffModeId): void => {
+    const onDiffModeChangeHandler = (diffMode: DiffModeId): void => {
         dispatch(changeDiffMode(diffMode));
     };
 
     const onScreenshotAccept = (): void => {
-        dispatch(acceptTest(props.result.id));
+        dispatch(acceptTest(props.image.id));
     };
     const onScreenshotUndo = (): void => {
-        dispatch(undoAcceptImage(props.result.id));
+        dispatch(undoAcceptImage(props.image.id));
     };
 
     return <div style={props.style} className={styles.container}>
-        <div className={styles.toolbarContainer}>
-            <div className={styles.diffModeContainer}>
-                <RadioButton onUpdate={onChangeHandler} value={diffMode} className={styles.diffModeSwitcher}>
-                    {Object.values(DiffModes).map(diffMode =>
-                        <RadioButton.Option value={diffMode.id} content={diffMode.title} title={diffMode.description} key={diffMode.id}/>
-                    )}
-                </RadioButton>
-                <Select className={styles.diffModeSelect} label='Diff Mode' value={[diffMode]} onUpdate={([diffMode]): void => onChangeHandler(diffMode as DiffModeId)} multiple={false}>
-                    {Object.values(DiffModes).map(diffMode =>
-                        <Select.Option value={diffMode.id} content={diffMode.title} title={diffMode.description} key={diffMode.id}/>
-                    )}
-                </Select>
-            </div>
-            {isEditScreensAvailable && <>
-                {isUndoAvailable && <Button view={'action'} className={styles.acceptButton} disabled={isRunning} onClick={onScreenshotUndo}><Icon
-                    data={ArrowUturnCcwLeft}/>Undo</Button>}
-                {isAcceptable(props.result) && <Button view={'action'} className={styles.acceptButton} disabled={isRunning} onClick={onScreenshotAccept}><Icon
-                    data={Check}/>Accept</Button>}
-            </>}
-        </div>
-        <AssertViewResult result={props.result} />
+        {props.image.status !== TestStatus.UPDATED && props.image.status !== TestStatus.SUCCESS && <div className={styles.toolbarContainer}>
+            {isNoRefImageError((props.image as ImageEntityError).error) ?
+                <AssertViewStatus image={props.image}/> :
+                <div className={styles.diffModeContainer}>
+                    <RadioButton onUpdate={onDiffModeChangeHandler} value={diffMode} className={styles.diffModeSwitcher}>
+                        {Object.values(DiffModes).map(diffMode =>
+                            <RadioButton.Option value={diffMode.id} content={diffMode.title} title={diffMode.description} key={diffMode.id}/>
+                        )}
+                    </RadioButton>
+                    <Select
+                        className={styles.diffModeSelect}
+                        label="Diff Mode" value={[diffMode]}
+                        onUpdate={([diffMode]): void => onDiffModeChangeHandler(diffMode as DiffModeId)}
+                        multiple={false}
+                    >
+                        {Object.values(DiffModes).map(diffMode =>
+                            <Select.Option value={diffMode.id} content={diffMode.title} title={diffMode.description} key={diffMode.id}/>
+                        )}
+                    </Select>
+                </div>}
+            {isEditScreensAvailable && <div className={styles.buttonsContainer}>
+                {isUndoAvailable && <Button view={'action'} className={styles.acceptButton} disabled={isRunning} onClick={onScreenshotUndo}>
+                    <Icon data={ArrowUturnCcwLeft}/>Undo
+                </Button>}
+                {isAcceptable(props.image) && <Button view={'action'} className={styles.acceptButton} disabled={isRunning} onClick={onScreenshotAccept}>
+                    <Icon data={Check}/>Accept
+                </Button>}
+            </div>}
+        </div>}
+        <AssertViewResult result={props.image} />
     </div>;
 }

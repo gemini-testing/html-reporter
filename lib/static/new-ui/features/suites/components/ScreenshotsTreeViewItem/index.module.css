@@ -1,27 +1,28 @@
 .container {
     display: flex;
     flex-direction: column;
-    padding-left: calc(var(--indent) * 24px);
-    padding-right: 1px
+    padding: 8px 1px 4px calc(var(--indent) * 24px);
+    row-gap: 8px;
 }
 
 .toolbar-container {
     display: flex;
     justify-content: space-between;
-    padding: 12px 0;
+    align-items: center;
     gap: 8px;
-}
-
-.toolbar-container:has(> div:only-child) {
-    justify-content: center;
 }
 
 .accept-button {
     composes: action-button from global;
 }
 
+.buttons-container {
+    display: flex;
+    margin-left: auto;
+}
+
 .diff-mode-container {
-    container-type: size;
+    container-type: inline-size;
     flex-grow: 1;
 }
 

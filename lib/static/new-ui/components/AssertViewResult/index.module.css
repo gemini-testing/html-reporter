@@ -1,5 +1,3 @@
 .screenshot {
-    margin: 8px 0;
-    padding-left: calc(var(--indent) * 24px);
     padding-right: 1px;
 }

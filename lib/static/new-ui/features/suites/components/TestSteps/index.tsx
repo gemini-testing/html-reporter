@@ -85,7 +85,7 @@ function TestStepsInternal(props: TestStepsProps): ReactNode {
                 } else if (item.type === StepType.SingleImage) {
                     return <Screenshot containerClassName={styles.pageScreenshot} image={item.image} key={itemId} />;
                 } else if (item.type === StepType.AssertViewResult) {
-                    return <ScreenshotsTreeViewItem key={itemId} result={item.result} style={getIndentStyle(items, itemId)} />;
+                    return <ScreenshotsTreeViewItem key={itemId} image={item.result} style={getIndentStyle(items, itemId)} />;
                 }
 
                 return null;
