@@ -12,6 +12,10 @@
     gap: 8px;
 }
 
+.toolbar-container > div:only-child {
+    justify-content: center;
+}
+
 .accept-button {
     composes: action-button from global;
 }
@@ -24,6 +28,7 @@
 .diff-mode-container {
     container-type: inline-size;
     flex-grow: 1;
+    display: flex;
 }
 
 .diff-mode-switcher {
