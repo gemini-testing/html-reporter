@@ -70,7 +70,7 @@ export const getTreeViewItems = createSelector(
                 diffImg
             };
 
-            if (!browsersState[data.fullTitle].shouldBeShown) {
+            if (!browsersState[browserData.id].shouldBeShown) {
                 return null;
             }
 
@@ -87,7 +87,7 @@ export const getTreeViewItems = createSelector(
                 status: suiteData.status
             };
 
-            if (!suitesState[data.fullTitle].shouldBeShown) {
+            if (!suitesState[suiteData.id].shouldBeShown) {
                 return null;
             }
 
