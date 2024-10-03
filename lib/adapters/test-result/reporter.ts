@@ -15,7 +15,7 @@ export class ReporterTestAdapter implements ReporterTestResult {
 
     constructor(testResult: ReporterTestResult) {
         this._testResult = testResult;
-        this._errorDetails = null;
+        this._errorDetails = this._testResult.errorDetails || null;
     }
 
     get attempt(): number {

@@ -2,7 +2,6 @@ import {ReporterTestResult} from '../index';
 import _ from 'lodash';
 import {BaseTreeTestResult} from '../../../tests-tree-builder/base';
 import {DbTestResultTransformer} from './db';
-import {extractErrorDetails} from '../utils';
 
 interface Options {
     baseHost?: string;
@@ -21,7 +20,7 @@ export class TreeTestResultTransformer {
         return {
             ..._.omit(result, 'imagesInfo'),
             attempt: testResult.attempt,
-            errorDetails: extractErrorDetails(testResult)
+            errorDetails: testResult.errorDetails
         };
     }
 }
