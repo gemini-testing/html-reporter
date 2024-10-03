@@ -1,6 +1,6 @@
 {
   "name": "html-reporter",
-  "version": "10.7.0",
+  "version": "10.7.1",
   "description": "Html-reporter and GUI for viewing and managing results of a tests run. Currently supports Testplane and Hermione.",
   "files": [
     "build"
