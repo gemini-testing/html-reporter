@@ -91,16 +91,16 @@ export const getTreeViewItems = createSelector(
                 return null;
             }
 
-            const children: TreeViewItem<TreeViewSuiteData | TreeViewBrowserData>[] = [];
+            let children: TreeViewItem<TreeViewSuiteData | TreeViewBrowserData>[] = [];
             if (hasBrowsers(suiteData)) {
-                children.push(...suiteData.browserIds
+                children = suiteData.browserIds
                     .map((browserId) => formatBrowser(browsers[browserId], data))
-                    .filter(Boolean) as TreeViewItem<TreeViewBrowserData>[]);
+                    .filter(Boolean) as TreeViewItem<TreeViewBrowserData>[];
             }
             if (hasSuites(suiteData)) {
-                children.push(...suiteData.suiteIds
+                children = suiteData.suiteIds
                     .map((suiteId) => formatSuite(suites[suiteId], data))
-                    .filter(Boolean) as TreeViewItem<TreeViewSuiteData | TreeViewBrowserData>[]);
+                    .filter(Boolean) as TreeViewItem<TreeViewSuiteData | TreeViewBrowserData>[];
             }
 
             return {data, children};

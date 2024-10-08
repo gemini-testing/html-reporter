@@ -43,7 +43,7 @@ export interface ResultEntityCommon {
     history?: TestStepCompressed[];
     error?: TestError;
     suitePath: string[];
-    /** @node Browser Name/ID, e.g. `chrome-desktop` */
+    /** @note Browser Name/ID, e.g. `chrome-desktop` */
     name: string;
 }
 

@@ -31,7 +31,7 @@ export function SuiteTitle(props: SuiteTitlePropsInternal): ReactNode {
                         {item}
                         {index !== suitePath.length - 1 &&
                             <div className={styles.separator}>
-                                <ChevronRight height={11}/>
+                                <ChevronRight height={12}/>
                                 <span className={styles.invisibleSpace}>&nbsp;</span>
                             </div>}
                     </div>
@@ -50,9 +50,9 @@ export function SuiteTitle(props: SuiteTitlePropsInternal): ReactNode {
         </div>
         <div className={styles.paginationContainer}>
             <span className={styles.counter}>{props.index === -1 ? '–' : props.index + 1}/{props.totalItems}</span>
-            <Button view={'flat'} disabled={props.index === -1 || props.index === 0} onClick={props.onPrevious}><Icon
+            <Button view={'flat'} disabled={props.index <= 0} onClick={props.onPrevious}><Icon
                 data={ChevronUp}/></Button>
-            <Button view={'flat'} disabled={props.index === -1 || props.index === props.totalItems - 1} onClick={props.onNext}><Icon
+            <Button view={'flat'} disabled={props.index < 0 || props.index === props.totalItems - 1} onClick={props.onNext}><Icon
                 data={ChevronDown}/></Button>
         </div>
     </div>;
