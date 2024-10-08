@@ -15,7 +15,6 @@ import {bindActionCreators} from 'redux';
 import * as actions from '@/static/modules/actions';
 import {
     TreeViewBrowserData,
-    TreeViewItem,
     TreeViewItemType,
     TreeViewSuiteData
 } from '@/static/new-ui/features/suites/components/SuitesPage/types';
@@ -30,18 +29,19 @@ import styles from './index.module.css';
 import {TestStatus} from '@/constants';
 import {TreeViewItemIcon} from '../../../../components/TreeViewItemIcon';
 import {getIconByStatus} from '@/static/new-ui/utils';
+import {TreeViewItem} from '@/static/new-ui/types';
 
 interface SuitesTreeViewProps {
     treeViewItems: TreeViewItem<TreeViewSuiteData | TreeViewBrowserData>[];
     treeViewExpandedById: Record<string, boolean>;
     actions: typeof actions;
     isInitialized: boolean;
-    currentSuiteId: string | null;
+    currentBrowserId: string | null;
 }
 
 function SuitesTreeViewInternal(props: SuitesTreeViewProps): ReactNode {
     const navigate = useNavigate();
-    const {suiteId} = useParams();
+    const {browserId} = useParams();
 
     const list = useList({
         items: props.treeViewItems,
@@ -74,9 +74,9 @@ function SuitesTreeViewInternal(props: SuitesTreeViewProps): ReactNode {
 
         props.actions.setStrictMatchFilter(false);
 
-        if (suiteId) {
-            props.actions.suitesPageSetCurrentSuite(suiteId);
-            virtualizer.scrollToIndex(list.structure.visibleFlattenIds.indexOf(suiteId), {align: 'start'});
+        if (browserId) {
+            props.actions.suitesPageSetCurrentSuite(browserId);
+            virtualizer.scrollToIndex(list.structure.visibleFlattenIds.indexOf(browserId), {align: 'start'});
         }
     }, [props.isInitialized]);
 
@@ -105,7 +105,7 @@ function SuitesTreeViewInternal(props: SuitesTreeViewProps): ReactNode {
                 >
                     {virtualizedItems.map((virtualRow) => {
                         const item = list.structure.itemsById[virtualRow.key];
-                        const isSelected = item.fullTitle === props.currentSuiteId;
+                        const isSelected = item.fullTitle === props.currentBrowserId;
                         const classes = [
                             styles['tree-view__item'],
                             {
@@ -146,8 +146,8 @@ function SuitesTreeViewInternal(props: SuitesTreeViewProps): ReactNode {
 
 export const SuitesTreeView = connect((state: State) => ({
     isInitialized: state.app.isInitialized,
-    currentSuiteId: state.app.currentSuiteId,
-    treeViewItems: getTreeViewItems(state),
+    currentBrowserId: state.app.suitesPage.currentBrowserId,
+    treeViewItems: getTreeViewItems(state).tree,
     treeViewExpandedById: getTreeViewExpandedById(state)
 }),
 (dispatch) => ({actions: bindActionCreators(actions, dispatch)}))(SuitesTreeViewInternal);

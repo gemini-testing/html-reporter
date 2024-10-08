@@ -17,11 +17,13 @@ export interface Action {
     args: string[];
     duration?: number;
     isGroup: boolean;
+    hasChildren: boolean;
 }
 
 export interface Attachment {
     type: StepType.Attachment;
     title: string;
+    hasChildren: boolean;
 }
 
 export interface ErrorInfo {

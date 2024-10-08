@@ -101,7 +101,9 @@ export const addResultToTree = ({tree, suiteName, browserName, attempt, metaInfo
         imageIds: [],
         metaInfo,
         status: TestStatus.IDLE,
-        timestamp: 0
+        timestamp: 0,
+        suitePath: [],
+        name: browserName
     };
     tree.results.stateById[fullId] = {
         matchedSelectedGroup: false

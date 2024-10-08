@@ -1,11 +1,6 @@
 import {TestStatus} from '@/constants';
 import {ImageFile} from '@/types';
 
-export interface TreeViewItem<T> {
-    data: T;
-    children?: TreeViewItem<T>[];
-}
-
 export enum TreeViewItemType {
     Suite,
     Browser,

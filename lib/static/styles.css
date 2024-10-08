@@ -923,12 +923,15 @@ a:active {
 }
 
 /* Gravity UI Font Styles */
+h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+}
+
 .text-display-1 {
     font-family: Jost, sans-serif;
     font-weight: 500;
     font-size: 24px;
     line-height: 28px;
-    margin: 0;
 }
 
 .text-display-2 {
@@ -936,7 +939,6 @@ a:active {
     font-weight: 500;
     font-size: 18px;
     line-height: 24px;
-    margin: 0;
 }
 
 .text-display-3 {
@@ -944,7 +946,6 @@ a:active {
     font-weight: 500;
     font-size: var(--g-text-display-3-font-size);
     line-height: var(--g-text-display-3-line-height);
-    margin: 0;
 }
 
 .text-header-1 {
@@ -952,7 +953,6 @@ a:active {
     font-weight: 500;
     font-size: var(--g-text-header-1-font-size);
     line-height: var(--g-text-header-1-line-height);
-    margin: 0;
 }
 
 .text-subheader-1 {

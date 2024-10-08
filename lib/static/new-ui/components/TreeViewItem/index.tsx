@@ -26,6 +26,9 @@ interface TreeListItemProps<T> {
 }
 
 export function TreeViewItem<T>(props: TreeListItemProps<T>): ReactNode {
+    const indent = props.list.structure.itemsState[props.id].indentation;
+    const hasChildren = (props.list.structure.itemsById[props.id] as {hasChildren?: boolean}).hasChildren;
+
     return <Box
         spacing={{pt: 1}}
     >
@@ -34,7 +37,7 @@ export function TreeViewItem<T>(props: TreeListItemProps<T>): ReactNode {
                 [styles['tree-view-item--error']]: props.isFailed
             }])}
             activeOnHover={true}
-            style={{'--indent': props.list.structure.itemsState[props.id].indentation} as React.CSSProperties}
+            style={{'--indent': indent + Number(!hasChildren)} as React.CSSProperties}
             {...getItemRenderState({
                 id: props.id,
                 list: props.list,

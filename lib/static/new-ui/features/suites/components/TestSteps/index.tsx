@@ -15,7 +15,7 @@ import {TestStepArgs} from '@/static/new-ui/features/suites/components/TestStepA
 import {getIconByStatus} from '@/static/new-ui/utils';
 import {ErrorInfo} from '@/static/new-ui/components/ErrorInfo';
 import * as actions from '@/static/modules/actions';
-import {getCurrentResultId} from '@/static/new-ui/store/selectors';
+import {getCurrentResultId} from '@/static/new-ui/features/suites/selectors';
 import {getStepsExpandedById, getTestSteps} from './selectors';
 import {Step, StepType} from './types';
 import {ListItemViewContentType, TreeViewItem} from '../../../../components/TreeViewItem';

@@ -1,0 +1,11 @@
+.card {
+    background-color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hint {
+    color: var(--g-color-private-black-400);
+    font-weight: 500;
+}

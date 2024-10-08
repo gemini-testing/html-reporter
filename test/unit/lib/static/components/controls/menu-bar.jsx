@@ -11,7 +11,7 @@ describe('<MenuBar />', () => {
             initialState: {apiValues: {extraItems: {some: 'link'}}}
         });
 
-        await user.click(component.getByRole('button'));
+        await user.click(component.getByTestId('menu-bar').querySelector('button'));
 
         expect(component.getByText('some')).to.exist;
         expect(component.getByText('some').href).to.equal('http://localhost/link');
@@ -22,6 +22,6 @@ describe('<MenuBar />', () => {
             initialState: {apiValues: {extraItems: {}}}
         });
 
-        expect(component.queryByRole('button')).to.not.exist;
+        expect(component.queryByTestId('menu-bar')).to.not.exist;
     });
 });

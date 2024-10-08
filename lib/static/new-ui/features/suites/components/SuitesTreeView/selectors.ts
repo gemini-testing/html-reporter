@@ -3,13 +3,13 @@ import {get, last} from 'lodash';
 import {
     isImageEntityFail,
     isResultEntityError,
-    isSuiteEntityLeaf,
+    hasBrowsers,
+    hasSuites,
     BrowserEntity,
     SuiteEntity
 } from '@/static/new-ui/types/store';
 import {
     TreeViewBrowserData,
-    TreeViewItem,
     TreeViewItemType,
     TreeViewSuiteData
 } from '@/static/new-ui/features/suites/components/SuitesPage/types';
@@ -25,17 +25,25 @@ import {
 import {trimArray} from '@/common-utils';
 import {ImageFile} from '@/types';
 import {getFullTitleByTitleParts} from '@/static/new-ui/utils';
+import {TreeViewItem} from '@/static/new-ui/types';
+
+interface TreeViewData {
+    tree: TreeViewItem<TreeViewSuiteData | TreeViewBrowserData>[];
+    visibleBrowserIds: string[];
+}
 
 // Converts the existing store structure to the one that can be consumed by GravityUI
 export const getTreeViewItems = createSelector(
     [getSuites, getSuitesState, getAllRootSuiteIds, getBrowsers, getBrowsersState, getResults, getImages],
-    (suites, suitesState, rootSuiteIds, browsers, browsersState, results, images): TreeViewItem<TreeViewSuiteData | TreeViewBrowserData>[] => {
+    (suites, suitesState, rootSuiteIds, browsers, browsersState, results, images): TreeViewData => {
         const EMPTY_SUITE: TreeViewSuiteData = {
             type: TreeViewItemType.Suite,
             title: '',
             fullTitle: '',
             status: TestStatus.IDLE
         };
+
+        const visibleBrowserIds: string[] = [];
 
         const formatBrowser = (browserData: BrowserEntity, parentSuite: TreeViewSuiteData): TreeViewItem<TreeViewBrowserData> | null => {
             // Assuming test in concrete browser always has at least one result, even never launched (idle result)
@@ -66,6 +74,8 @@ export const getTreeViewItems = createSelector(
                 return null;
             }
 
+            visibleBrowserIds.push(data.fullTitle);
+
             return {data};
         };
 
@@ -81,28 +91,31 @@ export const getTreeViewItems = createSelector(
                 return null;
             }
 
-            if (isSuiteEntityLeaf(suiteData)) {
-                return {
-                    data,
-                    children: suiteData.browserIds
-                        .map((browserId) => formatBrowser(browsers[browserId], data))
-                        .filter(Boolean) as TreeViewItem<TreeViewBrowserData>[]
-                };
-            } else {
-                return {
-                    data,
-                    children: suiteData.suiteIds
-                        .map((suiteId) => formatSuite(suites[suiteId], data))
-                        .filter(Boolean) as TreeViewItem<TreeViewSuiteData | TreeViewBrowserData>[]
-                };
+            let children: TreeViewItem<TreeViewSuiteData | TreeViewBrowserData>[] = [];
+            if (hasBrowsers(suiteData)) {
+                children = suiteData.browserIds
+                    .map((browserId) => formatBrowser(browsers[browserId], data))
+                    .filter(Boolean) as TreeViewItem<TreeViewBrowserData>[];
             }
+            if (hasSuites(suiteData)) {
+                children = suiteData.suiteIds
+                    .map((suiteId) => formatSuite(suites[suiteId], data))
+                    .filter(Boolean) as TreeViewItem<TreeViewSuiteData | TreeViewBrowserData>[];
+            }
+
+            return {data, children};
         };
 
-        return rootSuiteIds
+        const tree = rootSuiteIds
             .map((rootId) => {
                 return formatSuite(suites[rootId], EMPTY_SUITE);
             })
             .filter(Boolean) as TreeViewItem<TreeViewSuiteData | TreeViewBrowserData>[];
+
+        return {
+            visibleBrowserIds,
+            tree
+        };
     });
 
 export const getTreeViewExpandedById = createSelector(

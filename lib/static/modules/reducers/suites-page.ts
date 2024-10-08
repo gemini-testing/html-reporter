@@ -6,7 +6,7 @@ import {applyStateUpdate} from '@/static/modules/utils/state';
 export default (state: State, action: SuitesPageAction): State => {
     switch (action.type) {
         case actionNames.SUITES_PAGE_SET_CURRENT_SUITE:
-            return applyStateUpdate(state, {app: {currentSuiteId: action.payload.suiteId}}) as State;
+            return applyStateUpdate(state, {app: {suitesPage: {currentBrowserId: action.payload.suiteId}}}) as State;
         case actionNames.SUITES_PAGE_SET_SECTION_EXPANDED: {
             return applyStateUpdate(state, {
                 ui: {

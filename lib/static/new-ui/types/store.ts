@@ -21,7 +21,8 @@ export interface SuiteEntityLeaf {
 
 export type SuiteEntity = SuiteEntityNode | SuiteEntityLeaf;
 
-export const isSuiteEntityLeaf = (suite: SuiteEntity): suite is SuiteEntityLeaf => Boolean((suite as SuiteEntityLeaf).browserIds);
+export const hasBrowsers = (suite: SuiteEntity): suite is SuiteEntityLeaf => Boolean((suite as SuiteEntityLeaf).browserIds);
+export const hasSuites = (suite: SuiteEntity): suite is SuiteEntityNode => Boolean((suite as SuiteEntityNode).suiteIds);
 
 export interface BrowserEntity {
     id: string;
@@ -41,6 +42,9 @@ export interface ResultEntityCommon {
     suiteUrl?: string;
     history?: TestStepCompressed[];
     error?: TestError;
+    suitePath: string[];
+    /** @note Browser Name/ID, e.g. `chrome-desktop` */
+    name: string;
 }
 
 export interface ResultEntityError extends ResultEntityCommon {
@@ -128,13 +132,18 @@ export interface TreeEntity {
 export interface State {
     app: {
         isInitialized: boolean;
-        currentSuiteId: string | null;
+        suitesPage: {
+            currentBrowserId: string | null;
+        };
+        visualChecksPage: {
+            currentNamedImageId: string | null;
+        }
     };
     ui: {
         suitesPage: {
             expandedSectionsById: Record<string, boolean>;
             expandedStepsByResultId: Record<string, Record<string, boolean>>;
-        }
+        },
     };
     browsers: BrowserItem[];
     tree: TreeEntity;

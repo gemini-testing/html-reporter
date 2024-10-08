@@ -1,5 +1,5 @@
-import {Globe} from '@gravity-ui/icons';
-import {Button, Flex, Select, SelectRenderControlProps, SelectRenderOption} from '@gravity-ui/uikit';
+import {PlanetEarth} from '@gravity-ui/icons';
+import {Button, Flex, Icon, Select, SelectRenderControlProps, SelectRenderOption} from '@gravity-ui/uikit';
 import React, {useState, useEffect, ReactNode} from 'react';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
@@ -109,8 +109,8 @@ function BrowsersSelectInternal({browsers, filteredBrowsers, actions}: BrowsersS
     };
 
     const renderControl = ({onClick, onKeyDown, ref}: SelectRenderControlProps): React.JSX.Element => {
-        return <Button ref={ref} onClick={onClick} extraProps={{onKeyDown}} view={'outlined'} style={{width: 28}}>
-            <Globe/>
+        return <Button ref={ref} onClick={onClick} extraProps={{onKeyDown}} view={'outlined'}>
+            <Icon data={PlanetEarth}/>
         </Button>;
     };
 

@@ -46,7 +46,7 @@ function AttemptPickerInternal(props: AttemptPickerInternalProps): ReactNode {
 export const AttemptPicker = connect((state: State) => {
     let resultIds: string[] = [];
     let currentResultId = '';
-    const browserId = state.app.currentSuiteId;
+    const browserId = state.app.suitesPage.currentBrowserId;
 
     if (browserId && state.tree.browsers.byId[browserId]) {
         resultIds = state.tree.browsers.byId[browserId].resultIds;
