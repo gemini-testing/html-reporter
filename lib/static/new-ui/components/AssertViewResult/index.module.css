@@ -1,17 +1,8 @@
-.diff-viewer-container {
+.screenshot {
+    padding-right: 1px;
+}
+
+.screenshot-container {
     display: flex;
     flex-direction: column;
-    padding-left: calc(var(--indent) * 24px);
-    padding-right: 1px
-}
-
-.diff-mode-switcher {
-    --g-color-base-background: #fff;
-    margin: 12px auto;
-}
-
-.screenshot {
-    margin: 8px 0;
-    padding-left: calc(var(--indent) * 24px);
-    padding-right: 1px;
 }

@@ -6,3 +6,28 @@
     margin-bottom: 8px;
     padding-top: 20px;
 }
+
+.toolbar-container {
+    --g-color-text-primary: var(--g-color-private-cool-grey-700-solid);
+    color: var(--g-color-private-cool-grey-700-solid);
+    display: flex;
+    gap: 16px;
+    margin-bottom: 8px;
+}
+
+.accept-button {
+    composes: action-button from global;
+}
+
+.buttons-container {
+    margin-left: auto;
+}
+
+.hint {
+    align-items: center;
+    color: var(--g-color-private-black-400);
+    display: flex;
+    flex-grow: 1;
+    font-weight: 500;
+    justify-content: center;
+}

@@ -1,0 +1,50 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 1px 4px calc(var(--indent) * 24px);
+    row-gap: 8px;
+}
+
+.toolbar-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.toolbar-container > div:only-child {
+    justify-content: center;
+}
+
+.accept-button {
+    composes: action-button from global;
+}
+
+.buttons-container {
+    display: flex;
+    margin-left: auto;
+}
+
+.diff-mode-container {
+    container-type: inline-size;
+    flex-grow: 1;
+    display: flex;
+}
+
+.diff-mode-switcher {
+    --g-color-base-background: #fff;
+}
+
+.diff-mode-select {
+    display: none;
+}
+
+@container (max-width: 500px) {
+    .diff-mode-switcher {
+        display: none !important;
+    }
+
+    .diff-mode-select {
+        display: block;
+    }
+}

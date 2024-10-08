@@ -1,0 +1,9 @@
+.container {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+
+    color: var(--g-color-private-cool-grey-700-solid);
+    font-size: 15px;
+    font-weight: 450;
+}

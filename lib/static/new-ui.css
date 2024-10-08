@@ -42,4 +42,6 @@ body {
 .action-button {
     font-size: 15px;
     font-weight: 450;
+    /* Sets spinner color */
+    --g-color-line-brand: var(--g-color-text-hint);
 }

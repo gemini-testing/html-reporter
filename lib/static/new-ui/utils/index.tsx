@@ -3,6 +3,7 @@ import {Spin} from '@gravity-ui/uikit';
 import React from 'react';
 
 import {TestStatus} from '@/constants';
+import {ImageFile} from '@/types';
 
 export const getIconByStatus = (status: TestStatus): React.JSX.Element => {
     if (status === TestStatus.FAIL || status === TestStatus.ERROR) {
@@ -27,3 +28,5 @@ export const getFullTitleByTitleParts = (titleParts: string[]): string => {
 
     return titleParts.join(DELIMITER).trim();
 };
+
+export const getImageDisplayedSize = (image: ImageFile): string => `${image.size.width}×${image.size.height}`;
