@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.8.0"></a>
+# [10.8.0](https://github.com/gemini-testing/html-reporter/compare/v10.7.1...v10.8.0) (2024-10-08)
+
+
+### Bug Fixes
+
+* **new-ui:** use actual ids in selectors instead of fulltitle ([#607](https://github.com/gemini-testing/html-reporter/issues/607)) ([2e8f13a](https://github.com/gemini-testing/html-reporter/commit/2e8f13a))
+
+
+### Features
+
+* **new-ui:** add ability to accept and undo screenshots ([#605](https://github.com/gemini-testing/html-reporter/issues/605)) ([503a9a5](https://github.com/gemini-testing/html-reporter/commit/503a9a5))
+
+
+
 <a name="10.7.1"></a>
 ## [10.7.1](https://github.com/gemini-testing/html-reporter/compare/v10.7.0...v10.7.1) (2024-10-03)
 
