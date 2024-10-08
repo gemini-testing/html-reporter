@@ -55,6 +55,8 @@
         .tree-view__item--current {
             background: #a28aff !important;
             color: #fff !important;
+            /* Sets spinner color */
+            --g-color-line-brand: #fff;
         }
 
         .tree-view__item__title--current {

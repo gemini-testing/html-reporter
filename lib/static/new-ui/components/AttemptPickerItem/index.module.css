@@ -1,9 +1,10 @@
 .attempt-picker-item {
-    --g-button-padding: 8px;
+    width: 28px;
 }
 
 .attempt-picker-item--active {
     --g-button-border-width: 1px;
+    box-shadow: 0px 1px 3px 0px var(--box-shadow-color);
 }
 
 .attempt-picker-item--staged {
@@ -16,10 +17,21 @@
     border-color: rgba(207, 231, 252, 1);
 }
 
+.attempt-picker-item--success {
+    --box-shadow-color: #21a95661;
+}
+
+.attempt-picker-item--error {
+    --box-shadow-color: #ff004b61;
+}
+
 .attempt-picker-item--fail {
+    --g-button-text-color-hover: #c522ff;
+    --g-button-background-color-hover: #cf49ff4f;
     --g-button-background-color: var(--color-pink-100);
     --g-button-text-color: var(--color-pink-600);
     --g-button-border-color: var(--color-pink-600);
+    --box-shadow-color: #cf49ff61;
 }
 
 .attempt-picker-item--fail_error {

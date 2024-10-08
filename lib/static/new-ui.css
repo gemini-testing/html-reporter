@@ -15,6 +15,7 @@
 .g-root {
     --g-font-family-sans: 'Jost', sans-serif;
     --g-color-base-background: #eee;
+    --g-color-text-danger-heavy: #e9043a;
 }
 
 body {
@@ -36,4 +37,9 @@ body {
 
 .gn-aside-header__header:after {
     display: none;
+}
+
+.action-button {
+    font-size: 15px;
+    font-weight: 450;
 }
