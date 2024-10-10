@@ -1,11 +1,12 @@
 import {PlanetEarth} from '@gravity-ui/icons';
 import {Button, Flex, Icon, Select, SelectRenderControlProps, SelectRenderOption} from '@gravity-ui/uikit';
 import React, {useState, useEffect, ReactNode} from 'react';
-import {connect} from 'react-redux';
+import {connect, useSelector} from 'react-redux';
 import {bindActionCreators} from 'redux';
 
 import * as actions from '@/static/modules/actions';
 import {BrowserIcon} from '@/static/new-ui/features/suites/components/BrowsersSelect/BrowserIcon';
+import {getIsInitialized} from '@/static/new-ui/store/selectors';
 import {State} from '@/static/new-ui/types/store';
 import {BrowserItem} from '@/types';
 import styles from './index.module.css';
@@ -108,8 +109,10 @@ function BrowsersSelectInternal({browsers, filteredBrowsers, actions}: BrowsersS
         }
     };
 
+    const isInitialized = useSelector(getIsInitialized);
+
     const renderControl = ({onClick, onKeyDown, ref}: SelectRenderControlProps): React.JSX.Element => {
-        return <Button ref={ref} onClick={onClick} extraProps={{onKeyDown}} view={'outlined'}>
+        return <Button ref={ref} onClick={onClick} extraProps={{onKeyDown}} view={'outlined'} disabled={!isInitialized}>
             <Icon data={PlanetEarth}/>
         </Button>;
     };

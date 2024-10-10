@@ -138,6 +138,10 @@ export interface State {
         };
         visualChecksPage: {
             currentNamedImageId: string | null;
+        };
+        loading: {
+            /** @note Maps ID of a resource to its loading progress. E.g. dbUrl: 88. Progress is measured from 0 to 1. */
+            progress: Record<string, number>;
         }
     };
     ui: {

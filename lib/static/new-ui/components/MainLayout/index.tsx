@@ -1,8 +1,11 @@
 import {AsideHeader, MenuItem as GravityMenuItem} from '@gravity-ui/navigation';
+import classNames from 'classnames';
 import React from 'react';
+import {useSelector} from 'react-redux';
 import {useNavigate, matchPath, useLocation} from 'react-router-dom';
 import TestplaneIcon from '../../../icons/testplane-mono.svg';
 import styles from './index.module.css';
+import {getIsInitialized} from '@/static/new-ui/store/selectors';
 
 interface MenuItem {
     title: string;
@@ -27,8 +30,17 @@ export function MainLayout(props: MainLayoutProps): JSX.Element {
         onItemClick: () => navigate(item.url)
     }));
 
-    return <AsideHeader logo={{text: 'Testplane UI', iconSrc: TestplaneIcon, iconSize: 32, onClick: () => navigate('/')}} compact={true}
-        headerDecoration={false} menuItems={gravityMenuItems} customBackground={<div className={styles.asideHeaderBg}/>} customBackgroundClassName={styles.asideHeaderBgWrapper}
-        renderContent={(): React.ReactNode => props.children} hideCollapseButton={true}
+    const isInitialized = useSelector(getIsInitialized);
+
+    return <AsideHeader
+        className={classNames({'aside-header--initialized': isInitialized})}
+        logo={{text: 'Testplane UI', iconSrc: TestplaneIcon, iconSize: 32, onClick: () => navigate('/suites')}}
+        compact={true}
+        headerDecoration={false}
+        menuItems={gravityMenuItems}
+        customBackground={<div className={styles.asideHeaderBg}/>}
+        customBackgroundClassName={styles.asideHeaderBgWrapper}
+        renderContent={(): React.ReactNode => props.children}
+        hideCollapseButton={true}
     />;
 }

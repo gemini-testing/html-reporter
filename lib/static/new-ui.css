@@ -39,6 +39,30 @@ body {
     display: none;
 }
 
+.gn-aside-header__aside {
+    transform: translateX(-60px);
+
+    animation: aside-header-appear 1s;
+    animation-delay: 2s;
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
+}
+
+.aside-header--initialized .gn-aside-header__aside {
+    transform: none;
+    animation: none;
+}
+
+@keyframes aside-header-appear {
+    0% {
+        transform: translateX(-60px);
+    }
+
+    100% {
+        transform: translateX(0);
+    }
+}
+
 .action-button {
     font-size: 15px;
     font-weight: 450;

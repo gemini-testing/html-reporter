@@ -25,6 +25,9 @@ import {
 } from '@/static/modules/actions';
 import {isAcceptable, isScreenRevertable} from '@/static/modules/utils';
 import {AssertViewStatus} from '@/static/new-ui/components/AssertViewStatus';
+import {
+    AssertViewResultSkeleton
+} from '@/static/new-ui/features/visual-checks/components/VisualChecksPage/AssertViewResultSkeleton';
 
 export function VisualChecksPage(): ReactNode {
     const dispatch = useDispatch();
@@ -65,9 +68,11 @@ export function VisualChecksPage(): ReactNode {
     const isLastResult = Boolean(currentResultId && currentBrowser && currentResultId === currentBrowser.resultIds[currentBrowser.resultIds.length - 1]);
     const isUndoAvailable = isScreenRevertable({gui: isGui, image: currentImage ?? {}, isLastResult, isStaticImageAccepterEnabled: false});
 
+    const isInitialized = useSelector((state: State) => state.app.isInitialized);
+
     return <SplitViewLayout sections={[
         <UiCard key="test-view" className={classNames(styles.card, styles.testViewCard)}>
-            <div className={styles.stickyHeader}>
+            {isInitialized && <><div className={styles.stickyHeader}>
                 {currentNamedImage && <SuiteTitle
                     className={styles['card__title']}
                     suitePath={currentNamedImage.suitePath}
@@ -96,7 +101,10 @@ export function VisualChecksPage(): ReactNode {
                 </div>
             </div>
             {currentImage && <AssertViewResult result={currentImage}/>}
-            {!currentImage && <div className={styles.hint}>This run doesn&apos;t have an image with name &quot;{currentNamedImage?.stateName}&quot;</div>}
+            {!currentImage && <div className={styles.hint}>This run doesn&apos;t have an image with
+                name &quot;{currentNamedImage?.stateName}&quot;</div>}
+            </>}
+            {!isInitialized && <AssertViewResultSkeleton />}
         </UiCard>
     ]}/>;
 }

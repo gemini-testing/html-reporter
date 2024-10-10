@@ -1,8 +1,12 @@
 import classNames from 'classnames';
 import React, {ReactNode} from 'react';
+import {useSelector} from 'react-redux';
 import Split from 'react-split';
-import styles from './SplitViewLayout.module.css';
+
 import {KeepDraggingToHideCard} from '@/static/new-ui/components/Card/KeepDraggingToHideCard';
+import {AnimatedAppearCard} from '@/static/new-ui/components/Card/AnimatedAppearCard';
+import {getIsInitialized} from '@/static/new-ui/store/selectors';
+import styles from './SplitViewLayout.module.css';
 
 interface SplitViewLayoutProps {
     sections: React.ReactNode[];
@@ -38,9 +42,11 @@ export function SplitViewLayout(props: SplitViewLayoutProps): ReactNode {
         return gutter;
     };
 
+    const isInitialized = useSelector(getIsInitialized);
+
     return <Split
         direction={'horizontal'}
-        className={classNames(styles.split, {'is-resizing': isDragging, 'is-idle': wasDragged && !isDragging})}
+        className={classNames(styles.split, {'is-resizing': isDragging, 'is-idle': wasDragged && !isDragging, 'is-initialized': isInitialized})}
         minSize={0} snapOffset={snapOffset}
         onDrag={onDragHandler}
         onDragStart={onDragStartHandler}
@@ -53,6 +59,7 @@ export function SplitViewLayout(props: SplitViewLayoutProps): ReactNode {
                 className={classNames(styles.container, {[styles.containerCollapsed]: isHiddenByIndex[index], 'is-collapsed': isHiddenByIndex[index]})}
             >
                 <KeepDraggingToHideCard/>
+                <AnimatedAppearCard/>
                 {section}
             </div>)}
     </Split>;

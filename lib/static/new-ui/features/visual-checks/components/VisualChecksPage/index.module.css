@@ -1,5 +1,5 @@
 .card {
-    height: calc(100vh - 20px);
+    height: 100%;
 }
 
 .card__title {

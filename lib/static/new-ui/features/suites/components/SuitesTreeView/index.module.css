@@ -53,7 +53,7 @@
         }
 
         .tree-view__item--current {
-            background: #a28aff !important;
+            background: var(--g-color-base-brand) !important;
             color: #fff !important;
             /* Sets spinner color */
             --g-color-line-brand: #fff;
@@ -64,12 +64,12 @@
         }
 
         .tree-view__item__error--current {
-            background-color: #8c72ee;
+            background-color: var(--g-color-private-black-150);;
             border: 1px solid #00000024;
         }
 
         .tree-view__item.tree-view__item--current:hover {
-            background: #af9aff !important;
+            background: var(--g-color-base-brand-hover) !important;
         }
 
         .tree-view__item--current svg {

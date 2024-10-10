@@ -100,6 +100,9 @@ export default Object.assign({config: configDefaults}, {
         },
         visualChecksPage: {
             currentNamedImageId: null
+        },
+        loading: {
+            progress: {}
         }
     },
     ui: {

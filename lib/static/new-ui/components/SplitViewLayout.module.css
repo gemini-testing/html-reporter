@@ -1,7 +1,13 @@
+div:has(> .split) {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
 .split {
+    flex-grow: 1;
     display: flex;
     flex-direction: row;
-    height: 100vh;
     padding: 0 10px;
 }
 
@@ -17,6 +23,16 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    animation: 4s ease forwards gutter-appear;
+}
+
+:global(.is-initialized) .gutter {
+    animation: none;
+}
+
+@keyframes gutter-appear {
+    0% {opacity: 0}
+    100% {opacity: 1}
 }
 
 .gutter-handle {

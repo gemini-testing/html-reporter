@@ -1,0 +1,67 @@
+@property --gradient-angle {
+    syntax: "<angle>";
+    inherits: false;
+    initial-value: 0turn;
+}
+
+@property --from-color {
+    syntax: "<color>";
+    inherits: false;
+    initial-value: #eee;
+}
+
+@property --to-color {
+    syntax: "<color>";
+    inherits: false;
+    initial-value: #eee;
+}
+
+.animated-appear-card {
+    background-color: #eee;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    box-shadow: 0 0 0 2px #eee;
+    animation: border-pulse 5s ease forwards;
+    background-image: conic-gradient(from var(--gradient-angle) at -10% 100%, var(--from-color) 0%, var(--to-color) 100%);
+    padding: 1px;
+}
+
+.background-overlay {
+    background-color: #eee;
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+}
+
+@keyframes border-pulse {
+    0% {
+        --from-color: #eee;
+        --to-color: #eee;
+        --gradient-angle: 0turn;
+        visibility: visible;
+    }
+
+    25% {
+        --from-color: #00FFFF00;
+        --to-color: #7d7d7d85;
+        --gradient-angle: 0turn;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        --from-color: #00FFFF00;
+        --to-color: #7d7d7d85;
+        --gradient-angle: 1turn;
+        opacity: 0;
+        visibility: hidden;
+    }
+}
+
+.hidden {
+    visibility: hidden !important;
+}

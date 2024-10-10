@@ -41,7 +41,7 @@ interface SuitesTreeViewProps {
 
 function SuitesTreeViewInternal(props: SuitesTreeViewProps): ReactNode {
     const navigate = useNavigate();
-    const {browserId} = useParams();
+    const {suiteId} = useParams();
 
     const list = useList({
         items: props.treeViewItems,
@@ -74,9 +74,9 @@ function SuitesTreeViewInternal(props: SuitesTreeViewProps): ReactNode {
 
         props.actions.setStrictMatchFilter(false);
 
-        if (browserId) {
-            props.actions.suitesPageSetCurrentSuite(browserId);
-            virtualizer.scrollToIndex(list.structure.visibleFlattenIds.indexOf(browserId), {align: 'start'});
+        if (suiteId) {
+            props.actions.suitesPageSetCurrentSuite(suiteId);
+            virtualizer.scrollToIndex(list.structure.visibleFlattenIds.indexOf(suiteId), {align: 'start'});
         }
     }, [props.isInitialized]);
 

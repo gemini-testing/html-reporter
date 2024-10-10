@@ -1,10 +1,11 @@
 import {TextInput} from '@gravity-ui/uikit';
 import React, {ChangeEvent, ReactNode, useCallback, useState} from 'react';
 import {debounce} from 'lodash';
-import {connect} from 'react-redux';
+import {connect, useSelector} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import * as actions from '@/static/modules/actions';
 import {State} from '@/static/new-ui/types/store';
+import {getIsInitialized} from '@/static/new-ui/store/selectors';
 
 interface TestNameFilterProps {
     testNameFilter: string;
@@ -25,7 +26,9 @@ function TestNameFilterInternal(props: TestNameFilterProps): ReactNode {
         updateTestNameFilter(event.target.value);
     }, [setTestNameFilter, updateTestNameFilter]);
 
-    return <TextInput placeholder='Search or filter' value={testNameFilter} onChange={onChange}/>;
+    const isInitialized = useSelector(getIsInitialized);
+
+    return <TextInput disabled={!isInitialized} placeholder='Search or filter' value={testNameFilter} onChange={onChange}/>;
 }
 
 export const TestNameFilter = connect(
