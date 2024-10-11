@@ -1,5 +1,11 @@
+.container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
 .card {
-    height: calc(100vh - 20px);
+    height: 100%;
 }
 
 .card__title {

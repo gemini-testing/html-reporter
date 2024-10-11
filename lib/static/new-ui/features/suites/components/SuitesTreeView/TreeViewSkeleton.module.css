@@ -1,0 +1,11 @@
+.skeleton {
+    height: 24px;
+    animation: skeleton-appear 1s ease forwards;
+    animation-delay: var(--delay);
+    opacity: 0;
+}
+
+@keyframes skeleton-appear {
+    from {opacity: 0}
+    to {opacity: 1}
+}

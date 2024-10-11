@@ -12,6 +12,7 @@ import '@gravity-ui/uikit/styles/styles.css';
 import '../../new-ui.css';
 import {Provider} from 'react-redux';
 import store from '../../modules/store';
+import {LoadingBar} from '@/static/new-ui/components/LoadingBar';
 
 export function App(): ReactNode {
     const pages = [
@@ -31,6 +32,7 @@ export function App(): ReactNode {
             <Provider store={store}>
                 <HashRouter>
                     <MainLayout menuItems={pages}>
+                        <LoadingBar/>
                         <Routes>
                             <Route element={<Navigate to={'/suites'}/>} path={'/'}/>
                             {pages.map(page => <Route element={page.element} path={page.url} key={page.url}>{page.children}</Route>)}

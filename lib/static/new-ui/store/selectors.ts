@@ -16,3 +16,5 @@ export const getBrowsersState = (state: State): Record<string, BrowserState> => 
 export const getAllBrowserIds = (state: State): string[] => state.tree.browsers.allIds;
 export const getResults = (state: State): Record<string, ResultEntity> => state.tree.results.byId;
 export const getImages = (state: State): Record<string, ImageEntity> => state.tree.images.byId;
+
+export const getIsInitialized = (state: State): boolean => state.app.isInitialized;
