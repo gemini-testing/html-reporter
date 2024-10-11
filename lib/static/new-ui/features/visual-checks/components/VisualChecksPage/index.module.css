@@ -1,3 +1,9 @@
+.container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
 .card {
     height: 100%;
 }

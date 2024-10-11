@@ -70,7 +70,7 @@ export function VisualChecksPage(): ReactNode {
 
     const isInitialized = useSelector((state: State) => state.app.isInitialized);
 
-    return <SplitViewLayout sections={[
+    return <div className={styles.container}><SplitViewLayout sections={[
         <UiCard key="test-view" className={classNames(styles.card, styles.testViewCard)}>
             {isInitialized && <><div className={styles.stickyHeader}>
                 {currentNamedImage && <SuiteTitle
@@ -106,5 +106,5 @@ export function VisualChecksPage(): ReactNode {
             </>}
             {!isInitialized && <AssertViewResultSkeleton />}
         </UiCard>
-    ]}/>;
+    ]}/></div>;
 }

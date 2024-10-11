@@ -1,9 +1,3 @@
-div:has(> .split) {
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-}
-
 .split {
     flex-grow: 1;
     display: flex;

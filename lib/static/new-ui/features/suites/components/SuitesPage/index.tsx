@@ -40,7 +40,7 @@ function SuitesPageInternal({currentResult, actions, visibleBrowserIds}: SuitesP
     const {suiteId: suiteIdParam} = useParams();
     const isInitialized = useSelector(getIsInitialized);
 
-    return <SplitViewLayout sections={[
+    return <div className={styles.container}><SplitViewLayout sections={[
         <UiCard key='tree-view' className={classNames(styles.card, styles.treeViewCard)}>
             <h2 className={classNames('text-display-1', styles['card__title'])}>Suites</h2>
             <Flex gap={2}>
@@ -72,7 +72,7 @@ function SuitesPageInternal({currentResult, actions, visibleBrowserIds}: SuitesP
             {!suiteIdParam && !currentResult && <div className={styles.hintContainer}><span className={styles.hint}>Select a test to see details</span></div>}
             {suiteIdParam && !isInitialized && <TestInfoSkeleton />}
         </UiCard>
-    ]} />;
+    ]} /></div>;
 }
 
 export const SuitesPage = connect(

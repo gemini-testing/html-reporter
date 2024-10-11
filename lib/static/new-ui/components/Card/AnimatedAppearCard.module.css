@@ -44,7 +44,7 @@
     }
 
     25% {
-        --from-color: #00FFFF00;
+        --from-color: #00ffff00;
         --to-color: #7d7d7d85;
         --gradient-angle: 0turn;
     }
@@ -54,7 +54,7 @@
     }
 
     100% {
-        --from-color: #00FFFF00;
+        --from-color: #00ffff00;
         --to-color: #7d7d7d85;
         --gradient-angle: 1turn;
         opacity: 0;

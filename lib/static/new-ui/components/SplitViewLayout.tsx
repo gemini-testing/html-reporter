@@ -46,7 +46,7 @@ export function SplitViewLayout(props: SplitViewLayoutProps): ReactNode {
 
     return <Split
         direction={'horizontal'}
-        className={classNames(styles.split, {'is-resizing': isDragging, 'is-idle': wasDragged && !isDragging, 'is-initialized': isInitialized})}
+        className={classNames(styles. split, {'is-resizing': isDragging, 'is-idle': wasDragged && !isDragging, 'is-initialized': isInitialized})}
         minSize={0} snapOffset={snapOffset}
         onDrag={onDragHandler}
         onDragStart={onDragStartHandler}

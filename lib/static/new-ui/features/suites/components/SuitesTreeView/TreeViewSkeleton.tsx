@@ -8,6 +8,7 @@ export function TreeViewSkeleton(): ReactNode {
     useEffect(() => {
         let currentLevel = 0;
         const skeletons: ReactNode[] = [];
+        // We want to have around this amount of lines in tree view
         for (let i = 0; i < 24; i++) {
             const level = random(0, currentLevel + 1);
             currentLevel = level;
