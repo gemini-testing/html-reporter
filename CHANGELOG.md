@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.9.0"></a>
+# [10.9.0](https://github.com/gemini-testing/html-reporter/compare/v10.8.0...v10.9.0) (2024-10-16)
+
+
+### Features
+
+* implement a button to switch between new and old UI ([#609](https://github.com/gemini-testing/html-reporter/issues/609)) ([dcebd53](https://github.com/gemini-testing/html-reporter/commit/dcebd53))
+* **new-ui:** implement smooth loading experience ([#608](https://github.com/gemini-testing/html-reporter/issues/608)) ([33ce925](https://github.com/gemini-testing/html-reporter/commit/33ce925))
+
+
+
 <a name="10.8.0"></a>
 # [10.8.0](https://github.com/gemini-testing/html-reporter/compare/v10.7.1...v10.8.0) (2024-10-08)
 
