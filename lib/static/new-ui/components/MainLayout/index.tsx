@@ -1,11 +1,18 @@
 import {AsideHeader, MenuItem as GravityMenuItem} from '@gravity-ui/navigation';
 import classNames from 'classnames';
-import React from 'react';
+import React, {ReactNode, useState} from 'react';
 import {useSelector} from 'react-redux';
 import {useNavigate, matchPath, useLocation} from 'react-router-dom';
+
+import {getIsInitialized} from '@/static/new-ui/store/selectors';
+import {SettingsPanel} from '@/static/new-ui/components/SettingsPanel';
 import TestplaneIcon from '../../../icons/testplane-mono.svg';
 import styles from './index.module.css';
-import {getIsInitialized} from '@/static/new-ui/store/selectors';
+import {Footer} from './Footer';
+
+export enum PanelId {
+    Settings = 'settings',
+}
 
 interface MenuItem {
     title: string;
@@ -32,6 +39,11 @@ export function MainLayout(props: MainLayoutProps): JSX.Element {
 
     const isInitialized = useSelector(getIsInitialized);
 
+    const [visiblePanel, setVisiblePanel] = useState<PanelId | null>(null);
+    const onFooterItemClick = (item: GravityMenuItem): void => {
+        visiblePanel ? setVisiblePanel(null) : setVisiblePanel(item.id as PanelId);
+    };
+
     return <AsideHeader
         className={classNames({'aside-header--initialized': isInitialized})}
         logo={{text: 'Testplane UI', iconSrc: TestplaneIcon, iconSize: 32, onClick: () => navigate('/suites')}}
@@ -42,5 +54,12 @@ export function MainLayout(props: MainLayoutProps): JSX.Element {
         customBackgroundClassName={styles.asideHeaderBgWrapper}
         renderContent={(): React.ReactNode => props.children}
         hideCollapseButton={true}
+        renderFooter={(): ReactNode => <Footer visiblePanel={visiblePanel} onFooterItemClick={onFooterItemClick}/>}
+        panelItems={[{
+            id: PanelId.Settings,
+            children: <SettingsPanel />,
+            visible: visiblePanel === PanelId.Settings
+        }]}
+        onClosePanel={(): void => setVisiblePanel(null)}
     />;
 }

@@ -63,9 +63,12 @@ body {
     }
 }
 
-.action-button {
+.regular-button {
     font-size: 15px;
     font-weight: 450;
+}
+
+.action-button {
     /* Sets spinner color */
     --g-color-line-brand: var(--g-color-text-hint);
 }

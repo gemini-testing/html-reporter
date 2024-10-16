@@ -130,7 +130,108 @@
     width: 200px;
 }
 
+@property --gradient-angle {
+    syntax: "<angle>";
+    inherits: false;
+    initial-value: 0turn;
+}
+
+@property --from-color {
+    syntax: "<color>";
+    inherits: false;
+    initial-value: #00ffff00;
+}
+
+@property --to-color {
+    syntax: "<color>";
+    inherits: false;
+    initial-value: #eee;
+}
+
 .report-info {
+    .new-ui-button {
+        margin-right: 1em;
+        transition: color 1s linear;
+        position: relative;
+
+        @keyframes glow {
+            from {background-position: 0}
+            to {background-position: 400%}
+        }
+
+        & .new-ui-button__glow {
+            opacity: 0;
+            left: 0;
+            filter: blur(10px);
+            transition: opacity 1s ease;
+            animation: 20s linear infinite glow;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: linear-gradient(90deg, #03a9f4, #f441a5, #ffeb3b, #03a9f4);
+            border-radius: 5px;
+            background-size: 400%;
+            z-index: -5;
+        }
+
+        &:hover .new-ui-button__glow {
+            opacity: 1;
+        }
+
+        @keyframes color-fade {
+            from {color: black}
+            to {color: white}
+        }
+
+        &:hover {
+            animation: 1s color-fade ease forwards;
+            animation-delay: .6s;
+        }
+
+        @keyframes pulse {
+            0% {
+                --gradient-angle: 0deg;
+                --to-color: rgb(108,71,255);
+            }
+
+            90% {
+                --to-color: rgb(108,71,255);
+                --from-color: #00ffff00;
+            }
+
+            100% {
+                --gradient-angle: 180deg;
+                --from-color: rgb(108,71,255);
+                --to-color: rgb(108,71,255);
+            }
+        }
+
+        &::before {
+            transition: none;
+            background-image: conic-gradient(from var(--gradient-angle) at -10% 100%, var(--from-color) 0%, var(--to-color) 100%);
+        }
+
+        &:hover::before {
+            animation: 1s ease pulse forwards;
+        }
+
+        @keyframes bg-fade {
+            from { background-color: #eee }
+            to { background-color: rgb(108,71,255) }
+        }
+
+        &::after {
+            background-color: #eee;
+            margin: 2px;
+            border-radius: 4px;
+        }
+
+        &:hover::after {
+            animation: 1s ease bg-fade forwards;
+            animation-delay: .7s;
+        }
+    }
+
     .label {
         margin: 0 15px 0 0;
     }

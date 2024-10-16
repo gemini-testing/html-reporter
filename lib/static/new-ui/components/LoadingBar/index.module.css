@@ -2,7 +2,7 @@
     height: 30px;
     width: 100%;
     position: absolute;
-    z-index: 99;
+    z-index: 999999;
     display: flex;
     align-items: center;
     flex-direction: column;

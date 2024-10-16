@@ -32,7 +32,6 @@ export function SuiteTitle(props: SuiteTitlePropsInternal): ReactNode {
                         {index !== suitePath.length - 1 &&
                             <div className={styles.separator}>
                                 <ChevronRight height={12}/>
-                                <span className={styles.invisibleSpace}>&nbsp;</span>
                             </div>}
                     </div>
                 ))}

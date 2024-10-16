@@ -1,5 +1,7 @@
 'use strict';
 
+import {Button, Select, useSelectOptions} from '@gravity-ui/uikit';
+import classNames from 'classnames';
 import React, {useState, useMemo, useEffect} from 'react';
 import {compact} from 'lodash';
 import PropTypes from 'prop-types';
@@ -8,7 +10,6 @@ import {mkBrowserIcon, buildComplexId} from './utils';
 
 import 'react-checkbox-tree/lib/react-checkbox-tree.css';
 import './index.styl';
-import {Button, Select, useSelectOptions} from '@gravity-ui/uikit';
 
 const BrowserList = ({available, onChange, selected: selectedProp}) => {
     const getOptions = () => {
@@ -138,7 +139,7 @@ const BrowserList = ({available, onChange, selected: selectedProp}) => {
                 <div className='browserlist__row_content'>
                     {option.content}
                 </div>
-                <Button size='s' onClick={isTheOnlySelected ? selectExcept : selectOnly} className='action-button'>{isTheOnlySelected ? 'Except' : 'Only'}</Button>
+                <Button size='s' onClick={isTheOnlySelected ? selectExcept : selectOnly} className={classNames('regular-button', 'action-button')}>{isTheOnlySelected ? 'Except' : 'Only'}</Button>
             </div>
         );
     };

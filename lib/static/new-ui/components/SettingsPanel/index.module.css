@@ -1,0 +1,32 @@
+.container {
+    background-color: #fff;
+    padding: 20px;
+    width: 440px;
+    height: 100%;
+
+    --g-text-body-font-weight: 450;
+    --g-text-body-short-font-size: 15px;
+}
+
+.separator {
+    height: 1px;
+    background-color: var(--g-color-private-black-50);
+    margin: 20px 0;
+}
+
+.separator:first-of-type {
+    margin-top: 12px;
+}
+
+.setting-title {
+
+}
+
+.setting-subtitle {
+    color: var(--g-color-private-black-400);
+    margin-top: 4px;
+}
+
+.setting-control {
+    margin-top: 16px;
+}

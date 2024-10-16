@@ -6,3 +6,16 @@
     background-color: var(--color-bg-dark);
     width: 100%;
 }
+
+:global(.gn-composite-bar-item):has(.footer-item:global(.disabled)) {
+    pointer-events: none;
+    opacity: .5;
+}
+
+.footer-item {
+    color: var(--gn-aside-header-item-icon-color) !important;
+}
+
+.footer-item--active {
+    color: var(--gn-aside-header-item-current-icon-color) !important;
+}
