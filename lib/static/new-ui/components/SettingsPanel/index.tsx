@@ -23,11 +23,7 @@ export function SettingsPanel(): ReactNode {
     const onOldUiButtonClick = (): void => {
         setUiMode(UiMode.Old);
 
-        if (window.location.pathname.endsWith('.html')) {
-            window.location.href = '/index.html';
-        } else {
-            window.location.href = '/';
-        }
+        window.location.pathname = window.location.pathname.replace(/\/new-ui(\.html)?$/, (_match, ending) => ending ? '/index.html' : '/');
     };
 
     return <div className={styles.container}>

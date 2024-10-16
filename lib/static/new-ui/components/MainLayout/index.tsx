@@ -65,7 +65,11 @@ export function MainLayout(props: MainLayoutProps): JSX.Element {
                     current: isCurrent,
                     itemWrapper: (params, makeItem) => makeItem({
                         ...params,
-                        icon: <Icon className={classNames({[styles.footerItem]: !isCurrent, [styles['footer-item--active']]: isCurrent})} data={Gear} />
+                        icon: <Icon className={classNames({
+                            [styles.footerItem]: !isCurrent,
+                            [styles['footer-item--active']]: isCurrent,
+                            disabled: !isInitialized
+                        })} data={Gear} />
                     })
                 }} />
             </>;

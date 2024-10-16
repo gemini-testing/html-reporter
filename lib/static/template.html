@@ -16,18 +16,10 @@
         uiMode = JSON.parse(localStorage.getItem('html-reporter:ui-mode'));
     } catch {}
 
-    if (uiMode === 'old' && window.location.pathname.startsWith('/new-ui')) {
-        if (window.location.pathname.endsWith('.html')) {
-            window.location.href = '/index.html';
-        } else {
-            window.location.href = '/';
-        }
-    } else if ((!uiMode || uiMode === 'new') && !window.location.pathname.startsWith('/new-ui')) {
-        if (window.location.pathname.endsWith('.html')) {
-            window.location.href = '/new-ui.html';
-        } else {
-            window.location.href = '/new-ui';
-        }
+    if (uiMode === 'old' && /\/new-ui(?:\.html)?$/.test(window.location.pathname)) {
+        window.location.pathname = window.location.pathname.replace(/\/new-ui(\.html)?$/, (match, ending) => ending ? '/index.html' : '/');
+    } else if (uiMode === 'new' && !/\/new-ui(?:\.html)?$/.test(window.location.pathname)) {
+        window.location.pathname = window.location.pathname.replace(/\/(index\.html)?$/, (match, ending) => ending ? '/new-ui.html' : '/new-ui');
     }
 </script>
 <body class="report">

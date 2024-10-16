@@ -18,11 +18,7 @@ function ReportInfo(props) {
     const onNewUiButtonClick = () => {
         setUiMode(UiMode.New);
 
-        if (window.location.pathname.endsWith('.html')) {
-            window.location.href = '/new-ui.html';
-        } else {
-            window.location.href = '/new-ui';
-        }
+        window.location.pathname = window.location.pathname.replace(/\/(index\.html)?$/, (match, ending) => ending ? '/new-ui.html' : '/new-ui');
     };
 
     return (
