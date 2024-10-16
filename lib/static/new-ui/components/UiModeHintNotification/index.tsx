@@ -6,7 +6,7 @@ import styles from './index.module.css';
 import classNames from 'classnames';
 
 interface HintNotificationProps {
-    isVisible?: boolean;
+    isVisible: boolean | null;
     onClose?: () => unknown;
 }
 

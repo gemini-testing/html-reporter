@@ -18,7 +18,7 @@ interface FooterProps {
 
 export function Footer(props: FooterProps): ReactNode {
     const isInitialized = useSelector(getIsInitialized);
-    const [isHintVisible, setIsHintVisible] = useState<undefined | boolean>(undefined);
+    const [isHintVisible, setIsHintVisible] = useState<boolean | null>(null);
     const [wasHintShownBefore, setWasHintShownBefore] = useLocalStorage('ui-mode-hint-shown', false);
 
     useEffect(() => {
