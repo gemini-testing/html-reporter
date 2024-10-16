@@ -1,6 +1,4 @@
-import {Gear} from '@gravity-ui/icons';
-import {AsideHeader, FooterItem, MenuItem as GravityMenuItem} from '@gravity-ui/navigation';
-import {Icon} from '@gravity-ui/uikit';
+import {AsideHeader, MenuItem as GravityMenuItem} from '@gravity-ui/navigation';
 import classNames from 'classnames';
 import React, {ReactNode, useState} from 'react';
 import {useSelector} from 'react-redux';
@@ -10,8 +8,9 @@ import {getIsInitialized} from '@/static/new-ui/store/selectors';
 import {SettingsPanel} from '@/static/new-ui/components/SettingsPanel';
 import TestplaneIcon from '../../../icons/testplane-mono.svg';
 import styles from './index.module.css';
+import {Footer} from './Footer';
 
-enum PanelId {
+export enum PanelId {
     Settings = 'settings',
 }
 
@@ -55,25 +54,7 @@ export function MainLayout(props: MainLayoutProps): JSX.Element {
         customBackgroundClassName={styles.asideHeaderBgWrapper}
         renderContent={(): React.ReactNode => props.children}
         hideCollapseButton={true}
-        renderFooter={({compact}): ReactNode => {
-            const isCurrent = visiblePanel === PanelId.Settings;
-            return <>
-                <FooterItem compact={compact} item={{
-                    id: PanelId.Settings,
-                    title: 'Settings',
-                    onItemClick: onFooterItemClick,
-                    current: isCurrent,
-                    itemWrapper: (params, makeItem) => makeItem({
-                        ...params,
-                        icon: <Icon className={classNames({
-                            [styles.footerItem]: !isCurrent,
-                            [styles['footer-item--active']]: isCurrent,
-                            disabled: !isInitialized
-                        })} data={Gear} />
-                    })
-                }} />
-            </>;
-        }}
+        renderFooter={(): ReactNode => <Footer visiblePanel={visiblePanel} onFooterItemClick={onFooterItemClick}/>}
         panelItems={[{
             id: PanelId.Settings,
             children: <SettingsPanel />,

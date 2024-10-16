@@ -18,7 +18,12 @@ function ReportInfo(props) {
     const onNewUiButtonClick = () => {
         setUiMode(UiMode.New);
 
-        window.location.pathname = window.location.pathname.replace(/\/(index\.html)?$/, (match, ending) => ending ? '/new-ui.html' : '/new-ui');
+        const targetUrl = new URL(window.location.href);
+
+        targetUrl.pathname = targetUrl.pathname.replace(/\/(index\.html)?$/, (match, ending) => ending ? '/new-ui.html' : '/new-ui');
+        targetUrl.searchParams.set('switched-from-old-ui', '1');
+
+        window.location.href = targetUrl.href;
     };
 
     return (
