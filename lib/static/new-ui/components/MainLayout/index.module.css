@@ -6,3 +6,11 @@
     background-color: var(--color-bg-dark);
     width: 100%;
 }
+
+.footer-item {
+    color: var(--gn-aside-header-item-icon-color) !important;
+}
+
+.footer-item--active {
+    color: var(--gn-aside-header-item-current-icon-color) !important;
+}

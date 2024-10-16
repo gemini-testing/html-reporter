@@ -2,10 +2,9 @@ import {ThemeProvider} from '@gravity-ui/uikit';
 import React, {ReactNode, StrictMode} from 'react';
 import {MainLayout} from '../components/MainLayout';
 import {HashRouter, Navigate, Route, Routes} from 'react-router-dom';
-import {CircleInfo, Eye, ListCheck} from '@gravity-ui/icons';
+import {Eye, ListCheck} from '@gravity-ui/icons';
 import {SuitesPage} from '../features/suites/components/SuitesPage';
 import {VisualChecksPage} from '../features/visual-checks/components/VisualChecksPage';
-import {InfoPage} from '../features/info/components/InfoPage';
 
 import '@gravity-ui/uikit/styles/fonts.css';
 import '@gravity-ui/uikit/styles/styles.css';
@@ -23,8 +22,7 @@ export function App(): ReactNode {
             element: <SuitesPage/>,
             children: [<Route key={'suite'} path=':suiteId' element= {<SuitesPage/>} />]
         },
-        {title: 'Visual Checks', url: '/visual-checks', icon: Eye, element: <VisualChecksPage/>},
-        {title: 'Info', url: '/info', icon: CircleInfo, element: <InfoPage/>}
+        {title: 'Visual Checks', url: '/visual-checks', icon: Eye, element: <VisualChecksPage/>}
     ];
 
     return <StrictMode>

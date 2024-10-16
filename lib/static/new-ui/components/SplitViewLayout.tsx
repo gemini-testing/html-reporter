@@ -43,6 +43,7 @@ export function SplitViewLayout(props: SplitViewLayoutProps): ReactNode {
     };
 
     const isInitialized = useSelector(getIsInitialized);
+    const sizes = props.sections.length > 1 ? [25, 75] : [100];
 
     return <Split
         direction={'horizontal'}
@@ -52,6 +53,7 @@ export function SplitViewLayout(props: SplitViewLayoutProps): ReactNode {
         onDragStart={onDragStartHandler}
         onDragEnd={onDragEndHandler}
         gutter={createGutter}
+        sizes={sizes}
     >
         {props.sections.map((section, index) =>
             <div

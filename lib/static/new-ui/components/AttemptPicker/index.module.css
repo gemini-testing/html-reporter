@@ -14,6 +14,6 @@
 }
 
 .retry-button {
-    composes: action-button from global;
+    composes: regular-button from global, action-button from global;
     margin-left: auto;
 }

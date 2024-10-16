@@ -10,6 +10,26 @@
 <link rel="preload" href="sql-wasm.wasm" as="fetch" crossorigin="anonymous"/>
 <link href="https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,100..900;1,100..900&amp;family=Roboto+Mono:ital,wght@0,100..700;1,100..700&amp;display=swap" rel="stylesheet">
 </head>
+<script>
+    let uiMode;
+    try {
+        uiMode = JSON.parse(localStorage.getItem('html-reporter:ui-mode'));
+    } catch {}
+
+    if (uiMode === 'old' && window.location.pathname.startsWith('/new-ui')) {
+        if (window.location.pathname.endsWith('.html')) {
+            window.location.href = '/index.html';
+        } else {
+            window.location.href = '/';
+        }
+    } else if ((!uiMode || uiMode === 'new') && !window.location.pathname.startsWith('/new-ui')) {
+        if (window.location.pathname.endsWith('.html')) {
+            window.location.href = '/new-ui.html';
+        } else {
+            window.location.href = '/new-ui';
+        }
+    }
+</script>
 <body class="report">
     <div id="app"></div>
 </body>
