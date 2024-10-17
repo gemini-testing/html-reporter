@@ -5,11 +5,14 @@ import {
     getUrlWithBase,
     getDetailsFileName,
     trimArray,
-    mergeSnippetIntoErrorStack
+    mergeSnippetIntoErrorStack,
+    isImageBufferData
 } from 'lib/common-utils';
 import {RUNNING, QUEUED, ERROR, FAIL, UPDATED, SUCCESS, IDLE, SKIPPED} from 'lib/constants/test-statuses';
 import {ErrorName} from 'lib/errors';
 import sinon from 'sinon';
+
+import type {ImageBuffer} from 'lib/types';
 
 const withGray = (line: string): string => '\x1B[90m' + line + '\x1B[39m';
 
@@ -267,6 +270,26 @@ describe('common-utils', () => {
             const result = mergeSnippetIntoErrorStack(myError);
 
             assert.equal(result.stack, 'Error: my\nerror\nmessage\nsnippet\n' + withGray('my stack'));
+        });
+    });
+
+    describe('isImageBufferData', () => {
+        describe('should return "false" if', () => {
+            it('image is not passed', () => {
+                assert.isFalse(isImageBufferData(undefined));
+            });
+
+            it('"buffer" field doesn\'t exists in image data', () => {
+                const imageData = {} as ImageBuffer;
+
+                assert.isFalse(isImageBufferData(imageData));
+            });
+        });
+
+        it('should return "true" if "buffer" field exists in image data', () => {
+            const imageData = {buffer: Buffer.from('some-buffer')};
+
+            assert.isTrue(isImageBufferData(imageData));
         });
     });
 });
