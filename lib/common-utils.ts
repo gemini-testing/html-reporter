@@ -260,7 +260,7 @@ export const getTestHash = (testResult: ReporterTestResult): string => {
 };
 
 export const isImageBufferData = (imageData: ImageBuffer | ImageFile | ImageBase64 | undefined): imageData is ImageBuffer => {
-    return Boolean((imageData as ImageBuffer).buffer);
+    return Boolean(imageData && (imageData as ImageBuffer).buffer);
 };
 
 export const isImageInfoWithState = (imageInfo: ImageInfoFull): imageInfo is ImageInfoWithState => {
