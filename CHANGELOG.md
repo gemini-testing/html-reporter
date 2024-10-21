@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.9.1"></a>
+## [10.9.1](https://github.com/gemini-testing/html-reporter/compare/v10.9.0...v10.9.1) (2024-10-21)
+
+
+### Bug Fixes
+
+* do not fall with enabled debug log when compare images ([fa4c04b](https://github.com/gemini-testing/html-reporter/commit/fa4c04b))
+
+
+
 <a name="10.9.0"></a>
 # [10.9.0](https://github.com/gemini-testing/html-reporter/compare/v10.8.0...v10.9.0) (2024-10-16)
 
