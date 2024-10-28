@@ -26,7 +26,7 @@ import {
     ImageInfoWithState,
     TestError
 } from './types';
-import {ErrorName, ImageDiffError, NoRefImageError} from './errors';
+import {ErrorName, ImageDiffError, InvalidRefImageError, NoRefImageError} from './errors';
 import type {ReporterTestResult} from './adapters/test-result';
 
 export const getShortMD5 = (str: string): string => {
@@ -127,6 +127,10 @@ export const isImageDiffError = (error?: unknown): error is ImageDiffError => {
 
 export const isNoRefImageError = (error?: unknown): error is NoRefImageError => {
     return (error as {name?: string})?.name === ErrorName.NO_REF_IMAGE;
+};
+
+export const isInvalidRefImageError = (error?: unknown): error is InvalidRefImageError => {
+    return (error as {name?: string})?.name === ErrorName.INVALID_REF_IMAGE;
 };
 
 export const isImageError = (error?: unknown): boolean => {

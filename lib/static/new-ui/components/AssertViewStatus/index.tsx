@@ -2,8 +2,8 @@ import React, {ReactNode} from 'react';
 import {ImageEntity, ImageEntityError} from '@/static/new-ui/types/store';
 import {TestStatus} from '@/constants';
 import {Icon} from '@gravity-ui/uikit';
-import {FileCheck, CircleCheck, SquareExclamation, SquareXmark, FileLetterX, ArrowRightArrowLeft} from '@gravity-ui/icons';
-import {isNoRefImageError} from '@/common-utils';
+import {FileCheck, CircleCheck, SquareExclamation, SquareXmark, FileLetterX, FileExclamation, ArrowRightArrowLeft} from '@gravity-ui/icons';
+import {isInvalidRefImageError, isNoRefImageError} from '@/common-utils';
 import styles from './index.module.css';
 
 interface AssertViewStatusProps {
@@ -19,6 +19,8 @@ export function AssertViewStatus({image}: AssertViewStatusProps): ReactNode {
         status = <><Icon data={CircleCheck} width={16}/><span>Images match</span></>;
     } else if (isNoRefImageError((image as ImageEntityError).error)) {
         status = <><Icon data={FileLetterX} width={16}/><span>Reference not found</span></>;
+    } else if (isInvalidRefImageError((image as ImageEntityError).error)) {
+        status = <><Icon data={FileExclamation} width={16}/><span>Reference is broken</span></>;
     } else if (image.status === TestStatus.FAIL) {
         status = <><Icon data={ArrowRightArrowLeft} width={16}/><span>Difference detected</span></>;
     } else if (image.status === TestStatus.UPDATED) {

@@ -5,7 +5,14 @@ import type {Test as TestplaneTest} from 'testplane';
 import {ValueOf} from 'type-fest';
 
 import {ERROR, FAIL, SUCCESS, TestStatus, UNKNOWN_SESSION_ID, UPDATED} from '../../constants';
-import {getError, hasUnrelatedToScreenshotsErrors, isImageDiffError, isNoRefImageError, wrapLinkByTag} from '../../common-utils';
+import {
+    getError,
+    hasUnrelatedToScreenshotsErrors,
+    isImageDiffError,
+    isInvalidRefImageError,
+    isNoRefImageError,
+    wrapLinkByTag
+} from '../../common-utils';
 import {
     ErrorDetails,
     TestplaneSuite,
@@ -139,6 +146,14 @@ export class TestplaneTestResultAdapter implements ReporterTestResult {
                     diffRatio: assertResult.diffRatio
                 } satisfies ImageInfoDiff;
             } else if (isNoRefImageError(assertResult)) {
+                return {
+                    status: ERROR,
+                    stateName: assertResult.stateName,
+                    error: _.pick(assertResult, ['message', 'name', 'stack']),
+                    refImg: assertResult.refImg,
+                    actualImg: assertResult.currImg
+                } satisfies ImageInfoNoRef;
+            } else if (isInvalidRefImageError(assertResult)) {
                 return {
                     status: ERROR,
                     stateName: assertResult.stateName,

@@ -13,7 +13,14 @@ import * as actions from '../../modules/actions';
 import ErrorDetails from './error-details';
 import Details from '../details';
 import {ERROR_TITLE_TEXT_LENGTH} from '../../../constants/errors';
-import {isAssertViewError, isImageDiffError, isNoRefImageError, mergeSnippetIntoErrorStack, trimArray} from '../../../common-utils';
+import {
+    isAssertViewError,
+    isImageDiffError,
+    isInvalidRefImageError,
+    isNoRefImageError,
+    mergeSnippetIntoErrorStack,
+    trimArray
+} from '../../../common-utils';
 import {Card} from '@gravity-ui/uikit';
 import {Screenshot} from '@/static/new-ui/components/Screenshot';
 
@@ -51,7 +58,7 @@ class StateError extends Component {
     _drawImage() {
         const {image, error} = this.props;
 
-        if (image.actualImg && isNoRefImageError(error)) {
+        if (image.actualImg && (isNoRefImageError(error) || isInvalidRefImageError(error))) {
             return <Screenshot image={image.actualImg} />;
         }
 
