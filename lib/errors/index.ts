@@ -6,6 +6,7 @@ export const ErrorName = {
     GENERAL_ERROR: 'Error',
     IMAGE_DIFF: 'ImageDiffError',
     NO_REF_IMAGE: 'NoRefImageError',
+    INVALID_REF_IMAGE: 'InvalidRefImageError',
     ASSERT_VIEW: 'AssertViewError'
 } as const;
 export type ErrorName = ValueOf<typeof ErrorName>;
@@ -28,6 +29,16 @@ export interface ImageDiffError {
 
 export interface NoRefImageError {
     name: ErrorNames['NO_REF_IMAGE'];
+    stateName: string;
+    message: string;
+    stack?: string;
+    currImg: ImageFile;
+    refImg: ImageFile;
+}
+
+/** @note Can be thrown by Testplane after version 8.20.7 */
+export interface InvalidRefImageError {
+    name: ErrorNames['INVALID_REF_IMAGE'];
     stateName: string;
     message: string;
     stack?: string;
