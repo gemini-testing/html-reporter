@@ -3,10 +3,11 @@ import {get} from 'lodash';
 import type {ReporterConfig} from '../../types';
 import {COMMITED, STAGED} from '../../constants';
 import * as localStorage from './local-storage-wrapper';
+import {ImageEntity, ImageEntityFail} from '@/static/new-ui/types/store';
 
 let isEnabled: boolean | null = null;
 
-interface AcceptableImage {
+export interface AcceptableImage {
     id: string;
     parentId: string;
     stateName: string;
@@ -15,14 +16,7 @@ interface AcceptableImage {
     originalStatus: string;
 }
 
-type ImagesById = Record<string, {
-    id: string;
-    status: string;
-    stateName: string;
-    parentId: string;
-    actualImg: {path: string, size: {width: number, height: number}};
-    refImg: {path: string, relativePath?: string, size: null | {width: number, height: number}}
-}>
+type ImagesById = Record<string, ImageEntity>;
 
 interface LocalStorageValue {
     date: string,
@@ -69,16 +63,16 @@ export const formatCommitPayload = (
         .map(image => ({imageId: image.id, stateNameImageId: image.stateNameImageId}))
         .concat(extraImages);
 
-    if (imagesToCommit.find(({imageId}) => !imagesById[imageId].refImg.relativePath)) {
+    if (imagesToCommit.find(({imageId}) => !imagesById[imageId].refImg?.relativePath)) {
         throw new Error(`The version of your tool does not support static image accepter: missing "relativePath"`);
     }
 
     return imagesToCommit.map(({imageId, stateNameImageId}) => ({
         id: imageId,
         stateNameImageId,
-        image: imagesById[imageId].actualImg.path,
+        image: (imagesById[imageId] as ImageEntityFail).actualImg.path,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        path: imagesById[imageId].refImg.relativePath!
+        path: (imagesById[imageId] as ImageEntityFail).refImg.relativePath!
     }));
 };
 

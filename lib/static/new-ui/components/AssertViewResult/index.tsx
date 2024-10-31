@@ -28,6 +28,16 @@ function AssertViewResultInternal({result, diffMode, style}: AssertViewResultPro
             <ImageLabel title={'Expected'} subtitle={getImageDisplayedSize(result.expectedImg)} />
             <Screenshot containerStyle={style} containerClassName={styles.screenshot} image={result.expectedImg} />
         </div>;
+    } else if (result.status === TestStatus.STAGED) {
+        return <div className={styles.screenshotContainer}>
+            <ImageLabel title={'Staged'} subtitle={getImageDisplayedSize(result.actualImg)} />
+            <Screenshot containerStyle={style} containerClassName={styles.screenshot} image={result.actualImg} />
+        </div>;
+    } else if (result.status === TestStatus.COMMITED) {
+        return <div className={styles.screenshotContainer}>
+            <ImageLabel title={'Committed'} subtitle={getImageDisplayedSize(result.actualImg)} />
+            <Screenshot containerStyle={style} containerClassName={styles.screenshot} image={result.actualImg} />
+        </div>;
     }
 
     return null;

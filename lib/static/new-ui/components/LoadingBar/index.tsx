@@ -7,30 +7,32 @@ import {State} from '@/static/new-ui/types/store';
 import classNames from 'classnames';
 
 export function LoadingBar(): ReactNode {
-    const isLoaded = useSelector((state: State) => state.app.isInitialized);
-    const isLoadedRef = useRef(isLoaded);
+    const isVisible = useSelector((state: State) => state.app.loading.isVisible);
+    const isInProgress = useSelector((state: State) => state.app.loading.isInProgress);
+    const isVisibleRef = useRef(isVisible);
     const progress = useSelector(getTotalLoadingProgress);
+    const taskTitle = useSelector((state: State) => state.app.loading.taskTitle);
 
     const [hidden, setHidden] = React.useState(true);
 
     // Delay is needed for smoother experience: when loading is fast, it prevents notification bar from appearing and
     // hiding immediately. When loading a lot of data, it helps avoid freezes when everything is loaded.
     useEffect(() => {
-        isLoadedRef.current = isLoaded;
+        isVisibleRef.current = isVisible;
         const timeoutId = setTimeout(() => {
-            if (isLoaded === isLoadedRef.current) {
-                setHidden(isLoaded);
+            if (isVisible === isVisibleRef.current) {
+                setHidden(!isVisible);
             }
         }, 500);
 
         return () => clearTimeout(timeoutId);
-    }, [isLoaded]);
+    }, [isVisible]);
 
     return <div className={classNames(styles.container, {[styles.hidden]: hidden})}>
         <div className={styles.messageContainer}>
             <div className={styles.message}>
-                <span>Loading Testplane UI</span>
-                <div className={styles.loader}></div>
+                <span>{taskTitle}</span>
+                {isInProgress && <div className={styles.loader}></div>}
             </div>
         </div>
         <div className={styles.progressContainer} style={{width: `${progress * 100}%`}}>

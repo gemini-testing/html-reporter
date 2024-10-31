@@ -1,7 +1,9 @@
 import {DiffModeId, Feature, TestStatus, ViewMode} from '@/constants';
-import {BrowserItem, ImageFile, ReporterConfig, TestError, TestStepCompressed} from '@/types';
+import {BrowserItem, ImageFile, RefImageFile, ReporterConfig, TestError, TestStepCompressed} from '@/types';
 import {HtmlReporterValues} from '@/plugin-api';
 import {CoordBounds} from 'looks-same';
+import {Point} from '@/static/new-ui/types/index';
+import {AcceptableImage} from '@/static/modules/static-image-accepter';
 
 export interface SuiteEntityNode {
     id: string;
@@ -65,12 +67,28 @@ export interface ImageEntitySuccess extends ImageEntityCommon {
     status: TestStatus.SUCCESS;
     stateName: string;
     expectedImg: ImageFile;
+    refImg: RefImageFile;
 }
 
 export interface ImageEntityUpdated extends ImageEntityCommon {
     status: TestStatus.UPDATED;
     stateName: string;
     expectedImg: ImageFile;
+    refImg: RefImageFile;
+}
+
+export interface ImageEntityStaged extends ImageEntityCommon {
+    status: TestStatus.STAGED;
+    stateName: string;
+    actualImg: ImageFile;
+    refImg: RefImageFile;
+}
+
+export interface ImageEntityCommitted extends ImageEntityCommon {
+    status: TestStatus.COMMITED;
+    stateName: string;
+    actualImg: ImageFile;
+    refImg: RefImageFile;
 }
 
 export interface ImageEntityError extends ImageEntityCommon {
@@ -78,6 +96,7 @@ export interface ImageEntityError extends ImageEntityCommon {
     stateName?: string;
     actualImg: ImageFile;
     error?: TestError;
+    refImg?: RefImageFile;
 }
 
 export interface ImageEntityFail extends ImageEntityCommon {
@@ -87,9 +106,10 @@ export interface ImageEntityFail extends ImageEntityCommon {
     diffImg: ImageFile;
     actualImg: ImageFile;
     expectedImg: ImageFile;
+    refImg: RefImageFile;
 }
 
-export type ImageEntity = ImageEntityError | ImageEntityFail | ImageEntitySuccess | ImageEntityUpdated;
+export type ImageEntity = ImageEntityError | ImageEntityFail | ImageEntitySuccess | ImageEntityUpdated | ImageEntityStaged | ImageEntityCommitted;
 
 export const isImageEntityFail = (image: ImageEntity): image is ImageEntityFail => Boolean((image as ImageEntityFail).stateName);
 
@@ -140,15 +160,26 @@ export interface State {
             currentNamedImageId: string | null;
         };
         loading: {
+            /** @note Determines whether the loading bar is visible */
+            isVisible: boolean;
+            /** @note Determines visibility of bouncing dots at the end of the task title */
+            isInProgress: boolean;
+            taskTitle: string;
             /** @note Maps ID of a resource to its loading progress. E.g. dbUrl: 88. Progress is measured from 0 to 1. */
             progress: Record<string, number>;
-        }
+        };
+        staticImageAccepterModal: {
+            commitMessage: string;
+        };
     };
     ui: {
         suitesPage: {
             expandedSectionsById: Record<string, boolean>;
             expandedStepsByResultId: Record<string, Record<string, boolean>>;
-        },
+        };
+        staticImageAccepterToolbar: {
+            position: Point;
+        };
     };
     browsers: BrowserItem[];
     tree: TreeEntity;
@@ -161,7 +192,18 @@ export interface State {
         baseHost: string;
     };
     running: boolean;
+    processing: boolean;
     gui: boolean;
     apiValues: HtmlReporterValues;
     config: ReporterConfig;
+    staticImageAccepter: {
+        enabled: boolean;
+        acceptableImages: Record<string, AcceptableImage>;
+        accepterDelayedImages: {
+            imageId: string;
+            stateName: string;
+            stateNameImageId: string;
+        }[];
+        imagesToCommitCount: number;
+    };
 }

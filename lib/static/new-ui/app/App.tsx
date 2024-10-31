@@ -1,17 +1,18 @@
-import {ThemeProvider} from '@gravity-ui/uikit';
-import React, {ReactNode, StrictMode} from 'react';
-import {MainLayout} from '../components/MainLayout';
-import {HashRouter, Navigate, Route, Routes} from 'react-router-dom';
 import {Eye, ListCheck} from '@gravity-ui/icons';
-import {SuitesPage} from '../features/suites/components/SuitesPage';
-import {VisualChecksPage} from '../features/visual-checks/components/VisualChecksPage';
-
+import {ThemeProvider, ToasterComponent, ToasterProvider} from '@gravity-ui/uikit';
 import '@gravity-ui/uikit/styles/fonts.css';
 import '@gravity-ui/uikit/styles/styles.css';
-import '../../new-ui.css';
+import React, {ReactNode, StrictMode} from 'react';
 import {Provider} from 'react-redux';
-import store from '../../modules/store';
+import {HashRouter, Navigate, Route, Routes} from 'react-router-dom';
+
 import {LoadingBar} from '@/static/new-ui/components/LoadingBar';
+import {GuiniToolbarOverlay} from '@/static/new-ui/components/GuiniToolbarOverlay';
+import {MainLayout} from '../components/MainLayout';
+import {SuitesPage} from '../features/suites/components/SuitesPage';
+import {VisualChecksPage} from '../features/visual-checks/components/VisualChecksPage';
+import '../../new-ui.css';
+import store from '../../modules/store';
 
 export function App(): ReactNode {
     const pages = [
@@ -20,24 +21,28 @@ export function App(): ReactNode {
             url: '/suites',
             icon: ListCheck,
             element: <SuitesPage/>,
-            children: [<Route key={'suite'} path=':suiteId' element= {<SuitesPage/>} />]
+            children: [<Route key={'suite'} path=':suiteId' element={<SuitesPage/>} />]
         },
         {title: 'Visual Checks', url: '/visual-checks', icon: Eye, element: <VisualChecksPage/>}
     ];
 
     return <StrictMode>
         <ThemeProvider theme='light'>
-            <Provider store={store}>
-                <HashRouter>
-                    <MainLayout menuItems={pages}>
-                        <LoadingBar/>
-                        <Routes>
-                            <Route element={<Navigate to={'/suites'}/>} path={'/'}/>
-                            {pages.map(page => <Route element={page.element} path={page.url} key={page.url}>{page.children}</Route>)}
-                        </Routes>
-                    </MainLayout>
-                </HashRouter>
-            </Provider>
+            <ToasterProvider>
+                <Provider store={store}>
+                    <HashRouter>
+                        <MainLayout menuItems={pages}>
+                            <LoadingBar/>
+                            <Routes>
+                                <Route element={<Navigate to={'/suites'}/>} path={'/'}/>
+                                {pages.map(page => <Route element={page.element} path={page.url} key={page.url}>{page.children}</Route>)}
+                            </Routes>
+                            <GuiniToolbarOverlay/>
+                            <ToasterComponent />
+                        </MainLayout>
+                    </HashRouter>
+                </Provider>
+            </ToasterProvider>
         </ThemeProvider>
     </StrictMode>;
 }

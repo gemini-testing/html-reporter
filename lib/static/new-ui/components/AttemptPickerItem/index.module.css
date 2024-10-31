@@ -9,12 +9,18 @@
 
 .attempt-picker-item--staged {
     background-color: rgba(255, 235, 206, 1);
-    border-color: rgba(255, 235, 206, 1);
+    color: hsl(32 100% 48% / 1);
+    --box-shadow-color: hsl(32deg 100% 48% / 42%);
+    --g-button-background-color-hover: hsl(32deg 100% 48% / 20%);
+    --g-button-text-color-hover: hsl(32 100% 48% / 1);
 }
 
 .attempt-picker-item--commited {
     background-color: rgba(207, 231, 252, 1);
-    border-color: rgba(207, 231, 252, 1);
+    color: hsl(208 88% 48% / 1);
+    --box-shadow-color: hsl(208deg 88% 48% / 38%);
+    --g-button-background-color-hover: hsl(208 88% 84% / 1);
+    --g-button-text-color-hover: hsl(208 88% 48% / 1);
 }
 
 .attempt-picker-item--success {

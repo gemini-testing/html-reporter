@@ -1,0 +1,106 @@
+.container {
+    bottom: 20px;
+    left: 50%;
+    --x: 0;
+    --y: 0;
+    transform: translate(calc(-50% + var(--x) * 1px), calc(var(--y) * 1px)) !important;
+}
+
+.buttons-container {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.title {
+    font-weight: 500;
+}
+
+.button {
+    composes: regular-button from global;
+}
+
+.primary-button {
+    --g-button-text-color: hsl(252 100% 38% / 1);
+    --g-button-text-color-hover: hsl(252 100% 38% / 1);
+}
+
+.modalContainer {
+    --g-modal-border-radius: 10px;
+    padding: 20px;
+    width: 512px;
+    --g-color-base-modal: white;
+}
+
+.modalContainer a, .modalContainer a:visited {
+    color: var(--color-link);
+}
+
+.modalContainer a:hover {
+    color: var(--color-link-hover);
+}
+
+.modalDescription {
+    color: var(--g-color-private-black-400);
+    margin-top: 12px;
+    line-height: 1.4;
+}
+
+.modalFieldLabel {
+    margin-top: 20px;
+    font-weight: 450;
+}
+
+.modalInput {
+    margin-top: 12px;
+}
+
+.modalButtonsContainer {
+    margin-top: 20px;
+    display: flex;
+    justify-content: end;
+    gap: 8px;
+}
+
+.modalButtonPrimary {
+    composes: regular-button from global, action-button from global;
+}
+
+.errorToaster {
+    border: 1px solid rgb(229, 231, 235);
+    box-shadow: rgb(255, 255, 255) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.1) 0px 4px 6px -4px !important;
+    margin-right: 10px;
+    margin-bottom: 20px !important;
+}
+
+@keyframes toast-appear {
+    from {
+        opacity: 0;
+        scale: 0.95;
+    }
+
+    to {
+        opacity: 1;
+        scale: 1;
+    }
+}
+
+.errorToaster:global(.g-toast-animation-desktop_enter_active) {
+    animation: toast-appear .15s forwards ease;
+}
+
+.errorToaster:global(.g-toast-animation-desktop_exit_active) {
+    animation: toast-appear .15s forwards ease reverse;
+}
+
+.errorToaster :global(.g-toast__title) {
+    font-weight: 450;
+}
+
+.errorToaster :global(.g-toast__content) {
+    color: var(--g-color-private-black-400);
+}
+
+.errorToasterIcon {
+    color: var(--g-color-private-red-600-solid);
+}
