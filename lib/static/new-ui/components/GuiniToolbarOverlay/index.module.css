@@ -3,7 +3,7 @@
     left: 50%;
     --x: 0;
     --y: 0;
-    transform: translate(calc(-50% + var(--x) * 1px), calc(var(--y) * 1px)) !important;
+    transform: translate(calc(-50% + var(--x) * 1px), calc(var(--y) * 1px));
 }
 
 .buttons-container {
@@ -25,48 +25,48 @@
     --g-button-text-color-hover: hsl(252 100% 38% / 1);
 }
 
-.modalContainer {
+.modal-container {
     --g-modal-border-radius: 10px;
     padding: 20px;
     width: 512px;
     --g-color-base-modal: white;
 }
 
-.modalContainer a, .modalContainer a:visited {
+.modal-container a, .modal-container a:visited {
     color: var(--color-link);
 }
 
-.modalContainer a:hover {
+.modal-container a:hover {
     color: var(--color-link-hover);
 }
 
-.modalDescription {
+.modal-description {
     color: var(--g-color-private-black-400);
     margin-top: 12px;
     line-height: 1.4;
 }
 
-.modalFieldLabel {
+.modal-field-label {
     margin-top: 20px;
     font-weight: 450;
 }
 
-.modalInput {
+.modal-input {
     margin-top: 12px;
 }
 
-.modalButtonsContainer {
+.modal-buttons-container {
     margin-top: 20px;
     display: flex;
     justify-content: end;
     gap: 8px;
 }
 
-.modalButtonPrimary {
+.modal-button-primary {
     composes: regular-button from global, action-button from global;
 }
 
-.errorToaster {
+.error-toaster {
     border: 1px solid rgb(229, 231, 235);
     box-shadow: rgb(255, 255, 255) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.1) 0px 4px 6px -4px !important;
     margin-right: 10px;
@@ -85,22 +85,22 @@
     }
 }
 
-.errorToaster:global(.g-toast-animation-desktop_enter_active) {
+.error-toaster:global(.g-toast-animation-desktop_enter_active) {
     animation: toast-appear .15s forwards ease;
 }
 
-.errorToaster:global(.g-toast-animation-desktop_exit_active) {
+.error-toaster:global(.g-toast-animation-desktop_exit_active) {
     animation: toast-appear .15s forwards ease reverse;
 }
 
-.errorToaster :global(.g-toast__title) {
+.error-toaster :global(.g-toast__title) {
     font-weight: 450;
 }
 
-.errorToaster :global(.g-toast__content) {
+.error-toaster :global(.g-toast__content) {
     color: var(--g-color-private-black-400);
 }
 
-.errorToasterIcon {
+.error-toaster-icon {
     color: var(--g-color-private-red-600-solid);
 }

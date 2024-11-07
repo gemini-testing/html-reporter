@@ -1,7 +1,7 @@
 import {Icon} from '@gravity-ui/uikit';
 import {Grip} from '@gravity-ui/icons';
 import classNames from 'classnames';
-import React, {ReactNode, useState} from 'react';
+import React, {ReactNode, useState, useEffect} from 'react';
 import {createPortal} from 'react-dom';
 
 import styles from './index.module.css';
@@ -12,14 +12,14 @@ interface ToolbarOverlayProps {
     className?: string;
     children: ReactNode;
     draggable?: {
-        position: Point;
-        onPositionChange: (position: Point) => void;
+        offset: Point;
+        onOffsetChange: (position: Point) => void;
     }
 }
 
 export function ToolbarOverlay(props: ToolbarOverlayProps): ReactNode {
     const [dragging, setDragging] = useState(false);
-    const [offset, setOffset] = useState({x: 0, y: 0});
+    const [startingPoint, setStartingPoint] = useState({x: 0, y: 0});
 
     const handleMouseDown = (e: React.MouseEvent): void => {
         if (!props.draggable) {
@@ -27,9 +27,9 @@ export function ToolbarOverlay(props: ToolbarOverlayProps): ReactNode {
         }
 
         setDragging(true);
-        setOffset({
-            x: e.clientX - props.draggable.position.x,
-            y: e.clientY - props.draggable.position.y
+        setStartingPoint({
+            x: e.clientX - props.draggable.offset.x,
+            y: e.clientY - props.draggable.offset.y
         });
     };
 
@@ -39,17 +39,17 @@ export function ToolbarOverlay(props: ToolbarOverlayProps): ReactNode {
         }
 
         const newPosition = {
-            x: e.clientX - offset.x,
-            y: e.clientY - offset.y
+            x: e.clientX - startingPoint.x,
+            y: e.clientY - startingPoint.y
         };
-        props.draggable.onPositionChange(newPosition);
+        props.draggable.onOffsetChange(newPosition);
     };
 
     const handleMouseUp = (): void => {
         setDragging(false);
     };
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (dragging) {
             document.body.style.userSelect = 'none';
             document.addEventListener('mousemove', handleMouseMove);
@@ -68,7 +68,7 @@ export function ToolbarOverlay(props: ToolbarOverlayProps): ReactNode {
     }, [dragging]);
 
     return createPortal(<div
-        style={props.draggable ? {'--x': props.draggable.position.x, '--y': props.draggable.position.y} as React.CSSProperties : {}}
+        style={props.draggable ? {'--x': props.draggable.offset.x, '--y': props.draggable.offset.y} as React.CSSProperties : {}}
         className={classNames(styles.container, props.className, {
             [styles.visible]: props.isVisible,
             [styles.dragging]: dragging

@@ -11,7 +11,7 @@ import {
     CommitResult,
     staticAccepterCommitScreenshot,
     staticAccepterUnstageScreenshot, staticAccepterUpdateCommitMessage,
-    staticAccepterUpdateToolbarPosition
+    staticAccepterUpdateToolbarOffset
 } from '@/static/modules/actions';
 import {Point} from '@/static/new-ui/types';
 import {useLocation} from 'react-router-dom';
@@ -32,7 +32,7 @@ export function GuiniToolbarOverlay(): ReactNode {
 
     const staticAccepterConfig = useSelector((state: State) => state.config.staticImageAccepter);
     const pullRequestUrl = useSelector((state: State) => state.config.staticImageAccepter.pullRequestUrl);
-    const position = useSelector((state: State) => state.ui.staticImageAccepterToolbar.position);
+    const offset = useSelector((state: State) => state.ui.staticImageAccepterToolbar.offset);
     const location = useLocation();
 
     const [isVisible, setIsVisible] = useState<boolean | null>(null);
@@ -44,14 +44,14 @@ export function GuiniToolbarOverlay(): ReactNode {
         const newIsVisible = stagedImages.length > 0 &&
             !isInProgress &&
             !isModalVisible &&
-            (location.pathname.startsWith('/suites') || location.pathname.startsWith('/visual-checks'));
+            ['/suites', '/visual-checks'].some((path) => location.pathname.startsWith(path));
         if (Boolean(newIsVisible) !== Boolean(isVisible)) {
             setIsVisible(newIsVisible);
         }
     }, [stagedImages, location, isModalVisible]);
 
-    const onPositionChange = (pos: Point): void => {
-        dispatch(staticAccepterUpdateToolbarPosition({position: pos}));
+    const onOffsetChange = (offset: Point): void => {
+        dispatch(staticAccepterUpdateToolbarOffset({offset}));
     };
 
     const onCommitClick = (): void => {
@@ -106,7 +106,7 @@ export function GuiniToolbarOverlay(): ReactNode {
         dispatch(staticAccepterUpdateCommitMessage({commitMessage: newCommitMessage}));
     };
 
-    return <ToolbarOverlay isVisible={isVisible} className={styles.container} draggable={{position, onPositionChange}}>
+    return <ToolbarOverlay isVisible={isVisible} className={styles.container} draggable={{offset, onOffsetChange}}>
         <div>{stagedImages.length} {stagedImages.length > 1 ? 'images are' : 'image is'} staged for commit</div>
         <div className={styles.buttonsContainer}>
             <Button view={'flat-contrast'} className={styles.button} onClick={onCancelClick}>Cancel</Button>

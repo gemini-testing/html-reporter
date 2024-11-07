@@ -178,7 +178,7 @@ export interface State {
             expandedStepsByResultId: Record<string, Record<string, boolean>>;
         };
         staticImageAccepterToolbar: {
-            position: Point;
+            offset: Point;
         };
     };
     browsers: BrowserItem[];

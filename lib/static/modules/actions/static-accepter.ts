@@ -134,9 +134,9 @@ export const staticAccepterCommitScreenshot = (
     };
 };
 
-type StaticAccepterUpdateToolbarPositionAction = Action<typeof actionNames.STATIC_ACCEPTER_UPDATE_TOOLBAR_POSITION, {position: Point}>;
-export const staticAccepterUpdateToolbarPosition = (payload: {position: Point}): StaticAccepterUpdateToolbarPositionAction => {
-    return {type: actionNames.STATIC_ACCEPTER_UPDATE_TOOLBAR_POSITION, payload};
+type StaticAccepterUpdateToolbarPositionAction = Action<typeof actionNames.STATIC_ACCEPTER_UPDATE_TOOLBAR_OFFSET, {offset: Point}>;
+export const staticAccepterUpdateToolbarOffset = (payload: {offset: Point}): StaticAccepterUpdateToolbarPositionAction => {
+    return {type: actionNames.STATIC_ACCEPTER_UPDATE_TOOLBAR_OFFSET, payload};
 };
 
 type StaticAccepterUpdateCommitMessageAction = Action<typeof actionNames.STATIC_ACCEPTER_UPDATE_COMMIT_MESSAGE, {commitMessage: string}>;

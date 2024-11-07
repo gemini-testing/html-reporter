@@ -117,7 +117,7 @@ export default Object.assign({config: configDefaults}, {
             expandedStepsByResultId: {}
         },
         staticImageAccepterToolbar: {
-            position: {x: 0, y: 0}
+            offset: {x: 0, y: 0}
         }
     }
 }) satisfies State;
