@@ -31,13 +31,11 @@
     transition: scale .15s ease, visibility 0.15s ease, opacity 0.15s ease;
 
     visibility: hidden;
-    /*scale: 0.95;*/
     opacity: 0;
 }
 
 .selected-container--visible {
     visibility: visible;
-    /*scale: 1;*/
     opacity: 1;
 }
 

@@ -157,11 +157,11 @@ export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
         {isRunTestsAvailable && <IconButton icon={<Icon data={Play} height={14}/>}
             tooltip={isSelectedAtLeastOne ? 'Run selected' : 'Run visible'} view={'flat'} onClick={handleRun}
             disabled={isRunning || !isInitialized}></IconButton>}
-        {isEditScreensAvailable && <>
+        {isEditScreensAvailable && (
             isUndoButtonVisible ?
-            <IconButton icon={<Icon data={ArrowUturnCcwLeft} />} tooltip={isSelectedAtLeastOne ? 'Undo accepting selected screenshots' : 'Undo accepting visible screenshots'} view={'flat'} onClick={handleUndo} disabled={isRunning || !isInitialized}></IconButton> :
-            <IconButton icon={<Icon data={Check} />} tooltip={isSelectedAtLeastOne ? 'Accept selected screenshots' : 'Accept visible screenshots'} view={'flat'} onClick={handleAccept} disabled={isRunning || !isInitialized}></IconButton>
-        </>}
+                <IconButton icon={<Icon data={ArrowUturnCcwLeft} />} tooltip={isSelectedAtLeastOne ? 'Undo accepting selected screenshots' : 'Undo accepting visible screenshots'} view={'flat'} onClick={handleUndo} disabled={isRunning || !isInitialized}></IconButton> :
+                <IconButton icon={<Icon data={Check} />} tooltip={isSelectedAtLeastOne ? 'Accept selected screenshots' : 'Accept visible screenshots'} view={'flat'} onClick={handleAccept} disabled={isRunning || !isInitialized}></IconButton>
+        )}
         <div className={styles.buttonsDivider}></div>
         <IconButton icon={<Icon data={SquareDashed} height={14}/>} tooltip={'Focus on active test'} view={'flat'} onClick={props.onHighlightCurrentTest} disabled={!isInitialized}/>
         <IconButton icon={<Icon data={ChevronsExpandVertical} height={14}/>} tooltip={'Expand all'} view={'flat'} onClick={handleExpandAll} disabled={!isInitialized}/>

@@ -1854,7 +1854,7 @@ describe('lib/static/modules/reducers/tree', () => {
             it('should return original image status', () => {
                 const newState = reducer(state, {type: actionNames.STATIC_ACCEPTER_STAGE_SCREENSHOT, payload: ['i1']});
 
-                const nextState = reducer(newState, {type: actionNames.STATIC_ACCEPTER_UNSTAGE_SCREENSHOT, payload: {imageId: 'i1'}});
+                const nextState = reducer(newState, {type: actionNames.STATIC_ACCEPTER_UNSTAGE_SCREENSHOT, payload: ['i1']});
 
                 assert.equal(nextState.tree.images.byId['i1'].status, FAIL);
             });
@@ -1862,8 +1862,8 @@ describe('lib/static/modules/reducers/tree', () => {
             it('should return original result status', () => {
                 const firstState = reducer(state, {type: actionNames.STATIC_ACCEPTER_STAGE_SCREENSHOT, payload: ['i1', 'i2']});
 
-                const secondState = reducer(firstState, {type: actionNames.STATIC_ACCEPTER_UNSTAGE_SCREENSHOT, payload: {imageId: 'i1'}});
-                const thirdState = reducer(secondState, {type: actionNames.STATIC_ACCEPTER_UNSTAGE_SCREENSHOT, payload: {imageId: 'i2'}});
+                const secondState = reducer(firstState, {type: actionNames.STATIC_ACCEPTER_UNSTAGE_SCREENSHOT, payload: ['i1']});
+                const thirdState = reducer(secondState, {type: actionNames.STATIC_ACCEPTER_UNSTAGE_SCREENSHOT, payload: ['i2']});
 
                 assert.equal(thirdState.tree.results.byId['r1'].status, FAIL);
             });
@@ -1871,9 +1871,9 @@ describe('lib/static/modules/reducers/tree', () => {
             it('should return original suite status', () => {
                 const firstState = reducer(state, {type: actionNames.STATIC_ACCEPTER_STAGE_SCREENSHOT, payload: ['i1', 'i2', 'i3']});
 
-                const secondState = reducer(firstState, {type: actionNames.STATIC_ACCEPTER_UNSTAGE_SCREENSHOT, payload: {imageId: 'i1'}});
-                const thirdState = reducer(secondState, {type: actionNames.STATIC_ACCEPTER_UNSTAGE_SCREENSHOT, payload: {imageId: 'i2'}});
-                const fourthState = reducer(thirdState, {type: actionNames.STATIC_ACCEPTER_UNSTAGE_SCREENSHOT, payload: {imageId: 'i3'}});
+                const secondState = reducer(firstState, {type: actionNames.STATIC_ACCEPTER_UNSTAGE_SCREENSHOT, payload: ['i1']});
+                const thirdState = reducer(secondState, {type: actionNames.STATIC_ACCEPTER_UNSTAGE_SCREENSHOT, payload: ['i2']});
+                const fourthState = reducer(thirdState, {type: actionNames.STATIC_ACCEPTER_UNSTAGE_SCREENSHOT, payload: ['i3']});
 
                 assert.equal(fourthState.tree.suites.byId['s1'].status, FAIL);
             });
@@ -1884,7 +1884,7 @@ describe('lib/static/modules/reducers/tree', () => {
                 state.tree.results.byId['r1'].status = STAGED;
                 state.tree.images.byId['i1'].status = STAGED;
 
-                const nextState = reducer(state, {type: actionNames.STATIC_ACCEPTER_UNSTAGE_SCREENSHOT, payload: {imageId: 'i1'}});
+                const nextState = reducer(state, {type: actionNames.STATIC_ACCEPTER_UNSTAGE_SCREENSHOT, payload: ['i1']});
 
                 assert.equal(nextState.tree.suites.byId['s0'].status, FAIL);
                 assert.equal(nextState.tree.suites.byId['s1'].status, FAIL);

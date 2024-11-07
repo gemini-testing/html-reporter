@@ -156,7 +156,7 @@ describe('lib/static/modules/reducers/static-image-accepter', () => {
 
             const state = {staticImageAccepter, tree};
 
-            const newState = reducer(state, {type: actionNames.STATIC_ACCEPTER_UNSTAGE_SCREENSHOT, payload: {imageId: 'imageId'}});
+            const newState = reducer(state, {type: actionNames.STATIC_ACCEPTER_UNSTAGE_SCREENSHOT, payload: ['imageId']});
 
             assert.equal(newState.staticImageAccepter.acceptableImages['imageId'].commitStatus, null);
 

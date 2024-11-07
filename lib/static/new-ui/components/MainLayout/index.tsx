@@ -10,10 +10,7 @@ import TestplaneIcon from '../../../icons/testplane-mono.svg';
 import styles from './index.module.css';
 import {Footer} from './Footer';
 import {State} from '@/static/new-ui/types/store';
-import {TextHintCard} from '@/static/new-ui/components/Card/TextHintCard';
-import EmptyReport from '../../../icons/empty-report.svg';
-import {Check} from '@gravity-ui/icons';
-import {Icon} from '@gravity-ui/uikit';
+import {EmptyReportCard} from '@/static/new-ui/components/Card/EmptyReportCard';
 
 export enum PanelId {
     Settings = 'settings',
@@ -62,19 +59,7 @@ export function MainLayout(props: MainLayoutProps): ReactNode {
         customBackgroundClassName={styles.asideHeaderBgWrapper}
         renderContent={(): React.ReactNode => {
             if (isReportEmpty) {
-                return <div className={styles.hintCardContainer}>
-                    <TextHintCard className={styles.hintCard}>
-                        <img src={EmptyReport} alt='icon' className={styles.hintCardIcon}/>
-                        <span className={classNames('text-header-1', styles.hintCardTitle)}>This report is empty</span>
-                        <div className={styles.hintCardHintsContainer}>
-                            {[
-                                'Check if your project contains any tests',
-                                'Check if the tool you are using is configured correctly and is able to find your tests',
-                                'Check logs to see if some critical error has occurred and prevented report from collecting any results'
-                            ].map((hintText, index) => <div key={index} className={styles.hintCardHint}><Icon data={Check} className={styles.hintCardCheck}/><div className={styles.hintCardHintText}>{hintText}</div></div>)}
-                        </div>
-                    </TextHintCard>
-                </div>;
+                return <EmptyReportCard />;
             }
 
             return props.children;
