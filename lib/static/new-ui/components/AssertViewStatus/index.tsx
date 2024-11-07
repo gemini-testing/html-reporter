@@ -2,7 +2,17 @@ import React, {ReactNode} from 'react';
 import {ImageEntity, ImageEntityError} from '@/static/new-ui/types/store';
 import {TestStatus} from '@/constants';
 import {Icon} from '@gravity-ui/uikit';
-import {FileCheck, CircleCheck, SquareExclamation, SquareXmark, FileLetterX, FileExclamation, ArrowRightArrowLeft} from '@gravity-ui/icons';
+import {
+    ArrowRightArrowLeft,
+    CircleCheck,
+    FileCheck,
+    FileExclamation,
+    FileLetterX,
+    FilePlus,
+    SquareExclamation,
+    SquareXmark,
+    FileArrowUp
+} from '@gravity-ui/icons';
 import {isInvalidRefImageError, isNoRefImageError} from '@/common-utils';
 import styles from './index.module.css';
 
@@ -17,6 +27,10 @@ export function AssertViewStatus({image}: AssertViewStatusProps): ReactNode {
         status = <><Icon data={SquareExclamation} width={16}/><span>Image is absent</span></>;
     } else if (image.status === TestStatus.SUCCESS) {
         status = <><Icon data={CircleCheck} width={16}/><span>Images match</span></>;
+    } else if (image.status === TestStatus.STAGED) {
+        status = <><Icon data={FilePlus} width={16}/><span>Image is staged</span></>;
+    } else if (image.status === TestStatus.COMMITED) {
+        status = <><Icon data={FileArrowUp} width={16}/><span>Image was committed</span></>;
     } else if (isNoRefImageError((image as ImageEntityError).error)) {
         status = <><Icon data={FileLetterX} width={16}/><span>Reference not found</span></>;
     } else if (isInvalidRefImageError((image as ImageEntityError).error)) {

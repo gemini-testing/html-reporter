@@ -19,7 +19,7 @@ import {CompactAttemptPicker} from '@/static/new-ui/components/CompactAttemptPic
 import {DiffModeId, DiffModes, EditScreensFeature} from '@/constants';
 import {
     acceptTest,
-    changeDiffMode,
+    changeDiffMode, staticAccepterStageScreenshot, staticAccepterUnstageScreenshot,
     undoAcceptImage,
     visualChecksPageSetCurrentNamedImage
 } from '@/static/modules/actions';
@@ -45,18 +45,32 @@ export function VisualChecksPage(): ReactNode {
         dispatch(changeDiffMode(diffMode));
     };
 
+    const isStaticImageAccepterEnabled = useSelector((state: State) => state.staticImageAccepter.enabled);
     const isEditScreensAvailable = useSelector((state: State) => state.app.availableFeatures)
         .find(feature => feature.name === EditScreensFeature.name);
     const isRunning = useSelector((state: State) => state.running);
+    const isProcessing = useSelector((state: State) => state.processing);
     const isGui = useSelector((state: State) => state.gui);
 
     const onScreenshotAccept = (): void => {
-        if (currentImage) {
+        if (!currentImage) {
+            return;
+        }
+
+        if (isStaticImageAccepterEnabled) {
+            dispatch(staticAccepterStageScreenshot([currentImage.id]));
+        } else {
             dispatch(acceptTest(currentImage.id));
         }
     };
     const onScreenshotUndo = (): void => {
-        if (currentImage) {
+        if (!currentImage) {
+            return;
+        }
+
+        if (isStaticImageAccepterEnabled) {
+            dispatch(staticAccepterUnstageScreenshot(currentImage.id));
+        } else {
             dispatch(undoAcceptImage(currentImage.id));
         }
     };
@@ -66,7 +80,7 @@ export function VisualChecksPage(): ReactNode {
 
     const currentResultId = currentImage?.parentId;
     const isLastResult = Boolean(currentResultId && currentBrowser && currentResultId === currentBrowser.resultIds[currentBrowser.resultIds.length - 1]);
-    const isUndoAvailable = isScreenRevertable({gui: isGui, image: currentImage ?? {}, isLastResult, isStaticImageAccepterEnabled: false});
+    const isUndoAvailable = isScreenRevertable({gui: isGui, image: currentImage ?? {}, isLastResult, isStaticImageAccepterEnabled});
 
     const isInitialized = useSelector((state: State) => state.app.isInitialized);
 
@@ -93,9 +107,9 @@ export function VisualChecksPage(): ReactNode {
                         )}
                     </Select>
                     {isEditScreensAvailable && <div className={styles.buttonsContainer}>
-                        {isUndoAvailable && <Button view={'action'} className={styles.acceptButton} disabled={isRunning} onClick={onScreenshotUndo}><Icon
+                        {isUndoAvailable && <Button view={'action'} className={styles.acceptButton} disabled={isRunning || isProcessing} onClick={onScreenshotUndo}><Icon
                             data={ArrowUturnCcwLeft}/>Undo</Button>}
-                        {currentImage && isAcceptable(currentImage) && <Button view={'action'} className={styles.acceptButton} disabled={isRunning} onClick={onScreenshotAccept}><Icon
+                        {currentImage && isAcceptable(currentImage) && <Button view={'action'} className={styles.acceptButton} disabled={isRunning || isProcessing} onClick={onScreenshotAccept}><Icon
                             data={Check}/>Accept</Button>}
                     </div>}
                 </div>

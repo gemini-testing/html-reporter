@@ -983,9 +983,13 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .icon-retry {
-    color: var(--g-color-private-orange-600-solid);
+    color: var(--g-color-private-cool-grey-600-solid);
 }
 
 .icon-updated {
-    color: var(--color-pink-600);
+    color: hsl(32 100% 48% / 1);
+}
+
+.icon-committed {
+    color: hsl(208 88% 48% / 1);
 }

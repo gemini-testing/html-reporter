@@ -102,13 +102,22 @@ export default Object.assign({config: configDefaults}, {
             currentNamedImageId: null
         },
         loading: {
+            taskTitle: 'Loading Testplane UI',
+            isVisible: true,
+            isInProgress: true,
             progress: {}
+        },
+        staticImageAccepterModal: {
+            commitMessage: 'chore: update screenshot references'
         }
     },
     ui: {
         suitesPage: {
             expandedSectionsById: {},
             expandedStepsByResultId: {}
+        },
+        staticImageAccepterToolbar: {
+            offset: {x: 0, y: 0}
         }
     }
 }) satisfies State;

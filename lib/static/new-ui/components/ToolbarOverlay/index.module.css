@@ -1,0 +1,38 @@
+.container {
+    position: fixed;
+    z-index: 999;
+    background: #6c47ff;
+    padding: 12px 12px 12px 6px;
+    border-radius: 10px;
+    color: rgba(255, 255, 255, .9);
+    fill: rgba(255, 255, 255, .9);
+    width: 700px;
+    display: flex;
+    box-shadow: 0 0 16px 0 #00000036;
+    align-items: center;
+
+    opacity: 0;
+    scale: 0.95;
+
+    visibility: hidden;
+    transition: scale .15s ease, visibility 0.15s ease, opacity 0.15s ease;
+}
+
+.dragging {
+    scale: 1.01 !important;
+}
+
+.visible {
+    visibility: visible;
+    opacity: 1;
+    scale: 1;
+}
+
+.icon-container {
+    margin-right: 6px;
+    cursor: grab;
+}
+
+.dragging .icon-container {
+    cursor: grabbing;
+}
