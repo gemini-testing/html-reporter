@@ -53,7 +53,7 @@ export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): Re
     };
     const onScreenshotUndo = (): void => {
         if (isStaticImageAccepterEnabled) {
-            dispatch(staticAccepterUnstageScreenshot(props.image.id));
+            dispatch(staticAccepterUnstageScreenshot([props.image.id]));
         } else {
             dispatch(undoAcceptImage(props.image.id));
         }

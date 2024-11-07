@@ -59,9 +59,7 @@ export function GuiniToolbarOverlay(): ReactNode {
     };
 
     const onCancelClick = (): void => {
-        for (const image of stagedImages) {
-            dispatch(staticAccepterUnstageScreenshot(image.id));
-        }
+        dispatch(staticAccepterUnstageScreenshot(stagedImages.map(image => image.id)));
     };
 
     const onModalCancelClick = (): void => {

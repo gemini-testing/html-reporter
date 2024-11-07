@@ -69,7 +69,7 @@ export function VisualChecksPage(): ReactNode {
         }
 
         if (isStaticImageAccepterEnabled) {
-            dispatch(staticAccepterUnstageScreenshot(currentImage.id));
+            dispatch(staticAccepterUnstageScreenshot([currentImage.id]));
         } else {
             dispatch(undoAcceptImage(currentImage.id));
         }

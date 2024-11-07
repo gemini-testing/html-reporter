@@ -1,5 +1,5 @@
-import React, {ReactNode, useMemo} from 'react';
 import {Icon} from '@gravity-ui/uikit';
+import classNames from 'classnames';
 import {
     SquareCheck,
     ChevronsExpandVertical,
@@ -8,26 +8,34 @@ import {
     Square,
     CircleInfo,
     Play,
+    Check,
+    ArrowUturnCcwLeft
 } from '@gravity-ui/icons';
+import React, {ReactNode, useMemo} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
 
 import styles from './index.module.css';
 import {
+    acceptOpened,
     collapseAll,
     deselectAll,
     expandAll,
     retrySuite,
-    selectAll
+    selectAll, staticAccepterStageScreenshot, staticAccepterUnstageScreenshot,
+    undoAcceptImages
 } from '@/static/modules/actions';
-import {useDispatch, useSelector} from 'react-redux';
-import {State} from '@/static/new-ui/types/store';
+import {ImageEntity, State} from '@/static/new-ui/types/store';
 import {CHECKED, INDETERMINATE} from '@/constants/checked-statuses';
 import {IconButton} from '@/static/new-ui/components/IconButton';
-import classNames from 'classnames';
 import {
     getCheckedTests,
+    getSelectedImages,
     getVisibleBrowserIds,
+    getVisibleImages
 } from '@/static/modules/selectors/tree';
-import {getIsInitialized} from '@/static/new-ui/store/selectors';
+import {getIsGui, getIsInitialized, getIsStaticImageAccepterEnabled} from '@/static/new-ui/store/selectors';
+import {isAcceptable, isScreenRevertable} from '@/static/modules/utils';
+import {EditScreensFeature, RunTestsFeature} from '@/constants';
 
 interface TreeActionsToolbarProps {
     onHighlightCurrentTest?: () => void;
@@ -35,6 +43,7 @@ interface TreeActionsToolbarProps {
 
 export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
     const dispatch = useDispatch();
+
     const rootSuiteIds = useSelector((state: State) => state.tree.suites.allRootIds);
     const suitesStateById = useSelector((state: State) => state.tree.suites.stateById);
     const browsersStateById = useSelector((state: State) => state.tree.browsers.stateById);
@@ -42,7 +51,13 @@ export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
     const selectedTests = useSelector(getCheckedTests);
     const visibleBrowserIds: string[] = useSelector(getVisibleBrowserIds);
     const isInitialized = useSelector(getIsInitialized);
+
+    const isRunTestsAvailable = useSelector((state: State) => state.app.availableFeatures)
+        .find(feature => feature.name === RunTestsFeature.name);
     const isRunning = useSelector((state: State) => state.running);
+
+    const isEditScreensAvailable = useSelector((state: State) => state.app.availableFeatures)
+        .find(feature => feature.name === EditScreensFeature.name);
 
     const isSelectedAll = useMemo(() => {
         for (const suiteId of rootSuiteIds) {
@@ -63,6 +78,16 @@ export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
 
         return false;
     }, [suitesStateById, rootSuiteIds]);
+
+    const isStaticImageAccepterEnabled = useSelector(getIsStaticImageAccepterEnabled);
+    const isGuiMode = useSelector(getIsGui);
+    const visibleImages: ImageEntity[] = useSelector(getVisibleImages);
+    const selectedImages: ImageEntity[] = useSelector(getSelectedImages);
+    const activeImages = isSelectedAtLeastOne ? selectedImages : visibleImages;
+
+    const isAtLeastOneAcceptable = activeImages.some(image => isAcceptable(image));
+    const isAtLeastOneRevertable = activeImages.some(image => isScreenRevertable({image, gui: isGuiMode, isLastResult: true, isStaticImageAccepterEnabled}));
+    const isUndoButtonVisible = isAtLeastOneRevertable && !isAtLeastOneAcceptable;
 
     const selectedTestsCount = useMemo(() => {
         let count = 0;
@@ -104,8 +129,39 @@ export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
         }
     };
 
+    const handleUndo = (): void => {
+        const acceptableImageIds = activeImages
+            .filter(image => isScreenRevertable({image, gui: isGuiMode, isLastResult: true, isStaticImageAccepterEnabled}))
+            .map(image => image.id);
+
+        if (isStaticImageAccepterEnabled && !isGuiMode) {
+            dispatch(staticAccepterUnstageScreenshot(acceptableImageIds));
+        } else {
+            dispatch(undoAcceptImages(acceptableImageIds));
+        }
+    };
+
+    const handleAccept = (): void => {
+        const acceptableImageIds = activeImages
+            .filter(image => isAcceptable(image))
+            .map(image => image.id);
+
+        if (isStaticImageAccepterEnabled && !isGuiMode) {
+            dispatch(staticAccepterStageScreenshot(acceptableImageIds));
+        } else {
+            dispatch(acceptOpened(acceptableImageIds));
+        }
+    };
+
     const viewButtons = <>
-        <IconButton icon={<Icon data={Play} height={14} />} tooltip={isSelectedAtLeastOne ? 'Run selected' : 'Run visible'} view={'flat'} onClick={handleRun} disabled={isRunning || !isInitialized}></IconButton>
+        {isRunTestsAvailable && <IconButton icon={<Icon data={Play} height={14}/>}
+            tooltip={isSelectedAtLeastOne ? 'Run selected' : 'Run visible'} view={'flat'} onClick={handleRun}
+            disabled={isRunning || !isInitialized}></IconButton>}
+        {isEditScreensAvailable && <>
+            isUndoButtonVisible ?
+            <IconButton icon={<Icon data={ArrowUturnCcwLeft} />} tooltip={isSelectedAtLeastOne ? 'Undo accepting selected screenshots' : 'Undo accepting visible screenshots'} view={'flat'} onClick={handleUndo} disabled={isRunning || !isInitialized}></IconButton> :
+            <IconButton icon={<Icon data={Check} />} tooltip={isSelectedAtLeastOne ? 'Accept selected screenshots' : 'Accept visible screenshots'} view={'flat'} onClick={handleAccept} disabled={isRunning || !isInitialized}></IconButton>
+        </>}
         <div className={styles.buttonsDivider}></div>
         <IconButton icon={<Icon data={SquareDashed} height={14}/>} tooltip={'Focus on active test'} view={'flat'} onClick={props.onHighlightCurrentTest} disabled={!isInitialized}/>
         <IconButton icon={<Icon data={ChevronsExpandVertical} height={14}/>} tooltip={'Expand all'} view={'flat'} onClick={handleExpandAll} disabled={!isInitialized}/>
