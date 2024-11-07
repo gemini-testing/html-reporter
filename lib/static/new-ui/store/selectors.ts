@@ -18,3 +18,5 @@ export const getResults = (state: State): Record<string, ResultEntity> => state.
 export const getImages = (state: State): Record<string, ImageEntity> => state.tree.images.byId;
 
 export const getIsInitialized = (state: State): boolean => state.app.isInitialized;
+export const getIsStaticImageAccepterEnabled = (state: State): boolean => state.config.staticImageAccepter.enabled;
+export const getIsGui = (state: State): boolean => state.gui;

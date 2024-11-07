@@ -7,16 +7,12 @@ import {
 } from '@gravity-ui/uikit/unstable';
 import {useVirtualizer} from '@tanstack/react-virtual';
 import classNames from 'classnames';
-import React, {ReactNode, useCallback, useEffect} from 'react';
-import {connect} from 'react-redux';
+import React, {forwardRef, ReactNode, useCallback, useEffect, useImperativeHandle} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
 import {useNavigate, useParams} from 'react-router-dom';
-import {bindActionCreators} from 'redux';
 
-import * as actions from '@/static/modules/actions';
 import {
-    TreeViewBrowserData,
-    TreeViewItemType,
-    TreeViewSuiteData
+    TreeViewItemType
 } from '@/static/new-ui/features/suites/components/SuitesPage/types';
 import {TreeViewItemTitle} from '@/static/new-ui/features/suites/components/TreeViewItemTitle';
 import {TreeViewItemSubtitle} from '@/static/new-ui/features/suites/components/TreeViewItemSubtitle';
@@ -29,28 +25,33 @@ import styles from './index.module.css';
 import {TestStatus} from '@/constants';
 import {TreeViewItemIcon} from '../../../../components/TreeViewItemIcon';
 import {getIconByStatus} from '@/static/new-ui/utils';
-import {TreeViewItem} from '@/static/new-ui/types';
+import {setStrictMatchFilter, suitesPageSetCurrentSuite, toggleSuiteSection} from '@/static/modules/actions';
 
-interface SuitesTreeViewProps {
-    treeViewItems: TreeViewItem<TreeViewSuiteData | TreeViewBrowserData>[];
-    treeViewExpandedById: Record<string, boolean>;
-    actions: typeof actions;
-    isInitialized: boolean;
-    currentBrowserId: string | null;
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+interface SuitesTreeViewProps {}
+
+export interface SuitesTreeViewHandle {
+    scrollToId: (id: string) => void;
 }
 
-function SuitesTreeViewInternal(props: SuitesTreeViewProps): ReactNode {
+export const SuitesTreeView = forwardRef<SuitesTreeViewHandle, SuitesTreeViewProps>(function SuitesTreeViewInternal(_props, ref): ReactNode {
+    const dispatch = useDispatch();
     const navigate = useNavigate();
     const {suiteId} = useParams();
 
+    const isInitialized = useSelector((state: State) => state.app.isInitialized);
+    const currentBrowserId = useSelector((state: State) => state.app.suitesPage.currentBrowserId);
+    const treeViewItems = useSelector((state: State) => getTreeViewItems(state).tree);
+    const treeViewExpandedById = useSelector((state: State) => getTreeViewExpandedById(state));
+
     const list = useList({
-        items: props.treeViewItems,
+        items: treeViewItems,
         withExpandedState: true,
         getItemId: item => {
             return item.fullTitle;
         },
         controlledState: {
-            expandedById: props.treeViewExpandedById
+            expandedById: treeViewExpandedById
         }
     });
 
@@ -59,39 +60,56 @@ function SuitesTreeViewInternal(props: SuitesTreeViewProps): ReactNode {
     const virtualizer = useVirtualizer({
         count: list.structure.visibleFlattenIds.length,
         getScrollElement: () => parentRef.current,
-        estimateSize: () => 28,
+        estimateSize: () => 32,
         getItemKey: useCallback((index: number) => list.structure.visibleFlattenIds[index], [list]),
-        overscan: 200
+        overscan: 50
     });
 
     const virtualizedItems = virtualizer.getVirtualItems();
 
+    useImperativeHandle(ref, () => ({
+        scrollToId: (id: string): void => {
+            virtualizer.scrollToIndex(list.structure.visibleFlattenIds.indexOf(id), {align: 'center'});
+        }
+    }));
+
     // Effects
     useEffect(() => {
-        if (!props.isInitialized) {
+        if (!isInitialized) {
             return;
         }
 
-        props.actions.setStrictMatchFilter(false);
+        dispatch(setStrictMatchFilter(false));
 
+        let timeoutId: NodeJS.Timeout;
         if (suiteId) {
-            props.actions.suitesPageSetCurrentSuite(suiteId);
-            virtualizer.scrollToIndex(list.structure.visibleFlattenIds.indexOf(suiteId), {align: 'start'});
+            dispatch(suitesPageSetCurrentSuite(suiteId));
+            timeoutId = setTimeout(() => {
+                virtualizer.scrollToIndex(list.structure.visibleFlattenIds.indexOf(suiteId), {align: 'center'});
+            }, 50);
         }
-    }, [props.isInitialized]);
+
+        return () => clearTimeout(timeoutId);
+    }, [isInitialized]);
 
     // Event handlers
     const onItemClick = useCallback(({id}: {id: string}): void => {
         const item = list.structure.itemsById[id];
 
         if (item.type === TreeViewItemType.Suite) {
-            props.actions.toggleSuiteSection({suiteId: item.fullTitle, shouldBeOpened: !props.treeViewExpandedById[item.fullTitle]});
+            dispatch(toggleSuiteSection({suiteId: item.fullTitle, shouldBeOpened: !treeViewExpandedById[item.fullTitle]}));
         } else if (item.type === TreeViewItemType.Browser) {
-            props.actions.suitesPageSetCurrentSuite(id);
+            dispatch(suitesPageSetCurrentSuite(id));
 
             navigate(encodeURIComponent(item.fullTitle));
         }
-    }, [list, props.actions, props.treeViewExpandedById]);
+    }, [list, treeViewExpandedById]);
+
+    if (list.structure.visibleFlattenIds.length === 0) {
+        return <div className={styles.emptyHintContainer}>
+            There are no tests that match selected filters
+        </div>;
+    }
 
     return <ListContainerView className={styles.treeView}>
         <div ref={parentRef} className={styles['tree-view__container']}>
@@ -105,7 +123,7 @@ function SuitesTreeViewInternal(props: SuitesTreeViewProps): ReactNode {
                 >
                     {virtualizedItems.map((virtualRow) => {
                         const item = list.structure.itemsById[virtualRow.key];
-                        const isSelected = item.fullTitle === props.currentBrowserId;
+                        const isSelected = item.fullTitle === currentBrowserId;
                         const classes = [
                             styles['tree-view__item'],
                             {
@@ -142,12 +160,4 @@ function SuitesTreeViewInternal(props: SuitesTreeViewProps): ReactNode {
             </div>
         </div>
     </ListContainerView>;
-}
-
-export const SuitesTreeView = connect((state: State) => ({
-    isInitialized: state.app.isInitialized,
-    currentBrowserId: state.app.suitesPage.currentBrowserId,
-    treeViewItems: getTreeViewItems(state).tree,
-    treeViewExpandedById: getTreeViewExpandedById(state)
-}),
-(dispatch) => ({actions: bindActionCreators(actions, dispatch)}))(SuitesTreeViewInternal);
+});

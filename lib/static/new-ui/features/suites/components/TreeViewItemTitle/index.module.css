@@ -1,4 +1,21 @@
+.container {
+    align-items: center;
+    display: flex;
+    gap: 4px;
+    word-break: break-word;
+}
+
+.checkbox {
+    margin-left: auto;
+    margin-right: 6px;
+}
+
+.checkbox svg {
+    color: white !important;
+}
+
 .tree-view-item__error-title {
     color: var(--g-color-private-red-600-solid);
     margin-left: var(--g-spacing-1);
+    font-size: 15px;
 }

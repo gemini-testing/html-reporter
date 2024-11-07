@@ -1,6 +1,6 @@
 import {Flex} from '@gravity-ui/uikit';
 import classNames from 'classnames';
-import React, {ReactNode} from 'react';
+import React, {ReactNode, useRef} from 'react';
 import {connect, useSelector} from 'react-redux';
 import {useParams} from 'react-router-dom';
 import {bindActionCreators} from 'redux';
@@ -11,7 +11,7 @@ import {getCurrentResult} from '@/static/new-ui/features/suites/selectors';
 import {getTreeViewItems} from '@/static/new-ui/features/suites/components/SuitesTreeView/selectors';
 import {SplitViewLayout} from '@/static/new-ui/components/SplitViewLayout';
 import {TestNameFilter} from '@/static/new-ui/features/suites/components/TestNameFilter';
-import {SuitesTreeView} from '@/static/new-ui/features/suites/components/SuitesTreeView';
+import {SuitesTreeView, SuitesTreeViewHandle} from '@/static/new-ui/features/suites/components/SuitesTreeView';
 import {TestStatusFilter} from '@/static/new-ui/features/suites/components/TestStatusFilter';
 import {BrowsersSelect} from '@/static/new-ui/features/suites/components/BrowsersSelect';
 import {SuiteTitle} from '../../../../components/SuiteTitle';
@@ -25,6 +25,7 @@ import {AttemptPicker} from '../../../../components/AttemptPicker';
 import styles from './index.module.css';
 import {TestInfoSkeleton} from '@/static/new-ui/features/suites/components/SuitesPage/TestInfoSkeleton';
 import {TreeViewSkeleton} from '@/static/new-ui/features/suites/components/SuitesTreeView/TreeViewSkeleton';
+import {TreeActionsToolbar} from '@/static/new-ui/features/suites/components/TreeActionsToolbar';
 
 interface SuitesPageProps {
     actions: typeof actions;
@@ -40,6 +41,14 @@ function SuitesPageInternal({currentResult, actions, visibleBrowserIds}: SuitesP
     const {suiteId: suiteIdParam} = useParams();
     const isInitialized = useSelector(getIsInitialized);
 
+    const suitesTreeViewRef = useRef<SuitesTreeViewHandle>(null);
+
+    const onHighlightCurrentTest = (): void => {
+        if (suitesTreeViewRef.current && currentResult?.parentId) {
+            suitesTreeViewRef.current.scrollToId(currentResult.parentId);
+        }
+    };
+
     return <div className={styles.container}><SplitViewLayout sections={[
         <UiCard key='tree-view' className={classNames(styles.card, styles.treeViewCard)}>
             <h2 className={classNames('text-display-1', styles['card__title'])}>Suites</h2>
@@ -48,7 +57,8 @@ function SuitesPageInternal({currentResult, actions, visibleBrowserIds}: SuitesP
                 <BrowsersSelect/>
             </Flex>
             <TestStatusFilter/>
-            {isInitialized && <SuitesTreeView/>}
+            <TreeActionsToolbar onHighlightCurrentTest={onHighlightCurrentTest} />
+            {isInitialized && <SuitesTreeView ref={suitesTreeViewRef}/>}
             {!isInitialized && <TreeViewSkeleton/>}
         </UiCard>,
         <UiCard key="test-view" className={classNames(styles.card, styles.testViewCard)}>

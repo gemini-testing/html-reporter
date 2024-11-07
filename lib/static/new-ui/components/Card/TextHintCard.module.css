@@ -3,9 +3,5 @@
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-.hint {
-    color: var(--g-color-private-black-400);
-    font-weight: 500;
+    composes: text-hint from global;
 }

@@ -4,6 +4,7 @@ import {HtmlReporterValues} from '@/plugin-api';
 import {CoordBounds} from 'looks-same';
 import {Point} from '@/static/new-ui/types/index';
 import {AcceptableImage} from '@/static/modules/static-image-accepter';
+import {CheckStatus} from '@/constants/checked-statuses';
 
 export interface SuiteEntityNode {
     id: string;
@@ -116,6 +117,7 @@ export const isImageEntityFail = (image: ImageEntity): image is ImageEntityFail 
 export interface SuiteState {
     shouldBeOpened: boolean;
     shouldBeShown: boolean;
+    checkStatus: CheckStatus;
 }
 
 export interface BrowserState {
@@ -123,6 +125,7 @@ export interface BrowserState {
     retryIndex: number;
     // True if test is not shown because of its status. Useful when computing counts by status.
     isHiddenBecauseOfStatus?: boolean;
+    checkStatus: CheckStatus;
 }
 
 export interface ResultState {
