@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.9.2"></a>
+## [10.9.2](https://github.com/gemini-testing/html-reporter/compare/v10.9.1...v10.9.2) (2024-11-14)
+
+
+### Bug Fixes
+
+* fix diff bubbles in side-by-side fit screen mode ([#614](https://github.com/gemini-testing/html-reporter/issues/614)) ([569d4a2](https://github.com/gemini-testing/html-reporter/commit/569d4a2))
+* handle invalid ref image errors ([#611](https://github.com/gemini-testing/html-reporter/issues/611)) ([eae6670](https://github.com/gemini-testing/html-reporter/commit/eae6670))
+
+
+### Features
+
+* add static image accepter support to new ui ([#612](https://github.com/gemini-testing/html-reporter/issues/612)) ([f70e78b](https://github.com/gemini-testing/html-reporter/commit/f70e78b))
+
+
+
 <a name="10.9.1"></a>
 ## [10.9.1](https://github.com/gemini-testing/html-reporter/compare/v10.9.0...v10.9.1) (2024-10-21)
 
