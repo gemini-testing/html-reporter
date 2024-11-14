@@ -12,4 +12,6 @@
 
 .image {
     max-height: max(var(--desired-height), calc(var(--natural-height) * 1px / 2));
+    width: var(--img-width);
+    height: var(--img-height);
 }
