@@ -9,9 +9,7 @@
 
 .image {
     aspect-ratio: var(--natural-width) / var(--natural-height);
-    max-width: calc(var(--natural-width) * 1px);
+    max-width: calc(min(var(--natural-width) * 1px, 100%));
     width: 100%;
-    object-fit: contain;
-    object-position: top left;
     filter: drop-shadow(1px 0 0 #ccc) drop-shadow(-1px 0 0 #ccc) drop-shadow(0 1px 0 #ccc) drop-shadow(0 -1px 0 #ccc);
 }

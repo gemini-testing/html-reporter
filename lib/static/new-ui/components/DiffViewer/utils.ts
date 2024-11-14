@@ -3,7 +3,9 @@ import {ImageSize} from '@/types';
 
 export const getImageSizeCssVars = (size: ImageSize): React.CSSProperties => ({
     '--natural-width': size.width,
-    '--natural-height': size.height
+    '--natural-height': size.height,
+    '--img-width': size.width > size.height ? '100%' : 'auto',
+    '--img-height': size.width > size.height ? 'auto' : '100%'
 } as React.CSSProperties);
 
 export const getDisplayedDiffPercentValue = (diffRatio: number): string => {
