@@ -6,6 +6,7 @@ import {Checkbox} from '@gravity-ui/uikit';
 import {useDispatch, useSelector} from 'react-redux';
 import {toggleBrowserCheckbox, toggleSuiteCheckbox} from '@/static/modules/actions';
 import {getToggledCheckboxState, isCheckboxChecked, isCheckboxIndeterminate} from '@/common-utils';
+import {getAreCheckboxesNeeded} from '@/static/new-ui/store/selectors';
 
 interface TreeViewItemTitleProps {
     className?: string;
@@ -14,6 +15,7 @@ interface TreeViewItemTitleProps {
 
 export function TreeViewItemTitle({item, className}: TreeViewItemTitleProps): React.JSX.Element {
     const dispatch = useDispatch();
+    const areCheckboxesNeeded = useSelector(getAreCheckboxesNeeded);
     const checkStatus = useSelector(state =>
         item.type === TreeViewItemType.Suite ? state.tree.suites.stateById[item.id].checkStatus : state.tree.browsers.stateById[item.id].checkStatus);
     const ref = useRef<HTMLInputElement>(null);
@@ -45,6 +47,6 @@ export function TreeViewItemTitle({item, className}: TreeViewItemTitleProps): Re
             item.errorTitle &&
             <span className={classNames(styles['tree-view-item__error-title'], className)}>{item.errorTitle}</span>
         }
-        <Checkbox checked={isCheckboxChecked(checkStatus)} indeterminate={isCheckboxIndeterminate(checkStatus)} className={styles.checkbox} size={'m'} controlRef={ref}/>
+        {areCheckboxesNeeded && <Checkbox checked={isCheckboxChecked(checkStatus)} indeterminate={isCheckboxIndeterminate(checkStatus)} className={styles.checkbox} size={'m'} controlRef={ref}/>}
     </div>;
 }

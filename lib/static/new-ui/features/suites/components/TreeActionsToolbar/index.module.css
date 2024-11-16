@@ -53,3 +53,7 @@
     background-color: var(--divider-color);
     margin: 0 4px;
 }
+
+.icon-button[disabled] {
+    opacity: 0.5;
+}

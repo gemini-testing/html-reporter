@@ -104,7 +104,7 @@ export function ImageWithMagnifier({
     return <div>
         <Screenshot
             image={image}
-            containerStyle={style}
+            style={style}
             ref={imgRef}
             onMouseEnter={(e): void => mouseEnter(e)}
             onMouseLeave={(e): void => mouseLeave(e)}

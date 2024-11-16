@@ -7,10 +7,11 @@ interface IconButtonProps {
     onClick?: () => void;
     view?: ButtonView;
     disabled?: boolean;
+    className?: string;
 }
 
 export function IconButton(props: IconButtonProps): ReactNode {
     return <Tooltip content={props.tooltip} placement={'top'} openDelay={0}>
-        <Button view={props.view} onClick={props.onClick} disabled={props.disabled}>{props.icon}</Button>
+        <Button className={props.className} view={props.view} onClick={props.onClick} disabled={props.disabled}>{props.icon}</Button>
     </Tooltip>;
 }

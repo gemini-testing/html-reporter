@@ -33,7 +33,12 @@ import {
     getVisibleBrowserIds,
     getVisibleImages
 } from '@/static/modules/selectors/tree';
-import {getIsGui, getIsInitialized, getIsStaticImageAccepterEnabled} from '@/static/new-ui/store/selectors';
+import {
+    getAreCheckboxesNeeded,
+    getIsGui,
+    getIsInitialized,
+    getIsStaticImageAccepterEnabled
+} from '@/static/new-ui/store/selectors';
 import {isAcceptable, isScreenRevertable} from '@/static/modules/utils';
 import {EditScreensFeature, RunTestsFeature} from '@/constants';
 
@@ -74,6 +79,7 @@ export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
 
     const isStaticImageAccepterEnabled = useSelector(getIsStaticImageAccepterEnabled);
     const isGuiMode = useSelector(getIsGui);
+    const areCheckboxesNeeded = useSelector(getAreCheckboxesNeeded);
     const visibleImages: ImageEntity[] = useSelector(getVisibleImages);
     const selectedImages: ImageEntity[] = useSelector(getSelectedImages);
     const activeImages = isSelectedAtLeastOne ? selectedImages : visibleImages;
@@ -144,19 +150,19 @@ export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
     const areActionsDisabled = isRunning || !isInitialized;
 
     const viewButtons = <>
-        {isRunTestsAvailable && <IconButton icon={<Icon data={Play} height={14}/>}
+        {isRunTestsAvailable && <IconButton className={styles.iconButton} icon={<Icon data={Play} height={14}/>}
             tooltip={`Run ${selectedOrVisible}`} view={'flat'} onClick={handleRun}
             disabled={isRunning || !isInitialized}></IconButton>}
         {isEditScreensAvailable && (
             isUndoButtonVisible ?
-                <IconButton icon={<Icon data={ArrowUturnCcwLeft} />} tooltip={`Undo accepting ${selectedOrVisible} screenshots`} view={'flat'} onClick={handleUndo} disabled={areActionsDisabled}></IconButton> :
-                <IconButton icon={<Icon data={Check} />} tooltip={`Accept ${selectedOrVisible} screenshots`} view={'flat'} onClick={handleAccept} disabled={areActionsDisabled}></IconButton>
+                <IconButton className={styles.iconButton} icon={<Icon data={ArrowUturnCcwLeft} />} tooltip={`Undo accepting ${selectedOrVisible} screenshots`} view={'flat'} onClick={handleUndo} disabled={areActionsDisabled}></IconButton> :
+                <IconButton className={styles.iconButton} icon={<Icon data={Check} />} tooltip={`Accept ${selectedOrVisible} screenshots`} view={'flat'} onClick={handleAccept} disabled={areActionsDisabled || !isAtLeastOneAcceptable}></IconButton>
         )}
-        <div className={styles.buttonsDivider}></div>
+        {(isRunTestsAvailable || isEditScreensAvailable) && <div className={styles.buttonsDivider}></div>}
         <IconButton icon={<Icon data={SquareDashed} height={14}/>} tooltip={'Focus on active test'} view={'flat'} onClick={props.onHighlightCurrentTest} disabled={!isInitialized}/>
         <IconButton icon={<Icon data={ChevronsExpandVertical} height={14}/>} tooltip={'Expand all'} view={'flat'} onClick={handleExpandAll} disabled={!isInitialized}/>
         <IconButton icon={<Icon data={ChevronsCollapseVertical} height={14}/>} tooltip={'Collapse all'} view={'flat'} onClick={handleCollapseAll} disabled={!isInitialized}/>
-        <IconButton icon={<Icon data={isSelectedAll ? Square : SquareCheck}/>} tooltip={isSelectedAll ? 'Deselect all' : 'Select all'} view={'flat'} onClick={handleToggleAll} disabled={!isInitialized}/>
+        {areCheckboxesNeeded && <IconButton icon={<Icon data={isSelectedAll ? Square : SquareCheck}/>} tooltip={isSelectedAll ? 'Deselect all' : 'Select all'} view={'flat'} onClick={handleToggleAll} disabled={!isInitialized}/>}
     </>;
 
     return <div className={styles.container}>

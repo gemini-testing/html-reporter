@@ -68,7 +68,7 @@ export const SuitesTreeView = forwardRef<SuitesTreeViewHandle, SuitesTreeViewPro
 
     useImperativeHandle(ref, () => ({
         scrollToId: (id: string): void => {
-            virtualizer.scrollToIndex(list.structure.visibleFlattenIds.indexOf(id), {align: 'center'});
+            virtualizer.scrollToIndex(list.structure.visibleFlattenIds.indexOf(id), {align: 'start'});
         }
     }));
 
