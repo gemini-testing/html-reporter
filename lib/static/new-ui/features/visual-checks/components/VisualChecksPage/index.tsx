@@ -5,7 +5,6 @@ import React, {ReactNode} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {SplitViewLayout} from '@/static/new-ui/components/SplitViewLayout';
-import {State} from '@/static/new-ui/types/store';
 import {UiCard} from '@/static/new-ui/components/Card/UiCard';
 import {
     getCurrentImage,
@@ -40,17 +39,17 @@ export function VisualChecksPage(): ReactNode {
     const onPreviousImageHandler = (): void => void dispatch(visualChecksPageSetCurrentNamedImage(visibleNamedImageIds[currentNamedImageIndex - 1]));
     const onNextImageHandler = (): void => void dispatch(visualChecksPageSetCurrentNamedImage(visibleNamedImageIds[currentNamedImageIndex + 1]));
 
-    const diffMode = useSelector((state: State) => state.view.diffMode);
+    const diffMode = useSelector(state => state.view.diffMode);
     const onChangeHandler = (diffMode: DiffModeId): void => {
         dispatch(changeDiffMode(diffMode));
     };
 
-    const isStaticImageAccepterEnabled = useSelector((state: State) => state.staticImageAccepter.enabled);
-    const isEditScreensAvailable = useSelector((state: State) => state.app.availableFeatures)
+    const isStaticImageAccepterEnabled = useSelector(state => state.staticImageAccepter.enabled);
+    const isEditScreensAvailable = useSelector(state => state.app.availableFeatures)
         .find(feature => feature.name === EditScreensFeature.name);
-    const isRunning = useSelector((state: State) => state.running);
-    const isProcessing = useSelector((state: State) => state.processing);
-    const isGui = useSelector((state: State) => state.gui);
+    const isRunning = useSelector(state => state.running);
+    const isProcessing = useSelector(state => state.processing);
+    const isGui = useSelector(state => state.gui);
 
     const onScreenshotAccept = (): void => {
         if (!currentImage) {
@@ -69,20 +68,20 @@ export function VisualChecksPage(): ReactNode {
         }
 
         if (isStaticImageAccepterEnabled) {
-            dispatch(staticAccepterUnstageScreenshot(currentImage.id));
+            dispatch(staticAccepterUnstageScreenshot([currentImage.id]));
         } else {
             dispatch(undoAcceptImage(currentImage.id));
         }
     };
 
-    const currentBrowserId = useSelector((state: State) => state.tree.results.byId[currentImage?.parentId ?? '']?.parentId);
-    const currentBrowser = useSelector((state: State) => currentBrowserId && state.tree.browsers.byId[currentBrowserId]);
+    const currentBrowserId = useSelector(state => state.tree.results.byId[currentImage?.parentId ?? '']?.parentId);
+    const currentBrowser = useSelector(state => currentBrowserId && state.tree.browsers.byId[currentBrowserId]);
 
     const currentResultId = currentImage?.parentId;
     const isLastResult = Boolean(currentResultId && currentBrowser && currentResultId === currentBrowser.resultIds[currentBrowser.resultIds.length - 1]);
     const isUndoAvailable = isScreenRevertable({gui: isGui, image: currentImage ?? {}, isLastResult, isStaticImageAccepterEnabled});
 
-    const isInitialized = useSelector((state: State) => state.app.isInitialized);
+    const isInitialized = useSelector(state => state.app.isInitialized);
 
     return <div className={styles.container}><SplitViewLayout sections={[
         <UiCard key="test-view" className={classNames(styles.card, styles.testViewCard)}>

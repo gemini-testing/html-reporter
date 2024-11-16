@@ -6,7 +6,6 @@ import {CloudArrowUpIn, TriangleExclamation} from '@gravity-ui/icons';
 import styles from './index.module.css';
 import classNames from 'classnames';
 import {useDispatch, useSelector} from 'react-redux';
-import {State} from '@/static/new-ui/types/store';
 import {
     CommitResult,
     staticAccepterCommitScreenshot,
@@ -23,22 +22,22 @@ export function GuiniToolbarOverlay(): ReactNode {
     const dispatch = useDispatch();
     const toaster = useToaster();
 
-    const isInProgress = useSelector((state: State) => state.processing);
-    const allImagesById = useSelector((state: State) => state.tree.images.byId);
-    const acceptableImages = useSelector((state: State) => state.staticImageAccepter.acceptableImages);
-    const delayedImages = useSelector((state: State) => state.staticImageAccepter.accepterDelayedImages);
+    const isInProgress = useSelector(state => state.processing);
+    const allImagesById = useSelector(state => state.tree.images.byId);
+    const acceptableImages = useSelector(state => state.staticImageAccepter.acceptableImages);
+    const delayedImages = useSelector(state => state.staticImageAccepter.accepterDelayedImages);
     const stagedImages = Object.values(acceptableImages)
         .filter(image => image.commitStatus === TestStatus.STAGED);
 
-    const staticAccepterConfig = useSelector((state: State) => state.config.staticImageAccepter);
-    const pullRequestUrl = useSelector((state: State) => state.config.staticImageAccepter.pullRequestUrl);
-    const offset = useSelector((state: State) => state.ui.staticImageAccepterToolbar.offset);
+    const staticAccepterConfig = useSelector(state => state.config.staticImageAccepter);
+    const pullRequestUrl = useSelector(state => state.config.staticImageAccepter.pullRequestUrl);
+    const offset = useSelector(state => state.ui.staticImageAccepterToolbar.offset);
     const location = useLocation();
 
     const [isVisible, setIsVisible] = useState<boolean | null>(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
 
-    const commitMessage = useSelector((state: State) => state.app.staticImageAccepterModal.commitMessage);
+    const commitMessage = useSelector(state => state.app.staticImageAccepterModal.commitMessage);
 
     useEffect(() => {
         const newIsVisible = stagedImages.length > 0 &&
@@ -59,9 +58,7 @@ export function GuiniToolbarOverlay(): ReactNode {
     };
 
     const onCancelClick = (): void => {
-        for (const image of stagedImages) {
-            dispatch(staticAccepterUnstageScreenshot(image.id));
-        }
+        dispatch(staticAccepterUnstageScreenshot(stagedImages.map(image => image.id)));
     };
 
     const onModalCancelClick = (): void => {

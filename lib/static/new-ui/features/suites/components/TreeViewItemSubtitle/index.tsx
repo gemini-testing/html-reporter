@@ -1,8 +1,12 @@
-import React, {ReactNode} from 'react';
-import {TreeViewData, TreeViewItemType} from '@/static/new-ui/features/suites/components/SuitesPage/types';
-import styles from './index.module.css';
-import {ImageWithMagnifier} from '@/static/new-ui/components/ImageWithMagnifier';
 import classNames from 'classnames';
+import React, {ReactNode} from 'react';
+import stripAnsi from 'strip-ansi';
+
+import {TreeViewData, TreeViewItemType} from '@/static/new-ui/features/suites/components/SuitesPage/types';
+import {ImageWithMagnifier} from '@/static/new-ui/components/ImageWithMagnifier';
+import {ImageEntityFail} from '@/static/new-ui/types/store';
+import styles from './index.module.css';
+import {getAssertViewStatusMessage} from '@/static/new-ui/utils/assert-view-status';
 
 interface TreeViewItemSubtitleProps {
     item: TreeViewData;
@@ -12,11 +16,23 @@ interface TreeViewItemSubtitleProps {
 }
 
 export function TreeViewItemSubtitle(props: TreeViewItemSubtitleProps): ReactNode {
-    if (props.item.type === TreeViewItemType.Browser && props.item.diffImg) {
-        return <ImageWithMagnifier src={props.item.diffImg.path} alt={'diff-image'} style={{maxWidth: '99%', marginTop: '4px', maxHeight: '40vh'}} scrollContainerRef={props.scrollContainerRef} />;
+    if (props.item.type === TreeViewItemType.Browser && props.item.images?.length) {
+        return <div>
+            {props.item.images.map((imageEntity, index) => {
+                const image = (imageEntity as ImageEntityFail).diffImg ?? (imageEntity as ImageEntityFail).actualImg;
+                if (!image) {
+                    return;
+                }
+
+                return <div key={index}>
+                    <span className={styles.imageStatus}>{(imageEntity as ImageEntityFail).stateName} ⋅ {getAssertViewStatusMessage(imageEntity)}</span>
+                    <ImageWithMagnifier image={image} style={{maxWidth: '99%', marginTop: '4px', maxHeight: '40vh'}} scrollContainerRef={props.scrollContainerRef}/>
+                </div>;
+            })}
+        </div>;
     } else if (props.item.type === TreeViewItemType.Browser && props.item.errorStack) {
         return <div className={classNames(styles['tree-view-item-subtitle__error-stack'], props.className)}>
-            {props.item.errorStack}
+            {stripAnsi(props.item.errorStack)}
         </div>;
     }
 

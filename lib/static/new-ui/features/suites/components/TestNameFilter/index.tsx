@@ -4,7 +4,6 @@ import {debounce} from 'lodash';
 import {connect, useSelector} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import * as actions from '@/static/modules/actions';
-import {State} from '@/static/new-ui/types/store';
 import {getIsInitialized} from '@/static/new-ui/store/selectors';
 
 interface TestNameFilterProps {
@@ -32,6 +31,6 @@ function TestNameFilterInternal(props: TestNameFilterProps): ReactNode {
 }
 
 export const TestNameFilter = connect(
-    (state: State) => ({testNameFilter: state.view.testNameFilter}),
+    state => ({testNameFilter: state.view.testNameFilter}),
     (dispatch) => ({actions: bindActionCreators(actions, dispatch)})
 )(TestNameFilterInternal);

@@ -1,7 +1,7 @@
 import React, {ReactNode} from 'react';
 import {connect} from 'react-redux';
 
-import {ImageEntity, State} from '@/static/new-ui/types/store';
+import {ImageEntity} from '@/static/new-ui/types/store';
 import {DiffModeId, TestStatus} from '@/constants';
 import {DiffViewer} from '../DiffViewer';
 import {Screenshot} from '@/static/new-ui/components/Screenshot';
@@ -43,6 +43,6 @@ function AssertViewResultInternal({result, diffMode, style}: AssertViewResultPro
     return null;
 }
 
-export const AssertViewResult = connect((state: State) => ({
+export const AssertViewResult = connect(state => ({
     diffMode: state.view.diffMode
 }))(AssertViewResultInternal);

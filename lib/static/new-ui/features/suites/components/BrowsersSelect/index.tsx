@@ -7,7 +7,6 @@ import {bindActionCreators} from 'redux';
 import * as actions from '@/static/modules/actions';
 import {BrowserIcon} from '@/static/new-ui/features/suites/components/BrowsersSelect/BrowserIcon';
 import {getIsInitialized} from '@/static/new-ui/store/selectors';
-import {State} from '@/static/new-ui/types/store';
 import {BrowserItem} from '@/types';
 import styles from './index.module.css';
 
@@ -175,7 +174,7 @@ function BrowsersSelectInternal({browsers, filteredBrowsers, actions}: BrowsersS
 }
 
 export const BrowsersSelect = connect(
-    (state: State) => ({
+    state => ({
         filteredBrowsers: state.view.filteredBrowsers,
         browsers: state.browsers
     }),

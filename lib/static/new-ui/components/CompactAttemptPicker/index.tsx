@@ -4,7 +4,6 @@ import React, {ReactNode} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import styles from './index.module.css';
-import {State} from '@/static/new-ui/types/store';
 import {getCurrentNamedImage} from '@/static/new-ui/features/visual-checks/selectors';
 import {getIconByStatus} from '@/static/new-ui/utils';
 import {changeTestRetry} from '@/static/modules/actions';
@@ -13,11 +12,11 @@ export function CompactAttemptPicker(): ReactNode {
     const dispatch = useDispatch();
     const currentImage = useSelector(getCurrentNamedImage);
     const currentBrowserId = currentImage?.browserId;
-    const currentBrowser = useSelector((state: State) => currentBrowserId && state.tree.browsers.byId[currentBrowserId]);
-    const resultsById = useSelector((state: State) => state.tree.results.byId);
+    const currentBrowser = useSelector(state => currentBrowserId && state.tree.browsers.byId[currentBrowserId]);
+    const resultsById = useSelector(state => state.tree.results.byId);
 
     const totalAttemptsCount = currentBrowser ? currentBrowser.resultIds.length : null;
-    const currentAttemptIndex = useSelector((state: State) => currentBrowser ? state.tree.browsers.stateById[currentBrowser.id].retryIndex : null);
+    const currentAttemptIndex = useSelector(state => currentBrowser ? state.tree.browsers.stateById[currentBrowser.id].retryIndex : null);
 
     const onUpdate = ([value]: string[]): void => {
         if (currentBrowserId) {

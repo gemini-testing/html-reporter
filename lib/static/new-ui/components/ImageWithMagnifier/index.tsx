@@ -1,13 +1,13 @@
-import classnames from 'classnames';
 import React, {ReactNode, useEffect, useRef, useState} from 'react';
 import {createPortal} from 'react-dom';
 import styles from './index.module.css';
+import {Screenshot} from '@/static/new-ui/components/Screenshot';
+import {ImageFile} from '@/types';
 
 const DEFAULT_ZOOM_LEVEL = 3;
 
 interface ImageWithMagnifierProps {
-    src: string;
-    alt: string;
+    image: ImageFile;
     className?: string;
     style?: React.CSSProperties;
     magnifierHeight?: number;
@@ -18,9 +18,7 @@ interface ImageWithMagnifierProps {
 }
 
 export function ImageWithMagnifier({
-    src,
-    alt,
-    className = '',
+    image,
     style,
     magnifierHeight = 150,
     magnifierWidth = 150,
@@ -94,7 +92,7 @@ export function ImageWithMagnifier({
             display: showMagnifier ? '' : 'none',
             height: `${magnifierHeight}px`,
             width: `${magnifierWidth}px`,
-            backgroundImage: `url('${src}')`,
+            backgroundImage: `url('${image.path}')`,
             top: `${mouseY - magnifierHeight / 2}px`,
             left: `${mouseX - magnifierWidth / 2}px`,
             backgroundSize: `${imgWidth * zoomLevel}px ${imgHeight * zoomLevel}px`,
@@ -104,16 +102,13 @@ export function ImageWithMagnifier({
     }, [showMagnifier, imgWidth, imgHeight, x, y]);
 
     return <div>
-        <img
-            src={src}
-            className={classnames(className)}
+        <Screenshot
+            image={image}
             style={style}
-            alt={alt}
+            ref={imgRef}
             onMouseEnter={(e): void => mouseEnter(e)}
             onMouseLeave={(e): void => mouseLeave(e)}
-            onMouseMove={(e): void => mouseMove(e)}
-            ref={imgRef}
-        />
+            onMouseMove={(e): void => mouseMove(e)}/>
         {createPortal(<div
             className={styles.magnifier}
             style={magnifierStyle}

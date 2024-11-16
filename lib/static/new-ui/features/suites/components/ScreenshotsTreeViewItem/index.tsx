@@ -4,7 +4,7 @@ import React, {ReactNode} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {AssertViewResult} from '@/static/new-ui/components/AssertViewResult';
-import {ImageEntity, State} from '@/static/new-ui/types/store';
+import {ImageEntity} from '@/static/new-ui/types/store';
 import {DiffModeId, DiffModes, EditScreensFeature, TestStatus} from '@/constants';
 import {
     acceptTest,
@@ -25,13 +25,13 @@ interface ScreenshotsTreeViewItemProps {
 
 export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): ReactNode {
     const dispatch = useDispatch();
-    const diffMode = useSelector((state: State) => state.view.diffMode);
-    const isEditScreensAvailable = useSelector((state: State) => state.app.availableFeatures)
+    const diffMode = useSelector(state => state.view.diffMode);
+    const isEditScreensAvailable = useSelector(state => state.app.availableFeatures)
         .find(feature => feature.name === EditScreensFeature.name);
-    const isStaticImageAccepterEnabled = useSelector((state: State) => state.staticImageAccepter.enabled);
-    const isRunning = useSelector((state: State) => state.running);
-    const isProcessing = useSelector((state: State) => state.processing);
-    const isGui = useSelector((state: State) => state.gui);
+    const isStaticImageAccepterEnabled = useSelector(state => state.staticImageAccepter.enabled);
+    const isRunning = useSelector(state => state.running);
+    const isProcessing = useSelector(state => state.processing);
+    const isGui = useSelector(state => state.gui);
 
     const isDiffModeSwitcherVisible = props.image.status === TestStatus.FAIL && props.image.diffImg;
 
@@ -53,7 +53,7 @@ export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): Re
     };
     const onScreenshotUndo = (): void => {
         if (isStaticImageAccepterEnabled) {
-            dispatch(staticAccepterUnstageScreenshot(props.image.id));
+            dispatch(staticAccepterUnstageScreenshot([props.image.id]));
         } else {
             dispatch(undoAcceptImage(props.image.id));
         }

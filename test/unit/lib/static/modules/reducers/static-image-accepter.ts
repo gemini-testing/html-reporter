@@ -144,9 +144,11 @@ describe('lib/static/modules/reducers/static-image-accepter', () => {
     });
 
     describe(actionNames.STATIC_ACCEPTER_UNSTAGE_SCREENSHOT, () => {
-        it('should unstage image, decrementing "imagesToCommitCount"', () => {
+        it('should unstage images, decrementing "imagesToCommitCount"', () => {
             const staticImageAccepter = mkStaticImageAccepter({acceptableImages: {
-                'imageId': mkAcceptableImage({id: 'imageId'})
+                'imageId1': mkAcceptableImage({id: 'imageId1'}),
+                'imageId2': mkAcceptableImage({id: 'imageId2'}),
+                'imageId3': mkAcceptableImage({id: 'imageId3'})
             }});
 
             const imagesById = mkImage({id: 'imageId', stateName: 'state', parentId: 'resultId'});
@@ -156,11 +158,12 @@ describe('lib/static/modules/reducers/static-image-accepter', () => {
 
             const state = {staticImageAccepter, tree};
 
-            const newState = reducer(state, {type: actionNames.STATIC_ACCEPTER_UNSTAGE_SCREENSHOT, payload: {imageId: 'imageId'}});
+            const newState = reducer(state, {type: actionNames.STATIC_ACCEPTER_UNSTAGE_SCREENSHOT, payload: ['imageId1', 'imageId2']});
 
-            assert.equal(newState.staticImageAccepter.acceptableImages['imageId'].commitStatus, null);
+            assert.equal(newState.staticImageAccepter.acceptableImages['imageId1'].commitStatus, null);
+            assert.equal(newState.staticImageAccepter.acceptableImages['imageId2'].commitStatus, null);
 
-            assert.equal(newState.staticImageAccepter.imagesToCommitCount, state.staticImageAccepter.imagesToCommitCount - 1);
+            assert.equal(newState.staticImageAccepter.imagesToCommitCount, state.staticImageAccepter.imagesToCommitCount - 2);
         });
     });
 

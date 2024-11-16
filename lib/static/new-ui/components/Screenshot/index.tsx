@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import {CoordBounds} from 'looks-same';
-import React, {ReactNode, useCallback, useRef} from 'react';
+import React, {forwardRef, ReactNode, useCallback, useRef} from 'react';
 import {createPortal} from 'react-dom';
 
 import {addTimestamp, encodePathSegments} from '@/static/new-ui/components/Screenshot/utils';
@@ -21,11 +21,24 @@ interface ScreenshotProps {
         size?: ImageSize;
     };
     style?: React.CSSProperties;
+    onMouseEnter?: (e: React.MouseEvent<HTMLImageElement>) => void;
+    onMouseLeave?: (e: React.MouseEvent<HTMLImageElement>) => void;
+    onMouseMove?: (e: React.MouseEvent<HTMLImageElement>) => void;
 }
 
-export function Screenshot(props: ScreenshotProps): ReactNode {
-    const imageRef = useRef<HTMLImageElement | null>(null);
+export const Screenshot = forwardRef<HTMLImageElement, ScreenshotProps>(function Screenshot(props, imageRef): ReactNode {
+    const localImageRef = useRef<HTMLImageElement | null>(null);
     const circlesRef = useRef<DiffCircleHandle[]>([]);
+
+    const imageRefHandler = (el: HTMLImageElement): void => {
+        localImageRef.current = el;
+
+        if (typeof imageRef === 'function') {
+            imageRef(el);
+        } else if (imageRef) {
+            imageRef.current = el;
+        }
+    };
 
     const handleDiffClick = useCallback(() => {
         if (!circlesRef.current) {
@@ -62,7 +75,7 @@ export function Screenshot(props: ScreenshotProps): ReactNode {
     if (props.diffClusters?.length) {
         diffCircles = props.diffClusters.map((c, id) => image.size && createPortal(<DiffCircle
             diffImageOriginalSize={image.size}
-            diffImageRef={imageRef}
+            diffImageRef={localImageRef}
             diffCluster={c}
             ref={(handle): void => {
                 if (handle) {
@@ -74,7 +87,12 @@ export function Screenshot(props: ScreenshotProps): ReactNode {
     }
 
     return <div className={containerClassName} onClick={handleDiffClick} style={containerStyle}>
-        <img className={imageClassName} src={imageSrc} ref={imageRef} style={imageStyle}/>
+        <img className={imageClassName} src={imageSrc} alt='Screenshot' ref={imageRefHandler}
+            style={imageStyle}
+            onMouseEnter={props.onMouseEnter}
+            onMouseLeave={props.onMouseLeave}
+            onMouseMove={props.onMouseMove}
+        />
         {diffCircles}
     </div>;
-}
+});

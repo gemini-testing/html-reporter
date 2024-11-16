@@ -2,7 +2,6 @@ import React, {ReactNode} from 'react';
 import {connect, useDispatch, useSelector} from 'react-redux';
 import {ArrowRotateRight} from '@gravity-ui/icons';
 
-import {State} from '@/static/new-ui/types/store';
 import {AttemptPickerItem} from '@/static/new-ui/components/AttemptPickerItem';
 import styles from './index.module.css';
 import classNames from 'classnames';
@@ -26,9 +25,9 @@ function AttemptPickerInternal(props: AttemptPickerInternalProps): ReactNode {
 
     const dispatch = useDispatch();
     const currentBrowser = useSelector(getCurrentBrowser);
-    const isRunTestsAvailable = useSelector((state: State) => state.app.availableFeatures)
+    const isRunTestsAvailable = useSelector(state => state.app.availableFeatures)
         .find(feature => feature.name === RunTestsFeature.name);
-    const isRunning = useSelector((state: State) => state.running);
+    const isRunning = useSelector(state => state.running);
 
     const onAttemptPickHandler = (resultId: string, attemptIndex: number): void => {
         if (!props.browserId || currentResultId === resultId) {
@@ -64,7 +63,7 @@ function AttemptPickerInternal(props: AttemptPickerInternalProps): ReactNode {
     </div>;
 }
 
-export const AttemptPicker = connect((state: State) => {
+export const AttemptPicker = connect(state => {
     let resultIds: string[] = [];
     let currentResultId = '';
     const browserId = state.app.suitesPage.currentBrowserId;

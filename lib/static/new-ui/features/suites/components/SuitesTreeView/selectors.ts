@@ -1,7 +1,6 @@
 import {createSelector} from 'reselect';
-import {get, last} from 'lodash';
+import {last} from 'lodash';
 import {
-    isImageEntityFail,
     isResultEntityError,
     hasBrowsers,
     hasSuites,
@@ -23,9 +22,9 @@ import {
     getSuitesState
 } from '@/static/new-ui/store/selectors';
 import {trimArray} from '@/common-utils';
-import {ImageFile} from '@/types';
 import {getFullTitleByTitleParts} from '@/static/new-ui/utils';
 import {TreeViewItem} from '@/static/new-ui/types';
+import {isAcceptable} from '@/static/modules/utils';
 
 interface TreeViewData {
     tree: TreeViewItem<TreeViewSuiteData | TreeViewBrowserData>[];
@@ -37,6 +36,7 @@ export const getTreeViewItems = createSelector(
     [getSuites, getSuitesState, getAllRootSuiteIds, getBrowsers, getBrowsersState, getResults, getImages],
     (suites, suitesState, rootSuiteIds, browsers, browsersState, results, images): TreeViewData => {
         const EMPTY_SUITE: TreeViewSuiteData = {
+            id: '',
             type: TreeViewItemType.Suite,
             title: '',
             fullTitle: '',
@@ -49,8 +49,9 @@ export const getTreeViewItems = createSelector(
             // Assuming test in concrete browser always has at least one result, even never launched (idle result)
             const lastResult = results[last(browserData.resultIds) as string];
 
-            const diffImgId = lastResult.imageIds.find(imageId => isImageEntityFail(images[imageId]));
-            const diffImg = get(images, [diffImgId as string, 'diffImg']) as ImageFile | undefined;
+            const resultImages = lastResult.imageIds
+                .map(imageId => images[imageId])
+                .filter(imageEntity => isAcceptable(imageEntity));
 
             let errorTitle, errorStack;
             if (isResultEntityError(lastResult) && lastResult.error?.stack) {
@@ -61,13 +62,14 @@ export const getTreeViewItems = createSelector(
             }
 
             const data: TreeViewBrowserData = {
+                id: browserData.id,
                 type: TreeViewItemType.Browser,
                 title: browserData.name,
                 fullTitle: getFullTitleByTitleParts([parentSuite.fullTitle, browserData.name]),
                 status: lastResult.status,
                 errorTitle,
                 errorStack,
-                diffImg
+                images: resultImages
             };
 
             if (!browsersState[browserData.id].shouldBeShown) {
@@ -81,6 +83,7 @@ export const getTreeViewItems = createSelector(
 
         const formatSuite = (suiteData: SuiteEntity, parentSuite: TreeViewSuiteData): TreeViewItem<TreeViewSuiteData | TreeViewBrowserData> | null => {
             const data: TreeViewSuiteData = {
+                id: suiteData.id,
                 type: TreeViewItemType.Suite,
                 title: suiteData.name,
                 fullTitle: getFullTitleByTitleParts([parentSuite.fullTitle, suiteData.name]),

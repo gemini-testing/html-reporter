@@ -72,3 +72,8 @@ body {
     /* Sets spinner color */
     --g-color-line-brand: var(--g-color-text-hint);
 }
+
+.text-hint {
+    color: var(--g-color-private-black-400);
+    font-weight: 500;
+}

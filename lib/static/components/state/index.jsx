@@ -80,7 +80,7 @@ class State extends Component {
 
     onScreenshotUndo = () => {
         if (this.props.isStaticImageAccepterEnabled) {
-            this.props.actions.staticAccepterUnstageScreenshot(this.props.imageId);
+            this.props.actions.staticAccepterUnstageScreenshot([this.props.imageId]);
         } else {
             this.props.actions.undoAcceptImage(this.props.imageId);
         }

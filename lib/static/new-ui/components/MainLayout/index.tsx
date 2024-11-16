@@ -9,6 +9,7 @@ import {SettingsPanel} from '@/static/new-ui/components/SettingsPanel';
 import TestplaneIcon from '../../../icons/testplane-mono.svg';
 import styles from './index.module.css';
 import {Footer} from './Footer';
+import {EmptyReportCard} from '@/static/new-ui/components/Card/EmptyReportCard';
 
 export enum PanelId {
     Settings = 'settings',
@@ -25,7 +26,7 @@ export interface MainLayoutProps {
     menuItems: MenuItem[];
 }
 
-export function MainLayout(props: MainLayoutProps): JSX.Element {
+export function MainLayout(props: MainLayoutProps): ReactNode {
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -38,6 +39,9 @@ export function MainLayout(props: MainLayoutProps): JSX.Element {
     }));
 
     const isInitialized = useSelector(getIsInitialized);
+
+    const browsersById = useSelector(state => state.tree.browsers.byId);
+    const isReportEmpty = isInitialized && Object.keys(browsersById).length === 0;
 
     const [visiblePanel, setVisiblePanel] = useState<PanelId | null>(null);
     const onFooterItemClick = (item: GravityMenuItem): void => {
@@ -52,7 +56,13 @@ export function MainLayout(props: MainLayoutProps): JSX.Element {
         menuItems={gravityMenuItems}
         customBackground={<div className={styles.asideHeaderBg}/>}
         customBackgroundClassName={styles.asideHeaderBgWrapper}
-        renderContent={(): React.ReactNode => props.children}
+        renderContent={(): React.ReactNode => {
+            if (isReportEmpty) {
+                return <EmptyReportCard />;
+            }
+
+            return props.children;
+        }}
         hideCollapseButton={true}
         renderFooter={(): ReactNode => <Footer visiblePanel={visiblePanel} onFooterItemClick={onFooterItemClick}/>}
         panelItems={[{

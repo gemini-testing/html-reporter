@@ -26,9 +26,9 @@ export const staticAccepterStageScreenshot = (imageIds: string[]): StaticAccepte
     return {type: actionNames.STATIC_ACCEPTER_STAGE_SCREENSHOT, payload: imageIds};
 };
 
-type StaticAccepterUnstageScreenshotAction = Action<typeof actionNames.STATIC_ACCEPTER_UNSTAGE_SCREENSHOT, {imageId: string}>;
-export const staticAccepterUnstageScreenshot = (imageId: string): StaticAccepterUnstageScreenshotAction => {
-    return {type: actionNames.STATIC_ACCEPTER_UNSTAGE_SCREENSHOT, payload: {imageId}};
+type StaticAccepterUnstageScreenshotAction = Action<typeof actionNames.STATIC_ACCEPTER_UNSTAGE_SCREENSHOT, string[]>;
+export const staticAccepterUnstageScreenshot = (imageIds: string[]): StaticAccepterUnstageScreenshotAction => {
+    return {type: actionNames.STATIC_ACCEPTER_UNSTAGE_SCREENSHOT, payload: imageIds};
 };
 
 type StaticAccepterOpenConfirmAction = Action<typeof actionNames.OPEN_MODAL, {

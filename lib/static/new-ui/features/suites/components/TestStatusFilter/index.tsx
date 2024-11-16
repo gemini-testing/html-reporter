@@ -6,7 +6,6 @@ import {bindActionCreators} from 'redux';
 import {TestStatus, ViewMode} from '@/constants';
 import * as actions from '@/static/modules/actions';
 import {getStatusCounts, StatusCounts} from '@/static/new-ui/features/suites/components/TestStatusFilter/selectors';
-import {State} from '@/static/new-ui/types/store';
 import {getIconByStatus} from '@/static/new-ui/utils';
 import {getIsInitialized} from '@/static/new-ui/store/selectors';
 import styles from './index.module.css';
@@ -41,7 +40,7 @@ function TestStatusFilterInternal({statusCounts, actions, viewMode}: TestStatusF
 }
 
 export const TestStatusFilter = connect(
-    (state: State) => ({
+    state => ({
         statusCounts: getStatusCounts(state),
         viewMode: state.view.viewMode
     }),

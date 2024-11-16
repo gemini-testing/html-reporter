@@ -1,45 +1,12 @@
 import React, {ReactNode} from 'react';
-import {ImageEntity, ImageEntityError} from '@/static/new-ui/types/store';
-import {TestStatus} from '@/constants';
-import {Icon} from '@gravity-ui/uikit';
-import {
-    ArrowRightArrowLeft,
-    CircleCheck,
-    FileCheck,
-    FileExclamation,
-    FileLetterX,
-    FilePlus,
-    SquareExclamation,
-    SquareXmark,
-    FileArrowUp
-} from '@gravity-ui/icons';
-import {isInvalidRefImageError, isNoRefImageError} from '@/common-utils';
+import {ImageEntity} from '@/static/new-ui/types/store';
 import styles from './index.module.css';
+import {getAssertViewStatusIcon, getAssertViewStatusMessage} from '@/static/new-ui/utils/assert-view-status';
 
 interface AssertViewStatusProps {
     image: ImageEntity | null;
 }
 
 export function AssertViewStatus({image}: AssertViewStatusProps): ReactNode {
-    let status = <><Icon data={SquareXmark} width={16}/><span>Failed to compare</span></>;
-
-    if (image === null) {
-        status = <><Icon data={SquareExclamation} width={16}/><span>Image is absent</span></>;
-    } else if (image.status === TestStatus.SUCCESS) {
-        status = <><Icon data={CircleCheck} width={16}/><span>Images match</span></>;
-    } else if (image.status === TestStatus.STAGED) {
-        status = <><Icon data={FilePlus} width={16}/><span>Image is staged</span></>;
-    } else if (image.status === TestStatus.COMMITED) {
-        status = <><Icon data={FileArrowUp} width={16}/><span>Image was committed</span></>;
-    } else if (isNoRefImageError((image as ImageEntityError).error)) {
-        status = <><Icon data={FileLetterX} width={16}/><span>Reference not found</span></>;
-    } else if (isInvalidRefImageError((image as ImageEntityError).error)) {
-        status = <><Icon data={FileExclamation} width={16}/><span>Reference is broken</span></>;
-    } else if (image.status === TestStatus.FAIL) {
-        status = <><Icon data={ArrowRightArrowLeft} width={16}/><span>Difference detected</span></>;
-    } else if (image.status === TestStatus.UPDATED) {
-        status = <><Icon data={FileCheck} width={16}/><span>Reference updated</span></>;
-    }
-
-    return <div className={styles.container}>{status}</div>;
+    return <div className={styles.container}>{getAssertViewStatusIcon(image)}<span>{getAssertViewStatusMessage(image)}</span></div>;
 }

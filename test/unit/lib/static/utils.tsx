@@ -12,6 +12,7 @@ import {TestStatus} from '@/constants';
 import reducer from '@/static/modules/reducers';
 import localStorage from '@/static/modules/middlewares/local-storage';
 import {BrowserEntity, ImageEntityFail, State, SuiteEntity, TreeEntity} from '@/static/new-ui/types/store';
+import {UNCHECKED} from '@/constants/checked-statuses';
 
 export const mkState = ({initialState}: { initialState: Partial<State> }): State => {
     return _.defaultsDeep(initialState ?? {}, defaultState);
@@ -77,6 +78,7 @@ export const addBrowserToTree = ({tree, suiteName, browserName}: AddBrowserToTre
     } as BrowserEntity;
     tree.browsers.stateById[fullId] = {
         shouldBeShown: true,
+        checkStatus: UNCHECKED,
         retryIndex: 0,
         isHiddenBecauseOfStatus: false
     };
