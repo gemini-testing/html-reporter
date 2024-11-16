@@ -24,7 +24,7 @@ import {
     selectAll, staticAccepterStageScreenshot, staticAccepterUnstageScreenshot,
     undoAcceptImages
 } from '@/static/modules/actions';
-import {ImageEntity, State} from '@/static/new-ui/types/store';
+import {ImageEntity} from '@/static/new-ui/types/store';
 import {CHECKED, INDETERMINATE} from '@/constants/checked-statuses';
 import {IconButton} from '@/static/new-ui/components/IconButton';
 import {
@@ -44,39 +44,32 @@ interface TreeActionsToolbarProps {
 export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
     const dispatch = useDispatch();
 
-    const rootSuiteIds = useSelector((state: State) => state.tree.suites.allRootIds);
-    const suitesStateById = useSelector((state: State) => state.tree.suites.stateById);
-    const browsersStateById = useSelector((state: State) => state.tree.browsers.stateById);
-    const browsersById = useSelector((state: State) => state.tree.browsers.byId);
+    const rootSuiteIds = useSelector(state => state.tree.suites.allRootIds);
+    const suitesStateById = useSelector(state => state.tree.suites.stateById);
+    const browsersStateById = useSelector(state => state.tree.browsers.stateById);
+    const browsersById = useSelector(state => state.tree.browsers.byId);
     const selectedTests = useSelector(getCheckedTests);
     const visibleBrowserIds: string[] = useSelector(getVisibleBrowserIds);
     const isInitialized = useSelector(getIsInitialized);
 
-    const isRunTestsAvailable = useSelector((state: State) => state.app.availableFeatures)
+    const isRunTestsAvailable = useSelector(state => state.app.availableFeatures)
         .find(feature => feature.name === RunTestsFeature.name);
-    const isRunning = useSelector((state: State) => state.running);
+    const isRunning = useSelector(state => state.running);
 
-    const isEditScreensAvailable = useSelector((state: State) => state.app.availableFeatures)
+    const isEditScreensAvailable = useSelector(state => state.app.availableFeatures)
         .find(feature => feature.name === EditScreensFeature.name);
 
     const isSelectedAll = useMemo(() => {
-        for (const suiteId of rootSuiteIds) {
-            if (suitesStateById[suiteId].checkStatus !== CHECKED) {
-                return false;
-            }
-        }
-
-        return true;
+        return rootSuiteIds.every(suiteId => suitesStateById[suiteId].checkStatus === CHECKED);
     }, [suitesStateById, rootSuiteIds]);
 
     const isSelectedAtLeastOne = useMemo(() => {
-        for (const suiteId of rootSuiteIds) {
-            if (suitesStateById[suiteId].shouldBeShown && (suitesStateById[suiteId].checkStatus === CHECKED || suitesStateById[suiteId].checkStatus === INDETERMINATE)) {
-                return true;
-            }
-        }
+        return rootSuiteIds.some(suiteId => {
+            const isShown = suitesStateById[suiteId].shouldBeShown;
+            const isChecked = suitesStateById[suiteId].checkStatus === CHECKED || suitesStateById[suiteId].checkStatus === INDETERMINATE;
 
-        return false;
+            return isShown && isChecked;
+        });
     }, [suitesStateById, rootSuiteIds]);
 
     const isStaticImageAccepterEnabled = useSelector(getIsStaticImageAccepterEnabled);
@@ -90,18 +83,12 @@ export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
     const isUndoButtonVisible = isAtLeastOneRevertable && !isAtLeastOneAcceptable;
 
     const selectedTestsCount = useMemo(() => {
-        let count = 0;
+        const browserStates = Object.values(browsersStateById);
 
-        for (const browser of Object.values(browsersStateById)) {
-            if (browser.checkStatus === CHECKED) {
-                count++;
-            }
-        }
-
-        return count;
+        return browserStates.reduce((acc, state) => acc + Number(state.checkStatus === CHECKED), 0);
     }, [browsersStateById]);
 
-    const handleSelectAll = (): void => {
+    const handleToggleAll = (): void => {
         if (isSelectedAll) {
             dispatch(deselectAll());
         } else {
@@ -134,7 +121,7 @@ export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
             .filter(image => isScreenRevertable({image, gui: isGuiMode, isLastResult: true, isStaticImageAccepterEnabled}))
             .map(image => image.id);
 
-        if (isStaticImageAccepterEnabled && !isGuiMode) {
+        if (isStaticImageAccepterEnabled) {
             dispatch(staticAccepterUnstageScreenshot(acceptableImageIds));
         } else {
             dispatch(undoAcceptImages(acceptableImageIds));
@@ -146,27 +133,30 @@ export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
             .filter(image => isAcceptable(image))
             .map(image => image.id);
 
-        if (isStaticImageAccepterEnabled && !isGuiMode) {
+        if (isStaticImageAccepterEnabled) {
             dispatch(staticAccepterStageScreenshot(acceptableImageIds));
         } else {
             dispatch(acceptOpened(acceptableImageIds));
         }
     };
 
+    const selectedOrVisible = isSelectedAtLeastOne ? 'selected' : 'visible';
+    const areActionsDisabled = isRunning || !isInitialized;
+
     const viewButtons = <>
         {isRunTestsAvailable && <IconButton icon={<Icon data={Play} height={14}/>}
-            tooltip={isSelectedAtLeastOne ? 'Run selected' : 'Run visible'} view={'flat'} onClick={handleRun}
+            tooltip={`Run ${selectedOrVisible}`} view={'flat'} onClick={handleRun}
             disabled={isRunning || !isInitialized}></IconButton>}
         {isEditScreensAvailable && (
             isUndoButtonVisible ?
-                <IconButton icon={<Icon data={ArrowUturnCcwLeft} />} tooltip={isSelectedAtLeastOne ? 'Undo accepting selected screenshots' : 'Undo accepting visible screenshots'} view={'flat'} onClick={handleUndo} disabled={isRunning || !isInitialized}></IconButton> :
-                <IconButton icon={<Icon data={Check} />} tooltip={isSelectedAtLeastOne ? 'Accept selected screenshots' : 'Accept visible screenshots'} view={'flat'} onClick={handleAccept} disabled={isRunning || !isInitialized}></IconButton>
+                <IconButton icon={<Icon data={ArrowUturnCcwLeft} />} tooltip={`Undo accepting ${selectedOrVisible} screenshots`} view={'flat'} onClick={handleUndo} disabled={areActionsDisabled}></IconButton> :
+                <IconButton icon={<Icon data={Check} />} tooltip={`Accept ${selectedOrVisible} screenshots`} view={'flat'} onClick={handleAccept} disabled={areActionsDisabled}></IconButton>
         )}
         <div className={styles.buttonsDivider}></div>
         <IconButton icon={<Icon data={SquareDashed} height={14}/>} tooltip={'Focus on active test'} view={'flat'} onClick={props.onHighlightCurrentTest} disabled={!isInitialized}/>
         <IconButton icon={<Icon data={ChevronsExpandVertical} height={14}/>} tooltip={'Expand all'} view={'flat'} onClick={handleExpandAll} disabled={!isInitialized}/>
         <IconButton icon={<Icon data={ChevronsCollapseVertical} height={14}/>} tooltip={'Collapse all'} view={'flat'} onClick={handleCollapseAll} disabled={!isInitialized}/>
-        <IconButton icon={<Icon data={isSelectedAll ? Square : SquareCheck}/>} tooltip={isSelectedAll ? 'Deselect all' : 'Select all'} view={'flat'} onClick={handleSelectAll} disabled={!isInitialized}/>
+        <IconButton icon={<Icon data={isSelectedAll ? Square : SquareCheck}/>} tooltip={isSelectedAll ? 'Deselect all' : 'Select all'} view={'flat'} onClick={handleToggleAll} disabled={!isInitialized}/>
     </>;
 
     return <div className={styles.container}>

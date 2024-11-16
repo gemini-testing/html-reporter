@@ -9,7 +9,6 @@ import {SettingsPanel} from '@/static/new-ui/components/SettingsPanel';
 import TestplaneIcon from '../../../icons/testplane-mono.svg';
 import styles from './index.module.css';
 import {Footer} from './Footer';
-import {State} from '@/static/new-ui/types/store';
 import {EmptyReportCard} from '@/static/new-ui/components/Card/EmptyReportCard';
 
 export enum PanelId {
@@ -41,7 +40,7 @@ export function MainLayout(props: MainLayoutProps): ReactNode {
 
     const isInitialized = useSelector(getIsInitialized);
 
-    const browsersById = useSelector((state: State) => state.tree.browsers.byId);
+    const browsersById = useSelector(state => state.tree.browsers.byId);
     const isReportEmpty = isInitialized && Object.keys(browsersById).length === 0;
 
     const [visiblePanel, setVisiblePanel] = useState<PanelId | null>(null);

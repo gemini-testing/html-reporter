@@ -210,3 +210,8 @@ export interface State {
         imagesToCommitCount: number;
     };
 }
+
+declare module 'react-redux' {
+    // eslint-disable-next-line @typescript-eslint/no-empty-interface
+    export interface DefaultRootState extends State {}
+}

@@ -3,15 +3,14 @@ import React, {ReactNode, useEffect, useRef} from 'react';
 import styles from './index.module.css';
 import {useSelector} from 'react-redux';
 import {getTotalLoadingProgress} from '@/static/new-ui/app/selectors';
-import {State} from '@/static/new-ui/types/store';
 import classNames from 'classnames';
 
 export function LoadingBar(): ReactNode {
-    const isVisible = useSelector((state: State) => state.app.loading.isVisible);
-    const isInProgress = useSelector((state: State) => state.app.loading.isInProgress);
+    const isVisible = useSelector(state => state.app.loading.isVisible);
+    const isInProgress = useSelector(state => state.app.loading.isInProgress);
     const isVisibleRef = useRef(isVisible);
     const progress = useSelector(getTotalLoadingProgress);
-    const taskTitle = useSelector((state: State) => state.app.loading.taskTitle);
+    const taskTitle = useSelector(state => state.app.loading.taskTitle);
 
     const [hidden, setHidden] = React.useState(true);
 

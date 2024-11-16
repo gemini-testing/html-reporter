@@ -6,14 +6,13 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import {LocalStorageKey, UiMode} from '@/constants/local-storage';
 import * as actions from '@/static/modules/actions';
-import {State} from '@/static/new-ui/types/store';
 import useLocalStorage from '@/static/hooks/useLocalStorage';
 import styles from './index.module.css';
 
 export function SettingsPanel(): ReactNode {
     const dispatch = useDispatch();
 
-    const baseHost = useSelector((state: State) => state.view.baseHost);
+    const baseHost = useSelector(state => state.view.baseHost);
     const [, setUiMode] = useLocalStorage(LocalStorageKey.UIMode, UiMode.New);
 
     const onBaseHostChange = (event: React.ChangeEvent<HTMLInputElement>): void => {

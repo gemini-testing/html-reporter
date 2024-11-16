@@ -19,7 +19,7 @@ import * as actions from '@/static/modules/actions';
 import {CollapsibleSection} from '@/static/new-ui/features/suites/components/CollapsibleSection';
 import {MetaInfo} from '@/static/new-ui/components/MetaInfo';
 import {getIsInitialized} from '@/static/new-ui/store/selectors';
-import {ResultEntity, State} from '@/static/new-ui/types/store';
+import {ResultEntity} from '@/static/new-ui/types/store';
 import {AttemptPicker} from '../../../../components/AttemptPicker';
 
 import styles from './index.module.css';
@@ -86,7 +86,7 @@ function SuitesPageInternal({currentResult, actions, visibleBrowserIds}: SuitesP
 }
 
 export const SuitesPage = connect(
-    (state: State) => {
+    state => {
         const currentResult = getCurrentResult(state);
 
         return {

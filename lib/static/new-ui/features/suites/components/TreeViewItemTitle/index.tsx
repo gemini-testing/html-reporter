@@ -5,7 +5,6 @@ import classNames from 'classnames';
 import {Checkbox} from '@gravity-ui/uikit';
 import {useDispatch, useSelector} from 'react-redux';
 import {toggleBrowserCheckbox, toggleSuiteCheckbox} from '@/static/modules/actions';
-import {State} from '@/static/new-ui/types/store';
 import {getToggledCheckboxState, isCheckboxChecked, isCheckboxIndeterminate} from '@/common-utils';
 
 interface TreeViewItemTitleProps {
@@ -15,7 +14,7 @@ interface TreeViewItemTitleProps {
 
 export function TreeViewItemTitle({item, className}: TreeViewItemTitleProps): React.JSX.Element {
     const dispatch = useDispatch();
-    const checkStatus = useSelector((state: State) =>
+    const checkStatus = useSelector(state =>
         item.type === TreeViewItemType.Suite ? state.tree.suites.stateById[item.id].checkStatus : state.tree.browsers.stateById[item.id].checkStatus);
     const ref = useRef<HTMLInputElement>(null);
 

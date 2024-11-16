@@ -1,5 +1,5 @@
 import {TextHintCard} from '@/static/new-ui/components/Card/TextHintCard';
-import EmptyReport from '@/static/icons/empty-report.svg';
+import EmptyReport from '../../../icons/empty-report.svg';
 import classNames from 'classnames';
 import {Icon} from '@gravity-ui/uikit';
 import {Check} from '@gravity-ui/icons';

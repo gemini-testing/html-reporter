@@ -9,7 +9,6 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 
 import {CollapsibleSection} from '@/static/new-ui/features/suites/components/CollapsibleSection';
-import {State} from '@/static/new-ui/types/store';
 import {TreeViewItemIcon} from '@/static/new-ui/components/TreeViewItemIcon';
 import {TestStepArgs} from '@/static/new-ui/features/suites/components/TestStepArgs';
 import {getIconByStatus} from '@/static/new-ui/utils';
@@ -94,7 +93,7 @@ function TestStepsInternal(props: TestStepsProps): ReactNode {
     } />;
 }
 
-export const TestSteps = connect((state: State) => ({
+export const TestSteps = connect(state => ({
     resultId: getCurrentResultId(state) ?? '',
     testSteps: getTestSteps(state),
     stepsExpandedById: getStepsExpandedById(state)

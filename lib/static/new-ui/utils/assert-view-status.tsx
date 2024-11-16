@@ -17,20 +17,23 @@ import React, {ReactNode} from 'react';
 export const getAssertViewStatusIcon = (image: ImageEntity | null): ReactNode => {
     if (image === null) {
         return <Icon data={SquareExclamation} width={16}/>;
-    } else if (image.status === TestStatus.SUCCESS) {
-        return <Icon data={CircleCheck} width={16}/>;
-    } else if (image.status === TestStatus.STAGED) {
-        return <Icon data={FilePlus} width={16}/>;
-    } else if (image.status === TestStatus.COMMITED) {
-        return <Icon data={FileArrowUp} width={16}/>;
     } else if (isNoRefImageError((image as ImageEntityError).error)) {
         return <Icon data={FileLetterX} width={16}/>;
     } else if (isInvalidRefImageError((image as ImageEntityError).error)) {
         return <Icon data={FileExclamation} width={16}/>;
-    } else if (image.status === TestStatus.FAIL) {
-        return <Icon data={ArrowRightArrowLeft} width={16}/>;
-    } else if (image.status === TestStatus.UPDATED) {
-        return <Icon data={FileCheck} width={16}/>;
+    }
+
+    switch (image.status) {
+        case TestStatus.SUCCESS:
+            return <Icon data={CircleCheck} width={16}/>;
+        case TestStatus.STAGED:
+            return <Icon data={FilePlus} width={16}/>;
+        case TestStatus.COMMITED:
+            return <Icon data={FileArrowUp} width={16}/>;
+        case TestStatus.FAIL:
+            return <Icon data={ArrowRightArrowLeft} width={16}/>;
+        case TestStatus.UPDATED:
+            return <Icon data={FileCheck} width={16}/>;
     }
 
     return <Icon data={SquareXmark} width={16}/>;
@@ -39,20 +42,23 @@ export const getAssertViewStatusIcon = (image: ImageEntity | null): ReactNode =>
 export const getAssertViewStatusMessage = (image: ImageEntity | null): string => {
     if (image === null) {
         return 'Image is absent';
-    } else if (image.status === TestStatus.SUCCESS) {
-        return 'Images match';
-    } else if (image.status === TestStatus.STAGED) {
-        return 'Image is staged';
-    } else if (image.status === TestStatus.COMMITED) {
-        return 'Image was committed';
     } else if (isNoRefImageError((image as ImageEntityError).error)) {
         return 'Reference not found';
     } else if (isInvalidRefImageError((image as ImageEntityError).error)) {
         return 'Reference is broken';
-    } else if (image.status === TestStatus.FAIL) {
-        return 'Difference detected';
-    } else if (image.status === TestStatus.UPDATED) {
-        return 'Reference updated';
+    }
+
+    switch (image.status) {
+        case TestStatus.SUCCESS:
+            return 'Images match';
+        case TestStatus.STAGED:
+            return 'Image is staged';
+        case TestStatus.COMMITED:
+            return 'Image was committed';
+        case TestStatus.FAIL:
+            return 'Difference detected';
+        case TestStatus.UPDATED:
+            return 'Reference updated';
     }
 
     return 'Failed to compare';

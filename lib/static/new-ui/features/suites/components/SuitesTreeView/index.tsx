@@ -16,7 +16,6 @@ import {
 } from '@/static/new-ui/features/suites/components/SuitesPage/types';
 import {TreeViewItemTitle} from '@/static/new-ui/features/suites/components/TreeViewItemTitle';
 import {TreeViewItemSubtitle} from '@/static/new-ui/features/suites/components/TreeViewItemSubtitle';
-import {State} from '@/static/new-ui/types/store';
 import {
     getTreeViewExpandedById,
     getTreeViewItems
@@ -39,10 +38,10 @@ export const SuitesTreeView = forwardRef<SuitesTreeViewHandle, SuitesTreeViewPro
     const navigate = useNavigate();
     const {suiteId} = useParams();
 
-    const isInitialized = useSelector((state: State) => state.app.isInitialized);
-    const currentBrowserId = useSelector((state: State) => state.app.suitesPage.currentBrowserId);
-    const treeViewItems = useSelector((state: State) => getTreeViewItems(state).tree);
-    const treeViewExpandedById = useSelector((state: State) => getTreeViewExpandedById(state));
+    const isInitialized = useSelector(state => state.app.isInitialized);
+    const currentBrowserId = useSelector(state => state.app.suitesPage.currentBrowserId);
+    const treeViewItems = useSelector(state => getTreeViewItems(state).tree);
+    const treeViewExpandedById = useSelector(state => getTreeViewExpandedById(state));
 
     const list = useList({
         items: treeViewItems,
@@ -84,6 +83,8 @@ export const SuitesTreeView = forwardRef<SuitesTreeViewHandle, SuitesTreeViewPro
         let timeoutId: NodeJS.Timeout;
         if (suiteId) {
             dispatch(suitesPageSetCurrentSuite(suiteId));
+
+            // This tiny timeout helps when report contains thousands of items and scrolls to invalid position before they are done rendering.
             timeoutId = setTimeout(() => {
                 virtualizer.scrollToIndex(list.structure.visibleFlattenIds.indexOf(suiteId), {align: 'center'});
             }, 50);
