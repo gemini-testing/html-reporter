@@ -250,6 +250,8 @@ export interface ReporterConfig {
 
 export type ReporterOptions = Omit<ReporterConfig, 'errorPatterns'> & {errorPatterns: (string | ErrorPattern)[]};
 
+export type StoreReporterConfig = Omit<ReporterConfig, 'errorPatterns'> & {errorPatterns: (ErrorPattern & {regexp: RegExp})[]}
+
 export interface DbUrlsJsonData {
     dbUrls: string[];
     jsonUrls: string[];

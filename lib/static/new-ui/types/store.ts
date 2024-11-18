@@ -1,14 +1,32 @@
 import {DiffModeId, Feature, TestStatus, ViewMode} from '@/constants';
-import {BrowserItem, ImageFile, RefImageFile, ReporterConfig, TestError, TestStepCompressed} from '@/types';
+import {
+    BrowserItem,
+    ImageFile,
+    RefImageFile,
+    StoreReporterConfig,
+    TestError,
+    TestStepCompressed
+} from '@/types';
 import {HtmlReporterValues} from '@/plugin-api';
 import {CoordBounds} from 'looks-same';
 import {Point} from '@/static/new-ui/types/index';
 import {AcceptableImage} from '@/static/modules/static-image-accepter';
 import {CheckStatus} from '@/constants/checked-statuses';
 
+export interface GroupEntity {
+    id: string;
+    /** @note For cosmetic purposes, grouping key. For example: "url". */
+    key: string;
+    /** @note For cosmetic purposes, group value. For example: "https://example.com" */
+    label: string;
+    resultIds: string[];
+    browserIds: string[];
+}
+
 export interface SuiteEntityNode {
     id: string;
     name: string;
+    parentId: string | null;
     status: TestStatus;
     suiteIds: string[];
     suitePath: string[];
@@ -17,6 +35,7 @@ export interface SuiteEntityNode {
 export interface SuiteEntityLeaf {
     id: string;
     name: string;
+    parentId: string | null;
     status: TestStatus;
     browserIds: string[];
     suitePath: string[];
@@ -33,6 +52,8 @@ export interface BrowserEntity {
     resultIds: string[];
     parentId: string;
 }
+
+export const isBrowserEntity = (entity: SuiteEntity | BrowserEntity): entity is BrowserEntity => Boolean((entity as BrowserEntity).resultIds);
 
 export interface ResultEntityCommon {
     id: string;
@@ -123,6 +144,7 @@ export interface SuiteState {
 export interface BrowserState {
     shouldBeShown: boolean;
     retryIndex: number;
+    lastMatchedRetryIndex?: number | null;
     // True if test is not shown because of its status. Useful when computing counts by status.
     isHiddenBecauseOfStatus?: boolean;
     checkStatus: CheckStatus;
@@ -150,14 +172,46 @@ export interface TreeEntity {
         byId: Record<string, SuiteEntity>;
         stateById: Record<string, SuiteState>;
     };
+    groups: {
+        byId: Record<string, GroupEntity>;
+        allRootIds: string[];
+    };
 }
+
+export interface GroupBySection {
+    id: string;
+    label: string;
+}
+
+export enum GroupByType {
+    Meta = 'meta',
+    Error = 'error',
+}
+
+export interface GroupByMetaExpression {
+    id: string;
+    type: GroupByType.Meta;
+    sectionId?: string;
+    // Key in meta to group tests by
+    key: string;
+}
+
+export interface GroupByErrorExpression {
+    id: string;
+    type: GroupByType.Error;
+    sectionId?: string;
+}
+
+export type GroupByExpression = GroupByMetaExpression | GroupByErrorExpression;
 
 export interface State {
     app: {
         isInitialized: boolean;
         availableFeatures: Feature[],
         suitesPage: {
+            currentTreeNodeId: string | null;
             currentBrowserId: string | null;
+            currentGroupId: string | null;
         };
         visualChecksPage: {
             currentNamedImageId: string | null;
@@ -174,9 +228,16 @@ export interface State {
         staticImageAccepterModal: {
             commitMessage: string;
         };
+        groupTestsData: {
+            availableSections: GroupBySection[];
+            availableExpressions: GroupByExpression[];
+            currentExpressionIds: string[];
+        };
     };
     ui: {
         suitesPage: {
+            retryIndexByTreeNodeId: Record<string, number | null>;
+            expandedTreeNodesById: Record<string, boolean>;
             expandedSectionsById: Record<string, boolean>;
             expandedStepsByResultId: Record<string, Record<string, boolean>>;
         };
@@ -191,6 +252,7 @@ export interface State {
         testNameFilter: string;
         viewMode: ViewMode;
         filteredBrowsers: BrowserItem[];
+        /** @deprecated Use tree.groups instead. */
         keyToGroupTestsBy: string;
         baseHost: string;
     };
@@ -198,7 +260,7 @@ export interface State {
     processing: boolean;
     gui: boolean;
     apiValues: HtmlReporterValues;
-    config: ReporterConfig;
+    config: StoreReporterConfig;
     staticImageAccepter: {
         enabled: boolean;
         acceptableImages: Record<string, AcceptableImage>;

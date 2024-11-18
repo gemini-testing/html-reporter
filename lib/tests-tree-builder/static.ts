@@ -13,7 +13,7 @@ interface Stats {
     retries: number;
 }
 
-type FinalStats = Stats & {
+export type FinalStats = Stats & {
     perBrowser: {
         [browserName: string]: {
             [browserVersion: string]: Stats
@@ -25,6 +25,13 @@ export interface SkipItem {
     browser: string;
     suite: string;
     comment?: string;
+}
+
+export interface StaticTreeBuildResult {
+    tree: Tree;
+    stats: FinalStats;
+    skips: SkipItem[];
+    browsers: BrowserItem[]
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -50,7 +57,7 @@ export class StaticTestsTreeBuilder extends BaseTestsTreeBuilder {
         this._skippedTestIds = {};
     }
 
-    build(rows: RawSuitesRow[] = []): { tree: Tree; stats: FinalStats; skips: SkipItem[]; browsers: BrowserItem[] } {
+    build(rows: RawSuitesRow[] = []): StaticTreeBuildResult {
         const attemptsMap = new Map<string, number>();
         const browsers: Record<string, Set<string>> = {};
 

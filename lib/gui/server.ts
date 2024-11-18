@@ -13,6 +13,16 @@ import {ServerArgs} from './index';
 import {ServerReadyData} from './api';
 import {ToolName} from '../constants';
 import type {TestplaneToolAdapter} from '../adapters/tool/testplane';
+import {ToolRunnerTree} from './tool-runner';
+
+interface CustomGuiError {
+    response: {
+        status: number;
+        data: string;
+    }
+}
+
+export type GetInitResponse = (ToolRunnerTree & {customGuiError?: CustomGuiError}) | null;
 
 export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
     const {toolAdapter} = args;
@@ -54,7 +64,7 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
                 await (toolAdapter as TestplaneToolAdapter).initGuiHandler();
             }
 
-            res.json(app.data);
+            res.json(app.data satisfies GetInitResponse);
         } catch (e: unknown) {
             const error = e as Error;
             if (!app.data) {
@@ -68,7 +78,7 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
                         data: `Error while trying to initialize custom GUI: ${error.message}`
                     }
                 }
-            });
+            } satisfies GetInitResponse);
         }
     });
 

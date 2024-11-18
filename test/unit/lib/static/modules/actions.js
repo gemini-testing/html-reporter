@@ -34,13 +34,13 @@ describe('lib/static/modules/actions', () => {
 
     afterEach(() => sandbox.restore());
 
-    describe('initGuiReport', () => {
+    describe('thunkInitGuiReport', () => {
         beforeEach(() => {
             sandbox.stub(axios, 'get').resolves({data: {}});
         });
 
         it('should run init action on server', async () => {
-            await actions.initGuiReport()(dispatch);
+            await actions.thunkInitGuiReport()(dispatch);
 
             assert.calledOnceWith(axios.get, '/init');
         });
@@ -49,7 +49,7 @@ describe('lib/static/modules/actions', () => {
             const href = 'http://127.0.0.1:8080/sqlite.db';
             getMainDatabaseUrl.returns({href});
 
-            await actions.initGuiReport()(dispatch);
+            await actions.thunkInitGuiReport()(dispatch);
 
             assert.calledOnceWith(connectToDatabaseStub, `http://127.0.0.1:8080/${LOCAL_DATABASE_NAME}`);
         });
@@ -59,7 +59,7 @@ describe('lib/static/modules/actions', () => {
             connectToDatabaseStub.resolves(db);
             axios.get.resolves({data: {some: 'data'}});
 
-            await actions.initGuiReport()(dispatch);
+            await actions.thunkInitGuiReport()(dispatch);
 
             assert.calledOnceWith(dispatch, {
                 type: actionNames.INIT_GUI_REPORT,
@@ -70,13 +70,13 @@ describe('lib/static/modules/actions', () => {
         it('should show notification if error in initialization on the server is happened', async () => {
             axios.get.rejects(new Error('failed to initialize custom gui'));
 
-            await actions.initGuiReport()(dispatch);
+            await actions.thunkInitGuiReport()(dispatch);
 
             assert.calledOnceWith(
                 notify,
                 {
                     dismissAfter: 0,
-                    id: 'initGuiReport',
+                    id: 'thunkInitGuiReport',
                     message: 'failed to initialize custom gui',
                     status: 'error',
                     position: POSITIONS.topCenter,
@@ -91,7 +91,7 @@ describe('lib/static/modules/actions', () => {
             const config = {pluginsEnabled: true, plugins: []};
             axios.get.withArgs('/init').resolves({data: {config}});
 
-            await actions.initGuiReport()(dispatch);
+            await actions.thunkInitGuiReport()(dispatch);
 
             assert.calledOnceWith(pluginsStub.loadAll, config);
         });

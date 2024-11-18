@@ -1,15 +1,15 @@
 import {Icon} from '@gravity-ui/uikit';
 import classNames from 'classnames';
 import {
-    SquareCheck,
-    ChevronsExpandVertical,
+    ArrowUturnCcwLeft,
+    Check,
     ChevronsCollapseVertical,
-    SquareDashed,
-    Square,
+    ChevronsExpandVertical,
     CircleInfo,
     Play,
-    Check,
-    ArrowUturnCcwLeft
+    Square,
+    SquareCheck,
+    SquareDashed
 } from '@gravity-ui/icons';
 import React, {ReactNode, useMemo} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
@@ -17,11 +17,11 @@ import {useDispatch, useSelector} from 'react-redux';
 import styles from './index.module.css';
 import {
     acceptOpened,
-    collapseAll,
     deselectAll,
-    expandAll,
     retrySuite,
-    selectAll, staticAccepterStageScreenshot, staticAccepterUnstageScreenshot,
+    selectAll, setAllTreeNodesState,
+    staticAccepterStageScreenshot,
+    staticAccepterUnstageScreenshot,
     undoAcceptImages
 } from '@/static/modules/actions';
 import {ImageEntity} from '@/static/new-ui/types/store';
@@ -41,6 +41,8 @@ import {
 } from '@/static/new-ui/store/selectors';
 import {isAcceptable, isScreenRevertable} from '@/static/modules/utils';
 import {EditScreensFeature, RunTestsFeature} from '@/constants';
+import {getTreeViewItems} from '@/static/new-ui/features/suites/components/SuitesTreeView/selectors';
+import {GroupBySelect} from '@/static/new-ui/features/suites/components/GroupBySelect';
 
 interface TreeActionsToolbarProps {
     onHighlightCurrentTest?: () => void;
@@ -84,6 +86,10 @@ export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
     const selectedImages: ImageEntity[] = useSelector(getSelectedImages);
     const activeImages = isSelectedAtLeastOne ? selectedImages : visibleImages;
 
+    const currentTreeNodeId = useSelector(state => state.app.suitesPage.currentTreeNodeId);
+    const {visibleTreeNodeIds} = useSelector(getTreeViewItems);
+    const isFocusAvailable = isInitialized && currentTreeNodeId && visibleTreeNodeIds.includes(currentTreeNodeId);
+
     const isAtLeastOneAcceptable = activeImages.some(image => isAcceptable(image));
     const isAtLeastOneRevertable = activeImages.some(image => isScreenRevertable({image, gui: isGuiMode, isLastResult: true, isStaticImageAccepterEnabled}));
     const isUndoButtonVisible = isAtLeastOneRevertable && !isAtLeastOneAcceptable;
@@ -103,11 +109,11 @@ export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
     };
 
     const handleExpandAll = (): void => {
-        dispatch(expandAll());
+        dispatch(setAllTreeNodesState({isExpanded: true}));
     };
 
     const handleCollapseAll = (): void => {
-        dispatch(collapseAll());
+        dispatch(setAllTreeNodesState({isExpanded: false}));
     };
 
     const handleRun = (): void => {
@@ -159,13 +165,14 @@ export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
                 <IconButton className={styles.iconButton} icon={<Icon data={Check} />} tooltip={`Accept ${selectedOrVisible} screenshots`} view={'flat'} onClick={handleAccept} disabled={areActionsDisabled || !isAtLeastOneAcceptable}></IconButton>
         )}
         {(isRunTestsAvailable || isEditScreensAvailable) && <div className={styles.buttonsDivider}></div>}
-        <IconButton icon={<Icon data={SquareDashed} height={14}/>} tooltip={'Focus on active test'} view={'flat'} onClick={props.onHighlightCurrentTest} disabled={!isInitialized}/>
+        <IconButton icon={<Icon data={SquareDashed} height={14}/>} tooltip={'Focus on active test'} view={'flat'} onClick={props.onHighlightCurrentTest} disabled={!isFocusAvailable}/>
         <IconButton icon={<Icon data={ChevronsExpandVertical} height={14}/>} tooltip={'Expand all'} view={'flat'} onClick={handleExpandAll} disabled={!isInitialized}/>
         <IconButton icon={<Icon data={ChevronsCollapseVertical} height={14}/>} tooltip={'Collapse all'} view={'flat'} onClick={handleCollapseAll} disabled={!isInitialized}/>
         {areCheckboxesNeeded && <IconButton icon={<Icon data={isSelectedAll ? Square : SquareCheck}/>} tooltip={isSelectedAll ? 'Deselect all' : 'Select all'} view={'flat'} onClick={handleToggleAll} disabled={!isInitialized}/>}
     </>;
 
     return <div className={styles.container}>
+        <GroupBySelect/>
         <div className={styles.buttonsContainer}>
             {viewButtons}
         </div>

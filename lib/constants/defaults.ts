@@ -1,11 +1,11 @@
 import {DiffModes} from './diff-modes';
 import {ViewMode} from './view-modes';
-import {ReporterConfig} from '../types';
+import {StoreReporterConfig} from '../types';
 import {SaveFormat} from './save-formats';
 
 export const CIRCLE_RADIUS = 150;
 
-export const configDefaults: ReporterConfig = {
+export const configDefaults: StoreReporterConfig = {
     baseHost: '',
     commandsWithShortHistory: [],
     customGui: {},

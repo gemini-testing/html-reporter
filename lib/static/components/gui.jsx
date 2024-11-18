@@ -30,7 +30,7 @@ class Gui extends Component {
     };
 
     componentDidMount() {
-        this.props.actions.initGuiReport();
+        this.props.actions.thunkInitGuiReport();
         this._subscribeToEvents();
     }
 

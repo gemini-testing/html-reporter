@@ -11,13 +11,26 @@ export const getCurrentBrowser = (state: State): BrowserEntity | null => {
 
 export const getCurrentResultId = (state: State): string | null => {
     const browserId = state.app.suitesPage.currentBrowserId;
-    if (!browserId) {
+    const treeNodeId = state.app.suitesPage.currentTreeNodeId;
+    if (!browserId || !treeNodeId) {
         return null;
     }
 
     const resultIds = state.tree.browsers.byId[browserId].resultIds;
 
-    return resultIds[state.tree.browsers.stateById[browserId].retryIndex];
+    const groupId = state.app.suitesPage.currentGroupId;
+
+    const treeNodeRetryResultId = resultIds[state.ui.suitesPage.retryIndexByTreeNodeId[treeNodeId] ?? -1];
+
+    let lastMatchedGroupResultId: string | undefined;
+    const group = Object.values(state.tree.groups.byId).find(group => group.id === groupId);
+    if (groupId && group) {
+        lastMatchedGroupResultId = resultIds.findLast(resultId => group.resultIds.includes(resultId));
+    }
+
+    const browserIdRetryResultId = resultIds[state.tree.browsers.stateById[browserId].retryIndex];
+
+    return treeNodeRetryResultId ?? lastMatchedGroupResultId ?? browserIdRetryResultId;
 };
 
 export const getCurrentResult = (state: State): ResultEntity | null => {

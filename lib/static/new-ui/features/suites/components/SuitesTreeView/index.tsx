@@ -1,3 +1,4 @@
+import {Cubes3Overlap} from '@gravity-ui/icons';
 import {Box} from '@gravity-ui/uikit';
 import {
     unstable_getItemRenderState as getItemRenderState,
@@ -11,20 +12,16 @@ import React, {forwardRef, ReactNode, useCallback, useEffect, useImperativeHandl
 import {useDispatch, useSelector} from 'react-redux';
 import {useNavigate, useParams} from 'react-router-dom';
 
-import {
-    TreeViewItemType
-} from '@/static/new-ui/features/suites/components/SuitesPage/types';
+import {EntityType, TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
 import {TreeViewItemTitle} from '@/static/new-ui/features/suites/components/TreeViewItemTitle';
 import {TreeViewItemSubtitle} from '@/static/new-ui/features/suites/components/TreeViewItemSubtitle';
-import {
-    getTreeViewExpandedById,
-    getTreeViewItems
-} from '@/static/new-ui/features/suites/components/SuitesTreeView/selectors';
-import styles from './index.module.css';
+import {getTreeViewItems} from '@/static/new-ui/features/suites/components/SuitesTreeView/selectors';
 import {TestStatus} from '@/constants';
 import {TreeViewItemIcon} from '../../../../components/TreeViewItemIcon';
 import {getIconByStatus} from '@/static/new-ui/utils';
-import {setStrictMatchFilter, suitesPageSetCurrentSuite, toggleSuiteSection} from '@/static/modules/actions';
+import {setCurrentTreeNode, setStrictMatchFilter, setTreeNodeExpandedState} from '@/static/modules/actions';
+import {findTreeNodeId, getGroupId} from '@/static/new-ui/features/suites/utils';
+import styles from './index.module.css';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface SuitesTreeViewProps {}
@@ -38,16 +35,16 @@ export const SuitesTreeView = forwardRef<SuitesTreeViewHandle, SuitesTreeViewPro
     const navigate = useNavigate();
     const {suiteId} = useParams();
 
-    const isInitialized = useSelector(state => state.app.isInitialized);
-    const currentBrowserId = useSelector(state => state.app.suitesPage.currentBrowserId);
-    const treeViewItems = useSelector(state => getTreeViewItems(state).tree);
-    const treeViewExpandedById = useSelector(state => getTreeViewExpandedById(state));
+    const isInitialized = useSelector((state) => state.app.isInitialized);
+    const currentTreeNodeId = useSelector((state) => state.app.suitesPage.currentTreeNodeId);
+    const treeData = useSelector((state) => getTreeViewItems(state));
+    const treeViewExpandedById = useSelector((state) => state.ui.suitesPage.expandedTreeNodesById);
 
     const list = useList({
-        items: treeViewItems,
+        items: treeData.tree,
         withExpandedState: true,
         getItemId: item => {
-            return item.fullTitle;
+            return (item as TreeViewItemData).id;
         },
         controlledState: {
             expandedById: treeViewExpandedById
@@ -82,11 +79,16 @@ export const SuitesTreeView = forwardRef<SuitesTreeViewHandle, SuitesTreeViewPro
 
         let timeoutId: NodeJS.Timeout;
         if (suiteId) {
-            dispatch(suitesPageSetCurrentSuite(suiteId));
+            const treeNode = findTreeNodeId(treeData.tree, suiteId);
+            if (!treeNode) {
+                return;
+            }
+
+            dispatch(setCurrentTreeNode({browserId: suiteId, treeNodeId: treeNode.id}));
 
             // This tiny timeout helps when report contains thousands of items and scrolls to invalid position before they are done rendering.
             timeoutId = setTimeout(() => {
-                virtualizer.scrollToIndex(list.structure.visibleFlattenIds.indexOf(suiteId), {align: 'center'});
+                virtualizer.scrollToIndex(list.structure.visibleFlattenIds.indexOf(treeNode.id), {align: 'center'});
             }, 50);
         }
 
@@ -97,12 +99,12 @@ export const SuitesTreeView = forwardRef<SuitesTreeViewHandle, SuitesTreeViewPro
     const onItemClick = useCallback(({id}: {id: string}): void => {
         const item = list.structure.itemsById[id];
 
-        if (item.type === TreeViewItemType.Suite) {
-            dispatch(toggleSuiteSection({suiteId: item.fullTitle, shouldBeOpened: !treeViewExpandedById[item.fullTitle]}));
-        } else if (item.type === TreeViewItemType.Browser) {
-            dispatch(suitesPageSetCurrentSuite(id));
+        if (item.entityType === EntityType.Browser) {
+            dispatch(setCurrentTreeNode({treeNodeId: item.id, browserId: item.entityId, groupId: getGroupId(item)}));
 
-            navigate(encodeURIComponent(item.fullTitle));
+            navigate(encodeURIComponent(item.entityId));
+        } else {
+            dispatch(setTreeNodeExpandedState({nodeId: item.id, isExpanded: !(list.state.expandedById as Record<string, boolean>)[item.id]}));
         }
     }, [list, treeViewExpandedById]);
 
@@ -124,13 +126,13 @@ export const SuitesTreeView = forwardRef<SuitesTreeViewHandle, SuitesTreeViewPro
                 >
                     {virtualizedItems.map((virtualRow) => {
                         const item = list.structure.itemsById[virtualRow.key];
-                        const isSelected = item.fullTitle === currentBrowserId;
+                        const isSelected = item.id === currentTreeNodeId;
                         const classes = [
                             styles['tree-view__item'],
                             {
                                 [styles['tree-view__item--current']]: isSelected,
-                                [styles['tree-view__item--browser']]: item.type === TreeViewItemType.Browser,
-                                [styles['tree-view__item--error']]: item.type === TreeViewItemType.Browser && (item.status === TestStatus.FAIL || item.status === TestStatus.ERROR)
+                                [styles['tree-view__item--browser']]: item.entityType === EntityType.Browser,
+                                [styles['tree-view__item--error']]: item.entityType === EntityType.Browser && (item.status === TestStatus.FAIL || item.status === TestStatus.ERROR)
                             }
                         ];
 
@@ -149,7 +151,7 @@ export const SuitesTreeView = forwardRef<SuitesTreeViewHandle, SuitesTreeViewPro
                                     onItemClick,
                                     mapItemDataToContentProps: (x) => {
                                         return {
-                                            startSlot: <TreeViewItemIcon>{getIconByStatus(x.status)}</TreeViewItemIcon>,
+                                            startSlot: <TreeViewItemIcon>{x.status ? getIconByStatus(x.status) : <Cubes3Overlap/>}</TreeViewItemIcon>,
                                             title: <TreeViewItemTitle item={x} className={isSelected ? styles['tree-view__item__title--current'] : ''} />,
                                             subtitle: <TreeViewItemSubtitle item={x} className={isSelected ? styles['tree-view__item__error--current'] : ''} scrollContainerRef={parentRef}/>
                                         };

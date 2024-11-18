@@ -25,6 +25,10 @@ export default Object.assign({config: configDefaults}, {
         }
     },
     tree: {
+        groups: {
+            byId: {},
+            allRootIds: []
+        },
         suites: {
             byId: {},
             allIds: [],
@@ -96,7 +100,9 @@ export default Object.assign({config: configDefaults}, {
         isInitialized: false,
         availableFeatures: [],
         suitesPage: {
-            currentBrowserId: null
+            currentBrowserId: null,
+            currentTreeNodeId: null,
+            currentGroupId: null
         },
         visualChecksPage: {
             currentNamedImageId: null
@@ -109,12 +115,19 @@ export default Object.assign({config: configDefaults}, {
         },
         staticImageAccepterModal: {
             commitMessage: 'chore: update screenshot references'
+        },
+        groupTestsData: {
+            availableSections: [],
+            availableExpressions: [],
+            currentExpressionIds: []
         }
     },
     ui: {
         suitesPage: {
+            retryIndexByTreeNodeId: {},
             expandedSectionsById: {},
-            expandedStepsByResultId: {}
+            expandedStepsByResultId: {},
+            expandedTreeNodesById: {}
         },
         staticImageAccepterToolbar: {
             offset: {x: 0, y: 0}
