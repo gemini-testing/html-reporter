@@ -26,7 +26,7 @@ class Report extends Component {
     };
 
     componentDidMount() {
-        this.props.actions.initStaticReport();
+        this.props.actions.thunkInitStaticReport();
     }
 
     componentWillUnmount() {
