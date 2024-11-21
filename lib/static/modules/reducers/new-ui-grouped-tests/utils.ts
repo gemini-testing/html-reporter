@@ -2,37 +2,23 @@ import {
     GroupByExpression,
     GroupByMetaExpression,
     GroupByType,
-    GroupEntity, ImageEntity,
-    ResultEntity, State
+    GroupEntity,
+    ImageEntity,
+    ResultEntity,
+    State
 } from '@/static/new-ui/types/store';
-import {get, isNull, isObject, isString, isUndefined, toString} from 'lodash';
+import {get} from 'lodash';
 import {isAssertViewError} from '@/common-utils';
 import stripAnsi from 'strip-ansi';
-
-const stringify = (value: unknown): string => {
-    if (isString(value)) {
-        return value;
-    }
-
-    if (isObject(value)) {
-        return JSON.stringify(value);
-    }
-
-    if (isNull(value)) {
-        return 'null';
-    }
-
-    if (isUndefined(value)) {
-        return 'undefined';
-    }
-
-    return toString(value);
-};
+import {IMAGE_COMPARISON_FAILED_MESSAGE, TestStatus} from '@/constants';
+import {stringify} from '@/static/new-ui/utils';
 
 const extractErrors = (result: ResultEntity, images: ImageEntity[]): string[] => {
-    const IMAGE_COMPARISON_FAILED_MESSAGE = 'image comparison failed';
-
     const errors = new Set<string>();
+
+    if (images.length > 0 && images.every(image => image.status === TestStatus.UPDATED)) {
+        return [];
+    }
 
     images.forEach((image) => {
         const imageErrorMessage = get(image, 'error.message');

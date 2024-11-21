@@ -3,6 +3,7 @@ import {CheckStatus, INDETERMINATE, UNCHECKED} from '@/constants/checked-statuse
 import {EntityType, TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
 import {GroupEntity, State} from '@/static/new-ui/types/store';
 import {getBrowsersState, getGroups, getSuitesState} from '@/static/new-ui/store/selectors';
+import {NEW_ISSUE_LINK} from '@/constants';
 
 export const getItemCheckStatus = createSelector(
     [getBrowsersState, getSuitesState, getGroups, (_state: State, item: TreeViewItemData): TreeViewItemData => item],
@@ -22,7 +23,7 @@ export const getItemCheckStatus = createSelector(
         }
 
         console.warn(`Unknown entity type while trying to determine checkbox status. Item: ${JSON.stringify(item)}. ` +
-        'Please report this to our team at https://github.com/gemini-testing/html-reporter/issues/new.');
+        `Please report this to our team at ${NEW_ISSUE_LINK}.`);
         return UNCHECKED;
     }
 );

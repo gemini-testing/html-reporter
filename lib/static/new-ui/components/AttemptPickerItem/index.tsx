@@ -7,6 +7,7 @@ import {hasUnrelatedToScreenshotsErrors, isFailStatus} from '@/common-utils';
 import {TestStatus} from '@/constants';
 import {ResultEntityError, State} from '@/static/new-ui/types/store';
 import styles from './index.module.css';
+import {get} from 'lodash';
 
 const getButtonStyleByStatus = (status: TestStatus): Pick<ButtonProps, 'view' | 'selected'> => {
     switch (status) {
@@ -64,7 +65,7 @@ export interface AttemptPickerItemProps {
 interface AttemptPickerItemInternalProps extends AttemptPickerItemProps{
     status: TestStatus;
     attempt: number;
-    currentGroupId: string | null;
+    isGroupingEnabled: boolean;
     matchedSelectedGroup: boolean;
 }
 
@@ -76,23 +77,28 @@ function AttemptPickerItemInternal(props: AttemptPickerItemInternalProps): React
         styles.attemptPickerItem,
         {[styles['attempt-picker-item--active']]: isActive},
         {[styles[`attempt-picker-item--${status}`]]: status},
-        {[styles['attempt-picker-item--non-matched']]: props.currentGroupId && !matchedSelectedGroup}
+        {[styles['attempt-picker-item--non-matched']]: props.isGroupingEnabled && !matchedSelectedGroup}
     );
 
     return <Button {...buttonStyle} title={title} className={className} onClick={onClick} qa={'retry-switcher'}>{attempt + 1}</Button>;
 }
 
 export const AttemptPickerItem = connect(
-    ({tree, app: {suitesPage: {currentGroupId}}}: State, {resultId}: AttemptPickerItemProps) => {
+    ({tree, view: {keyToGroupTestsBy}, app: {isNewUi, suitesPage: {currentGroupId}}}: State, {resultId}: AttemptPickerItemProps) => {
         const result = tree.results.byId[resultId];
         const group = Object.values(tree.groups.byId).find(group => group.id === currentGroupId);
-        const matchedSelectedGroup = Boolean(group?.resultIds.includes(resultId));
+        const matchedSelectedGroup = isNewUi ?
+            Boolean(group?.resultIds.includes(resultId)) :
+            get(tree.results.stateById[resultId], 'matchedSelectedGroup', false);
+
+        const isGroupingEnabled = isNewUi ? Boolean(currentGroupId) : Boolean(keyToGroupTestsBy);
+
         const {status, attempt} = result;
 
         return {
             status: isFailStatus(result.status) && hasUnrelatedToScreenshotsErrors((result as ResultEntityError).error) ? TestStatus.FAIL_ERROR : status,
             attempt,
-            currentGroupId,
+            isGroupingEnabled,
             matchedSelectedGroup
         };
     }

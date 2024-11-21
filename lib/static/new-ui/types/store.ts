@@ -53,6 +53,7 @@ export interface BrowserEntity {
     parentId: string;
 }
 
+export const isSuiteEntity = (entity: SuiteEntity | BrowserEntity): entity is SuiteEntity => Boolean((entity as SuiteEntity).suitePath);
 export const isBrowserEntity = (entity: SuiteEntity | BrowserEntity): entity is BrowserEntity => Boolean((entity as BrowserEntity).resultIds);
 
 export interface ResultEntityCommon {
@@ -206,6 +207,7 @@ export type GroupByExpression = GroupByMetaExpression | GroupByErrorExpression;
 
 export interface State {
     app: {
+        isNewUi: boolean;
         isInitialized: boolean;
         availableFeatures: Feature[],
         suitesPage: {

@@ -4,7 +4,7 @@ import {
     BrowserEntity,
     GroupEntity,
     isBrowserEntity,
-    isResultEntityError,
+    isResultEntityError, isSuiteEntity,
     SuiteEntity
 } from '@/static/new-ui/types/store';
 import {
@@ -32,32 +32,29 @@ export const getTreeViewItems = createSelector(
     [getGroups, getSuites, getAllRootGroupIds, getBrowsers, getBrowsersState, getResults, getImages],
     (groups, suites, rootGroupIds, browsers, browsersState, results, images): TreeViewData => {
         const formatEntityToTreeNodeData = (entity: SuiteEntity | BrowserEntity, id: string, parentData?: TreeNode['data']): TreeNode['data'] => {
-            if (isBrowserEntity(entity)) {
-                const lastResult = results[last(entity.resultIds) as string];
-
-                const resultImages = lastResult.imageIds
-                    .map(imageId => images[imageId])
-                    .filter(imageEntity => isAcceptable(imageEntity));
-
-                let errorTitle, errorStack;
-                if (isResultEntityError(lastResult) && lastResult.error?.stack) {
-                    errorTitle = lastResult.error?.name;
-
-                    const stackLines = trimArray(lastResult.error.stack.split('\n'));
-                    errorStack = stackLines.slice(0, 3).join('\n');
-                }
-
+            if (isSuiteEntity(entity)) {
                 return {
                     id,
                     entityType: getEntityType(entity),
                     entityId: entity.id,
                     title: entity.name,
-                    status: lastResult.status,
-                    images: resultImages,
-                    errorTitle,
-                    errorStack,
+                    status: entity.status,
                     parentData
                 };
+            }
+
+            const lastResult = results[last(entity.resultIds) as string];
+
+            const resultImages = lastResult.imageIds
+                .map(imageId => images[imageId])
+                .filter(imageEntity => isAcceptable(imageEntity));
+
+            let errorTitle, errorStack;
+            if (isResultEntityError(lastResult) && lastResult.error?.stack) {
+                errorTitle = lastResult.error?.name;
+
+                const stackLines = trimArray(lastResult.error.stack.split('\n'));
+                errorStack = stackLines.slice(0, 3).join('\n');
             }
 
             return {
@@ -65,7 +62,10 @@ export const getTreeViewItems = createSelector(
                 entityType: getEntityType(entity),
                 entityId: entity.id,
                 title: entity.name,
-                status: entity.status,
+                status: lastResult.status,
+                images: resultImages,
+                errorTitle,
+                errorStack,
                 parentData
             };
         };
@@ -128,8 +128,11 @@ export const getTreeViewItems = createSelector(
         };
 
         const formatGroup = (groupEntity: GroupEntity): TreeNode => {
-            const testsCount = groupEntity.browserIds.length;
-            const retriesCount = groupEntity.resultIds.length;
+            const groupBrowserIds = groupEntity.browserIds.filter(browserId => browsersState[browserId].shouldBeShown);
+            const browserEntities = groupBrowserIds.map(browserId => browsers[browserId]);
+
+            const testsCount = groupBrowserIds.length;
+            const retriesCount = groupEntity.resultIds.filter(resultId => browserEntities.find(browser => browser.resultIds.includes(resultId))).length;
 
             const groupNodeData: TreeNode['data'] = {
                 id: groupEntity.id,
@@ -143,7 +146,6 @@ export const getTreeViewItems = createSelector(
                     `${retriesCount} ${retriesCount > 1 ? ' retries' : 'retry'}`
                 ]
             };
-            const browserEntities = groupEntity.browserIds.filter(browserId => browsersState[browserId].shouldBeShown).map(browserId => browsers[browserId]);
 
             const suitesTreeRoot = buildTreeBottomUp(browserEntities, groupNodeData);
 

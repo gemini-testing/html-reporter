@@ -36,7 +36,7 @@ function Gui(): ReactNode {
     };
 
     useEffect(() => {
-        store.dispatch(thunkInitGuiReport());
+        store.dispatch(thunkInitGuiReport({isNewUi: true}));
         subscribeToEvents();
 
         return () => {

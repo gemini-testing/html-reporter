@@ -23,6 +23,12 @@ type SetAllTreeNodesStateAction = Action<typeof actionNames.SUITES_PAGE_SET_ALL_
 export const setAllTreeNodesState = (payload: SetAllTreeNodesStateAction['payload']): SetAllTreeNodesStateAction =>
     ({type: actionNames.SUITES_PAGE_SET_ALL_TREE_NODES, payload});
 
+type RevealTreeNodeAction = Action<typeof actionNames.SUITES_PAGE_REVEAL_TREE_NODE, {
+    nodeId: string;
+}>;
+export const revealTreeNode = (payload: RevealTreeNodeAction['payload']): RevealTreeNodeAction =>
+    ({type: actionNames.SUITES_PAGE_REVEAL_TREE_NODE, payload});
+
 type SetSectionExpandedStateAction = Action<typeof actionNames.SUITES_PAGE_SET_SECTION_EXPANDED, {
     sectionId: string;
     isExpanded: boolean;
@@ -42,4 +48,5 @@ export type SuitesPageAction =
     | SetAllTreeNodesStateAction
     | SuitesPageSetCurrentTreeNodeAction
     | SetSectionExpandedStateAction
-    | SetStepsExpandedStateAction;
+    | SetStepsExpandedStateAction
+    | RevealTreeNodeAction;

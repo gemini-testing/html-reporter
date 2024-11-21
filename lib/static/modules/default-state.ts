@@ -97,6 +97,7 @@ export default Object.assign({config: configDefaults}, {
         imagesToCommitCount: 0
     },
     app: {
+        isNewUi: false,
         isInitialized: false,
         availableFeatures: [],
         suitesPage: {

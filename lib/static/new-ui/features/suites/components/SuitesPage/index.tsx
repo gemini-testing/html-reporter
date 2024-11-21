@@ -26,6 +26,9 @@ import styles from './index.module.css';
 import {TestInfoSkeleton} from '@/static/new-ui/features/suites/components/SuitesPage/TestInfoSkeleton';
 import {TreeViewSkeleton} from '@/static/new-ui/features/suites/components/SuitesTreeView/TreeViewSkeleton';
 import {TreeActionsToolbar} from '@/static/new-ui/features/suites/components/TreeActionsToolbar';
+import {findTreeNodeById, getGroupId} from '@/static/new-ui/features/suites/utils';
+import {TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
+import {NEW_ISSUE_LINK} from '@/constants';
 
 interface SuitesPageProps {
     actions: typeof actions;
@@ -34,11 +37,24 @@ interface SuitesPageProps {
 }
 
 function SuitesPageInternal({currentResult, actions, treeNodeId}: SuitesPageProps): ReactNode {
-    const {visibleTreeNodeIds} = useSelector(getTreeViewItems);
+    const {visibleTreeNodeIds, tree} = useSelector(getTreeViewItems);
+
     const currentTreeNodeId = useSelector(state => state.app.suitesPage.currentTreeNodeId);
     const currentIndex = visibleTreeNodeIds.indexOf(currentTreeNodeId as string);
-    const onPreviousSuiteHandler = (): void => void actions.setCurrentTreeNode({treeNodeId: visibleTreeNodeIds[currentIndex - 1]});
-    const onNextSuiteHandler = (): void => void actions.setCurrentTreeNode({treeNodeId: visibleTreeNodeIds[currentIndex + 1]});
+
+    const onPrevNextSuiteHandler = (step: number): void => {
+        const treeNodeId = visibleTreeNodeIds[currentIndex + step];
+        const currentTreeNode = findTreeNodeById(tree, treeNodeId ?? '');
+        if (!currentTreeNode) {
+            console.warn(`Couldn't find tree node by id in prev/next handler. ID: ${currentTreeNodeId}. Tree: ${JSON.stringify(tree)}` +
+                `Please report this to our team at ${NEW_ISSUE_LINK}.`);
+            return;
+        }
+
+        const groupId = getGroupId(currentTreeNode as TreeViewItemData);
+
+        actions.setCurrentTreeNode({treeNodeId, browserId: currentTreeNode.entityId, groupId});
+    };
 
     const {suiteId: suiteIdParam} = useParams();
     const isInitialized = useSelector(getIsInitialized);
@@ -80,8 +96,8 @@ function SuitesPageInternal({currentResult, actions, treeNodeId}: SuitesPageProp
                         browserName={currentResult.name}
                         index={currentIndex}
                         totalItems={visibleTreeNodeIds.length}
-                        onNext={onNextSuiteHandler}
-                        onPrevious={onPreviousSuiteHandler} />
+                        onNext={(): void => onPrevNextSuiteHandler(1)}
+                        onPrevious={(): void => onPrevNextSuiteHandler(-1)} />
                     <AttemptPicker onChange={onAttemptChangeHandler} />
                 </div>
                 <CollapsibleSection className={styles['collapsible-section-overview']} title={'Overview'} body={currentResult && <div className={styles['collapsible-section__body']}>

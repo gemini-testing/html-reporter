@@ -19,8 +19,13 @@ import {getTreeViewItems} from '@/static/new-ui/features/suites/components/Suite
 import {TestStatus} from '@/constants';
 import {TreeViewItemIcon} from '../../../../components/TreeViewItemIcon';
 import {getIconByStatus} from '@/static/new-ui/utils';
-import {setCurrentTreeNode, setStrictMatchFilter, setTreeNodeExpandedState} from '@/static/modules/actions';
-import {findTreeNodeId, getGroupId} from '@/static/new-ui/features/suites/utils';
+import {
+    revealTreeNode,
+    setCurrentTreeNode,
+    setStrictMatchFilter,
+    setTreeNodeExpandedState
+} from '@/static/modules/actions';
+import {findTreeNodeByBrowserId, getGroupId} from '@/static/new-ui/features/suites/utils';
 import styles from './index.module.css';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -65,7 +70,16 @@ export const SuitesTreeView = forwardRef<SuitesTreeViewHandle, SuitesTreeViewPro
 
     useImperativeHandle(ref, () => ({
         scrollToId: (id: string): void => {
-            virtualizer.scrollToIndex(list.structure.visibleFlattenIds.indexOf(id), {align: 'start'});
+            if (!list.structure.visibleFlattenIds.includes(id)) {
+                dispatch(revealTreeNode({nodeId: id}));
+                setTimeout(() => {
+                    try {
+                        virtualizer.scrollToIndex(list.structure.visibleFlattenIds.indexOf(id), {align: 'start'});
+                    } catch { /* empty */ }
+                }, 50);
+            } else {
+                virtualizer.scrollToIndex(list.structure.visibleFlattenIds.indexOf(id), {align: 'start'});
+            }
         }
     }));
 
@@ -79,7 +93,7 @@ export const SuitesTreeView = forwardRef<SuitesTreeViewHandle, SuitesTreeViewPro
 
         let timeoutId: NodeJS.Timeout;
         if (suiteId) {
-            const treeNode = findTreeNodeId(treeData.tree, suiteId);
+            const treeNode = findTreeNodeByBrowserId(treeData.tree, suiteId);
             if (!treeNode) {
                 return;
             }

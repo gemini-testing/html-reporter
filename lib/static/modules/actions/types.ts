@@ -17,7 +17,7 @@ export type Action<
     Payload = void
 > = Payload extends void ? ReduxAction<Type> : ReduxAction<Type> & {payload: Payload};
 
-export type AppThunk<ReturnType = void> = ThunkAction<ReturnType, State, unknown, ReduxAction>;
+export type AppThunk<ReturnType = Promise<void>> = ThunkAction<ReturnType, State, unknown, ReduxAction>;
 
 export type SomeAction =
     | GroupTestsAction

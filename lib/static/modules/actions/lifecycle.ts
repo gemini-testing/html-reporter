@@ -19,11 +19,15 @@ import {GetInitResponse} from '@/gui/server';
 import {Tree} from '@/tests-tree-builder/base';
 import {BrowserItem} from '@/types';
 
-export type InitGuiReportAction = Action<typeof actionNames.INIT_GUI_REPORT, GetInitResponse & {db: Database}>;
+export type InitGuiReportAction = Action<typeof actionNames.INIT_GUI_REPORT, GetInitResponse & {db: Database; isNewUi?: boolean}>;
 const initGuiReport = (payload: InitGuiReportAction['payload']): InitGuiReportAction =>
     ({type: actionNames.INIT_GUI_REPORT, payload});
 
-export const thunkInitGuiReport = (): AppThunk => {
+interface InitGuiReportData {
+    isNewUi?: boolean;
+}
+
+export const thunkInitGuiReport = ({isNewUi}: InitGuiReportData = {}): AppThunk => {
     return async (dispatch) => {
         performance?.mark?.(performanceMarks.JS_EXEC);
         try {
@@ -42,7 +46,7 @@ export const thunkInitGuiReport = (): AppThunk => {
 
             performance?.mark?.(performanceMarks.PLUGINS_LOADED);
 
-            dispatch(initGuiReport({...appState.data, db}));
+            dispatch(initGuiReport({...appState.data, db, isNewUi}));
 
             if (appState.data.customGuiError) {
                 const {customGuiError} = appState.data;
@@ -64,11 +68,16 @@ export type InitStaticReportAction = Action<typeof actionNames.INIT_STATIC_REPOR
     stats: FinalStats | null;
     skips: SkipItem[];
     browsers: BrowserItem[];
+    isNewUi?: boolean;
 }>;
 const initStaticReport = (payload: InitStaticReportAction['payload']): InitStaticReportAction =>
     ({type: actionNames.INIT_STATIC_REPORT, payload});
 
-export const thunkInitStaticReport = (): AppThunk => {
+interface InitStaticReportData {
+    isNewUi?: boolean;
+}
+
+export const thunkInitStaticReport = ({isNewUi}: InitStaticReportData = {}): AppThunk => {
     return async dispatch => {
         performance?.mark?.(performanceMarks.JS_EXEC);
         const dataFromStaticFile = (window as {data?: DataForStaticFile}).data || {} as Partial<DataForStaticFile>;
@@ -106,7 +115,7 @@ export const thunkInitStaticReport = (): AppThunk => {
         const testsTreeBuilder = StaticTestsTreeBuilder.create();
 
         if (!db || isEmpty(fetchDbDetails)) {
-            dispatch(initStaticReport({...dataFromStaticFile, db, fetchDbDetails, tree: testsTreeBuilder.build([]).tree, stats: null, skips: [], browsers: []}));
+            dispatch(initStaticReport({...dataFromStaticFile, db, fetchDbDetails, tree: testsTreeBuilder.build([]).tree, stats: null, skips: [], browsers: [], isNewUi}));
 
             return;
         }
@@ -117,7 +126,7 @@ export const thunkInitStaticReport = (): AppThunk => {
 
         const {tree, stats, skips, browsers} = testsTreeBuilder.build(suitesRows);
 
-        dispatch(initStaticReport({...dataFromStaticFile, db, fetchDbDetails, tree, stats, skips, browsers}));
+        dispatch(initStaticReport({...dataFromStaticFile, db, fetchDbDetails, tree, stats, skips, browsers, isNewUi}));
     };
 };
 

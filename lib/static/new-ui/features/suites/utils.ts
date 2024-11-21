@@ -23,17 +23,31 @@ export const getEntityType = (entity: SuiteEntity | BrowserEntity): EntityType =
     return EntityType.Suite;
 };
 
-export const findTreeNodeId = (nodes: TreeNode[], targetBrowserId: string): TreeViewItemData | null => {
+export const findTreeNode = (nodes: TreeNode[], predicate: (node: TreeNode) => boolean): TreeViewItemData | null => {
     for (const node of nodes) {
-        if (node.data.entityType === EntityType.Browser && node.data.entityId === targetBrowserId) {
+        if (predicate(node)) {
             return node.data;
         }
         if (node.children) {
-            const foundNode = findTreeNodeId(node.children, targetBrowserId);
+            const foundNode = findTreeNode(node.children, predicate);
             if (foundNode) {
                 return foundNode;
             }
         }
     }
     return null;
+};
+
+export const findTreeNodeByBrowserId = (nodes: TreeNode[], targetBrowserId: string): TreeViewItemData | null => {
+    return findTreeNode(
+        nodes,
+        (node) => node.data.entityType === EntityType.Browser && node.data.entityId === targetBrowserId
+    );
+};
+
+export const findTreeNodeById = (nodes: TreeNode[], nodeId: string): TreeViewItemData | null => {
+    return findTreeNode(
+        nodes,
+        (node) => node.data.id === nodeId
+    );
 };

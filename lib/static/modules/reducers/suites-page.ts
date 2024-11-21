@@ -3,7 +3,7 @@ import actionNames from '@/static/modules/action-names';
 import {applyStateUpdate} from '@/static/modules/utils/state';
 import {SomeAction} from '@/static/modules/actions/types';
 import {getTreeViewItems} from '@/static/new-ui/features/suites/components/SuitesTreeView/selectors';
-import {findTreeNodeId, getGroupId} from '@/static/new-ui/features/suites/utils';
+import {findTreeNodeByBrowserId, findTreeNodeById, getGroupId} from '@/static/new-ui/features/suites/utils';
 
 export default (state: State, action: SomeAction): State => {
     switch (action.type) {
@@ -24,7 +24,7 @@ export default (state: State, action: SomeAction): State => {
                 const {currentBrowserId} = state.app.suitesPage;
                 if (currentBrowserId) {
                     const {tree} = getTreeViewItems(state);
-                    const browserTreeViewData = findTreeNodeId(tree, currentBrowserId);
+                    const browserTreeViewData = findTreeNodeByBrowserId(tree, currentBrowserId);
                     currentTreeNodeId = browserTreeViewData?.id;
                     if (browserTreeViewData) {
                         currentGroupId = getGroupId(browserTreeViewData);
@@ -113,6 +113,24 @@ export default (state: State, action: SomeAction): State => {
                         expandedStepsByResultId: {
                             [action.payload.resultId]: action.payload.expandedById
                         }
+                    }
+                }
+            }) as State;
+        }
+        case actionNames.SUITES_PAGE_REVEAL_TREE_NODE: {
+            const {tree} = getTreeViewItems(state);
+            let nodeData = findTreeNodeById(tree, action.payload.nodeId);
+            const newExpandedTreeNodesById: Record<string, boolean> = {};
+
+            while (nodeData) {
+                newExpandedTreeNodesById[nodeData.id] = true;
+                nodeData = nodeData.parentData ?? null;
+            }
+
+            return applyStateUpdate(state, {
+                ui: {
+                    suitesPage: {
+                        expandedTreeNodesById: newExpandedTreeNodesById
                     }
                 }
             }) as State;

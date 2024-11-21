@@ -9,7 +9,7 @@ const root = createRoot(rootEl);
 
 function Report(): ReactNode {
     useEffect(() => {
-        store.dispatch(thunkInitStaticReport());
+        store.dispatch(thunkInitStaticReport({isNewUi: true}));
 
         return () => {
             store.dispatch(finStaticReport());
