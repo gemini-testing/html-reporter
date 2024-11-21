@@ -1,23 +1,25 @@
 import React, {useEffect, useRef} from 'react';
-import {TreeViewData, TreeViewItemType} from '@/static/new-ui/features/suites/components/SuitesPage/types';
+import {EntityType, TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
 import styles from './index.module.css';
 import classNames from 'classnames';
 import {Checkbox} from '@gravity-ui/uikit';
 import {useDispatch, useSelector} from 'react-redux';
-import {toggleBrowserCheckbox, toggleSuiteCheckbox} from '@/static/modules/actions';
+import {toggleBrowserCheckbox, toggleGroupCheckbox, toggleSuiteCheckbox} from '@/static/modules/actions';
 import {getToggledCheckboxState, isCheckboxChecked, isCheckboxIndeterminate} from '@/common-utils';
 import {getAreCheckboxesNeeded} from '@/static/new-ui/store/selectors';
+import {getItemCheckStatus} from '@/static/new-ui/features/suites/components/TreeViewItemTitle/selectors';
+import {GroupEntity} from '@/static/new-ui/types/store';
 
 interface TreeViewItemTitleProps {
     className?: string;
-    item: TreeViewData;
+    item: TreeViewItemData;
 }
 
 export function TreeViewItemTitle({item, className}: TreeViewItemTitleProps): React.JSX.Element {
     const dispatch = useDispatch();
     const areCheckboxesNeeded = useSelector(getAreCheckboxesNeeded);
-    const checkStatus = useSelector(state =>
-        item.type === TreeViewItemType.Suite ? state.tree.suites.stateById[item.id].checkStatus : state.tree.browsers.stateById[item.id].checkStatus);
+    const groups = useSelector(state => state.tree.groups.byId);
+    const checkStatus = useSelector(state => getItemCheckStatus(state, item));
     const ref = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -25,14 +27,21 @@ export function TreeViewItemTitle({item, className}: TreeViewItemTitleProps): Re
             ref.current.onclick = (e): void => {
                 e.stopPropagation();
 
-                if (item.type === TreeViewItemType.Suite) {
-                    dispatch(toggleSuiteCheckbox({
-                        suiteId: item.id,
+                if (item.entityType === EntityType.Group) {
+                    const group = Object.values(groups).find(group => group.id === item.entityId) as GroupEntity;
+
+                    dispatch(toggleGroupCheckbox({
+                        browserIds: group.browserIds,
                         checkStatus: getToggledCheckboxState(checkStatus)
                     }));
-                } else if (item.type === TreeViewItemType.Browser) {
+                } else if (item.entityType === EntityType.Suite) {
+                    dispatch(toggleSuiteCheckbox({
+                        suiteId: item.entityId,
+                        checkStatus: getToggledCheckboxState(checkStatus)
+                    }));
+                } else if (item.entityType === EntityType.Browser) {
                     dispatch(toggleBrowserCheckbox({
-                        suiteBrowserId: item.id,
+                        suiteBrowserId: item.entityId,
                         checkStatus: getToggledCheckboxState(checkStatus)
                     }));
                 }
@@ -41,9 +50,17 @@ export function TreeViewItemTitle({item, className}: TreeViewItemTitleProps): Re
     }, [ref, item, checkStatus]);
 
     return <div className={styles.container}>
-        <span>{item.title}</span>
+        <div>
+            {item.prefix && <span className={styles.titlePrefix}>{item.prefix}</span>}
+            <span className={styles.title}>{item.title}</span>
+            {item.tags && item.tags.length > 0 &&
+                <div className={styles.tagsContainer}>
+                    {item.tags.map((tag, index) => <span key={index} className={styles.tag}>{tag}</span>)}
+                </div>
+            }
+        </div>
         {
-            item.type === TreeViewItemType.Browser &&
+            item.entityType === EntityType.Browser &&
             item.errorTitle &&
             <span className={classNames(styles['tree-view-item__error-title'], className)}>{item.errorTitle}</span>
         }

@@ -4,7 +4,7 @@ import {createRoot} from 'react-dom/client';
 import {ClientEvents} from '@/gui/constants';
 import {App} from './App';
 import store from '../../modules/store';
-import {finGuiReport, initGuiReport, suiteBegin, testBegin, testResult, testsEnd} from '../../modules/actions';
+import {finGuiReport, thunkInitGuiReport, suiteBegin, testBegin, testResult, testsEnd} from '../../modules/actions';
 
 const rootEl = document.getElementById('app') as HTMLDivElement;
 const root = createRoot(rootEl);
@@ -36,7 +36,7 @@ function Gui(): ReactNode {
     };
 
     useEffect(() => {
-        store.dispatch(initGuiReport());
+        store.dispatch(thunkInitGuiReport({isNewUi: true}));
         subscribeToEvents();
 
         return () => {

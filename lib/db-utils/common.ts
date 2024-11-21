@@ -2,7 +2,7 @@ import _ from 'lodash';
 import {logger} from '../common-utils';
 import {DB_MAX_AVAILABLE_PAGE_SIZE, DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS, DB_COLUMN_INDEXES} from '../constants';
 import {DbUrlsJsonData, RawSuitesRow, ReporterConfig} from '../types';
-import type {Database, Statement} from 'better-sqlite3';
+import type {Database as BetterSqlite3Database, Statement} from 'better-sqlite3';
 import {ReadonlyDeep} from 'type-fest';
 
 export const selectAllQuery = (tableName: string): string => `SELECT * FROM ${tableName}`;
@@ -16,8 +16,17 @@ export const compareDatabaseRowsByTimestamp = (row1: RawSuitesRow, row2: RawSuit
     return (row1[DB_COLUMN_INDEXES.timestamp] as number) - (row2[DB_COLUMN_INDEXES.timestamp] as number);
 };
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface Database {}
+
 export interface DbLoadResult {
     url: string; status: string; data: null | unknown
+}
+
+export interface DbDetails {
+    url: string;
+    status: string;
+    success: boolean;
 }
 
 export interface HandleDatabasesOptions {
@@ -59,7 +68,7 @@ export const handleDatabases = async (dbJsonUrls: string[], opts: HandleDatabase
     );
 };
 
-export const mergeTables = ({db, dbPaths, getExistingTables = (): string[] => []}: { db: Database, dbPaths: string[], getExistingTables?: (getTablesStatement: Statement<[]>) => string[] }): void => {
+export const mergeTables = ({db, dbPaths, getExistingTables = (): string[] => []}: { db: BetterSqlite3Database, dbPaths: string[], getExistingTables?: (getTablesStatement: Statement<[]>) => string[] }): void => {
     db.prepare(`PRAGMA page_size = ${DB_MAX_AVAILABLE_PAGE_SIZE}`).run();
 
     for (const dbPath of dbPaths) {

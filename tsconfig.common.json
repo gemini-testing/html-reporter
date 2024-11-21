@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "lib": ["DOM", "es2021"],
+        "lib": ["DOM", "es2023"],
         "allowJs": true,
         "declaration": true,
         "declarationMap": false,

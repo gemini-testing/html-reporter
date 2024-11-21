@@ -8,7 +8,7 @@ import classNames from 'classnames';
 import {Button, Icon, Spin} from '@gravity-ui/uikit';
 import {RunTestsFeature} from '@/constants';
 import {retryTest} from '@/static/modules/actions';
-import {getCurrentBrowser} from '@/static/new-ui/features/suites/selectors';
+import {getCurrentBrowser, getCurrentResultId} from '@/static/new-ui/features/suites/selectors';
 
 interface AttemptPickerProps {
     onChange?: (browserId: string, resultId: string, attemptIndex: number) => unknown;
@@ -65,17 +65,15 @@ function AttemptPickerInternal(props: AttemptPickerInternalProps): ReactNode {
 
 export const AttemptPicker = connect(state => {
     let resultIds: string[] = [];
-    let currentResultId = '';
     const browserId = state.app.suitesPage.currentBrowserId;
 
     if (browserId && state.tree.browsers.byId[browserId]) {
         resultIds = state.tree.browsers.byId[browserId].resultIds;
-        currentResultId = resultIds[state.tree.browsers.stateById[browserId].retryIndex];
     }
 
     return {
         browserId,
         resultIds,
-        currentResultId
+        currentResultId: getCurrentResultId(state) ?? ''
     };
 })(AttemptPickerInternal);

@@ -19,3 +19,30 @@
     margin-left: var(--g-spacing-1);
     font-size: 15px;
 }
+
+.title-prefix {
+    font-weight: 500;
+    margin-right: 4px;
+}
+
+.title {
+    margin-right: 8px;
+}
+
+.tags-container {
+    display: inline-block;
+}
+
+.tag {
+    font-size: 15px;
+    margin-right: 8px;
+    white-space: nowrap;
+    border-radius: 4px;
+    color: var(--g-color-private-black-400);
+    background-color: var(--g-color-base-generic);
+    padding: 0 4px;
+}
+
+.tag:last-child {
+    margin-right: 0;
+}

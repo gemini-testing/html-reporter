@@ -2,21 +2,21 @@ import classNames from 'classnames';
 import React, {ReactNode} from 'react';
 import stripAnsi from 'strip-ansi';
 
-import {TreeViewData, TreeViewItemType} from '@/static/new-ui/features/suites/components/SuitesPage/types';
+import {TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
 import {ImageWithMagnifier} from '@/static/new-ui/components/ImageWithMagnifier';
 import {ImageEntityFail} from '@/static/new-ui/types/store';
 import styles from './index.module.css';
 import {getAssertViewStatusMessage} from '@/static/new-ui/utils/assert-view-status';
 
 interface TreeViewItemSubtitleProps {
-    item: TreeViewData;
+    item: TreeViewItemData;
     className?: string;
     // Passed to image with magnifier to detect parent container scrolling and update magnifier position
     scrollContainerRef: React.RefObject<HTMLElement>;
 }
 
 export function TreeViewItemSubtitle(props: TreeViewItemSubtitleProps): ReactNode {
-    if (props.item.type === TreeViewItemType.Browser && props.item.images?.length) {
+    if (props.item.images?.length) {
         return <div>
             {props.item.images.map((imageEntity, index) => {
                 const image = (imageEntity as ImageEntityFail).diffImg ?? (imageEntity as ImageEntityFail).actualImg;
@@ -30,7 +30,7 @@ export function TreeViewItemSubtitle(props: TreeViewItemSubtitleProps): ReactNod
                 </div>;
             })}
         </div>;
-    } else if (props.item.type === TreeViewItemType.Browser && props.item.errorStack) {
+    } else if (props.item.errorStack) {
         return <div className={classNames(styles['tree-view-item-subtitle__error-stack'], props.className)}>
             {stripAnsi(props.item.errorStack)}
         </div>;

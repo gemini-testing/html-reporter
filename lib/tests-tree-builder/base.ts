@@ -90,7 +90,7 @@ export class BaseTestsTreeBuilder {
 
     static create<T extends BaseTestsTreeBuilder>(
         this: new (options: BaseTestsTreeBuilderOptions) => T,
-        options: BaseTestsTreeBuilderOptions
+        options: BaseTestsTreeBuilderOptions = {}
     ): T {
         return new this(options);
     }

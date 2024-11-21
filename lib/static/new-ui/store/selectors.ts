@@ -5,11 +5,13 @@ import {
     ResultEntity,
     SuiteEntity,
     SuiteState,
-    BrowserState
+    BrowserState, GroupEntity
 } from '@/static/new-ui/types/store';
 import {EditScreensFeature, RunTestsFeature} from '@/constants';
 
 export const getAllRootSuiteIds = (state: State): string[] => state.tree.suites.allRootIds;
+export const getAllRootGroupIds = (state: State): string[] => state.tree.groups.allRootIds;
+export const getGroups = (state: State): Record<string, GroupEntity> => state.tree.groups.byId;
 export const getSuites = (state: State): Record<string, SuiteEntity> => state.tree.suites.byId;
 export const getSuitesState = (state: State): Record<string, SuiteState> => state.tree.suites.stateById;
 export const getBrowsers = (state: State): Record<string, BrowserEntity> => state.tree.browsers.byId;

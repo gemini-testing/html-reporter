@@ -12,6 +12,7 @@ import React from 'react';
 
 import {TestStatus} from '@/constants';
 import {ImageFile} from '@/types';
+import {isNull, isObject, isString, isUndefined, toString} from 'lodash';
 
 export const getIconByStatus = (status: TestStatus): React.JSX.Element => {
     if (status === TestStatus.FAIL || status === TestStatus.ERROR) {
@@ -40,3 +41,23 @@ export const getFullTitleByTitleParts = (titleParts: string[]): string => {
 };
 
 export const getImageDisplayedSize = (image: ImageFile): string => `${image.size.width}×${image.size.height}`;
+
+export const stringify = (value: unknown): string => {
+    if (isString(value)) {
+        return value;
+    }
+
+    if (isObject(value)) {
+        return JSON.stringify(value);
+    }
+
+    if (isNull(value)) {
+        return 'null';
+    }
+
+    if (isUndefined(value)) {
+        return 'undefined';
+    }
+
+    return toString(value);
+};

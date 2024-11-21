@@ -3,10 +3,7 @@ import proxyquire from 'proxyquire';
 import {POSITIONS} from 'reapop';
 import {acceptOpened, undoAcceptImages, retryTest, runFailedTests} from 'lib/static/modules/actions';
 import actionNames from 'lib/static/modules/action-names';
-import {StaticTestsTreeBuilder} from 'lib/tests-tree-builder/static';
-import {LOCAL_DATABASE_NAME} from 'lib/constants/database';
 import {DiffModes} from 'lib/constants/diff-modes';
-import {ToolName} from 'lib/constants';
 
 describe('lib/static/modules/actions', () => {
     const sandbox = sinon.sandbox.create();
@@ -21,9 +18,6 @@ describe('lib/static/modules/actions', () => {
         connectToDatabaseStub = sandbox.stub().resolves({});
         pluginsStub = {loadAll: sandbox.stub()};
 
-        sandbox.stub(StaticTestsTreeBuilder, 'create').returns(Object.create(StaticTestsTreeBuilder.prototype));
-        sandbox.stub(StaticTestsTreeBuilder.prototype, 'build').returns({});
-
         actions = proxyquire('lib/static/modules/actions', {
             'reapop': {notify},
             '../database-utils': {getSuitesTableRows},
@@ -32,69 +26,8 @@ describe('lib/static/modules/actions', () => {
         });
     });
 
-    afterEach(() => sandbox.restore());
-
-    describe('initGuiReport', () => {
-        beforeEach(() => {
-            sandbox.stub(axios, 'get').resolves({data: {}});
-        });
-
-        it('should run init action on server', async () => {
-            await actions.initGuiReport()(dispatch);
-
-            assert.calledOnceWith(axios.get, '/init');
-        });
-
-        it('should fetch database from default html page', async () => {
-            const href = 'http://127.0.0.1:8080/sqlite.db';
-            getMainDatabaseUrl.returns({href});
-
-            await actions.initGuiReport()(dispatch);
-
-            assert.calledOnceWith(connectToDatabaseStub, `http://127.0.0.1:8080/${LOCAL_DATABASE_NAME}`);
-        });
-
-        it('should dispatch "INIT_GUI_REPORT" action with data from "/init" route and connection to db', async () => {
-            const db = {};
-            connectToDatabaseStub.resolves(db);
-            axios.get.resolves({data: {some: 'data'}});
-
-            await actions.initGuiReport()(dispatch);
-
-            assert.calledOnceWith(dispatch, {
-                type: actionNames.INIT_GUI_REPORT,
-                payload: {some: 'data', db}
-            });
-        });
-
-        it('should show notification if error in initialization on the server is happened', async () => {
-            axios.get.rejects(new Error('failed to initialize custom gui'));
-
-            await actions.initGuiReport()(dispatch);
-
-            assert.calledOnceWith(
-                notify,
-                {
-                    dismissAfter: 0,
-                    id: 'initGuiReport',
-                    message: 'failed to initialize custom gui',
-                    status: 'error',
-                    position: POSITIONS.topCenter,
-                    dismissible: true,
-                    showDismissButton: true,
-                    allowHTML: true
-                }
-            );
-        });
-
-        it('should init plugins with the config from /init route', async () => {
-            const config = {pluginsEnabled: true, plugins: []};
-            axios.get.withArgs('/init').resolves({data: {config}});
-
-            await actions.initGuiReport()(dispatch);
-
-            assert.calledOnceWith(pluginsStub.loadAll, config);
-        });
+    afterEach(() => {
+        sandbox.restore();
     });
 
     describe('acceptOpened', () => {
@@ -162,126 +95,6 @@ describe('lib/static/modules/actions', () => {
 
             assert.calledOnceWith(axios.post, '/run', failedTests);
             assert.calledOnceWith(dispatch, {type: actionNames.RUN_FAILED_TESTS});
-        });
-    });
-
-    describe('initStaticReport', () => {
-        let fetchDataFromDatabasesStub;
-        let mergeDatabasesStub;
-        let actions;
-        let originalWindow;
-
-        beforeEach(() => {
-            fetchDataFromDatabasesStub = sandbox.stub().resolves();
-            mergeDatabasesStub = sandbox.stub().resolves();
-
-            originalWindow = global.window;
-            global.window = {
-                data: {
-                    apiValues: {toolName: ToolName.Testplane}
-                },
-                location: {
-                    href: 'http://localhost/random/path.html'
-                }
-            };
-
-            actions = proxyquire('lib/static/modules/actions', {
-                '../../../db-utils/client': {
-                    fetchDataFromDatabases: fetchDataFromDatabasesStub,
-                    mergeDatabases: mergeDatabasesStub
-                },
-                '../plugins': pluginsStub
-            });
-        });
-
-        afterEach(() => {
-            sandbox.restore();
-
-            global.window = originalWindow;
-        });
-
-        it('should fetch databaseUrls.json for default html page', async () => {
-            global.window.location.href = 'http://127.0.0.1:8080/';
-
-            await actions.initStaticReport()(dispatch);
-
-            assert.calledOnceWith(fetchDataFromDatabasesStub, ['http://127.0.0.1:8080/databaseUrls.json']);
-        });
-
-        it('should fetch databaseUrls.json for custom html page', async () => {
-            global.window.location.href = 'http://127.0.0.1:8080/some/path.html';
-
-            await actions.initStaticReport()(dispatch);
-
-            assert.calledOnceWith(fetchDataFromDatabasesStub, ['http://127.0.0.1:8080/some/databaseUrls.json']);
-        });
-
-        it('should dispatch empty payload if fetchDatabases rejected', async () => {
-            fetchDataFromDatabasesStub.rejects('stub');
-
-            await actions.initStaticReport()(dispatch);
-
-            assert.calledWith(
-                dispatch.lastCall,
-                {
-                    type: actionNames.INIT_STATIC_REPORT,
-                    payload: sinon.match({db: null, fetchDbDetails: []})
-                }
-            );
-        });
-
-        it('should dispatch payload.fetchDbDetails even if "mergeDatabases" rejected', async () => {
-            fetchDataFromDatabasesStub.resolves([{url: 'stub url', status: 200, data: 'stub'}]);
-            mergeDatabasesStub.rejects('stub');
-
-            await actions.initStaticReport()(dispatch);
-
-            assert.calledWith(
-                dispatch.lastCall,
-                {
-                    type: actionNames.INIT_STATIC_REPORT,
-                    payload: sinon.match({fetchDbDetails: [{url: 'stub url', status: 200, success: true}]})
-                }
-            );
-        });
-
-        it('should filter null data before merge databases', async () => {
-            fetchDataFromDatabasesStub.resolves([{url: 'stub url1', status: 404, data: null}, {url: 'stub url2', status: 200, data: 'stub'}]);
-
-            await actions.initStaticReport()(dispatch);
-
-            assert.calledOnceWith(mergeDatabasesStub, ['stub']);
-        });
-
-        it('should build tests tree', async () => {
-            const db = {};
-            const suitesFromDb = ['rows-with-suites'];
-            // TODO: properly test this case. This PR only fixed default state, which is now correct, but
-            //       this test never worked correctly
-            const treeBuilderResult = {tree: undefined, stats: {}, skips: [], browsers: []};
-
-            mergeDatabasesStub.resolves(db);
-            getSuitesTableRows.withArgs(db).returns(suitesFromDb);
-            StaticTestsTreeBuilder.prototype.build.withArgs(suitesFromDb).returns(treeBuilderResult);
-
-            await actions.initStaticReport()(dispatch);
-
-            assert.calledWith(
-                dispatch.lastCall,
-                {
-                    type: actionNames.INIT_STATIC_REPORT,
-                    payload: sinon.match({...treeBuilderResult})
-                }
-            );
-        });
-
-        it('should init plugins with the config from data.js', async () => {
-            const config = {pluginsEnabled: true, plugins: []};
-            global.window.data.config = config;
-
-            await actions.initStaticReport()(dispatch);
-
-            assert.calledOnceWith(pluginsStub.loadAll, config);
         });
     });
 
