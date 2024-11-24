@@ -10,6 +10,7 @@ import {ResultEntity, State} from '@/static/new-ui/types/store';
 import {HtmlReporterValues} from '@/plugin-api';
 import {ReporterConfig} from '@/types';
 import styles from './index.module.css';
+import Parser from 'html-react-parser';
 
 const serializeMetaValues = (metaInfo: Record<string, unknown>): Record<string, string> =>
     mapValues(metaInfo, (v): string => {
@@ -107,6 +108,23 @@ function MetaInfoInternal(props: MetaInfoInternalProps): ReactNode {
             content: getRelativeUrl(result.suiteUrl),
             url: getUrlWithBase(result.suiteUrl, baseHost)
         });
+    }
+
+    const shouldAddSkipReason = Boolean(!metaInfoItemsWithResolvedUrls.find(item => item.label === 'muteReason'));
+    if (result.skipReason && shouldAddSkipReason) {
+        const reason = Parser(result.skipReason);
+        if (typeof reason === 'string') {
+            metaInfoItemsWithResolvedUrls.push({
+                label: 'skipReason',
+                content: reason
+            });
+        } else if (!Array.isArray(reason) && typeof reason.props.children === 'string' && typeof reason.props.href === 'string') {
+            metaInfoItemsWithResolvedUrls.push({
+                label: 'skipReason',
+                content: reason.props.children,
+                url: reason.props.href
+            });
+        }
     }
 
     return <DefinitionList className={styles.metaInfo} qa={props.qa} items={

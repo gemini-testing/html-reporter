@@ -23,6 +23,13 @@
     --g-button-text-color-hover: hsl(208 88% 48% / 1);
 }
 
+.attempt-picker-item--skipped {
+    background-color: var(--g-color-private-black-50);
+    color: var(--g-color-private-black-600);
+    --box-shadow-color: var(--g-color-private-black-250);
+    --g-button-text-color-hover: var(--g-color-private-black-700);
+}
+
 .attempt-picker-item--success {
     --box-shadow-color: #21a95661;
 }

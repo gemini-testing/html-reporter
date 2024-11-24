@@ -57,6 +57,8 @@
             color: #fff !important;
             /* Sets spinner color */
             --g-color-line-brand: #fff;
+            --color-link: #fff;
+            --color-link-hover: rgba(255, 255, 255, 0.6);
         }
 
         .tree-view__item__title--current {

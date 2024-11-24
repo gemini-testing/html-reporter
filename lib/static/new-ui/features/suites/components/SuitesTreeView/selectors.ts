@@ -66,7 +66,8 @@ export const getTreeViewItems = createSelector(
                 images: resultImages,
                 errorTitle,
                 errorStack,
-                parentData
+                parentData,
+                skipReason: lastResult.skipReason
             };
         };
 

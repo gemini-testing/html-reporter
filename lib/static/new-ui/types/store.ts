@@ -70,6 +70,7 @@ export interface ResultEntityCommon {
     suitePath: string[];
     /** @note Browser Name/ID, e.g. `chrome-desktop` */
     name: string;
+    skipReason?: string;
 }
 
 export interface ResultEntityError extends ResultEntityCommon {
