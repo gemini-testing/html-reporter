@@ -25,7 +25,7 @@ export function SuiteTitle(props: SuiteTitlePropsInternal): ReactNode {
 
     return <div className={classNames(styles.container, props.className)}>
         <div className={styles.content}>
-            <div className={classNames(styles.breadcrumbs)}>
+            {suitePath.length > 0 && <div className={classNames(styles.breadcrumbs)}>
                 {suitePath.map((item, index) => (
                     <div key={index} className={styles.breadcrumbsItem}>
                         {item}
@@ -35,7 +35,7 @@ export function SuiteTitle(props: SuiteTitlePropsInternal): ReactNode {
                             </div>}
                     </div>
                 ))}
-            </div>
+            </div>}
             <div className={styles.titleContainer}>
                 <h2 className={classNames('text-display-1')}>
                     {suiteName ?? 'Unknown Suite'}
