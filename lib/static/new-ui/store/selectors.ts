@@ -9,6 +9,7 @@ import {
 } from '@/static/new-ui/types/store';
 import {EditScreensFeature, RunTestsFeature} from '@/constants';
 
+export const getToolName = (state: State): string => state.apiValues.toolName;
 export const getAllRootSuiteIds = (state: State): string[] => state.tree.suites.allRootIds;
 export const getAllRootGroupIds = (state: State): string[] => state.tree.groups.allRootIds;
 export const getGroups = (state: State): Record<string, GroupEntity> => state.tree.groups.byId;

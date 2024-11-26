@@ -1,8 +1,8 @@
 import {createSelector} from 'reselect';
-import {AssertViewResult, Attachment, ErrorInfo, Step, StepType} from './types';
+import {Action, AssertViewResult, Attachment, ErrorInfo, Step, StepType} from './types';
 import {TestStepCompressed, TestStepKey} from '@/types';
 import {unstable_ListTreeItemType as ListTreeItemType} from '@gravity-ui/uikit/unstable';
-import {TestStatus} from '@/constants';
+import {TestStatus, ToolName} from '@/constants';
 import {isAssertViewError, isImageDiffError, mergeSnippetIntoErrorStack} from '@/common-utils';
 import {traverseTree} from '@/static/new-ui/features/suites/components/TestSteps/utils';
 import {ImageEntityError} from '@/static/new-ui/types/store';
@@ -11,10 +11,11 @@ import {
     getCurrentResultImages,
     getExpandedStepsById
 } from '@/static/new-ui/features/suites/selectors';
+import {getToolName} from '@/static/new-ui/store/selectors';
 
 export const getTestSteps = createSelector(
-    [getCurrentResult, getCurrentResultImages],
-    (result, images): ListTreeItemType<Step>[] => {
+    [getToolName, getCurrentResult, getCurrentResultImages],
+    (toolName, result, images): ListTreeItemType<Step>[] => {
         if (!result || !result.history) {
             return [];
         }
@@ -95,7 +96,19 @@ export const getTestSteps = createSelector(
             let matchedStep: ListTreeItemType<Step> | undefined;
 
             traverseTree(steps, step => {
-                if (step.data.type === StepType.Action && step.data.title === 'assertView' && step.data.args[0] === image.stateName) {
+                if (step.data.type !== StepType.Action) {
+                    return;
+                }
+                if (toolName === ToolName.Playwright) {
+                    if (
+                        // Built-in playwright screenshot assertion
+                        (step.data.title.includes('toHaveScreenshot') && step.data.title.includes(image.stateName ?? '')) ||
+                        // Assertions provided by gemini-testing playwright-utils
+                        (step.data.title.includes('toMatchScreenshot')) && (step.children?.[0]?.data as Action)?.title?.includes(image.stateName ?? '')
+                    ) {
+                        matchedStep = step;
+                    }
+                } else if (step.data.title === 'assertView' && step.data.args[0] === image.stateName) {
                     matchedStep = step;
                 }
             });
@@ -125,7 +138,7 @@ export const getTestSteps = createSelector(
                     data: {
                         type: StepType.ErrorInfo,
                         name: image.error.name,
-                        stack: image.error.stack
+                        stack: image.error.stack || image.error.message
                     }
                 };
                 const errorAttachment = {
