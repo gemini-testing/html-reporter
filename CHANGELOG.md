@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.10.0"></a>
+# [10.10.0](https://github.com/gemini-testing/html-reporter/compare/v10.9.2...v10.10.0) (2024-11-26)
+
+
+### Bug Fixes
+
+* add playwright visual checks results to correct steps in new ui ([#617](https://github.com/gemini-testing/html-reporter/issues/617)) ([c482679](https://github.com/gemini-testing/html-reporter/commit/c482679))
+* display skip reason in new ui ([#618](https://github.com/gemini-testing/html-reporter/issues/618)) ([35c39c5](https://github.com/gemini-testing/html-reporter/commit/35c39c5))
+* fix large padding on top of test card when there is no describe ([#616](https://github.com/gemini-testing/html-reporter/issues/616)) ([7d6eadb](https://github.com/gemini-testing/html-reporter/commit/7d6eadb))
+
+
+### Features
+
+* implement tests grouping ([#615](https://github.com/gemini-testing/html-reporter/issues/615)) ([3be381f](https://github.com/gemini-testing/html-reporter/commit/3be381f))
+* implement toolbar for selecting tests and quick actions ([#613](https://github.com/gemini-testing/html-reporter/issues/613)) ([1a70f01](https://github.com/gemini-testing/html-reporter/commit/1a70f01))
+
+
+
 <a name="10.9.2"></a>
 ## [10.9.2](https://github.com/gemini-testing/html-reporter/compare/v10.9.1...v10.9.2) (2024-11-14)
 
