@@ -8,6 +8,7 @@ import {ImageEntityFail} from '@/static/new-ui/types/store';
 import styles from './index.module.css';
 import {getAssertViewStatusMessage} from '@/static/new-ui/utils/assert-view-status';
 import {makeLinksClickable} from '@/static/new-ui/utils';
+import {TestStatus} from '@/constants';
 
 interface TreeViewItemSubtitleProps {
     item: TreeViewItemData;
@@ -17,7 +18,7 @@ interface TreeViewItemSubtitleProps {
 }
 
 export function TreeViewItemSubtitle(props: TreeViewItemSubtitleProps): ReactNode {
-    if (props.item.skipReason) {
+    if (props.item.status === TestStatus.SKIPPED && props.item.skipReason) {
         return <div className={styles.skipReasonContainer}>
             <div className={styles.skipReason}>Skipped ⋅ {makeLinksClickable(props.item.skipReason)}</div>
         </div>;
