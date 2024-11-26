@@ -2,7 +2,6 @@ import React, {Fragment, useContext, useLayoutEffect} from 'react';
 import {last, isEmpty} from 'lodash';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import Parser from 'html-react-parser';
 import PropTypes from 'prop-types';
 import * as actions from '../../modules/actions';
 import BrowserTitle from './title/browser';
@@ -11,6 +10,7 @@ import Body from './body';
 import {isSkippedStatus} from '../../../common-utils';
 import {sectionStatusResolver} from './utils';
 import {MeasurementContext} from '../measurement-context';
+import {makeLinksClickable} from '@/static/new-ui/utils';
 
 function SectionBrowser(props) {
     const onToggleSection = () => {
@@ -24,7 +24,7 @@ function SectionBrowser(props) {
             <Fragment>
                 [skipped] {props.browser.name}
                 {skipReason && ', reason: '}
-                {skipReason && Parser(skipReason)}
+                {skipReason && makeLinksClickable(skipReason)}
             </Fragment>
         );
     };

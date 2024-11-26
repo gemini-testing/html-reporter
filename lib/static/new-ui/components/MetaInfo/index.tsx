@@ -1,15 +1,17 @@
 import path from 'path';
 
 import {DefinitionList} from '@gravity-ui/components';
-import {mapValues, isObject, omitBy, isEmpty} from 'lodash';
+import {isEmpty, isObject, mapValues, omitBy} from 'lodash';
 import React, {ReactNode} from 'react';
 import {connect} from 'react-redux';
 
-import {isUrl, getUrlWithBase, getRelativeUrl} from '@/common-utils';
+import {getRelativeUrl, getUrlWithBase, isUrl} from '@/common-utils';
 import {ResultEntity, State} from '@/static/new-ui/types/store';
 import {HtmlReporterValues} from '@/plugin-api';
 import {ReporterConfig} from '@/types';
 import styles from './index.module.css';
+import {makeLinksClickable} from '@/static/new-ui/utils';
+import {TestStatus} from '@/constants';
 
 const serializeMetaValues = (metaInfo: Record<string, unknown>): Record<string, string> =>
     mapValues(metaInfo, (v): string => {
@@ -20,9 +22,9 @@ const serializeMetaValues = (metaInfo: Record<string, unknown>): Record<string, 
         return v?.toString() ?? 'No value';
     });
 
-interface MetaInfoItem {
+interface MetaInfoItem<T> {
     label: string;
-    content: string;
+    content: T;
     url?: string;
     copyText?: string;
 }
@@ -58,12 +60,12 @@ function MetaInfoInternal(props: MetaInfoInternalProps): ReactNode {
         ...resolveMetaInfoExtenders()
     });
 
-    const metaInfoItems: MetaInfoItem[] = Object.entries(serializedMetaValues).map(([key, value]) => ({
+    const metaInfoItems: MetaInfoItem<string>[] = Object.entries(serializedMetaValues).map(([key, value]) => ({
         label: key,
         content: value
     }));
 
-    const metaInfoItemsWithResolvedUrls = metaInfoItems.map((item) => {
+    const metaInfoItemsWithResolvedUrls: MetaInfoItem<string | React.JSX.Element>[] = metaInfoItems.map((item) => {
         if (item.label === 'url' || metaInfoBaseUrls[item.label] === 'auto') {
             const url = getUrlWithBase(item.content, baseHost);
             return {
@@ -109,6 +111,14 @@ function MetaInfoInternal(props: MetaInfoInternalProps): ReactNode {
         });
     }
 
+    if (result.status === TestStatus.SKIPPED && result.skipReason) {
+        metaInfoItemsWithResolvedUrls.push({
+            label: 'skipReason',
+            content: makeLinksClickable(result.skipReason),
+            copyText: result.skipReason
+        });
+    }
+
     return <DefinitionList className={styles.metaInfo} qa={props.qa} items={
         metaInfoItemsWithResolvedUrls.map((item) => {
             if (item.url) {
@@ -117,14 +127,14 @@ function MetaInfoInternal(props: MetaInfoInternalProps): ReactNode {
                     content: <a className={styles.metaInfoValue} data-suite-view-link={item.url} target="_blank" href={item.url} rel="noreferrer">
                         {item.content}
                     </a>,
-                    copyText: item.copyText ?? item.content
+                    copyText: item.copyText ?? item.content as string
                 };
             }
 
             return {
                 name: item.label,
                 content: <span className={styles.metaInfoValue}>{item.content}</span>,
-                copyText: item.copyText ?? item.content
+                copyText: item.copyText ?? item.content as string
             };
         })
     }/>;

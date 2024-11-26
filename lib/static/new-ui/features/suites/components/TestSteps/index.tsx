@@ -32,6 +32,10 @@ interface TestStepsProps {
 }
 
 function TestStepsInternal(props: TestStepsProps): ReactNode {
+    if (props.testSteps.length === 0) {
+        return null;
+    }
+
     const items = useList({
         items: props.testSteps,
         withExpandedState: true,

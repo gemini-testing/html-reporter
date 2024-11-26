@@ -19,6 +19,7 @@ export interface TreeViewItemData {
     errorStack?: string;
     images?: ImageEntity[];
     parentData?: TreeViewItemData;
+    skipReason?: string;
 }
 
 export interface TreeRoot {

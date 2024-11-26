@@ -20,3 +20,21 @@
     font-size: 15px;
     word-break: break-word;
 }
+
+.skip-reason-container {
+    font-size: 15px;
+    overflow: hidden;
+}
+
+.skip-reason {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.skip-reason-container a:link, .skip-reason-container a:visited {
+    color: var(--color-link);
+}
+
+.skip-reason-container a:hover {
+    color: var(--color-link-hover);
+}

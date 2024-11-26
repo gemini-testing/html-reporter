@@ -10,8 +10,7 @@ import {
     hasUnrelatedToScreenshotsErrors,
     isImageDiffError,
     isInvalidRefImageError,
-    isNoRefImageError,
-    wrapLinkByTag
+    isNoRefImageError
 } from '../../common-utils';
 import {
     ErrorDetails,
@@ -50,7 +49,7 @@ const getSkipComment = (suite: TestplaneTestResult | TestplaneSuite): string | n
 };
 
 const wrapSkipComment = (skipComment: string | null | undefined): string => {
-    return skipComment ? wrapLinkByTag(skipComment) : 'Unknown reason';
+    return skipComment ?? 'Unknown reason';
 };
 
 const getHistory = (history?: TestplaneTestResult['history']): TestStepCompressed[] => {

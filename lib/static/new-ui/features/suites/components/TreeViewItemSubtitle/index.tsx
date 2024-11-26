@@ -7,6 +7,7 @@ import {ImageWithMagnifier} from '@/static/new-ui/components/ImageWithMagnifier'
 import {ImageEntityFail} from '@/static/new-ui/types/store';
 import styles from './index.module.css';
 import {getAssertViewStatusMessage} from '@/static/new-ui/utils/assert-view-status';
+import {makeLinksClickable} from '@/static/new-ui/utils';
 
 interface TreeViewItemSubtitleProps {
     item: TreeViewItemData;
@@ -16,7 +17,11 @@ interface TreeViewItemSubtitleProps {
 }
 
 export function TreeViewItemSubtitle(props: TreeViewItemSubtitleProps): ReactNode {
-    if (props.item.images?.length) {
+    if (props.item.skipReason) {
+        return <div className={styles.skipReasonContainer}>
+            <div className={styles.skipReason}>Skipped ⋅ {makeLinksClickable(props.item.skipReason)}</div>
+        </div>;
+    } else if (props.item.images?.length) {
         return <div>
             {props.item.images.map((imageEntity, index) => {
                 const image = (imageEntity as ImageEntityFail).diffImg ?? (imageEntity as ImageEntityFail).actualImg;
