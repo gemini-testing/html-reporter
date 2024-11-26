@@ -8,7 +8,7 @@ import {
     CloudCheck
 } from '@gravity-ui/icons';
 import {Spin} from '@gravity-ui/uikit';
-import React from 'react';
+import React, {ReactNode} from 'react';
 
 import {TestStatus} from '@/constants';
 import {ImageFile} from '@/types';
@@ -34,12 +34,6 @@ export const getIconByStatus = (status: TestStatus): React.JSX.Element => {
     return <CircleDashed />;
 };
 
-export const getFullTitleByTitleParts = (titleParts: string[]): string => {
-    const DELIMITER = ' ';
-
-    return titleParts.join(DELIMITER).trim();
-};
-
 export const getImageDisplayedSize = (image: ImageFile): string => `${image.size.width}×${image.size.height}`;
 
 export const stringify = (value: unknown): string => {
@@ -60,4 +54,36 @@ export const stringify = (value: unknown): string => {
     }
 
     return toString(value);
+};
+
+export const makeLinksClickable = (text: string): React.JSX.Element => {
+    const urlRegex = /https?:\/\/[^\s]*/g;
+
+    const parts = text.split(urlRegex);
+    const urls = text.match(urlRegex) || [];
+
+    return <>{
+        parts.reduce((elements, part, index) => {
+            elements.push(part);
+
+            if (urls[index]) {
+                const href = urls[index].startsWith('www.')
+                    ? `http://${urls[index]}`
+                    : urls[index];
+
+                elements.push(
+                    <a
+                        key={index}
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        {urls[index]}
+                    </a>
+                );
+            }
+
+            return elements;
+        }, [] as ReactNode[])
+    }</>;
 };

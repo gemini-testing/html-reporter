@@ -1,5 +1,6 @@
+import {expect} from 'chai';
 import React from 'react';
-import {defaults, set} from 'lodash';
+import {defaults} from 'lodash';
 import proxyquire from 'proxyquire';
 import {SUCCESS, SKIPPED, ERROR} from 'lib/constants/test-statuses';
 import {UNCHECKED} from 'lib/constants/checked-statuses';
@@ -30,7 +31,6 @@ describe('<SectionBrowser/>', () => {
 
         SectionBrowser = proxyquire('lib/static/components/section/section-browser', {
             '../../modules/actions': actionsStub,
-            './title/browser-skipped': {default: BrowserSkippedTitle},
             './title/browser': {default: BrowserTitle},
             './body': {default: Body}
         }).default;
@@ -45,12 +45,9 @@ describe('<SectionBrowser/>', () => {
             const resultsById = mkResult({id: 'res', status: SKIPPED});
             const tree = mkStateTree({browsersById, browsersStateById, resultsById});
 
-            mkSectionBrowserComponent({browserId: 'yabro-1'}, {tree});
+            const section = mkSectionBrowserComponent({browserId: 'yabro-1'}, {tree});
 
-            assert.calledWithMatch(
-                BrowserSkippedTitle,
-                set({}, 'title.props.children', [`[${SKIPPED}] `, 'yabro', undefined, undefined])
-            );
+            expect(section.getByText(/.*?\[skipped\].*?/)).to.exist;
         });
 
         it('should pass skip reason', () => {
@@ -59,12 +56,9 @@ describe('<SectionBrowser/>', () => {
             const resultsById = mkResult({id: 'res', status: SKIPPED, skipReason: 'some-reason'});
             const tree = mkStateTree({browsersById, browsersStateById, resultsById});
 
-            mkSectionBrowserComponent({browserId: 'yabro-1'}, {tree});
+            const section = mkSectionBrowserComponent({browserId: 'yabro-1'}, {tree});
 
-            assert.calledWithMatch(
-                BrowserSkippedTitle,
-                set({}, 'title.props.children', [`[${SKIPPED}] `, 'yabro', ', reason: ', 'some-reason'])
-            );
+            expect(section.getByText(/.*?reason:\s*some-reason.*?/)).to.exist;
         });
 
         it('should not render body even if browser in opened state', () => {
@@ -81,6 +75,13 @@ describe('<SectionBrowser/>', () => {
 
     describe('executed test with fails in retries and skip in result', () => {
         it('should render not skipped title', () => {
+            SectionBrowser = proxyquire('lib/static/components/section/section-browser', {
+                '../../modules/actions': actionsStub,
+                './title/browser-skipped': {default: BrowserSkippedTitle},
+                './title/browser': {default: BrowserTitle},
+                './body': {default: Body}
+            }).default;
+
             const browsersById = mkBrowser(
                 {id: 'yabro-1', name: 'yabro', resultIds: ['res-1', 'res-2'], parentId: 'test'}
             );
@@ -93,10 +94,28 @@ describe('<SectionBrowser/>', () => {
 
             mkSectionBrowserComponent({browserId: 'yabro-1'}, {tree});
 
-            assert.calledWithMatch(
-                BrowserTitle,
-                set({}, 'title.props.children', [`[${SKIPPED}] `, 'yabro', ', reason: ', 'some-reason'])
+            assert.notCalled(BrowserSkippedTitle);
+        });
+
+        it('should render title with skip reason', () => {
+            SectionBrowser = proxyquire('lib/static/components/section/section-browser', {
+                '../../modules/actions': actionsStub,
+                './body': {default: Body}
+            }).default;
+
+            const browsersById = mkBrowser(
+                {id: 'yabro-1', name: 'yabro', resultIds: ['res-1', 'res-2'], parentId: 'test'}
             );
+            const browsersStateById = {'yabro-1': {shouldBeShown: true, shouldBeOpened: true}};
+            const resultsById = {
+                ...mkResult({id: 'res-1', status: ERROR, error: {}}),
+                ...mkResult({id: 'res-2', status: SKIPPED, skipReason: 'some-reason'})
+            };
+            const tree = mkStateTree({browsersById, browsersStateById, resultsById});
+
+            const section = mkSectionBrowserComponent({browserId: 'yabro-1'}, {tree});
+
+            expect(section.getByText(/.*?reason:\s*some-reason.*?/)).to.exist;
         });
 
         it('should render body if browser in opened state', () => {

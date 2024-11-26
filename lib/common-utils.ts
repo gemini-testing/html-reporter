@@ -107,12 +107,6 @@ export const getRelativeUrl = (absoluteUrl: string): string => {
     }
 };
 
-export const wrapLinkByTag = (text: string): string => {
-    return text.replace(/https?:\/\/[^\s]*/g, (url) => {
-        return `<a target="_blank" href="${url}">${url}</a>`;
-    });
-};
-
 export const mkTestId = (fullTitle: string, browserId: string): string => {
     return fullTitle + '.' + browserId;
 };

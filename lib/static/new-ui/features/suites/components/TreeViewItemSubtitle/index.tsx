@@ -1,13 +1,13 @@
 import classNames from 'classnames';
 import React, {ReactNode} from 'react';
 import stripAnsi from 'strip-ansi';
-import Parser from 'html-react-parser';
 
 import {TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
 import {ImageWithMagnifier} from '@/static/new-ui/components/ImageWithMagnifier';
 import {ImageEntityFail} from '@/static/new-ui/types/store';
 import styles from './index.module.css';
 import {getAssertViewStatusMessage} from '@/static/new-ui/utils/assert-view-status';
+import {makeLinksClickable} from '@/static/new-ui/utils';
 
 interface TreeViewItemSubtitleProps {
     item: TreeViewItemData;
@@ -19,7 +19,7 @@ interface TreeViewItemSubtitleProps {
 export function TreeViewItemSubtitle(props: TreeViewItemSubtitleProps): ReactNode {
     if (props.item.skipReason) {
         return <div className={styles.skipReasonContainer}>
-            <div className={styles.skipReason}>Skipped ⋅ {Parser(props.item.skipReason)}</div>
+            <div className={styles.skipReason}>Skipped ⋅ {makeLinksClickable(props.item.skipReason)}</div>
         </div>;
     } else if (props.item.images?.length) {
         return <div>
