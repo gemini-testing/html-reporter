@@ -123,8 +123,10 @@ export default (state: State, action: SomeAction): State => {
             const newExpandedTreeNodesById: Record<string, boolean> = {};
 
             while (nodeData) {
-                newExpandedTreeNodesById[nodeData.id] = true;
                 nodeData = nodeData.parentData ?? null;
+                if (nodeData) {
+                    newExpandedTreeNodesById[nodeData.id] = true;
+                }
             }
 
             return applyStateUpdate(state, {
