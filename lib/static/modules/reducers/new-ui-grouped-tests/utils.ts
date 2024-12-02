@@ -48,7 +48,8 @@ const extractErrors = (result: ResultEntity, images: ImageEntity[]): string[] =>
 const groupTestsByMeta = (expr: GroupByMetaExpression, resultsById: Record<string, ResultEntity>): Record<string, GroupEntity> => {
     const DEFAULT_GROUP = `__${GroupByType.Meta}__DEFAULT_GROUP`;
     const results = Object.values(resultsById);
-    const groups: Record<string | symbol, GroupEntity> = {};
+    const groupsById: Record<string | symbol, GroupEntity> = {};
+    const groupingKeyToId: Record<string, string> = {};
     let id = 1;
 
     for (const result of results) {
@@ -59,24 +60,29 @@ const groupTestsByMeta = (expr: GroupByMetaExpression, resultsById: Record<strin
             groupingKey = `${GroupByType.Meta}__${expr.key}__${stringify(result.metaInfo[expr.key])}`;
         }
 
-        if (!groups[groupingKey]) {
-            groups[groupingKey] = {
-                id: id.toString(),
+        if (!groupingKeyToId[groupingKey]) {
+            groupingKeyToId[groupingKey] = id.toString();
+            id++;
+        }
+
+        const groupId = groupingKeyToId[groupingKey];
+        if (!groupsById[groupId]) {
+            groupsById[groupId] = {
+                id: groupId,
                 key: expr.key,
                 label: stringify(result.metaInfo[expr.key]),
                 resultIds: [],
                 browserIds: []
             };
-            id++;
         }
 
-        groups[groupingKey].resultIds.push(result.id);
-        if (!groups[groupingKey].browserIds.includes(result.parentId)) {
-            groups[groupingKey].browserIds.push(result.parentId);
+        groupsById[groupId].resultIds.push(result.id);
+        if (!groupsById[groupId].browserIds.includes(result.parentId)) {
+            groupsById[groupId].browserIds.push(result.parentId);
         }
     }
 
-    return groups;
+    return groupsById;
 };
 
 const groupTestsByError = (resultsById: Record<string, ResultEntity>, imagesById: Record<string, ImageEntity>, errorPatterns: State['config']['errorPatterns']): Record<string, GroupEntity> => {

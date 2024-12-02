@@ -9,6 +9,7 @@ export default (state: State, action: SomeAction): State => {
     switch (action.type) {
         case actionNames.INIT_STATIC_REPORT:
         case actionNames.INIT_GUI_REPORT:
+        case actionNames.SUITES_PAGE_SET_TREE_VIEW_MODE:
         case actionNames.GROUP_TESTS_SET_CURRENT_EXPRESSION: {
             const {allTreeNodeIds} = getTreeViewItems(state);
 
@@ -20,7 +21,8 @@ export default (state: State, action: SomeAction): State => {
 
             let currentGroupId: string | null | undefined = null;
             let currentTreeNodeId: string | null | undefined;
-            if (action.type === actionNames.GROUP_TESTS_SET_CURRENT_EXPRESSION) {
+            let treeViewMode = state.ui.suitesPage.treeViewMode;
+            if (action.type === actionNames.GROUP_TESTS_SET_CURRENT_EXPRESSION || action.type === actionNames.SUITES_PAGE_SET_TREE_VIEW_MODE) {
                 const {currentBrowserId} = state.app.suitesPage;
                 if (currentBrowserId) {
                     const {tree} = getTreeViewItems(state);
@@ -32,6 +34,10 @@ export default (state: State, action: SomeAction): State => {
                 }
             }
 
+            if (action.type === actionNames.SUITES_PAGE_SET_TREE_VIEW_MODE) {
+                treeViewMode = action.payload.treeViewMode;
+            }
+
             return applyStateUpdate(state, {
                 app: {
                     suitesPage: {
@@ -41,7 +47,8 @@ export default (state: State, action: SomeAction): State => {
                 },
                 ui: {
                     suitesPage: {
-                        expandedTreeNodesById
+                        expandedTreeNodesById,
+                        treeViewMode
                     }
                 }
             });

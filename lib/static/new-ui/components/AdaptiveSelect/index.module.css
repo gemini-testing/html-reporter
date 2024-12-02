@@ -1,0 +1,94 @@
+.selectPopup {
+    width: 150px;
+    font-size: var(--g-text-body-1-font-size);
+}
+
+.selectPopup :global(.g-select-list__option) {
+    padding: 0;
+}
+
+.selectPopup :global(.g-select-list__option .g-select-list__tick-icon) {
+    display: none;
+}
+
+.option-container {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    padding: 0 10px;
+    gap: 4px;
+}
+
+.current-option-icons-container {
+    margin-left: auto;
+    display: flex;
+    gap: 4px;
+}
+
+.label-icons-container {
+    display: none;
+    position: relative;
+    padding-right: 2px;
+}
+
+.label-icon-right {
+    margin-left: -6px;
+}
+
+.label-dot {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 4px;
+    width: 4px;
+    border-radius: 100vh;
+    background-color: var(--g-color-private-red-600-solid);
+}
+
+.direction-icon {
+    margin-left: auto;
+}
+
+.clear-button {
+    display: none;
+    margin-left: auto;
+}
+
+.clear-button:hover {
+    opacity: 0.7;
+    cursor: pointer;
+}
+
+.container div:has(.tooltip) {
+    display: none;
+}
+
+@container (max-width: 500px) {
+    .label-text {
+        display: none;
+    }
+
+    .container div:has(.tooltip) {
+        display: block;
+    }
+
+    .label-icons-container {
+        display: block;
+    }
+}
+
+@container (max-width: 450px) {
+    .select :global(.g-select-control__option-text), .select :global(.g-select-clear) {
+        display: none;
+    }
+
+    .clear-button {
+        display: block;
+    }
+
+    .label-dot {
+        display: block;
+    }
+}

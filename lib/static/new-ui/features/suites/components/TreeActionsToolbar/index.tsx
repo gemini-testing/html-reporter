@@ -9,7 +9,9 @@ import {
     Play,
     Square,
     SquareCheck,
-    SquareDashed
+    SquareDashed,
+    ListUl,
+    Hierarchy
 } from '@gravity-ui/icons';
 import React, {ReactNode, useMemo} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
@@ -19,12 +21,13 @@ import {
     acceptOpened,
     deselectAll,
     retrySuite,
-    selectAll, setAllTreeNodesState,
+    selectAll,
+    setAllTreeNodesState, setTreeViewMode,
     staticAccepterStageScreenshot,
     staticAccepterUnstageScreenshot,
     undoAcceptImages
 } from '@/static/modules/actions';
-import {ImageEntity} from '@/static/new-ui/types/store';
+import {ImageEntity, TreeViewMode} from '@/static/new-ui/types/store';
 import {CHECKED, INDETERMINATE} from '@/constants/checked-statuses';
 import {IconButton} from '@/static/new-ui/components/IconButton';
 import {
@@ -43,6 +46,7 @@ import {isAcceptable, isScreenRevertable} from '@/static/modules/utils';
 import {EditScreensFeature, RunTestsFeature} from '@/constants';
 import {getTreeViewItems} from '@/static/new-ui/features/suites/components/SuitesTreeView/selectors';
 import {GroupBySelect} from '@/static/new-ui/features/suites/components/GroupBySelect';
+import {SortBySelect} from '@/static/new-ui/features/suites/components/SortBySelect';
 
 interface TreeActionsToolbarProps {
     onHighlightCurrentTest?: () => void;
@@ -86,6 +90,7 @@ export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
     const selectedImages: ImageEntity[] = useSelector(getSelectedImages);
     const activeImages = isSelectedAtLeastOne ? selectedImages : visibleImages;
 
+    const treeViewMode = useSelector(state => state.ui.suitesPage.treeViewMode);
     const currentTreeNodeId = useSelector(state => state.app.suitesPage.currentTreeNodeId);
     const {visibleTreeNodeIds} = useSelector(getTreeViewItems);
     const isFocusAvailable = isInitialized && currentTreeNodeId && visibleTreeNodeIds.includes(currentTreeNodeId);
@@ -152,6 +157,10 @@ export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
         }
     };
 
+    const handleToggleTreeView = (): void => {
+        dispatch(setTreeViewMode({treeViewMode: treeViewMode === TreeViewMode.Tree ? TreeViewMode.List : TreeViewMode.Tree}));
+    };
+
     const selectedOrVisible = isSelectedAtLeastOne ? 'selected' : 'visible';
     const areActionsDisabled = isRunning || !isInitialized;
 
@@ -165,6 +174,12 @@ export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
                 <IconButton className={styles.iconButton} icon={<Icon data={Check} />} tooltip={`Accept ${selectedOrVisible} screenshots`} view={'flat'} onClick={handleAccept} disabled={areActionsDisabled || !isAtLeastOneAcceptable}></IconButton>
         )}
         {(isRunTestsAvailable || isEditScreensAvailable) && <div className={styles.buttonsDivider}></div>}
+        <IconButton
+            icon={<Icon data={treeViewMode === TreeViewMode.Tree ? ListUl : Hierarchy} height={14}/>}
+            tooltip={treeViewMode === TreeViewMode.Tree ? 'Switch to list view' : 'Switch to tree view'}
+            view={'flat'}
+            onClick={handleToggleTreeView}
+            disabled={!isInitialized} />
         <IconButton icon={<Icon data={SquareDashed} height={14}/>} tooltip={'Focus on active test'} view={'flat'} onClick={props.onHighlightCurrentTest} disabled={!isFocusAvailable}/>
         <IconButton icon={<Icon data={ChevronsExpandVertical} height={14}/>} tooltip={'Expand all'} view={'flat'} onClick={handleExpandAll} disabled={!isInitialized}/>
         <IconButton icon={<Icon data={ChevronsCollapseVertical} height={14}/>} tooltip={'Collapse all'} view={'flat'} onClick={handleCollapseAll} disabled={!isInitialized}/>
@@ -172,7 +187,8 @@ export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
     </>;
 
     return <div className={styles.container}>
-        <GroupBySelect/>
+        <GroupBySelect />
+        <SortBySelect />
         <div className={styles.buttonsContainer}>
             {viewButtons}
         </div>

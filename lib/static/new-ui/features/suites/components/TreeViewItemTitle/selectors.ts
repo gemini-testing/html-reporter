@@ -1,7 +1,7 @@
 import {createSelector} from 'reselect';
 import {CheckStatus, INDETERMINATE, UNCHECKED} from '@/constants/checked-statuses';
 import {EntityType, TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
-import {GroupEntity, State} from '@/static/new-ui/types/store';
+import {State} from '@/static/new-ui/types/store';
 import {getBrowsersState, getGroups, getSuitesState} from '@/static/new-ui/store/selectors';
 import {NEW_ISSUE_LINK} from '@/constants';
 
@@ -13,7 +13,7 @@ export const getItemCheckStatus = createSelector(
         } else if (item.entityType === EntityType.Browser) {
             return browsersStateById[item.entityId].checkStatus;
         } else if (item.entityType === EntityType.Group) {
-            const group = Object.values(groups).find(group => group.id === item.entityId) as GroupEntity;
+            const group = groups[item.entityId];
             const childCount = group.browserIds.length;
             const checkedCount = group.browserIds.reduce((sum, browserId) => {
                 return sum + browsersStateById[browserId].checkStatus;

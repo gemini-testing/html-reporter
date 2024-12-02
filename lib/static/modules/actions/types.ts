@@ -7,6 +7,7 @@ import {ThunkAction} from 'redux-thunk';
 import {State} from '@/static/new-ui/types/store';
 import {LifecycleAction} from '@/static/modules/actions/lifecycle';
 import {SuitesPageAction} from '@/static/modules/actions/suites-page';
+import {SortTestsAction} from '@/static/modules/actions/sort-tests';
 
 export type {Dispatch} from 'redux';
 
@@ -22,4 +23,5 @@ export type AppThunk<ReturnType = Promise<void>> = ThunkAction<ReturnType, State
 export type SomeAction =
     | GroupTestsAction
     | LifecycleAction
-    | SuitesPageAction;
+    | SuitesPageAction
+    | SortTestsAction;

@@ -12,9 +12,9 @@ export interface TreeViewItemData {
     entityType: EntityType;
     entityId: string;
     prefix?: string;
-    title: string;
+    title: string[];
     status: TestStatus | null;
-    tags?: string[];
+    tags: string[];
     errorTitle?: string;
     errorStack?: string;
     images?: ImageEntity[];

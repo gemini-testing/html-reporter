@@ -1,10 +1,13 @@
+import {Cubes3Overlap} from '@gravity-ui/icons';
+import {Icon, SelectOptionGroup} from '@gravity-ui/uikit';
+import React, {ReactNode} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
-import {Select, SelectOptionGroup, SelectProps} from '@gravity-ui/uikit';
+
 import {GroupByType} from '@/static/new-ui/types/store';
 import {setCurrentGroupByExpression} from '@/static/modules/actions';
-import React, {ReactNode} from 'react';
+import {AdaptiveSelect} from '@/static/new-ui/components/AdaptiveSelect';
 
-export function GroupBySelect(props: SelectProps): ReactNode {
+export function GroupBySelect(): ReactNode {
     const dispatch = useDispatch();
 
     const groupByExpressionId = useSelector((state) => state.app.groupTestsData.currentExpressionIds)[0];
@@ -29,12 +32,22 @@ export function GroupBySelect(props: SelectProps): ReactNode {
             })
         }));
 
-    const onGroupByUpdate = (value: string[]): void => {
-        const newGroupByExpressionId = value[0];
+    const onOptionClick = (newGroupByExpressionId: string): void => {
         if (newGroupByExpressionId !== groupByExpressionId) {
-            dispatch(setCurrentGroupByExpression({expressionIds: newGroupByExpressionId ? [newGroupByExpressionId] : []}));
+            dispatch(setCurrentGroupByExpression({expressionIds: [newGroupByExpressionId]}));
         }
     };
 
-    return <Select view={'clear'} label='Group by' options={groupByOptions} onUpdate={onGroupByUpdate} value={[groupByExpressionId]} hasClear={Boolean(groupByExpressionId)} {...props}/>;
+    const onClear = (): void => {
+        dispatch(setCurrentGroupByExpression({expressionIds: []}));
+    };
+
+    return <AdaptiveSelect
+        options={groupByOptions}
+        currentValue={groupByExpressionId}
+        label={'Group by'}
+        labelIcon={<Icon data={Cubes3Overlap}/>}
+        onClear={onClear}
+        onOptionClick={onOptionClick}
+    />;
 }

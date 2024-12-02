@@ -206,6 +206,27 @@ export interface GroupByErrorExpression {
 
 export type GroupByExpression = GroupByMetaExpression | GroupByErrorExpression;
 
+export enum SortType {
+    ByName,
+    ByRetries
+}
+
+export enum SortDirection {
+    Asc,
+    Desc
+}
+
+export interface SortByExpression {
+    id: string;
+    type: SortType;
+    label: string;
+}
+
+export enum TreeViewMode {
+    Tree,
+    List
+}
+
 export interface State {
     app: {
         isNewUi: boolean;
@@ -236,9 +257,15 @@ export interface State {
             availableExpressions: GroupByExpression[];
             currentExpressionIds: string[];
         };
+        sortTestsData: {
+            availableExpressions: SortByExpression[];
+            currentExpressionIds: string[];
+            currentDirection: SortDirection;
+        }
     };
     ui: {
         suitesPage: {
+            treeViewMode: TreeViewMode;
             retryIndexByTreeNodeId: Record<string, number | null>;
             expandedTreeNodesById: Record<string, boolean>;
             expandedSectionsById: Record<string, boolean>;

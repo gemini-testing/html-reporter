@@ -23,8 +23,8 @@ export const getCurrentResultId = (state: State): string | null => {
     const treeNodeRetryResultId = resultIds[state.ui.suitesPage.retryIndexByTreeNodeId[treeNodeId] ?? -1];
 
     let lastMatchedGroupResultId: string | undefined;
-    const group = Object.values(state.tree.groups.byId).find(group => group.id === groupId);
-    if (groupId && group) {
+    if (groupId) {
+        const group = state.tree.groups.byId[groupId];
         lastMatchedGroupResultId = resultIds.findLast(resultId => group.resultIds.includes(resultId));
     }
 

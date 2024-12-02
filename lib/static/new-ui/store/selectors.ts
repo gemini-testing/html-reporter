@@ -5,7 +5,7 @@ import {
     ResultEntity,
     SuiteEntity,
     SuiteState,
-    BrowserState, GroupEntity
+    BrowserState, GroupEntity, TreeViewMode
 } from '@/static/new-ui/types/store';
 import {EditScreensFeature, RunTestsFeature} from '@/constants';
 
@@ -24,5 +24,7 @@ export const getImages = (state: State): Record<string, ImageEntity> => state.tr
 export const getIsInitialized = (state: State): boolean => state.app.isInitialized;
 export const getIsStaticImageAccepterEnabled = (state: State): boolean => state.staticImageAccepter.enabled;
 export const getIsGui = (state: State): boolean => state.gui;
+export const getTreeViewMode = (state: State): TreeViewMode => state.ui.suitesPage.treeViewMode;
+export const getSortTestsData = (state: State): State['app']['sortTestsData'] => state.app.sortTestsData;
 
 export const getAreCheckboxesNeeded = (state: State): boolean => state.app.availableFeatures.includes(RunTestsFeature) || state.app.availableFeatures.includes(EditScreensFeature);
