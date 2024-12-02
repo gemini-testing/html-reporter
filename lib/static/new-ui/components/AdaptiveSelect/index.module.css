@@ -1,13 +1,13 @@
-.selectPopup {
+.select-popup {
     width: 150px;
     font-size: var(--g-text-body-1-font-size);
 }
 
-.selectPopup :global(.g-select-list__option) {
+.select-popup :global(.g-select-list__option) {
     padding: 0;
 }
 
-.selectPopup :global(.g-select-list__option .g-select-list__tick-icon) {
+.select-popup :global(.g-select-list__option .g-select-list__tick-icon) {
     display: none;
 }
 

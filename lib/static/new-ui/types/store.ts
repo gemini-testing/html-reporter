@@ -12,6 +12,7 @@ import {CoordBounds} from 'looks-same';
 import {Point} from '@/static/new-ui/types/index';
 import {AcceptableImage} from '@/static/modules/static-image-accepter';
 import {CheckStatus} from '@/constants/checked-statuses';
+import {EntityType} from '@/static/new-ui/features/suites/components/SuitesPage/types';
 
 export interface GroupEntity {
     id: string;
@@ -21,6 +22,7 @@ export interface GroupEntity {
     label: string;
     resultIds: string[];
     browserIds: string[];
+    type: EntityType.Group;
 }
 
 export interface SuiteEntityNode {
@@ -53,8 +55,9 @@ export interface BrowserEntity {
     parentId: string;
 }
 
-export const isSuiteEntity = (entity: SuiteEntity | BrowserEntity): entity is SuiteEntity => Boolean((entity as SuiteEntity).suitePath);
+export const isSuiteEntity = (entity: SuiteEntity | BrowserEntity | GroupEntity): entity is SuiteEntity => Boolean((entity as SuiteEntity).suitePath);
 export const isBrowserEntity = (entity: SuiteEntity | BrowserEntity): entity is BrowserEntity => Boolean((entity as BrowserEntity).resultIds);
+export const isGroupEntity = (entity: SuiteEntity | BrowserEntity | GroupEntity): entity is GroupEntity => (entity as GroupEntity).type === EntityType.Group;
 
 export interface ResultEntityCommon {
     id: string;

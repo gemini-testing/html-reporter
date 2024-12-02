@@ -12,6 +12,7 @@ import {isAssertViewError} from '@/common-utils';
 import stripAnsi from 'strip-ansi';
 import {IMAGE_COMPARISON_FAILED_MESSAGE, TestStatus} from '@/constants';
 import {stringify} from '@/static/new-ui/utils';
+import {EntityType} from '@/static/new-ui/features/suites/components/SuitesPage/types';
 
 const extractErrors = (result: ResultEntity, images: ImageEntity[]): string[] => {
     const errors = new Set<string>();
@@ -72,7 +73,8 @@ const groupTestsByMeta = (expr: GroupByMetaExpression, resultsById: Record<strin
                 key: expr.key,
                 label: stringify(result.metaInfo[expr.key]),
                 resultIds: [],
-                browserIds: []
+                browserIds: [],
+                type: EntityType.Group
             };
         }
 
@@ -113,7 +115,8 @@ const groupTestsByError = (resultsById: Record<string, ResultEntity>, imagesById
                     key: 'error',
                     label: stripAnsi(groupLabel),
                     resultIds: [],
-                    browserIds: []
+                    browserIds: [],
+                    type: EntityType.Group
                 };
                 id++;
             }
