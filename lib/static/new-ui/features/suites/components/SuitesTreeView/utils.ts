@@ -53,7 +53,7 @@ export const formatEntityToTreeNodeData = ({browsers, browsersState, results, im
         const browserEntities = entity.browserIds.flatMap(browserId => browsersState[browserId].shouldBeShown ? [browsers[browserId]] : []);
 
         const testsCount = browserEntities.length;
-        const retriesCount = entity.resultIds.filter(resultId => browserEntities.find(browser => browser.resultIds.includes(resultId))).length;
+        const retriesCount = entity.resultIds.filter(resultId => browsersState[results[resultId].parentId].shouldBeShown).length;
 
         return {
             id: entity.id,

@@ -215,8 +215,8 @@ export enum SortType {
 }
 
 export enum SortDirection {
-    Asc,
-    Desc
+    Asc = 'asc',
+    Desc = 'desc'
 }
 
 export interface SortByExpression {

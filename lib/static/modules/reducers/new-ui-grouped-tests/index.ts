@@ -16,10 +16,10 @@ export default (state: State, action: SomeAction): State => {
         case actionNames.INIT_STATIC_REPORT: {
             const availableSections: GroupBySection[] = [{
                 id: 'meta',
-                label: 'meta'
+                label: 'Meta'
             }, {
                 id: 'error',
-                label: 'error'
+                label: 'Error'
             }];
 
             const availableExpressions: GroupByExpression[] = [];

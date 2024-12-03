@@ -1,4 +1,4 @@
-import {SortByExpression, SortType, State} from '@/static/new-ui/types/store';
+import {SortByExpression, SortDirection, SortType, State} from '@/static/new-ui/types/store';
 import {SomeAction} from '@/static/modules/actions/types';
 import actionNames from '@/static/modules/action-names';
 import {applyStateUpdate} from '@/static/modules/utils';
@@ -8,14 +8,16 @@ export default (state: State, action: SomeAction): State => {
         case actionNames.INIT_STATIC_REPORT:
         case actionNames.INIT_GUI_REPORT: {
             const availableExpressions: SortByExpression[] = [
-                {id: 'by-name', label: 'name', type: SortType.ByName},
-                {id: 'by-retries', label: 'failed retries', type: SortType.ByRetries}
+                {id: 'by-name', label: 'Name', type: SortType.ByName},
+                {id: 'by-retries', label: 'Failed retries', type: SortType.ByRetries}
             ];
 
             return applyStateUpdate(state, {
                 app: {
                     sortTestsData: {
-                        availableExpressions
+                        availableExpressions,
+                        currentDirection: SortDirection.Asc,
+                        currentExpressionIds: [availableExpressions[0].id]
                     }
                 }
             });
