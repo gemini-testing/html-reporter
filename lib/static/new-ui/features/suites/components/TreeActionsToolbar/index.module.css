@@ -6,6 +6,8 @@
     gap: 4px;
     position: relative;
     container-type: inline-size;
+    /* This makes toolbar select popups stay on top of tree view */
+    z-index: 1;
 }
 
 .buttons-container {
