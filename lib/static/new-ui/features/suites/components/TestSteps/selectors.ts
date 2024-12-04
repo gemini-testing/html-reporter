@@ -63,7 +63,7 @@ export const getTestSteps = createSelector(
         if (result.error && !isImageDiffError(result.error) && !isAssertViewError(result.error)) {
             const lastErroredStep = getLastErroredStep(steps);
             const error = mergeSnippetIntoErrorStack(result.error);
-            const errorAttachment: ListTreeItemType<ErrorInfo> = {
+            const errorInfo: ListTreeItemType<ErrorInfo> = {
                 id: `${lastErroredStep?.id} error 0`,
                 data: {
                     type: StepType.ErrorInfo,
@@ -71,19 +71,22 @@ export const getTestSteps = createSelector(
                     stack: error.stack
                 }
             };
+            const errorAttachment: ListTreeItemType<Attachment | ErrorInfo> = {
+                id: `${lastErroredStep?.id} error`,
+                data: {
+                    type: StepType.Attachment,
+                    title: 'Error',
+                    hasChildren: true
+                } satisfies Attachment,
+                children: [errorInfo]
+            };
 
             if (lastErroredStep && lastErroredStep.children && lastErroredStep.children.length > 0) {
-                lastErroredStep.children.push({
-                    id: `${lastErroredStep.id} error`,
-                    data: {
-                        type: StepType.Attachment,
-                        title: 'Error',
-                        hasChildren: true
-                    } satisfies Attachment,
-                    children: [errorAttachment]
-                });
+                lastErroredStep.children.push(errorAttachment);
             } else if (lastErroredStep) {
-                lastErroredStep.children = [errorAttachment];
+                lastErroredStep.children = [errorInfo];
+            } else {
+                steps.push(errorAttachment);
             }
         }
 
