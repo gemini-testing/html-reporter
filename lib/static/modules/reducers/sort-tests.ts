@@ -2,7 +2,7 @@ import {SortByExpression, SortDirection, State} from '@/static/new-ui/types/stor
 import {SomeAction} from '@/static/modules/actions/types';
 import actionNames from '@/static/modules/action-names';
 import {applyStateUpdate} from '@/static/modules/utils';
-import {SORT_BY_FAILED_RETRIES, SORT_BY_NAME, SORT_BY_TESTS_COUNT} from '@/constants/sort-tests';
+import {SORT_BY_FAILED_RETRIES, SORT_BY_NAME, SORT_BY_TESTS_COUNT} from '@/static/constants/sort-tests';
 
 export default (state: State, action: SomeAction): State => {
     switch (action.type) {

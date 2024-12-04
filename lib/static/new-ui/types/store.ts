@@ -1,3 +1,4 @@
+import {CoordBounds} from 'looks-same';
 import {DiffModeId, Feature, TestStatus, ViewMode} from '@/constants';
 import {
     BrowserItem,
@@ -8,7 +9,6 @@ import {
     TestStepCompressed
 } from '@/types';
 import {HtmlReporterValues} from '@/plugin-api';
-import {CoordBounds} from 'looks-same';
 import {Point} from '@/static/new-ui/types/index';
 import {AcceptableImage} from '@/static/modules/static-image-accepter';
 import {CheckStatus} from '@/constants/checked-statuses';
