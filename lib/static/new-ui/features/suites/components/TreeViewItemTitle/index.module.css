@@ -40,6 +40,7 @@
 
 .tags-container {
     display: inline-block;
+    height: 20px;
 }
 
 .tag {

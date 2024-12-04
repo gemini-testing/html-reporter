@@ -211,7 +211,8 @@ export type GroupByExpression = GroupByMetaExpression | GroupByErrorExpression;
 
 export enum SortType {
     ByName,
-    ByRetries
+    ByFailedRetries,
+    ByTestsCount
 }
 
 export enum SortDirection {

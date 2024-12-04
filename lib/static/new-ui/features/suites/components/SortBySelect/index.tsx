@@ -2,7 +2,8 @@ import {
     ArrowRotateLeft,
     BarsAscendingAlignLeftArrowUp,
     BarsDescendingAlignLeftArrowDown,
-    FontCase
+    FontCase,
+    SquareLetterT
 } from '@gravity-ui/icons';
 import {Icon, Select, SelectProps} from '@gravity-ui/uikit';
 import React, {ReactNode} from 'react';
@@ -19,8 +20,11 @@ const getSortIcon = (sortByExpression: SortByExpression): ReactNode => {
         case SortType.ByName:
             iconData = FontCase;
             break;
-        case SortType.ByRetries:
+        case SortType.ByFailedRetries:
             iconData = ArrowRotateLeft;
+            break;
+        case SortType.ByTestsCount:
+            iconData = SquareLetterT;
             break;
     }
     return <Icon data={iconData} className={styles.optionIcon} width={14} height={14} />;

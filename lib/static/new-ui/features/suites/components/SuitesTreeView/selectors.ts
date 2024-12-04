@@ -24,7 +24,9 @@ export const getTreeViewItems = createSelector(
     [getGroups, getSuites, getAllRootGroupIds, getBrowsers, getBrowsersState, getResults, getImages, getTreeViewMode, getSortTestsData],
     (groups, suites, rootGroupIds, browsers, browsersState, results, images, treeViewMode, sortTestsData): TreeViewData => {
         const currentSortDirection = sortTestsData.currentDirection;
-        const currentSortExpression = sortTestsData.availableExpressions.find(expr => expr.id === sortTestsData.currentExpressionIds[0]);
+        const currentSortExpression = sortTestsData.availableExpressions
+            .find(expr => expr.id === sortTestsData.currentExpressionIds[0])
+            ?? sortTestsData.availableExpressions[0];
 
         const entitiesContext = {results, images, suites, treeViewMode, browsersState, browsers, groups, currentSortDirection, currentSortExpression};
 

@@ -63,10 +63,10 @@ export function TreeViewItemTitle({item}: TreeViewItemTitleProps): React.JSX.Ele
             <div className={titleContainerClassName}>
                 {item.prefix && <span className={styles.titlePrefix}>{item.prefix}</span>}
                 <span className={styles.title}>
-                    {headTitleParts.map((titlePart, index) => <>
-                        <span key={index} className={index !== headTitleParts.length - 1 ? styles.titlePart : ''}>{titlePart}</span>
+                    {headTitleParts.map((titlePart, index) => <React.Fragment key={index}>
+                        <span className={index !== headTitleParts.length - 1 ? styles.titlePart : ''}>{titlePart}</span>
                         <ChevronRight height={12} className={styles.titleSeparator}/>
-                    </>)}
+                    </React.Fragment>)}
                     <span className={headTitleParts.length > 0 ? styles.titlePart : ''}>{tailTitlePart}</span>
                 </span>
             </div>

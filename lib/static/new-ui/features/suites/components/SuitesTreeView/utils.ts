@@ -1,16 +1,26 @@
+import {last} from 'lodash';
+
+import {isErrorStatus, isFailStatus, trimArray} from '@/common-utils';
+import {NEW_ISSUE_LINK} from '@/constants';
 import {
-    BrowserEntity, BrowserState, GroupEntity, ImageEntity, isBrowserEntity, isGroupEntity,
+    BrowserEntity,
+    BrowserState,
+    GroupEntity,
+    ImageEntity,
+    isBrowserEntity,
+    isGroupEntity,
     isResultEntityError,
-    isSuiteEntity, ResultEntity, SortByExpression, SortDirection, SortType,
+    isSuiteEntity,
+    ResultEntity,
+    SortByExpression,
+    SortDirection,
+    SortType,
     SuiteEntity,
     TreeViewMode
 } from '@/static/new-ui/types/store';
 import {EntityType, TreeNode, TreeRoot} from '@/static/new-ui/features/suites/components/SuitesPage/types';
-import {getEntityType} from '@/static/new-ui/features/suites/utils';
-import {last} from 'lodash';
+import {getEntityType, getGroupId} from '@/static/new-ui/features/suites/utils';
 import {isAcceptable} from '@/static/modules/utils';
-import {isErrorStatus, isFailStatus, trimArray} from '@/common-utils';
-import {NEW_ISSUE_LINK} from '@/constants';
 
 export const getTitlePath = (suites: Record<string, SuiteEntity>, entity: SuiteEntity | BrowserEntity | undefined): string[] => {
     if (!entity) {
@@ -33,10 +43,10 @@ interface EntitiesContext {
     groups: Record<string, GroupEntity>;
     treeViewMode: TreeViewMode;
     currentSortDirection: SortDirection;
-    currentSortExpression: SortByExpression | undefined;
+    currentSortExpression: SortByExpression;
 }
 
-export const formatEntityToTreeNodeData = ({browsers, browsersState, results, images, suites, treeViewMode}: EntitiesContext, entity: SuiteEntity | BrowserEntity | GroupEntity, id: string, parentData?: TreeNode['data']): TreeNode['data'] => {
+export const formatEntityToTreeNodeData = ({results, images, suites, treeViewMode}: EntitiesContext, entity: SuiteEntity | BrowserEntity | GroupEntity, id: string, parentData?: TreeNode['data']): TreeNode['data'] => {
     if (isSuiteEntity(entity)) {
         return {
             id,
@@ -50,11 +60,6 @@ export const formatEntityToTreeNodeData = ({browsers, browsersState, results, im
     }
 
     if (isGroupEntity(entity)) {
-        const browserEntities = entity.browserIds.flatMap(browserId => browsersState[browserId].shouldBeShown ? [browsers[browserId]] : []);
-
-        const testsCount = browserEntities.length;
-        const retriesCount = entity.resultIds.filter(resultId => browsersState[results[resultId].parentId].shouldBeShown).length;
-
         return {
             id: entity.id,
             entityType: EntityType.Group,
@@ -62,10 +67,7 @@ export const formatEntityToTreeNodeData = ({browsers, browsersState, results, im
             prefix: `${entity.key}:`,
             title: [entity.label],
             status: null,
-            tags: [
-                `${testsCount} ${testsCount > 1 ? ' tests' : 'test'}`,
-                `${retriesCount} ${retriesCount > 1 ? ' retries' : 'retry'}`
-            ]
+            tags: []
         };
     }
 
@@ -188,12 +190,12 @@ export const collectTreeLeafIds = (treeNodes: (TreeNode | TreeRoot)[]): {allTree
 };
 
 export const sortTreeNodes = (entitiesContext: EntitiesContext, treeNodes: TreeNode[]): TreeNode[] => {
-    const {groups, results, currentSortExpression, currentSortDirection, browsers} = entitiesContext;
+    const {groups, results, currentSortExpression, currentSortDirection, browsers, browsersState} = entitiesContext;
 
     // Weight of a single node is an array, because sorting may be performed by multiple fields at once
     // For example, sort by tests count, but if tests counts are equal, compare retries counts
     // In this case weight for each node is [testsCount, retriesCount]
-    type TreeNodeWeight = number[] | string[];
+    type TreeNodeWeight = (number | string)[];
 
     interface TreeWeightedSortResult {
         sortedTreeNodes: TreeNode[];
@@ -210,12 +212,37 @@ export const sortTreeNodes = (entitiesContext: EntitiesContext, treeNodes: TreeN
             case EntityType.Group: {
                 const group = groups[treeNode.data.entityId];
 
-                return [group.browserIds.length, group.resultIds.length];
+                const browserEntities = group.browserIds.flatMap(browserId => browsersState[browserId].shouldBeShown ? [browsers[browserId]] : []);
+
+                const testsCount = browserEntities.length;
+                const retriesCount = group.resultIds.filter(resultId => browsersState[results[resultId].parentId].shouldBeShown).length;
+
+                if (currentSortExpression.type === SortType.ByTestsCount) {
+                    return [0, testsCount, retriesCount];
+                } else if (currentSortExpression.type === SortType.ByName) {
+                    return [treeNode.data.title.join(' '), testsCount, retriesCount];
+                } else if (currentSortExpression.type === SortType.ByFailedRetries) {
+                    if (!childrenWeight) {
+                        notifyOfUnsuccessfulWeightComputation();
+                        return [0, 0, 0];
+                    }
+
+                    // For now, we assume there are no nested groups and suite/test weights are always 1 dimensional
+                    return [childrenWeight[0], testsCount, retriesCount];
+                }
+                break;
             }
             case EntityType.Suite: {
-                if (!currentSortExpression || currentSortExpression.type === SortType.ByName) {
+                if (currentSortExpression.type === SortType.ByName) {
                     return [treeNode.data.title.join(' ')];
-                } else if (currentSortExpression.type === SortType.ByRetries) {
+                } else if (currentSortExpression.type === SortType.ByFailedRetries) {
+                    if (!childrenWeight) {
+                        notifyOfUnsuccessfulWeightComputation();
+                        return [0];
+                    }
+
+                    return childrenWeight;
+                } else if (currentSortExpression.type === SortType.ByTestsCount) {
                     if (!childrenWeight) {
                         notifyOfUnsuccessfulWeightComputation();
                         return [0];
@@ -226,11 +253,22 @@ export const sortTreeNodes = (entitiesContext: EntitiesContext, treeNodes: TreeN
                 break;
             }
             case EntityType.Browser: {
-                if (!currentSortExpression || currentSortExpression.type === SortType.ByName) {
+                if (currentSortExpression.type === SortType.ByName) {
                     return [treeNode.data.title.join(' ')];
-                } else if (currentSortExpression.type === SortType.ByRetries) {
+                } else if (currentSortExpression.type === SortType.ByFailedRetries) {
                     const browser = browsers[treeNode.data.entityId];
-                    return [browser.resultIds.filter(resultId => isFailStatus(results[resultId].status) || isErrorStatus(results[resultId].status)).length];
+                    const groupId = getGroupId(treeNode.data);
+
+                    return [browser.resultIds.filter(resultId =>
+                        (isFailStatus(results[resultId].status) || isErrorStatus(results[resultId].status)) &&
+                        (!groupId || groups[groupId].resultIds.includes(resultId))
+                    ).length];
+                } else if (currentSortExpression.type === SortType.ByTestsCount) {
+                    const browser = browsers[treeNode.data.entityId];
+                    const groupId = getGroupId(treeNode.data);
+                    const retriesCount = groupId ? browser.resultIds.filter(resultId => groups[groupId].resultIds.includes(resultId)).length : browser.resultIds.length;
+
+                    return [1, retriesCount];
                 }
                 break;
             }
@@ -245,7 +283,7 @@ export const sortTreeNodes = (entitiesContext: EntitiesContext, treeNodes: TreeN
             return [0];
         }
 
-        if (currentSortExpression.type === SortType.ByRetries) {
+        if (currentSortExpression.type === SortType.ByFailedRetries || currentSortExpression.type === SortType.ByTestsCount) {
             return weights.reduce((acc, weight) => {
                 const newAcc = acc.slice(0);
                 for (let i = 0; i < weight.length; i++) {
@@ -268,32 +306,53 @@ export const sortTreeNodes = (entitiesContext: EntitiesContext, treeNodes: TreeN
 
         treeNodesCopy.forEach((treeNode, index) => {
             if (treeNode.data.entityType === EntityType.Group && treeNode.children?.length) {
-                treeNodesCopy[index] = Object.assign({}, treeNode, {
-                    children: sortAndGetWeight(treeNode.children).sortedTreeNodes
+                const sortResult = sortAndGetWeight(treeNode.children);
+
+                weights[treeNode.data.id] = extractWeight(treeNode, sortResult.weight);
+
+                const newTreeNode = Object.assign({}, treeNode, {
+                    children: sortResult.sortedTreeNodes
                 });
 
-                weights[treeNode.data.id] = extractWeight(treeNode);
+                const testsCount = weights[treeNode.data.id][1] as number;
+                const retriesCount = weights[treeNode.data.id][2] as number;
+                newTreeNode.data.tags.push(`${testsCount} ${(testsCount === 1 ? 'test' : ' tests')}`);
+                newTreeNode.data.tags.push(`${retriesCount} ${(retriesCount === 1 ? 'retry' : ' retries')}`);
+
+                if (currentSortExpression.type === SortType.ByFailedRetries) {
+                    const failedRetriesCount = weights[treeNode.data.id][0] as number;
+                    newTreeNode.data.tags.push(`${failedRetriesCount} ${(failedRetriesCount === 1 ? 'failed retry' : ' failed retries')}`);
+                }
+
+                treeNodesCopy[index] = newTreeNode;
             } else if (treeNode.data.entityType === EntityType.Suite && treeNode.children?.length) {
                 const sortResult = sortAndGetWeight(treeNode.children);
+
+                weights[treeNode.data.id] = extractWeight(treeNode, sortResult.weight);
+
                 const newTreeNode = Object.assign({}, treeNode, {
                     children: sortResult.sortedTreeNodes
                 });
 
                 const retriesCount = Number(sortResult.weight[0]);
-                if (currentSortExpression?.type === SortType.ByRetries && retriesCount > 0) {
-                    newTreeNode.data.tags.push(`${retriesCount} ${retriesCount > 1 ? 'failed retries' : 'failed retry'}`);
+                if (currentSortExpression?.type === SortType.ByFailedRetries && retriesCount > 0) {
+                    newTreeNode.data.tags.push(`${retriesCount} ${(retriesCount === 1 ? 'failed retry' : 'failed retries')}`);
+                } else if (currentSortExpression.type === SortType.ByTestsCount) {
+                    const testsCount = weights[treeNode.data.id][0] as number;
+                    const retriesCount = weights[treeNode.data.id][1] as number;
+                    newTreeNode.data.tags.push(`${testsCount} ${(testsCount === 1 ? 'test' : ' tests')}`);
+                    newTreeNode.data.tags.push(`${retriesCount} ${(retriesCount === 1 ? 'retry' : ' retries')}`);
                 }
-                treeNodesCopy[index] = newTreeNode;
 
-                weights[treeNode.data.id] = extractWeight(treeNode, sortResult.weight);
+                treeNodesCopy[index] = newTreeNode;
             } else if (treeNode.data.entityType === EntityType.Browser) {
                 const newTreeNode = Object.assign({}, treeNode);
 
                 weights[treeNode.data.id] = extractWeight(treeNode);
 
                 const retriesCount = weights[treeNode.data.id][0] as number;
-                if (currentSortExpression?.type === SortType.ByRetries && retriesCount > 0) {
-                    newTreeNode.data.tags.push(`${retriesCount} ${retriesCount > 1 ? 'failed retries' : 'failed retry'}`);
+                if (currentSortExpression?.type === SortType.ByFailedRetries && retriesCount > 0) {
+                    newTreeNode.data.tags.push(`${retriesCount} ${(retriesCount === 1 ? 'failed retry' : 'failed retries')}`);
                 }
 
                 treeNodesCopy[index] = newTreeNode;
@@ -301,7 +360,7 @@ export const sortTreeNodes = (entitiesContext: EntitiesContext, treeNodes: TreeN
         });
 
         const sortedTreeNodes = treeNodesCopy.sort((a, b): number => {
-            const direction = currentSortDirection === SortDirection.Desc || a.data.entityType === EntityType.Group ? -1 : 1;
+            const direction = currentSortDirection === SortDirection.Desc ? -1 : 1;
 
             for (let i = 0; i < weights[a.data.id].length; i++) {
                 const aWeight = weights[a.data.id][i];
