@@ -1,4 +1,4 @@
-import {Gear} from '@gravity-ui/icons';
+import {Gear, CircleInfo} from '@gravity-ui/icons';
 import {FooterItem, MenuItem as GravityMenuItem} from '@gravity-ui/navigation';
 import {Icon} from '@gravity-ui/uikit';
 import classNames from 'classnames';
@@ -45,20 +45,35 @@ export function Footer(props: FooterProps): ReactNode {
         }
     }, [props.visiblePanel]);
 
-    const isCurrent = props.visiblePanel === PanelId.Settings;
+    const isInfoCurrent = props.visiblePanel === PanelId.Info;
+    const isSettingsCurrent = props.visiblePanel === PanelId.Settings;
 
     return <>
         <UiModeHintNotification isVisible={isHintVisible} onClose={(): void => setIsHintVisible(false)} />
         <FooterItem compact={false} item={{
-            id: PanelId.Settings,
-            title: 'Settings',
+            id: PanelId.Info,
+            title: 'Info',
             onItemClick: props.onFooterItemClick,
-            current: isCurrent,
+            current: isInfoCurrent,
             itemWrapper: (params, makeItem) => makeItem({
                 ...params,
                 icon: <Icon className={classNames({
-                    [styles.footerItem]: !isCurrent,
-                    [styles['footer-item--active']]: isCurrent,
+                    [styles.footerItem]: !isInfoCurrent,
+                    [styles['footer-item--active']]: isInfoCurrent,
+                    disabled: !isInitialized
+                })} data={CircleInfo} />
+            })
+        }} />
+        <FooterItem compact={false} item={{
+            id: PanelId.Settings,
+            title: 'Settings',
+            onItemClick: props.onFooterItemClick,
+            current: isSettingsCurrent,
+            itemWrapper: (params, makeItem) => makeItem({
+                ...params,
+                icon: <Icon className={classNames({
+                    [styles.footerItem]: !isSettingsCurrent,
+                    [styles['footer-item--active']]: isSettingsCurrent,
                     disabled: !isInitialized
                 })} data={Gear} />
             })

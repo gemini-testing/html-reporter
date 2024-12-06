@@ -13,6 +13,7 @@ import {Point} from '@/static/new-ui/types/index';
 import {AcceptableImage} from '@/static/modules/static-image-accepter';
 import {CheckStatus} from '@/constants/checked-statuses';
 import {EntityType} from '@/static/new-ui/features/suites/components/SuitesPage/types';
+import {DbDetails} from '@/db-utils/common';
 
 export interface GroupEntity {
     id: string;
@@ -265,7 +266,11 @@ export interface State {
             availableExpressions: SortByExpression[];
             currentExpressionIds: string[];
             currentDirection: SortDirection;
-        }
+        };
+        guiServerConnection: {
+            isConnected: boolean;
+            wasDisconnected: boolean | undefined;
+        };
     };
     ui: {
         suitesPage: {
@@ -305,6 +310,8 @@ export interface State {
         }[];
         imagesToCommitCount: number;
     };
+    timestamp: number;
+    fetchDbDetails: DbDetails[];
 }
 
 declare module 'react-redux' {

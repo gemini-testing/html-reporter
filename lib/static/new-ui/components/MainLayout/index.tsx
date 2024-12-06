@@ -10,9 +10,11 @@ import TestplaneIcon from '../../../icons/testplane-mono.svg';
 import styles from './index.module.css';
 import {Footer} from './Footer';
 import {EmptyReportCard} from '@/static/new-ui/components/Card/EmptyReportCard';
+import {InfoPanel} from '@/static/new-ui/components/InfoPanel';
 
 export enum PanelId {
     Settings = 'settings',
+    Info = 'info',
 }
 
 interface MenuItem {
@@ -45,7 +47,7 @@ export function MainLayout(props: MainLayoutProps): ReactNode {
 
     const [visiblePanel, setVisiblePanel] = useState<PanelId | null>(null);
     const onFooterItemClick = (item: GravityMenuItem): void => {
-        visiblePanel ? setVisiblePanel(null) : setVisiblePanel(item.id as PanelId);
+        visiblePanel === item.id ? setVisiblePanel(null) : setVisiblePanel(item.id as PanelId);
     };
 
     return <AsideHeader
@@ -66,6 +68,10 @@ export function MainLayout(props: MainLayoutProps): ReactNode {
         hideCollapseButton={true}
         renderFooter={(): ReactNode => <Footer visiblePanel={visiblePanel} onFooterItemClick={onFooterItemClick}/>}
         panelItems={[{
+            id: PanelId.Info,
+            children: <InfoPanel />,
+            visible: visiblePanel === PanelId.Info
+        }, {
             id: PanelId.Settings,
             children: <SettingsPanel />,
             visible: visiblePanel === PanelId.Settings

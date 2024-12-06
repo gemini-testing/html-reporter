@@ -9,7 +9,9 @@ export const ClientEvents = {
     RETRY: 'retry',
     ERROR: 'err',
 
-    END: 'end'
+    END: 'end',
+
+    CONNECTED: 'connected'
 } as const;
 
 export type ClientEvents = typeof ClientEvents;

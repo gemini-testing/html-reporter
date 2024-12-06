@@ -1,0 +1,14 @@
+.container {
+    background-color: #fff;
+    padding: 20px;
+    width: 440px;
+    height: 100%;
+    overflow-x: scroll;
+
+    --g-text-body-font-weight: 450;
+    --g-text-body-short-font-size: 15px;
+}
+
+.divider {
+    margin: 12px 0 20px 0;
+}
