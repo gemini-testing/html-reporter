@@ -1,0 +1,5 @@
+.description {
+    color: var(--g-color-private-black-400);
+    margin: 8px 0 16px 0;
+    line-height: 1.3;
+}

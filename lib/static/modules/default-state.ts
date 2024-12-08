@@ -126,6 +126,9 @@ export default Object.assign({config: configDefaults}, {
             availableExpressions: [],
             currentExpressionIds: [],
             currentDirection: SortDirection.Asc
+        },
+        guiServerConnection: {
+            isConnected: false
         }
     },
     ui: {
@@ -139,5 +142,6 @@ export default Object.assign({config: configDefaults}, {
         staticImageAccepterToolbar: {
             offset: {x: 0, y: 0}
         }
-    }
+    },
+    timestamp: 0
 }) satisfies State;

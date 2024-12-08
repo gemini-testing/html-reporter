@@ -900,6 +900,8 @@ a:active {
     --g-color-private-color-900-solid: rgb(64,52,112);
     --g-color-private-color-950-solid: rgb(58,49,92);
     --g-color-private-color-1000-solid: rgb(54,48,82);
+
+    --g-divider-color: rgb(242 242 242);
 }
 
 .split {
