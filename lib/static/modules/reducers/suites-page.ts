@@ -10,10 +10,11 @@ export default (state: State, action: SomeAction): State => {
         case actionNames.INIT_STATIC_REPORT:
         case actionNames.INIT_GUI_REPORT:
         case actionNames.SUITES_PAGE_SET_TREE_VIEW_MODE:
+        case actionNames.CHANGE_VIEW_MODE as any: // eslint-disable-line @typescript-eslint/no-explicit-any
         case actionNames.GROUP_TESTS_SET_CURRENT_EXPRESSION: {
             const {allTreeNodeIds} = getTreeViewItems(state);
 
-            const expandedTreeNodesById: Record<string, boolean> = {};
+            const expandedTreeNodesById: Record<string, boolean> = Object.assign({}, state.ui.suitesPage.expandedTreeNodesById);
 
             for (const nodeId of allTreeNodeIds) {
                 expandedTreeNodesById[nodeId] = true;

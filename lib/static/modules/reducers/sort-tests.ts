@@ -43,6 +43,7 @@ export default (state: State, action: SomeAction): State => {
         }
         case actionNames.GROUP_TESTS_SET_CURRENT_EXPRESSION: {
             let availableExpressions: SortByExpression[];
+
             if (action.payload.expressionIds.length > 0) {
                 availableExpressions = [
                     SORT_BY_NAME,
@@ -55,6 +56,7 @@ export default (state: State, action: SomeAction): State => {
                     SORT_BY_FAILED_RETRIES
                 ];
             }
+
             return applyStateUpdate(state, {
                 app: {
                     sortTestsData: {

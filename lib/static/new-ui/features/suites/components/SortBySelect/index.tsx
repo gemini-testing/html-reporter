@@ -20,7 +20,7 @@ const getSortIcon = (sortByExpression: SortByExpression): ReactNode => {
         case SortType.ByName:
             iconData = FontCase;
             break;
-        case SortType.ByFailedRetries:
+        case SortType.ByFailedRuns:
             iconData = ArrowRotateLeft;
             break;
         case SortType.ByTestsCount:

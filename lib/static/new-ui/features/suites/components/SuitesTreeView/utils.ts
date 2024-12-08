@@ -130,9 +130,9 @@ export const buildTreeBottomUp = (entitiesContext: EntitiesContext, entities: (S
             return parentNode;
         }
 
-        const nodePartialId = treeViewMode === TreeViewMode.Tree ?
-            (isBrowserEntity(entity) ? entity.name : entity.suitePath[entity.suitePath.length - 1]) :
-            entity.id;
+        const nodePartialId = treeViewMode === TreeViewMode.Tree
+            ? (isBrowserEntity(entity) ? entity.name : entity.suitePath[entity.suitePath.length - 1])
+            : entity.id;
         const currentId = parentNode.data ? `${parentNode.data.id}/${nodePartialId}` : nodePartialId;
         if (cache[currentId]) {
             return cache[currentId];
@@ -193,14 +193,29 @@ export const sortTreeNodes = (entitiesContext: EntitiesContext, treeNodes: TreeN
     const {groups, results, currentSortExpression, currentSortDirection, browsers, browsersState} = entitiesContext;
 
     // Weight of a single node is an array, because sorting may be performed by multiple fields at once
-    // For example, sort by tests count, but if tests counts are equal, compare retries counts
-    // In this case weight for each node is [testsCount, retriesCount]
-    type TreeNodeWeight = (number | string)[];
+    // For example, sort by tests count, but if tests counts are equal, compare runs counts
+    // In this case weight for each node is [testsCount, runsCount]
+    type TreeNodeWeightValue = (number | string)[];
+    interface WeightMetadata {
+        testsCount: number;
+        runsCount: number;
+        failedRunsCount: number;
+    }
+
+    interface TreeNodeWeight {
+        value: TreeNodeWeightValue;
+        metadata: Partial<WeightMetadata>;
+    }
 
     interface TreeWeightedSortResult {
         sortedTreeNodes: TreeNode[];
         weight: TreeNodeWeight;
     }
+
+    const createWeight = (value: TreeNodeWeightValue, metadata?: Partial<WeightMetadata>): TreeNodeWeight => ({
+        value,
+        metadata: metadata ?? {}
+    });
 
     const extractWeight = (treeNode: TreeNode, childrenWeight?: TreeNodeWeight): TreeNodeWeight => {
         const notifyOfUnsuccessfulWeightComputation = (): void => {
@@ -215,37 +230,37 @@ export const sortTreeNodes = (entitiesContext: EntitiesContext, treeNodes: TreeN
                 const browserEntities = group.browserIds.flatMap(browserId => browsersState[browserId].shouldBeShown ? [browsers[browserId]] : []);
 
                 const testsCount = browserEntities.length;
-                const retriesCount = group.resultIds.filter(resultId => browsersState[results[resultId].parentId].shouldBeShown).length;
+                const runsCount = group.resultIds.filter(resultId => browsersState[results[resultId].parentId].shouldBeShown).length;
 
                 if (currentSortExpression.type === SortType.ByTestsCount) {
-                    return [0, testsCount, retriesCount];
+                    return createWeight([0, testsCount, runsCount], {testsCount, runsCount});
                 } else if (currentSortExpression.type === SortType.ByName) {
-                    return [treeNode.data.title.join(' '), testsCount, retriesCount];
-                } else if (currentSortExpression.type === SortType.ByFailedRetries) {
+                    return createWeight([treeNode.data.title.join(' '), testsCount, runsCount], {testsCount, runsCount});
+                } else if (currentSortExpression.type === SortType.ByFailedRuns) {
                     if (!childrenWeight) {
                         notifyOfUnsuccessfulWeightComputation();
-                        return [0, 0, 0];
+                        return createWeight([0, 0, 0]);
                     }
 
                     // For now, we assume there are no nested groups and suite/test weights are always 1 dimensional
-                    return [childrenWeight[0], testsCount, retriesCount];
+                    return createWeight([childrenWeight.value[0], testsCount, runsCount], Object.assign({}, {testsCount, runsCount}, childrenWeight.metadata));
                 }
                 break;
             }
             case EntityType.Suite: {
                 if (currentSortExpression.type === SortType.ByName) {
-                    return [treeNode.data.title.join(' ')];
-                } else if (currentSortExpression.type === SortType.ByFailedRetries) {
+                    return createWeight([treeNode.data.title.join(' ')]);
+                } else if (currentSortExpression.type === SortType.ByFailedRuns) {
                     if (!childrenWeight) {
                         notifyOfUnsuccessfulWeightComputation();
-                        return [0];
+                        return createWeight([0]);
                     }
 
                     return childrenWeight;
                 } else if (currentSortExpression.type === SortType.ByTestsCount) {
                     if (!childrenWeight) {
                         notifyOfUnsuccessfulWeightComputation();
-                        return [0];
+                        return createWeight([0]);
                     }
 
                     return childrenWeight;
@@ -254,46 +269,80 @@ export const sortTreeNodes = (entitiesContext: EntitiesContext, treeNodes: TreeN
             }
             case EntityType.Browser: {
                 if (currentSortExpression.type === SortType.ByName) {
-                    return [treeNode.data.title.join(' ')];
-                } else if (currentSortExpression.type === SortType.ByFailedRetries) {
+                    return createWeight([treeNode.data.title.join(' ')]);
+                } else if (currentSortExpression.type === SortType.ByFailedRuns) {
                     const browser = browsers[treeNode.data.entityId];
                     const groupId = getGroupId(treeNode.data);
 
-                    return [browser.resultIds.filter(resultId =>
+                    const failedRunsCount = browser.resultIds.filter(resultId =>
                         (isFailStatus(results[resultId].status) || isErrorStatus(results[resultId].status)) &&
                         (!groupId || groups[groupId].resultIds.includes(resultId))
-                    ).length];
+                    ).length;
+
+                    return createWeight([failedRunsCount], {failedRunsCount});
                 } else if (currentSortExpression.type === SortType.ByTestsCount) {
                     const browser = browsers[treeNode.data.entityId];
                     const groupId = getGroupId(treeNode.data);
-                    const retriesCount = groupId ? browser.resultIds.filter(resultId => groups[groupId].resultIds.includes(resultId)).length : browser.resultIds.length;
+                    const runsCount = groupId ? browser.resultIds.filter(resultId => groups[groupId].resultIds.includes(resultId)).length : browser.resultIds.length;
 
-                    return [1, retriesCount];
+                    return createWeight([1, runsCount], {runsCount});
                 }
                 break;
             }
         }
 
         notifyOfUnsuccessfulWeightComputation();
-        return [0];
+        return createWeight([0]);
     };
 
     const aggregateWeights = (weights: TreeNodeWeight[]): TreeNodeWeight => {
         if (!currentSortExpression || currentSortExpression.type === SortType.ByName) {
-            return [0];
+            return createWeight([0]);
         }
 
-        if (currentSortExpression.type === SortType.ByFailedRetries || currentSortExpression.type === SortType.ByTestsCount) {
-            return weights.reduce((acc, weight) => {
-                const newAcc = acc.slice(0);
-                for (let i = 0; i < weight.length; i++) {
-                    newAcc[i] = (acc[i] ?? 0) + weight[i];
+        if (currentSortExpression.type === SortType.ByFailedRuns || currentSortExpression.type === SortType.ByTestsCount) {
+            return weights.reduce<TreeNodeWeight>((accWeight, weight) => {
+                const newAccWeight = createWeight(accWeight.value.slice(0), accWeight.metadata);
+                for (let i = 0; i < weight.value.length; i++) {
+                    newAccWeight.value[i] = Number(accWeight.value[i] ?? 0) + Number(weight.value[i]);
                 }
-                return newAcc;
-            }, new Array(weights[0]?.length));
+
+                if (weight.metadata.testsCount !== undefined) {
+                    newAccWeight.metadata.testsCount = (newAccWeight.metadata.testsCount ?? 0) + weight.metadata.testsCount;
+                }
+                if (weight.metadata.runsCount !== undefined) {
+                    newAccWeight.metadata.runsCount = (newAccWeight.metadata.runsCount ?? 0) + weight.metadata.runsCount;
+                }
+                if (weight.metadata.failedRunsCount !== undefined) {
+                    newAccWeight.metadata.failedRunsCount = (newAccWeight.metadata.failedRunsCount ?? 0) + weight.metadata.failedRunsCount;
+                }
+
+                return newAccWeight;
+            }, createWeight(new Array(weights[0]?.value?.length)));
         }
 
-        return [0];
+        return createWeight([0]);
+    };
+
+    const generateTagsForWeight = (weight: TreeNodeWeight): string[] => {
+        const tags: string[] = [];
+
+        const testsCount = weight.metadata.testsCount;
+        if (testsCount !== undefined) {
+            tags.push(`${testsCount} ${(testsCount === 1 ? 'test' : 'tests')}`);
+        }
+
+        const runsCount = weight.metadata.runsCount;
+        if (runsCount !== undefined) {
+            tags.push(`${runsCount} ${(runsCount === 1 ? 'run' : 'runs')}`);
+        }
+
+        const failedRunsCount = weight.metadata.failedRunsCount;
+        if (failedRunsCount !== undefined) {
+            tags.push(`${failedRunsCount} ${(failedRunsCount === 1 ? 'failed run' : 'failed runs')}`);
+        }
+
+        return tags;
     };
 
     // Recursive tree sort. At each level of the tree, it does the following:
@@ -308,53 +357,34 @@ export const sortTreeNodes = (entitiesContext: EntitiesContext, treeNodes: TreeN
             if (treeNode.data.entityType === EntityType.Group && treeNode.children?.length) {
                 const sortResult = sortAndGetWeight(treeNode.children);
 
-                weights[treeNode.data.id] = extractWeight(treeNode, sortResult.weight);
+                const weight = extractWeight(treeNode, sortResult.weight);
 
                 const newTreeNode = Object.assign({}, treeNode, {
                     children: sortResult.sortedTreeNodes
                 });
+                newTreeNode.data.tags.push(...generateTagsForWeight(weight));
 
-                const testsCount = weights[treeNode.data.id][1] as number;
-                const retriesCount = weights[treeNode.data.id][2] as number;
-                newTreeNode.data.tags.push(`${testsCount} ${(testsCount === 1 ? 'test' : ' tests')}`);
-                newTreeNode.data.tags.push(`${retriesCount} ${(retriesCount === 1 ? 'retry' : ' retries')}`);
-
-                if (currentSortExpression.type === SortType.ByFailedRetries) {
-                    const failedRetriesCount = weights[treeNode.data.id][0] as number;
-                    newTreeNode.data.tags.push(`${failedRetriesCount} ${(failedRetriesCount === 1 ? 'failed retry' : ' failed retries')}`);
-                }
-
+                weights[treeNode.data.id] = weight;
                 treeNodesCopy[index] = newTreeNode;
             } else if (treeNode.data.entityType === EntityType.Suite && treeNode.children?.length) {
                 const sortResult = sortAndGetWeight(treeNode.children);
 
-                weights[treeNode.data.id] = extractWeight(treeNode, sortResult.weight);
+                const weight = extractWeight(treeNode, sortResult.weight);
 
                 const newTreeNode = Object.assign({}, treeNode, {
                     children: sortResult.sortedTreeNodes
                 });
+                newTreeNode.data.tags.push(...generateTagsForWeight(weight));
 
-                const retriesCount = Number(sortResult.weight[0]);
-                if (currentSortExpression?.type === SortType.ByFailedRetries && retriesCount > 0) {
-                    newTreeNode.data.tags.push(`${retriesCount} ${(retriesCount === 1 ? 'failed retry' : 'failed retries')}`);
-                } else if (currentSortExpression.type === SortType.ByTestsCount) {
-                    const testsCount = weights[treeNode.data.id][0] as number;
-                    const retriesCount = weights[treeNode.data.id][1] as number;
-                    newTreeNode.data.tags.push(`${testsCount} ${(testsCount === 1 ? 'test' : ' tests')}`);
-                    newTreeNode.data.tags.push(`${retriesCount} ${(retriesCount === 1 ? 'retry' : ' retries')}`);
-                }
-
+                weights[treeNode.data.id] = weight;
                 treeNodesCopy[index] = newTreeNode;
             } else if (treeNode.data.entityType === EntityType.Browser) {
+                const weight = extractWeight(treeNode);
+
                 const newTreeNode = Object.assign({}, treeNode);
+                newTreeNode.data.tags.push(...generateTagsForWeight(weight));
 
-                weights[treeNode.data.id] = extractWeight(treeNode);
-
-                const retriesCount = weights[treeNode.data.id][0] as number;
-                if (currentSortExpression?.type === SortType.ByFailedRetries && retriesCount > 0) {
-                    newTreeNode.data.tags.push(`${retriesCount} ${(retriesCount === 1 ? 'failed retry' : 'failed retries')}`);
-                }
-
+                weights[treeNode.data.id] = weight;
                 treeNodesCopy[index] = newTreeNode;
             }
         });
@@ -362,9 +392,9 @@ export const sortTreeNodes = (entitiesContext: EntitiesContext, treeNodes: TreeN
         const sortedTreeNodes = treeNodesCopy.sort((a, b): number => {
             const direction = currentSortDirection === SortDirection.Desc ? -1 : 1;
 
-            for (let i = 0; i < weights[a.data.id].length; i++) {
-                const aWeight = weights[a.data.id][i];
-                const bWeight = weights[b.data.id][i];
+            for (let i = 0; i < weights[a.data.id].value.length; i++) {
+                const aWeight = weights[a.data.id].value[i];
+                const bWeight = weights[b.data.id].value[i];
                 if (aWeight === bWeight) {
                     continue;
                 }

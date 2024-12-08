@@ -53,12 +53,12 @@
     padding: 0 4px;
 }
 
-:global(.error) .tag {
+:global(.error-tree-node) .tag {
     background: var(--g-color-private-red-50);
     color: var(--g-color-private-red-500-solid);
 }
 
-:global(.current) .tag {
+:global(.current-tree-node) .tag {
     background-color: rgba(255, 255, 255, .15);
     color: rgba(255, 255, 255, .7);
 }
