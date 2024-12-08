@@ -26,7 +26,7 @@ function Gui(): ReactNode {
             store.dispatch({type: actionNames.UPDATE_LOADING_TITLE, payload: 'Lost connection to Testplane UI server. Trying to reconnect'});
             store.dispatch({type: actionNames.UPDATE_LOADING_VISIBILITY, payload: true});
 
-            store.dispatch(setGuiServerConnectionStatus({isConnected: false, wasDisconnected: true}));
+            store.dispatch(setGuiServerConnectionStatus({isConnected: false}));
         };
 
         eventSource.addEventListener(ClientEvents.BEGIN_SUITE, (e) => {

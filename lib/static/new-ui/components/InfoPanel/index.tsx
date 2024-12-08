@@ -26,7 +26,7 @@ export function InfoPanel(): ReactNode {
 
     sections.push(<PanelSection
         title={'Testplane UI v' + version}
-        description={<span>To get the most out of Testplane UI, try to keep it updated to the latest version. Check out fresh releases <a href={'https://github.com/gemini-testing/html-reporter/releases'}>on GitHub</a>.</span>}
+        description={<span>To get the most out of Testplane UI, try to keep it updated to the latest version. Check out fresh <a href={'https://github.com/gemini-testing/html-reporter/releases'}>releases on GitHub</a>.</span>}
     />);
 
     const timestamp = useSelector(state => state.timestamp);
@@ -56,11 +56,13 @@ export function InfoPanel(): ReactNode {
         </div>
     </PanelSection>);
 
+    const lastSection = sections.pop();
+
     return <AsidePanel title={'Info'} className={styles.infoPanel}>
-        {sections.slice(0, -1).map((section, index) => <React.Fragment key={index}>
+        {sections.map((section, index) => <React.Fragment key={index}>
             {section}
             <Divider orientation={'horizontal'} className={styles.divider}/>
         </React.Fragment>)}
-        {sections[sections.length - 1]}
+        {lastSection}
     </AsidePanel>;
 }

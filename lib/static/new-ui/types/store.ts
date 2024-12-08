@@ -269,7 +269,6 @@ export interface State {
         };
         guiServerConnection: {
             isConnected: boolean;
-            wasDisconnected: boolean | undefined;
         };
     };
     ui: {

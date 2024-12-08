@@ -9,8 +9,7 @@ export default (state: State, action: SomeAction): State => {
             return applyStateUpdate(state, {
                 app: {
                     guiServerConnection: {
-                        isConnected: action.payload.isConnected,
-                        wasDisconnected: action.payload.wasDisconnected
+                        isConnected: action.payload.isConnected
                     }
                 }
             });

@@ -128,8 +128,7 @@ export default Object.assign({config: configDefaults}, {
             currentDirection: SortDirection.Asc
         },
         guiServerConnection: {
-            isConnected: false,
-            wasDisconnected: false
+            isConnected: false
         }
     },
     ui: {

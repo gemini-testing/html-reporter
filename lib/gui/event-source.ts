@@ -8,19 +8,21 @@ export class EventSource {
         this._connections = [];
     }
 
-    addConnection(connection: Response): void {
-        this._connections.push(connection);
-
-        connection.write('event: ' + ClientEvents.CONNECTED + '\n');
-        connection.write('data: 1\n');
+    private _write(connection: Response, event: string, data?: unknown): void {
+        connection.write('event: ' + event + '\n');
+        connection.write('data: ' + stringify(data) + '\n');
         connection.write('\n\n');
     }
 
+    addConnection(connection: Response): void {
+        this._connections.push(connection);
+
+        this._write(connection, ClientEvents.CONNECTED, 1);
+    }
+
     emit(event: string, data?: unknown): void {
-        this._connections.forEach(function(connection) {
-            connection.write('event: ' + event + '\n');
-            connection.write('data: ' + stringify(data) + '\n');
-            connection.write('\n\n');
+        this._connections.forEach((connection) => {
+            this._write(connection, event, data);
         });
     }
 }
