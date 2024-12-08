@@ -1,21 +1,22 @@
-import React, {useEffect, useRef} from 'react';
-import {EntityType, TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
-import styles from './index.module.css';
-import classNames from 'classnames';
+import {ChevronRight} from '@gravity-ui/icons';
 import {Checkbox} from '@gravity-ui/uikit';
+import classNames from 'classnames';
+import React, {useEffect, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
-import {toggleBrowserCheckbox, toggleGroupCheckbox, toggleSuiteCheckbox} from '@/static/modules/actions';
+
 import {getToggledCheckboxState, isCheckboxChecked, isCheckboxIndeterminate} from '@/common-utils';
+import {EntityType, TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
+import {toggleBrowserCheckbox, toggleGroupCheckbox, toggleSuiteCheckbox} from '@/static/modules/actions';
 import {getAreCheckboxesNeeded} from '@/static/new-ui/store/selectors';
 import {getItemCheckStatus} from '@/static/new-ui/features/suites/components/TreeViewItemTitle/selectors';
-import {GroupEntity} from '@/static/new-ui/types/store';
+import styles from './index.module.css';
 
 interface TreeViewItemTitleProps {
     className?: string;
     item: TreeViewItemData;
 }
 
-export function TreeViewItemTitle({item, className}: TreeViewItemTitleProps): React.JSX.Element {
+export function TreeViewItemTitle({item}: TreeViewItemTitleProps): React.JSX.Element {
     const dispatch = useDispatch();
     const areCheckboxesNeeded = useSelector(getAreCheckboxesNeeded);
     const groups = useSelector(state => state.tree.groups.byId);
@@ -28,7 +29,7 @@ export function TreeViewItemTitle({item, className}: TreeViewItemTitleProps): Re
                 e.stopPropagation();
 
                 if (item.entityType === EntityType.Group) {
-                    const group = Object.values(groups).find(group => group.id === item.entityId) as GroupEntity;
+                    const group = groups[item.entityId];
 
                     dispatch(toggleGroupCheckbox({
                         browserIds: group.browserIds,
@@ -49,21 +50,32 @@ export function TreeViewItemTitle({item, className}: TreeViewItemTitleProps): Re
         }
     }, [ref, item, checkStatus]);
 
+    const headTitleParts = item.title.slice(0, -1);
+    const tailTitlePart = item.title[item.title.length - 1];
+
+    const titleContainerClassName = classNames({
+        [styles['title-container--clamped']]: item.entityType === EntityType.Group,
+        [styles['title-container--inline']]: item.entityType !== EntityType.Group
+    });
+
     return <div className={styles.container}>
         <div>
-            {item.prefix && <span className={styles.titlePrefix}>{item.prefix}</span>}
-            <span className={styles.title}>{item.title}</span>
+            <div className={titleContainerClassName}>
+                {item.prefix && <span className={styles.titlePrefix}>{item.prefix}</span>}
+                <span className={styles.title}>
+                    {headTitleParts.map((titlePart, index) => <React.Fragment key={index}>
+                        <span className={index !== headTitleParts.length - 1 ? styles.titlePart : ''}>{titlePart}</span>
+                        <ChevronRight height={12} className={styles.titleSeparator}/>
+                    </React.Fragment>)}
+                    <span className={headTitleParts.length > 0 ? styles.titlePart : ''}>{tailTitlePart}</span>
+                </span>
+            </div>
             {item.tags && item.tags.length > 0 &&
                 <div className={styles.tagsContainer}>
                     {item.tags.map((tag, index) => <span key={index} className={styles.tag}>{tag}</span>)}
                 </div>
             }
         </div>
-        {
-            item.entityType === EntityType.Browser &&
-            item.errorTitle &&
-            <span className={classNames(styles['tree-view-item__error-title'], className)}>{item.errorTitle}</span>
-        }
         {areCheckboxesNeeded && <Checkbox checked={isCheckboxChecked(checkStatus)} indeterminate={isCheckboxIndeterminate(checkStatus)} className={styles.checkbox} size={'m'} controlRef={ref}/>}
     </div>;
 }

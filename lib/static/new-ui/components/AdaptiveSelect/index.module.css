@@ -1,0 +1,39 @@
+.select-popup {
+    --g-color-text-info: #000;
+
+    font-size: var(--g-text-body-1-font-size);
+}
+
+.select :global(.g-select-control__label) {
+    margin-inline-end: 0;
+}
+
+.selected-option {
+    margin-inline-start: 4px;
+}
+
+.label-icons-container {
+    position: relative;
+    padding-right: 2px;
+}
+
+.label-dot {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 4px;
+    width: 4px;
+    border-radius: 100vh;
+    background-color: var(--g-color-private-red-600-solid);
+}
+
+@container (max-width: 450px) {
+    .select :global(.g-select-control__option-text) {
+        display: none;
+    }
+
+    .label-dot {
+        display: block;
+    }
+}

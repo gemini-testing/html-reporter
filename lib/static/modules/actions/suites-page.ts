@@ -1,5 +1,6 @@
 import actionNames from '@/static/modules/action-names';
 import {Action} from '@/static/modules/actions/types';
+import {TreeViewMode} from '@/static/new-ui/types/store';
 
 export type SuitesPageSetCurrentTreeNodeAction = Action<typeof actionNames.SUITES_PAGE_SET_CURRENT_SUITE, Partial<{
     treeNodeId: string;
@@ -43,10 +44,17 @@ type SetStepsExpandedStateAction = Action<typeof actionNames.SUITES_PAGE_SET_STE
 export const setStepsExpandedState = (payload: SetStepsExpandedStateAction['payload']): SetStepsExpandedStateAction =>
     ({type: actionNames.SUITES_PAGE_SET_STEPS_EXPANDED, payload});
 
+type SetTreeViewModeAction = Action<typeof actionNames.SUITES_PAGE_SET_TREE_VIEW_MODE, {
+    treeViewMode: TreeViewMode;
+}>;
+export const setTreeViewMode = (payload: SetTreeViewModeAction['payload']): SetTreeViewModeAction =>
+    ({type: actionNames.SUITES_PAGE_SET_TREE_VIEW_MODE, payload});
+
 export type SuitesPageAction =
     | SetTreeNodeExpandedStateAction
     | SetAllTreeNodesStateAction
     | SuitesPageSetCurrentTreeNodeAction
     | SetSectionExpandedStateAction
     | SetStepsExpandedStateAction
-    | RevealTreeNodeAction;
+    | RevealTreeNodeAction
+    | SetTreeViewModeAction;

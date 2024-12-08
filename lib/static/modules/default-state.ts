@@ -4,7 +4,7 @@ import {DiffModes} from '../../constants/diff-modes';
 import {EXPAND_ERRORS} from '../../constants/expand-modes';
 import {RESULT_KEYS} from '../../constants/group-tests';
 import {ToolName} from '../../constants';
-import {State} from '@/static/new-ui/types/store';
+import {SortDirection, State, TreeViewMode} from '@/static/new-ui/types/store';
 
 export default Object.assign({config: configDefaults}, {
     gui: true,
@@ -121,10 +121,16 @@ export default Object.assign({config: configDefaults}, {
             availableSections: [],
             availableExpressions: [],
             currentExpressionIds: []
+        },
+        sortTestsData: {
+            availableExpressions: [],
+            currentExpressionIds: [],
+            currentDirection: SortDirection.Asc
         }
     },
     ui: {
         suitesPage: {
+            treeViewMode: TreeViewMode.Tree,
             retryIndexByTreeNodeId: {},
             expandedSectionsById: {},
             expandedStepsByResultId: {},

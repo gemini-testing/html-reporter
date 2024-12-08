@@ -38,7 +38,7 @@ export function TreeViewItemSubtitle(props: TreeViewItemSubtitleProps): ReactNod
         </div>;
     } else if (props.item.errorStack) {
         return <div className={classNames(styles['tree-view-item-subtitle__error-stack'], props.className)}>
-            {stripAnsi(props.item.errorStack)}
+            {(props.item.errorTitle + '\n' + stripAnsi(props.item.errorStack)).trim()}
         </div>;
     }
 

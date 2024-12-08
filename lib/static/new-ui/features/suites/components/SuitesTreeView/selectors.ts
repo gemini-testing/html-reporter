@@ -1,12 +1,4 @@
 import {createSelector} from 'reselect';
-import {last} from 'lodash';
-import {
-    BrowserEntity,
-    GroupEntity,
-    isBrowserEntity,
-    isResultEntityError, isSuiteEntity,
-    SuiteEntity
-} from '@/static/new-ui/types/store';
 import {
     getAllRootGroupIds,
     getBrowsers,
@@ -14,12 +6,12 @@ import {
     getGroups,
     getImages,
     getResults,
-    getSuites
+    getSortTestsData,
+    getSuites,
+    getTreeViewMode
 } from '@/static/new-ui/store/selectors';
-import {trimArray} from '@/common-utils';
-import {isAcceptable} from '@/static/modules/utils';
-import {EntityType, TreeRoot, TreeNode} from '@/static/new-ui/features/suites/components/SuitesPage/types';
-import {getEntityType} from '@/static/new-ui/features/suites/utils';
+import {TreeNode} from '@/static/new-ui/features/suites/components/SuitesPage/types';
+import {buildTreeBottomUp, collectTreeLeafIds, formatEntityToTreeNodeData, sortTreeNodes} from './utils';
 
 interface TreeViewData {
     tree: TreeNode[];
@@ -29,174 +21,50 @@ interface TreeViewData {
 
 // Converts the existing store structure to the one that can be consumed by GravityUI
 export const getTreeViewItems = createSelector(
-    [getGroups, getSuites, getAllRootGroupIds, getBrowsers, getBrowsersState, getResults, getImages],
-    (groups, suites, rootGroupIds, browsers, browsersState, results, images): TreeViewData => {
-        const formatEntityToTreeNodeData = (entity: SuiteEntity | BrowserEntity, id: string, parentData?: TreeNode['data']): TreeNode['data'] => {
-            if (isSuiteEntity(entity)) {
-                return {
-                    id,
-                    entityType: getEntityType(entity),
-                    entityId: entity.id,
-                    title: entity.name,
-                    status: entity.status,
-                    parentData
-                };
-            }
+    [getGroups, getSuites, getAllRootGroupIds, getBrowsers, getBrowsersState, getResults, getImages, getTreeViewMode, getSortTestsData],
+    (groups, suites, rootGroupIds, browsers, browsersState, results, images, treeViewMode, sortTestsData): TreeViewData => {
+        const currentSortDirection = sortTestsData.currentDirection;
+        const currentSortExpression = sortTestsData.availableExpressions
+            .find(expr => expr.id === sortTestsData.currentExpressionIds[0])
+            ?? sortTestsData.availableExpressions[0];
 
-            const lastResult = results[last(entity.resultIds) as string];
+        const entitiesContext = {results, images, suites, treeViewMode, browsersState, browsers, groups, currentSortDirection, currentSortExpression};
 
-            const resultImages = lastResult.imageIds
-                .map(imageId => images[imageId])
-                .filter(imageEntity => isAcceptable(imageEntity));
-
-            let errorTitle, errorStack;
-            if (isResultEntityError(lastResult) && lastResult.error?.stack) {
-                errorTitle = lastResult.error?.name;
-
-                const stackLines = trimArray(lastResult.error.stack.split('\n'));
-                errorStack = stackLines.slice(0, 3).join('\n');
-            }
-
-            return {
-                id,
-                entityType: getEntityType(entity),
-                entityId: entity.id,
-                title: entity.name,
-                status: lastResult.status,
-                images: resultImages,
-                errorTitle,
-                errorStack,
-                parentData,
-                skipReason: lastResult.skipReason
-            };
-        };
-
-        const buildTreeBottomUp = (entities: (SuiteEntity | BrowserEntity)[], rootData?: TreeNode['data']): TreeRoot => {
-            const TREE_ROOT = Symbol();
-            const cache: Record<string | symbol, TreeNode | TreeRoot> = {};
-
-            const createTreeRoot = (): TreeRoot => ({
-                isRoot: true,
-                data: rootData
-            });
-
-            const build = (entity: SuiteEntity | BrowserEntity): TreeNode | TreeRoot => {
-                let parentNode: TreeNode | TreeRoot;
-
-                const {parentId} = entity;
-                if (parentId) {
-                    const parentEntity = (suites[parentId] as SuiteEntity | undefined) ?? browsers[parentId];
-                    parentNode = build(parentEntity);
-                } else {
-                    if (!cache[TREE_ROOT]) {
-                        cache[TREE_ROOT] = createTreeRoot();
-                    }
-                    parentNode = cache[TREE_ROOT];
-                }
-
-                if (isBrowserEntity(entity) && !browsersState[entity.id].shouldBeShown) {
-                    return parentNode;
-                }
-
-                const nodePartialId = isBrowserEntity(entity) ? entity.name : entity.suitePath[entity.suitePath.length - 1];
-                const currentId = parentNode.data ? `${parentNode.data.id}/${nodePartialId}` : nodePartialId;
-                if (cache[currentId]) {
-                    return cache[currentId];
-                }
-
-                const currentNode: TreeNode = {
-                    parentNode,
-                    data: formatEntityToTreeNodeData(entity, currentId, parentNode.data)
-                };
-                cache[currentId] = currentNode;
-
-                if (parentNode) {
-                    if (!parentNode.children) {
-                        parentNode.children = [];
-                    }
-
-                    parentNode.children.push(currentNode);
-                }
-
-                return currentNode;
-            };
-
-            for (const entity of entities) {
-                build(entity);
-            }
-
-            return cache[TREE_ROOT] as TreeRoot ?? createTreeRoot();
-        };
-
-        const formatGroup = (groupEntity: GroupEntity): TreeNode => {
-            const groupBrowserIds = groupEntity.browserIds.filter(browserId => browsersState[browserId].shouldBeShown);
-            const browserEntities = groupBrowserIds.map(browserId => browsers[browserId]);
-
-            const testsCount = groupBrowserIds.length;
-            const retriesCount = groupEntity.resultIds.filter(resultId => browserEntities.find(browser => browser.resultIds.includes(resultId))).length;
-
-            const groupNodeData: TreeNode['data'] = {
-                id: groupEntity.id,
-                entityType: EntityType.Group,
-                entityId: groupEntity.id,
-                prefix: `${groupEntity.key}:`,
-                title: groupEntity.label,
-                status: null,
-                tags: [
-                    `${testsCount} ${testsCount > 1 ? ' tests' : 'test'}`,
-                    `${retriesCount} ${retriesCount > 1 ? ' retries' : 'retry'}`
-                ]
-            };
-
-            const suitesTreeRoot = buildTreeBottomUp(browserEntities, groupNodeData);
-
-            return {
-                data: groupNodeData,
-                children: suitesTreeRoot.children
-            };
-        };
-
-        const allTreeNodeIds: string[] = [];
-        const visibleTreeNodeIds: string[] = [];
-
-        const collectVisibleBrowserIds = (node: TreeNode | TreeRoot): void => {
-            if (node.data && node.data.id) {
-                allTreeNodeIds.push(node.data.id);
-            }
-
-            if (!node.children) {
-                return;
-            }
-
-            for (const childNode of node.children) {
-                if (childNode.data.entityType === EntityType.Browser) {
-                    visibleTreeNodeIds.push(childNode.data.id);
-                } else if (childNode.children?.length) {
-                    collectVisibleBrowserIds(childNode);
-                }
-            }
-        };
-
-        if (rootGroupIds.length > 0) {
+        const isGroupingEnabled = rootGroupIds.length > 0;
+        if (isGroupingEnabled) {
             const treeNodes = rootGroupIds
-                .map(rootId => formatGroup(groups[rootId]))
+                .map(rootId => {
+                    const groupEntity = groups[rootId];
+
+                    const browserEntities = groupEntity.browserIds.flatMap(browserId => browsersState[browserId].shouldBeShown ? [browsers[browserId]] : []);
+                    const groupNodeData = formatEntityToTreeNodeData(entitiesContext, groupEntity, groupEntity.id);
+
+                    const suitesTreeRoot = buildTreeBottomUp(entitiesContext, browserEntities, groupNodeData);
+
+                    return {
+                        data: groupNodeData,
+                        children: suitesTreeRoot.children
+                    };
+                })
                 .filter(treeNode => treeNode.children?.length);
 
-            treeNodes.forEach(treeNode => collectVisibleBrowserIds(treeNode));
+            const sortedTreeNodes = sortTreeNodes(entitiesContext, treeNodes);
+            const {allTreeNodeIds, visibleTreeNodeIds} = collectTreeLeafIds(sortedTreeNodes);
 
             return {
-                tree: treeNodes,
+                tree: sortedTreeNodes,
                 allTreeNodeIds,
                 visibleTreeNodeIds
             };
         }
 
-        const suitesTreeRoot = buildTreeBottomUp(Object.values(browsers).filter(browser => browsersState[browser.id].shouldBeShown));
-        collectVisibleBrowserIds(suitesTreeRoot);
+        const suitesTreeRoot = buildTreeBottomUp(entitiesContext, Object.values(browsers).filter(browser => browsersState[browser.id].shouldBeShown));
+        suitesTreeRoot.children = sortTreeNodes(entitiesContext, suitesTreeRoot.children ?? []);
+        const {allTreeNodeIds, visibleTreeNodeIds} = collectTreeLeafIds([suitesTreeRoot]);
 
         return {
-            visibleTreeNodeIds,
             allTreeNodeIds,
+            visibleTreeNodeIds,
             tree: suitesTreeRoot.children ?? []
         };
     });

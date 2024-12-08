@@ -61,7 +61,18 @@ export const SuitesTreeView = forwardRef<SuitesTreeViewHandle, SuitesTreeViewPro
     const virtualizer = useVirtualizer({
         count: list.structure.visibleFlattenIds.length,
         getScrollElement: () => parentRef.current,
-        estimateSize: () => 32,
+        estimateSize: (index) => {
+            const id = list.structure.visibleFlattenIds[index];
+            const item = list.structure.itemsById[id];
+
+            // Groups on average take 3 lines: 2 lines of text (clamped) + 1 line for tags -> 73px in total
+            // Regular items on average take 1 line -> 32px
+            // Providing more precise estimates here greatly improves scrolling performance
+            const GROUP_ROW_HEIGHT = 73;
+            const REGULAR_ROW_HEIGHT = 32;
+
+            return item.entityType === EntityType.Group ? GROUP_ROW_HEIGHT : REGULAR_ROW_HEIGHT;
+        },
         getItemKey: useCallback((index: number) => list.structure.visibleFlattenIds[index], [list]),
         overscan: 50
     });
@@ -144,6 +155,9 @@ export const SuitesTreeView = forwardRef<SuitesTreeViewHandle, SuitesTreeViewPro
                         const classes = [
                             styles['tree-view__item'],
                             {
+                                // Global classes are useful for deeply nested elements like tags
+                                'current-tree-node': isSelected,
+                                'error-tree-node': item.entityType === EntityType.Browser && (item.status === TestStatus.FAIL || item.status === TestStatus.ERROR),
                                 [styles['tree-view__item--current']]: isSelected,
                                 [styles['tree-view__item--browser']]: item.entityType === EntityType.Browser,
                                 [styles['tree-view__item--error']]: item.entityType === EntityType.Browser && (item.status === TestStatus.FAIL || item.status === TestStatus.ERROR)

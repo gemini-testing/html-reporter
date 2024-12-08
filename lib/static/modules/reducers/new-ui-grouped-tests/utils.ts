@@ -12,6 +12,7 @@ import {isAssertViewError} from '@/common-utils';
 import stripAnsi from 'strip-ansi';
 import {IMAGE_COMPARISON_FAILED_MESSAGE, TestStatus} from '@/constants';
 import {stringify} from '@/static/new-ui/utils';
+import {EntityType} from '@/static/new-ui/features/suites/components/SuitesPage/types';
 
 const extractErrors = (result: ResultEntity, images: ImageEntity[]): string[] => {
     const errors = new Set<string>();
@@ -48,7 +49,8 @@ const extractErrors = (result: ResultEntity, images: ImageEntity[]): string[] =>
 const groupTestsByMeta = (expr: GroupByMetaExpression, resultsById: Record<string, ResultEntity>): Record<string, GroupEntity> => {
     const DEFAULT_GROUP = `__${GroupByType.Meta}__DEFAULT_GROUP`;
     const results = Object.values(resultsById);
-    const groups: Record<string | symbol, GroupEntity> = {};
+    const groupsById: Record<string | symbol, GroupEntity> = {};
+    const groupingKeyToId: Record<string, string> = {};
     let id = 1;
 
     for (const result of results) {
@@ -59,28 +61,35 @@ const groupTestsByMeta = (expr: GroupByMetaExpression, resultsById: Record<strin
             groupingKey = `${GroupByType.Meta}__${expr.key}__${stringify(result.metaInfo[expr.key])}`;
         }
 
-        if (!groups[groupingKey]) {
-            groups[groupingKey] = {
-                id: id.toString(),
-                key: expr.key,
-                label: stringify(result.metaInfo[expr.key]),
-                resultIds: [],
-                browserIds: []
-            };
+        if (!groupingKeyToId[groupingKey]) {
+            groupingKeyToId[groupingKey] = id.toString();
             id++;
         }
 
-        groups[groupingKey].resultIds.push(result.id);
-        if (!groups[groupingKey].browserIds.includes(result.parentId)) {
-            groups[groupingKey].browserIds.push(result.parentId);
+        const groupId = groupingKeyToId[groupingKey];
+        if (!groupsById[groupId]) {
+            groupsById[groupId] = {
+                id: groupId,
+                key: expr.key,
+                label: stringify(result.metaInfo[expr.key]),
+                resultIds: [],
+                browserIds: [],
+                type: EntityType.Group
+            };
+        }
+
+        groupsById[groupId].resultIds.push(result.id);
+        if (!groupsById[groupId].browserIds.includes(result.parentId)) {
+            groupsById[groupId].browserIds.push(result.parentId);
         }
     }
 
-    return groups;
+    return groupsById;
 };
 
 const groupTestsByError = (resultsById: Record<string, ResultEntity>, imagesById: Record<string, ImageEntity>, errorPatterns: State['config']['errorPatterns']): Record<string, GroupEntity> => {
-    const groups: Record<string | symbol, GroupEntity> = {};
+    const groupsById: Record<string | symbol, GroupEntity> = {};
+    const groupingKeyToId: Record<string, string> = {};
     const results = Object.values(resultsById);
     let id = 1;
 
@@ -101,25 +110,31 @@ const groupTestsByError = (resultsById: Record<string, ResultEntity>, imagesById
                 groupingKey = `${GroupByType.Error}__${errorText}`;
             }
 
-            if (!groups[groupingKey]) {
-                groups[groupingKey] = {
-                    id: id.toString(),
-                    key: 'error',
-                    label: stripAnsi(groupLabel),
-                    resultIds: [],
-                    browserIds: []
-                };
+            if (!groupingKeyToId[groupingKey]) {
+                groupingKeyToId[groupingKey] = id.toString();
                 id++;
             }
 
-            groups[groupingKey].resultIds.push(result.id);
-            if (!groups[groupingKey].browserIds.includes(result.parentId)) {
-                groups[groupingKey].browserIds.push(result.parentId);
+            const groupId = groupingKeyToId[groupingKey];
+            if (!groupsById[groupId]) {
+                groupsById[groupId] = {
+                    id: groupId,
+                    key: 'error',
+                    label: stripAnsi(groupLabel),
+                    resultIds: [],
+                    browserIds: [],
+                    type: EntityType.Group
+                };
+            }
+
+            groupsById[groupId].resultIds.push(result.id);
+            if (!groupsById[groupId].browserIds.includes(result.parentId)) {
+                groupsById[groupId].browserIds.push(result.parentId);
             }
         }
     }
 
-    return groups;
+    return groupsById;
 };
 
 export const groupTests = (groupByExpressions: GroupByExpression[], resultsById: Record<string, ResultEntity>, imagesById: Record<string, ImageEntity>, errorPatterns: State['config']['errorPatterns']): Record<string, GroupEntity> => {

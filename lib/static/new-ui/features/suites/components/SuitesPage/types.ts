@@ -2,9 +2,9 @@ import {TestStatus} from '@/constants';
 import {ImageEntity} from '@/static/new-ui/types/store';
 
 export enum EntityType {
-    Group,
-    Suite,
-    Browser,
+    Group = 'group',
+    Suite = 'suite',
+    Browser = 'browser',
 }
 
 export interface TreeViewItemData {
@@ -12,9 +12,9 @@ export interface TreeViewItemData {
     entityType: EntityType;
     entityId: string;
     prefix?: string;
-    title: string;
+    title: string[];
     status: TestStatus | null;
-    tags?: string[];
+    tags: string[];
     errorTitle?: string;
     errorStack?: string;
     images?: ImageEntity[];

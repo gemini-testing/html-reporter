@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 
 import {hasUnrelatedToScreenshotsErrors, isFailStatus} from '@/common-utils';
 import {TestStatus} from '@/constants';
-import {ResultEntityError, State} from '@/static/new-ui/types/store';
+import {GroupEntity, ResultEntityError, State} from '@/static/new-ui/types/store';
 import styles from './index.module.css';
 import {get} from 'lodash';
 
@@ -86,7 +86,7 @@ function AttemptPickerItemInternal(props: AttemptPickerItemInternalProps): React
 export const AttemptPickerItem = connect(
     ({tree, view: {keyToGroupTestsBy}, app: {isNewUi, suitesPage: {currentGroupId}}}: State, {resultId}: AttemptPickerItemProps) => {
         const result = tree.results.byId[resultId];
-        const group = Object.values(tree.groups.byId).find(group => group.id === currentGroupId);
+        const group = tree.groups.byId[currentGroupId ?? ''] as GroupEntity | undefined;
         const matchedSelectedGroup = isNewUi ?
             Boolean(group?.resultIds.includes(resultId)) :
             get(tree.results.stateById[resultId], 'matchedSelectedGroup', false);

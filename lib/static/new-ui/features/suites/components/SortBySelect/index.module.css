@@ -1,0 +1,13 @@
+.label-icon-right {
+    margin-left: -6px;
+}
+
+.option-content {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.option-icon {
+    color: var(--g-color-private-black-450-solid);
+}

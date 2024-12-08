@@ -29,8 +29,18 @@
     margin-right: 8px;
 }
 
+.title-part {
+    opacity: 0.7;
+}
+
+.title-separator {
+    opacity: 0.5;
+    margin: 0 4px;
+}
+
 .tags-container {
     display: inline-block;
+    height: 20px;
 }
 
 .tag {
@@ -43,6 +53,28 @@
     padding: 0 4px;
 }
 
+:global(.error-tree-node) .tag {
+    background: var(--g-color-private-red-50);
+    color: var(--g-color-private-red-500-solid);
+}
+
+:global(.current-tree-node) .tag {
+    background-color: rgba(255, 255, 255, .15);
+    color: rgba(255, 255, 255, .7);
+}
+
 .tag:last-child {
     margin-right: 0;
+}
+
+.title-container--clamped {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    word-break: break-all;
+}
+
+.title-container--inline {
+    display: inline;
 }

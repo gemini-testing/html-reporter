@@ -1,10 +1,14 @@
 .container {
+    --g-color-text-info: #000;
     --divider-color: rgba(0, 0, 0, 0.1);
     --g-text-accent-font-weight: 500;
 
     display: flex;
     gap: 4px;
     position: relative;
+    container-type: inline-size;
+    /* This makes toolbar select popups stay on top of tree view */
+    z-index: 1;
 }
 
 .buttons-container {
