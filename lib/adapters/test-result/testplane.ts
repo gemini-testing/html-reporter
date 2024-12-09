@@ -73,14 +73,16 @@ const getHistory = (history?: TestplaneTestResult['history']): TestStepCompresse
 export interface TestplaneTestResultAdapterOptions {
     attempt: number;
     status: TestStatus;
+    duration: number;
 }
 
 export class TestplaneTestResultAdapter implements ReporterTestResult {
     private _testResult: TestplaneTest | TestplaneTestResult;
     private _errorDetails: ErrorDetails | null;
-    private _timestamp: number | undefined;
+    private _timestamp: number;
     private _attempt: number;
     private _status: TestStatus;
+    private _duration: number;
 
     static create(
         this: new (testResult: TestplaneTest | TestplaneTestResult, options: TestplaneTestResultAdapterOptions) => TestplaneTestResultAdapter,
@@ -90,11 +92,12 @@ export class TestplaneTestResultAdapter implements ReporterTestResult {
         return new this(testResult, options);
     }
 
-    constructor(testResult: TestplaneTest | TestplaneTestResult, {attempt, status}: TestplaneTestResultAdapterOptions) {
+    constructor(testResult: TestplaneTest | TestplaneTestResult, {attempt, status, duration}: TestplaneTestResultAdapterOptions) {
         this._testResult = testResult;
         this._errorDetails = null;
-        this._timestamp = (this._testResult as TestplaneTestResult).timestamp ??
-            (this._testResult as TestplaneTestResult).startTime ?? Date.now();
+        this._timestamp = (this._testResult as TestplaneTestResult).startTime
+            ?? (this._testResult as TestplaneTestResult).timestamp
+            ?? Date.now();
         this._status = status;
 
         const browserVersion = _.get(this._testResult, 'meta.browserVersion', this._testResult.browserVersion);
@@ -102,6 +105,7 @@ export class TestplaneTestResultAdapter implements ReporterTestResult {
         _.set(this._testResult, 'meta.browserVersion', browserVersion);
 
         this._attempt = attempt;
+        this._duration = duration;
     }
 
     get fullName(): string {
@@ -259,7 +263,11 @@ export class TestplaneTestResultAdapter implements ReporterTestResult {
 
     set timestamp(timestamp) {
         if (!_.isNumber(this._timestamp)) {
-            this._timestamp = timestamp;
+            this._timestamp = timestamp ?? 0;
         }
+    }
+
+    get duration(): number {
+        return this._duration;
     }
 }

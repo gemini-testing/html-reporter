@@ -14,7 +14,8 @@ export const DB_COLUMNS = {
     SCREENSHOT: 'screenshot',
     MULTIPLE_TABS: 'multipleTabs',
     STATUS: 'status',
-    TIMESTAMP: 'timestamp'
+    TIMESTAMP: 'timestamp',
+    DURATION: 'duration'
 } as const;
 
 export const SUITES_TABLE_COLUMNS = [
@@ -31,7 +32,8 @@ export const SUITES_TABLE_COLUMNS = [
     {name: DB_COLUMNS.SCREENSHOT, type: DB_TYPES.int}, //boolean - 0 or 1
     {name: DB_COLUMNS.MULTIPLE_TABS, type: DB_TYPES.int}, //boolean - 0 or 1
     {name: DB_COLUMNS.STATUS, type: DB_TYPES.text},
-    {name: DB_COLUMNS.TIMESTAMP, type: DB_TYPES.int}
+    {name: DB_COLUMNS.TIMESTAMP, type: DB_TYPES.int},
+    {name: DB_COLUMNS.DURATION, type: DB_TYPES.int}
 ] as const;
 
 export const DB_MAX_AVAILABLE_PAGE_SIZE = 65536; // helps to speed up queries
@@ -55,7 +57,7 @@ interface DbColumnIndexes {
     [DB_COLUMNS.MULTIPLE_TABS]: 11,
     [DB_COLUMNS.STATUS]: 12,
     [DB_COLUMNS.TIMESTAMP]: 13,
-
+    [DB_COLUMNS.DURATION]: 14,
 }
 
 export const DB_COLUMN_INDEXES = SUITES_TABLE_COLUMNS.reduce((acc: Record<string, number>, {name}, index) => {

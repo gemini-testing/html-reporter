@@ -10,7 +10,8 @@ export interface CreateTestResultOpts {
     sessionId?: string;
     meta?: {
         url?: string;
-    }
+    };
+    duration: number;
 }
 
 export interface TestAdapter {

@@ -38,7 +38,8 @@ export class DbTestResultTransformer {
             screenshot: Boolean(testResult.screenshot),
             multipleTabs: testResult.multipleTabs,
             status: testResult.status,
-            timestamp: testResult.timestamp ?? Date.now()
+            timestamp: testResult.timestamp ?? Date.now(),
+            duration: testResult.duration
         };
     }
 }
