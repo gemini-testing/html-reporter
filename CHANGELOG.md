@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.11.0"></a>
+# [10.11.0](https://github.com/gemini-testing/html-reporter/compare/v10.10.1...v10.11.0) (2024-12-09)
+
+
+### Bug Fixes
+
+* add error as last step if no suitable step to attach it to was found ([#620](https://github.com/gemini-testing/html-reporter/issues/620)) ([1277bef](https://github.com/gemini-testing/html-reporter/commit/1277bef))
+
+
+### Features
+
+* implement info panel ([#622](https://github.com/gemini-testing/html-reporter/issues/622)) ([c732fa7](https://github.com/gemini-testing/html-reporter/commit/c732fa7))
+* implement tests sorting ([#621](https://github.com/gemini-testing/html-reporter/issues/621)) ([4a341c3](https://github.com/gemini-testing/html-reporter/commit/4a341c3))
+
+
+
 <a name="10.10.1"></a>
 ## [10.10.1](https://github.com/gemini-testing/html-reporter/compare/v10.10.0...v10.10.1) (2024-11-27)
 
