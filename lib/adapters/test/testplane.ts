@@ -53,7 +53,7 @@ export class TestplaneTestAdapter implements TestAdapter {
     }
 
     createTestResult(opts: CreateTestResultOpts): ReporterTestResult {
-        const {status, assertViewResults, error, sessionId, meta, attempt = UNKNOWN_ATTEMPT} = opts;
+        const {status, assertViewResults, error, sessionId, meta, attempt = UNKNOWN_ATTEMPT, duration} = opts;
         const test = this._test.clone();
 
         [
@@ -68,7 +68,7 @@ export class TestplaneTestAdapter implements TestAdapter {
             }
         });
 
-        return TestplaneTestResultAdapter.create(test, {attempt, status});
+        return TestplaneTestResultAdapter.create(test, {attempt, status, duration});
     }
 }
 

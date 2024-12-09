@@ -200,6 +200,8 @@ export const sortTreeNodes = (entitiesContext: EntitiesContext, treeNodes: TreeN
         testsCount: number;
         runsCount: number;
         failedRunsCount: number;
+        duration: number;
+        startTime: number;
     }
 
     interface TreeNodeWeight {
@@ -217,12 +219,16 @@ export const sortTreeNodes = (entitiesContext: EntitiesContext, treeNodes: TreeN
         metadata: metadata ?? {}
     });
 
-    const extractWeight = (treeNode: TreeNode, childrenWeight?: TreeNodeWeight): TreeNodeWeight => {
-        const notifyOfUnsuccessfulWeightComputation = (): void => {
+    const createInvalidWeight = (treeNode?: TreeNode): TreeNodeWeight => {
+        if (treeNode) {
             console.warn('Failed to determine suite weight for tree node listed below. Please let us now at ' + NEW_ISSUE_LINK);
             console.warn(treeNode);
-        };
+        }
 
+        return {value: [0], metadata: {}};
+    };
+
+    const extractWeight = (treeNode: TreeNode, childrenWeight?: TreeNodeWeight): TreeNodeWeight => {
         switch (treeNode.data.entityType) {
             case EntityType.Group: {
                 const group = groups[treeNode.data.entityId];
@@ -238,12 +244,23 @@ export const sortTreeNodes = (entitiesContext: EntitiesContext, treeNodes: TreeN
                     return createWeight([treeNode.data.title.join(' '), testsCount, runsCount], {testsCount, runsCount});
                 } else if (currentSortExpression.type === SortType.ByFailedRuns) {
                     if (!childrenWeight) {
-                        notifyOfUnsuccessfulWeightComputation();
-                        return createWeight([0, 0, 0]);
+                        return createInvalidWeight(treeNode);
                     }
 
                     // For now, we assume there are no nested groups and suite/test weights are always 1 dimensional
                     return createWeight([childrenWeight.value[0], testsCount, runsCount], Object.assign({}, {testsCount, runsCount}, childrenWeight.metadata));
+                } else if (currentSortExpression.type === SortType.ByDuration) {
+                    if (!childrenWeight) {
+                        return createInvalidWeight(treeNode);
+                    }
+
+                    return childrenWeight;
+                } else if (currentSortExpression.type === SortType.ByStartTime) {
+                    if (!childrenWeight) {
+                        return createInvalidWeight(treeNode);
+                    }
+
+                    return childrenWeight;
                 }
                 break;
             }
@@ -252,15 +269,25 @@ export const sortTreeNodes = (entitiesContext: EntitiesContext, treeNodes: TreeN
                     return createWeight([treeNode.data.title.join(' ')]);
                 } else if (currentSortExpression.type === SortType.ByFailedRuns) {
                     if (!childrenWeight) {
-                        notifyOfUnsuccessfulWeightComputation();
-                        return createWeight([0]);
+                        return createInvalidWeight(treeNode);
                     }
 
                     return childrenWeight;
                 } else if (currentSortExpression.type === SortType.ByTestsCount) {
                     if (!childrenWeight) {
-                        notifyOfUnsuccessfulWeightComputation();
-                        return createWeight([0]);
+                        return createInvalidWeight(treeNode);
+                    }
+
+                    return childrenWeight;
+                } else if (currentSortExpression.type === SortType.ByDuration) {
+                    if (!childrenWeight) {
+                        return createInvalidWeight(treeNode);
+                    }
+
+                    return createWeight([childrenWeight.value[0], treeNode.data.title.join(' ')], childrenWeight.metadata);
+                } else if (currentSortExpression.type === SortType.ByStartTime) {
+                    if (!childrenWeight) {
+                        return createInvalidWeight(treeNode);
                     }
 
                     return childrenWeight;
@@ -286,21 +313,36 @@ export const sortTreeNodes = (entitiesContext: EntitiesContext, treeNodes: TreeN
                     const runsCount = groupId ? browser.resultIds.filter(resultId => groups[groupId].resultIds.includes(resultId)).length : browser.resultIds.length;
 
                     return createWeight([1, runsCount], {runsCount});
+                } else if (currentSortExpression.type === SortType.ByDuration) {
+                    const browser = browsers[treeNode.data.entityId];
+                    const groupId = getGroupId(treeNode.data);
+                    const resultIds = groupId ? browser.resultIds.filter(resultId => groups[groupId].resultIds.includes(resultId)) : browser.resultIds;
+                    const totalTime = resultIds.reduce((accTime, resultId) => accTime + (results[resultId].duration ?? 0), 0);
+
+                    return createWeight([totalTime, treeNode.data.title.join(' ')], {runsCount: resultIds.length, duration: totalTime});
+                } else if (currentSortExpression.type === SortType.ByStartTime) {
+                    const browser = browsers[treeNode.data.entityId];
+                    const startTime = results[browser.resultIds[0]].timestamp;
+
+                    return createWeight([startTime], {startTime});
                 }
                 break;
             }
         }
 
-        notifyOfUnsuccessfulWeightComputation();
-        return createWeight([0]);
+        return createInvalidWeight(treeNode);
     };
 
     const aggregateWeights = (weights: TreeNodeWeight[]): TreeNodeWeight => {
         if (!currentSortExpression || currentSortExpression.type === SortType.ByName) {
-            return createWeight([0]);
+            return createInvalidWeight();
         }
 
-        if (currentSortExpression.type === SortType.ByFailedRuns || currentSortExpression.type === SortType.ByTestsCount) {
+        if (
+            currentSortExpression.type === SortType.ByFailedRuns ||
+            currentSortExpression.type === SortType.ByTestsCount ||
+            currentSortExpression.type === SortType.ByDuration
+        ) {
             return weights.reduce<TreeNodeWeight>((accWeight, weight) => {
                 const newAccWeight = createWeight(accWeight.value.slice(0), accWeight.metadata);
                 for (let i = 0; i < weight.value.length; i++) {
@@ -316,12 +358,32 @@ export const sortTreeNodes = (entitiesContext: EntitiesContext, treeNodes: TreeN
                 if (weight.metadata.failedRunsCount !== undefined) {
                     newAccWeight.metadata.failedRunsCount = (newAccWeight.metadata.failedRunsCount ?? 0) + weight.metadata.failedRunsCount;
                 }
+                if (weight.metadata.duration !== undefined) {
+                    newAccWeight.metadata.duration = (newAccWeight.metadata.duration ?? 0) + weight.metadata.duration;
+                }
 
                 return newAccWeight;
             }, createWeight(new Array(weights[0]?.value?.length)));
         }
 
-        return createWeight([0]);
+        if (currentSortExpression.type === SortType.ByStartTime) {
+            const MAX_DATE = new Date(8640000000000000).getTime();
+
+            return weights.reduce<TreeNodeWeight>((accWeight, weight) => {
+                const newAccWeight = createWeight(accWeight.value.slice(0), accWeight.metadata);
+                for (let i = 0; i < weight.value.length; i++) {
+                    newAccWeight.value[i] = Math.min(Number(accWeight.value[i] || MAX_DATE), Number(weight.value[i]));
+                }
+
+                if (weight.metadata.startTime !== undefined) {
+                    newAccWeight.metadata.startTime = Math.min((newAccWeight.metadata.startTime || MAX_DATE), weight.metadata.startTime);
+                }
+
+                return newAccWeight;
+            }, createWeight(new Array(weights[0]?.value?.length)));
+        }
+
+        return createInvalidWeight();
     };
 
     const generateTagsForWeight = (weight: TreeNodeWeight): string[] => {
@@ -340,6 +402,26 @@ export const sortTreeNodes = (entitiesContext: EntitiesContext, treeNodes: TreeN
         const failedRunsCount = weight.metadata.failedRunsCount;
         if (failedRunsCount !== undefined) {
             tags.push(`${failedRunsCount} ${(failedRunsCount === 1 ? 'failed run' : 'failed runs')}`);
+        }
+
+        const duration = weight.metadata.duration;
+        if (duration !== undefined) {
+            const durationSeconds = Math.round(duration / 1000 * 10) / 10;
+            if (durationSeconds < 0.1) {
+                tags.push('<0s in total');
+            } else {
+                tags.push(`${durationSeconds}s in total`);
+            }
+        }
+
+        const startTime = weight.metadata.startTime;
+        if (startTime !== undefined) {
+            tags.push(`Started at ${new Date(startTime).toLocaleTimeString('en-US', {
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            })}`);
         }
 
         return tags;

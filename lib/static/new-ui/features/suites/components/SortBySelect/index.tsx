@@ -3,7 +3,9 @@ import {
     BarsAscendingAlignLeftArrowUp,
     BarsDescendingAlignLeftArrowDown,
     FontCase,
-    SquareLetterT
+    SquareLetterT,
+    Clock,
+    Stopwatch
 } from '@gravity-ui/icons';
 import {Icon, Select, SelectProps} from '@gravity-ui/uikit';
 import React, {ReactNode} from 'react';
@@ -25,6 +27,12 @@ const getSortIcon = (sortByExpression: SortByExpression): ReactNode => {
             break;
         case SortType.ByTestsCount:
             iconData = SquareLetterT;
+            break;
+        case SortType.ByStartTime:
+            iconData = Clock;
+            break;
+        case SortType.ByDuration:
+            iconData = Stopwatch;
             break;
     }
     return <Icon data={iconData} className={styles.optionIcon} width={14} height={14} />;

@@ -194,7 +194,8 @@ export class ToolRunner {
                 attempt: latestAttempt,
                 error: test.error,
                 sessionId,
-                meta: {url}
+                meta: {url},
+                duration: 0
             });
 
             const estimatedStatus = reportBuilder.getUpdatedReferenceTestStatus(latestResult);
@@ -205,7 +206,8 @@ export class ToolRunner {
                 attempt: UNKNOWN_ATTEMPT,
                 error: test.error,
                 sessionId,
-                meta: {url}
+                meta: {url},
+                duration: 0
             });
 
             const formattedResult = reportBuilder.provideAttempt(formattedResultWithoutAttempt);
@@ -232,7 +234,8 @@ export class ToolRunner {
                 attempt: UNKNOWN_ATTEMPT,
                 error: test.error,
                 sessionId,
-                meta: {url}
+                meta: {url},
+                duration: 0
             });
 
             await Promise.all(formattedResultWithoutAttempt.imagesInfo.map(async (imageInfo) => {
@@ -343,9 +346,9 @@ export class ToolRunner {
             this._testAdapters[testId] = test;
 
             if (test.pending) {
-                queue.add(async () => reportBuilder.addTestResult(test.createTestResult({status: SKIPPED})));
+                queue.add(async () => reportBuilder.addTestResult(test.createTestResult({status: SKIPPED, duration: 0})));
             } else {
-                queue.add(async () => reportBuilder.addTestResult(test.createTestResult({status: IDLE})));
+                queue.add(async () => reportBuilder.addTestResult(test.createTestResult({status: IDLE, duration: 0})));
             }
         }
 

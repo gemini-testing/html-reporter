@@ -49,6 +49,8 @@ export interface DbTestResult {
     suiteUrl: string;
     /* Unix time in ms. Example: `1700563430266` */
     timestamp: number;
+    /* Duration in ms. Example: `1601` */
+    duration: number;
 }
 
 interface SqliteClientOptions {

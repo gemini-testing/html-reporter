@@ -75,6 +75,7 @@ export interface ResultEntityCommon {
     /** @note Browser Name/ID, e.g. `chrome-desktop` */
     name: string;
     skipReason?: string;
+    duration?: number;
 }
 
 export interface ResultEntityError extends ResultEntityCommon {
@@ -213,7 +214,9 @@ export type GroupByExpression = GroupByMetaExpression | GroupByErrorExpression;
 export enum SortType {
     ByName,
     ByFailedRuns,
-    ByTestsCount
+    ByTestsCount,
+    ByStartTime,
+    ByDuration
 }
 
 export enum SortDirection {

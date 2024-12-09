@@ -107,4 +107,8 @@ export class ReporterTestAdapter implements ReporterTestResult {
     get url(): string | undefined {
         return this._testResult.url;
     }
+
+    get duration(): number {
+        return this._testResult.duration;
+    }
 }

@@ -302,7 +302,9 @@ export const formatTestResult = (
     status: TestStatus,
     attempt: number = UNKNOWN_ATTEMPT
 ): ReporterTestResult => {
-    return new TestplaneTestResultAdapter(rawResult, {attempt, status});
+    const startTime = (rawResult as TestplaneTestResult).startTime;
+
+    return new TestplaneTestResultAdapter(rawResult, {attempt, status, duration: startTime !== undefined ? Date.now() - startTime : 0});
 };
 
 export const saveErrorDetails = async (testResult: ReporterTestResult, reportPath: string): Promise<void> => {
