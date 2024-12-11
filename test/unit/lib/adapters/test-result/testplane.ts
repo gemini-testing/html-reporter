@@ -46,7 +46,7 @@ describe('TestplaneTestResultAdapter', () => {
         testResult: TestplaneTestResult,
         {status = TestStatus.SUCCESS}: {status?: TestStatus} = {}
     ): TestplaneTestResultAdapter => {
-        return new TestplaneTestResultAdapter(testResult, {status, attempt: 0}) as TestplaneTestResultAdapter;
+        return new TestplaneTestResultAdapter(testResult, {status, attempt: 0, duration: 0}) as TestplaneTestResultAdapter;
     };
 
     const mkTestResult_ = (result: Partial<TestplaneTestResult>): TestplaneTestResult => _.defaults(result, {

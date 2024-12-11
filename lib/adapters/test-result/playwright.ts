@@ -364,4 +364,8 @@ export class PlaywrightTestResultAdapter implements ReporterTestResult {
 
         return _.groupBy(imageAttachments, a => a.name.replace(ANY_IMAGE_ENDING_REGEXP, ''));
     }
+
+    get duration(): number {
+        return this._testResult.duration;
+    }
 }

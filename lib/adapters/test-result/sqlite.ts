@@ -151,4 +151,8 @@ export class SqliteTestResultAdapter implements ReporterTestResult {
     get url(): string | undefined {
         return this._testResult[DB_COLUMN_INDEXES.suiteUrl];
     }
+
+    get duration(): number {
+        return this._testResult[DB_COLUMN_INDEXES.duration];
+    }
 }

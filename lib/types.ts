@@ -272,6 +272,7 @@ export type RawSuitesRow = [
     multipleTabs: number,
     status: string,
     timestamp: number,
+    duration: number,
 ];
 
 export type LabeledSuitesRow = {
