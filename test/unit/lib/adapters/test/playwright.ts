@@ -89,7 +89,7 @@ describe('lib/adapters/test/playwright', () => {
             });
             const testAdapter = PlaywrightTestAdapter.create(test);
 
-            testAdapter.createTestResult({status: TestStatus.SUCCESS});
+            testAdapter.createTestResult({status: TestStatus.SUCCESS, duration: 0});
             const testCase = (PlaywrightTestResultAdapter.create as SinonStub).args[0][0] as unknown as TestCase;
 
             assert.calledOnceWith(PlaywrightTestResultAdapter.create as SinonStub, {
@@ -111,7 +111,7 @@ describe('lib/adapters/test/playwright', () => {
             it('should create test result adapter with generated test result', () => {
                 const testAdapter = PlaywrightTestAdapter.create(mkTest_());
 
-                testAdapter.createTestResult({status: TestStatus.SUCCESS, attempt: 100500});
+                testAdapter.createTestResult({status: TestStatus.SUCCESS, attempt: 100500, duration: 0});
 
                 assert.calledOnceWith(PlaywrightTestResultAdapter.create as SinonStub, sinon.match.any, {
                     attachments: [],
@@ -139,7 +139,7 @@ describe('lib/adapters/test/playwright', () => {
                         isUpdated: true
                     };
 
-                    testAdapter.createTestResult({status: TestStatus.UPDATED, assertViewResults: [assertViewResult]});
+                    testAdapter.createTestResult({status: TestStatus.UPDATED, assertViewResults: [assertViewResult], duration: 0});
                     const testResult = (PlaywrightTestResultAdapter.create as SinonStub).args[0][1] as unknown as TestResult;
 
                     assert.deepEqual(testResult.attachments as PlaywrightAttachment[], [{
@@ -167,7 +167,7 @@ describe('lib/adapters/test/playwright', () => {
                         isUpdated: false
                     } as unknown as ImageDiffError;
 
-                    testAdapter.createTestResult({status: TestStatus.FAIL, assertViewResults: [assertViewResult]});
+                    testAdapter.createTestResult({status: TestStatus.FAIL, assertViewResults: [assertViewResult], duration: 0});
                     const testResult = (PlaywrightTestResultAdapter.create as SinonStub).args[0][1] as unknown as TestResult;
 
                     assert.deepEqual(testResult.attachments[1] as PlaywrightAttachment, {
@@ -194,7 +194,7 @@ describe('lib/adapters/test/playwright', () => {
                         isUpdated: false
                     } as unknown as ImageDiffError;
 
-                    testAdapter.createTestResult({status: TestStatus.FAIL, assertViewResults: [assertViewResult]});
+                    testAdapter.createTestResult({status: TestStatus.FAIL, assertViewResults: [assertViewResult], duration: 0});
                     const testResult = (PlaywrightTestResultAdapter.create as SinonStub).args[0][1] as unknown as TestResult;
 
                     assert.deepEqual(testResult.attachments[1] as PlaywrightAttachment, {
@@ -221,7 +221,7 @@ describe('lib/adapters/test/playwright', () => {
                         isUpdated: false
                     } as unknown as ImageDiffError;
 
-                    testAdapter.createTestResult({status: TestStatus.FAIL, assertViewResults: [assertViewResult]});
+                    testAdapter.createTestResult({status: TestStatus.FAIL, assertViewResults: [assertViewResult], duration: 0});
                     const testResult = (PlaywrightTestResultAdapter.create as SinonStub).args[0][1] as unknown as TestResult;
 
                     assert.deepEqual(testResult.attachments[1] as PlaywrightAttachment, {

@@ -407,10 +407,15 @@ export const sortTreeNodes = (entitiesContext: EntitiesContext, treeNodes: TreeN
         const duration = weight.metadata.duration;
         if (duration !== undefined) {
             const durationSeconds = Math.round(duration / 1000 * 10) / 10;
+            let averageDurationSeconds = 0;
+            if (weight.metadata.runsCount && weight.metadata.runsCount > 1) {
+                averageDurationSeconds = Math.round(durationSeconds / weight.metadata.runsCount * 10) / 10;
+            }
+
             if (durationSeconds < 0.1) {
                 tags.push('<0s in total');
             } else {
-                tags.push(`${durationSeconds}s in total`);
+                tags.push(`${durationSeconds}s in total${averageDurationSeconds > 0.1 ? `, ${averageDurationSeconds}s on avg.` : ''}`);
             }
         }
 
