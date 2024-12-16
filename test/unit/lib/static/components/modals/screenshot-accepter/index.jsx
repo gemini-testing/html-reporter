@@ -9,7 +9,7 @@ import {
     addBrowserToTree,
     addImageToTree,
     addResultToTree,
-    addSuiteToTree, generateImageId, mkBrowserEntity,
+    addSuiteToTree, mkBrowserEntity,
     mkEmptyTree, mkImageEntityFail, mkRealStore, mkResultEntity, mkSuiteEntityLeaf, renderWithStore
 } from '../../../utils';
 
@@ -82,12 +82,12 @@ describe('<ScreenshotAccepter/>', () => {
         addBrowserToTree({tree, browser});
         const result1 = mkResultEntity('res-1', {parentId: browser.id});
         addResultToTree({tree, result: result1});
-        const image1 = mkImageEntityFail('img-1', {parentId: result1.id});
+        const image1 = mkImageEntityFail('img-1', {stateName: 'plain', parentId: result1.id});
         addImageToTree({tree, image: image1});
 
         const result2 = mkResultEntity('res-2', {parentId: browser.id, attempt: 1});
         addResultToTree({tree, result: result2});
-        const image2 = mkImageEntityFail('img-2', {parentId: result2.id});
+        const image2 = mkImageEntityFail('img-2', {stateName: 'plain', parentId: result2.id});
         addImageToTree({tree, image: image2});
         const store = mkRealStore({initialState: {tree}});
         const currentImageId = image2.id;
@@ -103,57 +103,39 @@ describe('<ScreenshotAccepter/>', () => {
     it('should change image by clicking on "next" button', async () => {
         const user = userEvent.setup();
         const tree = mkEmptyTree();
-        addSuiteToTree({tree, suiteName: 'test-1'});
-        addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
-        addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0});
-        addImageToTree({
-            tree,
-            suiteName: 'test-1',
-            browserName: 'bro-1',
-            attempt: 0,
-            stateName: 'state-1',
-            expectedImgPath: 'img1-expected.png',
-            actualImgPath: 'img1-actual.png',
-            diffImgPath: 'img1-diff.png'
-        });
-        addImageToTree({
-            tree,
-            suiteName: 'test-1',
-            browserName: 'bro-1',
-            attempt: 0,
-            stateName: 'state-2',
-            expectedImgPath: 'img2-expected.png',
-            actualImgPath: 'img2-actual.png',
-            diffImgPath: 'img2-diff.png'
-        });
+        const suite = mkSuiteEntityLeaf('test-1');
+        addSuiteToTree({tree, suite});
+        const browser = mkBrowserEntity('bro-1', {parentId: suite.id});
+        addBrowserToTree({tree, browser});
+        const result = mkResultEntity('res-1', {parentId: browser.id});
+        addResultToTree({tree, result});
+        const image1 = mkImageEntityFail('state-1', {parentId: result.id});
+        addImageToTree({tree, image: image1});
+        const image2 = mkImageEntityFail('state-2', {parentId: result.id});
+        addImageToTree({tree, image: image2});
         const store = mkRealStore({initialState: {tree}});
-        const currentImageId = generateImageId({suiteName: 'test-1', browserName: 'bro-1', attempt: 0, stateName: 'state-1'});
+        const currentImageId = image1.id;
 
         const component = renderWithStore(<ScreenshotAccepter image={tree.images.byId[currentImageId]}/>, store);
         await user.click(component.getByTitle('Show next image', {exact: false}));
 
         const imageElements = component.getAllByRole('img');
-        imageElements.every(imageElement => expect(imageElement.src).to.include('img2'));
+        imageElements.every(imageElement => expect(imageElement.src).to.include('state-2'));
     });
 
     it('should show a success message after accepting last screenshot', async () => {
         const user = userEvent.setup();
         const tree = mkEmptyTree();
-        addSuiteToTree({tree, suiteName: 'test-1'});
-        addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
-        addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0});
-        addImageToTree({
-            tree,
-            suiteName: 'test-1',
-            browserName: 'bro-1',
-            attempt: 0,
-            stateName: 'state-1',
-            expectedImgPath: 'img1-expected.png',
-            actualImgPath: 'img1-actual.png',
-            diffImgPath: 'img1-diff.png'
-        });
+        const suite = mkSuiteEntityLeaf('test-1');
+        addSuiteToTree({tree, suite});
+        const browser = mkBrowserEntity('bro-1', {parentId: suite.id});
+        addBrowserToTree({tree, browser});
+        const result = mkResultEntity('res-1', {parentId: browser.id});
+        addResultToTree({tree, result});
+        const image1 = mkImageEntityFail('state-1', {parentId: result.id});
+        addImageToTree({tree, image: image1});
         const store = mkRealStore({initialState: {tree}});
-        const currentImageId = generateImageId({suiteName: 'test-1', browserName: 'bro-1', attempt: 0, stateName: 'state-1'});
+        const currentImageId = image1.id;
 
         const component = renderWithStore(<ScreenshotAccepter image={tree.images.byId[currentImageId]}/>, store);
         await user.click(component.getByText('Accept', {selector: 'button > *'}));
@@ -164,24 +146,19 @@ describe('<ScreenshotAccepter/>', () => {
     it('should should display meta info', async () => {
         const user = userEvent.setup();
         const tree = mkEmptyTree();
-        addSuiteToTree({tree, suiteName: 'test-1'});
-        addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
-        addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0, metaInfo: {
+        const suite = mkSuiteEntityLeaf('test-1');
+        addSuiteToTree({tree, suite});
+        const browser = mkBrowserEntity('bro-1', {parentId: suite.id});
+        addBrowserToTree({tree, browser});
+        const result = mkResultEntity('res-1', {parentId: browser.id, metaInfo: {
             key1: 'some-value-1',
             key2: 'some-value-2'
         }});
-        addImageToTree({
-            tree,
-            suiteName: 'test-1',
-            browserName: 'bro-1',
-            attempt: 0,
-            stateName: 'state-1',
-            expectedImgPath: 'img1-expected.png',
-            actualImgPath: 'img1-actual.png',
-            diffImgPath: 'img1-diff.png'
-        });
+        addResultToTree({tree, result});
+        const image1 = mkImageEntityFail('state-1', {parentId: result.id});
+        addImageToTree({tree, image: image1});
         const store = mkRealStore({initialState: {tree}});
-        const currentImageId = generateImageId({suiteName: 'test-1', browserName: 'bro-1', attempt: 0, stateName: 'state-1'});
+        const currentImageId = image1.id;
 
         const component = renderWithStore(<ScreenshotAccepter image={tree.images.byId[currentImageId]}/>, store);
         await user.click(component.getByText('Show meta', {selector: 'button > *'}));
@@ -193,21 +170,16 @@ describe('<ScreenshotAccepter/>', () => {
     it('should return to original state after clicking "undo"', async () => {
         const user = userEvent.setup();
         const tree = mkEmptyTree();
-        addSuiteToTree({tree, suiteName: 'test-1'});
-        addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
-        addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0});
-        addImageToTree({
-            tree,
-            suiteName: 'test-1',
-            browserName: 'bro-1',
-            attempt: 0,
-            stateName: 'state-1',
-            expectedImgPath: 'img1-expected.png',
-            actualImgPath: 'img1-actual.png',
-            diffImgPath: 'img1-diff.png'
-        });
+        const suite = mkSuiteEntityLeaf('test-1');
+        addSuiteToTree({tree, suite});
+        const browser = mkBrowserEntity('bro-1', {parentId: suite.id});
+        addBrowserToTree({tree, browser});
+        const result = mkResultEntity('res-1', {parentId: browser.id});
+        addResultToTree({tree, result});
+        const image1 = mkImageEntityFail('state-1', {parentId: result.id});
+        addImageToTree({tree, image: image1});
         const store = mkRealStore({initialState: {tree}});
-        const currentImageId = generateImageId({suiteName: 'test-1', browserName: 'bro-1', attempt: 0, stateName: 'state-1'});
+        const currentImageId = image1.id;
 
         const component = renderWithStore(<ScreenshotAccepter image={tree.images.byId[currentImageId]}/>, store);
         await user.click(component.getByText('Accept', {selector: 'button > *'}));
@@ -215,7 +187,7 @@ describe('<ScreenshotAccepter/>', () => {
 
         expect(component.getByTestId('screenshot-accepter-progress-bar').dataset.content).to.equal('0/1');
         const imageElements = component.getAllByRole('img');
-        imageElements.every(imageElement => expect(imageElement.src).to.include('img1'));
+        imageElements.every(imageElement => expect(imageElement.src).to.include('state-1'));
     });
 
     describe('exiting from screenshot accepter', () => {
@@ -234,23 +206,18 @@ describe('<ScreenshotAccepter/>', () => {
             const reduxAction = sinon.stub();
             const user = userEvent.setup();
             const tree = mkEmptyTree();
-            addSuiteToTree({tree, suiteName: 'test-1'});
-            addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
-            addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0});
-            addImageToTree({
-                tree,
-                suiteName: 'test-1',
-                browserName: 'bro-1',
-                attempt: 0,
-                stateName: 'state-1',
-                expectedImgPath: 'img1-expected.png',
-                diffImgPath: 'img1-diff.png',
-                actualImgPath: 'img1-actual.png'
-            });
+            const suite = mkSuiteEntityLeaf('test-1');
+            addSuiteToTree({tree, suite});
+            const browser = mkBrowserEntity('bro-1', {parentId: suite.id});
+            addBrowserToTree({tree, browser});
+            const result = mkResultEntity('res-1', {parentId: browser.id});
+            addResultToTree({tree, result});
+            const image1 = mkImageEntityFail('state-1', {parentId: result.id});
+            addImageToTree({tree, image: image1});
 
             const middleware = mkDispatchInterceptorMiddleware(reduxAction);
             const store = mkRealStore({initialState: {tree, view: {expand: EXPAND_ALL}}, middlewares: [middleware]});
-            const currentImageId = generateImageId({suiteName: 'test-1', browserName: 'bro-1', attempt: 0, stateName: 'state-1'});
+            const currentImageId = image1.id;
 
             const component = renderWithStore(<ScreenshotAccepter image={tree.images.byId[currentImageId]}/>, store);
 
@@ -263,23 +230,18 @@ describe('<ScreenshotAccepter/>', () => {
             const reduxAction = sinon.stub();
             const user = userEvent.setup();
             const tree = mkEmptyTree();
-            addSuiteToTree({tree, suiteName: 'test-1'});
-            addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
-            addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0});
-            addImageToTree({
-                tree,
-                suiteName: 'test-1',
-                browserName: 'bro-1',
-                attempt: 0,
-                stateName: 'state-1',
-                expectedImgPath: 'img1-expected.png',
-                diffImgPath: 'img1-diff.png',
-                actualImgPath: 'img1-actual.png'
-            });
+            const suite = mkSuiteEntityLeaf('test-1');
+            addSuiteToTree({tree, suite});
+            const browser = mkBrowserEntity('bro-1', {parentId: suite.id});
+            addBrowserToTree({tree, browser});
+            const result = mkResultEntity('res-1', {parentId: browser.id});
+            addResultToTree({tree, result});
+            const image1 = mkImageEntityFail('state-1', {parentId: result.id});
+            addImageToTree({tree, image: image1});
 
             const middleware = mkDispatchInterceptorMiddleware(reduxAction);
             const store = mkRealStore({initialState: {tree, view: {expand: EXPAND_ALL}}, middlewares: [middleware]});
-            const currentImageId = generateImageId({suiteName: 'test-1', browserName: 'bro-1', attempt: 0, stateName: 'state-1'});
+            const currentImageId = image1.id;
 
             const component = renderWithStore(<ScreenshotAccepter image={tree.images.byId[currentImageId]}/>, store);
 
@@ -293,23 +255,18 @@ describe('<ScreenshotAccepter/>', () => {
             const reduxAction = sinon.stub();
             const user = userEvent.setup();
             const tree = mkEmptyTree();
-            addSuiteToTree({tree, suiteName: 'test-1'});
-            addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
-            addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0});
-            addImageToTree({
-                tree,
-                suiteName: 'test-1',
-                browserName: 'bro-1',
-                attempt: 0,
-                stateName: 'state-1',
-                expectedImgPath: 'img1-expected.png',
-                diffImgPath: 'img1-diff.png',
-                actualImgPath: 'img1-actual.png'
-            });
+            const suite = mkSuiteEntityLeaf('test-1');
+            addSuiteToTree({tree, suite});
+            const browser = mkBrowserEntity('bro-1', {parentId: suite.id});
+            addBrowserToTree({tree, browser});
+            const result = mkResultEntity('res-1', {parentId: browser.id});
+            addResultToTree({tree, result});
+            const image1 = mkImageEntityFail('state-1', {parentId: result.id});
+            addImageToTree({tree, image: image1});
 
             const middleware = mkDispatchInterceptorMiddleware(reduxAction);
             const store = mkRealStore({initialState: {tree, view: {expand: EXPAND_ALL}}, middlewares: [middleware]});
-            const currentImageId = generateImageId({suiteName: 'test-1', browserName: 'bro-1', attempt: 0, stateName: 'state-1'});
+            const currentImageId = image1.id;
 
             const component = renderWithStore(<ScreenshotAccepter image={tree.images.byId[currentImageId]}/>, store);
 
@@ -328,29 +285,38 @@ describe('<ScreenshotAccepter/>', () => {
 
         beforeEach(() => {
             const tree = mkEmptyTree();
-            addSuiteToTree({tree, suiteName: 'test-1'});
-            addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
-            addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0});
+            const suite = mkSuiteEntityLeaf('test-1');
+            addSuiteToTree({tree, suite});
+            const browser = mkBrowserEntity('bro-1', {parentId: suite.id});
+            addBrowserToTree({tree, browser});
+            const result = mkResultEntity('res-1', {parentId: browser.id});
+            addResultToTree({tree, result});
+
             for (let i = 1; i <= 10; i++) {
-                addImageToTree({
-                    tree,
-                    suiteName: 'test-1',
-                    browserName: 'bro-1',
-                    attempt: 0,
-                    stateName: `state-${i}`,
-                    expectedImgPath: `img${i}-expected.png`,
-                    diffImgPath: `img${i}-diff.png`,
-                    actualImgPath: `img${i}-actual.png`
-                });
+                const image = mkImageEntityFail(`state-${i}`, {parentId: result.id});
+                addImageToTree({tree, image});
+
+                // addImageToTree({
+                //
+                //     tree,
+                //     suiteName: 'test-1',
+                //     browserName: 'bro-1',
+                //     attempt: 0,
+                //     stateName: `state-${i}`,
+                //     expectedImgPath: `img${i}-expected.png`,
+                //     diffImgPath: `img${i}-diff.png`,
+                //     actualImgPath: `img${i}-actual.png`
+                // });
             }
             const store = mkRealStore({initialState: {tree, view: {expand: EXPAND_ALL}}});
 
-            const currentImageId = generateImageId({
-                suiteName: 'test-1',
-                browserName: 'bro-1',
-                attempt: 0,
-                stateName: 'state-5'
-            });
+            const currentImageId = Object.values(tree.images.byId)[4].id;
+            // generateImageId({
+            //     suiteName: 'test-1',
+            //     browserName: 'bro-1',
+            //     attempt: 0,
+            //     stateName: 'state-5'
+            // });
 
             component = renderWithStore(<ScreenshotAccepter image={tree.images.byId[currentImageId]}/>, store);
         });
@@ -359,7 +325,7 @@ describe('<ScreenshotAccepter/>', () => {
             // Current image is 5.
             [2, 3, 4, 6, 7, 8].forEach(ind => {
                 eachLabel_(label => {
-                    assert.calledWith(preloadImageStub, `img${ind}-${label}.png`);
+                    assert.calledWith(preloadImageStub, `state-${ind}-${label}`);
                 });
             });
         });
@@ -367,7 +333,7 @@ describe('<ScreenshotAccepter/>', () => {
         it('should not preload other images', () => {
             [1, 9, 10].forEach(ind => {
                 eachLabel_(label => {
-                    assert.neverCalledWith(preloadImageStub, `img${ind}-${label}.png`);
+                    assert.neverCalledWith(preloadImageStub, `state-${ind}-${label}`);
                 });
             });
         });
@@ -377,7 +343,7 @@ describe('<ScreenshotAccepter/>', () => {
             await user.click(component.getByTitle('Show next image', {exact: false}));
 
             eachLabel_(label => {
-                assert.calledWith(preloadImageStub, `img9-${label}.png`);
+                assert.calledWith(preloadImageStub, `state-9-${label}`);
             });
         });
 
@@ -386,7 +352,7 @@ describe('<ScreenshotAccepter/>', () => {
             await user.click(component.getByText('Accept', {selector: 'button > *'}));
 
             eachLabel_(label => {
-                assert.calledWith(preloadImageStub, `img9-${label}.png`);
+                assert.calledWith(preloadImageStub, `state-9-${label}`);
             });
         });
     });
