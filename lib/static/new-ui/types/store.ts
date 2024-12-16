@@ -53,6 +53,7 @@ export interface BrowserEntity {
     id: string;
     name: string;
     resultIds: string[];
+    imageIds: string[];
     parentId: string;
 }
 
@@ -89,6 +90,7 @@ export const isResultEntityError = (result: ResultEntity): result is ResultEntit
 
 interface ImageEntityCommon {
     id: string;
+    /** @note Corresponding ResultEntity id */
     parentId: string;
 }
 

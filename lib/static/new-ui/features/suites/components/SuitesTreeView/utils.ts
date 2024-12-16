@@ -34,7 +34,7 @@ export const getTitlePath = (suites: Record<string, SuiteEntity>, entity: SuiteE
     return [...getTitlePath(suites, suites[entity.parentId]), entity.name];
 };
 
-interface EntitiesContext {
+export interface EntitiesContext {
     browsers: Record<string, BrowserEntity>;
     browsersState: Record<string, BrowserState>;
     results: Record<string, ResultEntity>;
@@ -189,248 +189,250 @@ export const collectTreeLeafIds = (treeNodes: (TreeNode | TreeRoot)[]): {allTree
     return {allTreeNodeIds, visibleTreeNodeIds};
 };
 
-export const sortTreeNodes = (entitiesContext: EntitiesContext, treeNodes: TreeNode[]): TreeNode[] => {
-    const {groups, results, currentSortExpression, currentSortDirection, browsers, browsersState} = entitiesContext;
+// Weight of a single node is an array, because sorting may be performed by multiple fields at once
+// For example, sort by tests count, but if tests counts are equal, compare runs counts
+// In this case weight for each node is [testsCount, runsCount]
+type TreeNodeWeightValue = (number | string)[];
+interface WeightMetadata {
+    testsCount: number;
+    runsCount: number;
+    failedRunsCount: number;
+    duration: number;
+    startTime: number;
+}
 
-    // Weight of a single node is an array, because sorting may be performed by multiple fields at once
-    // For example, sort by tests count, but if tests counts are equal, compare runs counts
-    // In this case weight for each node is [testsCount, runsCount]
-    type TreeNodeWeightValue = (number | string)[];
-    interface WeightMetadata {
-        testsCount: number;
-        runsCount: number;
-        failedRunsCount: number;
-        duration: number;
-        startTime: number;
+interface TreeNodeWeight {
+    value: TreeNodeWeightValue;
+    metadata: Partial<WeightMetadata>;
+}
+
+interface TreeWeightedSortResult {
+    sortedTreeNodes: TreeNode[];
+    weight: TreeNodeWeight;
+}
+
+const createWeight = (value: TreeNodeWeightValue, metadata?: Partial<WeightMetadata>): TreeNodeWeight => ({
+    value,
+    metadata: metadata ?? {}
+});
+
+const createInvalidWeight = (treeNode?: TreeNode): TreeNodeWeight => {
+    if (treeNode) {
+        console.warn('Failed to determine suite weight for tree node listed below. Please let us know at ' + NEW_ISSUE_LINK);
+        console.warn(treeNode);
     }
 
-    interface TreeNodeWeight {
-        value: TreeNodeWeightValue;
-        metadata: Partial<WeightMetadata>;
+    return {value: [0], metadata: {}};
+};
+
+const extractWeight = (entitesContext: EntitiesContext, treeNode: TreeNode, childrenWeight?: TreeNodeWeight): TreeNodeWeight => {
+    const {groups, browsersState, browsers, results, currentSortExpression} = entitesContext;
+
+    switch (treeNode.data.entityType) {
+        case EntityType.Group: {
+            const group = groups[treeNode.data.entityId];
+
+            const browserEntities = group.browserIds.flatMap(browserId => browsersState[browserId].shouldBeShown ? [browsers[browserId]] : []);
+
+            const testsCount = browserEntities.length;
+            const runsCount = group.resultIds.filter(resultId => browsersState[results[resultId].parentId].shouldBeShown).length;
+
+            if (currentSortExpression.type === SortType.ByTestsCount) {
+                return createWeight([0, testsCount, runsCount], {testsCount, runsCount});
+            } else if (currentSortExpression.type === SortType.ByName) {
+                return createWeight([treeNode.data.title.join(' '), testsCount, runsCount], {testsCount, runsCount});
+            } else if (currentSortExpression.type === SortType.ByFailedRuns) {
+                if (!childrenWeight) {
+                    return createInvalidWeight(treeNode);
+                }
+
+                // For now, we assume there are no nested groups and suite/test weights are always 1 dimensional
+                return createWeight([childrenWeight.value[0], testsCount, runsCount], Object.assign({}, {testsCount, runsCount}, childrenWeight.metadata));
+            } else if (currentSortExpression.type === SortType.ByDuration) {
+                if (!childrenWeight) {
+                    return createInvalidWeight(treeNode);
+                }
+
+                return childrenWeight;
+            } else if (currentSortExpression.type === SortType.ByStartTime) {
+                if (!childrenWeight) {
+                    return createInvalidWeight(treeNode);
+                }
+
+                return childrenWeight;
+            }
+            break;
+        }
+        case EntityType.Suite: {
+            if (currentSortExpression.type === SortType.ByName) {
+                return createWeight([treeNode.data.title.join(' ')]);
+            } else if (currentSortExpression.type === SortType.ByFailedRuns) {
+                if (!childrenWeight) {
+                    return createInvalidWeight(treeNode);
+                }
+
+                return childrenWeight;
+            } else if (currentSortExpression.type === SortType.ByTestsCount) {
+                if (!childrenWeight) {
+                    return createInvalidWeight(treeNode);
+                }
+
+                return childrenWeight;
+            } else if (currentSortExpression.type === SortType.ByDuration) {
+                if (!childrenWeight) {
+                    return createInvalidWeight(treeNode);
+                }
+
+                return createWeight([childrenWeight.value[0], treeNode.data.title.join(' ')], childrenWeight.metadata);
+            } else if (currentSortExpression.type === SortType.ByStartTime) {
+                if (!childrenWeight) {
+                    return createInvalidWeight(treeNode);
+                }
+
+                return childrenWeight;
+            }
+            break;
+        }
+        case EntityType.Browser: {
+            if (currentSortExpression.type === SortType.ByName) {
+                return createWeight([treeNode.data.title.join(' ')]);
+            } else if (currentSortExpression.type === SortType.ByFailedRuns) {
+                const browser = browsers[treeNode.data.entityId];
+                const groupId = getGroupId(treeNode.data);
+
+                const failedRunsCount = browser.resultIds.filter(resultId =>
+                    (isFailStatus(results[resultId].status) || isErrorStatus(results[resultId].status)) &&
+                    (!groupId || groups[groupId].resultIds.includes(resultId))
+                ).length;
+
+                return createWeight([failedRunsCount], {failedRunsCount});
+            } else if (currentSortExpression.type === SortType.ByTestsCount) {
+                const browser = browsers[treeNode.data.entityId];
+                const groupId = getGroupId(treeNode.data);
+                const runsCount = groupId ? browser.resultIds.filter(resultId => groups[groupId].resultIds.includes(resultId)).length : browser.resultIds.length;
+
+                return createWeight([1, runsCount], {runsCount});
+            } else if (currentSortExpression.type === SortType.ByDuration) {
+                const browser = browsers[treeNode.data.entityId];
+                const groupId = getGroupId(treeNode.data);
+                const resultIds = groupId ? browser.resultIds.filter(resultId => groups[groupId].resultIds.includes(resultId)) : browser.resultIds;
+                const totalTime = resultIds.reduce((accTime, resultId) => accTime + (results[resultId].duration ?? 0), 0);
+
+                return createWeight([totalTime, treeNode.data.title.join(' ')], {runsCount: resultIds.length, duration: totalTime});
+            } else if (currentSortExpression.type === SortType.ByStartTime) {
+                const browser = browsers[treeNode.data.entityId];
+                const startTime = results[browser.resultIds[0]].timestamp;
+
+                return createWeight([startTime], {startTime});
+            }
+            break;
+        }
     }
 
-    interface TreeWeightedSortResult {
-        sortedTreeNodes: TreeNode[];
-        weight: TreeNodeWeight;
-    }
+    return createInvalidWeight(treeNode);
+};
 
-    const createWeight = (value: TreeNodeWeightValue, metadata?: Partial<WeightMetadata>): TreeNodeWeight => ({
-        value,
-        metadata: metadata ?? {}
-    });
-
-    const createInvalidWeight = (treeNode?: TreeNode): TreeNodeWeight => {
-        if (treeNode) {
-            console.warn('Failed to determine suite weight for tree node listed below. Please let us now at ' + NEW_ISSUE_LINK);
-            console.warn(treeNode);
-        }
-
-        return {value: [0], metadata: {}};
-    };
-
-    const extractWeight = (treeNode: TreeNode, childrenWeight?: TreeNodeWeight): TreeNodeWeight => {
-        switch (treeNode.data.entityType) {
-            case EntityType.Group: {
-                const group = groups[treeNode.data.entityId];
-
-                const browserEntities = group.browserIds.flatMap(browserId => browsersState[browserId].shouldBeShown ? [browsers[browserId]] : []);
-
-                const testsCount = browserEntities.length;
-                const runsCount = group.resultIds.filter(resultId => browsersState[results[resultId].parentId].shouldBeShown).length;
-
-                if (currentSortExpression.type === SortType.ByTestsCount) {
-                    return createWeight([0, testsCount, runsCount], {testsCount, runsCount});
-                } else if (currentSortExpression.type === SortType.ByName) {
-                    return createWeight([treeNode.data.title.join(' '), testsCount, runsCount], {testsCount, runsCount});
-                } else if (currentSortExpression.type === SortType.ByFailedRuns) {
-                    if (!childrenWeight) {
-                        return createInvalidWeight(treeNode);
-                    }
-
-                    // For now, we assume there are no nested groups and suite/test weights are always 1 dimensional
-                    return createWeight([childrenWeight.value[0], testsCount, runsCount], Object.assign({}, {testsCount, runsCount}, childrenWeight.metadata));
-                } else if (currentSortExpression.type === SortType.ByDuration) {
-                    if (!childrenWeight) {
-                        return createInvalidWeight(treeNode);
-                    }
-
-                    return childrenWeight;
-                } else if (currentSortExpression.type === SortType.ByStartTime) {
-                    if (!childrenWeight) {
-                        return createInvalidWeight(treeNode);
-                    }
-
-                    return childrenWeight;
-                }
-                break;
-            }
-            case EntityType.Suite: {
-                if (currentSortExpression.type === SortType.ByName) {
-                    return createWeight([treeNode.data.title.join(' ')]);
-                } else if (currentSortExpression.type === SortType.ByFailedRuns) {
-                    if (!childrenWeight) {
-                        return createInvalidWeight(treeNode);
-                    }
-
-                    return childrenWeight;
-                } else if (currentSortExpression.type === SortType.ByTestsCount) {
-                    if (!childrenWeight) {
-                        return createInvalidWeight(treeNode);
-                    }
-
-                    return childrenWeight;
-                } else if (currentSortExpression.type === SortType.ByDuration) {
-                    if (!childrenWeight) {
-                        return createInvalidWeight(treeNode);
-                    }
-
-                    return createWeight([childrenWeight.value[0], treeNode.data.title.join(' ')], childrenWeight.metadata);
-                } else if (currentSortExpression.type === SortType.ByStartTime) {
-                    if (!childrenWeight) {
-                        return createInvalidWeight(treeNode);
-                    }
-
-                    return childrenWeight;
-                }
-                break;
-            }
-            case EntityType.Browser: {
-                if (currentSortExpression.type === SortType.ByName) {
-                    return createWeight([treeNode.data.title.join(' ')]);
-                } else if (currentSortExpression.type === SortType.ByFailedRuns) {
-                    const browser = browsers[treeNode.data.entityId];
-                    const groupId = getGroupId(treeNode.data);
-
-                    const failedRunsCount = browser.resultIds.filter(resultId =>
-                        (isFailStatus(results[resultId].status) || isErrorStatus(results[resultId].status)) &&
-                        (!groupId || groups[groupId].resultIds.includes(resultId))
-                    ).length;
-
-                    return createWeight([failedRunsCount], {failedRunsCount});
-                } else if (currentSortExpression.type === SortType.ByTestsCount) {
-                    const browser = browsers[treeNode.data.entityId];
-                    const groupId = getGroupId(treeNode.data);
-                    const runsCount = groupId ? browser.resultIds.filter(resultId => groups[groupId].resultIds.includes(resultId)).length : browser.resultIds.length;
-
-                    return createWeight([1, runsCount], {runsCount});
-                } else if (currentSortExpression.type === SortType.ByDuration) {
-                    const browser = browsers[treeNode.data.entityId];
-                    const groupId = getGroupId(treeNode.data);
-                    const resultIds = groupId ? browser.resultIds.filter(resultId => groups[groupId].resultIds.includes(resultId)) : browser.resultIds;
-                    const totalTime = resultIds.reduce((accTime, resultId) => accTime + (results[resultId].duration ?? 0), 0);
-
-                    return createWeight([totalTime, treeNode.data.title.join(' ')], {runsCount: resultIds.length, duration: totalTime});
-                } else if (currentSortExpression.type === SortType.ByStartTime) {
-                    const browser = browsers[treeNode.data.entityId];
-                    const startTime = results[browser.resultIds[0]].timestamp;
-
-                    return createWeight([startTime], {startTime});
-                }
-                break;
-            }
-        }
-
-        return createInvalidWeight(treeNode);
-    };
-
-    const aggregateWeights = (weights: TreeNodeWeight[]): TreeNodeWeight => {
-        if (!currentSortExpression || currentSortExpression.type === SortType.ByName) {
-            return createInvalidWeight();
-        }
-
-        if (
-            currentSortExpression.type === SortType.ByFailedRuns ||
-            currentSortExpression.type === SortType.ByTestsCount ||
-            currentSortExpression.type === SortType.ByDuration
-        ) {
-            return weights.reduce<TreeNodeWeight>((accWeight, weight) => {
-                const newAccWeight = createWeight(accWeight.value.slice(0), accWeight.metadata);
-                for (let i = 0; i < weight.value.length; i++) {
-                    newAccWeight.value[i] = Number(accWeight.value[i] ?? 0) + Number(weight.value[i]);
-                }
-
-                if (weight.metadata.testsCount !== undefined) {
-                    newAccWeight.metadata.testsCount = (newAccWeight.metadata.testsCount ?? 0) + weight.metadata.testsCount;
-                }
-                if (weight.metadata.runsCount !== undefined) {
-                    newAccWeight.metadata.runsCount = (newAccWeight.metadata.runsCount ?? 0) + weight.metadata.runsCount;
-                }
-                if (weight.metadata.failedRunsCount !== undefined) {
-                    newAccWeight.metadata.failedRunsCount = (newAccWeight.metadata.failedRunsCount ?? 0) + weight.metadata.failedRunsCount;
-                }
-                if (weight.metadata.duration !== undefined) {
-                    newAccWeight.metadata.duration = (newAccWeight.metadata.duration ?? 0) + weight.metadata.duration;
-                }
-
-                return newAccWeight;
-            }, createWeight(new Array(weights[0]?.value?.length)));
-        }
-
-        if (currentSortExpression.type === SortType.ByStartTime) {
-            const MAX_DATE = new Date(8640000000000000).getTime();
-
-            return weights.reduce<TreeNodeWeight>((accWeight, weight) => {
-                const newAccWeight = createWeight(accWeight.value.slice(0), accWeight.metadata);
-                for (let i = 0; i < weight.value.length; i++) {
-                    newAccWeight.value[i] = Math.min(Number(accWeight.value[i] || MAX_DATE), Number(weight.value[i]));
-                }
-
-                if (weight.metadata.startTime !== undefined) {
-                    newAccWeight.metadata.startTime = Math.min((newAccWeight.metadata.startTime || MAX_DATE), weight.metadata.startTime);
-                }
-
-                return newAccWeight;
-            }, createWeight(new Array(weights[0]?.value?.length)));
-        }
-
+const aggregateWeights = ({currentSortExpression}: EntitiesContext, weights: TreeNodeWeight[]): TreeNodeWeight => {
+    if (!currentSortExpression || currentSortExpression.type === SortType.ByName) {
         return createInvalidWeight();
-    };
+    }
 
-    const generateTagsForWeight = (weight: TreeNodeWeight): string[] => {
-        const tags: string[] = [];
-
-        const testsCount = weight.metadata.testsCount;
-        if (testsCount !== undefined) {
-            tags.push(`${testsCount} ${(testsCount === 1 ? 'test' : 'tests')}`);
-        }
-
-        const runsCount = weight.metadata.runsCount;
-        if (runsCount !== undefined) {
-            tags.push(`${runsCount} ${(runsCount === 1 ? 'run' : 'runs')}`);
-        }
-
-        const failedRunsCount = weight.metadata.failedRunsCount;
-        if (failedRunsCount !== undefined) {
-            tags.push(`${failedRunsCount} ${(failedRunsCount === 1 ? 'failed run' : 'failed runs')}`);
-        }
-
-        const duration = weight.metadata.duration;
-        if (duration !== undefined) {
-            const durationSeconds = Math.round(duration / 1000 * 10) / 10;
-            let averageDurationSeconds = 0;
-            if (weight.metadata.runsCount && weight.metadata.runsCount > 1) {
-                averageDurationSeconds = Math.round(durationSeconds / weight.metadata.runsCount * 10) / 10;
+    if (
+        currentSortExpression.type === SortType.ByFailedRuns ||
+        currentSortExpression.type === SortType.ByTestsCount ||
+        currentSortExpression.type === SortType.ByDuration
+    ) {
+        return weights.reduce<TreeNodeWeight>((accWeight, weight) => {
+            const newAccWeight = createWeight(accWeight.value.slice(0), accWeight.metadata);
+            for (let i = 0; i < weight.value.length; i++) {
+                newAccWeight.value[i] = Number(accWeight.value[i] ?? 0) + Number(weight.value[i]);
             }
 
-            if (durationSeconds < 0.1) {
-                tags.push('<0s in total');
-            } else {
-                tags.push(`${durationSeconds}s in total${averageDurationSeconds > 0.1 ? `, ${averageDurationSeconds}s on avg.` : ''}`);
+            if (weight.metadata.testsCount !== undefined) {
+                newAccWeight.metadata.testsCount = (newAccWeight.metadata.testsCount ?? 0) + weight.metadata.testsCount;
             }
+            if (weight.metadata.runsCount !== undefined) {
+                newAccWeight.metadata.runsCount = (newAccWeight.metadata.runsCount ?? 0) + weight.metadata.runsCount;
+            }
+            if (weight.metadata.failedRunsCount !== undefined) {
+                newAccWeight.metadata.failedRunsCount = (newAccWeight.metadata.failedRunsCount ?? 0) + weight.metadata.failedRunsCount;
+            }
+            if (weight.metadata.duration !== undefined) {
+                newAccWeight.metadata.duration = (newAccWeight.metadata.duration ?? 0) + weight.metadata.duration;
+            }
+
+            return newAccWeight;
+        }, createWeight(new Array(weights[0]?.value?.length)));
+    }
+
+    if (currentSortExpression.type === SortType.ByStartTime) {
+        const MAX_DATE = new Date(8640000000000000).getTime();
+
+        return weights.reduce<TreeNodeWeight>((accWeight, weight) => {
+            const newAccWeight = createWeight(accWeight.value.slice(0), accWeight.metadata);
+            for (let i = 0; i < weight.value.length; i++) {
+                newAccWeight.value[i] = Math.min(Number(accWeight.value[i] || MAX_DATE), Number(weight.value[i]));
+            }
+
+            if (weight.metadata.startTime !== undefined) {
+                newAccWeight.metadata.startTime = Math.min((newAccWeight.metadata.startTime || MAX_DATE), weight.metadata.startTime);
+            }
+
+            return newAccWeight;
+        }, createWeight(new Array(weights[0]?.value?.length)));
+    }
+
+    return createInvalidWeight();
+};
+
+const generateTagsForWeight = (weight: TreeNodeWeight): string[] => {
+    const tags: string[] = [];
+
+    const testsCount = weight.metadata.testsCount;
+    if (testsCount !== undefined) {
+        tags.push(`${testsCount} ${(testsCount === 1 ? 'test' : 'tests')}`);
+    }
+
+    const runsCount = weight.metadata.runsCount;
+    if (runsCount !== undefined) {
+        tags.push(`${runsCount} ${(runsCount === 1 ? 'run' : 'runs')}`);
+    }
+
+    const failedRunsCount = weight.metadata.failedRunsCount;
+    if (failedRunsCount !== undefined) {
+        tags.push(`${failedRunsCount} ${(failedRunsCount === 1 ? 'failed run' : 'failed runs')}`);
+    }
+
+    const duration = weight.metadata.duration;
+    if (duration !== undefined) {
+        const durationSeconds = Math.round(duration / 1000 * 10) / 10;
+        let averageDurationSeconds = 0;
+        if (weight.metadata.runsCount && weight.metadata.runsCount > 1) {
+            averageDurationSeconds = Math.round(durationSeconds / weight.metadata.runsCount * 10) / 10;
         }
 
-        const startTime = weight.metadata.startTime;
-        if (startTime !== undefined) {
-            tags.push(`Started at ${new Date(startTime).toLocaleTimeString('en-US', {
-                hour12: false,
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            })}`);
+        if (durationSeconds < 0.1) {
+            tags.push('<0s in total');
+        } else {
+            tags.push(`${durationSeconds}s in total${averageDurationSeconds > 0.1 ? `, ${averageDurationSeconds}s on avg.` : ''}`);
         }
+    }
 
-        return tags;
-    };
+    const startTime = weight.metadata.startTime;
+    if (startTime !== undefined) {
+        tags.push(`Started at ${new Date(startTime).toLocaleTimeString('en-US', {
+            hour12: false,
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        })}`);
+    }
+
+    return tags;
+};
+
+export const sortTreeNodes = (entitiesContext: EntitiesContext, treeNodes: TreeNode[]): TreeNode[] => {
+    const {currentSortDirection} = entitiesContext;
 
     // Recursive tree sort. At each level of the tree, it does the following:
     // 1. Compute weights of the current branch
@@ -444,7 +446,7 @@ export const sortTreeNodes = (entitiesContext: EntitiesContext, treeNodes: TreeN
             if (treeNode.data.entityType === EntityType.Group && treeNode.children?.length) {
                 const sortResult = sortAndGetWeight(treeNode.children);
 
-                const weight = extractWeight(treeNode, sortResult.weight);
+                const weight = extractWeight(entitiesContext, treeNode, sortResult.weight);
 
                 const newTreeNode = Object.assign({}, treeNode, {
                     children: sortResult.sortedTreeNodes
@@ -456,7 +458,7 @@ export const sortTreeNodes = (entitiesContext: EntitiesContext, treeNodes: TreeN
             } else if (treeNode.data.entityType === EntityType.Suite && treeNode.children?.length) {
                 const sortResult = sortAndGetWeight(treeNode.children);
 
-                const weight = extractWeight(treeNode, sortResult.weight);
+                const weight = extractWeight(entitiesContext, treeNode, sortResult.weight);
 
                 const newTreeNode = Object.assign({}, treeNode, {
                     children: sortResult.sortedTreeNodes
@@ -466,7 +468,7 @@ export const sortTreeNodes = (entitiesContext: EntitiesContext, treeNodes: TreeN
                 weights[treeNode.data.id] = weight;
                 treeNodesCopy[index] = newTreeNode;
             } else if (treeNode.data.entityType === EntityType.Browser) {
-                const weight = extractWeight(treeNode);
+                const weight = extractWeight(entitiesContext, treeNode);
 
                 const newTreeNode = Object.assign({}, treeNode);
                 newTreeNode.data.tags.push(...generateTagsForWeight(weight));
@@ -498,7 +500,7 @@ export const sortTreeNodes = (entitiesContext: EntitiesContext, treeNodes: TreeN
 
         return {
             sortedTreeNodes: sortedTreeNodes,
-            weight: aggregateWeights(Object.values(weights))
+            weight: aggregateWeights(entitiesContext, Object.values(weights))
         };
     };
 

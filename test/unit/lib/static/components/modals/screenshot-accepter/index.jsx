@@ -9,8 +9,8 @@ import {
     addBrowserToTree,
     addImageToTree,
     addResultToTree,
-    addSuiteToTree, generateImageId,
-    mkEmptyTree, mkRealStore, renderWithStore
+    addSuiteToTree, generateImageId, mkBrowserEntity,
+    mkEmptyTree, mkImageEntityFail, mkRealStore, mkResultEntity, mkSuiteEntityLeaf, renderWithStore
 } from '../../../utils';
 
 const handlers = [
@@ -55,31 +55,18 @@ describe('<ScreenshotAccepter/>', () => {
 
     it('should render header with correct images counter', () => {
         const tree = mkEmptyTree();
-        addSuiteToTree({tree, suiteName: 'test-1'});
-        addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
-        addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0});
-        addImageToTree({
-            tree,
-            suiteName: 'test-1',
-            browserName: 'bro-1',
-            attempt: 0,
-            stateName: 'state-1',
-            expectedImgPath: 'img1-expected.png',
-            actualImgPath: 'img1-actual.png',
-            diffImgPath: 'img1-diff.png'
-        });
-        addImageToTree({
-            tree,
-            suiteName: 'test-1',
-            browserName: 'bro-1',
-            attempt: 0,
-            stateName: 'state-2',
-            expectedImgPath: 'img2-expected.png',
-            actualImgPath: 'img2-actual.png',
-            diffImgPath: 'img2-diff.png'
-        });
+        const suite = mkSuiteEntityLeaf('test-1');
+        addSuiteToTree({tree, suite});
+        const browser = mkBrowserEntity('bro-1', {parentId: suite.id});
+        addBrowserToTree({tree, browser});
+        const result = mkResultEntity('res-1', {parentId: browser.id});
+        addResultToTree({tree, result});
+        const image1 = mkImageEntityFail('state-1', {parentId: result.id});
+        addImageToTree({tree, image: image1});
+        const image2 = mkImageEntityFail('state-2', {parentId: result.id});
+        addImageToTree({tree, image: image2});
         const store = mkRealStore({initialState: {tree}});
-        const currentImageId = generateImageId({suiteName: 'test-1', browserName: 'bro-1', attempt: 0, stateName: 'state-1'});
+        const currentImageId = image1.id;
 
         const component = renderWithStore(<ScreenshotAccepter image={tree.images.byId[currentImageId]}/>, store);
 
@@ -89,39 +76,28 @@ describe('<ScreenshotAccepter/>', () => {
     it('should change attempt by clicking on retry-switcher', async () => {
         const user = userEvent.setup();
         const tree = mkEmptyTree();
-        addSuiteToTree({tree, suiteName: 'test-1'});
-        addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
-        addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0});
-        addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 1});
-        addImageToTree({
-            tree,
-            suiteName: 'test-1',
-            browserName: 'bro-1',
-            attempt: 0,
-            stateName: 'state-1',
-            expectedImgPath: 'img1-expected.png',
-            actualImgPath: 'img1-actual.png',
-            diffImgPath: 'img1-diff.png'
-        });
-        addImageToTree({
-            tree,
-            suiteName: 'test-1',
-            browserName: 'bro-1',
-            attempt: 1,
-            stateName: 'state-1',
-            expectedImgPath: 'img2-expected.png',
-            actualImgPath: 'img2-actual.png',
-            diffImgPath: 'img2-diff.png'
-        });
+        const suite = mkSuiteEntityLeaf('test-1');
+        addSuiteToTree({tree, suite});
+        const browser = mkBrowserEntity('bro-1', {parentId: suite.id});
+        addBrowserToTree({tree, browser});
+        const result1 = mkResultEntity('res-1', {parentId: browser.id});
+        addResultToTree({tree, result: result1});
+        const image1 = mkImageEntityFail('img-1', {parentId: result1.id});
+        addImageToTree({tree, image: image1});
+
+        const result2 = mkResultEntity('res-2', {parentId: browser.id, attempt: 1});
+        addResultToTree({tree, result: result2});
+        const image2 = mkImageEntityFail('img-2', {parentId: result2.id});
+        addImageToTree({tree, image: image2});
         const store = mkRealStore({initialState: {tree}});
-        const currentImageId = generateImageId({suiteName: 'test-1', browserName: 'bro-1', attempt: 1, stateName: 'state-1'});
+        const currentImageId = image2.id;
 
         const component = renderWithStore(<ScreenshotAccepter image={tree.images.byId[currentImageId]}/>, store);
         // By default, last failed attempt is selected. We select first one.
         await user.click(component.getByText('1', {selector: 'button[data-qa="retry-switcher"] > *'}));
 
         const imageElements = component.getAllByRole('img');
-        imageElements.every(imageElement => expect(imageElement.src).to.include('img1'));
+        imageElements.every(imageElement => expect(imageElement.src).to.include('img-1'));
     });
 
     it('should change image by clicking on "next" button', async () => {
