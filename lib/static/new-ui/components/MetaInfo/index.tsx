@@ -102,6 +102,13 @@ function MetaInfoInternal(props: MetaInfoInternalProps): ReactNode {
         };
     });
 
+    if (result.duration !== undefined) {
+        metaInfoItemsWithResolvedUrls.push({
+            label: 'duration',
+            content: `${new Intl.NumberFormat().format(result.duration)} ms`
+        });
+    }
+
     const hasUrlMetaInfoItem = metaInfoItemsWithResolvedUrls.some(item => item.label === 'url');
     if (!hasUrlMetaInfoItem && result.suiteUrl) {
         metaInfoItemsWithResolvedUrls.push({

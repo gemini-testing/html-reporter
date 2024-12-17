@@ -302,7 +302,7 @@ export const formatTestResult = (
     status: TestStatus,
     attempt: number = UNKNOWN_ATTEMPT
 ): ReporterTestResult => {
-    return new TestplaneTestResultAdapter(rawResult, {attempt, status});
+    return new TestplaneTestResultAdapter(rawResult, {attempt, status, duration: (rawResult as TestplaneTestResult).duration});
 };
 
 export const saveErrorDetails = async (testResult: ReporterTestResult, reportPath: string): Promise<void> => {

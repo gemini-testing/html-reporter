@@ -6,10 +6,10 @@ import {DiffModes} from 'lib/constants';
 import ScreenshotAccepterHeader from 'lib/static/components/modals/screenshot-accepter/header';
 import {
     addBrowserToTree, addResultToTree,
-    addSuiteToTree, generateResultId,
+    addSuiteToTree, mkBrowserEntity,
     mkConnectedComponent,
     mkEmptyTree,
-    mkRealStore,
+    mkRealStore, mkResultEntity, mkSuiteEntityLeaf,
     renderWithStore
 } from '../../../utils';
 
@@ -202,16 +202,20 @@ describe('<ScreenshotAccepterHeader/>', () => {
             const user = userEvent.setup();
             const onScreenshotAccept = sandbox.stub();
             const tree = mkEmptyTree();
-            addSuiteToTree({tree, suiteName: 'test-1'});
-            addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
-            addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0});
-            addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 1});
+            const suite = mkSuiteEntityLeaf('test-1');
+            addSuiteToTree({tree, suite});
+            const browser = mkBrowserEntity('bro-1', {parentId: suite.id});
+            addBrowserToTree({tree, browser});
+            const result1 = mkResultEntity('res-1', {parentId: browser.id});
+            addResultToTree({tree, result: result1});
+            const result2 = mkResultEntity('res-2', {parentId: browser.id, attempt: 1});
+            addResultToTree({tree, result: result2});
             const store = mkRealStore({initialState: {tree}});
 
             const component = renderWithStore(<ScreenshotAccepterHeader {...defaults({
                 images: [
-                    {id: 'img-1', parentId: generateResultId({suiteName: 'test-1', browserName: 'bro-1', attempt: 0})},
-                    {id: 'img-2', parentId: generateResultId({suiteName: 'test-1', browserName: 'bro-1', attempt: 1})}
+                    {id: 'img-1', parentId: result1.id},
+                    {id: 'img-2', parentId: result2.id}
                 ],
                 retryIndex: 1,
                 onScreenshotAccept
@@ -226,16 +230,20 @@ describe('<ScreenshotAccepterHeader/>', () => {
             const user = userEvent.setup();
             const onScreenshotAccept = sandbox.stub();
             const tree = mkEmptyTree();
-            addSuiteToTree({tree, suiteName: 'test-1'});
-            addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
-            addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0});
-            addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 1});
+            const suite = mkSuiteEntityLeaf('test-1');
+            addSuiteToTree({tree, suite});
+            const browser = mkBrowserEntity('bro-1', {parentId: suite.id});
+            addBrowserToTree({tree, browser});
+            const result1 = mkResultEntity('res-1', {parentId: browser.id});
+            addResultToTree({tree, result: result1});
+            const result2 = mkResultEntity('res-2', {parentId: browser.id, attempt: 1});
+            addResultToTree({tree, result: result2});
             const store = mkRealStore({initialState: {tree}});
 
             renderWithStore(<ScreenshotAccepterHeader {...defaults({
                 images: [
-                    {id: 'img-1', parentId: generateResultId({suiteName: 'test-1', browserName: 'bro-1', attempt: 0})},
-                    {id: 'img-2', parentId: generateResultId({suiteName: 'test-1', browserName: 'bro-1', attempt: 1})}
+                    {id: 'img-1', parentId: result1.id},
+                    {id: 'img-2', parentId: result2.id}
                 ],
                 retryIndex: 1,
                 onScreenshotAccept
@@ -251,16 +259,20 @@ describe('<ScreenshotAccepterHeader/>', () => {
         it('should render correctly', () => {
             const onRetryChange = sandbox.stub();
             const tree = mkEmptyTree();
-            addSuiteToTree({tree, suiteName: 'test-1'});
-            addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
-            addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0});
-            addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 1});
+            const suite = mkSuiteEntityLeaf('test-1');
+            addSuiteToTree({tree, suite});
+            const browser = mkBrowserEntity('bro-1', {parentId: suite.id});
+            addBrowserToTree({tree, browser});
+            const result1 = mkResultEntity('res-1', {parentId: browser.id});
+            addResultToTree({tree, result: result1});
+            const result2 = mkResultEntity('res-2', {parentId: browser.id, attempt: 1});
+            addResultToTree({tree, result: result2});
             const store = mkRealStore({initialState: {tree}});
 
             const component = renderWithStore(<ScreenshotAccepterHeader {...defaults({
                 images: [
-                    {id: 'img-1', parentId: generateResultId({suiteName: 'test-1', browserName: 'bro-1', attempt: 0})},
-                    {id: 'img-2', parentId: generateResultId({suiteName: 'test-1', browserName: 'bro-1', attempt: 1})}
+                    {id: 'img-1', parentId: result1.id},
+                    {id: 'img-2', parentId: result2.id}
                 ],
                 retryIndex: 1,
                 onRetryChange
@@ -273,16 +285,20 @@ describe('<ScreenshotAccepterHeader/>', () => {
             const user = userEvent.setup();
             const onRetryChange = sandbox.stub();
             const tree = mkEmptyTree();
-            addSuiteToTree({tree, suiteName: 'test-1'});
-            addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
-            addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0});
-            addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 1});
+            const suite = mkSuiteEntityLeaf('test-1');
+            addSuiteToTree({tree, suite});
+            const browser = mkBrowserEntity('bro-1', {parentId: suite.id});
+            addBrowserToTree({tree, browser});
+            const result1 = mkResultEntity('res-1', {parentId: browser.id});
+            addResultToTree({tree, result: result1});
+            const result2 = mkResultEntity('res-2', {parentId: browser.id, attempt: 1});
+            addResultToTree({tree, result: result2});
             const store = mkRealStore({initialState: {tree}});
 
             const component = renderWithStore(<ScreenshotAccepterHeader {...defaults({
                 images: [
-                    {id: 'img-1', parentId: generateResultId({suiteName: 'test-1', browserName: 'bro-1', attempt: 0})},
-                    {id: 'img-2', parentId: generateResultId({suiteName: 'test-1', browserName: 'bro-1', attempt: 1})}
+                    {id: 'img-1', parentId: result1.id},
+                    {id: 'img-2', parentId: result2.id}
                 ],
                 retryIndex: 1,
                 onRetryChange
@@ -298,16 +314,20 @@ describe('<ScreenshotAccepterHeader/>', () => {
                 const user = userEvent.setup();
                 const onRetryChange = sandbox.stub();
                 const tree = mkEmptyTree();
-                addSuiteToTree({tree, suiteName: 'test-1'});
-                addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
-                addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0});
-                addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 1});
+                const suite = mkSuiteEntityLeaf('test-1');
+                addSuiteToTree({tree, suite});
+                const browser = mkBrowserEntity('bro-1', {parentId: suite.id});
+                addBrowserToTree({tree, browser});
+                const result1 = mkResultEntity('res-1', {parentId: browser.id});
+                addResultToTree({tree, result: result1});
+                const result2 = mkResultEntity('res-2', {parentId: browser.id, attempt: 1});
+                addResultToTree({tree, result: result2});
                 const store = mkRealStore({initialState: {tree}});
 
                 renderWithStore(<ScreenshotAccepterHeader {...defaults({
                     images: [
-                        {id: 'img-1', parentId: generateResultId({suiteName: 'test-1', browserName: 'bro-1', attempt: 0})},
-                        {id: 'img-2', parentId: generateResultId({suiteName: 'test-1', browserName: 'bro-1', attempt: 1})}
+                        {id: 'img-1', parentId: result1.id},
+                        {id: 'img-2', parentId: result2.id}
                     ],
                     retryIndex: 1,
                     onRetryChange
@@ -322,16 +342,20 @@ describe('<ScreenshotAccepterHeader/>', () => {
                 const user = userEvent.setup();
                 const onRetryChange = sandbox.stub();
                 const tree = mkEmptyTree();
-                addSuiteToTree({tree, suiteName: 'test-1'});
-                addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
-                addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0});
-                addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 1});
+                const suite = mkSuiteEntityLeaf('test-1');
+                addSuiteToTree({tree, suite});
+                const browser = mkBrowserEntity('bro-1', {parentId: suite.id});
+                addBrowserToTree({tree, browser});
+                const result1 = mkResultEntity('res-1', {parentId: browser.id});
+                addResultToTree({tree, result: result1});
+                const result2 = mkResultEntity('res-2', {parentId: browser.id, attempt: 1});
+                addResultToTree({tree, result: result2});
                 const store = mkRealStore({initialState: {tree}});
 
                 renderWithStore(<ScreenshotAccepterHeader {...defaults({
                     images: [
-                        {id: 'img-1', parentId: generateResultId({suiteName: 'test-1', browserName: 'bro-1', attempt: 0})},
-                        {id: 'img-2', parentId: generateResultId({suiteName: 'test-1', browserName: 'bro-1', attempt: 1})}
+                        {id: 'img-1', parentId: result1.id},
+                        {id: 'img-2', parentId: result2.id}
                     ],
                     retryIndex: 0,
                     onRetryChange
@@ -346,16 +370,20 @@ describe('<ScreenshotAccepterHeader/>', () => {
                 const user = userEvent.setup();
                 const onRetryChange = sandbox.stub();
                 const tree = mkEmptyTree();
-                addSuiteToTree({tree, suiteName: 'test-1'});
-                addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
-                addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0});
-                addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 1});
+                const suite = mkSuiteEntityLeaf('test-1');
+                addSuiteToTree({tree, suite});
+                const browser = mkBrowserEntity('bro-1', {parentId: suite.id});
+                addBrowserToTree({tree, browser});
+                const result1 = mkResultEntity('res-1', {parentId: browser.id});
+                addResultToTree({tree, result: result1});
+                const result2 = mkResultEntity('res-2', {parentId: browser.id, attempt: 1});
+                addResultToTree({tree, result: result2});
                 const store = mkRealStore({initialState: {tree}});
 
                 renderWithStore(<ScreenshotAccepterHeader {...defaults({
                     images: [
-                        {id: 'img-1', parentId: generateResultId({suiteName: 'test-1', browserName: 'bro-1', attempt: 0})},
-                        {id: 'img-2', parentId: generateResultId({suiteName: 'test-1', browserName: 'bro-1', attempt: 1})}
+                        {id: 'img-1', parentId: result1.id},
+                        {id: 'img-2', parentId: result2.id}
                     ],
                     retryIndex: 0,
                     onRetryChange
@@ -370,16 +398,20 @@ describe('<ScreenshotAccepterHeader/>', () => {
                 const user = userEvent.setup();
                 const onRetryChange = sandbox.stub();
                 const tree = mkEmptyTree();
-                addSuiteToTree({tree, suiteName: 'test-1'});
-                addBrowserToTree({tree, suiteName: 'test-1', browserName: 'bro-1'});
-                addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 0});
-                addResultToTree({tree, suiteName: 'test-1', browserName: 'bro-1', attempt: 1});
+                const suite = mkSuiteEntityLeaf('test-1');
+                addSuiteToTree({tree, suite});
+                const browser = mkBrowserEntity('bro-1', {parentId: suite.id});
+                addBrowserToTree({tree, browser});
+                const result1 = mkResultEntity('res-1', {parentId: browser.id});
+                addResultToTree({tree, result: result1});
+                const result2 = mkResultEntity('res-2', {parentId: browser.id, attempt: 1});
+                addResultToTree({tree, result: result2});
                 const store = mkRealStore({initialState: {tree}});
 
                 renderWithStore(<ScreenshotAccepterHeader {...defaults({
                     images: [
-                        {id: 'img-1', parentId: generateResultId({suiteName: 'test-1', browserName: 'bro-1', attempt: 0})},
-                        {id: 'img-2', parentId: generateResultId({suiteName: 'test-1', browserName: 'bro-1', attempt: 1})}
+                        {id: 'img-1', parentId: result1.id},
+                        {id: 'img-2', parentId: result2.id}
                     ],
                     retryIndex: 1,
                     onRetryChange

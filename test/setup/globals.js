@@ -20,6 +20,8 @@ require.extensions['.module.css'] = function(module) {
 };
 
 chai.use(require('chai-as-promised'));
+chai.use(require('chai-deep-equal-ignore-undefined'));
+chai.use(require('chai-subset'));
 chai.use(require('chai-dom'));
 sinon.assert.expose(chai.assert, {prefix: ''});
 
