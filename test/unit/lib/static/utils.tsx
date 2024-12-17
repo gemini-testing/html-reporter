@@ -66,11 +66,8 @@ export const mkResultEntity = (name: string, overrides?: Partial<ResultEntity>):
     metaInfo: {},
     suiteUrl: 'suite-url',
     history: [],
-    // error?: TestError;
     suitePath: [],
-    /** @note Browser Name/ID, e.g. `chrome-desktop` */
     name: '',
-    // skipReason?: string;
     duration: 123
 } satisfies ResultEntity, overrides));
 
@@ -169,17 +166,9 @@ export const addBrowserToTree = ({tree, browser}: AddBrowserToTreeData): void =>
 interface AddResultToTreeData {
     tree: TreeEntity;
     result: ResultEntity;
-    // parentId: string;
-    // suiteName: string;
-    // browserName: string;
-    // attempt: number;
-    // metaInfo: Record<string, string>;
 }
 
 export const addResultToTree = ({tree, result}: AddResultToTreeData): void => {
-    // const browserId = `${suiteName} ${browserName}`;
-    // const fullId = `${browserId} ${attempt}`;
-
     tree.results.byId[result.id] = result;
     tree.results.stateById[result.id] = {
         matchedSelectedGroup: false
@@ -194,30 +183,7 @@ interface AddImageToTreeData {
 }
 
 export const addImageToTree = ({tree, image}: AddImageToTreeData): void => {
-    // const browserId = `${suiteName} ${browserName}`;
-    // const resultId = `${browserId} ${attempt}`;
-    // const fullId = `${resultId} ${stateName}`;
-
     tree.images.byId[image.id] = image;
-
-    // if (expectedImgPath) {
-    //     (tree.images.byId[fullId] as ImageEntityFail).expectedImg = {
-    //         path: expectedImgPath,
-    //         size: {height: 1, width: 2}
-    //     };
-    // }
-    // if (actualImgPath) {
-    //     (tree.images.byId[fullId] as ImageEntityFail).actualImg = {
-    //         path: actualImgPath,
-    //         size: {height: 1, width: 2}
-    //     };
-    // }
-    // if (diffImgPath) {
-    //     (tree.images.byId[fullId] as ImageEntityFail).diffImg = {
-    //         path: diffImgPath,
-    //         size: {height: 1, width: 2}
-    //     };
-    // }
 
     tree.results.byId[image.parentId].imageIds.push(image.id);
 

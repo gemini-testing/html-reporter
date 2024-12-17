@@ -295,28 +295,10 @@ describe('<ScreenshotAccepter/>', () => {
             for (let i = 1; i <= 10; i++) {
                 const image = mkImageEntityFail(`state-${i}`, {parentId: result.id});
                 addImageToTree({tree, image});
-
-                // addImageToTree({
-                //
-                //     tree,
-                //     suiteName: 'test-1',
-                //     browserName: 'bro-1',
-                //     attempt: 0,
-                //     stateName: `state-${i}`,
-                //     expectedImgPath: `img${i}-expected.png`,
-                //     diffImgPath: `img${i}-diff.png`,
-                //     actualImgPath: `img${i}-actual.png`
-                // });
             }
             const store = mkRealStore({initialState: {tree, view: {expand: EXPAND_ALL}}});
 
             const currentImageId = Object.values(tree.images.byId)[4].id;
-            // generateImageId({
-            //     suiteName: 'test-1',
-            //     browserName: 'bro-1',
-            //     attempt: 0,
-            //     stateName: 'state-5'
-            // });
 
             component = renderWithStore(<ScreenshotAccepter image={tree.images.byId[currentImageId]}/>, store);
         });
