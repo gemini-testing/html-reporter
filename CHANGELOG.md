@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.12.0"></a>
+# [10.12.0](https://github.com/gemini-testing/html-reporter/compare/v10.11.0...v10.12.0) (2024-12-17)
+
+
+### Features
+
+* add ability to sort by duration and start time ([#623](https://github.com/gemini-testing/html-reporter/issues/623)) ([f1a7b7e](https://github.com/gemini-testing/html-reporter/commit/f1a7b7e))
+
+
+
 <a name="10.11.0"></a>
 # [10.11.0](https://github.com/gemini-testing/html-reporter/compare/v10.10.1...v10.11.0) (2024-12-09)
 
