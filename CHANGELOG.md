@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.12.1"></a>
+## [10.12.1](https://github.com/gemini-testing/html-reporter/compare/v10.12.0...v10.12.1) (2024-12-18)
+
+
+### Bug Fixes
+
+* move bundled deps to devDeps ([#624](https://github.com/gemini-testing/html-reporter/issues/624)) ([a9eddd2](https://github.com/gemini-testing/html-reporter/commit/a9eddd2))
+
+
+
 <a name="10.12.0"></a>
 # [10.12.0](https://github.com/gemini-testing/html-reporter/compare/v10.11.0...v10.12.0) (2024-12-17)
 
