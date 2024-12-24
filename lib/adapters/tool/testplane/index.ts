@@ -122,11 +122,11 @@ export class TestplaneToolAdapter implements ToolAdapter {
     }
 
     async run(testCollectionAdapter: TestplaneTestCollectionAdapter, tests: TestSpec[] = [], cliTool: CommanderStatic): Promise<boolean> {
-        const {grep, set: sets, browser: browsers, devtools = false} = cliTool;
+        const {grep, set: sets, browser: browsers, devtools = false, local = false} = cliTool;
         const replMode = getReplModeOption(cliTool);
         const runner = createTestRunner(testCollectionAdapter.original, tests);
 
-        return runner.run((collection) => this._tool.run(collection, {grep, sets, browsers, devtools, replMode}));
+        return runner.run((collection) => this._tool.run(collection, {grep, sets, browsers, devtools, replMode, local}));
     }
 
     async runWithoutRetries(...args: RunTestArgs): Promise<boolean> {
