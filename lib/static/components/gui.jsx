@@ -10,7 +10,7 @@ import StickyHeader from './sticky-header/gui';
 import Loading from './loading';
 import ModalContainer from '../containers/modal';
 import MainTree from './main-tree';
-import CustomScripts from './custom-scripts';
+import {CustomScripts} from '../new-ui/components/CustomScripts';
 import {ClientEvents} from '../../gui/constants/client-events';
 import FaviconChanger from './favicon-changer';
 import ExtensionPoint from './extension-point';
@@ -60,7 +60,7 @@ class Gui extends Component {
         });
 
         eventSource.addEventListener(ClientEvents.END, () => {
-            actions.testsEnd();
+            actions.thunkTestsEnd();
         });
     }
 

@@ -30,7 +30,7 @@ class GuiControls extends Component {
                     <ControlButton
                         label="Stop tests"
                         isDisabled={!running || stopping}
-                        handler={actions.stopTests}
+                        handler={actions.thunkStopTests}
                     />
                     <AcceptOpenedButton />
                     <CommonControls/>

@@ -7,16 +7,16 @@ import {AssertViewResult} from '@/static/new-ui/components/AssertViewResult';
 import {ImageEntity} from '@/static/new-ui/types/store';
 import {DiffModeId, DiffModes, EditScreensFeature, TestStatus} from '@/constants';
 import {
-    acceptTest,
-    changeDiffMode,
+    setDiffMode,
     staticAccepterStageScreenshot,
-    staticAccepterUnstageScreenshot,
-    undoAcceptImage
+    staticAccepterUnstageScreenshot
 } from '@/static/modules/actions';
 import {isAcceptable, isScreenRevertable} from '@/static/modules/utils';
 import {getCurrentBrowser, getCurrentResult} from '@/static/new-ui/features/suites/selectors';
 import {AssertViewStatus} from '@/static/new-ui/components/AssertViewStatus';
 import styles from './index.module.css';
+import {thunkAcceptImages, thunkRevertImages} from '@/static/modules/actions/screenshots';
+import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
 
 interface ScreenshotsTreeViewItemProps {
     image: ImageEntity;
@@ -25,6 +25,8 @@ interface ScreenshotsTreeViewItemProps {
 
 export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): ReactNode {
     const dispatch = useDispatch();
+    const analytics = useAnalytics();
+
     const diffMode = useSelector(state => state.view.diffMode);
     const isEditScreensAvailable = useSelector(state => state.app.availableFeatures)
         .find(feature => feature.name === EditScreensFeature.name);
@@ -40,22 +42,24 @@ export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): Re
     const isLastResult = currentResult && currentBrowser && currentResult.id === currentBrowser.resultIds[currentBrowser.resultIds.length - 1];
     const isUndoAvailable = isScreenRevertable({gui: isGui, image: props.image, isLastResult, isStaticImageAccepterEnabled});
 
-    const onDiffModeChangeHandler = (diffMode: DiffModeId): void => {
-        dispatch(changeDiffMode(diffMode));
+    const onDiffModeChangeHandler = (diffModeId: DiffModeId): void => {
+        dispatch(setDiffMode({diffModeId}));
     };
 
     const onScreenshotAccept = (): void => {
+        analytics?.trackScreenshotsAccept();
+
         if (isStaticImageAccepterEnabled) {
             dispatch(staticAccepterStageScreenshot([props.image.id]));
         } else {
-            dispatch(acceptTest(props.image.id));
+            dispatch(thunkAcceptImages({imageIds: [props.image.id]}));
         }
     };
     const onScreenshotUndo = (): void => {
         if (isStaticImageAccepterEnabled) {
             dispatch(staticAccepterUnstageScreenshot([props.image.id]));
         } else {
-            dispatch(undoAcceptImage(props.image.id));
+            dispatch(thunkRevertImages({imageIds: [props.image.id]}));
         }
     };
 

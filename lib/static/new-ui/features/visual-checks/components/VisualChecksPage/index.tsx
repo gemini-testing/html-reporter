@@ -17,9 +17,8 @@ import styles from './index.module.css';
 import {CompactAttemptPicker} from '@/static/new-ui/components/CompactAttemptPicker';
 import {DiffModeId, DiffModes, EditScreensFeature} from '@/constants';
 import {
-    acceptTest,
-    changeDiffMode, staticAccepterStageScreenshot, staticAccepterUnstageScreenshot,
-    undoAcceptImage,
+    setDiffMode,
+    staticAccepterStageScreenshot, staticAccepterUnstageScreenshot,
     visualChecksPageSetCurrentNamedImage
 } from '@/static/modules/actions';
 import {isAcceptable, isScreenRevertable} from '@/static/modules/utils';
@@ -27,9 +26,12 @@ import {AssertViewStatus} from '@/static/new-ui/components/AssertViewStatus';
 import {
     AssertViewResultSkeleton
 } from '@/static/new-ui/features/visual-checks/components/VisualChecksPage/AssertViewResultSkeleton';
+import {thunkAcceptImages, thunkRevertImages} from '@/static/modules/actions/screenshots';
+import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
 
 export function VisualChecksPage(): ReactNode {
     const dispatch = useDispatch();
+    const analytics = useAnalytics();
 
     const currentNamedImage = useSelector(getCurrentNamedImage);
     const currentImage = useSelector(getCurrentImage);
@@ -40,8 +42,8 @@ export function VisualChecksPage(): ReactNode {
     const onNextImageHandler = (): void => void dispatch(visualChecksPageSetCurrentNamedImage(visibleNamedImageIds[currentNamedImageIndex + 1]));
 
     const diffMode = useSelector(state => state.view.diffMode);
-    const onChangeHandler = (diffMode: DiffModeId): void => {
-        dispatch(changeDiffMode(diffMode));
+    const onChangeHandler = (diffModeId: DiffModeId): void => {
+        dispatch(setDiffMode({diffModeId}));
     };
 
     const isStaticImageAccepterEnabled = useSelector(state => state.staticImageAccepter.enabled);
@@ -55,11 +57,12 @@ export function VisualChecksPage(): ReactNode {
         if (!currentImage) {
             return;
         }
+        analytics?.trackScreenshotsAccept();
 
         if (isStaticImageAccepterEnabled) {
             dispatch(staticAccepterStageScreenshot([currentImage.id]));
         } else {
-            dispatch(acceptTest(currentImage.id));
+            dispatch(thunkAcceptImages({imageIds: [currentImage.id]}));
         }
     };
     const onScreenshotUndo = (): void => {
@@ -70,7 +73,7 @@ export function VisualChecksPage(): ReactNode {
         if (isStaticImageAccepterEnabled) {
             dispatch(staticAccepterUnstageScreenshot([currentImage.id]));
         } else {
-            dispatch(undoAcceptImage(currentImage.id));
+            dispatch(thunkRevertImages({imageIds: [currentImage.id]}));
         }
     };
 

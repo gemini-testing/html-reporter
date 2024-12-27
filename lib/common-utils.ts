@@ -16,7 +16,7 @@ import {
     COMMITED
 } from './constants';
 
-import {CHECKED, INDETERMINATE, UNCHECKED} from './constants/checked-statuses';
+import {CHECKED, CheckStatus, INDETERMINATE, UNCHECKED} from './constants/checked-statuses';
 import {
     ImageBase64,
     ImageBuffer,
@@ -247,7 +247,7 @@ export const normalizeUrls = (urls: string[] = [], baseUrl: string): string[] =>
 export const isCheckboxChecked = (status: number): boolean => Number(status) === CHECKED;
 export const isCheckboxIndeterminate = (status: number): boolean => Number(status) === INDETERMINATE;
 export const isCheckboxUnchecked = (status: number): boolean => Number(status) === UNCHECKED;
-export const getToggledCheckboxState = (status: number): number => isCheckboxChecked(status) ? UNCHECKED : CHECKED;
+export const getToggledCheckboxState = (status: number): CheckStatus => isCheckboxChecked(status) ? UNCHECKED : CHECKED;
 
 export function getDetailsFileName(testId: string, browserId: string, attempt: number): string {
     return `${testId}-${browserId}_${Number(attempt) + 1}_${Date.now()}.json`;

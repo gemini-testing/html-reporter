@@ -14,7 +14,7 @@ describe('<CustomGuiControls />', () => {
 
     beforeEach(() => {
         actionsStub = {
-            runCustomGuiAction: sandbox.stub().returns({type: 'some-type'})
+            thunkRunCustomGuiAction: sandbox.stub().returns({type: 'some-type'})
         };
 
         CustomGuiControls = proxyquire('lib/static/components/controls/custom-gui-controls', {
@@ -117,7 +117,7 @@ describe('<CustomGuiControls />', () => {
 
                 await user.click(component.getByRole('button'));
 
-                assert.calledOnceWith(actionsStub.runCustomGuiAction);
+                assert.calledOnceWith(actionsStub.thunkRunCustomGuiAction);
             });
 
             it(`should set active ${controlType}`, () => {

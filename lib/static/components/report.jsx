@@ -10,7 +10,7 @@ import Loading from './loading';
 import StickyHeader from './sticky-header/report';
 import ModalContainer from '../containers/modal';
 import MainTree from './main-tree';
-import CustomScripts from './custom-scripts';
+import {CustomScripts} from '../new-ui/components/CustomScripts';
 import FaviconChanger from './favicon-changer';
 import ExtensionPoint from './extension-point';
 import BottomProgressBar from './bottom-progress-bar';

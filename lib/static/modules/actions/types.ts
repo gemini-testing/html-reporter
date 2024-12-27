@@ -1,16 +1,26 @@
-import type actionNames from '../action-names';
 import type {Action as ReduxAction} from 'redux';
-import type defaultState from '../default-state';
-import type {Tree} from '../../../tests-tree-builder/base';
-import {GroupTestsAction} from '@/static/modules/actions/group-tests';
+export type {Dispatch} from 'redux';
 import {ThunkAction} from 'redux-thunk';
+
+import {GroupTestsAction} from '@/static/modules/actions/group-tests';
 import {State} from '@/static/new-ui/types/store';
 import {LifecycleAction} from '@/static/modules/actions/lifecycle';
 import {SuitesPageAction} from '@/static/modules/actions/suites-page';
 import {SortTestsAction} from '@/static/modules/actions/sort-tests';
 import {GuiServerConnectionAction} from '@/static/modules/actions/gui-server-connection';
-
-export type {Dispatch} from 'redux';
+import {ScreenshotsAction} from '@/static/modules/actions/screenshots';
+import {RunTestsAction} from '@/static/modules/actions/run-tests';
+import {SuiteTreeStateAction} from '@/static/modules/actions/suites-tree-state';
+import {ModalsAction} from '@/static/modules/actions/modals';
+import {LoadingAction} from '@/static/modules/actions/loading';
+import {CustomGuiAction} from '@/static/modules/actions/custom-gui';
+import {FilterTestsAction} from '@/static/modules/actions/filter-tests';
+import {SettingsAction} from '@/static/modules/actions/settings';
+import {ProcessingAction} from '@/static/modules/actions/processing';
+import {StaticAccepter} from '@/static/modules/actions/static-accepter';
+import type actionNames from '../action-names';
+import type defaultState from '../default-state';
+import type {Tree} from '../../../tests-tree-builder/base';
 
 export type Store = Omit<typeof defaultState, 'tree'> & {tree: Tree};
 
@@ -22,8 +32,18 @@ export type Action<
 export type AppThunk<ReturnType = Promise<void>> = ThunkAction<ReturnType, State, unknown, ReduxAction>;
 
 export type SomeAction =
+    | CustomGuiAction
+    | FilterTestsAction
     | GroupTestsAction
+    | GuiServerConnectionAction
     | LifecycleAction
+    | LoadingAction
+    | ModalsAction
+    | ProcessingAction
+    | RunTestsAction
+    | ScreenshotsAction
+    | SettingsAction
     | SortTestsAction
+    | StaticAccepter
     | SuitesPageAction
-    | GuiServerConnectionAction;
+    | SuiteTreeStateAction;

@@ -1,7 +1,6 @@
 import axiosOriginal from 'axios';
 import _ from 'lodash';
 import proxyquire from 'proxyquire';
-import {POSITIONS} from 'reapop';
 import sinon, {SinonStub, SinonStubbedInstance} from 'sinon';
 
 import {LOCAL_DATABASE_NAME, ToolName} from '@/constants';
@@ -11,26 +10,26 @@ import type * as actionsModule from '@/static/modules/actions/lifecycle';
 
 const axios = axiosOriginal as unknown as SinonStubbedInstance<typeof axiosOriginal>;
 
-describe('lib/static/modules/actions', () => {
+describe('lib/static/modules/actions/lifecycle', () => {
     const sandbox = sinon.createSandbox();
     let actions: typeof actionsModule;
     let dispatch: SinonStub;
     let getMainDatabaseUrl: SinonStub;
     let connectToDatabaseStub: SinonStub;
-    let notify: SinonStub;
+    let createNotificationError: SinonStub;
     let pluginsStub: {loadAll: SinonStub};
 
     beforeEach(() => {
         dispatch = sandbox.stub();
-        notify = sandbox.stub();
+        createNotificationError = sandbox.stub();
         getMainDatabaseUrl = sandbox.stub().returns({href: 'http://localhost/default/sqlite.db'});
         connectToDatabaseStub = sandbox.stub().resolves({});
         pluginsStub = {loadAll: sandbox.stub()};
 
         actions = proxyquire('lib/static/modules/actions/lifecycle', {
-            '@/static/modules/actions/index': proxyquire('@/static/modules/actions/index', {
-                'reapop': {notify}
-            }),
+            '@/static/modules/actions/notifications': {
+                createNotificationError
+            },
             '@/db-utils/client': {getMainDatabaseUrl, connectToDatabase: connectToDatabaseStub},
             '@/static/modules/plugins': pluginsStub
         });
@@ -72,23 +71,12 @@ describe('lib/static/modules/actions', () => {
         });
 
         it('should show notification if error in initialization on the server is happened', async () => {
-            axios.get.rejects(new Error('failed to initialize custom gui'));
+            const customGuiError = new Error('failed to initialize custom gui');
+            axios.get.rejects(customGuiError);
 
             await actions.thunkInitGuiReport()(dispatch, sinon.stub(), sinon.stub());
 
-            assert.calledOnceWith(
-                notify,
-                {
-                    dismissAfter: 0,
-                    id: 'initGuiReport',
-                    message: 'failed to initialize custom gui',
-                    status: 'error',
-                    position: POSITIONS.topCenter,
-                    dismissible: true,
-                    showDismissButton: true,
-                    allowHTML: true
-                }
-            );
+            assert.calledOnceWith(createNotificationError, 'initGuiReport', customGuiError);
         });
 
         it('should init plugins with the config from /init route', async () => {
