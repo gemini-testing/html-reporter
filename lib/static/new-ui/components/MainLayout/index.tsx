@@ -11,6 +11,7 @@ import styles from './index.module.css';
 import {Footer} from './Footer';
 import {EmptyReportCard} from '@/static/new-ui/components/Card/EmptyReportCard';
 import {InfoPanel} from '@/static/new-ui/components/InfoPanel';
+import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
 
 export enum PanelId {
     Settings = 'settings',
@@ -31,13 +32,17 @@ export interface MainLayoutProps {
 export function MainLayout(props: MainLayoutProps): ReactNode {
     const navigate = useNavigate();
     const location = useLocation();
+    const analytics = useAnalytics();
 
     const gravityMenuItems: GravityMenuItem[] = props.menuItems.map(item => ({
         id: item.url,
         title: item.title,
         icon: item.icon,
         current: Boolean(matchPath(`${item.url.replace(/\/$/, '')}/*`, location.pathname)),
-        onItemClick: () => navigate(item.url)
+        onItemClick: (): void => {
+            analytics?.trackFeatureUsage({featureName: `Go to ${item.url} page`});
+            navigate(item.url);
+        }
     }));
 
     const isInitialized = useSelector(getIsInitialized);
@@ -47,7 +52,12 @@ export function MainLayout(props: MainLayoutProps): ReactNode {
 
     const [visiblePanel, setVisiblePanel] = useState<PanelId | null>(null);
     const onFooterItemClick = (item: GravityMenuItem): void => {
-        visiblePanel === item.id ? setVisiblePanel(null) : setVisiblePanel(item.id as PanelId);
+        if (visiblePanel === item.id) {
+            setVisiblePanel(null);
+        } else {
+            setVisiblePanel(item.id as PanelId);
+            analytics?.trackFeatureUsage({featureName: `Open ${item.id} panel`});
+        }
     };
 
     return <AsideHeader

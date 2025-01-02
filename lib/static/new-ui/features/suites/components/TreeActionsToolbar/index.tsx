@@ -51,6 +51,8 @@ interface TreeActionsToolbarProps {
     onHighlightCurrentTest?: () => void;
 }
 
+const ANALYTICS_PREFIX = 'Tree actions toolbar:';
+
 export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
     const dispatch = useDispatch();
     const analytics = useAnalytics();
@@ -122,6 +124,7 @@ export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
     };
 
     const handleRun = (): void => {
+        analytics?.trackFeatureUsage({featureName: `${ANALYTICS_PREFIX} run tests`});
         if (isSelectedAtLeastOne) {
             dispatch(thunkRunTests({tests: selectedTests}));
         } else {
@@ -137,6 +140,7 @@ export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
         const acceptableImageIds = activeImages
             .filter(image => isScreenRevertable({image, gui: isGuiMode, isLastResult: true, isStaticImageAccepterEnabled}))
             .map(image => image.id);
+        analytics?.trackFeatureUsage({featureName: `${ANALYTICS_PREFIX} revert screenshots`});
 
         if (isStaticImageAccepterEnabled) {
             dispatch(staticAccepterUnstageScreenshot(acceptableImageIds));
@@ -149,6 +153,7 @@ export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
         const acceptableImageIds = activeImages
             .filter(image => isAcceptable(image))
             .map(image => image.id);
+        analytics?.trackFeatureUsage({featureName: `${ANALYTICS_PREFIX} accept screenshots`});
         analytics?.trackScreenshotsAccept({acceptedImagesCount: acceptableImageIds.length});
 
         if (isStaticImageAccepterEnabled) {
@@ -159,7 +164,9 @@ export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
     };
 
     const handleToggleTreeView = (): void => {
-        dispatch(setTreeViewMode({treeViewMode: treeViewMode === TreeViewMode.Tree ? TreeViewMode.List : TreeViewMode.Tree}));
+        const newTreeViewMode = treeViewMode === TreeViewMode.Tree ? TreeViewMode.List : TreeViewMode.Tree;
+        analytics?.trackFeatureUsage({featureName: `${ANALYTICS_PREFIX} change tree view mode`, treeViewMode: newTreeViewMode});
+        dispatch(setTreeViewMode({treeViewMode: newTreeViewMode}));
     };
 
     const selectedOrVisible = isSelectedAtLeastOne ? 'selected' : 'visible';
