@@ -32,7 +32,8 @@ export function getMetrikaMiddleware(analytics: YandexMetrika): Middleware<{}, S
                 analytics.setVisitParams({
                     [action.type]: Date.now() - startLoadTime,
                     initView: state.view,
-                    testsCount
+                    testsCount,
+                    isNewUi: Boolean(state.app.isNewUi)
                 });
 
                 return result;
@@ -78,6 +79,32 @@ export function getMetrikaMiddleware(analytics: YandexMetrika): Middleware<{}, S
             case actionNames.CHANGE_TEST_RETRY:
             case actionNames.GROUP_TESTS_BY_KEY: {
                 analytics.trackFeatureUsage({featureName: action.type});
+
+                return next(action);
+            }
+
+            case actionNames.GROUP_TESTS_SET_CURRENT_EXPRESSION: {
+                analytics.trackFeatureUsage({featureName: action.type, groupByKey: action.payload.expressionIds[0]});
+
+                return next(action);
+            }
+
+            case actionNames.SORT_TESTS_SET_CURRENT_EXPRESSION: {
+                analytics.trackFeatureUsage({
+                    featureName: action.type,
+                    sortByKey: action.payload.expressionIds[0],
+                    sortDirection: store.getState().app.sortTestsData.currentDirection
+                });
+
+                return next(action);
+            }
+
+            case actionNames.SORT_TESTS_SET_DIRECTION: {
+                analytics.trackFeatureUsage({
+                    featureName: action.type,
+                    sortByKey: store.getState().app.sortTestsData.currentExpressionIds[0],
+                    sortDirection: action.payload.direction
+                });
 
                 return next(action);
             }
