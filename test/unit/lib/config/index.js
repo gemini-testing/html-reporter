@@ -417,31 +417,57 @@ describe('config', () => {
     });
 
     describe('yandexMetrika', () => {
-        it('should have default value', () => {
-            assert.deepEqual(parseConfig({}).yandexMetrika, configDefaults.yandexMetrika);
+        afterEach(() => {
+            sinon.sandbox.restore();
         });
 
-        describe('counterNumber', () => {
-            it('should throw error if option is not a null or number', () => {
-                assert.throws(() => {
-                    parseConfig({
-                        yandexMetrika: {
-                            counterNumber: 'string'
-                        }
-                    }),
-                    Error,
-                    /option must be number, but got string/;
-                });
+        describe('"enabled" option', () => {
+            it('should be enabled by default', () => {
+                assert.deepEqual(parseConfig({}).yandexMetrika.enabled, true);
             });
 
             it('should set value from config file', () => {
+                const config = parseConfig({
+                    yandexMetrika: {
+                        enabled: false
+                    }
+                });
+
+                assert.equal(config.yandexMetrika.enabled, false);
+            });
+
+            it('should respect NO_ANALYTICS env', () => {
+                process.env['NO_ANALYTICS'] = 'true';
+                const config = parseConfig({});
+
+                assert.equal(config.yandexMetrika.enabled, false);
+            });
+        });
+
+        describe('counterNumber', () => {
+            it('should have default value', () => {
+                assert.deepEqual(parseConfig({}).yandexMetrika.counterNumber, configDefaults.yandexMetrika.counterNumber);
+            });
+
+            it('should ignore any value passed by user', () => {
                 const config = parseConfig({
                     yandexMetrika: {
                         counterNumber: 100500
                     }
                 });
 
-                assert.equal(config.yandexMetrika.counterNumber, 100500);
+                assert.equal(config.yandexMetrika.counterNumber, configDefaults.yandexMetrika.counterNumber);
+            });
+
+            it('should write deprecation warning', () => {
+                sinon.sandbox.stub(console, 'warn');
+                parseConfig({
+                    yandexMetrika: {
+                        counterNumber: 100500
+                    }
+                });
+
+                assert.calledOnceWith(console.warn, sinon.match('"yandexMetrika.counterNumber" option is deprecated'));
             });
         });
     });

@@ -22,7 +22,7 @@ export const configDefaults: StoreReporterConfig = {
     saveErrorDetails: false,
     saveFormat: SaveFormat.SQLITE,
     yandexMetrika: {
-        counterNumber: null
+        counterNumber: 99267510
     },
     staticImageAccepter: {
         enabled: false,
