@@ -29,7 +29,7 @@ class CustomGuiControls extends PureComponent {
         const onClickHandler = (event, {value}) => {
             const controlIndex = controls.findIndex((control) => control.value === value);
 
-            actions.runCustomGuiAction({sectionName, groupIndex, controlIndex});
+            actions.thunkRunCustomGuiAction({sectionName, groupIndex, controlIndex});
         };
 
         return map(controls, ({label, value, active}, i) =>

@@ -13,6 +13,10 @@ import {SuitesPage} from '../features/suites/components/SuitesPage';
 import {VisualChecksPage} from '../features/visual-checks/components/VisualChecksPage';
 import '../../new-ui.css';
 import store from '../../modules/store';
+import {CustomScripts} from '@/static/new-ui/components/CustomScripts';
+import {State} from '@/static/new-ui/types/store';
+import {AnalyticsProvider} from '@/static/new-ui/providers/analytics';
+import {MetrikaScript} from '@/static/new-ui/components/MetrikaScript';
 
 export function App(): ReactNode {
     const pages = [
@@ -26,21 +30,27 @@ export function App(): ReactNode {
         {title: 'Visual Checks', url: '/visual-checks', icon: Eye, element: <VisualChecksPage/>}
     ];
 
+    const customScripts = (store.getState() as State).config.customScripts;
+
     return <StrictMode>
+        <CustomScripts scripts={customScripts} />
         <ThemeProvider theme='light'>
             <ToasterProvider>
                 <Provider store={store}>
-                    <HashRouter>
-                        <MainLayout menuItems={pages}>
-                            <LoadingBar/>
-                            <Routes>
-                                <Route element={<Navigate to={'/suites'}/>} path={'/'}/>
-                                {pages.map(page => <Route element={page.element} path={page.url} key={page.url}>{page.children}</Route>)}
-                            </Routes>
-                            <GuiniToolbarOverlay/>
-                            <ToasterComponent />
-                        </MainLayout>
-                    </HashRouter>
+                    <MetrikaScript/>
+                    <AnalyticsProvider>
+                        <HashRouter>
+                            <MainLayout menuItems={pages}>
+                                <LoadingBar/>
+                                <Routes>
+                                    <Route element={<Navigate to={'/suites'}/>} path={'/'}/>
+                                    {pages.map(page => <Route element={page.element} path={page.url} key={page.url}>{page.children}</Route>)}
+                                </Routes>
+                                <GuiniToolbarOverlay/>
+                                <ToasterComponent />
+                            </MainLayout>
+                        </HashRouter>
+                    </AnalyticsProvider>
                 </Provider>
             </ToasterProvider>
         </ThemeProvider>

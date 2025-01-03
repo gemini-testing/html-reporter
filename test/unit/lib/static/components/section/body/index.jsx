@@ -24,7 +24,7 @@ describe('<Body />', () => {
 
     beforeEach(() => {
         actionsStub = {
-            retryTest: sandbox.stub().returns({type: 'some-type'}),
+            thunkRunTest: sandbox.stub().returns({type: 'some-type'}),
             changeTestRetry: sandbox.stub().returns({type: 'some-type'})
         };
 
@@ -74,7 +74,7 @@ describe('<Body />', () => {
             assert.isFalse(component.getByTestId('test-retry').disabled);
         });
 
-        it('should call action "retryTest" on "handler" prop calling', async () => {
+        it('should call action "thunkRunTest" on "handler" prop calling', async () => {
             const user = userEvent.setup();
             const testName = 'suite test';
             const browserName = 'yabro';
@@ -82,7 +82,7 @@ describe('<Body />', () => {
 
             await user.click(component.getByTestId('test-retry'));
 
-            assert.calledOnceWith(actionsStub.retryTest, {testName, browserName});
+            assert.calledOnceWith(actionsStub.thunkRunTest, {test: {testName, browserName}});
         });
     });
 

@@ -10,11 +10,12 @@ import StickyHeader from './sticky-header/gui';
 import Loading from './loading';
 import ModalContainer from '../containers/modal';
 import MainTree from './main-tree';
-import CustomScripts from './custom-scripts';
+import {CustomScripts} from '../new-ui/components/CustomScripts';
 import {ClientEvents} from '../../gui/constants/client-events';
 import FaviconChanger from './favicon-changer';
 import ExtensionPoint from './extension-point';
 import BottomProgressBar from './bottom-progress-bar';
+import {MetrikaScript} from '@/static/new-ui/components/MetrikaScript';
 
 class Gui extends Component {
     static propTypes = {
@@ -60,7 +61,7 @@ class Gui extends Component {
         });
 
         eventSource.addEventListener(ClientEvents.END, () => {
-            actions.testsEnd();
+            actions.thunkTestsEnd();
         });
     }
 
@@ -81,6 +82,7 @@ class Gui extends Component {
             <Fragment>
                 <ExtensionPoint name={ROOT}>
                     <CustomScripts scripts={customScripts}/>
+                    <MetrikaScript />
                     {notificationElem}
                     <FaviconChanger />
                     <StickyHeader />

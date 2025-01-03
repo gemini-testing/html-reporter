@@ -16,7 +16,7 @@ describe('<GuiControls />', () => {
         actionsStub = {
             runAllTests: sandbox.stub().returns({type: 'some-type'}),
             runFailedTests: sandbox.stub().returns({type: 'some-type'}),
-            stopTests: sandbox.stub().returns({type: 'some-type'})
+            thunkStopTests: sandbox.stub().returns({type: 'some-type'})
         };
         selectors = {
             getFailedTests: sandbox.stub().returns([]),
@@ -82,7 +82,7 @@ describe('<GuiControls />', () => {
 
             await user.click(stop);
 
-            assert.calledOnce(actionsStub.stopTests);
+            assert.calledOnce(actionsStub.thunkStopTests);
         });
     });
 });

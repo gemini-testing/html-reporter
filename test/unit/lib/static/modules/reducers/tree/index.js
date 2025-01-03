@@ -698,7 +698,7 @@ describe('lib/static/modules/reducers/tree', () => {
         });
     });
 
-    [actionNames.TEST_BEGIN, actionNames.TEST_RESULT, actionNames.ACCEPT_OPENED_SCREENSHOTS, actionNames.ACCEPT_SCREENSHOT].forEach((actionName) => {
+    [actionNames.TEST_BEGIN, actionNames.TEST_RESULT, actionNames.COMMIT_ACCEPTED_IMAGES_TO_TREE].forEach((actionName) => {
         describe(`${actionName} action`, () => {
             it('should change "retryIndex" in browser state', () => {
                 const suitesById = {...mkSuite({id: 's1', browserIds: ['b1']})};
@@ -1274,7 +1274,7 @@ describe('lib/static/modules/reducers/tree', () => {
         });
     });
 
-    describe(`${actionNames.UNDO_ACCEPT_IMAGES} action`, () => {
+    describe(`${actionNames.COMMIT_REVERTED_IMAGES_TO_TREE} action`, () => {
         const mkTree_ = () => mkStateTree({
             suitesById: mkSuite({id: 's', status: SUCCESS, browserIds: ['b']}),
             browsersById: mkBrowser({id: 'b', name: 'yabro', parentId: 's', resultIds: ['r1']}),
@@ -1296,7 +1296,7 @@ describe('lib/static/modules/reducers/tree', () => {
             const updatedImage = {id: 'i1', parentId: 'r1', status: FAIL};
 
             const {tree: newTree} = reducer({tree, view}, {
-                type: actionNames.UNDO_ACCEPT_IMAGES,
+                type: actionNames.COMMIT_REVERTED_IMAGES_TO_TREE,
                 payload: {updatedImages: [updatedImage]}
             });
 
@@ -1309,7 +1309,7 @@ describe('lib/static/modules/reducers/tree', () => {
             const updatedImage = {id: 'i1', parentId: 'r1', status: FAIL};
 
             const {tree: newTree} = reducer({tree, view}, {
-                type: actionNames.UNDO_ACCEPT_IMAGES,
+                type: actionNames.COMMIT_REVERTED_IMAGES_TO_TREE,
                 payload: {updatedImages: [updatedImage]}
             });
 
@@ -1321,7 +1321,7 @@ describe('lib/static/modules/reducers/tree', () => {
             const view = mkStateView();
 
             const {tree: newTree} = reducer({tree, view}, {
-                type: actionNames.UNDO_ACCEPT_IMAGES,
+                type: actionNames.COMMIT_REVERTED_IMAGES_TO_TREE,
                 payload: {removedResults: ['r2']}
             });
 
@@ -1342,28 +1342,12 @@ describe('lib/static/modules/reducers/tree', () => {
             const updatedImage = {id: 'i1', parentId: 'r1', status: FAIL};
 
             const {tree: newTree} = reducer({tree, view}, {
-                type: actionNames.UNDO_ACCEPT_IMAGES,
+                type: actionNames.COMMIT_REVERTED_IMAGES_TO_TREE,
                 payload: {updatedImages: [updatedImage]}
             });
 
             assert.equal(newTree.suites.byId.s.status, FAIL);
             assert.deepEqual(newTree.suites.failedRootIds, ['s']);
-        });
-
-        it('should not modify state if "skipTreeUpdate" is set', () => {
-            const state = {tree: mkTree_(), view: mkStateView()};
-            const updatedImage = {id: 'i1', status: FAIL};
-
-            const newState = reducer(state, {
-                type: actionNames.UNDO_ACCEPT_IMAGES,
-                payload: {
-                    updatedImages: [updatedImage],
-                    removedResults: ['r2'],
-                    skipTreeUpdate: true
-                }
-            });
-
-            assert.equal(state, newState);
         });
     });
 

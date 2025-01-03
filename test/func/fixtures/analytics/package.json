@@ -1,0 +1,11 @@
+{
+  "name": "analytics",
+  "description": "Test project that generates html-report for testing analytics",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "clean": "rm -rf report",
+    "generate": "true # This report should be generated with different env vars during tests",
+    "gui": "npx testplane gui --hostname 0.0.0.0 --port $(../../utils/get-port.js analytics gui)"
+  }
+}

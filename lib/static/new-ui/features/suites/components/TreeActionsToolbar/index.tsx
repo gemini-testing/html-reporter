@@ -18,14 +18,11 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import styles from './index.module.css';
 import {
-    acceptOpened,
     deselectAll,
-    retrySuite,
     selectAll,
     setAllTreeNodesState, setTreeViewMode,
     staticAccepterStageScreenshot,
-    staticAccepterUnstageScreenshot,
-    undoAcceptImages
+    staticAccepterUnstageScreenshot, thunkRunTests
 } from '@/static/modules/actions';
 import {ImageEntity, TreeViewMode} from '@/static/new-ui/types/store';
 import {CHECKED, INDETERMINATE} from '@/constants/checked-statuses';
@@ -47,13 +44,18 @@ import {EditScreensFeature, RunTestsFeature} from '@/constants';
 import {getTreeViewItems} from '@/static/new-ui/features/suites/components/SuitesTreeView/selectors';
 import {GroupBySelect} from '@/static/new-ui/features/suites/components/GroupBySelect';
 import {SortBySelect} from '@/static/new-ui/features/suites/components/SortBySelect';
+import {thunkAcceptImages, thunkRevertImages} from '@/static/modules/actions/screenshots';
+import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
 
 interface TreeActionsToolbarProps {
     onHighlightCurrentTest?: () => void;
 }
 
+const ANALYTICS_PREFIX = 'Tree actions toolbar:';
+
 export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
     const dispatch = useDispatch();
+    const analytics = useAnalytics();
 
     const rootSuiteIds = useSelector(state => state.tree.suites.allRootIds);
     const suitesStateById = useSelector(state => state.tree.suites.stateById);
@@ -122,14 +124,15 @@ export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
     };
 
     const handleRun = (): void => {
+        analytics?.trackFeatureUsage({featureName: `${ANALYTICS_PREFIX} run tests`});
         if (isSelectedAtLeastOne) {
-            dispatch(retrySuite(selectedTests));
+            dispatch(thunkRunTests({tests: selectedTests}));
         } else {
             const visibleTests = visibleBrowserIds.map(browserId => ({
                 testName: browsersById[browserId].parentId,
                 browserName: browsersById[browserId].name
             }));
-            dispatch(retrySuite(visibleTests));
+            dispatch(thunkRunTests({tests: visibleTests}));
         }
     };
 
@@ -137,11 +140,12 @@ export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
         const acceptableImageIds = activeImages
             .filter(image => isScreenRevertable({image, gui: isGuiMode, isLastResult: true, isStaticImageAccepterEnabled}))
             .map(image => image.id);
+        analytics?.trackFeatureUsage({featureName: `${ANALYTICS_PREFIX} revert screenshots`});
 
         if (isStaticImageAccepterEnabled) {
             dispatch(staticAccepterUnstageScreenshot(acceptableImageIds));
         } else {
-            dispatch(undoAcceptImages(acceptableImageIds));
+            dispatch(thunkRevertImages({imageIds: acceptableImageIds}));
         }
     };
 
@@ -149,16 +153,20 @@ export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
         const acceptableImageIds = activeImages
             .filter(image => isAcceptable(image))
             .map(image => image.id);
+        analytics?.trackFeatureUsage({featureName: `${ANALYTICS_PREFIX} accept screenshots`});
+        analytics?.trackScreenshotsAccept({acceptedImagesCount: acceptableImageIds.length});
 
         if (isStaticImageAccepterEnabled) {
             dispatch(staticAccepterStageScreenshot(acceptableImageIds));
         } else {
-            dispatch(acceptOpened(acceptableImageIds));
+            dispatch(thunkAcceptImages({imageIds: acceptableImageIds}));
         }
     };
 
     const handleToggleTreeView = (): void => {
-        dispatch(setTreeViewMode({treeViewMode: treeViewMode === TreeViewMode.Tree ? TreeViewMode.List : TreeViewMode.Tree}));
+        const newTreeViewMode = treeViewMode === TreeViewMode.Tree ? TreeViewMode.List : TreeViewMode.Tree;
+        analytics?.trackFeatureUsage({featureName: `${ANALYTICS_PREFIX} change tree view mode`, treeViewMode: newTreeViewMode});
+        dispatch(setTreeViewMode({treeViewMode: newTreeViewMode}));
     };
 
     const selectedOrVisible = isSelectedAtLeastOne ? 'selected' : 'visible';

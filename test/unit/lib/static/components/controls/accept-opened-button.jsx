@@ -11,7 +11,7 @@ describe('<AcceptOpenedButton />', () => {
     let selectors;
 
     beforeEach(() => {
-        actionsStub = {acceptOpened: sandbox.stub().returns({type: 'some-type'})};
+        actionsStub = {thunkAcceptImages: sandbox.stub().returns({type: 'some-type'})};
         selectors = {getAcceptableOpenedImageIds: sandbox.stub().returns([])};
 
         AcceptOpenedButton = proxyquire('lib/static/components/controls/accept-opened-button', {
@@ -52,7 +52,7 @@ describe('<AcceptOpenedButton />', () => {
         assert.isFalse(component.getByRole('button').disabled);
     });
 
-    it('should call "acceptOpened" action on click', async () => {
+    it('should call "thunkAcceptImages" action on click', async () => {
         const user = userEvent.setup();
         const state = mkState({initialState: {processing: false}});
         const acceptableOpenedImageIds = ['img-id-1'];
@@ -61,6 +61,6 @@ describe('<AcceptOpenedButton />', () => {
         const component = mkConnectedComponent(<AcceptOpenedButton />, state);
         await user.click(component.getByRole('button'));
 
-        assert.calledOnceWith(actionsStub.acceptOpened, acceptableOpenedImageIds);
+        assert.calledOnceWith(actionsStub.thunkAcceptImages, {imageIds: acceptableOpenedImageIds});
     });
 });

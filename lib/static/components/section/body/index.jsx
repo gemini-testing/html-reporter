@@ -27,7 +27,7 @@ function Body(props) {
     const onTestRetry = () => {
         const {testName, browserName} = props;
 
-        props.actions.retryTest({testName, browserName});
+        props.actions.thunkRunTest({test: {testName, browserName}});
     };
 
     const addRetrySwitcher = () => {

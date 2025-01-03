@@ -15,6 +15,7 @@ const serverPort = process.env.SERVER_PORT ?? 8083;
 const projectUnderTest = process.env.PROJECT_UNDER_TEST;
 
 const isRunningGuiTests = projectUnderTest.includes('gui');
+const isRunningAnalyticsTests = projectUnderTest.includes('analytics');
 if (!projectUnderTest) {
     throw 'Project under test was not specified';
 }
@@ -40,12 +41,15 @@ const config = _.merge(commonConfig, {
         },
         plugins: {
             files: 'plugins/**/*.testplane.js'
+        },
+        analytics: {
+            files: 'analytics/**/*.testplane.js'
         }
     },
 
     plugins: {
         'html-reporter-test-server': {
-            enabled: !isRunningGuiTests,
+            enabled: !isRunningGuiTests && !isRunningAnalyticsTests,
             port: serverPort
         },
         'html-reporter-tester': {
@@ -56,7 +60,7 @@ const config = _.merge(commonConfig, {
     }
 });
 
-if (!isRunningGuiTests) {
+if (!isRunningGuiTests && !isRunningAnalyticsTests) {
     _.set(config.plugins, ['hermione-global-hook', 'beforeEach'], async function({browser}) {
         await browser.url(this.browser.options.baseUrl);
 

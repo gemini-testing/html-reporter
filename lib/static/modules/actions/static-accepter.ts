@@ -1,7 +1,6 @@
 import axios from 'axios';
 import {isEmpty} from 'lodash';
 import {types as modalTypes} from '../../components/modals';
-import {openModal, closeModal, createNotificationError, createNotification} from './index';
 import {getBlob} from '../utils';
 import {storeCommitInLocalStorage} from '../static-image-accepter';
 import actionNames from '../action-names';
@@ -9,6 +8,8 @@ import defaultState from '../default-state';
 import type {Action, Dispatch, Store} from './types';
 import {ThunkAction} from 'redux-thunk';
 import {Point} from '@/static/new-ui/types';
+import {closeModal, openModal} from '@/static/modules/actions/modals';
+import {createNotification, createNotificationError} from '@/static/modules/actions/notifications';
 
 type StaticAccepterDelayScreenshotPayload = {imageId: string, stateName: string, stateNameImageId: string}[];
 type StaticAccepterDelayScreenshotAction = Action<typeof actionNames.STATIC_ACCEPTER_DELAY_SCREENSHOT, StaticAccepterDelayScreenshotPayload>
@@ -122,7 +123,7 @@ export const staticAccepterCommitScreenshot = (
             }
         } catch (e) {
             console.error('An error occurred while commiting screenshot:', e);
-            dispatch(createNotificationError('commitScreenshot', e));
+            dispatch(createNotificationError('commitScreenshot', e as Error));
 
             return {error: e as Error};
         } finally {
@@ -143,3 +144,12 @@ type StaticAccepterUpdateCommitMessageAction = Action<typeof actionNames.STATIC_
 export const staticAccepterUpdateCommitMessage = (payload: {commitMessage: string}): StaticAccepterUpdateCommitMessageAction => {
     return {type: actionNames.STATIC_ACCEPTER_UPDATE_COMMIT_MESSAGE, payload};
 };
+
+export type StaticAccepter =
+    | StaticAccepterDelayScreenshotAction
+    | StaticAccepterUndoDelayScreenshotAction
+    | StaticAccepterStageScreenshotAction
+    | StaticAccepterUnstageScreenshotAction
+    | StaticAccepterCommitScreenshotAction
+    | StaticAccepterUpdateToolbarPositionAction
+    | StaticAccepterUpdateCommitMessageAction;

@@ -233,8 +233,8 @@ export interface SortByExpression {
 }
 
 export enum TreeViewMode {
-    Tree,
-    List
+    Tree = 'tree',
+    List = 'list'
 }
 
 export interface State {

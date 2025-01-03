@@ -1,30 +1,26 @@
-import React, {useEffect, useRef} from 'react';
-import PropTypes from 'prop-types';
-import {isEmpty} from 'lodash';
+import React, {ReactNode, useEffect, useRef} from 'react';
 
-function CustomScripts(props) {
+interface CustomScriptProps {
+    scripts: (string | ((...args: never) => unknown))[];
+}
+
+export function CustomScripts(props: CustomScriptProps): ReactNode {
     const {scripts} = props;
 
-    if (isEmpty(scripts)) {
+    if (scripts.length === 0) {
         return null;
     }
 
-    const ref = useRef(null);
+    const ref = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         scripts.forEach((script) => {
             const s = document.createElement('script');
             s.type = 'text/javascript';
             s.innerHTML = `(${script})();`;
-            ref.current.appendChild(s);
+            ref.current?.appendChild(s);
         });
     }, [scripts]);
 
     return <div className="custom-scripts" ref={ref}></div>;
 }
-
-CustomScripts.propTypes = {
-    scripts: PropTypes.array.isRequired
-};
-
-export default CustomScripts;

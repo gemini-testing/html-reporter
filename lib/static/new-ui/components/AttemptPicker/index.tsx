@@ -7,8 +7,9 @@ import styles from './index.module.css';
 import classNames from 'classnames';
 import {Button, Icon, Spin} from '@gravity-ui/uikit';
 import {RunTestsFeature} from '@/constants';
-import {retryTest} from '@/static/modules/actions';
+import {thunkRunTest} from '@/static/modules/actions';
 import {getCurrentBrowser, getCurrentResultId} from '@/static/new-ui/features/suites/selectors';
+import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
 
 interface AttemptPickerProps {
     onChange?: (browserId: string, resultId: string, attemptIndex: number) => unknown;
@@ -23,6 +24,7 @@ interface AttemptPickerInternalProps extends AttemptPickerProps {
 function AttemptPickerInternal(props: AttemptPickerInternalProps): ReactNode {
     const {resultIds, currentResultId} = props;
 
+    const analytics = useAnalytics();
     const dispatch = useDispatch();
     const currentBrowser = useSelector(getCurrentBrowser);
     const isRunTestsAvailable = useSelector(state => state.app.availableFeatures)
@@ -39,7 +41,8 @@ function AttemptPickerInternal(props: AttemptPickerInternalProps): ReactNode {
 
     const onRetryTestHandler = (): void => {
         if (currentBrowser) {
-            dispatch(retryTest({testName: currentBrowser.parentId, browserName: currentBrowser.name}));
+            analytics?.trackFeatureUsage({featureName: 'Attempt picker: retry test button click'});
+            dispatch(thunkRunTest({test: {testName: currentBrowser.parentId, browserName: currentBrowser.name}}));
         }
     };
 

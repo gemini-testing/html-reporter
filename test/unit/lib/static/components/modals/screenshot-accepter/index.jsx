@@ -248,7 +248,7 @@ describe('<ScreenshotAccepter/>', () => {
             await user.click(component.getByText('Accept', {selector: 'button > *'}));
             await user.click(component.getByTitle('Close mode with fast screenshot accepting', {exact: false}));
 
-            assert.calledWith(reduxAction, sinon.match({type: 'APPLY_DELAYED_TEST_RESULTS'}));
+            assert.calledWith(reduxAction, sinon.match({type: 'COMMIT_ACCEPTED_IMAGES_TO_TREE'}));
         });
 
         it('should not apply delayed test result, if it is cancelled by "Undo"', async () => {

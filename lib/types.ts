@@ -244,7 +244,7 @@ export interface ReporterConfig {
     pluginsEnabled: boolean;
     saveErrorDetails: boolean;
     saveFormat: SaveFormat;
-    yandexMetrika: { counterNumber: null | number };
+    yandexMetrika: { enabled?: boolean; counterNumber: null | number };
     staticImageAccepter: StaticImageAccepterConfig;
 }
 
