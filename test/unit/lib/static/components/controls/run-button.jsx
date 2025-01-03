@@ -13,9 +13,9 @@ describe('<RunButton />', () => {
         useLocalStorageStub = sandbox.stub().returns([true]);
         useLocalStorageStub.withArgs('RunMode', 'Failed').returns(['All', writeValueStub]);
         actionsStub = {
-            runAllTests: sandbox.stub().returns({type: 'some-type'}),
-            runFailedTests: sandbox.stub().returns({type: 'some-type'}),
-            retrySuite: sandbox.stub().returns({type: 'some-type'})
+            thunkRunAllTests: sandbox.stub().returns({type: 'some-type'}),
+            thunkRunFailedTests: sandbox.stub().returns({type: 'some-type'}),
+            thunkRunSuite: sandbox.stub().returns({type: 'some-type'})
         };
         selectorsStub = {
             getFailedTests: sandbox.stub().returns([]),
@@ -70,10 +70,10 @@ describe('<RunButton />', () => {
             initialState: {autoRun: true}
         });
 
-        assert.calledOnce(actionsStub.runAllTests);
+        assert.calledOnce(actionsStub.thunkRunAllTests);
     });
 
-    it('should call "runAllTests" action on "Run all tests" click', async () => {
+    it('should call "thunkRunAllTests" action on "Run all tests" click', async () => {
         const user = userEvent.setup();
         const component = mkConnectedComponent(<RunButton />, {
             initialState: {tree: {suites: {allRootIds: ['suite']}}, processing: false}
@@ -81,7 +81,7 @@ describe('<RunButton />', () => {
 
         await user.click(component.getByRole('button'));
 
-        assert.calledOnce(actionsStub.runAllTests);
+        assert.calledOnce(actionsStub.thunkRunAllTests);
     });
 
     it('should call "runFailedTests" action on "Run failed tests" click', async () => {
@@ -96,7 +96,7 @@ describe('<RunButton />', () => {
         await user.click(component.getByText('Failed Tests', {selector: '[role=combobox] > *'}));
         await user.click(component.getByRole('button'));
 
-        assert.calledOnceWith(actionsStub.runFailedTests, failedTests);
+        assert.calledOnceWith(actionsStub.thunkRunFailedTests, {tests: failedTests});
     });
 
     it('should call "retrySuite" action on "Run checked tests" click', async () => {
@@ -111,7 +111,7 @@ describe('<RunButton />', () => {
         await user.click(component.getByText('Checked Tests', {selector: '[role=combobox] > *'}));
         await user.click(component.getByRole('button'));
 
-        assert.calledOnceWith(actionsStub.retrySuite, checkedTests);
+        assert.calledOnceWith(actionsStub.thunkRunSuite, {tests: checkedTests});
     });
 
     describe('Label', () => {

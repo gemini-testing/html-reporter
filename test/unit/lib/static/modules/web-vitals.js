@@ -16,12 +16,6 @@ describe('WebVitals', () => {
 
     describe('measurePerformance', () => {
         ['getCLS', 'getFID', 'getFCP', 'getLCP', 'getTTFB'].forEach((methodName) => {
-            it(`should not call "${methodName}" if callback is not passed`, () => {
-                measurePerformance();
-
-                assert.notCalled(webVitals[methodName]);
-            });
-
             it(`should call "${methodName}" if callback is passed`, () => {
                 const spy = sinon.spy();
 

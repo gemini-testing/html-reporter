@@ -4,7 +4,14 @@ import {createRoot} from 'react-dom/client';
 import {ClientEvents} from '@/gui/constants';
 import {App} from './App';
 import store from '../../modules/store';
-import {finGuiReport, thunkInitGuiReport, suiteBegin, testBegin, testResult, testsEnd} from '../../modules/actions';
+import {
+    finGuiReport,
+    thunkInitGuiReport,
+    suiteBegin,
+    testBegin,
+    testResult,
+    thunkTestsEnd
+} from '../../modules/actions';
 import {setGuiServerConnectionStatus} from '@/static/modules/actions/gui-server-connection';
 import actionNames from '@/static/modules/action-names';
 
@@ -47,7 +54,7 @@ function Gui(): ReactNode {
         });
 
         eventSource.addEventListener(ClientEvents.END, () => {
-            store.dispatch(testsEnd());
+            store.dispatch(thunkTestsEnd());
         });
     };
 

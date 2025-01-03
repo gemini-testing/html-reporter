@@ -22,7 +22,7 @@ const SectionTitle = ({name, suiteId, handler, gui, checkStatus, suiteTests, act
     const onSuiteRetry = (e) => {
         e.stopPropagation();
 
-        actions.retrySuite(suiteTests);
+        actions.thunkRunSuite({tests: suiteTests});
     };
 
     const onToggleCheckbox = (e) => {

@@ -29,9 +29,9 @@ const RunButton = ({actions, autoRun, isDisabled, isRunning, failedTests, checke
     const selectFailedTests = () => !shouldDisableFailed && setMode(RunMode.FAILED);
     const selectCheckedTests = () => !shouldDisableChecked && setMode(RunMode.CHECKED);
 
-    const runAllTests = () => actions.runAllTests();
-    const runFailedTests = () => actions.runFailedTests(failedTests);
-    const runCheckedTests = () => actions.retrySuite(checkedTests);
+    const runAllTests = () => actions.thunkRunAllTests();
+    const runFailedTests = () => actions.thunkRunFailedTests({tests: failedTests});
+    const runCheckedTests = () => actions.thunkRunSuite({tests: checkedTests});
 
     const handleRunClick = () => {
         const action = {

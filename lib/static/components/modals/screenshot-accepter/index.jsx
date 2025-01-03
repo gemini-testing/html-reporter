@@ -13,10 +13,13 @@ import {staticImageAccepterPropType} from '../../../modules/static-image-accepte
 import {preloadImage} from '../../../modules/utils';
 
 import './style.css';
+import {AnalyticsContext} from '@/static/new-ui/providers/analytics';
 
 const PRELOAD_IMAGE_COUNT = 3;
 
 class ScreenshotAccepter extends Component {
+    static contextType = AnalyticsContext;
+
     static propTypes = {
         view: PropTypes.shape({
             diffMode: PropTypes.string.isRequired
@@ -58,6 +61,8 @@ class ScreenshotAccepter extends Component {
         for (let i = 1; i <= PRELOAD_IMAGE_COUNT; i++) {
             this._preloadAdjacentImages(activeImageIndex, stateNameImageIds, i);
         }
+
+        this.analytics = this.context;
     }
 
     componentDidUpdate() {
@@ -138,7 +143,7 @@ class ScreenshotAccepter extends Component {
         if (this.props.staticImageAccepter.enabled) {
             this.props.actions.staticAccepterUndoDelayScreenshot();
         } else {
-            await this.props.actions.undoAcceptImage(imageId, {skipTreeUpdate: true});
+            await this.props.actions.thunkRevertImages({imageIds: [imageId], shouldCommitUpdatesToTree: false});
             this.delayedTestResults.pop();
         }
 
@@ -164,7 +169,7 @@ class ScreenshotAccepter extends Component {
 
             this.props.actions.staticAccepterStageScreenshot(imageIdsToStage);
         } else {
-            this.props.actions.applyDelayedTestResults(this.delayedTestResults);
+            this.props.actions.commitAcceptedImagesToTree(this.delayedTestResults);
         }
 
         this.props.onClose();
@@ -184,7 +189,8 @@ class ScreenshotAccepter extends Component {
     }
 
     async _acceptScreenshot(imageId, stateName) {
-        const updatedData = await this.props.actions.screenshotAccepterAccept(imageId);
+        const updatedData = await this.props.actions.thunkAcceptImages({imageIds: [imageId], shouldCommitUpdatesToTree: false});
+        this.analytics?.trackScreenshotsAccept();
 
         if (updatedData === null) {
             return null;

@@ -41,8 +41,8 @@ describe('lib/static/modules/reducers/grouped-tests', () => {
         actionNames.VIEW_UPDATE_FILTER_BY_NAME,
         actionNames.VIEW_SET_STRICT_MATCH_FILTER,
         actionNames.CHANGE_VIEW_MODE,
-        actionNames.ACCEPT_SCREENSHOT,
-        actionNames.ACCEPT_OPENED_SCREENSHOTS
+        actionNames.COMMIT_ACCEPTED_IMAGES_TO_TREE,
+        actionNames.COMMIT_REVERTED_IMAGES_TO_TREE
     ].forEach((actionName) => {
         describe(`${actionName} action`, () => {
             it('should calc only available meta keys if tests are not grouped', () => {
