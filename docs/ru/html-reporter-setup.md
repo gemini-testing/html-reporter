@@ -312,41 +312,27 @@ customScripts: [
 
 ### yandexMetrika
 
-Данный параметр позволяет добавить в отчет [Яндекс.Метрику][yandex-metrika]. Параметр задается в виде объекта с ключом `counterNumber` _(номер счетчика)_. В качестве значения ключа необходимо указать номер счетчика Яндекс.Метрики (см. «[Как создать счетчик][how-to-create-counter]»). Номер должен задаваться как число _(Number)_, а не строка.
+По умолчанию выполняется сбор анонимных сведений об использовании интерфейса отчета в целях анализа и улучшения UX. Собираются такие сведения, как скорость загрузки отчета, частота использования некоторых функций (например, сортировка тестов) и клики по элементам управления. Сведения о вашем проекте или содержимом тестов НЕ собираются ни при каких обстоятельствах.
 
-Также в интерфейсе Яндекс.Метрики необходимо перейти в разделе настроек на вкладку _«Счетчик»_, нажать кнопку _«Скопировать»_ и вставить код счетчика в поле [customScripts](#customscripts).
+Если вы не хотите делиться аналитикой с нами, вы можете отключить это любым из способов:
 
-С помощью метрики вы сможете узнать как разработчики взаимодействуют с вашим отчетом и с какого рода проблемами они сталкиваются.
-
-Отчет поддерживает следующие [цели для метрики][yandex-metrika-goals]:
-
-* **ACCEPT_SCREENSHOT** &mdash; было нажатие на кнопку _Accept_ для принятия скриншота;
-* **ACCEPT_OPENED_SCREENSHOTS** &mdash; было нажатие на кнопку _Accept opened_ для принятия скриншотов из открытых тестов.
-
-Пример настройки _Яндекс.Метрики_ в одном из проектов:
-
-```javascript
-module.exports = {
-    plugins: {
-        'html-reporter/hermione': {
-            customScripts: [
-                function(){(function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)}; m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)}) (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym"); ym(56782912, "init", { clickmap:true, trackLinks:true, accurateTrackBounce:true, webvisor:true })},
-
-                // другие скрипты...
-            ],
-            yandexMetrika: {
-                counterNumber: 1234567
+- В конфиге
+    ```javascript
+    module.exports = {
+        plugins: {
+            'html-reporter/testplane': {
+                yandexMetrika: {
+                    enabled: false
+                },
+                // другие настройки html-reporter...
             },
-
-            // другие настройки плагина...
+            // другие плагины Testplane...
         },
-
-        // другие плагины гермионы...
-    },
-
-    // другие настройки гермионы...
-};
-```
+        // другие настройки Testplane...
+    };
+    ```
+- С помощью переменных окружения: `html_reporter_yandex_metrika_enabled=false` или просто `NO_ANALYTICS=true`
+- С помощью аргументов CLI: `--html-reporter-yandex_metrika_enabled=false`
 
 ### Передача параметров через CLI
 
