@@ -31,5 +31,5 @@ export function MetrikaScript(): ReactNode {
         return null;
     }
 
-    return <div ref={ref}></div>;
+    return <div ref={ref} data-qa={'metrika-script'}></div>;
 }
