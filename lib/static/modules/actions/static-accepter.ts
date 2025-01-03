@@ -145,7 +145,7 @@ export const staticAccepterUpdateCommitMessage = (payload: {commitMessage: strin
     return {type: actionNames.STATIC_ACCEPTER_UPDATE_COMMIT_MESSAGE, payload};
 };
 
-export type StaticAccepter =
+export type StaticAccepterAction =
     | StaticAccepterDelayScreenshotAction
     | StaticAccepterUndoDelayScreenshotAction
     | StaticAccepterStageScreenshotAction

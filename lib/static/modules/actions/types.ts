@@ -17,7 +17,7 @@ import {CustomGuiAction} from '@/static/modules/actions/custom-gui';
 import {FilterTestsAction} from '@/static/modules/actions/filter-tests';
 import {SettingsAction} from '@/static/modules/actions/settings';
 import {ProcessingAction} from '@/static/modules/actions/processing';
-import {StaticAccepter} from '@/static/modules/actions/static-accepter';
+import {StaticAccepterAction} from '@/static/modules/actions/static-accepter';
 import type actionNames from '../action-names';
 import type defaultState from '../default-state';
 import type {Tree} from '../../../tests-tree-builder/base';
@@ -44,6 +44,6 @@ export type SomeAction =
     | ScreenshotsAction
     | SettingsAction
     | SortTestsAction
-    | StaticAccepter
+    | StaticAccepterAction
     | SuitesPageAction
     | SuiteTreeStateAction;
