@@ -33,7 +33,7 @@ export function getMetrikaMiddleware(analytics: YandexMetrika): Middleware<{}, S
                     [action.type]: Date.now() - startLoadTime,
                     initView: state.view,
                     testsCount,
-                    isNewUi: Boolean(state.app.isNewUi)
+                    isNewUi: Boolean(state?.app?.isNewUi)
                 });
 
                 return result;
