@@ -5,8 +5,11 @@ import PropTypes from 'prop-types';
 import * as actions from '../../modules/actions';
 import ControlButton from './control-button';
 import {getAcceptableOpenedImageIds} from '../../modules/selectors/tree';
+import {AnalyticsContext} from '@/static/new-ui/providers/analytics';
 
 class AcceptOpenedButton extends Component {
+    static contextType = AnalyticsContext;
+
     static propTypes = {
         isSuiteContol: PropTypes.bool,
         // from store
@@ -16,11 +19,14 @@ class AcceptOpenedButton extends Component {
         actions: PropTypes.object.isRequired
     };
 
-    _acceptOpened = () => {
+    _acceptOpened = async () => {
+        const analytics = this.context;
+        await analytics?.trackOpenedScreenshotsAccept({acceptedImagesCount: this.props.acceptableOpenedImageIds.length});
+
         if (this.props.isStaticImageAccepterEnabled) {
             this.props.actions.staticAccepterStageScreenshot(this.props.acceptableOpenedImageIds);
         } else {
-            this.props.actions.acceptOpened(this.props.acceptableOpenedImageIds);
+            this.props.actions.thunkAcceptImages({imageIds: this.props.acceptableOpenedImageIds});
         }
     };
 

@@ -21,7 +21,7 @@ class FindSameDiffsButton extends Component {
     _findSameDiffs = () => {
         const {actions, imageId, failedOpenedImageIds, browserName} = this.props;
 
-        actions.findSameDiffs(imageId, failedOpenedImageIds, browserName);
+        actions.thunkFindSameDiffs(imageId, failedOpenedImageIds, browserName);
     };
 
     render() {

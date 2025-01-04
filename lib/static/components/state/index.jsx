@@ -17,8 +17,11 @@ import {isSuccessStatus, isFailStatus, isErrorStatus, isUpdatedStatus, isIdleSta
 import {Disclosure} from '@gravity-ui/uikit';
 import {ChevronsExpandUpRight, Check, ArrowUturnCcwDown} from '@gravity-ui/icons';
 import {getDisplayedDiffPercentValue} from '@/static/new-ui/components/DiffViewer/utils';
+import {AnalyticsContext} from '@/static/new-ui/providers/analytics';
 
 class State extends Component {
+    static contextType = AnalyticsContext;
+
     static propTypes = {
         result: PropTypes.shape({
             status: PropTypes.string.isRequired,
@@ -49,6 +52,12 @@ class State extends Component {
         actions: PropTypes.object.isRequired
     };
 
+    constructor(props) {
+        super(props);
+
+        this.analytics = this.context;
+    }
+
     toggleModal = () => {
         const {actions, image} = this.props;
 
@@ -71,10 +80,12 @@ class State extends Component {
     };
 
     onTestAccept = () => {
+        this.analytics?.trackScreenshotsAccept();
+
         if (this.props.isStaticImageAccepterEnabled) {
             this.props.actions.staticAccepterStageScreenshot([this.props.imageId]);
         } else {
-            this.props.actions.acceptTest(this.props.imageId);
+            this.props.actions.thunkAcceptImages({imageIds: [this.props.imageId]});
         }
     };
 
@@ -82,7 +93,7 @@ class State extends Component {
         if (this.props.isStaticImageAccepterEnabled) {
             this.props.actions.staticAccepterUnstageScreenshot([this.props.imageId]);
         } else {
-            this.props.actions.undoAcceptImage(this.props.imageId);
+            this.props.actions.thunkRevertImages({imageIds: [this.props.imageId]});
         }
     };
 

@@ -34,7 +34,7 @@ describe('<FindSameDiffsButton />', () => {
     };
 
     beforeEach(() => {
-        actionsStub = {findSameDiffs: sandbox.stub().returns({type: 'some-type'})};
+        actionsStub = {thunkFindSameDiffs: sandbox.stub().returns({type: 'some-type'})};
         selectors = {getFailedOpenedImageIds: sandbox.stub().returns([])};
 
         FindSameDiffsButton = proxyquire('lib/static/components/controls/find-same-diffs-button', {
@@ -80,6 +80,6 @@ describe('<FindSameDiffsButton />', () => {
         );
         await user.click(component.getByTestId('find-same-diffs'));
 
-        assert.calledOnceWith(actionsStub.findSameDiffs, 'img-1', failedOpenedImageIds, 'yabro');
+        assert.calledOnceWith(actionsStub.thunkFindSameDiffs, 'img-1', failedOpenedImageIds, 'yabro');
     });
 });

@@ -1,4 +1,4 @@
-import YandexMetrika from 'lib/static/modules/yandex-metrika';
+import {YandexMetrika} from 'lib/static/modules/yandex-metrika';
 
 describe('YandexMetrika', () => {
     const sandbox = sinon.createSandbox();
@@ -14,27 +14,25 @@ describe('YandexMetrika', () => {
         sandbox.restore();
     });
 
-    ['acceptScreenshot', 'acceptOpenedScreenshots', 'sendVisitParams'].forEach((methodName) => {
+    ['setVisitParams', 'trackScreenshotsAccept', 'trackOpenedScreenshotsAccept', 'trackFeatureUsage'].forEach((methodName) => {
         describe(`"${methodName}" method`, () => {
-            describe('should not send anything to yandex metrika if', () => {
-                it('"counterNumber" is not a number', () => {
-                    const yMetrika = YandexMetrika.create({counterNumber: null});
+            it('should not send anything to yandex metrika if disabled', () => {
+                const yMetrika = new YandexMetrika(false, 0);
 
-                    yMetrika[methodName]();
+                yMetrika[methodName]();
 
-                    assert.notCalled(global.window.ym);
-                });
+                assert.notCalled(global.window.ym);
             });
         });
     });
 
     [
-        {methodName: 'acceptScreenshot', target: 'ACCEPT_SCREENSHOT'},
-        {methodName: 'acceptOpenedScreenshots', target: 'ACCEPT_OPENED_SCREENSHOTS'}
+        {methodName: 'trackScreenshotsAccept', target: 'ACCEPT_SCREENSHOT'},
+        {methodName: 'trackOpenedScreenshotsAccept', target: 'ACCEPT_OPENED_SCREENSHOTS'}
     ].forEach(({methodName, target}) => {
         describe(`"${methodName}" method`, () => {
             it('should register "${method}" goal', () => {
-                const yMetrika = YandexMetrika.create({counterNumber: 100500});
+                const yMetrika = new YandexMetrika(true, 100500);
 
                 yMetrika[methodName]({acceptedImagesCount: 1});
 
@@ -43,11 +41,11 @@ describe('YandexMetrika', () => {
         });
     });
 
-    describe('"sendVisitParams" method', () => {
+    describe('"setVisitParams" method', () => {
         it(`should send all passed parameters`, () => {
-            const yMetrika = YandexMetrika.create({counterNumber: 100500});
+            const yMetrika = new YandexMetrika(true, 100500);
 
-            yMetrika.sendVisitParams({foo: 10, bar: 20});
+            yMetrika.setVisitParams({foo: 10, bar: 20});
 
             assert.calledOnceWith(global.window.ym, 100500, 'params', {foo: 10, bar: 20});
         });

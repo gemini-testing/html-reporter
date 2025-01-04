@@ -7,7 +7,7 @@ import styles from './index.module.css';
 import classNames from 'classnames';
 import {Button, Icon, Spin} from '@gravity-ui/uikit';
 import {RunTestsFeature} from '@/constants';
-import {retryTest} from '@/static/modules/actions';
+import {thunkRunTest} from '@/static/modules/actions';
 import {getCurrentBrowser, getCurrentResultId} from '@/static/new-ui/features/suites/selectors';
 
 interface AttemptPickerProps {
@@ -39,7 +39,7 @@ function AttemptPickerInternal(props: AttemptPickerInternalProps): ReactNode {
 
     const onRetryTestHandler = (): void => {
         if (currentBrowser) {
-            dispatch(retryTest({testName: currentBrowser.parentId, browserName: currentBrowser.name}));
+            dispatch(thunkRunTest({test: {testName: currentBrowser.parentId, browserName: currentBrowser.name}}));
         }
     };
 

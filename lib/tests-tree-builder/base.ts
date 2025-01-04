@@ -44,9 +44,9 @@ export type TreeImage = {
 
 export interface Tree {
     suites: {
-        byId: Record<string, TreeSuite>,
-        allIds: string[],
-        allRootIds: string[]
+        byId: Record<string, TreeSuite>;
+        allIds: string[];
+        allRootIds: string[];
     },
     browsers: {
         byId: Record<string, TreeBrowser>,

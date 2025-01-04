@@ -12,12 +12,12 @@ import {
 import * as plugins from '@/static/modules/plugins';
 import actionNames from '@/static/modules/action-names';
 import {FinalStats, SkipItem, StaticTestsTreeBuilder} from '@/tests-tree-builder/static';
-import {createNotificationError} from '@/static/modules/actions/index';
 import {Action, AppThunk} from '@/static/modules/actions/types';
 import {DataForStaticFile} from '@/server-utils';
 import {GetInitResponse} from '@/gui/server';
 import {Tree} from '@/tests-tree-builder/base';
 import {BrowserItem} from '@/types';
+import {createNotificationError} from '@/static/modules/actions/notifications';
 
 export type InitGuiReportAction = Action<typeof actionNames.INIT_GUI_REPORT, GetInitResponse & {db: Database; isNewUi?: boolean}>;
 const initGuiReport = (payload: InitGuiReportAction['payload']): InitGuiReportAction =>
@@ -51,11 +51,11 @@ export const thunkInitGuiReport = ({isNewUi}: InitGuiReportData = {}): AppThunk 
             if (appState.data.customGuiError) {
                 const {customGuiError} = appState.data;
 
-                dispatch(createNotificationError('initGuiReport', {...customGuiError}));
+                dispatch(createNotificationError('initGuiReport', {name: 'CustomGuiError', message: customGuiError?.response.data}));
                 delete appState.data.customGuiError;
             }
-        } catch (e) {
-            dispatch(createNotificationError('initGuiReport', e));
+        } catch (e: unknown) {
+            dispatch(createNotificationError('initGuiReport', e as Error));
         }
     };
 };
@@ -105,8 +105,8 @@ export const thunkInitStaticReport = ({isNewUi}: InitStaticReportData = {}): App
             db = await mergeDatabases(dataForDbs);
 
             performance?.mark?.(performanceMarks.DBS_MERGED);
-        } catch (e) {
-            dispatch(createNotificationError('thunkInitStaticReport', e));
+        } catch (e: unknown) {
+            dispatch(createNotificationError('thunkInitStaticReport', e as Error));
         }
 
         await plugins.loadAll(dataFromStaticFile.config);

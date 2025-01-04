@@ -35,8 +35,8 @@ describe('<State/>', () => {
 
         actionsStub = {
             toggleStateResult: sandbox.stub().returns({type: 'some-type'}),
-            acceptTest: sandbox.stub().returns({type: 'some-type'}),
-            undoAcceptImage: sandbox.stub().returns({type: 'some-type'}),
+            thunkAcceptImages: sandbox.stub().returns({type: 'some-type'}),
+            thunkRevertImages: sandbox.stub().returns({type: 'some-type'}),
             openModal: sandbox.stub().returns({type: 'some-type'})
         };
 
@@ -121,7 +121,7 @@ describe('<State/>', () => {
             assert.isFalse(stateComponent.queryByTestId('test-accept').disabled);
         });
 
-        it('should call "acceptTest" action on button click', async () => {
+        it('should call "thunkAcceptImages" action on button click', async () => {
             const user = userEvent.setup();
             const image = {stateName: 'some-name', status: FAIL};
             const initialState = {
@@ -137,7 +137,7 @@ describe('<State/>', () => {
             const stateComponent = mkStateComponent({imageId: 'img-id'}, initialState);
             await user.click(stateComponent.queryByTestId('test-accept'));
 
-            assert.calledOnceWith(actionsStub.acceptTest, 'img-id');
+            assert.calledOnceWith(actionsStub.thunkAcceptImages, {imageIds: ['img-id']});
         });
     });
 
@@ -190,7 +190,7 @@ describe('<State/>', () => {
 
             await user.click(stateComponent.queryByTestId('test-undo'));
 
-            assert.calledOnceWith(actionsStub.undoAcceptImage, 'img-id');
+            assert.calledOnceWith(actionsStub.thunkRevertImages, {imageIds: ['img-id']});
         });
     });
 
