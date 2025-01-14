@@ -28,7 +28,7 @@ const assertType = <T>(name: string, validationFn: (value: unknown) => value is 
 };
 const assertString = (name: string): AssertionFn<string> => assertType(name, _.isString, 'string');
 const assertBoolean = (name: string): AssertionFn<boolean> => assertType(name, _.isBoolean, 'boolean');
-const assertNumber = (name: string): AssertionFn<number> => assertType(name, _.isNumber, 'number');
+export const assertNumber = (name: string): AssertionFn<number> => assertType(name, _.isNumber, 'number');
 const assertPlainObject = (name: string): AssertionFn<Record<string, unknown>> => assertType(name, isPlainObject, 'plain object');
 
 const assertSaveFormat = (saveFormat: unknown): asserts saveFormat is SaveFormat => {
@@ -206,11 +206,27 @@ const getParser = (): ReturnType<typeof root<ReporterConfig>> => {
             validate: assertArrayOf('functions', 'customScripts', _.isFunction)
         }),
         yandexMetrika: section({
+            enabled: option({
+                defaultValue: () => {
+                    return !(process.env.NO_ANALYTICS && JSON.parse(process.env.NO_ANALYTICS));
+                },
+                parseEnv: JSON.parse,
+                parseCli: JSON.parse,
+                validate: assertBoolean('yandexMetrika.enabled'),
+                map: (value: boolean) => {
+                    if (process.env.NO_ANALYTICS && JSON.parse(process.env.NO_ANALYTICS)) {
+                        return false;
+                    }
+
+                    return value;
+                }
+            }),
             counterNumber: option({
+                isDeprecated: true,
                 defaultValue: configDefaults.yandexMetrika.counterNumber,
                 parseEnv: Number,
                 parseCli: Number,
-                validate: (value) => _.isNull(value) || assertNumber('yandexMetrika.counterNumber')(value)
+                map: () => configDefaults.yandexMetrika.counterNumber
             })
         }),
         pluginsEnabled: option({

@@ -7,8 +7,10 @@ import {isEmpty} from 'lodash';
 import {version} from '../../../../package.json';
 import useLocalStorage from '@/static/hooks/useLocalStorage';
 import {LocalStorageKey, UiMode} from '@/constants/local-storage';
+import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
 
 function ReportInfo(props) {
+    const analytics = useAnalytics();
     const {gui, timestamp} = props;
     const lang = isEmpty(navigator.languages) ? navigator.language : navigator.languages[0];
     const date = new Date(timestamp).toLocaleString(lang);
@@ -16,6 +18,7 @@ function ReportInfo(props) {
     const [, setUiMode] = useLocalStorage(LocalStorageKey.UIMode, UiMode.New);
 
     const onNewUiButtonClick = () => {
+        analytics?.trackFeatureUsage({featureName: 'Switch to new UI'});
         setUiMode(UiMode.New);
 
         const targetUrl = new URL(window.location.href);

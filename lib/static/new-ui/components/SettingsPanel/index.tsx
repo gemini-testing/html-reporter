@@ -10,9 +10,11 @@ import useLocalStorage from '@/static/hooks/useLocalStorage';
 import styles from './index.module.css';
 import {AsidePanel} from '@/static/new-ui/components/AsidePanel';
 import {PanelSection} from '@/static/new-ui/components/PanelSection';
+import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
 
 export function SettingsPanel(): ReactNode {
     const dispatch = useDispatch();
+    const analytics = useAnalytics();
 
     const baseHost = useSelector(state => state.view.baseHost);
     const [, setUiMode] = useLocalStorage(LocalStorageKey.UIMode, UiMode.New);
@@ -22,6 +24,7 @@ export function SettingsPanel(): ReactNode {
     };
 
     const onOldUiButtonClick = (): void => {
+        analytics?.trackFeatureUsage({featureName: 'Switch to old UI'});
         setUiMode(UiMode.Old);
 
         window.location.pathname = window.location.pathname.replace(/\/new-ui(\.html)?$/, (_match, ending) => ending ? '/index.html' : '/');
