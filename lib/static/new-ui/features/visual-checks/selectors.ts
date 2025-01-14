@@ -111,6 +111,25 @@ export const getCurrentImage = (state: State): ImageEntity | null => {
     return getImages(state)[currentImageId];
 };
 
+export const getImagesByNamedImageIds = (state: State, names: string[]): ImageEntity[] => {
+    const results: ImageEntity[] = [];
+
+    const images = getImages(state);
+    const namedImages = getNamedImages(state);
+
+    for (const name of names) {
+        const namedImage = namedImages[name];
+
+        if (!namedImage) {
+            continue;
+        }
+
+        results.push(...namedImage.imageIds.map(id => images[id]));
+    }
+
+    return results;
+};
+
 export const getVisibleNamedImageIds = createSelector([getNamedImages], (namedImages): string[] => {
     return Object.values(namedImages).map(namedImage => namedImage.id);
 });
