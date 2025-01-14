@@ -64,13 +64,16 @@ describe('Analytics', () => {
 
         await browser.$('[data-qa="footer-item-info"]').click();
 
-        const [metrikaCall] = await browser.execute(() => {
+        const metrikaCalls = await browser.execute(() => {
             return window.ym.calls;
         });
 
-        expect(metrikaCall[1]).toEqual('reachGoal');
-        expect(metrikaCall[2]).toEqual('FEATURE_USAGE');
-        expect(metrikaCall[3]).toEqual({featureName: 'Open info panel'});
+        expect(metrikaCalls).toContainEqual([
+            99267510,
+            'reachGoal',
+            'FEATURE_USAGE',
+            {featureName: 'Open info panel'}
+        ]);
     });
 
     it('should not fail when opening info panel with analytics not available', async ({browser}) => {

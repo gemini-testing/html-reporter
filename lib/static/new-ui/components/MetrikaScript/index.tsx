@@ -20,9 +20,10 @@ export function MetrikaScript(): ReactNode {
    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
 
    ym(99267510, "init", {
-        clickmap:true,
-        trackLinks:true,
-        accurateTrackBounce:true
+        webvisor:false
+        clickmap:false,
+        trackLinks:false,
+        accurateTrackBounce:false
    });`;
         ref.current?.appendChild(s);
     }, [areAnalyticsEnabled]);
