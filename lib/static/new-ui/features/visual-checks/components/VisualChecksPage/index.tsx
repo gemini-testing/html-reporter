@@ -36,7 +36,7 @@ export const PRELOAD_IMAGES_COUNT = 3;
 const usePreloadImages = (
     currentNamedImageIndex: number,
     visibleNamedImageIds: string[]): void => {
-    const preloaded = useRef<Record<string, boolean | undefined>>({});
+    const preloaded = useRef<Record<string, () => void | undefined>>({});
 
     const namedImageIdsToPreload: string[] = visibleNamedImageIds.slice(
         Math.max(0, currentNamedImageIndex - 1 - PRELOAD_IMAGES_COUNT),
@@ -51,10 +51,13 @@ const usePreloadImages = (
                 return;
             }
 
-            preloadImageEntity(image);
-            preloaded.current[image.id] = true;
+            preloaded.current[image.id] = preloadImageEntity(image);
         });
     }, [currentNamedImageIndex]);
+
+    useEffect(() => () => {
+        Object.values(preloaded.current).forEach(preload => preload?.());
+    }, []);
 };
 
 export function VisualChecksPage(): ReactNode {

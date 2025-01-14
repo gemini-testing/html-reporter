@@ -1,5 +1,17 @@
-import {preloadImage} from '.';
 import {ImageEntity, ImageEntityCommitted, ImageEntityError, ImageEntityFail, ImageEntityStaged, ImageEntitySuccess, ImageEntityUpdated} from '../../new-ui/types/store';
+
+function preloadImage(url: string): HTMLElement {
+    const link = document.createElement('link');
+
+    link.rel = 'preload';
+    link.as = 'image';
+    link.href = url;
+    link.onload;
+
+    document.head.appendChild(link);
+
+    return link;
+}
 
 function hasExpectedImage(image: ImageEntity): image is ImageEntityFail | ImageEntitySuccess | ImageEntityUpdated {
     return Object.hasOwn(image, 'expectedImg');
@@ -13,16 +25,22 @@ function hasDiffImage(image: ImageEntity): image is ImageEntityFail {
     return Object.hasOwn(image, 'diffImg');
 }
 
-export function preloadImageEntity(image: ImageEntity): void {
+export function preloadImageEntity(image: ImageEntity): () => void {
+    const elements: HTMLElement[] = [];
+
     if (hasExpectedImage(image)) {
-        preloadImage(image.expectedImg.path);
+        elements.push(preloadImage(image.expectedImg.path));
     }
 
     if (hasActualImage(image)) {
-        preloadImage(image.actualImg.path);
+        elements.push(preloadImage(image.actualImg.path));
     }
 
     if (hasDiffImage(image)) {
-        preloadImage(image.diffImg.path);
+        elements.push(preloadImage(image.diffImg.path));
     }
+
+    return (): void => {
+        elements.forEach(element => element.remove());
+    };
 }
