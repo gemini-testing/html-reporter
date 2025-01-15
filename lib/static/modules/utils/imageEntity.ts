@@ -25,6 +25,10 @@ function hasDiffImage(image: ImageEntity): image is ImageEntityFail {
     return Object.hasOwn(image, 'diffImg');
 }
 
+function hasRefImage(image: ImageEntity): image is ImageEntityFail {
+    return Object.hasOwn(image, 'refImg');
+}
+
 export function preloadImageEntity(image: ImageEntity): () => void {
     const elements: HTMLElement[] = [];
 
@@ -38,6 +42,10 @@ export function preloadImageEntity(image: ImageEntity): () => void {
 
     if (hasDiffImage(image)) {
         elements.push(preloadImage(image.diffImg.path));
+    }
+
+    if (hasRefImage(image)) {
+        elements.push(preloadImage(image.refImg.path));
     }
 
     return (): void => {
