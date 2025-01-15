@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.13.1"></a>
+## [10.13.1](https://github.com/gemini-testing/html-reporter/compare/v10.13.0...v10.13.1) (2025-01-15)
+
+
+### Features
+
+* new ui usage information tracking ([#627](https://github.com/gemini-testing/html-reporter/issues/627)) ([c774f69](https://github.com/gemini-testing/html-reporter/commit/c774f69))
+
+
+
 <a name="10.13.0"></a>
 # [10.13.0](https://github.com/gemini-testing/html-reporter/compare/v10.12.1...v10.13.0) (2024-12-24)
 
