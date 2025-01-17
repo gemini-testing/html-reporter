@@ -1,6 +1,6 @@
 import React, {ReactNode, Component, ErrorInfo} from 'react';
 import {ErrorInfo as ErrorInfoFc} from '../../../../components/ErrorInfo';
-import styles from './ErrorHandling.module.css';
+import styles from './index.module.css';
 import classNames from 'classnames';
 import {Button, Divider, Icon, Link, Text} from '@gravity-ui/uikit';
 import {TriangleExclamation, ArrowsRotateLeft} from '@gravity-ui/icons';

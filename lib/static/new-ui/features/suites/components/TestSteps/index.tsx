@@ -23,7 +23,7 @@ import {getIndentStyle} from '@/static/new-ui/features/suites/components/TestSte
 import {isErrorStatus, isFailStatus} from '@/common-utils';
 import {ScreenshotsTreeViewItem} from '@/static/new-ui/features/suites/components/ScreenshotsTreeViewItem';
 import {UseListResult} from '@gravity-ui/uikit/build/esm/components/useList';
-import {ErrorHandler} from '../../../error-handling/components/ErrorHandling/ErrorHandling';
+import {ErrorHandler} from '../../../error-handling/components/ErrorHandling';
 
 type TestStepClickHandler = (item: {id: string}) => void
 

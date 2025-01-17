@@ -29,7 +29,7 @@ import {TreeActionsToolbar} from '@/static/new-ui/features/suites/components/Tre
 import {findTreeNodeById, getGroupId} from '@/static/new-ui/features/suites/utils';
 import {TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
 import {NEW_ISSUE_LINK} from '@/constants';
-import {ErrorHandler} from '../../../error-handling/components/ErrorHandling/ErrorHandling';
+import {ErrorHandler} from '../../../error-handling/components/ErrorHandling';
 
 interface SuitesPageProps {
     actions: typeof actions;

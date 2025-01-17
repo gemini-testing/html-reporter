@@ -17,7 +17,7 @@ import {CustomScripts} from '@/static/new-ui/components/CustomScripts';
 import {State} from '@/static/new-ui/types/store';
 import {AnalyticsProvider} from '@/static/new-ui/providers/analytics';
 import {MetrikaScript} from '@/static/new-ui/components/MetrikaScript';
-import {ErrorHandler} from '../features/error-handling/components/ErrorHandling/ErrorHandling';
+import {ErrorHandler} from '../features/error-handling/components/ErrorHandling';
 
 export function App(): ReactNode {
     const pages = [

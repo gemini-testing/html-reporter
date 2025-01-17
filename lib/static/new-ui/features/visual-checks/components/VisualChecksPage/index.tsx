@@ -14,7 +14,7 @@ import {
     AssertViewResultSkeleton
 } from '@/static/new-ui/features/visual-checks/components/VisualChecksPage/AssertViewResultSkeleton';
 import {VisualChecksStickyHeader} from './VisualChecksStickyHeader';
-import {ErrorHandler} from '../../../error-handling/components/ErrorHandling/ErrorHandling';
+import {ErrorHandler} from '../../../error-handling/components/ErrorHandling';
 
 export function VisualChecksPage(): ReactNode {
     const currentNamedImage = useSelector(getCurrentNamedImage);
