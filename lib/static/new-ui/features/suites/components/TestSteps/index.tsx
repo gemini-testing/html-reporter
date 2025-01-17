@@ -3,7 +3,7 @@ import {
     unstable_ListTreeItemType as ListTreeItemType,
     unstable_useList as useList
 } from '@gravity-ui/uikit/unstable';
-import {Paperclip} from '@gravity-ui/icons';
+import {CircleExclamation, Paperclip} from '@gravity-ui/icons';
 import React, {ReactNode, useCallback} from 'react';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
@@ -23,16 +23,35 @@ import {getIndentStyle} from '@/static/new-ui/features/suites/components/TestSte
 import {isErrorStatus, isFailStatus} from '@/common-utils';
 import {ScreenshotsTreeViewItem} from '@/static/new-ui/features/suites/components/ScreenshotsTreeViewItem';
 import {UseListResult} from '@gravity-ui/uikit/build/esm/components/useList';
+import {ErrorHandler} from '../../../error-handling/components/ErrorHandling/ErrorHandling';
 
 type TestStepClickHandler = (item: {id: string}) => void
 
 interface TestStepProps {
-    onItemClick: TestStepClickHandler;
     items: UseListResult<Step>;
     itemId: string;
 }
 
-function TestStep({onItemClick, items, itemId}: TestStepProps): ReactNode {
+interface TestStepPropsActionable extends TestStepProps {
+    onItemClick: TestStepClickHandler;
+
+}
+
+function ListItemCorrupted({items, itemId}: TestStepProps): ReactNode {
+    return <TreeViewItem id={itemId} list={items} status="corrupted"
+        mapItemDataToContentProps={(): ListItemViewContentType => ({
+            title: <div className={styles.stepContent}>
+                <span className={styles.stepTitle}>Couldn’t display this item: data is corrupted. See console for details.</span>
+            </div>,
+            startSlot: <TreeViewItemIcon>
+                <CircleExclamation />
+            </TreeViewItemIcon>
+        })
+        }
+    />;
+}
+
+function TestStep({onItemClick, items, itemId}: TestStepPropsActionable): ReactNode {
     const item = items.structure.itemsById[itemId];
 
     if (item.type === StepType.Action) {
@@ -112,7 +131,9 @@ function TestStepsInternal(props: TestStepsProps): ReactNode {
     return <ListContainerView>
         {items.structure.visibleFlattenIds.map(itemId =>
             (
-                <TestStep key={itemId} onItemClick={onItemClick} items={items} itemId={itemId} />
+                <ErrorHandler.Root key={itemId} fallback={<ListItemCorrupted items={items} itemId={itemId}/>}>
+                    <TestStep key={itemId} onItemClick={onItemClick} items={items} itemId={itemId} />
+                </ErrorHandler.Root>
             )
         )}
     </ListContainerView>;

@@ -14,6 +14,7 @@ import {
     AssertViewResultSkeleton
 } from '@/static/new-ui/features/visual-checks/components/VisualChecksPage/AssertViewResultSkeleton';
 import {VisualChecksStickyHeader} from './VisualChecksStickyHeader';
+import {ErrorHandler} from '../../../error-handling/components/ErrorHandling/ErrorHandling';
 
 export function VisualChecksPage(): ReactNode {
     const currentNamedImage = useSelector(getCurrentNamedImage);
@@ -24,13 +25,15 @@ export function VisualChecksPage(): ReactNode {
     return <div className={styles.container}>
         <SplitViewLayout sections={[
             <UiCard key="test-view" className={classNames(styles.card, styles.testViewCard)}>
-                {isInitialized
-                    ? <>
-                        {currentNamedImage && <VisualChecksStickyHeader currentNamedImage={currentNamedImage}/>}
-                        {currentImage && <AssertViewResult result={currentImage}/>}
-                        {!currentImage && <div className={styles.hint}>This run doesn&apos;t have an image with name &quot;{currentNamedImage?.stateName}&quot;</div>}
-                    </>
-                    : <AssertViewResultSkeleton />}
+                <ErrorHandler.Root fallback={<ErrorHandler.AppCrash />}>
+                    {isInitialized
+                        ? <>
+                            {currentNamedImage && <VisualChecksStickyHeader currentNamedImage={currentNamedImage}/>}
+                            {currentImage && <AssertViewResult result={currentImage}/>}
+                            {!currentImage && <div className={styles.hint}>This run doesn&apos;t have an image with name &quot;{currentNamedImage?.stateName}&quot;</div>}
+                        </>
+                        : <AssertViewResultSkeleton />}
+                </ErrorHandler.Root>
             </UiCard>
         ]}/>
     </div>;

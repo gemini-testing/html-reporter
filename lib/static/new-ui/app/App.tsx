@@ -17,6 +17,7 @@ import {CustomScripts} from '@/static/new-ui/components/CustomScripts';
 import {State} from '@/static/new-ui/types/store';
 import {AnalyticsProvider} from '@/static/new-ui/providers/analytics';
 import {MetrikaScript} from '@/static/new-ui/components/MetrikaScript';
+import {ErrorHandler} from '../features/error-handling/components/ErrorHandling/ErrorHandling';
 
 export function App(): ReactNode {
     const pages = [
@@ -40,15 +41,17 @@ export function App(): ReactNode {
                     <MetrikaScript/>
                     <AnalyticsProvider>
                         <HashRouter>
-                            <MainLayout menuItems={pages}>
-                                <LoadingBar/>
-                                <Routes>
-                                    <Route element={<Navigate to={'/suites'}/>} path={'/'}/>
-                                    {pages.map(page => <Route element={page.element} path={page.url} key={page.url}>{page.children}</Route>)}
-                                </Routes>
-                                <GuiniToolbarOverlay/>
-                                <ToasterComponent />
-                            </MainLayout>
+                            <ErrorHandler.Root fallback={<ErrorHandler.AppCrash />}>
+                                <MainLayout menuItems={pages}>
+                                    <LoadingBar/>
+                                    <Routes>
+                                        <Route element={<Navigate to={'/suites'}/>} path={'/'}/>
+                                        {pages.map(page => <Route element={page.element} path={page.url} key={page.url}>{page.children}</Route>)}
+                                    </Routes>
+                                    <GuiniToolbarOverlay/>
+                                    <ToasterComponent />
+                                </MainLayout>
+                            </ErrorHandler.Root>
                         </HashRouter>
                     </AnalyticsProvider>
                 </Provider>
