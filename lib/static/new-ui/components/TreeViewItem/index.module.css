@@ -23,3 +23,9 @@
     background: var(--g-color-private-red-100);
     color: var(--g-color-private-red-600-solid);
 }
+
+.tree-view-item--corrupted {
+    --g-color-base-simple-hover: var(--g-color-private-orange-50);
+    background: var(--g-color-private-orange-100);
+    color: var(--g-color-private-orange-600-solid);
+}

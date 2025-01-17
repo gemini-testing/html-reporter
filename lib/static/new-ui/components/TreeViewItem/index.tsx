@@ -21,7 +21,7 @@ interface TreeListItemProps<T> {
     id: string;
     list: UseListResult<T>;
     mapItemDataToContentProps: (data: T) => ListItemViewContentType;
-    isFailed?: boolean;
+    status?: 'error' | 'corrupted';
     onItemClick?: (data: {id: string}) => unknown;
 }
 
@@ -34,7 +34,8 @@ export function TreeViewItem<T>(props: TreeListItemProps<T>): ReactNode {
     >
         <ListItemView
             className={classNames([styles.treeViewItem, {
-                [styles['tree-view-item--error']]: props.isFailed
+                [styles['tree-view-item--corrupted']]: props.status === 'corrupted',
+                [styles['tree-view-item--error']]: props.status === 'error'
             }])}
             activeOnHover={true}
             style={{'--indent': indent + Number(!hasChildren)} as React.CSSProperties}

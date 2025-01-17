@@ -38,7 +38,7 @@ function TestStep({onItemClick, items, itemId}: TestStepProps): ReactNode {
     if (item.type === StepType.Action) {
         const shouldHighlightFail = (isErrorStatus(item.status) || isFailStatus(item.status)) && !item.isGroup;
 
-        return <TreeViewItem id={itemId} key={itemId} list={items} isFailed={shouldHighlightFail} onItemClick={onItemClick}
+        return <TreeViewItem id={itemId} key={itemId} list={items} status={shouldHighlightFail ? 'error' : undefined} onItemClick={onItemClick}
             mapItemDataToContentProps={(): ListItemViewContentType => {
                 return {
                     title: <div className={styles.stepContent}>
