@@ -1,0 +1,46 @@
+.crash-absolute-wrapper {
+    position: absolute;
+    background: white;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.crash {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+    gap: 8px;
+    max-width: 400px;
+    width: 100%;
+    height: 100%;
+    margin: auto;
+    background: white;
+}
+
+.pick-action-separator {
+    flex-direction: row;
+    display: flex;
+    width: 100%;
+    gap: 8px;
+    align-items: center;
+}
+
+.pick-action-separator-line {
+    flex: 1;
+}
+
+.error-info {
+    max-width: 100%;
+    color: white;
+    margin: 8px 0;
+}
+
+.action-row {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+}
