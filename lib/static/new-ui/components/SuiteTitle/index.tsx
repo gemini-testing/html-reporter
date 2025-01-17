@@ -7,9 +7,6 @@ import styles from './index.module.css';
 
 interface SuiteTitleProps {
     className?: string;
-}
-
-interface SuiteTitlePropsInternal extends SuiteTitleProps {
     suitePath: string[];
     browserName: string;
     stateName?: string;
@@ -19,7 +16,7 @@ interface SuiteTitlePropsInternal extends SuiteTitleProps {
     onNext: () => void;
 }
 
-export function SuiteTitle(props: SuiteTitlePropsInternal): ReactNode {
+export function SuiteTitle(props: SuiteTitleProps): ReactNode {
     const suiteName = props.suitePath[props.suitePath.length - 1];
     const suitePath = props.suitePath.slice(0, -1);
 
