@@ -103,7 +103,10 @@ function SuitesPageInternal({currentResult, actions, treeNodeId}: SuitesPageProp
                 <CollapsibleSection className={styles['collapsible-section-overview']} title={'Overview'} body={currentResult && <div className={styles['collapsible-section__body']}>
                     <MetaInfo resultId={currentResult.id} />
                 </div>} id={'overview'}/>
-                <TestSteps />
+
+                <CollapsibleSection id={'steps'} title={'Steps'} body={
+                    <TestSteps />
+                }/>
             </>}
             {!suiteIdParam && !currentResult && <div className={styles.hintContainer}><span className={styles.hint}>Select a test to see details</span></div>}
             {suiteIdParam && !isInitialized && <TestInfoSkeleton />}
