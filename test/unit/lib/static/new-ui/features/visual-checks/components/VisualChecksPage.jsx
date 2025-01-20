@@ -35,7 +35,6 @@ describe('<VisualChecksPage />', () => {
     };
 
     let store;
-    let component;
     let preloadImageEntityStub;
 
     beforeEach(() => {
@@ -47,7 +46,7 @@ describe('<VisualChecksPage />', () => {
             '../../../../../modules/utils/imageEntity': {preloadImageEntity: preloadImageEntityStub}
         }).VisualChecksPage;
 
-        component = renderWithStore(<VisualChecksPage />, store);
+        renderWithStore(<VisualChecksPage />, store);
     });
 
     afterEach(() => {
