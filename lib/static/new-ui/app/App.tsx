@@ -34,28 +34,30 @@ export function App(): ReactNode {
     const customScripts = (store.getState() as State).config.customScripts;
 
     return <StrictMode>
-        <CustomScripts scripts={customScripts} />
-        <ThemeProvider theme='light'>
-            <ToasterProvider>
-                <Provider store={store}>
-                    <MetrikaScript/>
-                    <AnalyticsProvider>
-                        <HashRouter>
-                            <ErrorHandler.Root fallback={<ErrorHandler.AppCrash />}>
-                                <MainLayout menuItems={pages}>
-                                    <LoadingBar/>
-                                    <Routes>
-                                        <Route element={<Navigate to={'/suites'}/>} path={'/'}/>
-                                        {pages.map(page => <Route element={page.element} path={page.url} key={page.url}>{page.children}</Route>)}
-                                    </Routes>
-                                    <GuiniToolbarOverlay/>
-                                    <ToasterComponent />
-                                </MainLayout>
-                            </ErrorHandler.Root>
-                        </HashRouter>
-                    </AnalyticsProvider>
-                </Provider>
-            </ToasterProvider>
-        </ThemeProvider>
+        <ErrorHandler.Root fallback={<ErrorHandler.AppCrash />}>
+            <CustomScripts scripts={customScripts} />
+            <ThemeProvider theme='light'>
+                <ToasterProvider>
+                    <Provider store={store}>
+                        <MetrikaScript/>
+                        <AnalyticsProvider>
+                            <HashRouter>
+                                <ErrorHandler.Root fallback={<ErrorHandler.AppCrash />}>
+                                    <MainLayout menuItems={pages}>
+                                        <LoadingBar/>
+                                        <Routes>
+                                            <Route element={<Navigate to={'/suites'}/>} path={'/'}/>
+                                            {pages.map(page => <Route element={page.element} path={page.url} key={page.url}>{page.children}</Route>)}
+                                        </Routes>
+                                        <GuiniToolbarOverlay/>
+                                        <ToasterComponent />
+                                    </MainLayout>
+                                </ErrorHandler.Root>
+                            </HashRouter>
+                        </AnalyticsProvider>
+                    </Provider>
+                </ToasterProvider>
+            </ThemeProvider>
+        </ErrorHandler.Root>
     </StrictMode>;
 }
