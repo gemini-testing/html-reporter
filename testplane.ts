@@ -27,6 +27,8 @@ export default (testplane: Testplane, opts: Partial<ReporterOptions>): void => {
 
     const config = parseConfig(opts);
 
+    Object.assign(opts, config);
+
     if (!config.enabled) {
         return;
     }
