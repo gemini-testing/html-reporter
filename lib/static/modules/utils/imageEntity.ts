@@ -1,6 +1,7 @@
 import {ImageEntity, ImageEntityCommitted, ImageEntityError, ImageEntityFail, ImageEntityStaged, ImageEntitySuccess, ImageEntityUpdated} from '../../new-ui/types/store';
 
-function preloadImage(url: string): HTMLElement {
+// TODO: remove export when old ui is removed
+export function preloadImage(url: string): HTMLElement {
     const link = document.createElement('link');
 
     link.rel = 'preload';
