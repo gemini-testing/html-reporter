@@ -56,7 +56,7 @@ const usePreloadImages = (
     }, [currentNamedImageIndex]);
 
     useEffect(() => () => {
-        Object.values(preloaded.current).forEach(preload => preload?.());
+        Object.values(preloaded.current).forEach(disposeCallback => disposeCallback?.());
     }, []);
 };
 
