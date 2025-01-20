@@ -9,7 +9,6 @@ sqlite.db
 /lib/static/*.svg
 /lib/static/data.js
 /lib/static/images
-/lib/static/icons
 /lib/static/gui.html
 /lib/static/index.html
 /lib/static/sql-wasm.js
