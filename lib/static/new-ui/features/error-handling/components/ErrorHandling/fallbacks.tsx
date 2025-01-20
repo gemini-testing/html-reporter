@@ -26,6 +26,11 @@ export function AppCrash(): ReactNode {
 
                 <FileIssue />
             </div>
+
+            <Text variant="body-1" color="secondary">
+                We would appreciate a detailed<br/>
+                report with reproduction steps.
+            </Text>
         </div>
     </div>;
 }
