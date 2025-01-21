@@ -23,7 +23,7 @@ export function FallbackAppCrash(): ReactNode {
 
             <div className={styles.divider} />
 
-            <ErrorInfoFc className={styles.errorInfo} name={state.error.name} stack={state.error.stack} />
+            <ErrorInfoFc clipStack={50} className={styles.errorInfo} name={state.error.name} stack={state.error.stack} />
 
             <div className={styles.divider} />
 
@@ -50,7 +50,7 @@ export function FallbackCardCrash(): ReactNode {
         <Text variant="subheader-3">Something went wrong</Text>
         <Text variant="body-1" color="secondary">The data is corrupted or there’s a bug on our side</Text>
 
-        <ErrorInfoFc className={styles.errorInfo} name={state.error.name} stack={state.error.stack} />
+        <ErrorInfoFc clipStack={50} className={styles.errorInfo} name={state.error.name} stack={state.error.stack} />
 
         <Text variant="body-1">Try choosing another item</Text>
 
@@ -70,6 +70,6 @@ export function FallbackDataCorruption(): ReactNode {
     return <div className={classNames(styles.crash, styles.dense)}>
         <Text variant="body-1" color="secondary">The data is corrupted or there’s a bug on our side. <Link href={NEW_ISSUE_LINK} target='_blank'>File an issue</Link></Text>
 
-        <ErrorInfoFc className={styles.errorInfo} name={state.error.name} stack={state.error.stack} />
+        <ErrorInfoFc clipStack={50} className={styles.errorInfo} name={state.error.name} stack={state.error.stack} />
     </div>;
 }
