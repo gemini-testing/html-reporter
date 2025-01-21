@@ -9,27 +9,28 @@ import {useErrorContext} from './context';
 import {FileIssue, ReloadPage} from './actions';
 import {NEW_ISSUE_LINK} from '@/constants';
 
-interface FallbackProps {
-    /** Component will be limited by width if true */
-    limited?: boolean;
-}
-
-export function FallbackAppCrash({limited}: FallbackProps): ReactNode {
+export function FallbackAppCrash(): ReactNode {
     const {state} = useErrorContext();
 
     return <div className={styles.crashAbsoluteWrapper}>
-        <div className={classNames(styles.crash, {[styles.limited]: limited})}>
+        <div className={classNames(styles.crash, styles.lined)}>
             <img src={TestplaneIcon} alt="icon" width={32} height={32}/>
+
+            <div className={styles.divider} />
 
             <Text variant="subheader-3">Something went wrong</Text>
             <Text variant="body-1" color="secondary">Testplane UI has crashed</Text>
 
+            <div className={styles.divider} />
+
             <ErrorInfoFc className={styles.errorInfo} name={state.error.name} stack={state.error.stack} />
 
-            <div className={classNames(styles.actionRow)}>
-                <ReloadPage />
+            <div className={styles.divider} />
 
-                <FileIssue />
+            <div className={classNames(styles.actionRow)}>
+                <ReloadPage width="max"/>
+
+                <FileIssue width="max"/>
             </div>
 
             <Text variant="body-1" color="secondary">
@@ -40,10 +41,10 @@ export function FallbackAppCrash({limited}: FallbackProps): ReactNode {
     </div>;
 }
 
-export function FallbackCardCrash({limited}: FallbackProps): ReactNode {
+export function FallbackCardCrash(): ReactNode {
     const {state} = useErrorContext();
 
-    return <div className={classNames(styles.crash, {[styles.limited]: limited})}>
+    return <div className={classNames(styles.crash)}>
         <Icon data={TriangleExclamation} size={52}/>
 
         <Text variant="subheader-3">Something went wrong</Text>
@@ -63,10 +64,10 @@ export function FallbackCardCrash({limited}: FallbackProps): ReactNode {
     </div>;
 }
 
-export function FallbackDataCorruption({limited}: FallbackProps): ReactNode {
+export function FallbackDataCorruption(): ReactNode {
     const {state} = useErrorContext();
 
-    return <div className={classNames(styles.crash, styles.dense, {[styles.limited]: limited})}>
+    return <div className={classNames(styles.crash, styles.dense)}>
         <Text variant="body-1" color="secondary">The data is corrupted or there’s a bug on our side. <Link href={NEW_ISSUE_LINK} target='_blank'>File an issue</Link></Text>
 
         <ErrorInfoFc className={styles.errorInfo} name={state.error.name} stack={state.error.stack} />

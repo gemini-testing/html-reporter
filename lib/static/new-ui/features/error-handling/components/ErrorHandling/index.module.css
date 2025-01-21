@@ -1,4 +1,5 @@
 .crash-absolute-wrapper {
+    overflow: hidden;
     position: absolute;
     background: white;
     top: 0;
@@ -20,8 +21,54 @@
     background: white;
 }
 
-.limited {
-    max-width: 400px;
+.lined {
+    padding: 16px;
+    max-width: 432px;
+    border: 1px solid rgba(0, 0, 0, 0.03);
+    border-top: none;
+    border-bottom: none;
+}
+
+.divider {
+    position: relative;
+    width: 100vw;
+    height: 1px;
+    background: rgba(0, 0, 0, 0.03);
+}
+
+.divider:after, .divider:before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    width: 17px;
+    height: 17px;
+    background:
+        linear-gradient(
+            to right,
+            transparent 0%,
+            transparent 8px,
+            rgba(0, 0, 0, 0.1) 8px, 
+            rgba(0, 0, 0, 0.1) 9px,
+            transparent 9px,
+            transparent 100%
+        ), 
+        linear-gradient(
+            to bottom,
+            transparent 0%,
+            transparent 8px,
+            rgba(0, 0, 0, 0.1) 8px, 
+            rgba(0, 0, 0, 0.1) 9px,
+            transparent 9px,
+            transparent 100%
+        );
+}
+
+.divider:before {
+    left: calc(50% - 216px - 8px);
+}
+
+.divider:after {
+    right: calc(50% - 216px - 8px);
 }
 
 .dense {
