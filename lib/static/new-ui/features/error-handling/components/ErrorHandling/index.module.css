@@ -24,6 +24,10 @@
     max-width: 400px;
 }
 
+.dense {
+    gap: 0;
+}
+
 .pick-action-separator {
     flex-direction: row;
     display: flex;
