@@ -47,10 +47,6 @@ const usePreloadImages = (
 
     useEffect(() => {
         imagesToPreload.forEach(image => {
-            if (preloaded.current[image.id]) {
-                return;
-            }
-
             preloaded.current[image.id] = preloadImageEntity(image);
         });
     }, [currentNamedImageIndex]);

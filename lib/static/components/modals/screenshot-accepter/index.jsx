@@ -232,13 +232,9 @@ class ScreenshotAccepter extends Component {
             const disposables = {};
 
             [expectedImg, actualImg, diffImg].filter(Boolean).forEach(({path}) => {
-                if (disposables[path]) {
-                    return;
-                }
+                const disposeCallback = preloadImage(path);
 
-                const element = preloadImage(path);
-
-                disposables[path] = () => element.remove();
+                disposables[path] = disposeCallback;
             });
 
             this.setState({
