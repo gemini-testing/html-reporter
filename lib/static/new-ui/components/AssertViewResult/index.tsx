@@ -8,7 +8,6 @@ import {Screenshot} from '@/static/new-ui/components/Screenshot';
 import {ImageLabel} from '@/static/new-ui/components/ImageLabel';
 import {getImageDisplayedSize} from '@/static/new-ui/utils';
 import styles from './index.module.css';
-import {ErrorHandler} from '../../features/error-handling/components/ErrorHandling';
 
 interface AssertViewResultProps {
     result: ImageEntity;
