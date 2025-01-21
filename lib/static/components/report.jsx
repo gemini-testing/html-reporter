@@ -14,6 +14,7 @@ import {CustomScripts} from '../new-ui/components/CustomScripts';
 import FaviconChanger from './favicon-changer';
 import ExtensionPoint from './extension-point';
 import BottomProgressBar from './bottom-progress-bar';
+import {MetrikaScript} from '@/static/new-ui/components/MetrikaScript';
 
 class Report extends Component {
     static propTypes = {
@@ -50,6 +51,7 @@ class Report extends Component {
             <Fragment>
                 <ExtensionPoint name={ROOT}>
                     <CustomScripts scripts={this.props.customScripts}/>
+                    <MetrikaScript />
                     {notificationElem}
                     <FaviconChanger />
                     <StickyHeader />

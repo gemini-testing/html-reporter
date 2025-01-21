@@ -1,3 +1,5 @@
+import {SortDirection} from '@/static/new-ui/types/store';
+
 enum YandexMetrikaMethod {
     ReachGoal = 'reachGoal',
     Params = 'params',
@@ -24,9 +26,28 @@ interface ScreenshotAcceptData {
     acceptedImagesCount: number;
 }
 
-interface FeatureUsageData {
+interface BasicFeatureUsageData {
     featureName: string;
 }
+
+interface GroupByFeatureUsageData extends BasicFeatureUsageData {
+    groupByKey: string;
+}
+
+interface SortByFeatureUsageData extends BasicFeatureUsageData {
+    sortByKey: string;
+    sortDirection: SortDirection;
+}
+
+interface ChangeTreeViewModeFeatureUsageData extends BasicFeatureUsageData {
+    treeViewMode: string;
+}
+
+type FeatureUsageData =
+    | BasicFeatureUsageData
+    | GroupByFeatureUsageData
+    | SortByFeatureUsageData
+    | ChangeTreeViewModeFeatureUsageData;
 
 export class YandexMetrika {
     protected readonly _isEnabled: boolean;

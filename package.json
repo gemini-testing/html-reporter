@@ -1,6 +1,6 @@
 {
   "name": "html-reporter",
-  "version": "10.13.0",
+  "version": "10.13.1",
   "description": "Html-reporter and GUI for viewing and managing results of a tests run. Currently supports Testplane and Hermione.",
   "files": [
     "build"
@@ -98,7 +98,7 @@
     "fast-glob": "^3.2.12",
     "filesize": "^8.0.6",
     "fs-extra": "^7.0.1",
-    "gemini-configparser": "^1.0.0",
+    "gemini-configparser": "^1.4.2",
     "http-codes": "1.0.0",
     "image-size": "^1.0.2",
     "inquirer": "^8.2.0",

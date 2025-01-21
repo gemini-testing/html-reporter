@@ -311,41 +311,27 @@ customScripts: [
 
 ### yandexMetrika
 
-This parameter allows you to add [Yandex.Metrika][yandex-metrika] to the report. The parameter is set as an object with the key `counterNumber`. As the key value, you must specify the Yandex.Metrica counter number (see "[How to create a counter][how-to-create-counter]"). The number should be set as a Number, not a String.
+By default, anonymous html-reporter interface usage information is collected for us to analyze usage patterns and improve UX. We collect such info as html-reporter loading speed, how often certain UI features are used (e.g. sorting tests) or clicks on UI elements. NO information about your project or tests is ever tracked.
 
-Also, in the Yandex.Metrika interface, go to the _"Counter"_ tab in the settings section, click _"Copy"_ and paste the counter code into the [customScripts](#customscripts) field.
+If you want to opt out, choose any of the options below:
 
-With the help of metrics, you can find out how developers interact with your report and what kind of problems they face.
-
-The report supports the following [goals of metrics][yandex-metrika-goals]:
-
-* **ACCEPT_SCREENSHOT**&mdash;there was a click on the _Accept_ button to accept a screenshot;
-* **ACCEPT_OPENED_SCREENSHOTS**&mdash;there was a click on the _Accept opened_ button to accept screenshots from open tests.
-
-Example of setting up Yandex.Metrika in one of the projects:
-
-```javascript
-module.exports = {
-    plugins: {
-        'html-reporter/hermione': {
-            customScripts: [
-                function(){(function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)}; m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)}) (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym"); ym(56782912, "init", { clickmap:true, trackLinks:true, accurateTrackBounce:true, webvisor:true })},
-
-                // other scripts...
-            ],
-            yandexMetrika: {
-                counterNumber: 1234567
+- Edit your config:
+    ```javascript
+    module.exports = {
+        plugins: {
+            'html-reporter/testplane': {
+                yandexMetrika: {
+                    enabled: false
+                },
+                // other html-reporter settings...
             },
-
-            // other plugin settings...
+            // other Testplane plugins...
         },
-
-        // other hermione plugins...
-    },
-
-    // other hermione settings...
-};
-```
+        // other Testplane settings...
+    };
+    ```
+- Using environment variables: `html_reporter_yandex_metrika_enabled=false` or simply `NO_ANALYTICS=true`
+- Using CLI arguments: `--html-reporter-yandex_metrika_enabled=false`
 
 ### Passing parameters via the CLI
 

@@ -8,10 +8,8 @@ declare global {
 
 export const getAreAnalyticsEnabled = (): boolean => {
     const metrikaConfig = (window.data || {}).config?.yandexMetrika;
-    const areAnalyticsEnabled = metrikaConfig?.enabled && metrikaConfig?.counterNumber;
-    const isYaMetrikaAvailable = window.ym && typeof window.ym === 'function';
 
-    return Boolean(areAnalyticsEnabled && isYaMetrikaAvailable);
+    return Boolean(metrikaConfig?.enabled && metrikaConfig?.counterNumber);
 };
 
 export const getCounterId = (): number => {

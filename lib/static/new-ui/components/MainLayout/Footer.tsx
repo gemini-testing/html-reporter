@@ -55,6 +55,7 @@ export function Footer(props: FooterProps): ReactNode {
             title: 'Info',
             onItemClick: props.onFooterItemClick,
             current: isInfoCurrent,
+            qa: 'footer-item-info',
             itemWrapper: (params, makeItem) => makeItem({
                 ...params,
                 icon: <Icon className={classNames({

@@ -17,6 +17,10 @@ module.exports = {
         plugins: {
             server: 8084,
             gui: 8074
+        },
+        analytics: {
+            server: 8085,
+            gui: 8075
         }
     }
 };

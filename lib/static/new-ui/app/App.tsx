@@ -16,6 +16,7 @@ import store from '../../modules/store';
 import {CustomScripts} from '@/static/new-ui/components/CustomScripts';
 import {State} from '@/static/new-ui/types/store';
 import {AnalyticsProvider} from '@/static/new-ui/providers/analytics';
+import {MetrikaScript} from '@/static/new-ui/components/MetrikaScript';
 
 export function App(): ReactNode {
     const pages = [
@@ -36,6 +37,7 @@ export function App(): ReactNode {
         <ThemeProvider theme='light'>
             <ToasterProvider>
                 <Provider store={store}>
+                    <MetrikaScript/>
                     <AnalyticsProvider>
                         <HashRouter>
                             <MainLayout menuItems={pages}>
