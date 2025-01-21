@@ -1,8 +1,8 @@
-import {TriangleExclamation} from '@gravity-ui/icons';
-import {Divider, Icon, Link, Text} from '@gravity-ui/uikit';
+import {Divider, Link, Text} from '@gravity-ui/uikit';
 import classNames from 'classnames';
 import React, {ReactNode} from 'react';
 import TestplaneIcon from '../../../../../icons/testplane-mono-black.svg';
+import ExclamationTriangleLarge from '../../../../../icons/exclamation-triangle-large.svg';
 import {ErrorInfo as ErrorInfoFc} from '../../../../components/ErrorInfo';
 import styles from './index.module.css';
 import {useErrorContext} from './context';
@@ -45,7 +45,7 @@ export function FallbackCardCrash(): ReactNode {
     const {state} = useErrorContext();
 
     return <div className={classNames(styles.crash)}>
-        <Icon data={TriangleExclamation} size={52}/>
+        <img src={ExclamationTriangleLarge} alt="icon" width={32} height={32} />
 
         <Text variant="subheader-3">Something went wrong</Text>
         <Text variant="body-1" color="secondary">The data is corrupted or there’s a bug on our side</Text>
