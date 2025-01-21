@@ -18,13 +18,13 @@ interface AssertViewResultProps {
 
 function AssertViewResultInternal({result, diffMode, style}: AssertViewResultProps): ReactNode {
     if (result.status === TestStatus.FAIL) {
-        return <ErrorHandler.Root watchFor={[result]} fallback={<ErrorHandler.CardCrash />}>
+        return <ErrorHandler.Root watchFor={[result]} fallback={<ErrorHandler.FallbackCardCrash />}>
             <DiffViewer diffMode={diffMode} {...result} />
         </ErrorHandler.Root>;
     }
 
     if (result.status === TestStatus.ERROR) {
-        return <ErrorHandler.Root watchFor={[result]} fallback={<ErrorHandler.CardCrash />}>
+        return <ErrorHandler.Root watchFor={[result]} fallback={<ErrorHandler.FallbackCardCrash />}>
             <div className={styles.screenshotContainer}>
                 <ImageLabel title={'Actual'} subtitle={getImageDisplayedSize(result.actualImg)} />
                 <Screenshot containerStyle={style} containerClassName={styles.screenshot} image={result.actualImg} />
@@ -33,7 +33,7 @@ function AssertViewResultInternal({result, diffMode, style}: AssertViewResultPro
     }
 
     if (result.status === TestStatus.SUCCESS || result.status === TestStatus.UPDATED) {
-        return <ErrorHandler.Root watchFor={[result]} fallback={<ErrorHandler.CardCrash />}>
+        return <ErrorHandler.Root watchFor={[result]} fallback={<ErrorHandler.FallbackCardCrash />}>
             <div className={styles.screenshotContainer}>
                 <ImageLabel title={'Expected'} subtitle={getImageDisplayedSize(result.expectedImg)} />
                 <Screenshot containerStyle={style} containerClassName={styles.screenshot} image={result.expectedImg} />
@@ -42,7 +42,7 @@ function AssertViewResultInternal({result, diffMode, style}: AssertViewResultPro
     }
 
     if (result.status === TestStatus.STAGED) {
-        return <ErrorHandler.Root watchFor={[result]} fallback={<ErrorHandler.CardCrash />}>
+        return <ErrorHandler.Root watchFor={[result]} fallback={<ErrorHandler.FallbackCardCrash />}>
             <div className={styles.screenshotContainer}>
                 <ImageLabel title={'Staged'} subtitle={getImageDisplayedSize(result.actualImg)} />
                 <Screenshot containerStyle={style} containerClassName={styles.screenshot} image={result.actualImg} />
@@ -51,7 +51,7 @@ function AssertViewResultInternal({result, diffMode, style}: AssertViewResultPro
     }
 
     if (result.status === TestStatus.COMMITED) {
-        return <ErrorHandler.Root watchFor={[result]} fallback={<ErrorHandler.CardCrash />}>
+        return <ErrorHandler.Root watchFor={[result]} fallback={<ErrorHandler.FallbackCardCrash />}>
             <div className={styles.screenshotContainer}>
                 <ImageLabel title={'Committed'} subtitle={getImageDisplayedSize(result.actualImg)} />
                 <Screenshot containerStyle={style} containerClassName={styles.screenshot} image={result.actualImg} />

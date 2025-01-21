@@ -25,7 +25,7 @@ export function VisualChecksPage(): ReactNode {
     return <div className={styles.container}>
         <SplitViewLayout sections={[
             <UiCard key="test-view" className={classNames(styles.card, styles.testViewCard)}>
-                <ErrorHandler.Root fallback={<ErrorHandler.AppCrash />}>
+                <ErrorHandler.Root fallback={<ErrorHandler.FallbackAppCrash />}>
                     {isInitialized
                         ? <>
                             {currentNamedImage && <VisualChecksStickyHeader currentNamedImage={currentNamedImage}/>}

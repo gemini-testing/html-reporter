@@ -1,9 +1,9 @@
 import {Boundary} from './Boundary';
-import {AppCrash, CardCrash, DataCorruption} from './fallbacks';
+import {FallbackAppCrash, FallbackCardCrash, FallbackDataCorruption} from './fallbacks';
 
 export const ErrorHandler = {
     Root: Boundary,
-    AppCrash,
-    CardCrash,
-    DataCorruption
+    FallbackAppCrash,
+    FallbackCardCrash,
+    FallbackDataCorruption
 };
