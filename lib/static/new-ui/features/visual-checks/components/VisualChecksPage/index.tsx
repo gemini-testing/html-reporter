@@ -29,7 +29,11 @@ export function VisualChecksPage(): ReactNode {
                     {isInitialized
                         ? <>
                             {currentNamedImage && <VisualChecksStickyHeader currentNamedImage={currentNamedImage}/>}
-                            {currentImage && <AssertViewResult result={currentImage}/>}
+
+                            {currentImage && <ErrorHandler.Root fallback={<ErrorHandler.FallbackCardCrash />}>
+                                <AssertViewResult result={currentImage} />
+                            </ErrorHandler.Root>}
+
                             {!currentImage && <div className={styles.hint}>This run doesn&apos;t have an image with name &quot;{currentNamedImage?.stateName}&quot;</div>}
                         </>
                         : <AssertViewResultSkeleton />}
