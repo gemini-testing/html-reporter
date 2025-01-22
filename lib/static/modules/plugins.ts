@@ -1,9 +1,19 @@
-import {loadPlugin, preloadPlugin} from './load-plugin';
+import {InstalledPlugin, loadPlugin, PluginConfig, preloadPlugin} from './load-plugin';
 
-const plugins = Object.create(null);
-const loadedPluginConfigs = [];
+interface PluginSetupInfo {
+    name: string
+    config: PluginConfig
+}
 
-export function preloadAll(config) {
+interface Config {
+    pluginsEnabled: boolean;
+    plugins: PluginSetupInfo[]
+}
+
+const plugins: Record<string, InstalledPlugin> = {};
+const loadedPluginConfigs: PluginSetupInfo[] = [];
+
+export function preloadAll(config: Config): void {
     if (!config || !config.pluginsEnabled || !Array.isArray(config.plugins)) {
         return;
     }
@@ -11,13 +21,13 @@ export function preloadAll(config) {
     config.plugins.forEach(plugin => preloadPlugin(plugin.name));
 }
 
-export async function loadAll(config) {
+export async function loadAll(config: Config): Promise<void> {
     // if plugins are disabled, act like there are no plugins defined
     if (!config || !config.pluginsEnabled || !Array.isArray(config.plugins)) {
         return;
     }
 
-    const pluginConfigs = await Promise.all(config.plugins.map(async pluginConfig => {
+    const pluginsSetupInfo = await Promise.all(config.plugins.map(async pluginConfig => {
         const plugin = await loadPlugin(pluginConfig.name, pluginConfig.config);
         if (plugin) {
             plugins[pluginConfig.name] = plugin;
@@ -25,10 +35,18 @@ export async function loadAll(config) {
         }
     }));
 
-    loadedPluginConfigs.push(...pluginConfigs.filter(Boolean));
+    pluginsSetupInfo.map((setupInfo) => {
+        if (!setupInfo) {
+            return;
+        }
+
+        loadedPluginConfigs.push(setupInfo);
+    });
 }
 
-export function forEach(callback) {
+type ForEachPluginCallback = (plugin: InstalledPlugin, name: string) => void;
+
+export function forEachPlugin(callback: ForEachPluginCallback): void {
     const visited = new Set();
     loadedPluginConfigs.forEach(({name}) => {
         if (!visited.has(name)) {
@@ -42,7 +60,7 @@ export function forEach(callback) {
     });
 }
 
-export function get(name, field) {
+export function getPluginField(name: string, field: string): unknown {
     const plugin = plugins[name];
     if (!plugin) {
         throw new Error(`Plugin "${name}" is not loaded.`);
@@ -53,6 +71,6 @@ export function get(name, field) {
     return plugins[name][field];
 }
 
-export function getLoadedConfigs() {
+export function getLoadedConfigs(): PluginSetupInfo[] {
     return loadedPluginConfigs;
 }

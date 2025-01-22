@@ -32,6 +32,32 @@ const whitelistedDeps = {
     }
 };
 
+type WhitelistedDeps = typeof whitelistedDeps;
+type WhitelistedDepName = keyof WhitelistedDeps;
+type WhitelistedDep = typeof whitelistedDeps[WhitelistedDepName];
+
+// Branded string
+type ScriptText = string & {__script_text__: never};
+
+type UnknownRecord = {[key: string]: unknown}
+export type InstalledPlugin = UnknownRecord
+export type PluginConfig = UnknownRecord
+
+interface PluginOptions {
+    pluginName: string;
+    pluginConfig: PluginConfig;
+    actions: typeof import('./actions');
+    actionNames: typeof actionNames;
+    selectors: typeof selectors;
+}
+
+type PluginFunction = (args: [...WhitelistedDep[], PluginOptions]) => InstalledPlugin
+
+type ModuleWithDefaultFunction = {default: PluginFunction};
+
+type CompiledPluginWithDeps = [...WhitelistedDepName[], PluginFunction];
+type CompiledPlugin = InstalledPlugin | ModuleWithDefaultFunction | PluginFunction | CompiledPluginWithDeps
+
 // It's expected that in the plugin code there is a
 // __testplane_html_reporter_register_plugin__ call,
 // with actual plugin passed.
@@ -49,16 +75,13 @@ const whitelistedDeps = {
 // - an array with the string list of required dependencies and a function as the last item.
 //   The function will be called with the dependencies as arguments plus `options` arg.
 
-const loadingPlugins = {};
-const pendingPlugins = {};
-
-const getPluginScriptPath = pluginName => `plugins/${encodeURIComponent(pluginName)}/plugin.js`;
-
-export function preloadPlugin(pluginName) {
+const loadingPlugins: Record<string, Promise<ScriptText> | undefined> = {};
+const pendingPlugins: Record<string, Promise<InstalledPlugin | undefined> | undefined> = {};
+export function preloadPlugin(pluginName: string): void {
     loadingPlugins[pluginName] = loadingPlugins[pluginName] || getScriptText(pluginName);
 }
 
-export async function loadPlugin(pluginName, pluginConfig) {
+export async function loadPlugin(pluginName: string, pluginConfig: PluginConfig): Promise<InstalledPlugin | undefined> {
     if (pendingPlugins[pluginName]) {
         return pendingPlugins[pluginName];
     }
@@ -66,55 +89,73 @@ export async function loadPlugin(pluginName, pluginConfig) {
     const scriptTextPromise = loadingPlugins[pluginName] || getScriptText(pluginName);
 
     return pendingPlugins[pluginName] = scriptTextPromise
-        .then(executePluginCode)
+        .then(compilePlugin)
         .then(plugin => initPlugin(plugin, pluginName, pluginConfig))
-        .then(null, err => {
+        .catch(err => {
             console.error(`Plugin "${pluginName}" failed to load.`, err);
-            return null;
+            return undefined;
         });
 }
 
-async function initPlugin(plugin, pluginName, pluginConfig) {
+const hasDefault = (plugin: CompiledPlugin): plugin is ModuleWithDefaultFunction =>
+    _.isObject(plugin) && !_.isArray(plugin) && !_.isFunction(plugin) && _.isFunction(plugin.default);
+
+const getDeps = (pluginWithDeps: CompiledPluginWithDeps): WhitelistedDepName[] => pluginWithDeps.slice(0, -1) as WhitelistedDepName[];
+const getPluginFn = (pluginWithDeps: CompiledPluginWithDeps): PluginFunction => _.last(pluginWithDeps) as PluginFunction;
+
+async function initPlugin(plugin: CompiledPlugin, pluginName: string, pluginConfig: PluginConfig): Promise<InstalledPlugin | undefined> {
     try {
         if (!_.isObject(plugin)) {
-            return null;
+            return undefined;
         }
 
-        plugin = plugin.default || plugin;
+        plugin = hasDefault(plugin) ? plugin.default : plugin;
 
         if (typeof plugin === 'function') {
             plugin = [plugin];
         }
 
         if (Array.isArray(plugin)) {
-            const deps = plugin.slice(0, -1);
-            plugin = _.last(plugin);
+            const deps = getDeps(plugin);
+
+            const pluginFn = getPluginFn(plugin);
+
             const depArgs = deps.map(dep => whitelistedDeps[dep]);
+
             // cyclic dep, resolve it dynamically
             const actions = await import('./actions');
-            return plugin(...depArgs, {pluginName, pluginConfig, actions, actionNames, selectors});
+
+            // @ts-expect-error Unfortunately, for historical reasons
+            // the order of arguments and their types are not amenable to normal typing, so we will have to ignore the error here.
+            return pluginFn(...depArgs, {pluginName, pluginConfig, actions, actionNames, selectors});
         }
 
         return plugin;
     } catch (err) {
         console.error(`Error on "${pluginName}" plugin initialization:`, err);
-        return null;
+        return undefined;
     }
 }
 
 // Actual plugin is passed to __testplane_html_reporter_register_plugin__ somewhere in the
 // plugin code
-function executePluginCode(code) {
-    const getRegisterFn = tool => `function __${tool}_html_reporter_register_plugin__(p) {return p;};`;
-
+function compilePlugin(code: ScriptText): CompiledPlugin {
     const exec = new Function(`${getRegisterFn('testplane')} ${getRegisterFn('hermione')} return ${code};`);
 
     return exec();
 }
 
-async function getScriptText(pluginName) {
+async function getScriptText(pluginName: string): Promise<ScriptText> {
     const scriptUrl = getPluginScriptPath(pluginName);
     const {data} = await axios.get(scriptUrl);
 
     return data;
+}
+
+function getRegisterFn(tool: string): string {
+    return `function __${tool}_html_reporter_register_plugin__(p) {return p;};`;
+}
+
+function getPluginScriptPath(pluginName: string): string {
+    return `plugins/${encodeURIComponent(pluginName)}/plugin.js`;
 }

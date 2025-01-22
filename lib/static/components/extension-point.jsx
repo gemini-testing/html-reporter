@@ -64,7 +64,7 @@ function getExtensionPointComponents(loadedPluginConfigs, pointName) {
     return loadedPluginConfigs
         .map(config => {
             try {
-                const PluginComponent = plugins.get(config.name, config.component);
+                const PluginComponent = plugins.getPluginField(config.name, config.component);
                 return {
                     PluginComponent,
                     name,
