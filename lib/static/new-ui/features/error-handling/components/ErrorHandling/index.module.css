@@ -91,9 +91,12 @@
 
 .error-info {
     max-width: 100%;
+    max-height: 700px;
     color: white;
     margin: 8px 0;
     font-size: 13px;
+    overflow-y: auto;
+    scrollbar-color: white #101827;
 }
 
 .action-row {
