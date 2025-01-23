@@ -41,7 +41,11 @@ export function FallbackAppCrash(): ReactNode {
     </div>;
 }
 
-export function FallbackCardCrash(): ReactNode {
+interface FallbackCardCrashProps {
+    recommendedAction?: ReactNode;
+}
+
+export function FallbackCardCrash({recommendedAction}: FallbackCardCrashProps): ReactNode {
     const {state} = useErrorContext();
 
     return <div className={classNames(styles.crash)}>
@@ -52,13 +56,13 @@ export function FallbackCardCrash(): ReactNode {
 
         <ErrorInfoFc className={styles.errorInfo} name={state.error.name} stack={state.error.stack} />
 
-        <Text variant="body-1">Try choosing another item</Text>
+        {typeof recommendedAction === 'string' ? <Text variant="body-1">{recommendedAction}</Text> : recommendedAction}
 
-        <div className={classNames(styles.pickActionSeparator)}>
+        {recommendedAction && <div className={classNames(styles.pickActionSeparator)}>
             <Divider className={classNames(styles.pickActionSeparatorLine)} />
             <Text variant="caption-1" color="secondary">OR</Text>
             <Divider className={classNames(styles.pickActionSeparatorLine)} />
-        </div>
+        </div>}
 
         <FileIssue />
     </div>;
