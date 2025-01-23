@@ -44,7 +44,7 @@ export class Boundary extends Component<BoundaryProps, BoundaryState> {
         return {...prevState, error: null, hasError: false, errorInfo: null, watchFor: nextProps.watchFor};
     }
 
-    componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
+    private componentDidCatchErrorInstance(error: Error, errorInfo: ErrorInfo): void {
         this.setState({hasError: true, error, errorInfo});
 
         const timestamp = new Date().toTimeString();
@@ -54,10 +54,37 @@ export class Boundary extends Component<BoundaryProps, BoundaryState> {
             Boundary.messageStyle,
             Boundary.timestampStyle
         );
-
         console.error(error);
         console.error('Component stack: ', errorInfo.componentStack);
         console.groupEnd();
+    }
+
+    private componentDidCatchSomethingWeird(notAnError: unknown, errorInfo: ErrorInfo): void {
+        this.setState({hasError: true, error: new Error(`Unknown error, based on ${typeof notAnError} value provided.\nReceived value: ${notAnError}, which is not an Error instance.\nTry check your code for throwing ${typeof notAnError}s.`), errorInfo});
+
+        const timestamp = new Date().toTimeString();
+
+        console.groupCollapsed(
+            `%cError boundary catched ${typeof notAnError} instead of Error class instance. Try check your code for throwing ${typeof notAnError}s. See details below:` + '%c @ ' + timestamp,
+            Boundary.messageStyle,
+            Boundary.timestampStyle
+        );
+
+        console.log(`Received ${typeof notAnError} value: `, notAnError);
+        console.error('Component stack: ', errorInfo.componentStack);
+        console.groupEnd();
+    }
+
+    /**
+     * @param _error - The value throwed from the child component. This is not necessarily an Error class instance because of the ability to throw anything in JS.
+     * @param errorInfo - React specific object, contains useful componentStack parameter.
+     */
+    componentDidCatch(error: unknown, errorInfo: ErrorInfo): void {
+        if (error instanceof Error) {
+            return this.componentDidCatchErrorInstance(error, errorInfo);
+        }
+
+        return this.componentDidCatchSomethingWeird(error, errorInfo);
     }
 
     render(): ReactNode {
