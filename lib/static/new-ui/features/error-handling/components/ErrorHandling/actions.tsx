@@ -12,11 +12,9 @@ function reportIssue(): void {
 
 export function FileIssue(props: ActionProps): ReactNode {
     return <Button {...props} view="outlined" onClick={reportIssue}>
-        <span className="g-button__icon g-button__icon_side_start">
-            <span className="g-button__icon-inner">
-                <img src={GithubIcon} alt="icon" />
-            </span>
-        </span>
+        <Button.Icon>
+            <img src={GithubIcon} alt="icon" width={17} height={17} />
+        </Button.Icon>
 
         File an issue
     </Button>;
