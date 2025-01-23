@@ -71,8 +71,9 @@
     right: calc(50% - 216px - 8px);
 }
 
-.dense {
+.crashCorruption {
     gap: 0;
+    align-items: start;
 }
 
 .pick-action-separator {

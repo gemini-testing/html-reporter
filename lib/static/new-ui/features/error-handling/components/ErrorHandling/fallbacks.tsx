@@ -71,7 +71,7 @@ export function FallbackCardCrash({recommendedAction}: FallbackCardCrashProps): 
 export function FallbackDataCorruption(): ReactNode {
     const {state} = useErrorContext();
 
-    return <div className={classNames(styles.crash, styles.dense)}>
+    return <div className={classNames(styles.crash, styles.crashCorruption)}>
         <Text variant="body-1" color="secondary">The data is corrupted or there’s a bug on our side. <Link href={NEW_ISSUE_LINK} target='_blank'>File an issue</Link></Text>
 
         <ErrorInfoFc className={styles.errorInfo} name={state.error.name} stack={state.error.stack} />
