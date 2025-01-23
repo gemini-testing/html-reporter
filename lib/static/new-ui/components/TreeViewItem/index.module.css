@@ -16,6 +16,8 @@
     cursor: pointer;
 
     padding-left: calc(var(--indent) * 24px);
+
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out;
 }
 
 .tree-view-item--error {
@@ -25,7 +27,9 @@
 }
 
 .tree-view-item--corrupted {
-    --g-color-base-simple-hover: var(--g-color-private-orange-50);
-    background: var(--g-color-private-orange-100);
-    color: var(--g-color-private-orange-600-solid);
+    --g-color-base-simple-hover: hsl(32deg 100% 48% / 20%);
+    background-color: rgba(255, 235, 206, 1);
+    color: hsl(32 100% 48% / 1);
+    --box-shadow-color: hsl(32deg 100% 48% / 42%);
+    --g-button-text-color-hover: hsl(32 100% 48% / 1);
 }
