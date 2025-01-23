@@ -47,7 +47,15 @@ export function App(): ReactNode {
                                         <LoadingBar/>
                                         <Routes>
                                             <Route element={<Navigate to={'/suites'}/>} path={'/'}/>
-                                            {pages.map(page => <Route element={page.element} path={page.url} key={page.url}>{page.children}</Route>)}
+                                            {pages.map(page => (
+                                                <Route element={
+                                                    <ErrorHandler.Boundary watchFor={[page.url]} fallback={<ErrorHandler.FallbackAppCrash />}>
+                                                        { page.element}
+                                                    </ErrorHandler.Boundary>
+                                                } path={page.url} key={page.url}>
+                                                    {page.children}
+                                                </Route>
+                                            ))}
                                         </Routes>
                                         <GuiniToolbarOverlay/>
                                         <ToasterComponent />
