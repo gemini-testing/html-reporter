@@ -97,8 +97,8 @@ export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): Re
             </div>}
         </div>}
 
-        <ErrorHandler.Root fallback={<ErrorHandler.FallbackDataCorruption />}>
+        <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackDataCorruption />}>
             <AssertViewResult result={props.image} />
-        </ErrorHandler.Root>
+        </ErrorHandler.Boundary>
     </div>;
 }

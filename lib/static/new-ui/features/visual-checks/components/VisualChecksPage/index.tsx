@@ -25,19 +25,19 @@ export function VisualChecksPage(): ReactNode {
     return <div className={styles.container}>
         <SplitViewLayout sections={[
             <UiCard key="test-view" className={classNames(styles.card, styles.testViewCard)}>
-                <ErrorHandler.Root fallback={<ErrorHandler.FallbackCardCrash />}>
+                <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackCardCrash />}>
                     {isInitialized
                         ? <>
                             {currentNamedImage && <VisualChecksStickyHeader currentNamedImage={currentNamedImage}/>}
 
-                            {currentImage && <ErrorHandler.Root fallback={<ErrorHandler.FallbackCardCrash />}>
+                            {currentImage && <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackCardCrash />}>
                                 <AssertViewResult result={currentImage} />
-                            </ErrorHandler.Root>}
+                            </ErrorHandler.Boundary>}
 
                             {!currentImage && <div className={styles.hint}>This run doesn&apos;t have an image with name &quot;{currentNamedImage?.stateName}&quot;</div>}
                         </>
                         : <AssertViewResultSkeleton />}
-                </ErrorHandler.Root>
+                </ErrorHandler.Boundary>
             </UiCard>
         ]}/>
     </div>;

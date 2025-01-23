@@ -79,7 +79,7 @@ function SuitesPageInternal({currentResult, actions, treeNodeId}: SuitesPageProp
     return <div className={styles.container}>
         <SplitViewLayout sections={[
             <UiCard className={classNames(styles.card, styles.treeViewCard)} key='tree-view'>
-                <ErrorHandler.Root fallback={<ErrorHandler.FallbackDataCorruption />}>
+                <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackDataCorruption />}>
                     <h2 className={classNames('text-display-1', styles['card__title'])}>Suites</h2>
                     <Flex gap={2}>
                         <TestNameFilter/>
@@ -89,11 +89,11 @@ function SuitesPageInternal({currentResult, actions, treeNodeId}: SuitesPageProp
                     <TreeActionsToolbar onHighlightCurrentTest={onHighlightCurrentTest} />
                     {isInitialized && <SuitesTreeView ref={suitesTreeViewRef}/>}
                     {!isInitialized && <TreeViewSkeleton/>}
-                </ErrorHandler.Root>
+                </ErrorHandler.Boundary>
             </UiCard>,
 
             <UiCard className={classNames(styles.card, styles.testViewCard)} key="test-view">
-                <ErrorHandler.Root watchFor={[currentResult, suiteIdParam, isInitialized]} fallback={<ErrorHandler.FallbackCardCrash />}>
+                <ErrorHandler.Boundary watchFor={[currentResult, suiteIdParam, isInitialized]} fallback={<ErrorHandler.FallbackCardCrash />}>
                     {currentResult && <>
                         <div className={styles.stickyHeader}>
                             <SuiteTitle
@@ -110,23 +110,23 @@ function SuitesPageInternal({currentResult, actions, treeNodeId}: SuitesPageProp
                         <CollapsibleSection title={'Overview'} id={'overview'} className={styles['collapsible-section-overview']} body={
                             currentResult &&
                             <div className={styles['collapsible-section__body']}>
-                                <ErrorHandler.Root watchFor={[currentResult]} fallback={<ErrorHandler.FallbackDataCorruption />}>
+                                <ErrorHandler.Boundary watchFor={[currentResult]} fallback={<ErrorHandler.FallbackDataCorruption />}>
                                     <MetaInfo resultId={currentResult.id} />
-                                </ErrorHandler.Root>
+                                </ErrorHandler.Boundary>
                             </div>
                         }/>
 
                         <CollapsibleSection title={'Steps'} id={'steps'} body={
-                            <ErrorHandler.Root watchFor={[currentResult]} fallback={<ErrorHandler.FallbackDataCorruption />}>
+                            <ErrorHandler.Boundary watchFor={[currentResult]} fallback={<ErrorHandler.FallbackDataCorruption />}>
                                 <TestSteps />
-                            </ErrorHandler.Root>
+                            </ErrorHandler.Boundary>
                         }/>
 
                     </>}
 
                     {!suiteIdParam && !currentResult && <div className={styles.hintContainer}><span className={styles.hint}>Select a test to see details</span></div>}
                     {suiteIdParam && !isInitialized && <TestInfoSkeleton />}
-                </ErrorHandler.Root>
+                </ErrorHandler.Boundary>
             </UiCard>
         ]} />
     </div>;

@@ -34,7 +34,7 @@ export function App(): ReactNode {
     const customScripts = (store.getState() as State).config.customScripts;
 
     return <StrictMode>
-        <ErrorHandler.Root fallback={<ErrorHandler.FallbackAppCrash />}>
+        <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackAppCrash />}>
             <CustomScripts scripts={customScripts} />
             <ThemeProvider theme='light'>
                 <ToasterProvider>
@@ -42,7 +42,7 @@ export function App(): ReactNode {
                         <MetrikaScript/>
                         <AnalyticsProvider>
                             <HashRouter>
-                                <ErrorHandler.Root fallback={<ErrorHandler.FallbackAppCrash />}>
+                                <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackAppCrash />}>
                                     <MainLayout menuItems={pages}>
                                         <LoadingBar/>
                                         <Routes>
@@ -52,12 +52,12 @@ export function App(): ReactNode {
                                         <GuiniToolbarOverlay/>
                                         <ToasterComponent />
                                     </MainLayout>
-                                </ErrorHandler.Root>
+                                </ErrorHandler.Boundary>
                             </HashRouter>
                         </AnalyticsProvider>
                     </Provider>
                 </ToasterProvider>
             </ThemeProvider>
-        </ErrorHandler.Root>
+        </ErrorHandler.Boundary>
     </StrictMode>;
 }

@@ -131,9 +131,9 @@ function TestStepsInternal(props: TestStepsProps): ReactNode {
     return <ListContainerView>
         {items.structure.visibleFlattenIds.map(itemId =>
             (
-                <ErrorHandler.Root key={itemId} fallback={<ListItemCorrupted items={items} itemId={itemId}/>}>
+                <ErrorHandler.Boundary key={itemId} fallback={<ListItemCorrupted items={items} itemId={itemId}/>}>
                     <TestStep key={itemId} onItemClick={onItemClick} items={items} itemId={itemId} />
-                </ErrorHandler.Root>
+                </ErrorHandler.Boundary>
             )
         )}
     </ListContainerView>;
