@@ -3,12 +3,11 @@ import {
     unstable_ListTreeItemType as ListTreeItemType,
     unstable_useList as useList
 } from '@gravity-ui/uikit/unstable';
-import {Paperclip} from '@gravity-ui/icons';
+import {CircleExclamation, Paperclip} from '@gravity-ui/icons';
 import React, {ReactNode, useCallback} from 'react';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 
-import {CollapsibleSection} from '@/static/new-ui/features/suites/components/CollapsibleSection';
 import {TreeViewItemIcon} from '@/static/new-ui/components/TreeViewItemIcon';
 import {TestStepArgs} from '@/static/new-ui/features/suites/components/TestStepArgs';
 import {getIconByStatus} from '@/static/new-ui/utils';
@@ -23,6 +22,80 @@ import {Screenshot} from '@/static/new-ui/components/Screenshot';
 import {getIndentStyle} from '@/static/new-ui/features/suites/components/TestSteps/utils';
 import {isErrorStatus, isFailStatus} from '@/common-utils';
 import {ScreenshotsTreeViewItem} from '@/static/new-ui/features/suites/components/ScreenshotsTreeViewItem';
+import {UseListResult} from '@gravity-ui/uikit/build/esm/components/useList';
+import {ErrorHandler} from '../../../error-handling/components/ErrorHandling';
+
+type TestStepClickHandler = (item: {id: string}) => void
+
+interface TestStepProps {
+    items: UseListResult<Step>;
+    itemId: string;
+}
+
+interface TestStepPropsActionable extends TestStepProps {
+    onItemClick: TestStepClickHandler;
+
+}
+
+function ListItemCorrupted({items, itemId}: TestStepProps): ReactNode {
+    return <TreeViewItem id={itemId} list={items} status="corrupted"
+        mapItemDataToContentProps={(): ListItemViewContentType => ({
+            title: <div className={styles.stepContent}>
+                <span className={styles.stepTitle}>Couldn’t display this item: data is corrupted. See console for details.</span>
+            </div>,
+            startSlot: <TreeViewItemIcon>
+                <CircleExclamation />
+            </TreeViewItemIcon>
+        })
+        }
+    />;
+}
+
+function TestStep({onItemClick, items, itemId}: TestStepPropsActionable): ReactNode {
+    const item = items.structure.itemsById[itemId];
+
+    if (item.type === StepType.Action) {
+        const shouldHighlightFail = (isErrorStatus(item.status) || isFailStatus(item.status)) && !item.isGroup;
+
+        return <TreeViewItem id={itemId} key={itemId} list={items} status={shouldHighlightFail ? 'error' : undefined} onItemClick={onItemClick}
+            mapItemDataToContentProps={(): ListItemViewContentType => {
+                return {
+                    title: <div className={styles.stepContent}>
+                        <span className={styles.stepTitle}>{item.title}</span>
+                        <TestStepArgs args={item.args} isFailed={shouldHighlightFail}/>
+                        {item.duration !== undefined && <span className={styles.stepDuration}>{item.duration} ms</span>}
+                    </div>,
+                    startSlot: <TreeViewItemIcon>{getIconByStatus(item.status)}</TreeViewItemIcon>
+                };
+            }}/>;
+    }
+
+    if (item.type === StepType.Attachment) {
+        return <TreeViewItem id={itemId} key={itemId} list={items} onItemClick={onItemClick}
+            mapItemDataToContentProps={(): ListItemViewContentType => {
+                return {
+                    title: item.title,
+                    startSlot: <TreeViewItemIcon><Paperclip /></TreeViewItemIcon>
+                };
+            }}/>;
+    }
+
+    if (item.type === StepType.ErrorInfo) {
+        const indent = items.structure.itemsState[itemId].indentation;
+        return <ErrorInfo className={styles.errorInfo} key={itemId} {...item} style={{marginLeft: `${indent * 24}px`}}/>;
+    }
+
+    if (item.type === StepType.SingleImage) {
+        return <Screenshot containerClassName={styles.pageScreenshot} image={item.image} key={itemId} />;
+    }
+
+    if (item.type === StepType.AssertViewResult) {
+        return <ScreenshotsTreeViewItem key={itemId} image={item.result} style={getIndentStyle(items, itemId)} />;
+    }
+
+    // @ts-expect-error all types should be handled here
+    throw new Error(`Unknown step type: ${item.type}`);
+}
 
 interface TestStepsProps {
     resultId: string;
@@ -55,48 +128,16 @@ function TestStepsInternal(props: TestStepsProps): ReactNode {
         });
     }, [items, props.actions, props.stepsExpandedById]);
 
-    return <CollapsibleSection id={'steps'} title={'Steps'} body={
-        <ListContainerView>
-            {items.structure.visibleFlattenIds.map(itemId => {
-                const item = items.structure.itemsById[itemId];
-
-                if (item.type === StepType.Action) {
-                    const shouldHighlightFail = (isErrorStatus(item.status) || isFailStatus(item.status)) && !item.isGroup;
-
-                    return <TreeViewItem id={itemId} key={itemId} list={items} isFailed={shouldHighlightFail} onItemClick={onItemClick}
-                        mapItemDataToContentProps={(): ListItemViewContentType => {
-                            return {
-                                title: <div className={styles.stepContent}>
-                                    <span className={styles.stepTitle}>{item.title}</span>
-                                    <TestStepArgs args={item.args} isFailed={shouldHighlightFail}/>
-                                    {item.duration !== undefined && <span className={styles.stepDuration}>{item.duration} ms</span>}
-                                </div>,
-                                startSlot: <TreeViewItemIcon>{getIconByStatus(item.status)}</TreeViewItemIcon>
-                            };
-                        }}/>;
-                } else if (item.type === StepType.Attachment) {
-                    return <TreeViewItem id={itemId} key={itemId} list={items} onItemClick={onItemClick}
-                        mapItemDataToContentProps={(): ListItemViewContentType => {
-                            return {
-                                title: item.title,
-                                startSlot: <TreeViewItemIcon><Paperclip /></TreeViewItemIcon>
-                            };
-                        }}/>;
-                } else if (item.type === StepType.ErrorInfo) {
-                    const indent = items.structure.itemsState[itemId].indentation;
-                    return <ErrorInfo className={styles.errorInfo} key={itemId} {...item} style={{marginLeft: `${indent * 24}px`}}/>;
-                } else if (item.type === StepType.SingleImage) {
-                    return <Screenshot containerClassName={styles.pageScreenshot} image={item.image} key={itemId} />;
-                } else if (item.type === StepType.AssertViewResult) {
-                    return <ScreenshotsTreeViewItem key={itemId} image={item.result} style={getIndentStyle(items, itemId)} />;
-                }
-
-                return null;
-            })}
-        </ListContainerView>
-    } />;
+    return <ListContainerView>
+        {items.structure.visibleFlattenIds.map(itemId =>
+            (
+                <ErrorHandler.Boundary key={itemId} fallback={<ListItemCorrupted items={items} itemId={itemId}/>}>
+                    <TestStep key={itemId} onItemClick={onItemClick} items={items} itemId={itemId} />
+                </ErrorHandler.Boundary>
+            )
+        )}
+    </ListContainerView>;
 }
-
 export const TestSteps = connect(state => ({
     resultId: getCurrentResultId(state) ?? '',
     testSteps: getTestSteps(state),

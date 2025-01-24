@@ -2,7 +2,7 @@ import React from 'react';
 import {addBrowserToTree, addImageToTree, addResultToTree, addSuiteToTree, mkBrowserEntity, mkEmptyTree, mkImageEntityFail, mkRealStore, mkResultEntity, mkSuiteEntityLeaf, renderWithStore} from '../../../../utils';
 import proxyquire from 'proxyquire';
 
-describe('<VisualChecksPage />', () => {
+describe('<VisualChecksStickyHeader />', () => {
     const sandbox = sinon.sandbox.create();
 
     const prepareTestStore = () => {
@@ -42,11 +42,11 @@ describe('<VisualChecksPage />', () => {
 
         store = prepareTestStore();
 
-        const VisualChecksPage = proxyquire('lib/static/new-ui/features/visual-checks/components/VisualChecksPage', {
+        const VisualChecksStickyHeader = proxyquire('lib/static/new-ui/features/visual-checks/components/VisualChecksPage/VisualChecksStickyHeader', {
             '../../../../../modules/utils/imageEntity': {preloadImageEntity: preloadImageEntityStub}
-        }).VisualChecksPage;
+        }).VisualChecksStickyHeader;
 
-        renderWithStore(<VisualChecksPage />, store);
+        renderWithStore(<VisualChecksStickyHeader />, store);
     });
 
     afterEach(() => {

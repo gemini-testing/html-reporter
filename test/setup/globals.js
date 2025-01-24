@@ -15,6 +15,7 @@ global.assert = chai.assert;
 require.extensions['.styl'] = () => {};
 require.extensions['.css'] = () => {};
 require.extensions['.less'] = () => {};
+require.extensions['.svg'] = () => {};
 require.extensions['.module.css'] = function(module) {
     module.exports = require('./css-modules-mock').cssModulesMock;
 };

@@ -17,6 +17,7 @@ import {CustomScripts} from '@/static/new-ui/components/CustomScripts';
 import {State} from '@/static/new-ui/types/store';
 import {AnalyticsProvider} from '@/static/new-ui/providers/analytics';
 import {MetrikaScript} from '@/static/new-ui/components/MetrikaScript';
+import {ErrorHandler} from '../features/error-handling/components/ErrorHandling';
 
 export function App(): ReactNode {
     const pages = [
@@ -33,26 +34,38 @@ export function App(): ReactNode {
     const customScripts = (store.getState() as State).config.customScripts;
 
     return <StrictMode>
-        <CustomScripts scripts={customScripts} />
-        <ThemeProvider theme='light'>
-            <ToasterProvider>
-                <Provider store={store}>
-                    <MetrikaScript/>
-                    <AnalyticsProvider>
-                        <HashRouter>
-                            <MainLayout menuItems={pages}>
-                                <LoadingBar/>
-                                <Routes>
-                                    <Route element={<Navigate to={'/suites'}/>} path={'/'}/>
-                                    {pages.map(page => <Route element={page.element} path={page.url} key={page.url}>{page.children}</Route>)}
-                                </Routes>
-                                <GuiniToolbarOverlay/>
-                                <ToasterComponent />
-                            </MainLayout>
-                        </HashRouter>
-                    </AnalyticsProvider>
-                </Provider>
-            </ToasterProvider>
-        </ThemeProvider>
+        <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackAppCrash />}>
+            <CustomScripts scripts={customScripts} />
+            <ThemeProvider theme='light'>
+                <ToasterProvider>
+                    <Provider store={store}>
+                        <MetrikaScript/>
+                        <AnalyticsProvider>
+                            <HashRouter>
+                                <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackAppCrash />}>
+                                    <MainLayout menuItems={pages}>
+                                        <LoadingBar/>
+                                        <Routes>
+                                            <Route element={<Navigate to={'/suites'}/>} path={'/'}/>
+                                            {pages.map(page => (
+                                                <Route element={
+                                                    <ErrorHandler.Boundary watchFor={[page.url]} fallback={<ErrorHandler.FallbackAppCrash />}>
+                                                        { page.element}
+                                                    </ErrorHandler.Boundary>
+                                                } path={page.url} key={page.url}>
+                                                    {page.children}
+                                                </Route>
+                                            ))}
+                                        </Routes>
+                                        <GuiniToolbarOverlay/>
+                                        <ToasterComponent />
+                                    </MainLayout>
+                                </ErrorHandler.Boundary>
+                            </HashRouter>
+                        </AnalyticsProvider>
+                    </Provider>
+                </ToasterProvider>
+            </ThemeProvider>
+        </ErrorHandler.Boundary>
     </StrictMode>;
 }

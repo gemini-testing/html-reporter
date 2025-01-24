@@ -29,6 +29,7 @@ import {TreeActionsToolbar} from '@/static/new-ui/features/suites/components/Tre
 import {findTreeNodeById, getGroupId} from '@/static/new-ui/features/suites/utils';
 import {TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
 import {NEW_ISSUE_LINK} from '@/constants';
+import {ErrorHandler} from '../../../error-handling/components/ErrorHandling';
 
 interface SuitesPageProps {
     actions: typeof actions;
@@ -75,40 +76,60 @@ function SuitesPageInternal({currentResult, actions, treeNodeId}: SuitesPageProp
         });
     };
 
-    return <div className={styles.container}><SplitViewLayout sections={[
-        <UiCard key='tree-view' className={classNames(styles.card, styles.treeViewCard)}>
-            <h2 className={classNames('text-display-1', styles['card__title'])}>Suites</h2>
-            <Flex gap={2}>
-                <TestNameFilter/>
-                <BrowsersSelect/>
-            </Flex>
-            <TestStatusFilter/>
-            <TreeActionsToolbar onHighlightCurrentTest={onHighlightCurrentTest} />
-            {isInitialized && <SuitesTreeView ref={suitesTreeViewRef}/>}
-            {!isInitialized && <TreeViewSkeleton/>}
-        </UiCard>,
-        <UiCard key="test-view" className={classNames(styles.card, styles.testViewCard)}>
-            {currentResult && <>
-                <div className={styles.stickyHeader}>
-                    <SuiteTitle
-                        className={styles['card__title']}
-                        suitePath={currentResult.suitePath}
-                        browserName={currentResult.name}
-                        index={currentIndex}
-                        totalItems={visibleTreeNodeIds.length}
-                        onNext={(): void => onPrevNextSuiteHandler(1)}
-                        onPrevious={(): void => onPrevNextSuiteHandler(-1)} />
-                    <AttemptPicker onChange={onAttemptChangeHandler} />
-                </div>
-                <CollapsibleSection className={styles['collapsible-section-overview']} title={'Overview'} body={currentResult && <div className={styles['collapsible-section__body']}>
-                    <MetaInfo resultId={currentResult.id} />
-                </div>} id={'overview'}/>
-                <TestSteps />
-            </>}
-            {!suiteIdParam && !currentResult && <div className={styles.hintContainer}><span className={styles.hint}>Select a test to see details</span></div>}
-            {suiteIdParam && !isInitialized && <TestInfoSkeleton />}
-        </UiCard>
-    ]} /></div>;
+    return <div className={styles.container}>
+        <SplitViewLayout sections={[
+            <UiCard className={classNames(styles.card, styles.treeViewCard)} key='tree-view'>
+                <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try to reload page'}/>}>
+                    <h2 className={classNames('text-display-1', styles['card__title'])}>Suites</h2>
+                    <Flex gap={2}>
+                        <TestNameFilter/>
+                        <BrowsersSelect/>
+                    </Flex>
+                    <TestStatusFilter/>
+                    <TreeActionsToolbar onHighlightCurrentTest={onHighlightCurrentTest} />
+                    {isInitialized && <SuitesTreeView ref={suitesTreeViewRef}/>}
+                    {!isInitialized && <TreeViewSkeleton/>}
+                </ErrorHandler.Boundary>
+            </UiCard>,
+
+            <UiCard className={classNames(styles.card, styles.testViewCard)} key="test-view">
+                <ErrorHandler.Boundary watchFor={[currentResult, suiteIdParam, isInitialized]} fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try to choose another item'}/>}>
+                    {currentResult && <>
+                        <div className={styles.stickyHeader}>
+                            <SuiteTitle
+                                className={styles['card__title']}
+                                suitePath={currentResult.suitePath}
+                                browserName={currentResult.name}
+                                index={currentIndex}
+                                totalItems={visibleTreeNodeIds.length}
+                                onNext={(): void => onPrevNextSuiteHandler(1)}
+                                onPrevious={(): void => onPrevNextSuiteHandler(-1)} />
+                            <AttemptPicker onChange={onAttemptChangeHandler} />
+                        </div>
+
+                        <CollapsibleSection title={'Overview'} id={'overview'} className={styles['collapsible-section-overview']} body={
+                            currentResult &&
+                            <div className={styles['collapsible-section__body']}>
+                                <ErrorHandler.Boundary watchFor={[currentResult]} fallback={<ErrorHandler.FallbackDataCorruption />}>
+                                    <MetaInfo resultId={currentResult.id} />
+                                </ErrorHandler.Boundary>
+                            </div>
+                        }/>
+
+                        <CollapsibleSection title={'Steps'} id={'steps'} body={
+                            <ErrorHandler.Boundary watchFor={[currentResult]} fallback={<ErrorHandler.FallbackDataCorruption />}>
+                                <TestSteps />
+                            </ErrorHandler.Boundary>
+                        }/>
+
+                    </>}
+
+                    {!suiteIdParam && !currentResult && <div className={styles.hintContainer}><span className={styles.hint}>Select a test to see details</span></div>}
+                    {suiteIdParam && !isInitialized && <TestInfoSkeleton />}
+                </ErrorHandler.Boundary>
+            </UiCard>
+        ]} />
+    </div>;
 }
 
 export const SuitesPage = connect(
