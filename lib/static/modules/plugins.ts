@@ -1,19 +1,13 @@
-import {InstalledPlugin, loadPlugin, PluginConfig, preloadPlugin} from './load-plugin';
+import {ConfigForStaticFile} from '@/server-utils';
+import {InstalledPlugin, loadPlugin, preloadPlugin} from './load-plugin';
+import {PluginDescription} from '@/types';
 
-interface PluginSetupInfo {
-    name: string
-    config: PluginConfig
-}
-
-interface Config {
-    pluginsEnabled: boolean;
-    plugins: PluginSetupInfo[]
-}
+export type ExtensionPointComponentPosition = 'wrap' | 'before' | 'after'
 
 const plugins: Record<string, InstalledPlugin> = {};
-const loadedPluginConfigs: PluginSetupInfo[] = [];
+const loadedPluginConfigs: PluginDescription[] = [];
 
-export function preloadAll(config: Config): void {
+export function preloadAll(config?: ConfigForStaticFile): void {
     if (!config || !config.pluginsEnabled || !Array.isArray(config.plugins)) {
         return;
     }
@@ -21,18 +15,21 @@ export function preloadAll(config: Config): void {
     config.plugins.forEach(plugin => preloadPlugin(plugin.name));
 }
 
-export async function loadAll(config: Config): Promise<void> {
+export async function loadAll(config?: ConfigForStaticFile): Promise<void> {
     // if plugins are disabled, act like there are no plugins defined
     if (!config || !config.pluginsEnabled || !Array.isArray(config.plugins)) {
         return;
     }
 
-    const pluginsSetupInfo = await Promise.all(config.plugins.map(async pluginConfig => {
-        const plugin = await loadPlugin(pluginConfig.name, pluginConfig.config);
+    const pluginsSetupInfo = await Promise.all(config.plugins.map(async pluginDescription => {
+        const plugin = await loadPlugin(pluginDescription.name, pluginDescription.config);
+
         if (plugin) {
-            plugins[pluginConfig.name] = plugin;
-            return pluginConfig;
+            plugins[pluginDescription.name] = plugin;
+            return pluginDescription;
         }
+
+        return undefined;
     }));
 
     pluginsSetupInfo.map((setupInfo) => {
@@ -60,7 +57,7 @@ export function forEachPlugin(callback: ForEachPluginCallback): void {
     });
 }
 
-export function getPluginField(name: string, field: string): unknown {
+export function getPluginField<T>(name: string, field: string): T {
     const plugin = plugins[name];
     if (!plugin) {
         throw new Error(`Plugin "${name}" is not loaded.`);
@@ -68,9 +65,9 @@ export function getPluginField(name: string, field: string): unknown {
     if (!plugin[field]) {
         throw new Error(`"${field}" is not defined on plugin "${name}".`);
     }
-    return plugins[name][field];
+    return plugins[name][field] as T;
 }
 
-export function getLoadedConfigs(): PluginSetupInfo[] {
+export function getLoadedConfigs(): PluginDescription[] {
     return loadedPluginConfigs;
 }

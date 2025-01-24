@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {Component, FC} from 'react';
 import * as Redux from 'redux';
 import * as ReactRedux from 'react-redux';
 import _ from 'lodash';
@@ -13,6 +13,7 @@ import axios from 'axios';
 import * as selectors from './selectors';
 import actionNames from './action-names';
 import Details from '../components/details';
+import {PluginConfig} from '@/types';
 
 const whitelistedDeps = {
     'react': React,
@@ -39,9 +40,11 @@ type WhitelistedDep = typeof whitelistedDeps[WhitelistedDepName];
 // Branded string
 type ScriptText = string & {__script_text__: never};
 
-type UnknownRecord = {[key: string]: unknown}
-export type InstalledPlugin = UnknownRecord
-export type PluginConfig = UnknownRecord
+export type InstalledPlugin = {
+    name?: string;
+    component?: FC | Component;
+    [key: string]: unknown;
+}
 
 interface PluginOptions {
     pluginName: string;
@@ -81,7 +84,7 @@ export function preloadPlugin(pluginName: string): void {
     loadingPlugins[pluginName] = loadingPlugins[pluginName] || getScriptText(pluginName);
 }
 
-export async function loadPlugin(pluginName: string, pluginConfig: PluginConfig): Promise<InstalledPlugin | undefined> {
+export async function loadPlugin(pluginName: string, pluginConfig?: PluginConfig): Promise<InstalledPlugin | undefined> {
     if (pendingPlugins[pluginName]) {
         return pendingPlugins[pluginName];
     }
@@ -103,7 +106,7 @@ const hasDefault = (plugin: CompiledPlugin): plugin is ModuleWithDefaultFunction
 const getDeps = (pluginWithDeps: CompiledPluginWithDeps): WhitelistedDepName[] => pluginWithDeps.slice(0, -1) as WhitelistedDepName[];
 const getPluginFn = (pluginWithDeps: CompiledPluginWithDeps): PluginFunction => _.last(pluginWithDeps) as PluginFunction;
 
-async function initPlugin(plugin: CompiledPlugin, pluginName: string, pluginConfig: PluginConfig): Promise<InstalledPlugin | undefined> {
+async function initPlugin(plugin: CompiledPlugin, pluginName: string, pluginConfig?: PluginConfig): Promise<InstalledPlugin | undefined> {
     try {
         if (!_.isObject(plugin)) {
             return undefined;
