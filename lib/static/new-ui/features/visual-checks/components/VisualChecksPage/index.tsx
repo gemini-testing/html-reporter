@@ -25,12 +25,12 @@ export function VisualChecksPage(): ReactNode {
     return <div className={styles.container}>
         <SplitViewLayout sections={[
             <UiCard key="test-view" className={classNames(styles.card, styles.testViewCard)}>
-                <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try reload page'} />}>
+                <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try to reload page'} />}>
                     {isInitialized
                         ? <>
                             {currentNamedImage && <VisualChecksStickyHeader currentNamedImage={currentNamedImage}/>}
 
-                            {currentImage && <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try choose another item'}/>}>
+                            {currentImage && <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try to choose another item'}/>}>
                                 <AssertViewResult result={currentImage} />
                             </ErrorHandler.Boundary>}
 

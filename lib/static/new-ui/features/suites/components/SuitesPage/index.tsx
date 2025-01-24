@@ -79,7 +79,7 @@ function SuitesPageInternal({currentResult, actions, treeNodeId}: SuitesPageProp
     return <div className={styles.container}>
         <SplitViewLayout sections={[
             <UiCard className={classNames(styles.card, styles.treeViewCard)} key='tree-view'>
-                <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try reload page'}/>}>
+                <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try to reload page'}/>}>
                     <h2 className={classNames('text-display-1', styles['card__title'])}>Suites</h2>
                     <Flex gap={2}>
                         <TestNameFilter/>
@@ -93,7 +93,7 @@ function SuitesPageInternal({currentResult, actions, treeNodeId}: SuitesPageProp
             </UiCard>,
 
             <UiCard className={classNames(styles.card, styles.testViewCard)} key="test-view">
-                <ErrorHandler.Boundary watchFor={[currentResult, suiteIdParam, isInitialized]} fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try choose another item'}/>}>
+                <ErrorHandler.Boundary watchFor={[currentResult, suiteIdParam, isInitialized]} fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try to choose another item'}/>}>
                     {currentResult && <>
                         <div className={styles.stickyHeader}>
                             <SuiteTitle
