@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.13.2"></a>
+## [10.13.2](https://github.com/gemini-testing/html-reporter/compare/v10.13.1...v10.13.2) (2025-01-21)
+
+
+### Bug Fixes
+
+* populate plugin parsed config to testplane config ([b3b2efa](https://github.com/gemini-testing/html-reporter/commit/b3b2efa))
+* **gitignore:** remove icons folder from gitignore file ([#631](https://github.com/gemini-testing/html-reporter/issues/631)) ([fa6c360](https://github.com/gemini-testing/html-reporter/commit/fa6c360))
+
+
+
 <a name="10.13.1"></a>
 ## [10.13.1](https://github.com/gemini-testing/html-reporter/compare/v10.13.0...v10.13.1) (2025-01-15)
 
