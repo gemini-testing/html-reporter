@@ -10,10 +10,10 @@ import ScreenshotAccepterMeta from './meta';
 import ScreenshotAccepterBody from './body';
 import {getAcceptableImagesByStateName} from '../../../modules/selectors/tree';
 import {staticImageAccepterPropType} from '../../../modules/static-image-accepter';
-import {preloadImage} from '../../../modules/utils';
 
 import './style.css';
 import {AnalyticsContext} from '@/static/new-ui/providers/analytics';
+import {preloadImage} from '../../../modules/utils/imageEntity';
 
 const PRELOAD_IMAGE_COUNT = 3;
 
@@ -52,7 +52,8 @@ class ScreenshotAccepter extends Component {
             stateNameImageIds,
             activeImageIndex,
             retryIndex,
-            showMeta: false
+            showMeta: false,
+            disposables: {}
         };
         this.topRef = React.createRef();
 
@@ -63,6 +64,11 @@ class ScreenshotAccepter extends Component {
         }
 
         this.analytics = this.context;
+    }
+
+    componentWillUnmount() {
+        Object.values(this.state.disposables)
+            .forEach(disposeCallback => disposeCallback());
     }
 
     componentDidUpdate() {
@@ -223,7 +229,20 @@ class ScreenshotAccepter extends Component {
             const stateNameImageId = stateNameImageIds[preloadingImagesIndex];
             const {expectedImg, actualImg, diffImg} = last(this.props.imagesByStateName[stateNameImageId]);
 
-            [expectedImg, actualImg, diffImg].filter(Boolean).forEach(({path}) => preloadImage(path));
+            const disposables = {};
+
+            [expectedImg, actualImg, diffImg].filter(Boolean).forEach(({path}) => {
+                const disposeCallback = preloadImage(path);
+
+                disposables[path] = disposeCallback;
+            });
+
+            this.setState({
+                disposables: {
+                    ...this.state.disposables,
+                    ...disposables
+                }
+            });
         });
     }
 

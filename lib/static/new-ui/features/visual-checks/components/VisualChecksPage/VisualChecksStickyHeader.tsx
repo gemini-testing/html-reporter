@@ -1,10 +1,11 @@
 import {ArrowUturnCcwLeft, Check} from '@gravity-ui/icons';
 import {Button, Divider, Icon, Select} from '@gravity-ui/uikit';
-import React, {ReactNode} from 'react';
+import React, {ReactNode, useEffect, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {
     getCurrentImage, getVisibleNamedImageIds,
+    getImagesByNamedImageIds,
     NamedImageEntity
 } from '@/static/new-ui/features/visual-checks/selectors';
 import {SuiteTitle} from '@/static/new-ui/components/SuiteTitle';
@@ -21,9 +22,36 @@ import {AssertViewStatus} from '@/static/new-ui/components/AssertViewStatus';
 import {thunkAcceptImages, thunkRevertImages} from '@/static/modules/actions/screenshots';
 import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
 
+import {preloadImageEntity} from '../../../../../modules/utils/imageEntity';
+
 interface VisualChecksStickyHeaderProps {
     currentNamedImage: NamedImageEntity | null;
 }
+
+export const PRELOAD_IMAGES_COUNT = 3;
+
+const usePreloadImages = (
+    currentNamedImageIndex: number,
+    visibleNamedImageIds: string[]): void => {
+    const preloaded = useRef<Record<string, () => void | undefined>>({});
+
+    const namedImageIdsToPreload: string[] = visibleNamedImageIds.slice(
+        Math.max(0, currentNamedImageIndex - 1 - PRELOAD_IMAGES_COUNT),
+        Math.min(visibleNamedImageIds.length, currentNamedImageIndex + 1 + PRELOAD_IMAGES_COUNT)
+    );
+
+    const imagesToPreload = useSelector((state) => getImagesByNamedImageIds(state, namedImageIdsToPreload));
+
+    useEffect(() => {
+        imagesToPreload.forEach(image => {
+            preloaded.current[image.id] = preloadImageEntity(image);
+        });
+    }, [currentNamedImageIndex]);
+
+    useEffect(() => () => {
+        Object.values(preloaded.current).forEach(disposeCallback => disposeCallback?.());
+    }, []);
+};
 
 export function VisualChecksStickyHeader({currentNamedImage}: VisualChecksStickyHeaderProps): ReactNode {
     const dispatch = useDispatch();
@@ -37,6 +65,8 @@ export function VisualChecksStickyHeader({currentNamedImage}: VisualChecksSticky
     const currentNamedImageIndex = visibleNamedImageIds.indexOf(currentNamedImage?.id as string);
     const onPreviousImageHandler = (): void => void dispatch(visualChecksPageSetCurrentNamedImage(visibleNamedImageIds[currentNamedImageIndex - 1]));
     const onNextImageHandler = (): void => void dispatch(visualChecksPageSetCurrentNamedImage(visibleNamedImageIds[currentNamedImageIndex + 1]));
+
+    usePreloadImages(currentNamedImageIndex, visibleNamedImageIds);
 
     const diffMode = useSelector(state => state.view.diffMode);
     const onChangeHandler = (diffModeId: DiffModeId): void => {
