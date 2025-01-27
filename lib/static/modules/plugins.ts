@@ -16,8 +16,16 @@ export function preloadAll(config?: ConfigForStaticFile): void {
 }
 
 export async function loadAll(config?: ConfigForStaticFile): Promise<void> {
+    if (!config || !Array.isArray(config.plugins)) {
+        return;
+    }
+
     // if plugins are disabled, act like there are no plugins defined
-    if (!config || !config.pluginsEnabled || !Array.isArray(config.plugins)) {
+    if (!config.pluginsEnabled) {
+        if (config.plugins.length > 0) {
+            console.warn(`HTML Reporter plugins are disabled, but there are ${config.plugins.length} plugins in the config. Please, check your testplane.config.ts file and set pluginsEnabled to true.`);
+        }
+
         return;
     }
 
