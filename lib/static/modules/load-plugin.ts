@@ -101,7 +101,7 @@ export async function loadPlugin(pluginName: string, pluginConfig?: PluginConfig
 }
 
 const hasDefault = (plugin: CompiledPlugin): plugin is ModuleWithDefaultFunction =>
-    _.isObject(plugin) && !_.isArray(plugin) && !_.isFunction(plugin) && _.isFunction(plugin.default);
+    _.isObject(plugin) && !_.isArray(plugin) && !_.isFunction(plugin) && (_.isFunction(plugin.default) || _.isArray(plugin.default));
 
 const getDeps = (pluginWithDeps: CompiledPluginWithDeps): WhitelistedDepName[] => pluginWithDeps.slice(0, -1) as WhitelistedDepName[];
 const getPluginFn = (pluginWithDeps: CompiledPluginWithDeps): PluginFunction => _.last(pluginWithDeps) as PluginFunction;
