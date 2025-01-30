@@ -8,7 +8,7 @@ import {StaticReportBuilder} from './lib/report-builder/static';
 import {HtmlReporter} from './lib/plugin-api';
 import {ReporterConfig, TestSpecByPath} from './lib/types';
 import {parseConfig} from './lib/config';
-import {PluginEvents, ToolName, UNKNOWN_ATTEMPT} from './lib/constants';
+import {PluginEvents, ToolName} from './lib/constants';
 import {SqliteClient} from './lib/sqlite-client';
 import {SqliteImageStore} from './lib/image-store';
 import {ImagesInfoSaver} from './lib/images-info-saver';
@@ -35,7 +35,7 @@ class JestHtmlReporter implements JestReporter {
         this._globalConfig = globalConfig;
         this._context = reporterContext;
 
-        this._htmlReporter = HtmlReporter.create(this._config, {toolName: ToolName.Playwright});
+        this._htmlReporter = HtmlReporter.create(this._config, {toolName: ToolName.Jest});
         this._staticReportBuilder = null;
 
         this._initPromise = (async (htmlReporter: HtmlReporter, config: ReporterConfig): Promise<void> => {
@@ -65,9 +65,13 @@ class JestHtmlReporter implements JestReporter {
 
             const staticReportBuilder = this._staticReportBuilder as StaticReportBuilder;
 
-            const formattedResult = new JestTestResultAdapter(test, testResult, UNKNOWN_ATTEMPT);
-
-            await staticReportBuilder.addTestResult(formattedResult);
+            await Promise.all(
+                testResult.testResults.map(
+                    assertion => staticReportBuilder.addTestResult(
+                        new JestTestResultAdapter(test, testResult, assertion)
+                    )
+                )
+            );
         });
     }
 

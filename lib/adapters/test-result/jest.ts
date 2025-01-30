@@ -1,9 +1,8 @@
 import path from 'path';
-import _ from 'lodash';
 
 import {ReporterTestResult} from './index';
 import {getShortMD5} from '../../common-utils';
-import {TestStatus, DEFAULT_TITLE_DELIMITER} from '../../constants';
+import {TestStatus, UNKNOWN_ATTEMPT} from '../../constants';
 import {ErrorName} from '../../errors';
 import {
     ErrorDetails,
@@ -15,44 +14,12 @@ import {
 import {Test, TestResult} from '@jest/reporters';
 import stripAnsi from 'strip-ansi';
 
-export const getStatus = (result: TestResult): TestStatus => {
-    if (result.numPendingTests > 0) {
-        return TestStatus.RUNNING;
-    }
-
-    if (result.numFailingTests > 0) {
-        return TestStatus.FAIL;
-    }
-
-    if (result.numTodoTests > 0) {
-        return TestStatus.IDLE;
-    }
-
-    return TestStatus.SUCCESS;
-};
-
-const extractErrorMessage = (result: TestResult): string => {
-    return stripAnsi(
-        result.testExecError?.message
-        ?? result.failureMessage
-        ?? ''
-    );
-};
-
-const extractErrorStack = (result: TestResult): string => {
-    return stripAnsi(
-        result.testExecError?.stack
-        ?? result.failureMessage
-        ?? ''
-    );
-};
+type AssertionResult = TestResult['testResults'][number];
 
 export class JestTestResultAdapter implements ReporterTestResult {
     private readonly _test: Test;
     private readonly _testResult: TestResult;
-    private readonly _attempt: number;
-
-    private readonly _description: string;
+    private readonly _assertionResult: AssertionResult;
 
     static create<T extends JestTestResultAdapter>(
         this: new (test: Test, testResult: TestResult, attempt: number) => T,
@@ -63,48 +30,74 @@ export class JestTestResultAdapter implements ReporterTestResult {
         return new this(test, testResult, attempt);
     }
 
-    constructor(test: Test, testResult: TestResult, attempt: number) {
+    constructor(test: Test, testResult: TestResult, assertionResult: AssertionResult) {
         this._test = test;
         this._testResult = testResult;
+        this._assertionResult = assertionResult;
 
-        this._attempt = attempt;
+        if (this._assertionResult.status !== 'failed') {
+            return;
+        }
 
-        this._description = this.createDescription();
+        console.log(this._assertionResult.failureMessages);
+        console.log(this._assertionResult.failureDetails);
     }
 
-    private createDescription(): string {
+    get attempt(): number {
+        return this._assertionResult.invocations ?? UNKNOWN_ATTEMPT;
+    }
+
+    get browserId(): string {
+        return this._assertionResult.title;
+    }
+
+    get description(): string {
         const description = this._test.context.config.displayName?.name;
 
         if (description) {
             return description;
         }
 
-        return this.file;
+        return this.file + '/' + this._assertionResult.title;
     }
 
-    get attempt(): number {
-        return this._attempt;
+    private getErrorMessage(): string | undefined {
+        if (this._assertionResult.status !== 'failed') {
+            return;
+        }
+
+        const details = this._assertionResult.failureDetails[0] as { message?: string } | undefined;
+
+        if (!details || !details?.message) {
+            return 'Unpredicted error, please report issue';
+        }
+
+        return stripAnsi(
+            details.message
+        );
     }
 
-    get browserId(): string {
-        return 'jest';
-        // return this._testCase.parent.project()?.name as string;
-    }
+    private getErrorStack(): string | undefined {
+        if (this._assertionResult.status !== 'failed') {
+            return;
+        }
 
-    get description(): string {
-        return this._description;
+        return stripAnsi(
+            this._assertionResult.failureMessages.join('\n')
+        );
     }
 
     get error(): TestError | undefined {
-        const message = extractErrorMessage(this._testResult);
+        if (this._assertionResult.status !== 'failed') {
+            return;
+        }
+
+        const message = this.getErrorMessage();
 
         if (message) {
             const result: TestError = {name: ErrorName.GENERAL_ERROR, message};
 
-            const stack = extractErrorStack(this._testResult);
-            if (!_.isNil(stack)) {
-                result.stack = stack;
-            }
+            result.stack = this.getErrorStack();
 
             return result;
         }
@@ -113,7 +106,7 @@ export class JestTestResultAdapter implements ReporterTestResult {
     }
 
     get errorDetails(): ErrorDetails | null {
-        if (this._testResult.numFailingTests === 0) {
+        if (this._assertionResult.status !== 'failed') {
             return null;
         }
 
@@ -131,58 +124,19 @@ export class JestTestResultAdapter implements ReporterTestResult {
     }
 
     get fullName(): string {
-        return this.testPath.join(DEFAULT_TITLE_DELIMITER);
+        return this.testPath.join(': ');
     }
 
     get history(): TestStepCompressed[] {
-        return this
-            ._testResult
-            .testResults
-            .reduce((ctx, result) => {
-                let groupToAppend = ctx.steps;
-                let stepToAppend: TestStepCompressed | undefined;
-
-                for (const describe of result.ancestorTitles) {
-                    stepToAppend = groupToAppend.find(step => step[TestStepKey.Name] === describe);
-
-                    if (!stepToAppend) {
-                        const children: TestStepCompressed[] = [];
-
-                        const newStep: TestStepCompressed = {
-                            [TestStepKey.Name]: describe,
-                            [TestStepKey.Duration]: result.duration ?? 0,
-                            [TestStepKey.IsFailed]: result.status === 'failed',
-                            [TestStepKey.IsGroup]: false,
-                            [TestStepKey.Children]: children,
-                            [TestStepKey.Args]: []
-                        };
-
-                        groupToAppend.push(newStep);
-                        groupToAppend = children;
-                    } else {
-                        stepToAppend[TestStepKey.Duration] += result.duration ?? 0;
-                        stepToAppend[TestStepKey.IsFailed] = stepToAppend[TestStepKey.IsFailed] || result.status === 'failed';
-                        stepToAppend[TestStepKey.IsGroup] = true;
-
-                        groupToAppend = stepToAppend[TestStepKey.Children] ?? [];
-                        stepToAppend[TestStepKey.Children] = groupToAppend;
-                    }
-                }
-
-                const currentStep = {
-                    [TestStepKey.Name]: result.title,
-                    [TestStepKey.Duration]: result.duration ?? 0,
-                    [TestStepKey.IsFailed]: result.status === 'failed',
-                    [TestStepKey.IsGroup]: false,
-                    [TestStepKey.Args]: result.failureMessages.length ? [stripAnsi(result.failureMessages[0])] : []
-                };
-
-                groupToAppend.push(currentStep);
-
-                return ctx;
-            }, {
-                steps: <TestStepCompressed[]>[]
-            }).steps;
+        return [
+            {
+                [TestStepKey.Name]: this._assertionResult.title,
+                [TestStepKey.Duration]: this._assertionResult.duration ?? 0,
+                [TestStepKey.IsFailed]: this._assertionResult.status === 'failed',
+                [TestStepKey.IsGroup]: false,
+                [TestStepKey.Args]: this._assertionResult.failureMessages.length ? [stripAnsi(this._assertionResult.failureMessages[0])] : []
+            }
+        ];
     }
 
     get id(): string {
@@ -199,13 +153,14 @@ export class JestTestResultAdapter implements ReporterTestResult {
 
     get meta(): Record<string, unknown> {
         return {
-            failing: String(this._testResult.numFailingTests),
-            passing: String(this._testResult.numPassingTests),
-            started: new Date(this._testResult.perfStats.start).toUTCString(),
-            finished: new Date(this._testResult.perfStats.end).toUTCString(),
-            leaks: this._testResult.leaks ? 'Yes' : 'No',
-            slow: this._testResult.perfStats.slow ? 'Yes' : 'No',
-            skipped: this._testResult.skipped ? 'Yes' : 'No'
+            'failing in file': String(this._testResult.numFailingTests),
+            'passing in file': String(this._testResult.numPassingTests),
+            'file started': new Date(this._testResult.perfStats.start).toUTCString(),
+            'file finished': new Date(this._testResult.perfStats.end).toUTCString(),
+            'file leaks': this._testResult.leaks ? 'Yes' : 'No',
+            'file slow': this._testResult.perfStats.slow ? 'Yes' : 'No',
+            'file skipped': this._testResult.skipped ? 'Yes' : 'No',
+            'step duration': (this._assertionResult.duration ?? 0) + 'ms'
         };
     }
 
@@ -227,27 +182,38 @@ export class JestTestResultAdapter implements ReporterTestResult {
     }
 
     get state(): { name: string } {
-        return {name: this._description};
+        return {name: this.description};
     }
 
     get status(): TestStatus {
-        const status = getStatus(this._testResult);
+        const status = this._assertionResult.status;
 
-        if (status === TestStatus.FAIL) {
-            return TestStatus.ERROR;
+        switch (status) {
+            case 'failed':
+                return TestStatus.ERROR;
+            case 'passed':
+                return TestStatus.SUCCESS;
+            case 'disabled':
+            case 'skipped':
+                return TestStatus.SKIPPED;
+            case 'pending':
+                return TestStatus.RUNNING;
+            case 'todo':
+            case 'focused':
+                return TestStatus.QUEUED;
+            default:
+                console.error(`Unknown status: ${status}`);
+                return TestStatus.ERROR;
         }
-
-        return status;
     }
 
     get testPath(): string[] {
-        // slicing because first entries are not actually test-name, but a file, etc.
-        // return this._testCase.titlePath().slice(3);
         return [
             path.relative(
                 process.cwd(),
                 this._test.path
-            )
+            ),
+            ...this._assertionResult.ancestorTitles
         ];
     }
 
