@@ -8,8 +8,7 @@ import {
     ErrorDetails,
     ImageFile,
     ImageInfoFull,
-    TestError, TestStepCompressed,
-    TestStepKey
+    TestError, TestStepCompressed
 } from '../../types';
 import {Test, TestResult} from '@jest/reporters';
 import stripAnsi from 'strip-ansi';
@@ -34,13 +33,6 @@ export class JestTestResultAdapter implements ReporterTestResult {
         this._test = test;
         this._testResult = testResult;
         this._assertionResult = assertionResult;
-
-        if (this._assertionResult.status !== 'failed') {
-            return;
-        }
-
-        console.log(this._assertionResult.failureMessages);
-        console.log(this._assertionResult.failureDetails);
     }
 
     get attempt(): number {
@@ -48,17 +40,12 @@ export class JestTestResultAdapter implements ReporterTestResult {
     }
 
     get browserId(): string {
-        return this._assertionResult.title;
+        return `Node ${process.version}`;
     }
 
     get description(): string {
-        const description = this._test.context.config.displayName?.name;
-
-        if (description) {
-            return description;
-        }
-
-        return this.file + '/' + this._assertionResult.title;
+        return this._test.context.config.displayName?.name
+            ?? this._assertionResult.title;
     }
 
     private getErrorMessage(): string | undefined {
@@ -124,23 +111,20 @@ export class JestTestResultAdapter implements ReporterTestResult {
     }
 
     get fullName(): string {
-        return this.testPath.join(': ');
-    }
-
-    get history(): TestStepCompressed[] {
         return [
-            {
-                [TestStepKey.Name]: this._assertionResult.title,
-                [TestStepKey.Duration]: this._assertionResult.duration ?? 0,
-                [TestStepKey.IsFailed]: this._assertionResult.status === 'failed',
-                [TestStepKey.IsGroup]: false,
-                [TestStepKey.Args]: this._assertionResult.failureMessages.length ? [stripAnsi(this._assertionResult.failureMessages[0])] : []
-            }
-        ];
+            this.file,
+            ...this.testPath
+        ].join(' ');
     }
 
     get id(): string {
-        return this.testPath.concat(this.browserId, this.attempt.toString()).join(' ');
+        return [
+            this.file,
+            ...this.testPath,
+            this._assertionResult.title,
+            this.browserId,
+            this.attempt.toString()
+        ].join(' ');
     }
 
     get imageDir(): string {
@@ -209,12 +193,13 @@ export class JestTestResultAdapter implements ReporterTestResult {
 
     get testPath(): string[] {
         return [
-            path.relative(
-                process.cwd(),
-                this._test.path
-            ),
-            ...this._assertionResult.ancestorTitles
+            ...this._assertionResult.ancestorTitles,
+            this._assertionResult.title
         ];
+    }
+
+    get history(): TestStepCompressed[] {
+        return [];
     }
 
     get timestamp(): number {
