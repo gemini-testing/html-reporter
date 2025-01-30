@@ -26,9 +26,9 @@ class JestHtmlReporter implements JestReporter {
 
     protected _globalConfig: JestConfig;
     protected _config: ReporterConfig;
-    protected _context: any; // Reporter context passed from test scheduler
+    protected _context: unknown; // Reporter context passed from test scheduler
 
-    constructor(globalConfig: JestConfig, opts: Partial<ReporterConfig>, reporterContext: any) {
+    constructor(globalConfig: JestConfig, opts: Partial<ReporterConfig>, reporterContext: unknown) {
         const reporterOpts = _.omitBy(opts, (_value, key) => key === 'configDir' || key.startsWith('_'));
         this._config = parseConfig(reporterOpts);
 
