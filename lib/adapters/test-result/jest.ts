@@ -138,13 +138,51 @@ export class JestTestResultAdapter implements ReporterTestResult {
         return this
             ._testResult
             .testResults
-            .map(result => ({
-                [TestStepKey.Name]: result.title,
-                [TestStepKey.Duration]: result.duration ?? 0,
-                [TestStepKey.IsFailed]: result.status === 'failed',
-                [TestStepKey.IsGroup]: false,
-                [TestStepKey.Args]: result.failureMessages.length ? [stripAnsi(result.failureMessages[0])] : []
-            }));
+            .reduce((ctx, result) => {
+                let groupToAppend = ctx.steps;
+                let stepToAppend: TestStepCompressed | undefined;
+
+                for (const describe of result.ancestorTitles) {
+                    stepToAppend = groupToAppend.find(step => step[TestStepKey.Name] === describe);
+
+                    if (!stepToAppend) {
+                        const children: TestStepCompressed[] = [];
+
+                        const newStep: TestStepCompressed = {
+                            [TestStepKey.Name]: describe,
+                            [TestStepKey.Duration]: result.duration ?? 0,
+                            [TestStepKey.IsFailed]: result.status === 'failed',
+                            [TestStepKey.IsGroup]: false,
+                            [TestStepKey.Children]: children,
+                            [TestStepKey.Args]: []
+                        };
+
+                        groupToAppend.push(newStep);
+                        groupToAppend = children;
+                    } else {
+                        stepToAppend[TestStepKey.Duration] += result.duration ?? 0;
+                        stepToAppend[TestStepKey.IsFailed] = stepToAppend[TestStepKey.IsFailed] || result.status === 'failed';
+                        stepToAppend[TestStepKey.IsGroup] = true;
+
+                        groupToAppend = stepToAppend[TestStepKey.Children] ?? [];
+                        stepToAppend[TestStepKey.Children] = groupToAppend;
+                    }
+                }
+
+                const currentStep = {
+                    [TestStepKey.Name]: result.title,
+                    [TestStepKey.Duration]: result.duration ?? 0,
+                    [TestStepKey.IsFailed]: result.status === 'failed',
+                    [TestStepKey.IsGroup]: false,
+                    [TestStepKey.Args]: result.failureMessages.length ? [stripAnsi(result.failureMessages[0])] : []
+                };
+
+                groupToAppend.push(currentStep);
+
+                return ctx;
+            }, {
+                steps: <TestStepCompressed[]>[]
+            }).steps;
     }
 
     get id(): string {
