@@ -137,14 +137,11 @@ export class JestTestResultAdapter implements ReporterTestResult {
 
     get meta(): Record<string, unknown> {
         return {
-            'failing in file': String(this._testResult.numFailingTests),
-            'passing in file': String(this._testResult.numPassingTests),
-            'file started': new Date(this._testResult.perfStats.start).toUTCString(),
-            'file finished': new Date(this._testResult.perfStats.end).toUTCString(),
-            'file leaks': this._testResult.leaks ? 'Yes' : 'No',
-            'file slow': this._testResult.perfStats.slow ? 'Yes' : 'No',
-            'file skipped': this._testResult.skipped ? 'Yes' : 'No',
-            'step duration': (this._assertionResult.duration ?? 0) + 'ms'
+            'tests failed in file': String(this._testResult.numFailingTests),
+            'tests passed in file': String(this._testResult.numPassingTests),
+            'file started at': new Date(this._testResult.perfStats.start).toLocaleString(),
+            'file finished at': new Date(this._testResult.perfStats.end).toLocaleString(),
+            'file duration': this._testResult.perfStats.runtime + ' ms'
         };
     }
 
@@ -212,6 +209,6 @@ export class JestTestResultAdapter implements ReporterTestResult {
     }
 
     get duration(): number {
-        return this._testResult.perfStats.runtime;
+        return this._assertionResult.duration ?? 0;
     }
 }
