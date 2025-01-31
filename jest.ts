@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import PQueue from 'p-queue';
 
 import type {Config as JestConfig} from 'jest';
