@@ -12,7 +12,7 @@ import path from 'path';
 
 import {ReporterTestResult} from './index';
 
-type AssertionResult = TestResult['testResults'][number];
+export type AssertionResult = TestResult['testResults'][number];
 
 export class JestTestResultAdapter implements ReporterTestResult {
     private readonly _test: Test;
@@ -142,8 +142,6 @@ export class JestTestResultAdapter implements ReporterTestResult {
         return {
             'tests failed in file': String(this._testResult.numFailingTests),
             'tests passed in file': String(this._testResult.numPassingTests),
-            'file started at': new Date(this._testResult.perfStats.start).toLocaleString(),
-            'file finished at': new Date(this._testResult.perfStats.end).toLocaleString(),
             'file duration': this._testResult.perfStats.runtime + ' ms'
         };
     }
