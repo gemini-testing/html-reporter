@@ -116,12 +116,9 @@ function SuitesPageInternal({currentResult, actions, treeNodeId}: SuitesPageProp
                             </div>
                         }/>
 
-                        <CollapsibleSection title={'Steps'} id={'steps'} body={
-                            <ErrorHandler.Boundary watchFor={[currentResult]} fallback={<ErrorHandler.FallbackDataCorruption />}>
-                                <TestSteps />
-                            </ErrorHandler.Boundary>
-                        }/>
-
+                        <ErrorHandler.Boundary watchFor={[currentResult]} fallback={<ErrorHandler.FallbackDataCorruption />}>
+                            <TestSteps />
+                        </ErrorHandler.Boundary>
                     </>}
 
                     {!suiteIdParam && !currentResult && <div className={styles.hintContainer}><span className={styles.hint}>Select a test to see details</span></div>}

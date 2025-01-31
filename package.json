@@ -8,7 +8,8 @@
   "exports": {
     "./testplane": "./build/testplane.js",
     "./hermione": "./build/hermione.js",
-    "./playwright": "./build/playwright.js"
+    "./playwright": "./build/playwright.js",
+    "./jest": "./build/jest.js"
   },
   "scripts": {
     "build": "rimraf build && npm run build:client && npm run build:server && npm run build-bundle -- --minify",
@@ -58,7 +59,9 @@
     "testplane",
     "hermione",
     "plugin",
-    "html-reporter"
+    "html-reporter",
+    "jest",
+    "report"
   ],
   "bin": {
     "html-reporter": "./bin/html-reporter"
@@ -67,6 +70,7 @@
   "license": "MIT",
   "peerDependencies": {
     "hermione": ">=8.0.0",
+    "jest": "*",
     "playwright": "*",
     "testplane": "*"
   },
@@ -78,6 +82,9 @@
       "optional": true
     },
     "playwright": {
+      "optional": true
+    },
+    "jest": {
       "optional": true
     }
   },
@@ -126,6 +133,7 @@
     "@gravity-ui/components": "^3.7.0",
     "@gravity-ui/navigation": "^2.16.0",
     "@gravity-ui/uikit": "^6.27.2",
+    "@jest/reporters": "^29.7.0",
     "@playwright/test": "^1.44.1",
     "@react-hook/resize-observer": "^2.0.1",
     "@swc/core": "^1.3.64",
@@ -143,6 +151,7 @@
     "@types/express": "4.16",
     "@types/fs-extra": "^7.0.0",
     "@types/http-codes": "^1.0.4",
+    "@types/jest": "^29.5.14",
     "@types/json-stringify-safe": "^5.0.2",
     "@types/lodash": "^4.14.195",
     "@types/nested-error-stacks": "^2.1.0",
@@ -195,6 +204,7 @@
     "husky": "^0.11.9",
     "ignore-styles": "^5.0.1",
     "immer": "^7.0.15",
+    "jest": "^29.7.0",
     "jsdom": "^24.1.1",
     "jsdom-global": "^3.0.2",
     "less": "^3.11.1",

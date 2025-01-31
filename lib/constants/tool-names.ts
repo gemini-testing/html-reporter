@@ -1,4 +1,5 @@
 export enum ToolName {
     Testplane = 'testplane',
-    Playwright = 'playwright'
+    Playwright = 'playwright',
+    Jest = 'jest'
 }

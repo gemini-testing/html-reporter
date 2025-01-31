@@ -24,6 +24,7 @@ import {isErrorStatus, isFailStatus} from '@/common-utils';
 import {ScreenshotsTreeViewItem} from '@/static/new-ui/features/suites/components/ScreenshotsTreeViewItem';
 import {UseListResult} from '@gravity-ui/uikit/build/esm/components/useList';
 import {ErrorHandler} from '../../../error-handling/components/ErrorHandling';
+import {CollapsibleSection} from '../CollapsibleSection';
 
 type TestStepClickHandler = (item: {id: string}) => void
 
@@ -128,15 +129,17 @@ function TestStepsInternal(props: TestStepsProps): ReactNode {
         });
     }, [items, props.actions, props.stepsExpandedById]);
 
-    return <ListContainerView>
-        {items.structure.visibleFlattenIds.map(itemId =>
-            (
-                <ErrorHandler.Boundary key={itemId} fallback={<ListItemCorrupted items={items} itemId={itemId}/>}>
-                    <TestStep key={itemId} onItemClick={onItemClick} items={items} itemId={itemId} />
-                </ErrorHandler.Boundary>
-            )
-        )}
-    </ListContainerView>;
+    return <CollapsibleSection title={'Steps'} id={'steps'} body={
+        <ListContainerView>
+            {items.structure.visibleFlattenIds.map(itemId =>
+                (
+                    <ErrorHandler.Boundary key={itemId} fallback={<ListItemCorrupted items={items} itemId={itemId}/>}>
+                        <TestStep key={itemId} onItemClick={onItemClick} items={items} itemId={itemId} />
+                    </ErrorHandler.Boundary>
+                )
+            )}
+        </ListContainerView>
+    }/>;
 }
 export const TestSteps = connect(state => ({
     resultId: getCurrentResultId(state) ?? '',
