@@ -1,8 +1,4 @@
-import path from 'path';
-
-import {ReporterTestResult} from './index';
-import {getShortMD5} from '../../common-utils';
-import {TestStatus, UNKNOWN_ATTEMPT} from '../../constants';
+import {NEW_ISSUE_LINK, TestStatus, UNKNOWN_ATTEMPT} from '../../constants';
 import {ErrorName} from '../../errors';
 import {
     ErrorDetails,
@@ -10,8 +6,11 @@ import {
     ImageInfoFull,
     TestError, TestStepCompressed
 } from '../../types';
+
 import {Test, TestResult} from '@jest/reporters';
-import stripAnsi from 'strip-ansi';
+import path from 'path';
+
+import {ReporterTestResult} from './index';
 
 type AssertionResult = TestResult['testResults'][number];
 
@@ -19,24 +18,27 @@ export class JestTestResultAdapter implements ReporterTestResult {
     private readonly _test: Test;
     private readonly _testResult: TestResult;
     private readonly _assertionResult: AssertionResult;
+    private readonly _attempt: number;
 
-    static create<T extends JestTestResultAdapter>(
-        this: new (test: Test, testResult: TestResult, attempt: number) => T,
+    static create(
+        this: typeof JestTestResultAdapter,
         test: Test,
         testResult: TestResult,
+        assertionResult: AssertionResult,
         attempt: number
-    ): T {
-        return new this(test, testResult, attempt);
+    ): JestTestResultAdapter {
+        return new this(test, testResult, assertionResult, attempt);
     }
 
-    constructor(test: Test, testResult: TestResult, assertionResult: AssertionResult) {
+    constructor(test: Test, testResult: TestResult, assertionResult: AssertionResult, attempt = assertionResult.invocations ?? UNKNOWN_ATTEMPT) {
         this._test = test;
         this._testResult = testResult;
         this._assertionResult = assertionResult;
+        this._attempt = attempt;
     }
 
     get attempt(): number {
-        return this._assertionResult.invocations ?? UNKNOWN_ATTEMPT;
+        return this._attempt;
     }
 
     get browserId(): string {
@@ -56,12 +58,16 @@ export class JestTestResultAdapter implements ReporterTestResult {
         const details = this._assertionResult.failureDetails[0] as { message?: string } | undefined;
 
         if (!details || !details?.message) {
-            return 'Unpredicted error, please report issue';
+            // failureDetails is of type unknown.
+            // Usually it is an object with message field, but other possible cases handles here
+            return 'The test crashed and we can\'t read the error message.\n'
+                + `Please, report an issue at ${NEW_ISSUE_LINK}\n`
+                + '\n'
+                + 'Failure details we can\'t read:\n'
+                + JSON.stringify(this._assertionResult.failureDetails);
         }
 
-        return stripAnsi(
-            details.message
-        );
+        return details.message;
     }
 
     private getErrorStack(): string | undefined {
@@ -69,9 +75,7 @@ export class JestTestResultAdapter implements ReporterTestResult {
             return;
         }
 
-        return stripAnsi(
-            this._assertionResult.failureMessages.join('\n')
-        );
+        return this._assertionResult.failureMessages.join('\n');
     }
 
     get error(): TestError | undefined {
@@ -112,7 +116,6 @@ export class JestTestResultAdapter implements ReporterTestResult {
 
     get fullName(): string {
         return [
-            this.file,
             ...this.testPath
         ].join(' ');
     }
@@ -121,14 +124,14 @@ export class JestTestResultAdapter implements ReporterTestResult {
         return [
             this.file,
             ...this.testPath,
-            this._assertionResult.title,
             this.browserId,
             this.attempt.toString()
         ].join(' ');
     }
 
     get imageDir(): string {
-        return getShortMD5(this.fullName);
+        // Not suitable for jest
+        return '';
     }
 
     get imagesInfo(): ImageInfoFull[] {
@@ -154,7 +157,6 @@ export class JestTestResultAdapter implements ReporterTestResult {
     }
 
     get sessionId(): string {
-        // TODO: implement getting sessionId
         return '';
     }
 
@@ -176,10 +178,9 @@ export class JestTestResultAdapter implements ReporterTestResult {
                 return TestStatus.SUCCESS;
             case 'disabled':
             case 'skipped':
-                return TestStatus.SKIPPED;
             case 'pending':
-                return TestStatus.RUNNING;
             case 'todo':
+                return TestStatus.SKIPPED;
             case 'focused':
                 return TestStatus.QUEUED;
             default:
@@ -204,7 +205,6 @@ export class JestTestResultAdapter implements ReporterTestResult {
     }
 
     get url(): string {
-        // TODO: HERMIONE-1191
         return '';
     }
 
