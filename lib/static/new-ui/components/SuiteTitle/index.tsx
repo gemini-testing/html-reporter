@@ -7,9 +7,6 @@ import styles from './index.module.css';
 
 interface SuiteTitleProps {
     className?: string;
-}
-
-interface SuiteTitlePropsInternal extends SuiteTitleProps {
     suitePath: string[];
     browserName: string;
     stateName?: string;
@@ -19,7 +16,7 @@ interface SuiteTitlePropsInternal extends SuiteTitleProps {
     onNext: () => void;
 }
 
-export function SuiteTitle(props: SuiteTitlePropsInternal): ReactNode {
+export function SuiteTitle(props: SuiteTitleProps): ReactNode {
     const suiteName = props.suitePath[props.suitePath.length - 1];
     const suitePath = props.suitePath.slice(0, -1);
 
@@ -49,9 +46,9 @@ export function SuiteTitle(props: SuiteTitlePropsInternal): ReactNode {
         </div>
         <div className={styles.paginationContainer}>
             <span className={styles.counter}>{props.index === -1 ? '–' : props.index + 1}/{props.totalItems}</span>
-            <Button view={'flat'} disabled={props.index <= 0} onClick={props.onPrevious}><Icon
+            <Button qa='suite-prev' view={'flat'} disabled={props.index <= 0} onClick={props.onPrevious}><Icon
                 data={ChevronUp}/></Button>
-            <Button view={'flat'} disabled={props.index < 0 || props.index === props.totalItems - 1} onClick={props.onNext}><Icon
+            <Button qa='suite-next' view={'flat'} disabled={props.index < 0 || props.index === props.totalItems - 1} onClick={props.onNext}><Icon
                 data={ChevronDown}/></Button>
         </div>
     </div>;

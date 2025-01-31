@@ -18,22 +18,30 @@ interface AssertViewResultProps {
 function AssertViewResultInternal({result, diffMode, style}: AssertViewResultProps): ReactNode {
     if (result.status === TestStatus.FAIL) {
         return <DiffViewer diffMode={diffMode} {...result} />;
-    } else if (result.status === TestStatus.ERROR) {
+    }
+
+    if (result.status === TestStatus.ERROR) {
         return <div className={styles.screenshotContainer}>
             <ImageLabel title={'Actual'} subtitle={getImageDisplayedSize(result.actualImg)} />
             <Screenshot containerStyle={style} containerClassName={styles.screenshot} image={result.actualImg} />
         </div>;
-    } else if (result.status === TestStatus.SUCCESS || result.status === TestStatus.UPDATED) {
+    }
+
+    if (result.status === TestStatus.SUCCESS || result.status === TestStatus.UPDATED) {
         return <div className={styles.screenshotContainer}>
             <ImageLabel title={'Expected'} subtitle={getImageDisplayedSize(result.expectedImg)} />
             <Screenshot containerStyle={style} containerClassName={styles.screenshot} image={result.expectedImg} />
         </div>;
-    } else if (result.status === TestStatus.STAGED) {
+    }
+
+    if (result.status === TestStatus.STAGED) {
         return <div className={styles.screenshotContainer}>
             <ImageLabel title={'Staged'} subtitle={getImageDisplayedSize(result.actualImg)} />
             <Screenshot containerStyle={style} containerClassName={styles.screenshot} image={result.actualImg} />
         </div>;
-    } else if (result.status === TestStatus.COMMITED) {
+    }
+
+    if (result.status === TestStatus.COMMITED) {
         return <div className={styles.screenshotContainer}>
             <ImageLabel title={'Committed'} subtitle={getImageDisplayedSize(result.actualImg)} />
             <Screenshot containerStyle={style} containerClassName={styles.screenshot} image={result.actualImg} />

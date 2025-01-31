@@ -43,8 +43,10 @@ describe('<ScreenshotAccepter/>', () => {
 
         preloadImageStub = sandbox.stub();
 
+        preloadImageStub.returns(() => void 0);
+
         ScreenshotAccepter = proxyquire('lib/static/components/modals/screenshot-accepter', {
-            '../../../modules/utils': {preloadImage: preloadImageStub}
+            '../../../modules/utils/imageEntity': {preloadImage: preloadImageStub}
         }).default;
     });
 

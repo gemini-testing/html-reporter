@@ -17,6 +17,7 @@ import {AssertViewStatus} from '@/static/new-ui/components/AssertViewStatus';
 import styles from './index.module.css';
 import {thunkAcceptImages, thunkRevertImages} from '@/static/modules/actions/screenshots';
 import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
+import {ErrorHandler} from '../../../error-handling/components/ErrorHandling';
 
 interface ScreenshotsTreeViewItemProps {
     image: ImageEntity;
@@ -95,6 +96,9 @@ export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): Re
                 </Button>}
             </div>}
         </div>}
-        <AssertViewResult result={props.image} />
+
+        <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackDataCorruption />}>
+            <AssertViewResult result={props.image} />
+        </ErrorHandler.Boundary>
     </div>;
 }
