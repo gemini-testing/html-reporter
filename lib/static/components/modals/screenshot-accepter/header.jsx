@@ -193,7 +193,7 @@ export default class ScreenshotAccepterHeader extends Component {
                             size="m"
                             label="Diff mode"
                             value={view.diffMode}
-                            handler={actions.changeDiffMode}
+                            handler={diffModeId => actions.setDiffMode({diffModeId})}
                             options = {Object.values(DiffModes).map((dm) => {
                                 return {value: dm.id, content: dm.title};
                             })}
