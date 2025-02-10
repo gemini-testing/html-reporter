@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.14.1"></a>
+## [10.14.1](https://github.com/gemini-testing/html-reporter/compare/v10.14.0...v10.14.1) (2025-02-10)
+
+
+### Bug Fixes
+
+* fix diff mode select ([8eeb704](https://github.com/gemini-testing/html-reporter/commit/8eeb704))
+
+
+
 <a name="10.14.0"></a>
 # [10.14.0](https://github.com/gemini-testing/html-reporter/compare/v10.13.2...v10.14.0) (2025-02-06)
 
