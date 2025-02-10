@@ -18,7 +18,7 @@ describe('<ScreenshotAccepterHeader/>', () => {
 
     const DEFAULT_PROPS = {
         view: {diffMode: DiffModes.THREE_UP_SCALED},
-        actions: {changeDiffMode: sinon.stub().returns({type: 'some-type'})},
+        actions: {setDiffMode: sinon.stub().returns({type: 'some-type'})},
         totalImages: 2,
         acceptedImages: 0,
         images: [{
