@@ -9,15 +9,17 @@ In our case, there are no special differences, but for convenience, all the nece
 To connect the reporter, just go to jest.config.specify in the js file:
 ```
 const config = {
-    reporters: [ 
-        'html-reporter/build/jest.js ' // Connecting our reporter        
-        'default' // Built-in Jest reporter, can be removed 
+    reporters: [
+        'html-reporter/jest', // Connecting our reporter
+        'default' // Built-in Jest reporter, can be removed
         // You can also connect other reporters
     ],
 };
 ```
 
-After such a setup, in order to receive the report, it is enough to simply run the tests. 
+> If you are using jest@27 and below, then you need to use the path - `html-reporter/build/jest`
+
+After such a setup, in order to receive the report, it is enough to simply run the tests.
 The command to run the tests in your project is stored in the package.json, most often it is:
 
 ```
@@ -53,8 +55,8 @@ To transfer the settings to the reporter, you will need to slightly change conte
 ```
 const config = {
     reporters: [
-        ['html-reporter/build/jest.js', { 
-            path: 'reports/html-report', // Changing the path to the report folder 
+        ['html-reporter/jest', {
+            path: 'reports/html-report', // Changing the path to the report folder
         }]
     ],
 };
