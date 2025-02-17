@@ -27,7 +27,7 @@ describe('<ExtensionPoint />', () => {
         }[component]));
 
         const pluginsStub = {
-            get: pluginsGetStub,
+            getPluginField: pluginsGetStub,
             getLoadedConfigs: () => [
                 {name: 'plugin', component: 'WrapComponent', point: 'example', position: 'wrap'},
                 {name: 'plugin', component: 'BeforeComponent', point: 'example', position: 'before'},
