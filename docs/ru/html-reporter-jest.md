@@ -13,12 +13,14 @@
 ```
 const config = {
     reporters: [
-        'html-reporter/build/jest.js' // Подключаем наш репортер
+        'html-reporter/jest', // Подключаем наш репортер
         'default' // Встроенный репортер Jest, можно убрать
         // Можно также подключать и другие репортеры
     ],
 };
 ```
+
+> Если вы используете jest@27 и ниже, то вам необходимо использовать путь - `html-reporter/build/jest`
 
 После такой настройки, для того чтобы получить отчет достаточно просто выполнить тесты. Команда для выполнения тестов в вашем проекте хранится в package.json, чаще всего это:
 
@@ -53,7 +55,7 @@ serve html-report
 ```
 const config = {
     reporters: [
-        ['html-reporter/build/jest.js', {
+        ['html-reporter/jest', {
             // Настройки репортера
             path: 'reports/html-report', // Изменим путь к папке с отчетом
         }]
