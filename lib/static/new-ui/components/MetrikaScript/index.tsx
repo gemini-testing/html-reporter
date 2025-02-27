@@ -20,7 +20,7 @@ export function MetrikaScript(): ReactNode {
    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
 
    ym(99267510, "init", {
-        webvisor:false
+        webvisor:false,
         clickmap:false,
         trackLinks:false,
         accurateTrackBounce:false
