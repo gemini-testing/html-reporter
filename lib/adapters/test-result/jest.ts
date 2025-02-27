@@ -4,6 +4,7 @@ import {
     ErrorDetails,
     ImageFile,
     ImageInfoFull,
+    SnapshotAttachment,
     TestError, TestStepCompressed
 } from '../../types';
 
@@ -35,6 +36,10 @@ export class JestTestResultAdapter implements ReporterTestResult {
         this._testResult = testResult;
         this._assertionResult = assertionResult;
         this._attempt = attempt;
+    }
+
+    get attachments(): SnapshotAttachment[] {
+        return [];
     }
 
     get attempt(): number {

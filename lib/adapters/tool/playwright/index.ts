@@ -11,7 +11,14 @@ import {PlaywrightTestCollectionAdapter} from '../../test-collection/playwright'
 import {parseConfig} from '../../../config';
 import {HtmlReporter} from '../../../plugin-api';
 import {setupTransformHook} from './transformer';
-import {ToolName, UNKNOWN_ATTEMPT, PWT_TITLE_DELIMITER, DEFAULT_TITLE_DELIMITER, TestStatus} from '../../../constants';
+import {
+    ToolName,
+    UNKNOWN_ATTEMPT,
+    PWT_TITLE_DELIMITER,
+    DEFAULT_TITLE_DELIMITER,
+    TestStatus,
+    BrowserFeature
+} from '../../../constants';
 import {ClientEvents} from '../../../gui/constants';
 import {GuiApi} from '../../../gui/api';
 import {PlaywrightTestResultAdapter} from '../../test-result/playwright';
@@ -19,7 +26,7 @@ import ipc from './ipc';
 import pkg from '../../../../package.json';
 import {logger} from '../../../common-utils';
 
-import type {ToolAdapter, ToolAdapterOptionsFromCli} from '../index';
+import {ToolAdapter, ToolAdapterOptionsFromCli} from '../index';
 import type {GuiReportBuilder} from '../../../report-builder/gui';
 import type {EventSource} from '../../../gui/event-source';
 import type {PwtRawTest} from '../../test/playwright';
@@ -95,6 +102,10 @@ export class PlaywrightToolAdapter implements ToolAdapter {
 
     get guiApi(): GuiApi | undefined {
         return this._guiApi;
+    }
+
+    get browserFeatures(): Record<string, BrowserFeature[]> {
+        return {};
     }
 
     initGuiApi(): void {

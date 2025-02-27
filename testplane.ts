@@ -6,7 +6,7 @@ import _ from 'lodash';
 import PQueue from 'p-queue';
 import {CommanderStatic} from '@gemini-testing/commander';
 
-import {TestplaneToolAdapter} from './lib/adapters/tool/testplane';
+import {TestplaneToolAdapter, TestplaneWithHtmlReporter} from './lib/adapters/tool/testplane';
 import {getStatus} from './lib/adapters/test-result/testplane';
 import {commands as cliCommands} from './lib/cli';
 import {parseConfig} from './lib/config';
@@ -14,11 +14,13 @@ import {ToolName} from './lib/constants';
 import {StaticReportBuilder} from './lib/report-builder/static';
 import {formatTestResult, logPathToHtmlReport, logError, getExpectedCacheKey} from './lib/server-utils';
 import {SqliteClient} from './lib/sqlite-client';
-import {ReporterOptions, TestSpecByPath} from './lib/types';
+import {Attachment, ReporterOptions, TestSpecByPath} from './lib/types';
 import {createWorkers, CreateWorkersRunner} from './lib/workers/create-workers';
 import {SqliteImageStore} from './lib/image-store';
 import {Cache} from './lib/cache';
 import {ImagesInfoSaver} from './lib/images-info-saver';
+import {finalizeSnapshotsForTest, handleDomSnapshotsEvent} from './lib/adapters/event-handling/testplane/snapshots';
+import {copyAndUpdate} from './lib/adapters/test-result/utils';
 
 export default (testplane: Testplane, opts: Partial<ReporterOptions>): void => {
     if (testplane.isWorker()) {
@@ -84,7 +86,7 @@ export default (testplane: Testplane, opts: Partial<ReporterOptions>): void => {
 
         handlingTestResults = Promise.all([
             staticReportBuilder.saveStaticFiles(),
-            handleTestResults(testplane, staticReportBuilder)
+            handleTestResults(testplane as TestplaneWithHtmlReporter, staticReportBuilder)
         ]).then(async () => {
             await staticReportBuilder.finalize();
         }).then(async () => {
@@ -109,7 +111,7 @@ export default (testplane: Testplane, opts: Partial<ReporterOptions>): void => {
     }));
 };
 
-async function handleTestResults(testplane: Testplane, reportBuilder: StaticReportBuilder): Promise<void> {
+async function handleTestResults(testplane: TestplaneWithHtmlReporter, reportBuilder: StaticReportBuilder): Promise<void> {
     return new Promise((resolve, reject) => {
         const queue = new PQueue({concurrency: os.cpus().length});
         const promises: Promise<unknown>[] = [];
@@ -126,7 +128,22 @@ async function handleTestResults(testplane: Testplane, reportBuilder: StaticRepo
                 promises.push(queue.add(async () => {
                     const formattedResult = formatTestResult(testResult, getStatus(eventName, testplane.events, testResult));
 
-                    await reportBuilder.addTestResult(formattedResult);
+                    const attachments: Attachment[] = [];
+                    const attempt = reportBuilder.registerAttempt({fullName: formattedResult.fullName, browserId: formattedResult.browserId}, formattedResult.status);
+                    const snapshotAttachments = await finalizeSnapshotsForTest({
+                        testResult: formattedResult,
+                        attempt,
+                        reportPath: testplane.htmlReporter.config.path,
+                        recordConfig: testplane.config.record,
+                        events: testplane.events,
+                        eventName
+                    });
+
+                    attachments.push(...snapshotAttachments);
+
+                    const formattedResultWithAttachments = copyAndUpdate(formattedResult, {attachments, attempt});
+
+                    await reportBuilder.addTestResult(formattedResultWithAttachments);
                 }).catch(reject));
             });
         });
@@ -134,5 +151,7 @@ async function handleTestResults(testplane: Testplane, reportBuilder: StaticRepo
         testplane.on(testplane.events.RUNNER_END, () => {
             return Promise.all(promises).then(() => resolve(), reject);
         });
+
+        testplane.on(testplane.events.DOM_SNAPSHOTS, (context, data) => handleDomSnapshotsEvent(null, context, data));
     });
 }

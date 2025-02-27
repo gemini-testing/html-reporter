@@ -1,6 +1,5 @@
 import os from 'os';
 import PQueue from 'p-queue';
-import type Testplane from 'testplane';
 import type {Test as TestplaneTest} from 'testplane';
 import {ClientEvents} from '../../../gui/constants';
 import {getSuitePath} from '../../../plugin-utils';
@@ -9,10 +8,13 @@ import {logError, formatTestResult} from '../../../server-utils';
 import {TestStatus} from '../../../constants';
 import {GuiReportBuilder} from '../../../report-builder/gui';
 import {EventSource} from '../../../gui/event-source';
-import {TestplaneTestResult} from '../../../types';
+import {Attachment, TestplaneTestResult} from '../../../types';
 import {getStatus} from '../../test-result/testplane';
+import {finalizeSnapshotsForTest, handleDomSnapshotsEvent} from '../../event-handling/testplane/snapshots';
+import {TestplaneWithHtmlReporter} from '../../tool/testplane/index';
+import {copyAndUpdate} from '../../test-result/utils';
 
-export const handleTestResults = (testplane: Testplane, reportBuilder: GuiReportBuilder, client: EventSource): void => {
+export const handleTestResults = (testplane: TestplaneWithHtmlReporter, reportBuilder: GuiReportBuilder, client: EventSource): void => {
     const queue = new PQueue({concurrency: os.cpus().length});
 
     testplane.on(testplane.events.RUNNER_START, (runner) => {
@@ -44,7 +46,25 @@ export const handleTestResults = (testplane: Testplane, reportBuilder: GuiReport
                 const status = getStatus(eventName, testplane.events, data as TestplaneTestResult);
                 const formattedResultWithoutAttempt = formatTestResult(data, status);
 
-                const formattedResult = await reportBuilder.addTestResult(formattedResultWithoutAttempt);
+                const attachments: Attachment[] = [];
+                if (eventName !== testplane.events.TEST_BEGIN) {
+                    // By this time an attempt had already been created for "running" test result, so here we have current attempt number
+                    const attempt = reportBuilder.getLatestAttempt({fullName: formattedResultWithoutAttempt.fullName, browserId: formattedResultWithoutAttempt.browserId});
+                    const snapshotAttachments = await finalizeSnapshotsForTest({
+                        testResult: formattedResultWithoutAttempt,
+                        attempt,
+                        reportPath: testplane.htmlReporter.config.path,
+                        events: testplane.events,
+                        eventName,
+                        recordConfig: testplane.config.record
+                    });
+
+                    attachments.push(...snapshotAttachments);
+                }
+
+                const formattedResultWithAttachments = copyAndUpdate(formattedResultWithoutAttempt, {attachments});
+                const formattedResult = await reportBuilder.addTestResult(formattedResultWithAttachments);
+
                 const testBranch = reportBuilder.getTestBranch(formattedResult.id);
 
                 return client.emit(clientEventName, testBranch);
@@ -60,4 +80,6 @@ export const handleTestResults = (testplane: Testplane, reportBuilder: GuiReport
             logError(err as Error);
         }
     });
+
+    testplane.on(testplane.events.DOM_SNAPSHOTS, (context, data) => handleDomSnapshotsEvent(client, context, data));
 };

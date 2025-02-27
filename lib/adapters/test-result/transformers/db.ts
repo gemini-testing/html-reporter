@@ -39,7 +39,8 @@ export class DbTestResultTransformer {
             multipleTabs: testResult.multipleTabs,
             status: testResult.status,
             timestamp: testResult.timestamp ?? Date.now(),
-            duration: testResult.duration
+            duration: testResult.duration,
+            attachments: testResult.attachments
         };
     }
 }

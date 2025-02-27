@@ -1,6 +1,5 @@
 import _ from 'lodash';
-import type Testplane from 'testplane';
-import type {Config} from 'testplane';
+import Testplane, {Config, RecordMode} from 'testplane';
 import type {CommanderStatic} from '@gemini-testing/commander';
 
 import {TestplaneTestCollectionAdapter} from '../../test-collection/testplane';
@@ -13,18 +12,18 @@ import {createTestRunner} from './runner';
 import {EventSource} from '../../../gui/event-source';
 import {GuiReportBuilder} from '../../../report-builder/gui';
 import {handleTestResults} from './test-results-handler';
-import {ToolName} from '../../../constants';
+import {BrowserFeature, ToolName} from '../../../constants';
 
-import type {ToolAdapter, ToolAdapterOptionsFromCli, UpdateReferenceOpts} from '../index';
-import type {TestSpec, CustomGuiActionPayload} from '../types';
-import type {ReporterConfig, CustomGuiItem} from '../../../types';
+import {ToolAdapter, ToolAdapterOptionsFromCli, UpdateReferenceOpts} from '../index';
+import type {CustomGuiActionPayload, TestSpec} from '../types';
+import type {CustomGuiItem, ReporterConfig} from '../../../types';
 import type {ConfigAdapter} from '../../config/index';
 
 type HtmlReporterApi = {
     gui: ApiFacade;
     htmlReporter: HtmlReporter;
 };
-type TestplaneWithHtmlReporter = Testplane & HtmlReporterApi;
+export type TestplaneWithHtmlReporter = Testplane & HtmlReporterApi;
 
 interface ReplModeOption {
     enabled: boolean;
@@ -103,6 +102,22 @@ export class TestplaneToolAdapter implements ToolAdapter {
 
     get guiApi(): GuiApi | undefined {
         return this._guiApi;
+    }
+
+    get browserFeatures(): Record<string, BrowserFeature[]> {
+        const result: Record<string, BrowserFeature[]> = {};
+
+        for (const browserConfig of this._browserConfigs) {
+            const features: BrowserFeature[] = [];
+
+            if (browserConfig.record.mode === RecordMode.On) {
+                features.push(BrowserFeature.LiveSnapshotsStreaming);
+            }
+
+            result[browserConfig.id] = features;
+        }
+
+        return result;
     }
 
     initGuiApi(): void {

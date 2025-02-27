@@ -7,7 +7,7 @@ import NestedError from 'nested-error-stacks';
 import {getShortMD5} from './common-utils';
 import {TestStatus, DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS, LOCAL_DATABASE_NAME, DATABASE_URLS_JSON_NAME} from './constants';
 import {createTablesQuery} from './db-utils/common';
-import type {ImageInfoFull, TestError, TestStepCompressed} from './types';
+import type {Attachment, ImageInfoFull, TestError, TestStepCompressed} from './types';
 import {HtmlReporter} from './plugin-api';
 import {ReporterTestResult} from './adapters/test-result';
 import {DbTestResultTransformer} from './adapters/test-result/transformers/db';
@@ -51,6 +51,7 @@ export interface DbTestResult {
     timestamp: number;
     /* Duration in ms. Example: `1601` */
     duration: number;
+    attachments: Attachment[];
 }
 
 interface SqliteClientOptions {

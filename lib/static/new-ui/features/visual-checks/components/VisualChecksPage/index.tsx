@@ -23,7 +23,7 @@ export function VisualChecksPage(): ReactNode {
     const isInitialized = useSelector(state => state.app.isInitialized);
 
     return <div className={styles.container}>
-        <SplitViewLayout sections={[
+        <SplitViewLayout>
             <UiCard key="test-view" className={classNames(styles.card, styles.testViewCard)}>
                 <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try to reload page'} />}>
                     {isInitialized
@@ -39,6 +39,6 @@ export function VisualChecksPage(): ReactNode {
                         : <AssertViewResultSkeleton />}
                 </ErrorHandler.Boundary>
             </UiCard>
-        ]}/>
+        </SplitViewLayout>
     </div>;
 }
