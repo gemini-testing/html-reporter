@@ -5,9 +5,9 @@ import {ConfigAdapter} from '../config';
 import {GuiApi} from '../../gui/api';
 import {EventSource} from '../../gui/event-source';
 import {GuiReportBuilder} from '../../report-builder/gui';
-import {ToolName} from '../../constants';
+import {BrowserFeature, ToolName} from '../../constants';
 
-import type {ReporterConfig, ImageFile} from '../../types';
+import type {ImageFile, ReporterConfig} from '../../types';
 import type {TestSpec} from './types';
 import type {HtmlReporter} from '../../plugin-api';
 
@@ -27,6 +27,7 @@ export interface ToolAdapter {
     readonly reporterConfig: ReporterConfig;
     readonly htmlReporter: HtmlReporter;
     readonly guiApi?: GuiApi;
+    readonly browserFeatures: Record<string, BrowserFeature[]>;
 
     initGuiApi(): void;
     readTests(paths: string[], cliTool: CommanderStatic): Promise<TestCollectionAdapter>;

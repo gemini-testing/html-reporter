@@ -5,7 +5,7 @@ import {
 } from '@gravity-ui/uikit/unstable';
 import {CircleExclamation, Paperclip} from '@gravity-ui/icons';
 import React, {ReactNode, useCallback} from 'react';
-import {connect} from 'react-redux';
+import {connect, useDispatch, useSelector} from 'react-redux';
 import {bindActionCreators} from 'redux';
 
 import {TreeViewItemIcon} from '@/static/new-ui/components/TreeViewItemIcon';
@@ -15,7 +15,7 @@ import {ErrorInfo} from '@/static/new-ui/components/ErrorInfo';
 import * as actions from '@/static/modules/actions';
 import {getCurrentResultId} from '@/static/new-ui/features/suites/selectors';
 import {getStepsExpandedById, getTestSteps} from './selectors';
-import {Step, StepType} from './types';
+import {Action, Step, StepType} from './types';
 import {ListItemViewContentType, TreeViewItem} from '../../../../components/TreeViewItem';
 import styles from './index.module.css';
 import {Screenshot} from '@/static/new-ui/components/Screenshot';
@@ -24,7 +24,7 @@ import {isErrorStatus, isFailStatus} from '@/common-utils';
 import {ScreenshotsTreeViewItem} from '@/static/new-ui/features/suites/components/ScreenshotsTreeViewItem';
 import {UseListResult} from '@gravity-ui/uikit/build/esm/components/useList';
 import {ErrorHandler} from '../../../error-handling/components/ErrorHandling';
-import {CollapsibleSection} from '../CollapsibleSection';
+import {setCurrentPlayerTime} from '@/static/modules/actions/snapshots';
 
 type TestStepClickHandler = (item: {id: string}) => void
 
@@ -35,6 +35,8 @@ interface TestStepProps {
 
 interface TestStepPropsActionable extends TestStepProps {
     onItemClick: TestStepClickHandler;
+    onItemMouseMove: (...args: unknown[]) => unknown;
+    index: number;
 
 }
 
@@ -52,13 +54,21 @@ function ListItemCorrupted({items, itemId}: TestStepProps): ReactNode {
     />;
 }
 
-function TestStep({onItemClick, items, itemId}: TestStepPropsActionable): ReactNode {
+function TestStep({onItemClick, items, itemId, index, onItemMouseMove}: TestStepPropsActionable): ReactNode {
     const item = items.structure.itemsById[itemId];
 
     if (item.type === StepType.Action) {
+        let nextAction: Action | null = null;
+        for (let i = index + 1; i < items.structure.visibleFlattenIds.length; i++) {
+            const maybeAction = items.structure.itemsById[items.structure.visibleFlattenIds[i]];
+            if (maybeAction.type === StepType.Action) {
+                nextAction = maybeAction;
+                break;
+            }
+        }
         const shouldHighlightFail = (isErrorStatus(item.status) || isFailStatus(item.status)) && !item.isGroup;
 
-        return <TreeViewItem id={itemId} key={itemId} list={items} status={shouldHighlightFail ? 'error' : undefined} onItemClick={onItemClick}
+        return <TreeViewItem id={itemId} key={itemId} list={items} status={shouldHighlightFail ? 'error' : undefined} onItemClick={onItemClick} onMouseMove={(): void => void onItemMouseMove(nextAction?.startTime ?? item.startTime ?? 0)}
             mapItemDataToContentProps={(): ListItemViewContentType => {
                 return {
                     title: <div className={styles.stepContent}>
@@ -99,6 +109,7 @@ function TestStep({onItemClick, items, itemId}: TestStepPropsActionable): ReactN
 }
 
 interface TestStepsProps {
+    className?: string;
     resultId: string;
     testSteps: ListTreeItemType<Step>[];
     stepsExpandedById: Record<string, boolean>;
@@ -109,6 +120,8 @@ function TestStepsInternal(props: TestStepsProps): ReactNode {
     if (props.testSteps.length === 0) {
         return null;
     }
+
+    const dispatch = useDispatch();
 
     const items = useList({
         items: props.testSteps,
@@ -129,17 +142,24 @@ function TestStepsInternal(props: TestStepsProps): ReactNode {
         });
     }, [items, props.actions, props.stepsExpandedById]);
 
-    return <CollapsibleSection title={'Steps'} id={'steps'} body={
-        <ListContainerView>
-            {items.structure.visibleFlattenIds.map(itemId =>
-                (
-                    <ErrorHandler.Boundary key={itemId} fallback={<ListItemCorrupted items={items} itemId={itemId}/>}>
-                        <TestStep key={itemId} onItemClick={onItemClick} items={items} itemId={itemId} />
-                    </ErrorHandler.Boundary>
-                )
-            )}
-        </ListContainerView>
-    }/>;
+    const currentPlayerTime = useSelector(state => state.app.snapshots.currentPlayerTime);
+    const onItemMouseMove = (time: number): void => {
+        if (time === currentPlayerTime) {
+            return;
+        }
+
+        dispatch(setCurrentPlayerTime({startTime: time}));
+    };
+
+    return <ListContainerView className={props.className}>
+        {items.structure.visibleFlattenIds.map((itemId, index) =>
+            (
+                <ErrorHandler.Boundary key={itemId} fallback={<ListItemCorrupted items={items} itemId={itemId}/>}>
+                    <TestStep key={itemId} onItemClick={onItemClick} items={items} itemId={itemId} index={index} onItemMouseMove={onItemMouseMove as any} />
+                </ErrorHandler.Boundary>
+            )
+        )}
+    </ListContainerView>;
 }
 export const TestSteps = connect(state => ({
     resultId: getCurrentResultId(state) ?? '',

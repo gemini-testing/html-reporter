@@ -32,7 +32,8 @@ export const copyAndUpdate = (
         'testPath',
         'timestamp',
         'url',
-        'duration'
+        'duration',
+        'attachments'
     ] as const;
 
     // Type-level check that we didn't forget to include any keys

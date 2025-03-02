@@ -21,6 +21,8 @@ import {StaticAccepterAction} from '@/static/modules/actions/static-accepter';
 import type actionNames from '../action-names';
 import type defaultState from '../default-state';
 import type {Tree} from '../../../tests-tree-builder/base';
+import {FeaturesAction} from '@/static/modules/actions/features';
+import {SnapshotsAction} from '@/static/modules/actions/snapshots';
 
 export type Store = Omit<typeof defaultState, 'tree'> & {tree: Tree};
 
@@ -46,4 +48,6 @@ export type SomeAction =
     | SortTestsAction
     | StaticAccepterAction
     | SuitesPageAction
-    | SuiteTreeStateAction;
+    | SuiteTreeStateAction
+    | FeaturesAction
+    | SnapshotsAction;

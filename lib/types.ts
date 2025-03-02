@@ -273,6 +273,7 @@ export type RawSuitesRow = [
     status: string,
     timestamp: number,
     duration: number,
+    attachments: string,
 ];
 
 export type LabeledSuitesRow = {
@@ -290,14 +291,27 @@ export enum TestStepKey {
     Duration = 'd',
     IsFailed = 'f',
     Children = 'c',
-    IsGroup = 'g'
+    IsGroup = 'g',
+    TimeStart = 'ts'
 }
 
 export interface TestStepCompressed {
     [TestStepKey.Name]: string;
     [TestStepKey.Args]: string[];
     [TestStepKey.Duration]: number;
+    [TestStepKey.TimeStart]: number;
     [TestStepKey.IsFailed]: boolean;
     [TestStepKey.IsGroup]: boolean;
     [TestStepKey.Children]?: TestStepCompressed[];
 }
+
+export enum AttachmentType {
+    Snapshot
+}
+
+export interface SnapshotAttachment {
+    type: AttachmentType.Snapshot;
+    path: string;
+}
+
+export type Attachment = SnapshotAttachment;

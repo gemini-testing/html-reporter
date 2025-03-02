@@ -1,5 +1,5 @@
 import {TestStatus} from '../../constants';
-import {ErrorDetails, ImageBase64, ImageFile, ImageInfoFull, TestError, TestStepCompressed} from '../../types';
+import {ErrorDetails, ImageBase64, ImageFile, ImageInfoFull, TestError, TestStepCompressed, Attachment} from '../../types';
 
 export interface ReporterTestResult {
     readonly attempt: number;
@@ -26,4 +26,5 @@ export interface ReporterTestResult {
     readonly url?: string;
     /** Test duration in ms */
     readonly duration: number;
+    readonly attachments: Attachment[];
 }

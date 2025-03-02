@@ -14,13 +14,18 @@ import {
 } from '../../modules/actions';
 import {setGuiServerConnectionStatus} from '@/static/modules/actions/gui-server-connection';
 import actionNames from '@/static/modules/action-names';
+import {EventSourceProvider, useEventSource} from '@/static/new-ui/providers/event-source';
 
 const rootEl = document.getElementById('app') as HTMLDivElement;
 const root = createRoot(rootEl);
 
 function Gui(): ReactNode {
+    const eventSource = useEventSource();
+
     const subscribeToEvents = (): void => {
-        const eventSource = new EventSource('/events');
+        if (!eventSource) {
+            return;
+        }
 
         eventSource.addEventListener(ClientEvents.CONNECTED, (): void => {
             store.dispatch({type: actionNames.UPDATE_LOADING_VISIBILITY, payload: false});
@@ -59,15 +64,21 @@ function Gui(): ReactNode {
     };
 
     useEffect(() => {
+        if (!eventSource) {
+            return;
+        }
+
         store.dispatch(thunkInitGuiReport({isNewUi: true}));
         subscribeToEvents();
 
         return () => {
             store.dispatch(finGuiReport());
         };
-    }, []);
+    }, [eventSource]);
 
     return <App/>;
 }
 
-root.render(<Gui />);
+root.render(<EventSourceProvider>
+    <Gui />
+</EventSourceProvider>);

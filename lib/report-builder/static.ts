@@ -8,7 +8,7 @@ import {
     RUNNING,
     SKIPPED,
     LOCAL_DATABASE_NAME,
-    PluginEvents, UNKNOWN_ATTEMPT, UPDATED
+    PluginEvents, UNKNOWN_ATTEMPT, UPDATED, TestStatus
 } from '../constants';
 import type {SqliteClient} from '../sqlite-client';
 import {ReporterTestResult} from '../adapters/test-result';
@@ -73,6 +73,10 @@ export class StaticReportBuilder {
 
     registerWorkers(workers: RegisterWorkers<['saveDiffTo']>): void {
         this._workers = workers;
+    }
+
+    registerAttempt(testInfo: {fullName: string, browserId: string}, status: TestStatus): number {
+        return this._testAttemptManager.registerAttempt(testInfo, status);
     }
 
     getLatestAttempt(testInfo: {fullName: string, browserId: string}): number {

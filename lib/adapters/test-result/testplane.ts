@@ -25,7 +25,7 @@ import {
     ImageInfoPageSuccess,
     ImageInfoSuccess,
     ImageInfoUpdated,
-    TestError, TestStepCompressed, TestStepKey
+    TestError, TestStepCompressed, TestStepKey, Attachment
 } from '../../types';
 import {ReporterTestResult} from './index';
 import {getSuitePath} from '../../plugin-utils';
@@ -58,6 +58,7 @@ const getHistory = (history?: TestplaneTestResult['history']): TestStepCompresse
             [TestStepKey.Name]: h[TestStepKey.Name],
             [TestStepKey.Args]: h[TestStepKey.Args],
             [TestStepKey.Duration]: h[TestStepKey.Duration],
+            [TestStepKey.TimeStart]: h[TestStepKey.TimeStart],
             [TestStepKey.IsFailed]: h[TestStepKey.IsFailed],
             [TestStepKey.IsGroup]: h[TestStepKey.IsGroup]
         };
@@ -269,5 +270,9 @@ export class TestplaneTestResultAdapter implements ReporterTestResult {
 
     get duration(): number {
         return this._duration;
+    }
+
+    get attachments(): Attachment[] {
+        return [];
     }
 }

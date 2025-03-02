@@ -1,6 +1,6 @@
 import {Flex} from '@gravity-ui/uikit';
 import classNames from 'classnames';
-import React, {ReactNode, useRef} from 'react';
+import React, {ReactNode, useLayoutEffect, useRef, useState} from 'react';
 import {connect, useSelector} from 'react-redux';
 import {useParams} from 'react-router-dom';
 import {bindActionCreators} from 'redux';
@@ -28,8 +28,9 @@ import {TreeViewSkeleton} from '@/static/new-ui/features/suites/components/Suite
 import {TreeActionsToolbar} from '@/static/new-ui/features/suites/components/TreeActionsToolbar';
 import {findTreeNodeById, getGroupId} from '@/static/new-ui/features/suites/utils';
 import {TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
-import {NEW_ISSUE_LINK} from '@/constants';
+import {NEW_ISSUE_LINK, TimeTravelFeature} from '@/constants';
 import {ErrorHandler} from '../../../error-handling/components/ErrorHandling';
+import {TestInfo} from '@/static/new-ui/experiments/time-travel/components/TestInfo';
 
 interface SuitesPageProps {
     actions: typeof actions;
@@ -76,57 +77,70 @@ function SuitesPageInternal({currentResult, actions, treeNodeId}: SuitesPageProp
         });
     };
 
-    return <div className={styles.container}>
-        <SplitViewLayout sections={[
-            <UiCard className={classNames(styles.card, styles.treeViewCard)} key='tree-view'>
-                <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try to reload page'}/>}>
-                    <h2 className={classNames('text-display-1', styles['card__title'])}>Suites</h2>
-                    <Flex gap={2}>
-                        <TestNameFilter/>
-                        <BrowsersSelect/>
-                    </Flex>
-                    <TestStatusFilter/>
-                    <TreeActionsToolbar onHighlightCurrentTest={onHighlightCurrentTest} />
-                    {isInitialized && <SuitesTreeView ref={suitesTreeViewRef}/>}
-                    {!isInitialized && <TreeViewSkeleton/>}
-                </ErrorHandler.Boundary>
-            </UiCard>,
+    const isTimeTravelEnabled = useSelector(state => state.app.availableFeatures.some(f => f.name === TimeTravelFeature.name));
 
-            <UiCard className={classNames(styles.card, styles.testViewCard)} key="test-view">
-                <ErrorHandler.Boundary watchFor={[currentResult, suiteIdParam, isInitialized]} fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try to choose another item'}/>}>
-                    {currentResult && <>
-                        <div className={styles.stickyHeader}>
-                            <SuiteTitle
-                                className={styles['card__title']}
-                                suitePath={currentResult.suitePath}
-                                browserName={currentResult.name}
-                                index={currentIndex}
-                                totalItems={visibleTreeNodeIds.length}
-                                onNext={(): void => onPrevNextSuiteHandler(1)}
-                                onPrevious={(): void => onPrevNextSuiteHandler(-1)} />
-                            <AttemptPicker onChange={onAttemptChangeHandler} />
-                        </div>
+    const [stickyHeaderElement, setStickyHeaderElement] = useState<HTMLDivElement | null>(null);
+    const [stickyHeaderHeight, setStickyHeaderHeight] = useState(0);
+    useLayoutEffect(() => {
+        if (!stickyHeaderElement) {
+            return;
+        }
+        setStickyHeaderHeight(stickyHeaderElement.clientHeight);
+        const resizeObserver = new ResizeObserver((entries) => {
+            setStickyHeaderHeight(entries[0].contentRect.height);
+        });
+        resizeObserver.observe(stickyHeaderElement);
 
-                        <CollapsibleSection title={'Overview'} id={'overview'} className={styles['collapsible-section-overview']} body={
-                            currentResult &&
-                            <div className={styles['collapsible-section__body']}>
-                                <ErrorHandler.Boundary watchFor={[currentResult]} fallback={<ErrorHandler.FallbackDataCorruption />}>
-                                    <MetaInfo resultId={currentResult.id} />
-                                </ErrorHandler.Boundary>
-                            </div>
-                        }/>
+        return () => resizeObserver.disconnect();
+    }, [stickyHeaderElement]);
 
-                        <ErrorHandler.Boundary watchFor={[currentResult]} fallback={<ErrorHandler.FallbackDataCorruption />}>
-                            <TestSteps />
-                        </ErrorHandler.Boundary>
+    return <div className={styles.container}><SplitViewLayout>
+        <UiCard className={classNames(styles.card, styles.treeViewCard)} key='tree-view'>
+            <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try to reload page'}/>}>
+                <h2 className={classNames('text-display-1', styles['card__title'])}>Suites</h2>
+                <Flex gap={2}>
+                    <TestNameFilter/>
+                    <BrowsersSelect/>
+                </Flex>
+                <TestStatusFilter/>
+                <TreeActionsToolbar onHighlightCurrentTest={onHighlightCurrentTest} />
+                {isInitialized && <SuitesTreeView ref={suitesTreeViewRef}/>}
+                {!isInitialized && <TreeViewSkeleton/>}
+            </ErrorHandler.Boundary>
+        </UiCard>
+        <UiCard key="test-view" className={classNames(styles.card, styles.testViewCard)} style={{'--sticky-header-height': stickyHeaderHeight + 'px'} as React.CSSProperties}>
+            <ErrorHandler.Boundary watchFor={[currentResult, suiteIdParam, isInitialized]} fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try to choose another item'}/>}>
+                {currentResult && <>
+                    <div className={styles.stickyHeader} ref={(ref): void => setStickyHeaderElement(ref)}>
+                        <SuiteTitle
+                            className={styles['card__title']}
+                            suitePath={currentResult.suitePath}
+                            browserName={currentResult.name}
+                            index={currentIndex}
+                            totalItems={visibleTreeNodeIds.length}
+                            onNext={(): void => onPrevNextSuiteHandler(1)}
+                            onPrevious={(): void => onPrevNextSuiteHandler(-1)}/>
+                        <AttemptPicker onChange={onAttemptChangeHandler}/>
+                    </div>
+
+                    {isTimeTravelEnabled ? <TestInfo/> : <>
+                        <CollapsibleSection id={'overview'} title={'Overview'} className={styles['collapsible-section-overview']}>
+                            {currentResult && <div className={styles['collapsible-section__body']}>
+                                <MetaInfo resultId={currentResult.id} />
+                            </div>}
+                        </CollapsibleSection>
+                        <CollapsibleSection id={'steps'} title={'Steps'}>
+                            <ErrorHandler.Boundary watchFor={[currentResult]} fallback={<ErrorHandler.FallbackDataCorruption />}>
+                                <TestSteps />
+                            </ErrorHandler.Boundary>
+                        </CollapsibleSection>
                     </>}
-
-                    {!suiteIdParam && !currentResult && <div className={styles.hintContainer}><span className={styles.hint}>Select a test to see details</span></div>}
-                    {suiteIdParam && !isInitialized && <TestInfoSkeleton />}
-                </ErrorHandler.Boundary>
-            </UiCard>
-        ]} />
-    </div>;
+                </>}
+                {!suiteIdParam && !currentResult && <div className={styles.hintContainer}><span className={styles.hint}>Select a test to see details</span></div>}
+                {suiteIdParam && !isInitialized && <TestInfoSkeleton />}
+            </ErrorHandler.Boundary>
+        </UiCard>
+    </SplitViewLayout></div>;
 }
 
 export const SuitesPage = connect(

@@ -1,0 +1,67 @@
+.replayer-root-container {
+    padding: 15px 35px;
+    position: relative;
+}
+
+.replayer-lines-container {
+    position: relative;
+    left: 50%;
+    translate: -50% 0;
+}
+
+.replayer-container {
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.line-horizontal {
+    width: calc(100% + 5rem);
+    position: absolute;
+    left: 50%;
+    translate: -50% 0;
+    height: 1px;
+    background-color: #e9e9e9;
+    mask-image: linear-gradient(270deg, #0000, #fff 4rem, #fff calc(100% - 4rem), #0000);
+}
+
+.line-horizontal-top {
+    top: -1px;
+}
+
+.line-horizontal-bottom {
+    bottom: -1px;
+}
+
+.line-vertical {
+    height: calc(100% + 3rem);
+    position: absolute;
+    top: 50%;
+    translate: 0 -50%;
+    width: 1px;
+    background-color: #e9e9e9;
+    mask-image: linear-gradient(0deg, #0000, #fff 2rem, #fff calc(100% - 2rem), #0000);
+}
+
+.line-vertical-left {
+    left: -1px;
+}
+
+.line-vertical-right {
+    right: -1px;
+}
+
+.replayer-container :global(.replayer-wrapper) {
+    scale: var(--scale-factor);
+}
+
+.replayer-container :global(.replayer-wrapper) iframe {
+    border: none;
+}
+
+.buttons-container {
+    display: flex;
+    column-gap: 14px;
+    align-items: center;
+}

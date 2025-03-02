@@ -1,6 +1,7 @@
 import {CoordBounds} from 'looks-same';
-import {DiffModeId, Feature, TestStatus, ViewMode} from '@/constants';
+import {BrowserFeature, DiffModeId, Feature, TestStatus, ViewMode} from '@/constants';
 import {
+    Attachment,
     BrowserItem,
     ImageFile,
     RefImageFile,
@@ -77,6 +78,7 @@ export interface ResultEntityCommon {
     name: string;
     skipReason?: string;
     duration?: number;
+    attachments?: Attachment[];
 }
 
 export interface ResultEntityError extends ResultEntityCommon {
@@ -275,6 +277,9 @@ export interface State {
         guiServerConnection: {
             isConnected: boolean;
         };
+        snapshots: {
+            currentPlayerTime: number;
+        }
     };
     ui: {
         suitesPage: {
@@ -289,6 +294,7 @@ export interface State {
         };
     };
     browsers: BrowserItem[];
+    browserFeatures: Record<string, BrowserFeature[]>;
     tree: TreeEntity;
     view: {
         diffMode: DiffModeId;

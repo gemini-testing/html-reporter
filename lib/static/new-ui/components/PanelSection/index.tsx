@@ -4,14 +4,14 @@ import styles from './index.module.css';
 
 interface PanelSectionProps {
     title: string;
-    description: ReactNode;
+    description?: ReactNode;
     children?: ReactNode;
 }
 
 export function PanelSection(props: PanelSectionProps): ReactNode {
     return <div>
         <div className={classNames('text-header-1')}>{props.title}</div>
-        <div className={styles.description}>{props.description}</div>
+        {props.description && <div className={styles.description}>{props.description}</div>}
         {props.children}
     </div>;
 }

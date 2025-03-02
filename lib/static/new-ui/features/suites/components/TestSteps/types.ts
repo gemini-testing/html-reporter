@@ -16,6 +16,7 @@ export interface Action {
     title: string;
     args: string[];
     duration?: number;
+    startTime?: number;
     isGroup: boolean;
     hasChildren: boolean;
 }

@@ -129,6 +129,9 @@ export default Object.assign({config: configDefaults}, {
         },
         guiServerConnection: {
             isConnected: false
+        },
+        snapshots: {
+            currentPlayerTime: 0
         }
     },
     ui: {
@@ -143,5 +146,6 @@ export default Object.assign({config: configDefaults}, {
             offset: {x: 0, y: 0}
         }
     },
-    timestamp: 0
+    timestamp: 0,
+    browserFeatures: {}
 }) satisfies State;

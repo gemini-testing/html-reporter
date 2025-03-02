@@ -23,6 +23,7 @@ interface TreeListItemProps<T> {
     mapItemDataToContentProps: (data: T) => ListItemViewContentType;
     status?: 'error' | 'corrupted';
     onItemClick?: (data: {id: string}) => unknown;
+    onMouseMove?: () => unknown;
 }
 
 export function TreeViewItem<T>(props: TreeListItemProps<T>): ReactNode {
@@ -33,6 +34,7 @@ export function TreeViewItem<T>(props: TreeListItemProps<T>): ReactNode {
         spacing={{pt: 1}}
     >
         <ListItemView
+            onMouseMove={props.onMouseMove}
             className={classNames([styles.treeViewItem, {
                 [styles['tree-view-item--corrupted']]: props.status === 'corrupted',
                 [styles['tree-view-item--error']]: props.status === 'error'
