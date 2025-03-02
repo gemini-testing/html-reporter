@@ -1,6 +1,12 @@
-.replayer-container-container {
+.replayer-root-container {
     padding: 15px 35px;
     position: relative;
+}
+
+.replayer-lines-container {
+    position: relative;
+    left: 50%;
+    translate: -50% 0;
 }
 
 .replayer-container {
@@ -11,7 +17,7 @@
 }
 
 .line-horizontal {
-    width: 100%;
+    width: calc(100% + 5rem);
     position: absolute;
     left: 50%;
     translate: -50% 0;
@@ -21,15 +27,15 @@
 }
 
 .line-horizontal-top {
-    top: 14px;
+    top: -1px;
 }
 
 .line-horizontal-bottom {
-    bottom: 14px;
+    bottom: -1px;
 }
 
 .line-vertical {
-    height: 102%;
+    height: calc(100% + 3rem);
     position: absolute;
     top: 50%;
     translate: 0 -50%;
@@ -39,16 +45,15 @@
 }
 
 .line-vertical-left {
-    left: 34px;
+    left: -1px;
 }
 
 .line-vertical-right {
-    right: 34px;
+    right: -1px;
 }
 
 .replayer-container :global(.replayer-wrapper) {
     scale: var(--scale-factor);
-    outline: 1px solid #eee;
 }
 
 .replayer-container :global(.replayer-wrapper) iframe {

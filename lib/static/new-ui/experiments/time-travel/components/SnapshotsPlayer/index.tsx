@@ -181,16 +181,22 @@ export function SnapshotsPlayer(): ReactNode {
         playerRef.current?.pause(currentHighlightPlayerTime - playerRef.current?.getMetaData().startTime);
     }, [currentHighlightPlayerTime]);
 
+    const playerStyle: React.CSSProperties = {
+        aspectRatio: `${playerWidth} / ${playerHeight}`,
+        maxWidth: `${playerWidth}px`,
+        maxHeight: `calc(100vh - var(--sticky-header-height) - 150px)`
+    };
+
     return <div>
-        <div className={styles.replayerContainerContainer} style={{'--scale-factor': scaleFactor} as React.CSSProperties}>
-            <div className={classNames(styles.lineHorizontal, styles.lineHorizontalTop)}></div>
-            <div className={classNames(styles.lineHorizontal, styles.lineHorizontalBottom)}></div>
-            <div className={classNames(styles.lineVertical, styles.lineVerticalLeft)}></div>
-            <div className={classNames(styles.lineVertical, styles.lineVerticalRight)}></div>
-            <div className={styles.replayerContainer} ref={playerElementRef} style={{
-                aspectRatio: `${playerWidth} / ${playerHeight}`,
-                maxWidth: `${playerWidth}px`
-            }}></div>
+        <div className={styles.replayerRootContainer} style={{'--scale-factor': scaleFactor} as React.CSSProperties}>
+            <div className={styles.replayerLinesContainer} style={playerStyle}>
+                <div className={classNames(styles.lineHorizontal, styles.lineHorizontalTop)}></div>
+                <div className={classNames(styles.lineHorizontal, styles.lineHorizontalBottom)}></div>
+                <div className={classNames(styles.lineVertical, styles.lineVerticalLeft)}></div>
+                <div className={classNames(styles.lineVertical, styles.lineVerticalRight)}></div>
+
+                <div className={styles.replayerContainer} ref={playerElementRef} style={playerStyle}></div>
+            </div>
         </div>
         <div className={styles.buttonsContainer}>
             <Button disabled={totalTime === 0} onClick={onPlayClick} view={'flat'}><Icon
