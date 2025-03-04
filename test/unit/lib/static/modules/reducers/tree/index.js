@@ -1657,7 +1657,7 @@ describe('lib/static/modules/reducers/tree', () => {
                 const tree = mkStateTree({suitesById, browsersById, resultsById, suitesStateById, browsersStateById, suitesAllRootIds});
                 const view = mkActionStateView({
                     viewMode: ViewMode.FAILED,
-                    testNameFilter: 's2',
+                    testNameFilter: 'suite-2',
                     strictMatchFilter: true,
                     filteredBrowsers: [{id: 'c1', versions: []}]
                 });
@@ -1715,7 +1715,7 @@ describe('lib/static/modules/reducers/tree', () => {
                 const tree = mkStateTree({suitesById, browsersById, resultsById, suitesStateById, browsersStateById, suitesAllRootIds});
                 const view = mkActionStateView({
                     viewMode: ViewMode.FAILED,
-                    testNameFilter: 's1',
+                    testNameFilter: 'brow1',
                     strictMatchFilter: true,
                     filteredBrowsers: [{id: 'b1', versions: []}]
                 });

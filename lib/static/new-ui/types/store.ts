@@ -307,6 +307,8 @@ export interface State {
     view: {
         diffMode: DiffModeId;
         testNameFilter: string;
+        useRegexFilter: boolean;
+        useMatchCaseFilter: boolean;
         viewMode: ViewMode;
         filteredBrowsers: BrowserItem[];
         /** @deprecated Use tree.groups instead. */

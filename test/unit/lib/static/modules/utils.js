@@ -125,6 +125,18 @@ describe('static/modules/utils', () => {
             it('test name matches on filter strictly', () => {
                 assert.isTrue(utils.isTestNameMatchFilters('some-test-name', 'some-browser', 'some-test-name', true));
             });
+
+            it('test name matches on matchCase', () => {
+                assert.isTrue(utils.isTestNameMatchFilters('some-test-name', 'some-browser', 'some-test-name', false, true));
+            });
+
+            it('test name matches on Regex', () => {
+                assert.isTrue(utils.isTestNameMatchFilters('some-test-name', 'some-browser', '^[a-z]+(-[a-z]+)*$', false, false, true));
+            });
+
+            it('test name matches on matchCase and on Regex', () => {
+                assert.isTrue(utils.isTestNameMatchFilters('some-test-name', 'some-browser', '^[a-z]+(-[a-z]+)*$', false, true, true));
+            });
         });
 
         it('should return "false" if', () => {
