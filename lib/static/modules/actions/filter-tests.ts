@@ -9,6 +9,16 @@ export const updateTestNameFilter = (testNameFilter: UpdateTestNameFilterAction[
     return {type: actionNames.VIEW_UPDATE_FILTER_BY_NAME, payload: testNameFilter};
 };
 
+export type UpdateMatchCaseFilterAction = Action<typeof actionNames.VIEW_UPDATE_FILTER_MATCH_CASE, boolean>;
+export const updateMatchCaseFilter = (matchCaseFilter: UpdateMatchCaseFilterAction['payload']): UpdateMatchCaseFilterAction => {
+    return {type: actionNames.VIEW_UPDATE_FILTER_MATCH_CASE, payload: matchCaseFilter};
+};
+
+export type UpdateUseRegexFilterAction = Action<typeof actionNames.VIEW_UPDATE_FILTER_USE_REGEX, boolean>;
+export const updateUseRegexFilter = (useRegexFilter: UpdateUseRegexFilterAction['payload']): UpdateUseRegexFilterAction => {
+    return {type: actionNames.VIEW_UPDATE_FILTER_USE_REGEX, payload: useRegexFilter};
+};
+
 export type SetStrictMatchFilterAction = Action<typeof actionNames.VIEW_SET_STRICT_MATCH_FILTER, boolean>;
 export const setStrictMatchFilter = (strictMatchFilter: SetStrictMatchFilterAction['payload']): SetStrictMatchFilterAction => {
     return {type: actionNames.VIEW_SET_STRICT_MATCH_FILTER, payload: strictMatchFilter};
@@ -31,6 +41,8 @@ export const changeViewMode = (payload: ChangeViewModeAction['payload']): Change
 
 export type FilterTestsAction =
     | UpdateTestNameFilterAction
+    | UpdateMatchCaseFilterAction
+    | UpdateUseRegexFilterAction
     | SetStrictMatchFilterAction
     | SelectBrowsersAction
     | ChangeViewModeAction;
