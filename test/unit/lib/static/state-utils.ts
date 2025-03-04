@@ -134,6 +134,8 @@ export const mkStateTree = (
 export interface View {
     viewMode: ViewMode,
     testNameFilter: string,
+    useRegexFilter: boolean,
+    useMatchCaseFilter: boolean,
     strictMatchFilter: boolean,
     filteredBrowsers: {id: string, versions: string[]}[],
     keyToGroupTestsBy: string
@@ -143,6 +145,8 @@ export const mkStateView = (opts = {}): View => {
     return defaults(opts, {
         viewMode: ViewMode.ALL,
         testNameFilter: '',
+        useRegexFilter: false,
+        useMatchCaseFilter: false,
         strictMatchFilter: false,
         filteredBrowsers: [],
         keyToGroupTestsBy: ''

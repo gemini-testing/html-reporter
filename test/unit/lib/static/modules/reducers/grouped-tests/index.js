@@ -27,6 +27,8 @@ describe('lib/static/modules/reducers/grouped-tests', () => {
         return defaults(opts, {
             viewMode: ViewMode.ALL,
             testNameFilter: '',
+            useMatchCaseFilter: false,
+            useRegexFilter: false,
             strictMatchFilter: false,
             filteredBrowsers: []
         });
