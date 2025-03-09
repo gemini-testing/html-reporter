@@ -38,17 +38,17 @@ export function SettingsPanel(): ReactNode {
     const availableFeatures = useSelector(state => state.app.availableFeatures);
     const isTimeTravelExperimentAvailable = availableFeatures.find(f => f.name === ShowTimeTravelExperimentFeature.name);
 
-    const isTimeTravelEnabled = availableFeatures.some(f => f.name === TimeTravelFeature.name);
+    const isTimeTravelAvailable = availableFeatures.some(f => f.name === TimeTravelFeature.name);
     const onTimeTravelUpdate = (enabled: boolean): void => {
-        if (enabled && !isTimeTravelEnabled) {
+        if (enabled && !isTimeTravelAvailable) {
             dispatch(setAvailableFeatures({features: [...availableFeatures, TimeTravelFeature]}));
-        } else if (!enabled && isTimeTravelEnabled) {
+        } else if (!enabled && isTimeTravelAvailable) {
             dispatch(setAvailableFeatures({features: availableFeatures.filter(f => f.name !== TimeTravelFeature.name)}));
         }
     };
 
     if (isTimeTravelExperimentAvailable) {
-        experimentalToggles.push(<NamedSwitch key={'time-travel'} title={'Time Travel'} description={'Enables new test steps UI, DOM snapshots player and debug mode.'} checked={isTimeTravelEnabled} onUpdate={onTimeTravelUpdate} />);
+        experimentalToggles.push(<NamedSwitch key={'time-travel'} title={'Time Travel'} description={'Enables new test steps UI, DOM snapshots player and debug mode.'} checked={isTimeTravelAvailable} onUpdate={onTimeTravelUpdate} />);
     }
 
     return <AsidePanel title={'Settings'}>

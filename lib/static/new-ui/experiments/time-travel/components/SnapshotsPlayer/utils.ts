@@ -121,7 +121,7 @@ export const useLiveSnapshotsStream = (currentResult: ResultEntity | null, onSna
             browserId: currentResult.name
         }).toString();
 
-        fetch(`/snapshots-in-progress?${queryParams}`).then(response => {
+        fetch(`/running-test-data?${queryParams}`).then(response => {
             if (!response.ok) {
                 throw new Error(`Failed to fetch snapshots: ${response.statusText}`);
             }
@@ -130,10 +130,9 @@ export const useLiveSnapshotsStream = (currentResult: ResultEntity | null, onSna
         }).then((data) => {
             const initialSnapshots = (data as {rrwebSnapshots: NumberedSnapshot[]}).rrwebSnapshots;
 
-            let queueStart = 0;
-            while (queuedSnapshots.current[queueStart] && initialSnapshots.length > 0 && queuedSnapshots.current[queueStart].seqNo <= initialSnapshots[initialSnapshots.length - 1].seqNo) {
-                queueStart++;
-            }
+            // Here, we find a point at which we need to join backend snapshots with received snapshots as they may intersect
+            const lastInitialSnapshot = initialSnapshots[initialSnapshots.length - 1];
+            const queueStart = queuedSnapshots.current.findIndex(snapshot => snapshot.seqNo === lastInitialSnapshot.seqNo) + 1;
 
             queuedSnapshots.current = [...initialSnapshots, ...queuedSnapshots.current.slice(queueStart)];
             areSnapshotsLoaded.current = true;

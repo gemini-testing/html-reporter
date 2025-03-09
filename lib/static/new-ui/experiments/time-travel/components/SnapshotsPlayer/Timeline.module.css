@@ -29,8 +29,7 @@
     width: 6px;
     background: #6c47ff;
     left: -6px;
-    border-top-left-radius: 100px;
-    border-bottom-left-radius: 100px;
+    border-radius: 100px 0 0 100px;
 }
 
 .player-progress-right-cap {
@@ -39,8 +38,7 @@
     width: 4px;
     background: #F1F5F9;
     right: -4px;
-    border-top-right-radius: 100px;
-    border-bottom-right-radius: 100px;
+    border-radius: 0 100px 100px 0;
 }
 
 .player-progress-knob-bg {

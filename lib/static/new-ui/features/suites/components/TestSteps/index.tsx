@@ -35,7 +35,7 @@ interface TestStepProps {
 
 interface TestStepPropsActionable extends TestStepProps {
     onItemClick: TestStepClickHandler;
-    onItemMouseMove: (...args: unknown[]) => unknown;
+    onItemMouseMove: (time: number) => unknown;
     index: number;
 
 }
@@ -155,7 +155,7 @@ function TestStepsInternal(props: TestStepsProps): ReactNode {
         {items.structure.visibleFlattenIds.map((itemId, index) =>
             (
                 <ErrorHandler.Boundary key={itemId} fallback={<ListItemCorrupted items={items} itemId={itemId}/>}>
-                    <TestStep key={itemId} onItemClick={onItemClick} items={items} itemId={itemId} index={index} onItemMouseMove={onItemMouseMove as any} />
+                    <TestStep key={itemId} onItemClick={onItemClick} items={items} itemId={itemId} index={index} onItemMouseMove={onItemMouseMove} />
                 </ErrorHandler.Boundary>
             )
         )}

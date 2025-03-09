@@ -15,11 +15,11 @@ export default (state: State, action: SomeAction): State => {
             const toolName = action.payload.apiValues?.toolName;
             if (toolName === ToolName.Testplane) {
                 features.push(ShowTimeTravelExperimentFeature);
-            }
 
-            const isTimeTravelAvailable = localStorageWrapper.getItem(getTimeTravelFeatureLocalStorageKey(toolName ?? ''), false);
-            if (isTimeTravelAvailable) {
-                features.push(TimeTravelFeature);
+                const isTimeTravelAvailable = localStorageWrapper.getItem(getTimeTravelFeatureLocalStorageKey(toolName ?? ''), false);
+                if (isTimeTravelAvailable) {
+                    features.push(TimeTravelFeature);
+                }
             }
 
             if (features.length > 0) {

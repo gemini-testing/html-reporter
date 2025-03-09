@@ -87,11 +87,6 @@ export function Timeline({totalTime, currentTime, onScrubStart, onScrubEnd}: Tim
     }, [isScrubbing, totalTime]);
 
     const onTimelineMouseDown = (e: React.MouseEvent): void => {
-        // if (isPlaying && playerRef.current) {
-        //     playerRef.current.pause();
-        //     setIsPlaying(false);
-        //     stopTimer();
-        // }
         const clickedTime = getTimeFromMouseEvent(e);
         setDisplayTime(clickedTime);
 

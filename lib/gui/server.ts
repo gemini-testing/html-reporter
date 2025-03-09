@@ -148,12 +148,12 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
         }
     });
 
-    server.get('/snapshots-in-progress', async (req, res): Promise<void> => {
+    server.get('/running-test-data', async (req, res): Promise<void> => {
         try {
             const {testPath, browserId} = req.query;
 
             if (!testPath || !browserId) {
-                res.status(400).json({error: 'Missing one of the required GET parameters: testPath or browserId'});
+                res.status(400).json({error: `Missing one of the required GET parameters: testPath or browserId. Received testPath: ${testPath}, browserId: ${browserId}`});
             }
 
             let parsedTestPath: string[];
@@ -176,7 +176,7 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
 
             res.json({rrwebSnapshots: snapshots});
         } catch (error) {
-            res.status(500).json({error: 'Internal Server Error'});
+            res.status(500).json({error: `Error while getting running test data: ${(error as Error).message}`});
         }
     });
 
