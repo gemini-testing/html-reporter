@@ -14,6 +14,10 @@ module.exports = {
             server: 8082,
             gui: 8072
         },
+        'testplane-tinder': {
+            server: 8086,
+            gui: 8076
+        },
         plugins: {
             server: 8084,
             gui: 8074

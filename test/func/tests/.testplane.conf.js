@@ -14,10 +14,11 @@ const serverHost = process.env.SERVER_HOST ?? 'host.docker.internal';
 const serverPort = process.env.SERVER_PORT ?? 8083;
 const projectUnderTest = process.env.PROJECT_UNDER_TEST;
 
-const isRunningGuiTests = projectUnderTest.includes('gui');
-const isRunningAnalyticsTests = projectUnderTest.includes('analytics');
+const isRunningGuiTests = projectUnderTest && projectUnderTest.includes('gui');
+const isRunningAnalyticsTests = projectUnderTest && projectUnderTest.includes('analytics');
+
 if (!projectUnderTest) {
-    throw 'Project under test was not specified';
+    console.warn('Project under test was not specified');
 }
 
 const commonConfig = getCommonConfig(__dirname);
