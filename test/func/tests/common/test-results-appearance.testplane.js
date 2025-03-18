@@ -85,12 +85,13 @@ describe('Test results appearance', () => {
         });
 
         it('should display error message, name and stack', async ({browser}) => {
+            const parentElement = await browser.$(
+                getTestSectionByNameSelector('test without screenshot') +
+                getTestStateByNameSelector('header') + '/..'
+            );
+
             for (const field of ['message', 'name', 'stack']) {
-                const errorMessage = await browser.$(
-                    getTestSectionByNameSelector('test without screenshot') +
-                    getTestStateByNameSelector('header') +
-                    getElementWithTextSelector('span', field) + '/..'
-                );
+                const errorMessage = await parentElement.$(getElementWithTextSelector('span', field) + '/..');
 
                 await expect(errorMessage).toBeDisplayed();
             }
@@ -149,11 +150,12 @@ describe('Test results appearance', () => {
         // eslint-disable-next-line no-undef
         testplane.only.in('chrome');
         it('should display error message, name and stack', async ({browser}) => {
+            const parentElement = await browser.$(
+                getTestSectionByNameSelector('test with successful assertView and error')
+            );
+
             for (const field of ['message', 'name', 'stack']) {
-                const errorMessage = browser.$(
-                    getTestSectionByNameSelector('test with successful assertView and error') +
-                    getElementWithTextSelector('span', field) + '/..'
-                );
+                const errorMessage = await parentElement.$(getElementWithTextSelector('span', field) + '/..');
 
                 await expect(errorMessage).toBeDisplayed();
             }
