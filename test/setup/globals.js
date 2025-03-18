@@ -2,11 +2,6 @@ const path = require('path');
 const chai = require('chai');
 const Promise = require('bluebird');
 
-require('jsdom-global')(``, {
-    url: 'http://localhost',
-    pretendToBeVisual: true
-});
-
 Promise.config({longStackTraces: true});
 
 global.sinon = require('sinon');
