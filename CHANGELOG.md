@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.15.0"></a>
+# [10.15.0](https://github.com/gemini-testing/html-reporter/compare/v10.14.1...v10.15.0) (2025-03-18)
+
+
+### Bug Fixes
+
+* fix metrika script syntax ([#637](https://github.com/gemini-testing/html-reporter/issues/637)) ([4a52e3a](https://github.com/gemini-testing/html-reporter/commit/4a52e3a))
+
+
+### Features
+
+* implement DOM snapshots replaying ([#638](https://github.com/gemini-testing/html-reporter/issues/638)) ([7fc2cd4](https://github.com/gemini-testing/html-reporter/commit/7fc2cd4))
+
+
+
 <a name="10.14.1"></a>
 ## [10.14.1](https://github.com/gemini-testing/html-reporter/compare/v10.14.0...v10.14.1) (2025-02-10)
 
