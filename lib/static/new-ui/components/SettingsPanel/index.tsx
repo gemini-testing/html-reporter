@@ -11,6 +11,9 @@ import styles from './index.module.css';
 import {AsidePanel} from '@/static/new-ui/components/AsidePanel';
 import {PanelSection} from '@/static/new-ui/components/PanelSection';
 import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
+import {NamedSwitch} from '@/static/new-ui/components/NamedSwitch';
+import {ShowTimeTravelExperimentFeature, TimeTravelFeature} from '@/constants';
+import {setAvailableFeatures} from '@/static/modules/actions/features';
 
 export function SettingsPanel(): ReactNode {
     const dispatch = useDispatch();
@@ -30,6 +33,24 @@ export function SettingsPanel(): ReactNode {
         window.location.pathname = window.location.pathname.replace(/\/new-ui(\.html)?$/, (_match, ending) => ending ? '/index.html' : '/');
     };
 
+    const experimentalToggles: ReactNode[] = [];
+
+    const availableFeatures = useSelector(state => state.app.availableFeatures);
+    const isTimeTravelExperimentAvailable = availableFeatures.find(f => f.name === ShowTimeTravelExperimentFeature.name);
+
+    const isTimeTravelAvailable = availableFeatures.some(f => f.name === TimeTravelFeature.name);
+    const onTimeTravelUpdate = (enabled: boolean): void => {
+        if (enabled && !isTimeTravelAvailable) {
+            dispatch(setAvailableFeatures({features: [...availableFeatures, TimeTravelFeature]}));
+        } else if (!enabled && isTimeTravelAvailable) {
+            dispatch(setAvailableFeatures({features: availableFeatures.filter(f => f.name !== TimeTravelFeature.name)}));
+        }
+    };
+
+    if (isTimeTravelExperimentAvailable) {
+        experimentalToggles.push(<NamedSwitch key={'time-travel'} title={'Time Travel'} description={'Enables new test steps UI, DOM snapshots player and debug mode.'} checked={isTimeTravelAvailable} onUpdate={onTimeTravelUpdate} />);
+    }
+
     return <AsidePanel title={'Settings'}>
         <PanelSection title={'Base Host'} description={<>URLs in Meta and in test steps&apos; commands are affected by this.</>}>
             <TextInput onChange={onBaseHostChange} value={baseHost}/>
@@ -44,5 +65,12 @@ export function SettingsPanel(): ReactNode {
         <PanelSection title={'Theme'} description={'Currently only light theme is available — stay tuned for night mode.'}>
             <Select className={classNames(styles.settingControl, 'regular-button')} value={['Light']} width={'max'} disabled={true}/>
         </PanelSection>
+
+        {experimentalToggles.length > 0 && <>
+            <Divider orientation={'horizontal'} className={styles.divider}/>
+            <PanelSection title={'Experiments'}>
+                {experimentalToggles}
+            </PanelSection>
+        </>}
     </AsidePanel>;
 }

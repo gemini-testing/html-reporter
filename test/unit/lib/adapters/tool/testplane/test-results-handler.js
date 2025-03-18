@@ -27,9 +27,12 @@ describe('lib/adapters/tool/testplane/test-results-handler', () => {
 
     const mkTestplaneTestResult = (opts = {}) => _.defaults(opts, {
         fullTitle: () => 'some-title',
+        title: 'some-title',
         browserId: 'some-browser',
         assertViewResults: [],
-        metaInfo: {}
+        metaInfo: {},
+        file: 'some-file',
+        id: 'some-title some-browser -1'
     });
 
     beforeEach(() => {
@@ -106,7 +109,7 @@ describe('lib/adapters/tool/testplane/test-results-handler', () => {
             const testplane = mkTestplane_();
             const testResult = mkTestplaneTestResult();
 
-            reportBuilder.getTestBranch.withArgs('some-id').returns('test-tree-branch');
+            reportBuilder.getTestBranch.withArgs('some-title some-browser -1').returns('test-tree-branch');
 
             handleTestResults(testplane, reportBuilder, client);
             await testplane.emitAsync(testplane.events.TEST_PENDING, testResult);
@@ -121,7 +124,7 @@ describe('lib/adapters/tool/testplane/test-results-handler', () => {
             const testplane = mkTestplane_();
             const testResult = mkTestplaneTestResult();
 
-            reportBuilder.getTestBranch.withArgs('some-id').returns('test-tree-branch');
+            reportBuilder.getTestBranch.withArgs('some-title some-browser -1').returns('test-tree-branch');
 
             handleTestResults(testplane, reportBuilder, client);
             testplane.emit(testplane.events.TEST_FAIL, testResult);

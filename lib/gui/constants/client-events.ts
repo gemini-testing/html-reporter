@@ -11,7 +11,9 @@ export const ClientEvents = {
 
     END: 'end',
 
-    CONNECTED: 'connected'
+    CONNECTED: 'connected',
+
+    DOM_SNAPSHOTS: 'DOM_SNAPSHOTS'
 } as const;
 
 export type ClientEvents = typeof ClientEvents;

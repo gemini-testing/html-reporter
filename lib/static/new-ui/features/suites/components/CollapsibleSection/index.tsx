@@ -13,7 +13,7 @@ import * as actions from '@/static/modules/actions';
 interface CollapsibleSectionProps {
     id: string;
     title: string;
-    body: ReactNode;
+    children?: ReactNode;
     className?: string;
 }
 
@@ -37,7 +37,7 @@ export function CollapsibleSectionInternal(props: CollapsibleSectionInternalProp
                 </Flex>;
             }}
         </Disclosure.Summary>
-        {props.body}
+        {props.children}
     </Disclosure>;
 }
 

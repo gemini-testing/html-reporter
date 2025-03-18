@@ -7,7 +7,7 @@ import {
     ImageInfoFull,
     ImageBase64,
     ImageFile,
-    RawSuitesRow, TestStepCompressed
+    RawSuitesRow, TestStepCompressed, Attachment
 } from '../../types';
 import {ReporterTestResult} from './index';
 import {Writable} from 'type-fest';
@@ -154,5 +154,13 @@ export class SqliteTestResultAdapter implements ReporterTestResult {
 
     get duration(): number {
         return this._testResult[DB_COLUMN_INDEXES.duration];
+    }
+
+    get attachments(): Attachment[] {
+        if (!_.has(this._parsedTestResult, 'attachments')) {
+            this._parsedTestResult.attachments = tryParseJson(this._testResult[DB_COLUMN_INDEXES.attachments]) as Attachment[];
+        }
+
+        return this._parsedTestResult.attachments as Attachment[];
     }
 }

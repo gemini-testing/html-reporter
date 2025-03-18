@@ -48,7 +48,8 @@ describe('lib/sqlite-client', () => {
             {cid: 11, name: 'multipleTabs', type: 'INT'},
             {cid: 12, name: 'status', type: 'TEXT'},
             {cid: 13, name: 'timestamp', type: 'INT'},
-            {cid: 14, name: 'duration', type: 'INT'}
+            {cid: 14, name: 'duration', type: 'INT'},
+            {cid: 15, name: 'attachments', type: 'TEXT'}
         ];
 
         const columns = db.prepare('PRAGMA table_info(suites);').all();

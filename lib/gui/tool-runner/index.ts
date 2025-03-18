@@ -28,10 +28,10 @@ import {
     DATABASE_URLS_JSON_NAME,
     LOCAL_DATABASE_NAME,
     PluginEvents,
-    UNKNOWN_ATTEMPT
+    UNKNOWN_ATTEMPT, BrowserFeature
 } from '../../constants';
 
-import type {ToolAdapter} from '../../adapters/tool';
+import {ToolAdapter} from '../../adapters/tool';
 import type {GuiCliOptions, ServerArgs} from '../index';
 import type {TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../../tests-tree-builder/gui';
 import type {ReporterTestResult} from '../../adapters/test-result';
@@ -47,7 +47,7 @@ import type {TestAdapter} from '../../adapters/test/index';
 import type {TestCollectionAdapter} from '../../adapters/test-collection';
 import type {ConfigAdapter} from '../../adapters/config';
 
-export type ToolRunnerTree = GuiReportBuilderResult & Pick<GuiCliOptions, 'autoRun'>;
+export type ToolRunnerTree = GuiReportBuilderResult & Pick<GuiCliOptions, 'autoRun'> & { browserFeatures: Record<string, BrowserFeature[]>} ;
 
 export interface UndoAcceptImagesResult {
     updatedImages: TreeImage[];
@@ -97,7 +97,11 @@ export class ToolRunner {
     }
 
     get tree(): ToolRunnerTree | null {
-        return this._tree;
+        if (!this._tree) {
+            return null;
+        }
+
+        return Object.assign({}, this._tree, {browserFeatures: this._toolAdapter.browserFeatures});
     }
 
     async initialize(): Promise<void> {
@@ -398,7 +402,7 @@ export class ToolRunner {
             reportBuilder.reuseTestsTree(testsTree);
         }
 
-        this._tree = {...reportBuilder.getResult(), autoRun};
+        this._tree = {...reportBuilder.getResult(), autoRun, browserFeatures: {}};
     }
 
     protected async _loadDataFromDatabase(): Promise<Tree | null> {

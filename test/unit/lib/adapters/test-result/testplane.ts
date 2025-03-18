@@ -115,7 +115,7 @@ describe('TestplaneTestResultAdapter', () => {
     it('should return test history', () => {
         const testResult = mkTestResult_({
             file: 'bar',
-            history: [mkTestStepCompressed({[TestStepKey.Name]: 'some-name'})],
+            history: [mkTestStepCompressed({[TestStepKey.Name]: 'some-name', [TestStepKey.TimeStart]: 1000})],
             err: {
                 message: 'some-message',
                 stack: 'some-stack',
@@ -126,7 +126,7 @@ describe('TestplaneTestResultAdapter', () => {
 
         const TestplaneTestResultAdapter = mkTestplaneTestResultAdapter(testResult);
 
-        assert.deepEqual(TestplaneTestResultAdapter.history, [mkTestStepCompressed({[TestStepKey.Name]: 'some-name'})]);
+        assert.deepEqual(TestplaneTestResultAdapter.history, [mkTestStepCompressed({[TestStepKey.Name]: 'some-name', [TestStepKey.TimeStart]: 1000})]);
     });
 
     it('should return test state', () => {

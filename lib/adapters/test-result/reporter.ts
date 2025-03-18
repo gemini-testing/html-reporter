@@ -1,5 +1,13 @@
 import {TestStatus} from '../../constants';
-import {TestError, ErrorDetails, ImageInfoFull, ImageBase64, ImageFile, TestStepCompressed} from '../../types';
+import {
+    TestError,
+    ErrorDetails,
+    ImageInfoFull,
+    ImageBase64,
+    ImageFile,
+    TestStepCompressed,
+    Attachment
+} from '../../types';
 import {ReporterTestResult} from './index';
 import _ from 'lodash';
 import {extractErrorDetails} from './utils';
@@ -110,5 +118,9 @@ export class ReporterTestAdapter implements ReporterTestResult {
 
     get duration(): number {
         return this._testResult.duration;
+    }
+
+    get attachments(): Attachment[] {
+        return this._testResult.attachments;
     }
 }

@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, {ReactNode} from 'react';
+import React, {Children, ReactNode} from 'react';
 import {useSelector} from 'react-redux';
 import Split from 'react-split';
 
@@ -9,7 +9,7 @@ import {getIsInitialized} from '@/static/new-ui/store/selectors';
 import styles from './SplitViewLayout.module.css';
 
 interface SplitViewLayoutProps {
-    sections: React.ReactNode[];
+    children: React.ReactNode;
 }
 
 export function SplitViewLayout(props: SplitViewLayoutProps): ReactNode {
@@ -43,7 +43,8 @@ export function SplitViewLayout(props: SplitViewLayoutProps): ReactNode {
     };
 
     const isInitialized = useSelector(getIsInitialized);
-    const sizes = props.sections.length > 1 ? [25, 75] : [100];
+    const sections = Children.toArray(props.children);
+    const sizes = sections.length > 1 ? [25, 75] : [100];
 
     return <Split
         direction={'horizontal'}
@@ -55,7 +56,7 @@ export function SplitViewLayout(props: SplitViewLayoutProps): ReactNode {
         gutter={createGutter}
         sizes={sizes}
     >
-        {props.sections.map((section, index) =>
+        {sections.map((section, index) =>
             <div
                 key={index}
                 className={classNames(styles.container, {[styles.containerCollapsed]: isHiddenByIndex[index], 'is-collapsed': isHiddenByIndex[index]})}

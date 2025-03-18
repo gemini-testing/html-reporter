@@ -30,6 +30,7 @@ export const getTestSteps = createSelector(
                         type: StepType.Action,
                         title: step[TestStepKey.Name],
                         duration: step[TestStepKey.Duration],
+                        startTime: step[TestStepKey.TimeStart],
                         status: step[TestStepKey.IsFailed] ? TestStatus.ERROR : TestStatus.SUCCESS,
                         args: step[TestStepKey.Args],
                         isGroup: step[TestStepKey.IsGroup],

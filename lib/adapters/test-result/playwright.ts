@@ -9,6 +9,7 @@ import {getError, getShortMD5, isImageDiffError, isNoRefImageError} from '../../
 import {ERROR, FAIL, SUCCESS, UPDATED, TestStatus, DEFAULT_TITLE_DELIMITER} from '../../constants';
 import {ErrorName} from '../../errors';
 import {
+    Attachment,
     DiffOptions,
     ErrorDetails,
     ImageFile,
@@ -158,6 +159,7 @@ const getHistory = (steps?: PlaywrightTestResult['steps']): TestStepCompressed[]
         [TestStepKey.Name]: step.title,
         [TestStepKey.Args]: [],
         [TestStepKey.IsFailed]: Boolean(step.error),
+        [TestStepKey.TimeStart]: step.startTime.getTime(),
         [TestStepKey.Duration]: step.duration,
         [TestStepKey.Children]: getHistory(step.steps),
         [TestStepKey.IsGroup]: step.steps?.length > 0
@@ -367,5 +369,9 @@ export class PlaywrightTestResultAdapter implements ReporterTestResult {
 
     get duration(): number {
         return this._testResult.duration;
+    }
+
+    get attachments(): Attachment[] {
+        return [];
     }
 }

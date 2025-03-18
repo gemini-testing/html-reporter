@@ -11,9 +11,14 @@ import {logger} from '../common-utils';
 import {initPluginsRoutes} from './routes/plugins';
 import {ServerArgs} from './index';
 import {ServerReadyData} from './api';
-import {ToolName} from '../constants';
+import {BrowserFeature, ToolName} from '../constants';
 import type {TestplaneToolAdapter} from '../adapters/tool/testplane';
 import {ToolRunnerTree} from './tool-runner';
+import {
+    getSnapshotHashWithoutAttempt,
+    snapshotsInProgress,
+    TestContext
+} from '../adapters/event-handling/testplane/snapshots';
 
 interface CustomGuiError {
     response: {
@@ -22,7 +27,7 @@ interface CustomGuiError {
     }
 }
 
-export type GetInitResponse = (ToolRunnerTree & {customGuiError?: CustomGuiError}) | null;
+export type GetInitResponse = (ToolRunnerTree & {customGuiError?: CustomGuiError} & { browserFeatures: Record<string, BrowserFeature[]>}) | null;
 
 export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
     const {toolAdapter} = args;
@@ -140,6 +145,38 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
             res.json(result);
         } catch (e) {
             res.status(INTERNAL_SERVER_ERROR).send({error: (e as Error).message});
+        }
+    });
+
+    server.get('/running-test-data', async (req, res): Promise<void> => {
+        try {
+            const {testPath, browserId} = req.query;
+
+            if (!testPath || !browserId) {
+                res.status(400).json({error: `Missing one of the required GET parameters: testPath or browserId. Received testPath: ${testPath}, browserId: ${browserId}`});
+            }
+
+            let parsedTestPath: string[];
+
+            try {
+                parsedTestPath = JSON.parse(testPath as string);
+                if (!Array.isArray(parsedTestPath)) {
+                    throw new Error('testPath must be a JSON string with an array');
+                }
+            } catch (error) {
+                res.status(400).json({error: 'Invalid testPath format'});
+
+                return;
+            }
+
+            const context: TestContext = {testPath: parsedTestPath, browserId: browserId as string};
+            const snapshotKey = getSnapshotHashWithoutAttempt(context);
+
+            const snapshots = snapshotsInProgress[snapshotKey] || [];
+
+            res.json({rrwebSnapshots: snapshots});
+        } catch (error) {
+            res.status(500).json({error: `Error while getting running test data: ${(error as Error).message}`});
         }
     });
 
