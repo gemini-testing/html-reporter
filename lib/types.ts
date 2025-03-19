@@ -171,12 +171,48 @@ export interface ErrorPattern {
     pattern: string;
 }
 
+/**
+ * Plugin configuration. Passed directly to the plugin.
+ */
+export type PluginConfig = Record<string, unknown>;
+
+export const PLUGIN_COMPONENT_POSITIONS = ['after', 'before', 'wrap'] as const;
+
+export type PluginComponentPosition = typeof PLUGIN_COMPONENT_POSITIONS[number];
+
+/**
+ * Description of configuration parameters
+ * @link https://testplane.io/docs/v8/html-reporter/html-reporter-plugins/
+ */
 export interface PluginDescription {
+    /**
+     * The name of the package with the plugin for the report.
+     * It is assumed that the plugin can be connected using require(name).
+     */
     name: string;
+    /**
+     * The name of the React component from the plugin.
+     */
     component: string;
+    /**
+     * The name of the extension point in the html-reporter plugin.
+     */
     point?: string;
-    position?: 'after' | 'before' | 'wrap';
-    config?: Record<string, unknown>;
+    /**
+     * Defines the method by which the component will be placed
+     * at the extension point of the html-report user interface.
+     *
+     * wrap: wrap the extension point in the UI
+     *
+     * before: place the component before the extension point
+     *
+     * after: place the component after the extension point
+     */
+    position?: PluginComponentPosition;
+     /**
+     * Plugin configuration. Passed directly to the plugin.
+     */
+    config?: PluginConfig
 }
 
 export interface CustomGuiItem {
