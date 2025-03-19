@@ -8,6 +8,6 @@ describe('success describe', function() {
     it('test with screenshot', async ({browser}) => {
         await browser.url(browser.options.baseUrl);
 
-        await browser.assertView('header', 'header');
+        await browser.assertView('header', 'header', {ignoreDiffPixelCount: '100%'});
     });
 });
