@@ -93,6 +93,15 @@ export const finalizeSnapshotsForTest = async ({testResult, attempt, reportPath,
         }
 
         const snapshotsSerialized = snapshots.map(s => JSON.stringify(s)).join('\n');
+        let maxWidth = 0, maxHeight = 0;
+        for (const snapshot of snapshots) {
+            if (snapshot.type === 4 && snapshot.data.width > maxWidth) {
+                maxWidth = snapshot.data.width;
+            }
+            if (snapshot.type === 4 && snapshot.data.height > maxHeight) {
+                maxHeight = snapshot.data.height;
+            }
+        }
 
         const zipFilePath = createSnapshotFilePath({
             attempt,
@@ -114,7 +123,9 @@ export const finalizeSnapshotsForTest = async ({testResult, attempt, reportPath,
         zipfile.outputStream.pipe(output).on('close', () => {
             done([{
                 type: AttachmentType.Snapshot,
-                path: zipFilePath
+                path: zipFilePath,
+                maxWidth,
+                maxHeight
             }]);
         });
 

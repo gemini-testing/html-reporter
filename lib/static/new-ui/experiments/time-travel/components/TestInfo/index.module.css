@@ -27,7 +27,7 @@
     position: sticky;
     top: calc(var(--sticky-header-height) + 45px);
     padding: 10px 20px;
-    flex-grow: 1;
+    /*flex-grow: 2;*/
 }
 
 .collapsible-section__body {
