@@ -1,5 +1,4 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
-import {NEW_ISSUE_LINK} from '@/constants';
 import {unzip} from 'fflate';
 import {ResultEntity} from '@/static/new-ui/types/store';
 import {useEventSource} from '@/static/new-ui/providers/event-source';
@@ -28,7 +27,6 @@ export const useScaleToFit = (container: HTMLElement | null, getElementToFit = (
 
             const elementToFit = getElementToFit(container);
             if (!elementToFit) {
-                console.warn(`Element to fit inside container was not found. If you are a report user and see this, please report it to us at ${NEW_ISSUE_LINK}.`);
                 return;
             }
             const elementWidth = elementToFit.clientWidth;
@@ -47,8 +45,8 @@ export const useScaleToFit = (container: HTMLElement | null, getElementToFit = (
     return scaleFactor;
 };
 
-export const loadSnapshotsFromZip = async (zipUrl: string): Promise<NumberedSnapshot[]> => {
-    const response = await fetch(zipUrl);
+export const loadSnapshotsFromZip = async (zipUrl: string, abortSignal?: AbortSignal): Promise<NumberedSnapshot[]> => {
+    const response = await fetch(zipUrl, {signal: abortSignal});
     if (!response.ok) {
         throw new Error([
             `Failed to fetch zip with snapshots by URL: ${zipUrl}.`,

@@ -3,10 +3,12 @@
     position: relative;
 }
 
-.replayer-lines-container {
+.replayer-container-centered {
     position: relative;
     left: 50%;
     translate: -50% 0;
+    display: flex;
+    align-items: center;
 }
 
 .replayer-container {
