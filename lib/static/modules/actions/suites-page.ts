@@ -11,6 +11,20 @@ export const setCurrentTreeNode = (payload: SuitesPageSetCurrentTreeNodeAction['
     return {type: actionNames.SUITES_PAGE_SET_CURRENT_SUITE, payload};
 };
 
+export type SuitesPageSetCurrentStepAction = Action<typeof actionNames.SUITES_PAGE_SET_CURRENT_STEP, Partial<{
+    stepId: string | null;
+}>>;
+export const setCurrentStep = (payload: SuitesPageSetCurrentStepAction['payload']): SuitesPageSetCurrentStepAction => {
+    return {type: actionNames.SUITES_PAGE_SET_CURRENT_STEP, payload};
+};
+
+export type SuitesPageSetCurrentHighlightStepAction = Action<typeof actionNames.SUITES_PAGE_SET_CURRENT_HIGHLIGHT_STEP, Partial<{
+    stepId: string | null;
+}>>;
+export const setCurrentHighlightStep = (payload: SuitesPageSetCurrentHighlightStepAction['payload']): SuitesPageSetCurrentHighlightStepAction => {
+    return {type: actionNames.SUITES_PAGE_SET_CURRENT_HIGHLIGHT_STEP, payload};
+};
+
 type SetTreeNodeExpandedStateAction = Action<typeof actionNames.SUITES_PAGE_SET_TREE_NODE_EXPANDED, {
     nodeId: string;
     isExpanded: boolean;
@@ -57,4 +71,6 @@ export type SuitesPageAction =
     | SetSectionExpandedStateAction
     | SetStepsExpandedStateAction
     | RevealTreeNodeAction
-    | SetTreeViewModeAction;
+    | SetTreeViewModeAction
+    | SuitesPageSetCurrentStepAction
+    | SuitesPageSetCurrentHighlightStepAction;

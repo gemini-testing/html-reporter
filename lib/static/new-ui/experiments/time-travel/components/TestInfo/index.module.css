@@ -22,7 +22,7 @@
 .sticky {
     flex-basis: 0;
     flex-shrink: 0;
-    max-height: 75vh;
+    /*max-height: 75vh;*/
     max-width: 60%;
     position: sticky;
     top: calc(var(--sticky-header-height) + 45px);
