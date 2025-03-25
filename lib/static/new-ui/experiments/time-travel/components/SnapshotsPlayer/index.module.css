@@ -67,3 +67,61 @@
     column-gap: 14px;
     align-items: center;
 }
+
+.buttons-container button {
+    transition: opacity .5s ease .5s;
+}
+
+.play-pause-button {
+    position: relative;
+}
+
+.play-pause-icon {
+    position: absolute;
+    transition: scale .3s ease-in-out, opacity .3s ease-in-out;
+    scale: 0;
+    opacity: 0;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    display: flex;
+}
+
+.play-pause-icon-visible {
+    scale: 1;
+    opacity: 1;
+}
+
+.loading-container {
+    color: var(--color-neutral-400);
+    font-weight: 450;
+    display: flex;
+    transition: opacity .5s ease .5s, visibility .5s ease .5s;
+    align-items: center;
+    gap: 2px;
+    /*justify-content: center;*/
+    /*width: 100vw;*/
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+}
+
+.loader {
+    /* To align it with text baseline */
+    translate: 0 4px;
+    width: 12px;
+    height: 10px;
+    aspect-ratio: 2;
+    --dot: no-repeat radial-gradient(circle closest-side, var(--color-neutral-400) 90%, #fff0);
+    background: var(--dot) 0% 50%, var(--dot) 50% 50%, var(--dot) 100% 50%;
+    background-size: calc(100% / 4) 50%;
+    animation: l3 1s infinite linear;
+}
+
+@keyframes l3 {
+    20%{background-position:0%   0%, 50%  50%,100%  50%}
+    40%{background-position:0% 100%, 50%   0%,100%  50%}
+    60%{background-position:0%  50%, 50% 100%,100%   0%}
+    80%{background-position:0%  50%, 50%  50%,100% 100%}
+}

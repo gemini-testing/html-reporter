@@ -145,6 +145,24 @@ export default (state: State, action: SomeAction): State => {
                 }
             }) as State;
         }
+        case actionNames.SUITES_PAGE_SET_CURRENT_STEP: {
+            return applyStateUpdate(state, {
+                app: {
+                    suitesPage: {
+                        currentStepId: action.payload.stepId
+                    }
+                }
+            });
+        }
+        case actionNames.SUITES_PAGE_SET_CURRENT_HIGHLIGHT_STEP: {
+            return applyStateUpdate(state, {
+                app: {
+                    suitesPage: {
+                        currentHighlightStepId: action.payload.stepId
+                    }
+                }
+            });
+        }
         default:
             return state;
     }

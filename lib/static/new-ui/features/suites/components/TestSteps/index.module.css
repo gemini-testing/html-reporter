@@ -28,3 +28,11 @@
     opacity: .4;
     white-space: nowrap;
 }
+
+.step {
+    transition: opacity .3s ease;
+}
+
+.step--dimmed {
+    opacity: 0.4;
+}

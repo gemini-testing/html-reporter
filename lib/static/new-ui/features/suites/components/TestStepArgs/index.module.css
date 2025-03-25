@@ -13,8 +13,8 @@
 
     border-radius: 4px;
     font-size: 16px;
-    color: var(--g-color-private-black-400);
-    background-color: var(--g-color-base-generic);
+    color: var(--color-tag-title, var(--g-color-private-black-400));
+    background-color: var(--color-tag-bg, var(--g-color-base-generic));
     margin-left: 8px;
     padding: 0 4px;
 }

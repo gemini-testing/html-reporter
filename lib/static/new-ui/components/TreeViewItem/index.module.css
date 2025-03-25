@@ -7,6 +7,8 @@
     --g-text-body-1-line-height: 22px;
     --g-text-body-font-weight: normal;
 
+    color: var(--color-title, #000);
+
     line-height: 20px;
 
     padding: 4px 0;
@@ -18,6 +20,15 @@
     padding-left: calc(var(--indent) * 24px);
 
     transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out;
+}
+
+.tree-view-item--active {
+    background: var(--g-color-base-brand);
+    --g-color-base-simple-hover: var(--g-color-base-brand);
+    --color-title: #fff;
+    --color-icon: #fff;
+    --color-tag-title: rgba(255, 255, 255, .7);
+    --color-tag-bg: rgba(255, 255, 255, .15);
 }
 
 .tree-view-item--error {

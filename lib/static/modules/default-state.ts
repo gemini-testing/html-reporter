@@ -103,7 +103,9 @@ export default Object.assign({config: configDefaults}, {
         suitesPage: {
             currentBrowserId: null,
             currentTreeNodeId: null,
-            currentGroupId: null
+            currentGroupId: null,
+            currentStepId: null,
+            currentHighlightStepId: null
         },
         visualChecksPage: {
             currentNamedImageId: null
@@ -130,8 +132,11 @@ export default Object.assign({config: configDefaults}, {
         guiServerConnection: {
             isConnected: false
         },
-        snapshots: {
-            currentPlayerTime: 0
+        snapshotsPlayer: {
+            isActive: false,
+            highlightStartTime: 0,
+            highlightEndTime: 0,
+            goToTime: 0
         }
     },
     ui: {

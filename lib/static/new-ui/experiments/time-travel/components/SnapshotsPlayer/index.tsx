@@ -4,17 +4,40 @@ import {Replayer} from '@rrweb/replay';
 import type {eventWithTime as RrwebEvent} from '@rrweb/types';
 import classNames from 'classnames';
 import React, {ReactNode, useCallback, useEffect, useRef, useState} from 'react';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import {TestStatus} from '@/constants';
 import {AttachmentType, ImageSize} from '@/types';
 import {getCurrentResult} from '@/static/new-ui/features/suites/selectors';
 import {Timeline} from './Timeline';
 import {NumberedSnapshot} from './types';
-import {useScaleToFit, loadSnapshotsFromZip, useLiveSnapshotsStream} from './utils';
+import {loadSnapshotsFromZip, useLiveSnapshotsStream, useScaleToFit} from './utils';
 
 import '@rrweb/replay/dist/style.css';
 import styles from './index.module.css';
+import {getTestSteps} from '@/static/new-ui/features/suites/components/TestSteps/selectors';
+import {setCurrentHighlightStep, setCurrentStep} from '@/static/modules/actions';
+import {Step, StepType} from '@/static/new-ui/features/suites/components/TestSteps/types';
+import {unstable_ListTreeItemType as ListTreeItemType} from '@gravity-ui/uikit/build/esm/unstable';
+import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
+
+const MIN_PLAYER_TIME = 10;
+
+const findActionByTime = (steps: ListTreeItemType<Step>[], startTime: number, time: number): ListTreeItemType<Step> | null => {
+    // TODO: support nested steps
+    for (const step of steps) {
+        if (step.data.type !== StepType.Action) {
+            continue;
+        }
+        const stepStartTime = step.data.startTime! - startTime;
+        const stepEndTime = step.data.startTime! - startTime + step.data.duration!;
+        if (time > stepStartTime && time < stepEndTime) {
+            return step;
+        }
+    }
+
+    return null;
+};
 
 export function SnapshotsPlayer(): ReactNode {
     const currentResult = useSelector(getCurrentResult);
@@ -27,6 +50,8 @@ export function SnapshotsPlayer(): ReactNode {
 
     const [playerWidth, setPlayerWidth] = useState<number>(1200);
     const [playerHeight, setPlayerHeight] = useState<number>(800);
+    const isLiveMaxSizeInitialized = useRef(false);
+    const [_isSizeInitialized, setIsSizeInitialized] = useState<boolean>(false);
     const [maxPlayerSize, setMaxPlayerSize] = useState<ImageSize>({height: 0, width: 0});
 
     const [totalTime, setTotalTime] = useState(0);
@@ -36,6 +61,19 @@ export function SnapshotsPlayer(): ReactNode {
     const [currentPlayerTime, setCurrentPlayerTime] = useState(0);
 
     const timerIdRef = useRef<number | null>(null);
+
+    const dispatch = useDispatch();
+    const analytics = useAnalytics();
+
+    useEffect(() => {
+        analytics?.trackFeatureUsage({featureName: 'Time Travel Player Render'});
+    }, []);
+
+    // const currentStepId = useSelector(state => state.app.suitesPage.currentStepId);
+    const lastSetStepId = useRef<string | null | undefined>(null);
+    const currentHighlightStepId = useSelector(state => state.app.suitesPage.currentHighlightStepId);
+    const testSteps = useSelector(getTestSteps);
+    const [snapshotZipDownloadProgress, setSnapshotZipDownloadProgress] = useState(0);
 
     const cancelTimeTicking = (): void => {
         if (timerIdRef.current) {
@@ -54,12 +92,51 @@ export function SnapshotsPlayer(): ReactNode {
             const meta = playerRef.current.getMetaData();
             setCurrentPlayerTime(currentTime);
 
+            const playerStartTime = playerRef.current.getMetaData().startTime;
+            const currentAction = findActionByTime(testSteps, playerStartTime, currentTime);
+            if (currentAction && currentAction.id !== lastSetStepId.current) {
+                console.log('MISMATCH', currentAction.id, lastSetStepId.current);
+                lastSetStepId.current = currentAction.id;
+                dispatch(setCurrentStep({stepId: currentAction.id}));
+            }
+            // for (const step of testSteps) {
+            //     if (step.data.type !== StepType.Action) {
+            //         continue;
+            //     }
+            //     const stepStartTime = step.data.startTime! - playerStartTime;
+            //     const stepEndTime = step.data.startTime! - playerStartTime + step.data.duration!;
+            //     if (currentStepId !== step.id && currentTime > stepStartTime && currentTime < stepEndTime) {
+            //         dispatch(setCurrentStep({stepId: step.id}));
+            //         break;
+            //     }
+            // }
+
             if (currentTime < meta.totalTime) {
                 timerIdRef.current = requestAnimationFrame(update);
             }
         }
 
         timerIdRef.current = requestAnimationFrame(update);
+    };
+
+    const setLastActionAsActive = (): void => {
+        if (!isPlaying) {
+            return;
+        }
+        const lastAction = testSteps.findLast(step => step.data.type === StepType.Action);
+        if (lastAction) {
+            dispatch(setCurrentStep({stepId: lastAction.id}));
+        }
+    };
+
+    const onPlayerFinishPlaying = (): void => {
+        if (isPlaying) {
+            finishedPlayingRef.current = true;
+        }
+        setIsPlaying(false);
+        cancelTimeTicking();
+
+        setLastActionAsActive();
     };
 
     const initializePlayer = useCallback((isLive = false): void => {
@@ -69,15 +146,18 @@ export function SnapshotsPlayer(): ReactNode {
 
         playerRef.current.enableInteract();
         playerRef.current.on('resize', (newSize) => {
+            setIsSizeInitialized(true);
+
             const size = newSize as {height: number; width: number};
             setPlayerHeight(size.height);
             setPlayerWidth(size.width);
+
+            if (isLive && !isLiveMaxSizeInitialized.current) {
+                isLiveMaxSizeInitialized.current = true;
+                setMaxPlayerSize({width: size.width, height: size.height});
+            }
         });
-        playerRef.current.on('finish', () => {
-            setIsPlaying(false);
-            finishedPlayingRef.current = true;
-            cancelTimeTicking();
-        });
+        playerRef.current.on('finish', onPlayerFinishPlaying);
 
         if (!isLive) {
             setTotalTime(playerRef.current.getMetaData().totalTime);
@@ -85,11 +165,16 @@ export function SnapshotsPlayer(): ReactNode {
             setTotalTime(0);
         }
         setCurrentPlayerTime(0);
-    }, []);
+    }, [isLiveMaxSizeInitialized]);
     const destroyPlayer = useCallback(() => {
         playerRef.current?.destroy();
         playerRef.current = null;
+        setIsSizeInitialized(false);
     }, []);
+
+    useEffect(() => {
+        isLiveMaxSizeInitialized.current = false;
+    }, [currentResult?.id]);
 
     const onLiveSnapshotsReceive = useCallback((snapshots: NumberedSnapshot[]) => {
         if (!playerRef.current) {
@@ -102,13 +187,22 @@ export function SnapshotsPlayer(): ReactNode {
 
         if (playerRef.current.service.state.value !== 'live') {
             if (snapshots.length > 0) {
-                playerRef.current.play(Date.now() - snapshots[0].timestamp);
+                try {
+                    // Under extremely rare circumstances this can throw. It wasn't clear why exactly.
+                    playerRef.current.play(Date.now() - snapshots[0].timestamp);
+                } catch {
+                    try {
+                        playerRef.current.startLive();
+                    } catch { /* */ }
+                }
             } else {
                 playerRef.current.startLive();
             }
         }
     }, []);
     const startStreaming = useLiveSnapshotsStream(currentResult, onLiveSnapshotsReceive);
+
+    const [isSnapshotZipLoading, setIsSnapshotZipLoading] = useState(false);
 
     useEffect(() => {
         if (!currentResult || !playerElement) {
@@ -134,10 +228,21 @@ export function SnapshotsPlayer(): ReactNode {
                 return;
             }
 
-            setMaxPlayerSize({width: snapshot.maxWidth, height: snapshot.maxHeight});
+            if (!isLiveMaxSizeInitialized.current) {
+                setMaxPlayerSize({width: snapshot.maxWidth, height: snapshot.maxHeight});
+            }
             abortControllerRef.current = new AbortController();
-            loadSnapshotsFromZip(snapshot.path, abortControllerRef.current.signal)
+            setIsSnapshotZipLoading(true);
+            setSnapshotZipDownloadProgress(0);
+            const downloadStartTime = new Date();
+            const onDownloadProgress = (progress: number): void => {
+                if (new Date().getTime() - downloadStartTime.getTime() > 500) {
+                    setSnapshotZipDownloadProgress(progress);
+                }
+            };
+            loadSnapshotsFromZip(snapshot.path, {abortSignal: abortControllerRef.current.signal, onDownloadProgress})
                 .then(events => {
+                    setIsSnapshotZipLoading(false);
                     customEventsRef.current = events.filter(event => event.type === 5 && event.data.tag === 'color-scheme-change');
 
                     playerRef.current = new Replayer(events, {
@@ -172,9 +277,12 @@ export function SnapshotsPlayer(): ReactNode {
 
     const onPlayClick = (): void => {
         if (!isPlaying) {
+            console.log('not is playing');
             if (finishedPlayingRef.current) {
+                console.log('finished playing. starting from beginning');
                 playerRef.current?.play();
             } else {
+                console.log('STARTING TO PLAY FROM CURRENT TIME: ', currentPlayerTime);
                 playerRef.current?.play(currentPlayerTime);
             }
             finishedPlayingRef.current = false;
@@ -192,8 +300,20 @@ export function SnapshotsPlayer(): ReactNode {
             playerRef.current.pause();
             setIsPlaying(false);
             cancelTimeTicking();
+            finishedPlayingRef.current = false;
         }
+        dispatch(setCurrentHighlightStep({stepId: null}));
     }, [isPlaying]);
+    const onScrub = useCallback((newTime: number) => {
+        if (playerRef.current) {
+            const playerStartTime = playerRef.current.getMetaData().startTime;
+            const currentAction = findActionByTime(testSteps, playerStartTime, newTime);
+            if (currentAction && currentAction.id !== lastSetStepId.current) {
+                lastSetStepId.current = currentAction.id;
+                dispatch(setCurrentStep({stepId: currentAction.id}));
+            }
+        }
+    }, [testSteps]);
     const onScrubEnd = useCallback((newTime: number) => {
         setCurrentPlayerTime(newTime);
         if (playerRef.current) {
@@ -209,14 +329,50 @@ export function SnapshotsPlayer(): ReactNode {
             }
 
             playerRef.current.pause(newTime);
-        }
-    }, []);
 
-    const currentHighlightPlayerTime = useSelector(state => state.app.snapshots.currentPlayerTime);
+            const playerStartTime = playerRef.current.getMetaData().startTime;
+            const currentAction = findActionByTime(testSteps, playerStartTime, newTime);
+            if (currentAction && currentAction.id !== lastSetStepId.current) {
+                lastSetStepId.current = currentAction.id;
+                dispatch(setCurrentStep({stepId: currentAction.id}));
+            }
+        }
+    }, [testSteps]);
+    const onTimelineHover = useCallback((newTime: number) => {
+        if (playerRef.current) {
+            finishedPlayingRef.current = false;
+            const playerStartTime = playerRef.current.getMetaData().startTime;
+            const currentAction = findActionByTime(testSteps, playerStartTime, newTime);
+            if (currentAction && currentAction.id !== currentHighlightStepId) {
+                dispatch(setCurrentHighlightStep({stepId: currentAction.id}));
+            }
+        }
+    }, [testSteps]);
+    const onTimelineMouseLeave = useCallback(() => {
+        dispatch(setCurrentHighlightStep({stepId: null}));
+    }, [dispatch]);
+
+    const currentPlayerHighlightState = useSelector(state => state.app.snapshotsPlayer);
 
     useEffect(() => {
-        playerRef.current?.pause(currentHighlightPlayerTime - playerRef.current?.getMetaData().startTime);
-    }, [currentHighlightPlayerTime]);
+        if (currentPlayerHighlightState.isActive) {
+            playerRef.current?.pause(currentPlayerHighlightState.highlightEndTime - playerRef.current?.getMetaData().startTime);
+            setIsPlaying(false);
+            cancelTimeTicking();
+        } else if (!isPlaying) {
+            playerRef.current?.pause(currentPlayerTime > 0 ? currentPlayerTime : MIN_PLAYER_TIME);
+        }
+    }, [currentPlayerHighlightState]);
+
+    useEffect(() => {
+        if (!playerRef.current) {
+            return;
+        }
+
+        const newPlayerTime = Math.max(currentPlayerHighlightState.goToTime - playerRef.current.getMetaData().startTime, MIN_PLAYER_TIME);
+        setCurrentPlayerTime(newPlayerTime);
+        playerRef.current.pause(newPlayerTime);
+    }, [currentPlayerHighlightState.goToTime]);
 
     const playerContainerStyle: React.CSSProperties = {
         aspectRatio: `${maxPlayerSize.width} / ${maxPlayerSize.height}`,
@@ -227,9 +383,17 @@ export function SnapshotsPlayer(): ReactNode {
 
     const playerStyle: React.CSSProperties = {
         aspectRatio: `${playerWidth} / ${playerHeight}`,
-        maxWidth: `${playerWidth}px`,
-        maxHeight: '100%'
+        maxWidth: `min(${playerWidth}px, 100%)`,
+        maxHeight: '100%',
+        // width: isSizeInitialized ? 'auto' : ''
     };
+
+    const isLive = currentResult?.status === TestStatus.RUNNING;
+    let playerStartTimestamp = 0;
+    try {
+        // This can throw if player hasn't received events yet.
+        playerStartTimestamp = playerRef.current?.getMetaData().startTime ?? 0;
+    } catch { /* */ }
 
     return <div>
         {/* This container defines how much space is available to the player in total and sets paddings. */}
@@ -243,18 +407,45 @@ export function SnapshotsPlayer(): ReactNode {
                     <div className={classNames(styles.lineVertical, styles.lineVerticalLeft)}></div>
                     <div className={classNames(styles.lineVertical, styles.lineVerticalRight)}></div>
 
-                    {/* This container is for the player itself and matches size of the outer container */}
-                    <div className={styles.replayerContainer} ref={playerElementRef} style={playerStyle}></div>
+                    <div className={styles.loadingContainer} style={{
+                        visibility: isSnapshotZipLoading ? 'visible' : 'hidden',
+                        opacity: isSnapshotZipLoading ? '1' : '0',
+                        transitionDelay: isSnapshotZipLoading ? '' : '0s'
+                    }}>
+                        <span>Loading snapshots data</span>
+                        <div className={styles.loader}/>
+                    </div>
 
-                    <div></div>
+                    {/* This container is for the player itself and matches size of the outer container */}
+                    <div className={styles.replayerContainer} ref={playerElementRef} style={playerStyle}>
+                        <div style={{width: '100vw'}}></div>
+                    </div>
                 </div>
             </div>
         </div>
         <div className={styles.buttonsContainer}>
-            <Button disabled={totalTime === 0} onClick={onPlayClick} view={'flat'}><Icon
-                data={isPlaying ? PauseFill : PlayFill} size={14}/></Button>
-            <Timeline currentTime={currentPlayerTime} totalTime={totalTime} onScrubStart={onScrubStart} onScrubEnd={onScrubEnd}/>
-            <Button disabled={true} view={'flat'}><Icon data={Gear}/></Button>
+            <Button onClick={onPlayClick} view={'flat'} style={{opacity: isLive || isSnapshotZipLoading ? 0 : 1}} className={styles.playPauseButton}>
+                <div
+                    className={classNames(styles.playPauseIcon, {[styles.playPauseIconVisible]: !isLive && isPlaying})}>
+                    <Icon data={PauseFill} size={14}/></div>
+                <div className={classNames(styles.playPauseIcon, {[styles.playPauseIconVisible]: !isLive && !isPlaying})}><Icon data={PlayFill} size={14}/></div>
+            </Button>
+            <Timeline
+                currentTime={currentPlayerTime}
+                totalTime={totalTime}
+                onScrubStart={onScrubStart}
+                onScrub={onScrub}
+                onScrubEnd={onScrubEnd}
+                onHover={onTimelineHover}
+                onMouseLeave={onTimelineMouseLeave}
+                isLive={isLive}
+                isLoading={isSnapshotZipLoading}
+                downloadProgress={snapshotZipDownloadProgress}
+                isPlaying={isPlaying}
+                playerStartTimestamp={playerStartTimestamp}
+                highlightState={currentPlayerHighlightState}
+            />
+            <Button disabled={true} view={'flat'} style={{opacity: isLive || isSnapshotZipLoading ? 0 : 1}}><Icon data={Gear} /></Button>
         </div>
     </div>;
 }

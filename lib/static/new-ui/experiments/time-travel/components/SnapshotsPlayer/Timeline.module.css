@@ -3,16 +3,30 @@
     font-size: 12px;
     text-align: center;
     width: 34px;
+    transition: opacity .5s ease .5s;
 }
 
-.player-progress-container {
-    background-color: #F1F5F9;
+.timeline-container {
     cursor: pointer;
     flex-grow: 1;
     height: 8px;
     position: relative;
 }
 
+.player-progress-container {
+    background-color: var(--color-neutral-100);
+    height: 100%;
+}
+
+@keyframes live-blinking {
+    0% {opacity: 0.2}
+    50% {opacity: 1}
+    100% {opacity: 0.2}
+}
+
+.live-timeline-blinking {
+    animation: live-blinking 2s infinite ease;
+}
 
 .player-progress {
     background-color: var(--g-color-base-brand);
@@ -21,22 +35,24 @@
     top: 0;
     width: 0;
     height: 100%;
+    transition: opacity .5s ease-in-out;
+    overflow: hidden;
 }
 
 .player-progress-left-cap {
     position: absolute;
     height: 100%;
     width: 6px;
-    background: #6c47ff;
     left: -6px;
     border-radius: 100px 0 0 100px;
+    transition: opacity .5s ease-in-out;
 }
 
 .player-progress-right-cap {
     position: absolute;
     height: 100%;
     width: 4px;
-    background: #F1F5F9;
+    background: var(--color-neutral-100);
     right: -4px;
     border-radius: 0 100px 100px 0;
 }
@@ -46,11 +62,31 @@
     top: 50%;
     translate: 0 -50%;
     height: 100%;
-    background-color: #F1F5F9;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0 2px;
+    transition-timing-function: ease;
+}
+
+.highlight-region {
+    position: absolute;
+    height: 100%;
+    background-color: var(--g-color-base-brand);
+    transition: width .2s ease, left .2s ease;
+}
+
+.live-badge-container {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    background: linear-gradient(90deg, transparent, white 45%, white 55%, transparent);
+    width: 290px;
+    display: flex;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 500;
+    color: oklch(0.552 0.016 285.938);
 }
 
 .player-progress-knob {
@@ -58,4 +94,24 @@
     border-radius: 100px;
     width: 4px;
     height: 22px;
+}
+
+.progress-pulse {
+     position: absolute;
+     right: 0;
+     height: 100%;
+     background-color: #3c00b4;
+     animation: progress-pulse 2s ease infinite;
+ }
+
+@keyframes progress-pulse {
+    0% {
+        width: 0;
+        opacity: 1;
+    }
+
+    100% {
+        width: 50px;
+        opacity: 0;
+    }
 }

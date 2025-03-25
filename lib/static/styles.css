@@ -973,25 +973,25 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .icon-fail {
-    color: var(--g-color-private-red-600-solid);
+    color: var(--color-icon, var(--g-color-private-red-600-solid));
 }
 
 .icon-success {
-    color: var(--g-color-private-green-600-solid);
+    color: var(--color-icon, var(--g-color-private-green-600-solid));
 }
 
 .icon-skip {
-    color: var(--g-color-private-cool-grey-600-solid);
+    color: var(--color-icon, var(--g-color-private-cool-grey-600-solid));
 }
 
 .icon-retry {
-    color: var(--g-color-private-cool-grey-600-solid);
+    color: var(--color-icon, var(--g-color-private-cool-grey-600-solid));
 }
 
 .icon-updated {
-    color: hsl(32 100% 48% / 1);
+    color: var(--color-icon, hsl(32 100% 48% / 1));
 }
 
 .icon-committed {
-    color: hsl(208 88% 48% / 1);
+    color: var(--color-icon, hsl(208 88% 48% / 1));
 }

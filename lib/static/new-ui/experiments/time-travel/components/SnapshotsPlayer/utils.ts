@@ -45,18 +45,7 @@ export const useScaleToFit = (container: HTMLElement | null, getElementToFit = (
     return scaleFactor;
 };
 
-export const loadSnapshotsFromZip = async (zipUrl: string, abortSignal?: AbortSignal): Promise<NumberedSnapshot[]> => {
-    const response = await fetch(zipUrl, {signal: abortSignal});
-    if (!response.ok) {
-        throw new Error([
-            `Failed to fetch zip with snapshots by URL: ${zipUrl}.`,
-            `Received status: ${response.statusText}.`
-        ].join('\n\n'));
-    }
-
-    const zipBlob = await response.blob();
-    const zipArrayBuffer = await zipBlob.arrayBuffer();
-
+const unzipSnapshots = (zipArrayBuffer: ArrayBuffer, zipUrl: string): Promise<NumberedSnapshot[]> => {
     return new Promise<NumberedSnapshot[]>((resolve, reject) => {
         unzip(new Uint8Array(zipArrayBuffer), (err, files) => {
             if (err) {
@@ -78,6 +67,69 @@ export const loadSnapshotsFromZip = async (zipUrl: string, abortSignal?: AbortSi
             resolve(snapshots);
         });
     });
+};
+
+interface LoadSnapshotsFromZipOptions {
+    abortSignal?: AbortSignal;
+    onDownloadProgress?: (progressPercent: number) => void;
+}
+
+export const loadSnapshotsFromZip = async (zipUrl: string, {abortSignal, onDownloadProgress}: LoadSnapshotsFromZipOptions): Promise<NumberedSnapshot[]> => {
+    const response = await fetch(zipUrl, {signal: abortSignal});
+    if (!response.ok) {
+        throw new Error([
+            `Failed to fetch zip with snapshots by URL: ${zipUrl}.`,
+            `Received status: ${response.statusText}.`
+        ].join('\n\n'));
+    }
+
+    const contentLengthHeader = response.headers.get('Content-Length');
+    let totalSize: number | null = null;
+    if (contentLengthHeader) {
+        const parsed = parseInt(contentLengthHeader, 10);
+        if (!isNaN(parsed) && parsed > 0) {
+            totalSize = parsed;
+        }
+    }
+
+    // 3) Read response body in chunks, track total downloaded
+    const reader = response.body?.getReader();
+    if (!reader) {
+        // Fallback if the environment doesn’t support streaming
+        // Just do normal .blob() with no progress
+        const zipBlob = await response.blob();
+        const zipArrayBuffer = await zipBlob.arrayBuffer();
+
+        return unzipSnapshots(zipArrayBuffer, zipUrl);
+    }
+
+    let received = 0;
+    const chunks: Uint8Array[] = [];
+
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+        const {done, value} = await reader.read();
+        if (done) {
+            // No more data
+            break;
+        }
+        if (value) {
+            chunks.push(value);
+            received += value.length;
+
+            if (totalSize && onDownloadProgress) {
+                const percent = (received / totalSize) * 100;
+                console.log('emitting', percent, received, totalSize);
+                onDownloadProgress(Math.min(percent, 100));
+            }
+        }
+    }
+
+    const zipBlob = new Blob(chunks);
+
+    const zipArrayBuffer = await zipBlob.arrayBuffer();
+
+    return unzipSnapshots(zipArrayBuffer, zipUrl);
 };
 
 export const useLiveSnapshotsStream = (currentResult: ResultEntity | null, onSnapshotsReceive: (snapshots: NumberedSnapshot[]) => unknown): () => void => {
