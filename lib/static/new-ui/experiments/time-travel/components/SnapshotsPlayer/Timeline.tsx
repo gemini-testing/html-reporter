@@ -1,8 +1,7 @@
 import strftime from 'strftime';
 import React, {ReactNode, useEffect, useRef, useState} from 'react';
-
-import styles from './Timeline.module.css';
 import classNames from 'classnames';
+import styles from './Timeline.module.css';
 import type {SnapshotsPlayerHighlightState} from '@/static/new-ui/types/store';
 
 interface TimelineProps {
@@ -21,7 +20,23 @@ interface TimelineProps {
     highlightState: SnapshotsPlayerHighlightState;
 }
 
-export function Timeline({totalTime, currentTime, onScrubStart, onScrub, onScrubEnd, onHover, onMouseLeave, isLive, downloadProgress, isLoading, isPlaying, highlightState, playerStartTimestamp = 0}: TimelineProps): ReactNode {
+const formatTime = (time: number): string => strftime('%M:%S', new Date(time));
+
+export function Timeline({
+    totalTime,
+    currentTime,
+    onScrubStart,
+    onScrub,
+    onScrubEnd,
+    onHover,
+    onMouseLeave,
+    isLive,
+    downloadProgress,
+    isLoading,
+    isPlaying,
+    highlightState,
+    playerStartTimestamp = 0
+}: TimelineProps): ReactNode {
     const [isScrubbing, setIsScrubbing] = useState(false);
     const [isHovering, setIsHovering] = useState(false);
     const [displayTime, setDisplayTime] = useState(0);
@@ -137,80 +152,105 @@ export function Timeline({totalTime, currentTime, onScrubStart, onScrub, onScrub
     const highlightEndTime = highlightState.highlightEndTime - playerStartTimestamp;
     const progressPercent =
         ((isHovering && !isScrubbing ? currentTime : displayTime) / totalTime) * 100;
-    const highlightRegionPercent = highlightState.isActive ? (highlightEndTime - highlightStartTime) / totalTime * 100 : 0;
-    const knobLeft = ((highlightState.isActive ? highlightStartTime : displayTime) / totalTime) * 100;
-    const knobRight = ((highlightState.isActive ? highlightEndTime : displayTime) / totalTime) * 100;
+    const highlightRegionWidth = highlightState.isActive ? (highlightEndTime - highlightStartTime) / totalTime * 100 : 0;
+    const leftKnobPosition = ((highlightState.isActive ? highlightStartTime : displayTime) / totalTime) * 100;
+    const rightKnobPosition = ((highlightState.isActive ? highlightEndTime : displayTime) / totalTime) * 100;
 
-    return <>
-        <div className={styles.playerTime} style={{opacity: isLive || isLoading ? 0 : 1}}>{strftime('%M:%S', new Date(displayTime))}</div>
-        <div
-            className={styles.timelineContainer}
-            ref={progressRef}
-            onMouseDown={onTimelineMouseDown}
-            onMouseMove={onTimelineMouseMove}
-            onMouseEnter={onTimelineMouseEnter}
-            onMouseLeave={onTimelineMouseLeave}
-        >
-            <div className={classNames(styles.playerProgressContainer, {[styles.liveTimelineBlinking]: isLive})}>
-                <div
-                    className={styles.playerProgressLeftCap}
-                    style={{
-                        background: isLive ? 'var(--color-neutral-100)' : 'var(--g-color-base-brand)',
-                        opacity: highlightState.isActive ? '0.5' : '1'
-                    }}/>
-                <div className={styles.playerProgressRightCap}/>
+    const progressBarColor = isLive ? 'var(--color-neutral-100)' : 'var(--g-color-base-brand)';
+    const progressOpacity = highlightState.isActive ? 0.5 : 1;
+    const timeElementOpacity = isLive || isLoading ? 0 : 1;
 
-                {!isLive && <div
-                    className={styles.playerProgress}
-                    style={{
-                        transition: !isPlaying && !isMouseMoving ? 'opacity .5s ease-in-out, width .2s ease' : 'opacity .5s ease-in-out',
-                        width: `${(isLoading ? downloadProgress : progressPercent).toFixed(2)}%`,
-                        opacity: highlightState.isActive ? '0.5' : '1'
-                    }}
-                >
-                    <div className={styles.progressPulse} style={{
-                        visibility: isLoading ? 'visible' : 'hidden'
-                    }}></div>
-                </div>}
+    // We want to animate the knob when it's not being hovered over, not scrubbing, and not playing.
+    const knobTransition = 'scale .3s, opacity 0.5s 0.5s' + (!isHovering && !isScrubbing && !isPlaying ? ', left .2s' : '');
 
-                {!isLive && <div
-                    className={styles.playerProgressKnobBg}
-                    style={{
-                        opacity: isLoading ? '0' : '1',
-                        borderLeft: '2px solid var(--color-neutral-100)',
-                        borderRight: isHovering ? '2px solid var(--color-neutral-100)' : 'none',
-                        left: `calc(${knobLeft.toFixed(2)}% - 2px)`,
-                        transition: !isHovering && !isScrubbing && !isPlaying ? 'left .2s, scale .3s, opacity .5s .5s' : 'scale .3s, opacity 0.5s 0.5s',
-                        scale: isScrubbing ? '1.15' : '1'
-                    }}
-                >
-                    <div className={styles.playerProgressKnob}/>
-                </div>}
-                {!isLive && <div
-                    className={styles.highlightRegion}
-                    style={{
-                        left: `calc(${knobLeft.toFixed(2)}%)`,
-                        width: `${highlightRegionPercent.toFixed(2)}%`
-                    }}
-                ></div>}
-                {!isLive && <div
-                    className={styles.playerProgressKnobBg}
-                    style={{
-                        opacity: isLoading ? '0' : '1',
-                        borderLeft: '2px solid transparent',
-                        borderRight: '2px solid var(--color-neutral-100)',
-                        left: `calc(${knobRight.toFixed(2)}% - 2px)`,
-                        transition: !isHovering && !isScrubbing && !isPlaying ? 'left .2s, scale .3s, opacity .5s .5s' : 'scale .3s, opacity 0.5s 0.5s'
-                    }}
-                >
-                    <div className={styles.playerProgressKnob}/>
-                </div>}
+    return (
+        <>
+            <div className={styles.playerTime} style={{opacity: timeElementOpacity}}>
+                {formatTime(displayTime)}
             </div>
 
-            {isLive && <div className={styles.liveBadgeContainer}>
-                <span>LIVE</span>
-            </div>}
-        </div>
-        <div className={styles.playerTime} style={{opacity: isLive || isLoading ? 0 : 1}}>{strftime('%M:%S', new Date(totalTime))}</div>
-    </>;
+            <div
+                className={styles.timelineContainer}
+                ref={progressRef}
+                onMouseDown={onTimelineMouseDown}
+                onMouseMove={onTimelineMouseMove}
+                onMouseEnter={onTimelineMouseEnter}
+                onMouseLeave={onTimelineMouseLeave}
+            >
+                <div className={classNames(
+                    styles.playerProgressContainer,
+                    {[styles.liveTimelineBlinking]: isLive}
+                )}>
+                    <div
+                        className={styles.playerProgressLeftCap}
+                        style={{
+                            background: progressBarColor,
+                            opacity: progressOpacity
+                        }}
+                    />
+                    <div className={styles.playerProgressRightCap} />
+
+                    {!isLive && (
+                        <>
+                            <div
+                                className={styles.playerProgress}
+                                style={{
+                                    transition: 'opacity .5s ease-in-out' + (!isPlaying && !isMouseMoving ? ', width .2s ease' : ''),
+                                    width: `${(isLoading ? downloadProgress : progressPercent).toFixed(2)}%`,
+                                    opacity: progressOpacity
+                                }}
+                            >
+                                <div
+                                    className={styles.progressPulse}
+                                    style={{visibility: isLoading ? 'visible' : 'hidden'}}
+                                />
+                            </div>
+
+                            <div
+                                className={classNames(styles.playerProgressKnobBg, styles.playerProgressKnobBgLeft)}
+                                style={{
+                                    opacity: isLoading ? 0 : 1,
+                                    borderRight: isHovering ? '2px solid var(--color-neutral-100)' : 'none',
+                                    left: `calc(${leftKnobPosition.toFixed(2)}% - 2px)`,
+                                    transition: knobTransition,
+                                    scale: isScrubbing ? '1.15' : '1'
+                                }}
+                            >
+                                <div className={styles.playerProgressKnob} />
+                            </div>
+
+                            <div
+                                className={styles.highlightRegion}
+                                style={{
+                                    left: `calc(${leftKnobPosition.toFixed(2)}%)`,
+                                    width: `${highlightRegionWidth.toFixed(2)}%`
+                                }}
+                            />
+
+                            <div
+                                className={classNames(styles.playerProgressKnobBg, styles.playerProgressKnobBgRight)}
+                                style={{
+                                    opacity: isLoading ? 0 : 1,
+                                    left: `calc(${rightKnobPosition.toFixed(2)}% - 2px)`,
+                                    transition: knobTransition
+                                }}
+                            >
+                                <div className={styles.playerProgressKnob} />
+                            </div>
+                        </>
+                    )}
+                </div>
+
+                {isLive && (
+                    <div className={styles.liveBadgeContainer}>
+                        <span>LIVE</span>
+                    </div>
+                )}
+            </div>
+
+            <div className={styles.playerTime} style={{opacity: timeElementOpacity}}>
+                {formatTime(totalTime)}
+            </div>
+        </>
+    );
 }

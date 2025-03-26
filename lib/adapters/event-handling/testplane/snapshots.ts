@@ -97,8 +97,8 @@ export const finalizeSnapshotsForTest = async ({testResult, attempt, reportPath,
             const lastSnapshotTime = snapshots[snapshots.length - 1].timestamp;
             
             const firstHistoryTime = testResult.history[0][TestStepKey.TimeStart];
-            const lastHistoryTime = testResult.history[testResult.history.length - 1][TestStepKey.TimeStart];
-            
+            const lastHistoryTime = Math.max(testResult.history[testResult.history.length - 1][TestStepKey.TimeStart], firstHistoryTime + testResult.duration);
+
             if (firstHistoryTime < firstSnapshotTime) {
                 const fakeStartSnapshot: RrwebEvent & {seqNo?: number} = {
                     data: { id: 1, source: 3, x: 0, y: 0 },

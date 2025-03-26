@@ -1,7 +1,7 @@
 import {Gear, PauseFill, PlayFill} from '@gravity-ui/icons';
 import {Button, Icon} from '@gravity-ui/uikit';
 import {Replayer} from '@rrweb/replay';
-import type {eventWithTime as RrwebEvent} from '@rrweb/types';
+import type {customEvent, eventWithTime as RrwebEvent} from '@rrweb/types';
 import classNames from 'classnames';
 import React, {ReactNode, useCallback, useEffect, useRef, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
@@ -20,6 +20,31 @@ import {setCurrentHighlightStep, setCurrentStep} from '@/static/modules/actions'
 import {Step, StepType} from '@/static/new-ui/features/suites/components/TestSteps/types';
 import {unstable_ListTreeItemType as ListTreeItemType} from '@gravity-ui/uikit/build/esm/unstable';
 import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
+
+function isColorSchemeEvent(event: customEvent | RrwebEvent): event is customEvent<{colorScheme: 'light' | 'dark'}> {
+    return event.type === 5 && // 5 is the EventType.Custom value
+        'data' in event &&
+        typeof event.data === 'object' &&
+        event.data !== null &&
+        'tag' in event.data &&
+        event.data.tag === 'color-scheme-change';
+}
+
+function getColorSchemeFromEvent(event: RrwebEvent): 'light' | 'dark' | null {
+    if (!isColorSchemeEvent(event)) {
+        return null;
+    }
+
+    try {
+        const colorScheme = event.data.payload.colorScheme;
+        if (colorScheme === 'light' || colorScheme === 'dark') {
+            return colorScheme;
+        }
+        return null;
+    } catch {
+        return null;
+    }
+}
 
 const MIN_PLAYER_TIME = 10;
 
@@ -69,7 +94,6 @@ export function SnapshotsPlayer(): ReactNode {
         analytics?.trackFeatureUsage({featureName: 'Time Travel Player Render'});
     }, []);
 
-    // const currentStepId = useSelector(state => state.app.suitesPage.currentStepId);
     const lastSetStepId = useRef<string | null | undefined>(null);
     const currentHighlightStepId = useSelector(state => state.app.suitesPage.currentHighlightStepId);
     const testSteps = useSelector(getTestSteps);
@@ -98,21 +122,9 @@ export function SnapshotsPlayer(): ReactNode {
             const playerStartTime = playerRef.current.getMetaData().startTime;
             const currentAction = findActionByTime(testSteps, playerStartTime, currentTime);
             if (currentAction && currentAction.id !== lastSetStepId.current) {
-                console.log('MISMATCH', currentAction.id, lastSetStepId.current);
                 lastSetStepId.current = currentAction.id;
                 dispatch(setCurrentStep({stepId: currentAction.id}));
             }
-            // for (const step of testSteps) {
-            //     if (step.data.type !== StepType.Action) {
-            //         continue;
-            //     }
-            //     const stepStartTime = step.data.startTime! - playerStartTime;
-            //     const stepEndTime = step.data.startTime! - playerStartTime + step.data.duration!;
-            //     if (currentStepId !== step.id && currentTime > stepStartTime && currentTime < stepEndTime) {
-            //         dispatch(setCurrentStep({stepId: step.id}));
-            //         break;
-            //     }
-            // }
 
             if (currentTime < meta.totalTime) {
                 timerIdRef.current = requestAnimationFrame(update);
@@ -133,7 +145,6 @@ export function SnapshotsPlayer(): ReactNode {
     };
 
     const onPlayerFinishPlaying = (): void => {
-        console.log('on finish!, is playing: ', timerIdRef.current);
         if (timerIdRef.current) {
             finishedPlayingRef.current = true;
         }
@@ -168,7 +179,6 @@ export function SnapshotsPlayer(): ReactNode {
         } else {
             setTotalTime(0);
         }
-        setIsPlaying(false);
         setCurrentPlayerTime(0);
     }, [isLiveMaxSizeInitialized]);
     const destroyPlayer = useCallback(() => {
@@ -207,16 +217,14 @@ export function SnapshotsPlayer(): ReactNode {
     }, []);
     const startStreaming = useLiveSnapshotsStream(currentResult, onLiveSnapshotsReceive);
 
-    const finalizeLoading = () => {
-        const hideLoading = () => {
-            console.log('hiding loading and setting state!!');
+    const finalizeLoading = (): void => {
+        const hideLoading = (): void => {
             setIsSnapshotZipLoading(false);
             loadingVisibleTimeRef.current = null;
         };
 
         // If loading indicator became visible, ensure it stays visible for at least MIN_LOADING_DISPLAY_TIME
         if (loadingVisibleTimeRef.current !== null) {
-            console.log('indicator became visible, delaying!');
             const currentTime = new Date().getTime();
             const timeElapsed = currentTime - loadingVisibleTimeRef.current;
             if (timeElapsed < MIN_LOADING_DISPLAY_TIME) {
@@ -225,18 +233,24 @@ export function SnapshotsPlayer(): ReactNode {
                 hideLoading();
             }
         } else {
-            console.log('hiding instantly!');
             hideLoading();
         }
     };
 
-    const updateLoadingVisibleTime = () => {
-        console.log('checking loading visible time...');
+    const updateLoadingVisibleTime = (): void => {
         if (loadingVisibleTimeRef.current === null) {
-            console.log('updating loading visible time!!');
             loadingVisibleTimeRef.current = new Date().getTime();
         }
     };
+
+    // Handle custom events
+    const handleCustomEvent = useCallback((event: unknown) => {
+        const rrwebEvent = event as RrwebEvent;
+        const colorScheme = getColorSchemeFromEvent(rrwebEvent);
+        if (colorScheme) {
+            setIframeColorScheme(colorScheme);
+        }
+    }, []);
 
     useEffect(() => {
         if (!currentResult || !playerElement) {
@@ -251,11 +265,7 @@ export function SnapshotsPlayer(): ReactNode {
             initializePlayer(true);
             startStreaming();
 
-            playerRef.current.on('custom-event', (e) => {
-                if ((e as any).data.tag === 'color-scheme-change') {
-                    setIframeColorScheme((e as any).data.payload.colorScheme);
-                }
-            });
+            playerRef.current.on('custom-event', handleCustomEvent);
         } else {
             const snapshot = currentResult?.attachments?.find(attachment => attachment.type === AttachmentType.Snapshot);
             if (!snapshot) {
@@ -277,23 +287,15 @@ export function SnapshotsPlayer(): ReactNode {
             };
             loadSnapshotsFromZip(snapshot.path, {abortSignal: abortControllerRef.current.signal, onDownloadProgress})
                 .then(events => {
-                    // Initialize player and set up event listeners
-                    const initializePlayerWithEvents = () => {
-                        customEventsRef.current = events.filter(event => event.type === 5 && event.data.tag === 'color-scheme-change');
+                    customEventsRef.current = events.filter(isColorSchemeEvent);
 
-                        playerRef.current = new Replayer(events, {
-                            liveMode: false,
-                            root: playerElement
-                        });
-                        initializePlayer();
+                    playerRef.current = new Replayer(events, {
+                        liveMode: false,
+                        root: playerElement
+                    });
+                    initializePlayer();
 
-                        playerRef.current.on('custom-event', (e) => {
-                            if ((e as any).data.tag === 'color-scheme-change') {
-                                setIframeColorScheme((e as any).data.payload.colorScheme);
-                            }
-                        });
-                    };
-                    initializePlayerWithEvents();
+                    playerRef.current.on('custom-event', handleCustomEvent);
 
                     finalizeLoading();
                 })
@@ -309,7 +311,7 @@ export function SnapshotsPlayer(): ReactNode {
             abortControllerRef.current = null;
             destroyPlayer();
         };
-    }, [currentResult, playerElement, startStreaming, initializePlayer, destroyPlayer]);
+    }, [currentResult, playerElement, startStreaming, initializePlayer, destroyPlayer, handleCustomEvent]);
     const playerElementRef = useCallback((node: HTMLDivElement | null) => {
         if (node !== null) {
             setPlayerElement(node);
@@ -319,13 +321,10 @@ export function SnapshotsPlayer(): ReactNode {
 
     const onPlayClick = (): void => {
         if (!isPlaying) {
-            console.log('not is playing');
             setIsPlaying(true);
             if (finishedPlayingRef.current) {
-                console.log('finished playing. starting from beginning');
                 playerRef.current?.play();
             } else {
-                console.log('STARTING TO PLAY FROM CURRENT TIME: ', currentPlayerTime);
                 playerRef.current?.play(currentPlayerTime);
             }
             finishedPlayingRef.current = false;
@@ -360,14 +359,16 @@ export function SnapshotsPlayer(): ReactNode {
         setCurrentPlayerTime(newTime);
         if (playerRef.current) {
             const lastColorScheme = customEventsRef.current.findLast(e =>
-                e.type === 5 &&
-                e.data.tag === 'color-scheme-change' &&
+                isColorSchemeEvent(e) &&
                 playerRef.current &&
                 e.timestamp <= (playerRef.current.getMetaData().startTime + newTime)
             );
 
             if (lastColorScheme) {
-                setIframeColorScheme((lastColorScheme.data as any).payload.colorScheme);
+                const colorScheme = getColorSchemeFromEvent(lastColorScheme);
+                if (colorScheme) {
+                    setIframeColorScheme(colorScheme);
+                }
             }
 
             playerRef.current.pause(newTime);
@@ -428,7 +429,6 @@ export function SnapshotsPlayer(): ReactNode {
         maxWidth: `min(${playerWidth}px, 100%)`,
         maxHeight: '100%',
         transition: 'opacity .5s ease'
-        // width: isSizeInitialized ? 'auto' : ''
     };
 
     const isLive = currentResult?.status === TestStatus.RUNNING;
@@ -440,7 +440,11 @@ export function SnapshotsPlayer(): ReactNode {
 
     return <div>
         {/* This container defines how much space is available to the player in total and sets paddings. */}
-        <div className={styles.replayerRootContainer} style={{'--scale-factor': scaleFactor, width: `${maxPlayerSize.width}px`, maxWidth: '100%'} as React.CSSProperties}>
+        <div className={styles.replayerRootContainer} style={{
+            '--scale-factor': scaleFactor,
+            width: `${maxPlayerSize.width}px`,
+            maxWidth: '100%'
+        } as React.CSSProperties}>
             {/* This container is for maintaining constant aspect ratio and size of the player; prevent jumps of UI when iframe resizes. */}
             <div className={styles.replayerContainerCentered} style={playerContainerStyle}>
                 {/* This container is to match visible player size to draw lines correctly */}
@@ -471,7 +475,9 @@ export function SnapshotsPlayer(): ReactNode {
                 <div
                     className={classNames(styles.playPauseIcon, {[styles.playPauseIconVisible]: !isLive && isPlaying})}>
                     <Icon data={PauseFill} size={14}/></div>
-                <div className={classNames(styles.playPauseIcon, {[styles.playPauseIconVisible]: !isLive && !isPlaying})}><Icon data={PlayFill} size={14}/></div>
+                <div
+                    className={classNames(styles.playPauseIcon, {[styles.playPauseIconVisible]: !isLive && !isPlaying})}>
+                    <Icon data={PlayFill} size={14}/></div>
             </Button>
             <Timeline
                 currentTime={currentPlayerTime}
@@ -488,7 +494,8 @@ export function SnapshotsPlayer(): ReactNode {
                 playerStartTimestamp={playerStartTimestamp}
                 highlightState={currentPlayerHighlightState}
             />
-            <Button disabled={true} view={'flat'} style={{opacity: isLive || isSnapshotZipLoading ? 0 : 1}}><Icon data={Gear} /></Button>
+            <Button disabled={true} view={'flat'} style={{opacity: isLive || isSnapshotZipLoading ? 0 : 1}}><Icon
+                data={Gear}/></Button>
         </div>
     </div>;
 }
