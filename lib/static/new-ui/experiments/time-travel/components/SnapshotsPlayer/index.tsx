@@ -76,7 +76,6 @@ export function SnapshotsPlayer(): ReactNode {
     const [playerWidth, setPlayerWidth] = useState<number>(1200);
     const [playerHeight, setPlayerHeight] = useState<number>(800);
     const isLiveMaxSizeInitialized = useRef(false);
-    const [_isSizeInitialized, setIsSizeInitialized] = useState<boolean>(false);
     const [maxPlayerSize, setMaxPlayerSize] = useState<ImageSize>({height: 0, width: 0});
 
     const [totalTime, setTotalTime] = useState(0);
@@ -161,8 +160,6 @@ export function SnapshotsPlayer(): ReactNode {
 
         playerRef.current.enableInteract();
         playerRef.current.on('resize', (newSize) => {
-            setIsSizeInitialized(true);
-
             const size = newSize as {height: number; width: number};
             setPlayerHeight(size.height);
             setPlayerWidth(size.width);
@@ -184,7 +181,6 @@ export function SnapshotsPlayer(): ReactNode {
     const destroyPlayer = useCallback(() => {
         playerRef.current?.destroy();
         playerRef.current = null;
-        setIsSizeInitialized(false);
     }, []);
 
     useEffect(() => {
