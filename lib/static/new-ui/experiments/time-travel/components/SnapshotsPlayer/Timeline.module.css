@@ -86,7 +86,7 @@
     justify-content: center;
     font-size: 14px;
     font-weight: 500;
-    color: oklch(0.552 0.016 285.938);
+    color: var(--color-neutral-500);
 }
 
 .player-progress-knob {
