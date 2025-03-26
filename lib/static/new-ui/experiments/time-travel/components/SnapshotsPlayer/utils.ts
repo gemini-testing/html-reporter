@@ -119,7 +119,6 @@ export const loadSnapshotsFromZip = async (zipUrl: string, {abortSignal, onDownl
 
             if (totalSize && onDownloadProgress) {
                 const percent = (received / totalSize) * 100;
-                console.log('emitting', percent, received, totalSize);
                 onDownloadProgress(Math.min(percent, 100));
             }
         }

@@ -10,7 +10,7 @@ export default (state: State, action: SomeAction): State => {
     switch (action.type) {
         case actionNames.INIT_GUI_REPORT:
         case actionNames.INIT_STATIC_REPORT: {
-            const features: Feature[] = state.app.availableFeatures;
+            const features: Feature[] = [...state.app.availableFeatures];
 
             const toolName = action.payload.apiValues?.toolName;
             if (toolName === ToolName.Testplane) {

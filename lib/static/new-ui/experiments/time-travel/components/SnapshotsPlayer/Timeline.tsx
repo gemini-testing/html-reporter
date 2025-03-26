@@ -141,7 +141,6 @@ export function Timeline({totalTime, currentTime, onScrubStart, onScrub, onScrub
     const knobLeft = ((highlightState.isActive ? highlightStartTime : displayTime) / totalTime) * 100;
     const knobRight = ((highlightState.isActive ? highlightEndTime : displayTime) / totalTime) * 100;
 
-    console.log('renderirrrrrr', isLoading, downloadProgress, progressPercent);
     return <>
         <div className={styles.playerTime} style={{opacity: isLive || isLoading ? 0 : 1}}>{strftime('%M:%S', new Date(displayTime))}</div>
         <div
