@@ -4,6 +4,7 @@ import {
     unstable_useList as useList
 } from '@gravity-ui/uikit/unstable';
 import {CircleExclamation, Paperclip} from '@gravity-ui/icons';
+import classNames from 'classnames';
 import React, {ReactNode, useCallback, useEffect} from 'react';
 import {connect, useDispatch, useSelector} from 'react-redux';
 import {bindActionCreators} from 'redux';
@@ -26,7 +27,6 @@ import {UseListResult} from '@gravity-ui/uikit/build/esm/components/useList';
 import {ErrorHandler} from '../../../error-handling/components/ErrorHandling';
 import {goToTimeInSnapshotsPlayer, setCurrentPlayerHighlightTime} from '@/static/modules/actions/snapshots';
 import {setCurrentStep} from '@/static/modules/actions';
-import classNames from 'classnames';
 
 type TestStepClickHandler = (item: {id: string}) => void
 
@@ -141,7 +141,6 @@ function TestStepsInternal(props: TestStepsProps): ReactNode {
             }
 
             dispatch(setCurrentStep({stepId: id}));
-
             dispatch(goToTimeInSnapshotsPlayer({time: step.startTime + step.duration}));
         }
 
@@ -159,18 +158,20 @@ function TestStepsInternal(props: TestStepsProps): ReactNode {
 
         const startTime = step.startTime;
         const endTime = step.startTime + step.duration;
-        // console.log((step.startTime ?? 0) + (step.duration ?? 0));
 
         if (startTime === currentSnapshotsPlayerState.highlightStartTime && endTime === currentSnapshotsPlayerState.highlightEndTime) {
             return;
         }
 
-        console.log('setting current player highlihgt time', {startTime, endTime, isActive: true});
         dispatch(setCurrentPlayerHighlightTime({startTime, endTime, isActive: true}));
     }, [currentSnapshotsPlayerState]);
 
     const onStepMouseLeave = useCallback((): void => {
-        dispatch(setCurrentPlayerHighlightTime({startTime: currentSnapshotsPlayerState.highlightStartTime, endTime: currentSnapshotsPlayerState.highlightEndTime, isActive: false}));
+        dispatch(setCurrentPlayerHighlightTime({
+            startTime: currentSnapshotsPlayerState.highlightStartTime,
+            endTime: currentSnapshotsPlayerState.highlightEndTime, 
+            isActive: false
+        }));
     }, [currentSnapshotsPlayerState]);
 
     return <ListContainerView className={props.className} extraProps={{onMouseLeave: (): void => onStepMouseLeave()}}>
@@ -178,7 +179,7 @@ function TestStepsInternal(props: TestStepsProps): ReactNode {
             (
                 <ErrorHandler.Boundary key={itemId} fallback={<ListItemCorrupted items={items} itemId={itemId}/>}>
                     <TestStep
-                        className={classNames(styles.step, currentHighlightStepId && currentHighlightStepId !== itemId ? styles['step--dimmed'] : '')}
+                        className={classNames(styles.step, {[styles['step--dimmed']]: currentHighlightStepId && currentHighlightStepId !== itemId})}
                         key={itemId}
                         isActive={itemId === currentStepId}
                         onItemClick={(): void => onItemClick(itemId, items.structure.itemsById[itemId])}
