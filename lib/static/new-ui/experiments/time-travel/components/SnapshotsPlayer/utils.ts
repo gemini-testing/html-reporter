@@ -92,11 +92,9 @@ export const loadSnapshotsFromZip = async (zipUrl: string, {abortSignal, onDownl
         }
     }
 
-    // 3) Read response body in chunks, track total downloaded
     const reader = response.body?.getReader();
     if (!reader) {
-        // Fallback if the environment doesn’t support streaming
-        // Just do normal .blob() with no progress
+        // Fallback if the environment doesn’t support streaming, do normal .blob() with no progress
         const zipBlob = await response.blob();
         const zipArrayBuffer = await zipBlob.arrayBuffer();
 

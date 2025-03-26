@@ -16,8 +16,8 @@ export default (state: State, action: SomeAction): State => {
             if (toolName === ToolName.Testplane) {
                 features.push(ShowTimeTravelExperimentFeature);
 
-                const isTimeTravelAvailable = localStorageWrapper.getItem(getTimeTravelFeatureLocalStorageKey(toolName ?? ''), false);
-                if (isTimeTravelAvailable) {
+                const isTimeTravelEnabled = localStorageWrapper.getItem(getTimeTravelFeatureLocalStorageKey(toolName ?? ''), true);
+                if (isTimeTravelEnabled) {
                     features.push(TimeTravelFeature);
                 }
             }

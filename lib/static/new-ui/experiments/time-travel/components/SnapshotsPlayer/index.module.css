@@ -99,8 +99,6 @@
     transition: opacity .5s ease .5s, visibility .5s ease .5s;
     align-items: center;
     gap: 2px;
-    /*justify-content: center;*/
-    /*width: 100vw;*/
     position: absolute;
     top: 50%;
     left: 50%;
