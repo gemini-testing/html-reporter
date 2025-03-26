@@ -73,7 +73,10 @@ export function SnapshotsPlayer(): ReactNode {
     const lastSetStepId = useRef<string | null | undefined>(null);
     const currentHighlightStepId = useSelector(state => state.app.suitesPage.currentHighlightStepId);
     const testSteps = useSelector(getTestSteps);
+    const [isSnapshotZipLoading, setIsSnapshotZipLoading] = useState(false);
     const [snapshotZipDownloadProgress, setSnapshotZipDownloadProgress] = useState(0);
+    const loadingVisibleTimeRef = useRef<number | null>(null);
+    const MIN_LOADING_DISPLAY_TIME = 1000; // minimum time to show loading in ms
 
     const cancelTimeTicking = (): void => {
         if (timerIdRef.current) {
@@ -130,7 +133,8 @@ export function SnapshotsPlayer(): ReactNode {
     };
 
     const onPlayerFinishPlaying = (): void => {
-        if (isPlaying) {
+        console.log('on finish!, is playing: ', timerIdRef.current);
+        if (timerIdRef.current) {
             finishedPlayingRef.current = true;
         }
         setIsPlaying(false);
@@ -164,6 +168,7 @@ export function SnapshotsPlayer(): ReactNode {
         } else {
             setTotalTime(0);
         }
+        setIsPlaying(false);
         setCurrentPlayerTime(0);
     }, [isLiveMaxSizeInitialized]);
     const destroyPlayer = useCallback(() => {
@@ -202,7 +207,36 @@ export function SnapshotsPlayer(): ReactNode {
     }, []);
     const startStreaming = useLiveSnapshotsStream(currentResult, onLiveSnapshotsReceive);
 
-    const [isSnapshotZipLoading, setIsSnapshotZipLoading] = useState(false);
+    const finalizeLoading = () => {
+        const hideLoading = () => {
+            console.log('hiding loading and setting state!!');
+            setIsSnapshotZipLoading(false);
+            loadingVisibleTimeRef.current = null;
+        };
+
+        // If loading indicator became visible, ensure it stays visible for at least MIN_LOADING_DISPLAY_TIME
+        if (loadingVisibleTimeRef.current !== null) {
+            console.log('indicator became visible, delaying!');
+            const currentTime = new Date().getTime();
+            const timeElapsed = currentTime - loadingVisibleTimeRef.current;
+            if (timeElapsed < MIN_LOADING_DISPLAY_TIME) {
+                setTimeout(hideLoading, MIN_LOADING_DISPLAY_TIME - timeElapsed);
+            } else {
+                hideLoading();
+            }
+        } else {
+            console.log('hiding instantly!');
+            hideLoading();
+        }
+    };
+
+    const updateLoadingVisibleTime = () => {
+        console.log('checking loading visible time...');
+        if (loadingVisibleTimeRef.current === null) {
+            console.log('updating loading visible time!!');
+            loadingVisibleTimeRef.current = new Date().getTime();
+        }
+    };
 
     useEffect(() => {
         if (!currentResult || !playerElement) {
@@ -238,26 +272,34 @@ export function SnapshotsPlayer(): ReactNode {
             const onDownloadProgress = (progress: number): void => {
                 if (new Date().getTime() - downloadStartTime.getTime() > 500) {
                     setSnapshotZipDownloadProgress(progress);
+                    updateLoadingVisibleTime();
                 }
             };
             loadSnapshotsFromZip(snapshot.path, {abortSignal: abortControllerRef.current.signal, onDownloadProgress})
                 .then(events => {
-                    setIsSnapshotZipLoading(false);
-                    customEventsRef.current = events.filter(event => event.type === 5 && event.data.tag === 'color-scheme-change');
+                    // Initialize player and set up event listeners
+                    const initializePlayerWithEvents = () => {
+                        customEventsRef.current = events.filter(event => event.type === 5 && event.data.tag === 'color-scheme-change');
 
-                    playerRef.current = new Replayer(events, {
-                        liveMode: false,
-                        root: playerElement
-                    });
-                    initializePlayer();
+                        playerRef.current = new Replayer(events, {
+                            liveMode: false,
+                            root: playerElement
+                        });
+                        initializePlayer();
 
-                    playerRef.current.on('custom-event', (e) => {
-                        if ((e as any).data.tag === 'color-scheme-change') {
-                            setIframeColorScheme((e as any).data.payload.colorScheme);
-                        }
-                    });
+                        playerRef.current.on('custom-event', (e) => {
+                            if ((e as any).data.tag === 'color-scheme-change') {
+                                setIframeColorScheme((e as any).data.payload.colorScheme);
+                            }
+                        });
+                    };
+                    initializePlayerWithEvents();
+
+                    finalizeLoading();
                 })
                 .catch(e => {
+                    setIsSnapshotZipLoading(false);
+                    loadingVisibleTimeRef.current = null;
                     console.warn('Failed to load snapshots', e);
                 });
         }
@@ -278,6 +320,7 @@ export function SnapshotsPlayer(): ReactNode {
     const onPlayClick = (): void => {
         if (!isPlaying) {
             console.log('not is playing');
+            setIsPlaying(true);
             if (finishedPlayingRef.current) {
                 console.log('finished playing. starting from beginning');
                 playerRef.current?.play();
@@ -286,7 +329,6 @@ export function SnapshotsPlayer(): ReactNode {
                 playerRef.current?.play(currentPlayerTime);
             }
             finishedPlayingRef.current = false;
-            setIsPlaying(true);
             startTimeTicking();
         } else {
             playerRef.current?.pause();
@@ -385,6 +427,7 @@ export function SnapshotsPlayer(): ReactNode {
         aspectRatio: `${playerWidth} / ${playerHeight}`,
         maxWidth: `min(${playerWidth}px, 100%)`,
         maxHeight: '100%',
+        transition: 'opacity .5s ease'
         // width: isSizeInitialized ? 'auto' : ''
     };
 
@@ -417,7 +460,7 @@ export function SnapshotsPlayer(): ReactNode {
                     </div>
 
                     {/* This container is for the player itself and matches size of the outer container */}
-                    <div className={styles.replayerContainer} ref={playerElementRef} style={playerStyle}>
+                    <div className={styles.replayerContainer} ref={playerElementRef} style={{...playerStyle, opacity: isSnapshotZipLoading ? 0 : 1}}>
                         <div style={{width: '100vw'}}></div>
                     </div>
                 </div>

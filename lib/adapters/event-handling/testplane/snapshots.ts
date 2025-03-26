@@ -10,7 +10,7 @@ import yazl from 'yazl';
 
 import {ReporterTestResult} from '../../test-result';
 import {SNAPSHOTS_PATH} from '../../../constants';
-import {AttachmentType, SnapshotAttachment} from '../../../types';
+import {AttachmentType, SnapshotAttachment, TestStepKey} from '../../../types';
 import {EventSource} from '../../../gui/event-source';
 import {ClientEvents} from '../../../gui/constants';
 
@@ -90,6 +90,38 @@ export const finalizeSnapshotsForTest = async ({testResult, attempt, reportPath,
         const shouldSave = recordConfig.mode !== RecordMode.LastFailedRun || (eventName === events.TEST_FAIL);
         if (!shouldSave) {
             return [];
+        }
+
+        if (testResult.history && testResult.history.length > 0 && snapshots.length > 0) {
+            const firstSnapshotTime = snapshots[0].timestamp;
+            const lastSnapshotTime = snapshots[snapshots.length - 1].timestamp;
+            
+            const firstHistoryTime = testResult.history[0][TestStepKey.TimeStart];
+            const lastHistoryTime = testResult.history[testResult.history.length - 1][TestStepKey.TimeStart];
+            
+            if (firstHistoryTime < firstSnapshotTime) {
+                const fakeStartSnapshot: RrwebEvent & {seqNo?: number} = {
+                    data: { id: 1, source: 3, x: 0, y: 0 },
+                    timestamp: firstHistoryTime,
+                    type: 3,
+                    seqNo: -1
+                };
+                snapshots.unshift(fakeStartSnapshot);
+            }
+
+            if (lastHistoryTime > lastSnapshotTime) {
+                const fakeEndSnapshot: RrwebEvent & {seqNo?: number} = {
+                    data: { id: 1, source: 3, x: 0, y: 0 },
+                    timestamp: lastHistoryTime,
+                    type: 3,
+                    seqNo: snapshots.length
+                };
+                snapshots.push(fakeEndSnapshot);
+            }
+
+            snapshots.forEach((snapshot, index) => {
+                (snapshot as RrwebEvent & {seqNo: number}).seqNo = index;
+            });
         }
 
         const snapshotsSerialized = snapshots.map(s => JSON.stringify(s)).join('\n');
