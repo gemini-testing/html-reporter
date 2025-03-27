@@ -6,7 +6,7 @@
 ### Running e2e tests
 
 End-to-end testing of html-reporter consists of two stages: generating fixture reports using different tools and tests,
-then running hermione tests on these reports.
+then running testplane tests on these reports.
 
 In order to make e2e/screenshot tests stable and reproducible across different environments,
 you need to launch browsers inside a Docker container.
@@ -34,11 +34,11 @@ you need to launch browsers inside a Docker container.
 End-to-end tests are divided into multiple workspaces:
 - `test/func/packages` — packages needed for generating fixture reports, e.g. test html-reporter plugins
 - `test/func/fixtures` — packages to generate fixture reports
-- `test/func/tests` — hermione tests that run on fixture reports
+- `test/func/tests` — testplane tests that run on fixture reports
 
 If you want a finer-grained control over the process, the following commands may be useful:
 - `npm run e2e:generate-fixtures` — generate fixture reports to run tests on
-- `npm run --workspace=test/func/tests gui:plugins` — launch hermione GUI for the `plugins` tests set
+- `npm run --workspace=test/func/tests gui:plugins` — launch testplane GUI for the `plugins` tests set
 - `npm run e2e:test` — run e2e tests only, without building packages or generating fixtures
 
 ### Working with browser docker images

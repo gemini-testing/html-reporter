@@ -102,7 +102,7 @@ export function logPathToHtmlReport(pluginConfig: ReporterConfig): void {
     const reportPath = `file://${path.resolve(pluginConfig.path, 'index.html')}`;
 
     logger.log(`Your HTML report is here: ${chalk.yellow(reportPath)}`);
-    logger.log(`To open it use: ${chalk.yellow('npx hermione gui')} or ${chalk.yellow(`npx http-server ${pluginConfig.path}`)}`);
+    logger.log(`To open it use: ${chalk.yellow('npx testplane gui')} or ${chalk.yellow(`npx http-server ${pluginConfig.path}`)}`);
 }
 
 export function logError(e: Error): void {
