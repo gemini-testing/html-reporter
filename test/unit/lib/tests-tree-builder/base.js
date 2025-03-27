@@ -108,6 +108,38 @@ describe('ResultsTreeBuilder', () => {
                     }
                 );
             });
+
+            it('should transform root suite into child suite', () => {
+                builder.addTestResult(mkFormattedResult_({testPath: ['s1 s2', 's3']}));
+
+                assert.deepEqual(
+                    builder.tree.suites.byId['s1 s2'],
+                    {
+                        id: 's1 s2',
+                        name: 's1 s2',
+                        parentId: null,
+                        root: true,
+                        suitePath: ['s1 s2'],
+                        status: SUCCESS,
+                        suiteIds: ['s1 s2 s3']
+                    }
+                );
+
+                builder.addTestResult(mkFormattedResult_({testPath: ['s1', 's2', 's4']}));
+
+                assert.deepEqual(
+                    builder.tree.suites.byId['s1 s2'],
+                    {
+                        id: 's1 s2',
+                        name: 's2',
+                        parentId: 's1',
+                        root: false,
+                        suitePath: ['s1', 's2'],
+                        status: SUCCESS,
+                        suiteIds: ['s1 s2 s3', 's1 s2 s4']
+                    }
+                );
+            });
         });
 
         describe('"browsers" field in the tree', () => {
