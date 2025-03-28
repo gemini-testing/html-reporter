@@ -169,7 +169,7 @@ function TestStepsInternal(props: TestStepsProps): ReactNode {
     const onStepMouseLeave = useCallback((): void => {
         dispatch(setCurrentPlayerHighlightTime({
             startTime: currentSnapshotsPlayerState.highlightStartTime,
-            endTime: currentSnapshotsPlayerState.highlightEndTime, 
+            endTime: currentSnapshotsPlayerState.highlightEndTime,
             isActive: false
         }));
     }, [currentSnapshotsPlayerState]);
