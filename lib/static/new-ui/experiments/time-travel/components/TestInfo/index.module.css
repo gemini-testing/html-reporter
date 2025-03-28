@@ -22,12 +22,10 @@
 .sticky {
     flex-basis: 0;
     flex-shrink: 0;
-    max-height: 75vh;
     max-width: 60%;
     position: sticky;
     top: calc(var(--sticky-header-height) + 45px);
     padding: 10px 20px;
-    flex-grow: 1;
 }
 
 .collapsible-section__body {
