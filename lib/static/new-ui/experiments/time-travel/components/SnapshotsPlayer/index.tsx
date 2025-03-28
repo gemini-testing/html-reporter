@@ -51,11 +51,11 @@ const MIN_PLAYER_TIME = 10;
 const findActionByTime = (steps: ListTreeItemType<Step>[], startTime: number, time: number): ListTreeItemType<Step> | null => {
     // TODO: support nested steps
     for (const step of steps) {
-        if (step.data.type !== StepType.Action) {
+        if (step.data.type !== StepType.Action || !step.data.startTime || !step.data.duration) {
             continue;
         }
-        const stepStartTime = step.data.startTime! - startTime;
-        const stepEndTime = step.data.startTime! - startTime + step.data.duration!;
+        const stepStartTime = step.data.startTime - startTime;
+        const stepEndTime = step.data.startTime - startTime + step.data.duration;
         if (time > stepStartTime && time < stepEndTime) {
             return step;
         }
