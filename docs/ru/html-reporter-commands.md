@@ -20,7 +20,7 @@ GUI-режим позволяет:
 ### Использование
 
 ```bash
-npx hermione gui
+npx testplane gui
 ```
 
 ## remove-unused-screens
@@ -48,31 +48,31 @@ npx hermione gui
 Указываем папку, в которой надо искать неиспользуемые скриншоты:
 
 ```bash
-npx hermione remove-unused-screens -p 'hermione-screens-folder'
+npx testplane remove-unused-screens -p 'testplane-screens-folder'
 ```
 
 Задаем маску, по которой будем искать скриншоты:
 
 ```bash
-npx hermione remove-unused-screens -p 'screens/**/*.png'
+npx testplane remove-unused-screens -p 'screens/**/*.png'
 ```
 
 Задаем несколько масок для поиска скриншотов:
 
 ```bash
-npx hermione remove-unused-screens -p 'screens/**/chrome/*.png' -p 'screens/**/firefox/*.png'
+npx testplane remove-unused-screens -p 'screens/**/chrome/*.png' -p 'screens/**/firefox/*.png'
 ```
 
 Задаем папку для поиска скриншотов и просим не задавать вопросов:
 
 ```bash
-npx hermione remove-unused-screens -p 'hermione-screens-folder' --skip-questions
+npx testplane remove-unused-screens -p 'testplane-screens-folder' --skip-questions
 ```
 
 Выводим справочную информацию о команде:
 
 ```bash
-npx hermione remove-unused-screens --help
+npx testplane remove-unused-screens --help
 ```
 
 ## merge-reports
@@ -93,13 +93,13 @@ npx hermione remove-unused-screens --help
 Пример использования:
 
 ```bash
-npx hermione merge-reports path-to-database.db path-to-databaseUrls.json -d dest-report -h foo=bar
+npx testplane merge-reports path-to-database.db path-to-databaseUrls.json -d dest-report -h foo=bar
 ```
 
 Http-хедеры можно так же передавать с помощью переменной окружения - `html_reporter_headers` (имеет приоритет выше, чем cli-опция `--header`). Пример:
 
 ```bash
-html_reporter_headers='{"foo":"bar"}' npx hermione merge-reports path-to-database.db path-to-databaseUrls.json -d dest-report -h baz=qux
+html_reporter_headers='{"foo":"bar"}' npx testplane merge-reports path-to-database.db path-to-databaseUrls.json -d dest-report -h baz=qux
 ```
 
 В итоге `path-to-databaseUrls.json` будет запрошен с хедерами: `{foo: 'bar', baz: 'qux'}`.
