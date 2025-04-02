@@ -40,6 +40,7 @@
 }
 
 .player-progress-left-cap {
+    background-color: var(--g-color-base-brand);
     position: absolute;
     height: 100%;
     width: 6px;
@@ -123,4 +124,63 @@
         width: 50px;
         opacity: 0;
     }
+}
+
+.container {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    column-gap: 16px;
+}
+
+.is-live .player-progress-left-cap {
+    background-color: var(--color-neutral-100);
+}
+
+.is-loading .player-progress-knob-bg {
+    opacity: 0;
+}
+
+.is-highlight-active .player-progress, 
+.is-highlight-active .player-progress-left-cap {
+    opacity: 0.5;
+}
+
+.is-playing .player-progress {
+    transition: opacity .5s ease-in-out;
+}
+
+.is-not-playing .player-progress {
+    transition: opacity .5s ease-in-out, width .2s ease;
+}
+
+.is-live .player-time, 
+.is-loading .player-time {
+    opacity: 0;
+}
+
+.is-scrubbing .player-progress-knob-bg {
+    scale: 1.15;
+}
+
+.is-not-playing:not(.is-hovering):not(.is-scrubbing) .player-progress-knob-bg {
+    transition: scale .3s, opacity 0.5s 0.5s, left .2s;
+}
+
+.is-playing .player-progress-knob-bg,
+.is-hovering .player-progress-knob-bg,
+.is-scrubbing .player-progress-knob-bg {
+    transition: scale .3s, opacity 0.5s 0.5s;
+}
+
+.is-hovering .player-progress-knob-bg-left {
+    border-right: 2px solid var(--color-neutral-100);
+}
+
+.is-loading .progress-pulse {
+    visibility: visible;
+}
+
+.progress-pulse {
+    visibility: hidden;
 }

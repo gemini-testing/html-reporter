@@ -105,7 +105,7 @@ export default Object.assign({config: configDefaults}, {
             currentTreeNodeId: null,
             currentGroupId: null,
             currentStepId: null,
-            currentHighlightStepId: null
+            currentHighlightedStepId: null
         },
         visualChecksPage: {
             currentNamedImageId: null

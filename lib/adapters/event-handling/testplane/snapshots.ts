@@ -127,10 +127,13 @@ export const finalizeSnapshotsForTest = async ({testResult, attempt, reportPath,
         const snapshotsSerialized = snapshots.map(s => JSON.stringify(s)).join('\n');
         let maxWidth = 0, maxHeight = 0;
         for (const snapshot of snapshots) {
-            if (snapshot.type === 4 && snapshot.data.width > maxWidth) {
+            if (snapshot.type !== 4) {
+                continue;
+            }
+            if (snapshot.data.width > maxWidth) {
                 maxWidth = snapshot.data.width;
             }
-            if (snapshot.type === 4 && snapshot.data.height > maxHeight) {
+            if (snapshot.data.height > maxHeight) {
                 maxHeight = snapshot.data.height;
             }
         }

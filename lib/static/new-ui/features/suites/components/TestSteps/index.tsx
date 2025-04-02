@@ -120,7 +120,7 @@ function TestStepsInternal(props: TestStepsProps): ReactNode {
     const dispatch = useDispatch();
 
     const currentStepId = useSelector(state => state.app.suitesPage.currentStepId);
-    const currentHighlightStepId = useSelector(state => state.app.suitesPage.currentHighlightStepId);
+    const currentHighlightStepId = useSelector(state => state.app.suitesPage.currentHighlightedStepId);
 
     const items = useList({
         items: props.testSteps,

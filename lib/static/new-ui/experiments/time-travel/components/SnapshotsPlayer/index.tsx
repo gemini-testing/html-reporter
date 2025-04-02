@@ -94,7 +94,7 @@ export function SnapshotsPlayer(): ReactNode {
     }, []);
 
     const lastSetStepId = useRef<string | null | undefined>(null);
-    const currentHighlightStepId = useSelector(state => state.app.suitesPage.currentHighlightStepId);
+    const currentHighlightStepId = useSelector(state => state.app.suitesPage.currentHighlightedStepId);
     const testSteps = useSelector(getTestSteps);
     const [isSnapshotZipLoading, setIsSnapshotZipLoading] = useState(false);
     const [snapshotZipDownloadProgress, setSnapshotZipDownloadProgress] = useState(0);

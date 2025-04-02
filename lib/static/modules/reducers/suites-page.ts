@@ -158,7 +158,7 @@ export default (state: State, action: SomeAction): State => {
             return applyStateUpdate(state, {
                 app: {
                     suitesPage: {
-                        currentHighlightStepId: action.payload.stepId
+                        currentHighlightedStepId: action.payload.stepId
                     }
                 }
             });

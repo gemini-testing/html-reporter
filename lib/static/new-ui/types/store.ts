@@ -257,7 +257,7 @@ export interface State {
             currentGroupId: string | null;
             currentStepId: string | null;
             // Is used when hovering over a timeline of a snapshots player to highlight corresponding step
-            currentHighlightStepId: string | null;
+            currentHighlightedStepId: string | null;
         };
         visualChecksPage: {
             currentNamedImageId: string | null;
