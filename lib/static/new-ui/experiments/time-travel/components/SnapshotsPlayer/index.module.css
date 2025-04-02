@@ -3,6 +3,26 @@
     position: relative;
 }
 
+.is-loading .replayer-container {
+    opacity: 0;
+}
+
+.is-loading .loading-container {
+    visibility: visible;
+    opacity: 1;
+    transition-delay: .5s;
+}
+
+.is-loading .control-button,
+.is-live .control-button {
+    opacity: 0 !important;
+}
+
+.buttons-container button,
+.player-time {
+    transition: opacity .5s ease .5s;
+}
+
 .replayer-container-centered {
     position: relative;
     left: 50%;
@@ -16,6 +36,38 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    opacity: 1;
+    transition: opacity .5s ease;
+}
+
+.loading-container {
+    color: var(--color-neutral-400);
+    font-weight: 450;
+    display: flex;
+    transition: opacity .5s ease .5s, visibility .5s ease .5s;
+    align-items: center;
+    gap: 2px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+    visibility: hidden;
+    opacity: 0;
+    transition-delay: 0s;
+}
+
+.buttons-container {
+    display: flex;
+    column-gap: 14px;
+    align-items: center;
+}
+
+.buttons-container button {
+    opacity: 1;
+}
+
+.control-button {
+    transition: opacity .5s ease .5s;
 }
 
 .line-horizontal {
@@ -62,16 +114,6 @@
     border: none;
 }
 
-.buttons-container {
-    display: flex;
-    column-gap: 14px;
-    align-items: center;
-}
-
-.buttons-container button {
-    transition: opacity .5s ease .5s;
-}
-
 .play-pause-button {
     position: relative;
 }
@@ -90,19 +132,6 @@
 .play-pause-icon-visible {
     scale: 1;
     opacity: 1;
-}
-
-.loading-container {
-    color: var(--color-neutral-400);
-    font-weight: 450;
-    display: flex;
-    transition: opacity .5s ease .5s, visibility .5s ease .5s;
-    align-items: center;
-    gap: 2px;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    translate: -50% -50%;
 }
 
 .loader {

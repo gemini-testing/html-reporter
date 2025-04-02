@@ -23,11 +23,7 @@ import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
 
 function isColorSchemeEvent(event: customEvent | RrwebEvent): event is customEvent<{colorScheme: 'light' | 'dark'}> {
     return event.type === 5 && // 5 is the EventType.Custom value
-        'data' in event &&
-        typeof event.data === 'object' &&
-        event.data !== null &&
-        'tag' in event.data &&
-        event.data.tag === 'color-scheme-change';
+        event?.data?.tag === 'color-scheme-change';
 }
 
 function getColorSchemeFromEvent(event: RrwebEvent): 'light' | 'dark' | null {
@@ -416,7 +412,7 @@ export function SnapshotsPlayer(): ReactNode {
     const playerContainerStyle: React.CSSProperties = {
         aspectRatio: `${maxPlayerSize.width} / ${maxPlayerSize.height}`,
         maxWidth: `${maxPlayerSize.width}px`,
-        maxHeight: `calc(100vh - var(--sticky-header-height) - 150px)`,
+        maxHeight: `calc(100vh - var(--sticky-header-height) - 150px)`, // 150px is just an arbitrary value to add some space around the player
         colorScheme: iframeColorScheme
     };
 
@@ -434,7 +430,12 @@ export function SnapshotsPlayer(): ReactNode {
         playerStartTimestamp = playerRef.current?.getMetaData().startTime ?? 0;
     } catch { /* */ }
 
-    return <div>
+    return <div className={classNames(
+        {
+            [styles['is-loading']]: isSnapshotZipLoading,
+            [styles['is-live']]: isLive
+        }
+    )}>
         {/* This container defines how much space is available to the player in total and sets paddings. */}
         <div className={styles.replayerRootContainer} style={{
             '--scale-factor': scaleFactor,
@@ -450,24 +451,20 @@ export function SnapshotsPlayer(): ReactNode {
                     <div className={classNames(styles.lineVertical, styles.lineVerticalLeft)}></div>
                     <div className={classNames(styles.lineVertical, styles.lineVerticalRight)}></div>
 
-                    <div className={styles.loadingContainer} style={{
-                        visibility: isSnapshotZipLoading ? 'visible' : 'hidden',
-                        opacity: isSnapshotZipLoading ? '1' : '0',
-                        transitionDelay: isSnapshotZipLoading ? '' : '0s'
-                    }}>
+                    <div className={styles.loadingContainer}>
                         <span>Loading snapshots data</span>
                         <div className={styles.loader}/>
                     </div>
 
                     {/* This container is for the player itself and matches size of the outer container */}
-                    <div className={styles.replayerContainer} ref={playerElementRef} style={{...playerStyle, opacity: isSnapshotZipLoading ? 0 : 1}}>
+                    <div className={styles.replayerContainer} ref={playerElementRef} style={playerStyle}>
                         <div style={{width: '100vw'}}></div>
                     </div>
                 </div>
             </div>
         </div>
         <div className={styles.buttonsContainer}>
-            <Button onClick={onPlayClick} view={'flat'} style={{opacity: isLive || isSnapshotZipLoading ? 0 : 1}} className={styles.playPauseButton}>
+            <Button onClick={onPlayClick} view={'flat'} className={classNames(styles.playPauseButton, styles.controlButton)}>
                 <div
                     className={classNames(styles.playPauseIcon, {[styles.playPauseIconVisible]: !isLive && isPlaying})}>
                     <Icon data={PauseFill} size={14}/></div>
@@ -490,8 +487,7 @@ export function SnapshotsPlayer(): ReactNode {
                 playerStartTimestamp={playerStartTimestamp}
                 highlightState={currentPlayerHighlightState}
             />
-            <Button disabled={true} view={'flat'} style={{opacity: isLive || isSnapshotZipLoading ? 0 : 1}}><Icon
-                data={Gear}/></Button>
+            <Button disabled={true} view={'flat'} className={styles.controlButton}><Icon data={Gear}/></Button>
         </div>
     </div>;
 }

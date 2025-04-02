@@ -231,11 +231,9 @@ export function Timeline({
                     )}
                 </div>
 
-                {isLive && (
-                    <div className={styles.liveBadgeContainer}>
-                        <span>LIVE</span>
-                    </div>
-                )}
+                <div className={styles.liveBadgeContainer}>
+                    <span>LIVE</span>
+                </div>
             </div>
 
             <div className={styles.playerTime}>

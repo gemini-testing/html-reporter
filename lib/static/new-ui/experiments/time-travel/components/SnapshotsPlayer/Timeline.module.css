@@ -88,6 +88,15 @@
     font-size: 14px;
     font-weight: 500;
     color: var(--color-neutral-500);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .5s ease .5s, visibility 0s linear .5s;
+}
+
+.is-live .live-badge-container {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity .5s ease, visibility 0s;
 }
 
 .player-progress-knob {
