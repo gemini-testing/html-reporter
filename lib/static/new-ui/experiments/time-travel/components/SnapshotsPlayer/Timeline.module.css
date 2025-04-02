@@ -96,6 +96,15 @@
     height: 22px;
 }
 
+.player-progress-knob-bg-left {
+    border-left: 2px solid var(--color-neutral-100);
+}
+
+.player-progress-knob-bg-right {
+    border-left: 2px solid transparent;
+    border-right: 2px solid var(--color-neutral-100);
+}
+
 .progress-pulse {
      position: absolute;
      right: 0;
