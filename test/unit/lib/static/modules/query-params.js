@@ -1,6 +1,6 @@
-import {parseQuery, appendQuery} from 'lib/static/modules/query-params';
-import {ViewMode} from 'lib/constants/view-modes';
-import {COLLAPSE_ALL} from 'lib/constants/expand-modes';
+const {parseQuery, appendQuery} = require('lib/static/modules/query-params');
+const {ViewMode} = require('lib/constants/view-modes');
+const {COLLAPSE_ALL} = require('lib/constants/expand-modes');
 
 describe('lib/static/modules/query-params', () => {
     describe('parseQuery', () => {

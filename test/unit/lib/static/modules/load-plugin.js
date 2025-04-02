@@ -1,10 +1,10 @@
 'use strict';
 
-import axios from 'axios';
-import {loadPlugin} from 'lib/static/modules/load-plugin';
-import actionNames from 'lib/static/modules/action-names';
-import * as actions from 'lib/static/modules/actions';
-import * as selectors from 'lib/static/modules/selectors';
+const axios = require('axios');
+const {loadPlugin} = require('lib/static/modules/load-plugin');
+const actionNames = require('lib/static/modules/action-names').default;
+const actions = require('lib/static/modules/actions');
+const selectors = require('lib/static/modules/selectors');
 
 describe('static/modules/load-plugin', () => {
     const sandbox = sinon.sandbox.create();

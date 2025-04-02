@@ -1,5 +1,5 @@
-import reducer from 'lib/static/modules/reducers/bottom-progress-bar';
-import actionNames from 'lib/static/modules/action-names';
+const reducer = require('lib/static/modules/reducers/bottom-progress-bar').default;
+const actionNames = require('lib/static/modules/action-names').default;
 
 describe('lib/static/modules/reducers/bottom-progress-bar', () => {
     it('should update "currentRootSuiteId"', () => {

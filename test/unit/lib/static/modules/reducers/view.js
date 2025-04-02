@@ -1,10 +1,10 @@
-import reducer from 'lib/static/modules/reducers/view';
-import actionNames from 'lib/static/modules/action-names';
-import defaultState from 'lib/static/modules/default-state';
-import {appendQuery, encodeBrowsers} from 'lib/static/modules/query-params';
-import {ViewMode} from 'lib/constants/view-modes';
-import {EXPAND_ALL, EXPAND_ERRORS} from 'lib/constants/expand-modes';
-import {mkStorage} from '../../../../utils';
+const reducer = require('lib/static/modules/reducers/view').default;
+const actionNames = require('lib/static/modules/action-names').default;
+const defaultState = require('lib/static/modules/default-state').default;
+const {appendQuery, encodeBrowsers} = require('lib/static/modules/query-params');
+const {ViewMode} = require('lib/constants/view-modes');
+const {EXPAND_ALL, EXPAND_ERRORS} = require('lib/constants/expand-modes');
+const {mkStorage} = require('../../../../utils');
 
 describe('lib/static/modules/reducers/view', () => {
     let baseUrl;

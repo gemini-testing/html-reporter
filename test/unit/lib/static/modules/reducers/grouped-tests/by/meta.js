@@ -1,4 +1,4 @@
-import proxyquire from 'proxyquire';
+const proxyquire = require('proxyquire');
 
 describe('lib/static/modules/reducers/grouped-tests/by/meta', () => {
     const sandbox = sinon.sandbox.create();

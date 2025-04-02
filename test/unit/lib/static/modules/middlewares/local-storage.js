@@ -1,9 +1,9 @@
-import proxyquire from 'proxyquire';
-import actionNames from 'lib/static/modules/action-names';
-import defaultState from 'lib/static/modules/default-state';
-import {ViewMode} from 'lib/constants/view-modes';
-import {DiffModes} from 'lib/constants/diff-modes';
-import {EXPAND_ERRORS} from 'lib/constants/expand-modes';
+const proxyquire = require('proxyquire');
+const actionNames = require('lib/static/modules/action-names').default;
+const defaultState = require('lib/static/modules/default-state').default;
+const {ViewMode} = require('lib/constants/view-modes');
+const {DiffModes} = require('lib/constants/diff-modes');
+const {EXPAND_ERRORS} = require('lib/constants/expand-modes');
 
 describe('lib/static/modules/middlewares/local-storage', () => {
     const sandbox = sinon.sandbox.create();

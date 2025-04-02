@@ -1,13 +1,6 @@
-import {SUCCESS, FAIL, IDLE} from 'lib/constants/test-statuses';
-import {
-    getAcceptableImagesByStateName,
-    getAcceptableOpenedImageIds,
-    mkGetLastImageByStateName,
-    areAllRootSuitesIdle,
-    getFailedTests,
-    getFailedSuiteResults
-} from 'lib/static/modules/selectors/tree';
-import {mkSuite, mkBrowser, mkResult, mkImage, mkStateTree, mkStateView} from '../../state-utils';
+const {SUCCESS, FAIL, IDLE} = require('lib/constants/test-statuses');
+const {getAcceptableImagesByStateName, getAcceptableOpenedImageIds, mkGetLastImageByStateName, areAllRootSuitesIdle, getFailedTests, getFailedSuiteResults} = require('lib/static/modules/selectors/tree');
+const {mkSuite, mkBrowser, mkResult, mkImage, mkStateTree, mkStateView} = require('../../state-utils');
 
 describe('tree selectors', () => {
     const mkState = ({tree = mkStateTree(), view = mkStateView()} = {}) => ({tree, view});
