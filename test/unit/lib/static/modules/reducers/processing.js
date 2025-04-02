@@ -1,5 +1,5 @@
-import reducer from 'lib/static/modules/reducers/processing';
-import actionNames from 'lib/static/modules/action-names';
+const reducer = require('lib/static/modules/reducers/processing').default;
+const actionNames = require('lib/static/modules/action-names').default;
 
 describe('lib/static/modules/reducers/processing', () => {
     [

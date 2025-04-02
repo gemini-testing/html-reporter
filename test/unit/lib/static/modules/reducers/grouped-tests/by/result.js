@@ -1,6 +1,6 @@
-import proxyquire from 'proxyquire';
-import {ERROR_KEY, RESULT_KEYS} from 'lib/constants/group-tests';
-import {mkImage, mkStateTree} from '../../../../state-utils';
+const proxyquire = require('proxyquire');
+const {ERROR_KEY, RESULT_KEYS} = require('lib/constants/group-tests');
+const {mkImage, mkStateTree} = require('../../../../state-utils');
 
 describe('lib/static/modules/reducers/grouped-tests/by/result', () => {
     const sandbox = sinon.sandbox.create();

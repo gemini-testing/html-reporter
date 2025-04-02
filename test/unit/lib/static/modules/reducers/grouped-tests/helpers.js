@@ -1,6 +1,6 @@
-import proxyquire from 'proxyquire';
+const proxyquire = require('proxyquire');
 const {ViewMode} = require('lib/constants/view-modes');
-import {mkBrowser, mkResult, mkStateTree} from '../../../state-utils';
+const {mkBrowser, mkResult, mkStateTree} = require('../../../state-utils');
 
 describe('lib/static/modules/reducers/grouped-tests/helpers', () => {
     const sandbox = sinon.sandbox.create();

@@ -1,5 +1,5 @@
-import actionNames from 'lib/static/modules/action-names';
-import proxyquire from 'proxyquire';
+const actionNames = require('lib/static/modules/action-names').default;
+const proxyquire = require('proxyquire');
 
 // eslint-disable-next-line
 globalThis.performance = globalThis.performance; // node v14 stub

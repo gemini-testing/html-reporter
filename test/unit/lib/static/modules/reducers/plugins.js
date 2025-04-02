@@ -1,4 +1,4 @@
-import actionNames from 'lib/static/modules/action-names';
+const actionNames = require('lib/static/modules/action-names').default;
 
 const proxyquire = require('proxyquire');
 

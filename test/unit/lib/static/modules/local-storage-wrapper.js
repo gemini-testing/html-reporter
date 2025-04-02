@@ -1,5 +1,5 @@
-import * as localStorageWrapper from 'lib/static/modules/local-storage-wrapper';
-import {mkStorage} from '../../../utils';
+const localStorageWrapper = require('lib/static/modules/local-storage-wrapper');
+const {mkStorage} = require('../../../utils');
 
 describe('lib/static/modules/local-storage-wrapper', () => {
     const prefix = 'html-reporter';

@@ -1,11 +1,11 @@
-import {SUCCESS, FAIL, ERROR, UPDATED, STAGED, COMMITED} from 'lib/constants/test-statuses';
-import {CHECKED, UNCHECKED, INDETERMINATE} from 'lib/constants/checked-statuses';
-import reducer from 'lib/static/modules/reducers/tree';
-import actionNames from 'lib/static/modules/action-names';
-import {ViewMode} from 'lib/constants/view-modes';
-import {EXPAND_ALL, EXPAND_ERRORS, EXPAND_RETRIES} from 'lib/constants/expand-modes';
-import {mkSuite, mkBrowser, mkResult, mkImage, mkStateTree, mkStateView} from '../../../state-utils';
-import {ErrorName} from 'lib/errors';
+const {SUCCESS, FAIL, ERROR, UPDATED, STAGED, COMMITED} = require('lib/constants/test-statuses');
+const {CHECKED, UNCHECKED, INDETERMINATE} = require('lib/constants/checked-statuses');
+const reducer = require('lib/static/modules/reducers/tree').default;
+const actionNames = require('lib/static/modules/action-names').default;
+const {ViewMode} = require('lib/constants/view-modes');
+const {EXPAND_ALL, EXPAND_ERRORS, EXPAND_RETRIES} = require('lib/constants/expand-modes');
+const {mkSuite, mkBrowser, mkResult, mkImage, mkStateTree, mkStateView} = require('../../../state-utils');
+const {ErrorName} = require('lib/errors');
 
 describe('lib/static/modules/reducers/tree', () => {
     [actionNames.INIT_GUI_REPORT, actionNames.INIT_STATIC_REPORT].forEach((actionName) => {

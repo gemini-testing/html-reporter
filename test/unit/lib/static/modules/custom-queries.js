@@ -1,7 +1,7 @@
 'use strict';
-import {getViewQuery} from 'lib/static/modules/custom-queries';
-import {ViewMode} from 'lib/constants/view-modes';
-import {COLLAPSE_ALL} from 'lib/constants/expand-modes';
+const {getViewQuery} = require('lib/static/modules/custom-queries');
+const {ViewMode} = require('lib/constants/view-modes');
+const {COLLAPSE_ALL} = require('lib/constants/expand-modes');
 
 describe('lib/static/modules/query-params', () => {
     describe('getViewQuery', () => {

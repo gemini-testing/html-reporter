@@ -1,5 +1,5 @@
-import proxyquire from 'proxyquire';
-import {SECTIONS, ERROR_KEY, KEY_DELIMITER} from 'lib/constants/group-tests';
+const proxyquire = require('proxyquire');
+const {SECTIONS, ERROR_KEY, KEY_DELIMITER} = require('lib/constants/group-tests');
 
 describe('grouped-tests selectors', () => {
     const sandbox = sinon.sandbox.create();

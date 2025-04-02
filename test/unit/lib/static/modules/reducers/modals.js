@@ -1,6 +1,6 @@
-import reducer from 'lib/static/modules/reducers/modals';
-import actionNames from 'lib/static/modules/action-names';
-import defaultState from 'lib/static/modules/default-state';
+const reducer = require('lib/static/modules/reducers/modals').default;
+const actionNames = require('lib/static/modules/action-names').default;
+const defaultState = require('lib/static/modules/default-state').default;
 
 describe('lib/static/modules/reducers/modals', () => {
     describe(`"${actionNames.OPEN_MODAL}" action`, () => {

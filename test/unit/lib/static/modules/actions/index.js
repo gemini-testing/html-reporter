@@ -1,10 +1,7 @@
-import axios from 'axios';
-import proxyquire from 'proxyquire';
-import {
-    thunkAcceptImages,
-    thunkRevertImages
-} from 'lib/static/modules/actions';
-import actionNames from 'lib/static/modules/action-names';
+const axios = require('axios');
+const proxyquire = require('proxyquire');
+const {thunkAcceptImages, thunkRevertImages} = require('lib/static/modules/actions');
+const actionNames = require('lib/static/modules/action-names').default;
 
 describe('lib/static/modules/actions', () => {
     const sandbox = sinon.sandbox.create();

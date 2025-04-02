@@ -1,10 +1,10 @@
-import proxyquire from 'proxyquire';
-import {defaults} from 'lodash';
-import actionNames from 'lib/static/modules/action-names';
-import defaultState from 'lib/static/modules/default-state';
-import {ViewMode} from 'lib/constants/view-modes';
-import {SECTIONS, ERROR_KEY, KEY_DELIMITER} from 'lib/constants/group-tests';
-import {mkStateTree, mkStateView} from '../../../state-utils';
+const proxyquire = require('proxyquire');
+const {defaults} = require('lodash');
+const actionNames = require('lib/static/modules/action-names').default;
+const defaultState = require('lib/static/modules/default-state').default;
+const {ViewMode} = require('lib/constants/view-modes');
+const {SECTIONS, ERROR_KEY, KEY_DELIMITER} = require('lib/constants/group-tests');
+const {mkStateTree, mkStateView} = require('../../../state-utils');
 
 describe('lib/static/modules/reducers/grouped-tests', () => {
     const sandbox = sinon.sandbox.create();
