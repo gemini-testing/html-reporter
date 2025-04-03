@@ -18,7 +18,11 @@ import {SqliteClient} from '../sqlite-client';
 
 export * from './common';
 
-export const prepareUrls = (urls: string[], baseUrl: string): string[] => isUrl(baseUrl) ? normalizeUrls(urls, baseUrl) : urls;
+export const prepareUrls = (urls: string[], baseUrl: string): string[] => {
+    return isUrl(baseUrl)
+        ? normalizeUrls(urls, baseUrl)
+        : urls.map(u => isUrl(u) ? u : path.join(path.parse(baseUrl).dir, u));
+};
 
 export async function downloadDatabases(dbJsonUrls: string[], opts: HandleDatabasesOptions): Promise<(string | DbLoadResult)[]> {
     const loadDbJsonUrl = async (dbJsonUrl: string): Promise<{data: DbUrlsJsonData | null}> => {

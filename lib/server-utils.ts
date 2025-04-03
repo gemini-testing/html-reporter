@@ -9,8 +9,8 @@ import type {Test as TestplaneTest} from 'testplane';
 import _ from 'lodash';
 import tmp from 'tmp';
 
-import {getShortMD5, logger, mkTestId} from './common-utils';
-import {UPDATED, RUNNING, IDLE, SKIPPED, IMAGES_PATH, TestStatus, UNKNOWN_ATTEMPT} from './constants';
+import {getShortMD5, logger, mkTestId, isUrl} from './common-utils';
+import {UPDATED, RUNNING, IDLE, SKIPPED, IMAGES_PATH, TestStatus, UNKNOWN_ATTEMPT, DB_FILE_EXTENSION} from './constants';
 import type {HtmlReporter} from './plugin-api';
 import type {ReporterTestResult} from './adapters/test-result';
 import {
@@ -27,29 +27,30 @@ interface GetPathOptions {
     imageDir: string;
     attempt: number;
     browserId: string;
+    timestamp: number;
 }
 
 export const getReferencePath = (options: GetPathOptions, stateName?: string): string =>
-    createPath({kind: 'ref', stateName, ..._.pick(options, ['attempt', 'browserId', 'imageDir'])});
+    createPath({kind: 'ref', stateName, ..._.pick(options, ['attempt', 'browserId', 'imageDir', 'timestamp'])});
 export const getCurrentPath = (options: GetPathOptions, stateName?: string): string =>
-    createPath({kind: 'current', stateName, ..._.pick(options, ['attempt', 'browserId', 'imageDir'])});
+    createPath({kind: 'current', stateName, ..._.pick(options, ['attempt', 'browserId', 'imageDir', 'timestamp'])});
 export const getDiffPath = (options: GetPathOptions, stateName?: string): string =>
-    createPath({kind: 'diff', stateName, ..._.pick(options, ['attempt', 'browserId', 'imageDir'])});
+    createPath({kind: 'diff', stateName, ..._.pick(options, ['attempt', 'browserId', 'imageDir', 'timestamp'])});
 
 export const getReferenceAbsolutePath = (testResult: ReporterTestResult, reportDir: string, stateName: string): string => {
-    const referenceImagePath = getReferencePath({attempt: testResult.attempt, imageDir: testResult.imageDir, browserId: testResult.browserId}, stateName);
+    const referenceImagePath = getReferencePath({attempt: testResult.attempt, imageDir: testResult.imageDir, browserId: testResult.browserId, timestamp: testResult.timestamp}, stateName);
 
     return path.resolve(reportDir, referenceImagePath);
 };
 
 export const getCurrentAbsolutePath = (testResult: ReporterTestResult, reportDir: string, stateName: string): string => {
-    const currentImagePath = getCurrentPath({attempt: testResult.attempt, imageDir: testResult.imageDir, browserId: testResult.browserId}, stateName);
+    const currentImagePath = getCurrentPath({attempt: testResult.attempt, imageDir: testResult.imageDir, browserId: testResult.browserId, timestamp: testResult.timestamp}, stateName);
 
     return path.resolve(reportDir, currentImagePath);
 };
 
 export const getDiffAbsolutePath = (testResult: ReporterTestResult, reportDir: string, stateName: string): string => {
-    const diffImagePath = getDiffPath({attempt: testResult.attempt, imageDir: testResult.imageDir, browserId: testResult.browserId}, stateName);
+    const diffImagePath = getDiffPath({attempt: testResult.attempt, imageDir: testResult.imageDir, browserId: testResult.browserId, timestamp: testResult.timestamp}, stateName);
 
     return path.resolve(reportDir, diffImagePath);
 };
@@ -59,10 +60,10 @@ interface CreatePathOptions extends GetPathOptions {
     kind: string;
 }
 
-export function createPath({attempt: attemptInput, imageDir: imageDirInput, browserId, kind, stateName}: CreatePathOptions): string {
+export function createPath({attempt: attemptInput, imageDir: imageDirInput, timestamp, browserId, kind, stateName}: CreatePathOptions): string {
     const attempt: number = attemptInput || 0;
     const imageDir = _.compact([IMAGES_PATH, imageDirInput, stateName]);
-    const components = imageDir.concat(`${browserId}~${kind}_${attempt}.png`);
+    const components = imageDir.concat(`${browserId}~${kind}_${timestamp}_${attempt}.png`);
 
     return path.join(...components);
 }
@@ -126,6 +127,7 @@ export function shouldUpdateAttempt(status: TestStatus): boolean {
 
 export async function saveStaticFilesToReportDir(htmlReporter: HtmlReporter, pluginConfig: ReporterConfig, destPath: string): Promise<void> {
     const staticFolder = path.resolve(__dirname, './static');
+
     await fs.ensureDir(destPath);
     await Promise.all([
         fs.writeFile(
@@ -179,13 +181,13 @@ export function isJsonUrl(url: string): boolean {
     return urlPathNameEndsWith(url, '.json');
 }
 
-export function isDbUrl(url: string): boolean {
-    return urlPathNameEndsWith(url, '.db');
+export function isDbFile(filePath: string): boolean {
+    return isUrl(filePath) ? urlPathNameEndsWith(filePath, DB_FILE_EXTENSION) : filePath.endsWith(DB_FILE_EXTENSION);
 }
 
 export async function writeDatabaseUrlsFile(destPath: string, srcPaths: string[]): Promise<void> {
     const jsonUrls = srcPaths.filter(isJsonUrl);
-    const dbUrls = srcPaths.filter(isDbUrl);
+    const dbUrls = srcPaths.filter(isDbFile);
     const data = {
         dbUrls,
         jsonUrls

@@ -350,7 +350,7 @@ export class PlaywrightTestResultAdapter implements ReporterTestResult {
         return this._testCase.titlePath().slice(3);
     }
 
-    get timestamp(): number | undefined {
+    get timestamp(): number {
         return this._testResult.startTime.getTime();
     }
 
