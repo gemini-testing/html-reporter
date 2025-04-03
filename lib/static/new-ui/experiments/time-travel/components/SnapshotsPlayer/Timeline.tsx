@@ -20,6 +20,7 @@ interface TimelineProps {
     isPlaying: boolean;
     playerStartTimestamp?: number;
     highlightState: SnapshotsPlayerHighlightState;
+    isSnapshotMissing?: boolean;
 }
 
 const formatTime = (time: number): string => strftime('%M:%S', new Date(time));
@@ -37,7 +38,8 @@ export function Timeline({
     isLoading,
     isPlaying,
     highlightState,
-    playerStartTimestamp = 0
+    playerStartTimestamp = 0,
+    isSnapshotMissing = false
 }: TimelineProps): ReactNode {
     const [isScrubbing, setIsScrubbing] = useState(false);
     const [isHovering, setIsHovering] = useState(false);
@@ -152,10 +154,10 @@ export function Timeline({
 
     const highlightStartTime = highlightState.highlightStartTime - playerStartTimestamp;
     const highlightEndTime = highlightState.highlightEndTime - playerStartTimestamp;
-    const progressPercent = clamp(((isHovering && !isScrubbing ? currentTime : displayTime) / totalTime) * 100, 0, 100);
-    const highlightRegionWidth = highlightState.isActive ? clamp((highlightEndTime - highlightStartTime) / totalTime * 100, 0, 100) : 0;
-    const leftKnobPosition = clamp(((highlightState.isActive ? highlightStartTime : displayTime) / totalTime) * 100, 0, 100);
-    const rightKnobPosition = clamp(((highlightState.isActive ? highlightEndTime : displayTime) / totalTime) * 100, 0, 100);
+    const progressPercent = clamp(((isHovering && !isScrubbing ? currentTime : displayTime) / totalTime) * 100, 0, 100) * Number(!isSnapshotMissing);
+    const highlightRegionWidth = highlightState.isActive ? clamp((highlightEndTime - highlightStartTime) / totalTime * 100, 0, 100) * Number(!isSnapshotMissing) : 0;
+    const leftKnobPosition = clamp(((highlightState.isActive ? highlightStartTime : displayTime) / totalTime) * 100, 0, 100) * Number(!isSnapshotMissing);
+    const rightKnobPosition = clamp(((highlightState.isActive ? highlightEndTime : displayTime) / totalTime) * 100, 0, 100) * Number(!isSnapshotMissing);
 
     const containerClasses = classNames(
         styles.container,
@@ -164,16 +166,16 @@ export function Timeline({
             [styles['is-loading']]: isLoading,
             [styles['is-highlight-active']]: highlightState.isActive,
             [styles['is-playing']]: isPlaying,
-            [styles['is-not-playing']]: !isPlaying && !isMouseMoving,
             [styles['is-hovering']]: isHovering,
-            [styles['is-scrubbing']]: isScrubbing
+            [styles['is-scrubbing']]: isScrubbing && isMouseMoving,
+            [styles['is-snapshot-missing']]: isSnapshotMissing
         }
     );
 
     return (
         <div className={containerClasses}>
             <div className={styles.playerTime}>
-                {formatTime(displayTime)}
+                {isSnapshotMissing ? '––:––' : formatTime(displayTime)}
             </div>
 
             <div
@@ -191,44 +193,42 @@ export function Timeline({
                     <div className={styles.playerProgressLeftCap} />
                     <div className={styles.playerProgressRightCap} />
 
-                    {!isLive && (
-                        <>
-                            <div
-                                className={styles.playerProgress}
-                                style={{
-                                    width: `${(isLoading ? downloadProgress : progressPercent).toFixed(2)}%`
-                                }}
-                            >
-                                <div className={styles.progressPulse} />
-                            </div>
+                    <>
+                        <div
+                            className={styles.playerProgress}
+                            style={{
+                                width: `${(isLoading ? downloadProgress : progressPercent).toFixed(2)}%`
+                            }}
+                        >
+                            <div className={styles.progressPulse} />
+                        </div>
 
-                            <div
-                                className={classNames(styles.playerProgressKnobBg, styles.playerProgressKnobBgLeft)}
-                                style={{
-                                    left: `calc(${leftKnobPosition.toFixed(2)}% - 2px)`
-                                }}
-                            >
-                                <div className={styles.playerProgressKnob} />
-                            </div>
+                        <div
+                            className={classNames(styles.playerProgressKnobBg, styles.playerProgressKnobBgLeft)}
+                            style={{
+                                left: `calc(${leftKnobPosition.toFixed(2)}% - 2px)`
+                            }}
+                        >
+                            <div className={styles.playerProgressKnob} />
+                        </div>
 
-                            <div
-                                className={styles.highlightRegion}
-                                style={{
-                                    left: `calc(${leftKnobPosition.toFixed(2)}%)`,
-                                    width: `${highlightRegionWidth.toFixed(2)}%`
-                                }}
-                            />
+                        <div
+                            className={styles.highlightRegion}
+                            style={{
+                                left: `calc(${leftKnobPosition.toFixed(2)}%)`,
+                                width: `${highlightRegionWidth.toFixed(2)}%`
+                            }}
+                        />
 
-                            <div
-                                className={classNames(styles.playerProgressKnobBg, styles.playerProgressKnobBgRight)}
-                                style={{
-                                    left: `calc(${rightKnobPosition.toFixed(2)}% - 2px)`
-                                }}
-                            >
-                                <div className={styles.playerProgressKnob} />
-                            </div>
-                        </>
-                    )}
+                        <div
+                            className={classNames(styles.playerProgressKnobBg, styles.playerProgressKnobBgRight)}
+                            style={{
+                                left: `calc(${rightKnobPosition.toFixed(2)}% - 2px)`
+                            }}
+                        >
+                            <div className={styles.playerProgressKnob} />
+                        </div>
+                    </>
                 </div>
 
                 <div className={styles.liveBadgeContainer}>
@@ -237,7 +237,7 @@ export function Timeline({
             </div>
 
             <div className={styles.playerTime}>
-                {formatTime(totalTime)}
+                {isSnapshotMissing ? '––:––' : formatTime(totalTime)}
             </div>
         </div>
     );

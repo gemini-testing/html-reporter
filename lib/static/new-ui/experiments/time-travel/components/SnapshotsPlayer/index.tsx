@@ -76,6 +76,8 @@ export function SnapshotsPlayer(): ReactNode {
 
     const [totalTime, setTotalTime] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
+    const [isSnapshotMissing, setIsSnapshotMissing] = useState(false);
+    const [snapshotLoadingError, setSnapshotLoadingError] = useState<Error | null>(null);
 
     const finishedPlayingRef = useRef(false);
     const [currentPlayerTime, setCurrentPlayerTime] = useState(0);
@@ -184,6 +186,7 @@ export function SnapshotsPlayer(): ReactNode {
         setIsPlaying(false);
         cancelTimeTicking();
         finishedPlayingRef.current = false;
+        setIsSnapshotMissing(false);
     }, [currentResult?.id]);
 
     const onLiveSnapshotsReceive = useCallback((snapshots: NumberedSnapshot[]) => {
@@ -297,6 +300,8 @@ export function SnapshotsPlayer(): ReactNode {
                 .catch(e => {
                     setIsSnapshotZipLoading(false);
                     loadingVisibleTimeRef.current = null;
+                    setIsSnapshotMissing(true);
+                    setSnapshotLoadingError(e);
                     console.warn('Failed to load snapshots', e);
                 });
         }
@@ -332,6 +337,9 @@ export function SnapshotsPlayer(): ReactNode {
     };
 
     const onScrubStart = useCallback(() => {
+        if (isSnapshotMissing) {
+            return;
+        }
         if (isPlaying && playerRef.current) {
             playerRef.current.pause();
             setIsPlaying(false);
@@ -339,8 +347,12 @@ export function SnapshotsPlayer(): ReactNode {
             finishedPlayingRef.current = false;
         }
         dispatch(setCurrentHighlightStep({stepId: null}));
-    }, [isPlaying]);
+    }, [isPlaying, isSnapshotMissing]);
     const onScrub = useCallback((newTime: number) => {
+        if (isSnapshotMissing) {
+            return;
+        }
+
         if (playerRef.current) {
             const playerStartTime = playerRef.current.getMetaData().startTime;
             const currentAction = findActionByTime(testSteps, playerStartTime, newTime);
@@ -349,8 +361,12 @@ export function SnapshotsPlayer(): ReactNode {
                 dispatch(setCurrentStep({stepId: currentAction.id}));
             }
         }
-    }, [testSteps]);
+    }, [testSteps, isSnapshotMissing]);
     const onScrubEnd = useCallback((newTime: number) => {
+        if (isSnapshotMissing) {
+            return;
+        }
+
         setCurrentPlayerTime(newTime);
         if (playerRef.current) {
             const lastColorScheme = customEventsRef.current.findLast(e =>
@@ -375,8 +391,12 @@ export function SnapshotsPlayer(): ReactNode {
                 dispatch(setCurrentStep({stepId: currentAction.id}));
             }
         }
-    }, [testSteps]);
+    }, [testSteps, isSnapshotMissing]);
     const onTimelineHover = useCallback((newTime: number) => {
+        if (isSnapshotMissing) {
+            return;
+        }
+
         if (playerRef.current) {
             finishedPlayingRef.current = false;
             const playerStartTime = playerRef.current.getMetaData().startTime;
@@ -385,14 +405,22 @@ export function SnapshotsPlayer(): ReactNode {
                 dispatch(setCurrentHighlightStep({stepId: currentAction.id}));
             }
         }
-    }, [testSteps]);
+    }, [testSteps, currentHighlightStepId, isSnapshotMissing]);
     const onTimelineMouseLeave = useCallback(() => {
+        if (isSnapshotMissing) {
+            return;
+        }
+
         dispatch(setCurrentHighlightStep({stepId: null}));
-    }, [dispatch]);
+    }, [dispatch, isSnapshotMissing]);
 
     const currentPlayerHighlightState = useSelector(state => state.app.snapshotsPlayer);
 
     useEffect(() => {
+        if (isSnapshotMissing) {
+            return;
+        }
+
         if (currentPlayerHighlightState.isActive) {
             playerRef.current?.pause(currentPlayerHighlightState.highlightEndTime - playerRef.current?.getMetaData().startTime);
             setIsPlaying(false);
@@ -400,17 +428,17 @@ export function SnapshotsPlayer(): ReactNode {
         } else if (!isPlaying) {
             playerRef.current?.pause(currentPlayerTime > 0 ? currentPlayerTime : MIN_PLAYER_TIME);
         }
-    }, [currentPlayerHighlightState]);
+    }, [currentPlayerHighlightState, isSnapshotMissing]);
 
     useEffect(() => {
-        if (!playerRef.current) {
+        if (isSnapshotMissing || !playerRef.current) {
             return;
         }
 
         const newPlayerTime = Math.max(currentPlayerHighlightState.goToTime - playerRef.current.getMetaData().startTime, MIN_PLAYER_TIME);
         setCurrentPlayerTime(newPlayerTime);
         playerRef.current.pause(newPlayerTime);
-    }, [currentPlayerHighlightState.goToTime]);
+    }, [currentPlayerHighlightState.goToTime, isSnapshotMissing]);
 
     const playerContainerStyle: React.CSSProperties = {
         aspectRatio: `${maxPlayerSize.width} / ${maxPlayerSize.height}`,
@@ -436,7 +464,8 @@ export function SnapshotsPlayer(): ReactNode {
     return <div className={classNames(
         {
             [styles['is-loading']]: isSnapshotZipLoading,
-            [styles['is-live']]: isLive
+            [styles['is-live']]: isLive,
+            [styles['is-snapshot-missing']]: isSnapshotMissing
         }
     )}>
         {/* This container defines how much space is available to the player in total and sets paddings. */}
@@ -459,6 +488,15 @@ export function SnapshotsPlayer(): ReactNode {
                         <div className={styles.loader}/>
                     </div>
 
+                    {isSnapshotMissing && (
+                        <div className={styles.snapshotMissingContainer}>
+                            <span>Snapshot data is not available</span>
+                            {snapshotLoadingError && (
+                                <span>Error: {snapshotLoadingError.message}</span>
+                            )}
+                        </div>
+                    )}
+
                     {/* This container is for the player itself and matches size of the outer container */}
                     <div className={styles.replayerContainer} ref={playerElementRef} style={playerStyle}>
                         <div style={{width: '100vw'}}></div>
@@ -467,12 +505,17 @@ export function SnapshotsPlayer(): ReactNode {
             </div>
         </div>
         <div className={styles.buttonsContainer}>
-            <Button onClick={onPlayClick} view={'flat'} className={classNames(styles.playPauseButton, styles.controlButton)}>
+            <Button
+                onClick={onPlayClick}
+                view={'flat'}
+                className={classNames(styles.playPauseButton, styles.controlButton)}
+                disabled={isSnapshotMissing}
+            >
                 <div
-                    className={classNames(styles.playPauseIcon, {[styles.playPauseIconVisible]: !isLive && isPlaying})}>
+                    className={classNames(styles.playPauseIcon, {[styles.playPauseIconVisible]: isPlaying})}>
                     <Icon data={PauseFill} size={14}/></div>
                 <div
-                    className={classNames(styles.playPauseIcon, {[styles.playPauseIconVisible]: !isLive && !isPlaying})}>
+                    className={classNames(styles.playPauseIcon, {[styles.playPauseIconVisible]: !isPlaying})}>
                     <Icon data={PlayFill} size={14}/></div>
             </Button>
             <Timeline
@@ -489,8 +532,15 @@ export function SnapshotsPlayer(): ReactNode {
                 isPlaying={isPlaying}
                 playerStartTimestamp={playerStartTimestamp}
                 highlightState={currentPlayerHighlightState}
+                isSnapshotMissing={isSnapshotMissing}
             />
-            <Button disabled={true} view={'flat'} className={styles.controlButton}><Icon data={Gear}/></Button>
+            <Button
+                disabled={true || isSnapshotMissing}
+                view={'flat'}
+                className={styles.controlButton}
+            >
+                <Icon data={Gear}/>
+            </Button>
         </div>
     </div>;
 }

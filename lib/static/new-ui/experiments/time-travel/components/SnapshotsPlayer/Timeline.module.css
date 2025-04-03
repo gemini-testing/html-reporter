@@ -35,8 +35,8 @@
     top: 0;
     width: 0;
     height: 100%;
-    transition: opacity .5s ease-in-out;
     overflow: hidden;
+    transition: opacity .5s ease-in-out, width .2s ease;
 }
 
 .player-progress-left-cap {
@@ -46,7 +46,7 @@
     width: 6px;
     left: -6px;
     border-radius: 100px 0 0 100px;
-    transition: opacity .5s ease-in-out;
+    transition: opacity .5s ease-in-out, visibility 0.5s 0.5s;
 }
 
 .player-progress-right-cap {
@@ -67,6 +67,13 @@
     align-items: center;
     justify-content: center;
     transition-timing-function: ease;
+    transition: scale .3s, opacity 0.5s 0.5s, left .2s, visibility 0.5s 0.5s;
+}
+
+.is-live .player-progress-knob-bg, .is-live .highlight-region, .is-live .player-progress, .is-live .player-progress-left-cap {
+    transition: none;
+    opacity: 0;
+    visibility: hidden;
 }
 
 .highlight-region {
@@ -155,12 +162,8 @@
     opacity: 0.5;
 }
 
-.is-playing .player-progress {
+.is-playing .player-progress, .is-scrubbing .player-progress {
     transition: opacity .5s ease-in-out;
-}
-
-.is-not-playing .player-progress {
-    transition: opacity .5s ease-in-out, width .2s ease;
 }
 
 .is-live .player-time, 
@@ -170,10 +173,6 @@
 
 .is-scrubbing .player-progress-knob-bg {
     scale: 1.15;
-}
-
-.is-not-playing:not(.is-hovering):not(.is-scrubbing) .player-progress-knob-bg {
-    transition: scale .3s, opacity 0.5s 0.5s, left .2s;
 }
 
 .is-playing .player-progress-knob-bg,
@@ -192,4 +191,9 @@
 
 .progress-pulse {
     visibility: hidden;
+}
+
+.is-snapshot-missing .timeline-container, .is-snapshot-missing .timeline-container .player-progress-left-cap {
+    pointer-events: none;
+    opacity: 0.6;
 }
