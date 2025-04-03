@@ -159,7 +159,7 @@ const getHistory = (steps?: PlaywrightTestResult['steps']): TestStepCompressed[]
         [TestStepKey.Name]: step.title,
         [TestStepKey.Args]: [],
         [TestStepKey.IsFailed]: Boolean(step.error),
-        [TestStepKey.TimeStart]: step.startTime.getTime(),
+        [TestStepKey.TimeStart]: step.startTime instanceof Date ? step.startTime.getTime() : new Date(step.startTime).getTime(),
         [TestStepKey.Duration]: step.duration,
         [TestStepKey.Children]: getHistory(step.steps),
         [TestStepKey.IsGroup]: step.steps?.length > 0

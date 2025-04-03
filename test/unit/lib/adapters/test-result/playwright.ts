@@ -168,6 +168,27 @@ describe('PlaywrightTestResultAdapter', () => {
 
             assert.deepEqual(adapter.history, expectedHistory);
         });
+
+        it('should work if step.startTime is ISO datetime string', () => {
+            const steps = [
+                {title: 'Step1', duration: 100, startTime: new Date(1000).toISOString()},
+                {title: 'Step2', duration: 200, startTime: new Date(2000).toISOString()}
+            ];
+            const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({steps} as any), UNKNOWN_ATTEMPT);
+            const expectedHistory = [mkTestStepCompressed({
+                [TestStepKey.Name]: 'Step1',
+                [TestStepKey.Duration]: 100,
+                [TestStepKey.TimeStart]: 1000,
+                [TestStepKey.Children]: []
+            }), mkTestStepCompressed({
+                [TestStepKey.Name]: 'Step2',
+                [TestStepKey.Duration]: 200,
+                [TestStepKey.TimeStart]: 2000,
+                [TestStepKey.Children]: []
+            })];
+
+            assert.deepEqual(adapter.history, expectedHistory);
+        });
     });
 
     describe('id', () => {
