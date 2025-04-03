@@ -181,6 +181,9 @@ export function SnapshotsPlayer(): ReactNode {
 
     useEffect(() => {
         isLiveMaxSizeInitialized.current = false;
+        setIsPlaying(false);
+        cancelTimeTicking();
+        finishedPlayingRef.current = false;
     }, [currentResult?.id]);
 
     const onLiveSnapshotsReceive = useCallback((snapshots: NumberedSnapshot[]) => {

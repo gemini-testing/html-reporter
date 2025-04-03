@@ -4,7 +4,7 @@ import strftime from 'strftime';
 
 import styles from './Timeline.module.css';
 import type {SnapshotsPlayerHighlightState} from '@/static/new-ui/types/store';
-import { clamp } from 'lodash';
+import {clamp} from 'lodash';
 
 interface TimelineProps {
     totalTime: number;

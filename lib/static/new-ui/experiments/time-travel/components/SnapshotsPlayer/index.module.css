@@ -116,6 +116,7 @@
 
 .play-pause-button {
     position: relative;
+    width: 28px;
 }
 
 .play-pause-icon {
