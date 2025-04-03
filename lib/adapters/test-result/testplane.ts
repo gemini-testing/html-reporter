@@ -258,7 +258,7 @@ export class TestplaneTestResultAdapter implements ReporterTestResult {
         return true;
     }
 
-    get timestamp(): number | undefined {
+    get timestamp(): number {
         return this._timestamp;
     }
 

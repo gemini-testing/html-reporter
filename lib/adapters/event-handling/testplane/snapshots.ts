@@ -33,12 +33,13 @@ interface CreateSnapshotFilePathParams {
     attempt: number;
     hash: string;
     browserId: string;
+    timestamp: number;
 }
 
-export function createSnapshotFilePath({attempt: attemptInput, hash, browserId}: CreateSnapshotFilePathParams): string {
+export function createSnapshotFilePath({attempt: attemptInput, hash, browserId, timestamp}: CreateSnapshotFilePathParams): string {
     const attempt: number = attemptInput || 0;
-    const imageDir = _.compact([SNAPSHOTS_PATH, hash]);
-    const components = imageDir.concat(`${browserId}_${attempt}.zip`);
+    const snapshotDir = _.compact([SNAPSHOTS_PATH, hash]);
+    const components = snapshotDir.concat(`${browserId}_${timestamp}_${attempt}.zip`);
 
     return path.join(...components);
 }
@@ -141,7 +142,8 @@ export const finalizeSnapshotsForTest = async ({testResult, attempt, reportPath,
         const zipFilePath = createSnapshotFilePath({
             attempt,
             hash: testResult.imageDir,
-            browserId: testResult.browserId
+            browserId: testResult.browserId,
+            timestamp: testResult.timestamp
         });
         const absoluteZipFilePath = path.resolve(reportPath, zipFilePath);
         await fsExtra.ensureDir(path.dirname(absoluteZipFilePath));

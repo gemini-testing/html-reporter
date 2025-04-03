@@ -144,7 +144,7 @@ export class SqliteTestResultAdapter implements ReporterTestResult {
         return this._parsedTestResult.testPath as string[];
     }
 
-    get timestamp(): number | undefined {
+    get timestamp(): number {
         return Number(this._testResult[DB_COLUMN_INDEXES.timestamp]);
     }
 
