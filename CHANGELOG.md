@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.15.1"></a>
+## [10.15.1](https://github.com/gemini-testing/html-reporter/compare/v10.15.0...v10.15.1) (2025-04-03)
+
+
+### Bug Fixes
+
+* html-reporter gui playwright test launch (step.startTime.getTime) ([1230591](https://github.com/gemini-testing/html-reporter/commit/1230591))
+
+
+
 <a name="10.15.0"></a>
 # [10.15.0](https://github.com/gemini-testing/html-reporter/compare/v10.14.1...v10.15.0) (2025-03-18)
 
