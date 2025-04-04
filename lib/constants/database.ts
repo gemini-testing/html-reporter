@@ -67,3 +67,5 @@ export const DB_COLUMN_INDEXES = SUITES_TABLE_COLUMNS.reduce((acc: Record<string
     acc[name] = index;
     return acc;
 }, {}) as unknown as DbColumnIndexes;
+
+export const DB_FILE_EXTENSION = '.db';
