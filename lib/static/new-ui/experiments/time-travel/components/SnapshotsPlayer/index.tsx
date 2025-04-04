@@ -20,7 +20,7 @@ import {setCurrentHighlightStep, setCurrentStep} from '@/static/modules/actions'
 import {Step, StepType} from '@/static/new-ui/features/suites/components/TestSteps/types';
 import {unstable_ListTreeItemType as ListTreeItemType} from '@gravity-ui/uikit/build/esm/unstable';
 import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
-
+import BrokenSnapshotIcon from '@/static/icons/broken-snapshot.svg';
 function isColorSchemeEvent(event: customEvent | RrwebEvent): event is customEvent<{colorScheme: 'light' | 'dark'}> {
     return event.type === 5 && // 5 is the EventType.Custom value
         event?.data?.tag === 'color-scheme-change';
@@ -77,7 +77,6 @@ export function SnapshotsPlayer(): ReactNode {
     const [totalTime, setTotalTime] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isSnapshotMissing, setIsSnapshotMissing] = useState(false);
-    const [snapshotLoadingError, setSnapshotLoadingError] = useState<Error | null>(null);
 
     const finishedPlayingRef = useRef(false);
     const [currentPlayerTime, setCurrentPlayerTime] = useState(0);
@@ -301,7 +300,6 @@ export function SnapshotsPlayer(): ReactNode {
                     setIsSnapshotZipLoading(false);
                     loadingVisibleTimeRef.current = null;
                     setIsSnapshotMissing(true);
-                    setSnapshotLoadingError(e);
                     console.warn('Failed to load snapshots', e);
                 });
         }
@@ -490,10 +488,8 @@ export function SnapshotsPlayer(): ReactNode {
 
                     {isSnapshotMissing && (
                         <div className={styles.snapshotMissingContainer}>
-                            <span>Snapshot data is not available</span>
-                            {snapshotLoadingError && (
-                                <span>Error: {snapshotLoadingError.message}</span>
-                            )}
+                            <img src={BrokenSnapshotIcon} alt="icon" width={44} height={44} />
+                            <span>Snapshot file is missing</span>
                         </div>
                     )}
 

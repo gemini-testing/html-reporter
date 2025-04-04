@@ -169,6 +169,8 @@
     font-size: 16px;
     font-weight: 450;
     padding: 20px;
+    gap: 10px;
+    color: var(--color-neutral-400);
 }
 
 .is-snapshot-missing .player-progress-left-cap {
