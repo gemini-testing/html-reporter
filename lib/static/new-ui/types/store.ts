@@ -239,6 +239,13 @@ export enum TreeViewMode {
     List = 'list'
 }
 
+export interface SnapshotsPlayerHighlightState {
+    isActive: boolean;
+    highlightStartTime: number;
+    highlightEndTime: number;
+    goToTime: number;
+}
+
 export interface State {
     app: {
         isNewUi: boolean;
@@ -248,6 +255,9 @@ export interface State {
             currentTreeNodeId: string | null;
             currentBrowserId: string | null;
             currentGroupId: string | null;
+            currentStepId: string | null;
+            // Is used when hovering over a timeline of a snapshots player to highlight corresponding step
+            currentHighlightedStepId: string | null;
         };
         visualChecksPage: {
             currentNamedImageId: string | null;
@@ -277,9 +287,7 @@ export interface State {
         guiServerConnection: {
             isConnected: boolean;
         };
-        snapshots: {
-            currentPlayerTime: number;
-        }
+        snapshotsPlayer: SnapshotsPlayerHighlightState
     };
     ui: {
         suitesPage: {

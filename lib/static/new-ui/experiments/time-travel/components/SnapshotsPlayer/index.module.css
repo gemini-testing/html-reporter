@@ -3,10 +3,32 @@
     position: relative;
 }
 
-.replayer-lines-container {
+.is-loading .replayer-container {
+    opacity: 0;
+}
+
+.is-loading .loading-container {
+    visibility: visible;
+    opacity: 1;
+    transition-delay: .5s;
+}
+
+.is-loading .control-button,
+.is-live .control-button {
+    opacity: 0 !important;
+}
+
+.buttons-container button,
+.player-time {
+    transition: opacity .5s ease .5s;
+}
+
+.replayer-container-centered {
     position: relative;
     left: 50%;
     translate: -50% 0;
+    display: flex;
+    align-items: center;
 }
 
 .replayer-container {
@@ -14,6 +36,38 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    opacity: 1;
+    transition: opacity .5s ease;
+}
+
+.loading-container {
+    color: var(--color-neutral-400);
+    font-weight: 450;
+    display: flex;
+    transition: opacity .5s ease .5s, visibility .5s ease .5s;
+    align-items: center;
+    gap: 2px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+    visibility: hidden;
+    opacity: 0;
+    transition-delay: 0s;
+}
+
+.buttons-container {
+    display: flex;
+    column-gap: 14px;
+    align-items: center;
+}
+
+.buttons-container button {
+    opacity: 1;
+}
+
+.control-button {
+    transition: opacity .5s ease .5s;
 }
 
 .line-horizontal {
@@ -60,8 +114,65 @@
     border: none;
 }
 
-.buttons-container {
+.play-pause-button {
+    position: relative;
+    width: 28px;
+}
+
+.play-pause-icon {
+    position: absolute;
+    transition: scale .3s ease-in-out, opacity .3s ease-in-out;
+    scale: 0;
+    opacity: 0;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
     display: flex;
-    column-gap: 14px;
+}
+
+.play-pause-icon-visible {
+    scale: 1;
+    opacity: 1;
+}
+
+.loader {
+    /* To align it with text baseline */
+    translate: 0 4px;
+    width: 12px;
+    height: 10px;
+    aspect-ratio: 2;
+    --dot: no-repeat radial-gradient(circle closest-side, var(--color-neutral-400) 90%, #fff0);
+    background: var(--dot) 0% 50%, var(--dot) 50% 50%, var(--dot) 100% 50%;
+    background-size: calc(100% / 4) 50%;
+    animation: l3 1s infinite linear;
+}
+
+@keyframes l3 {
+    20%{background-position:0%   0%, 50%  50%,100%  50%}
+    40%{background-position:0% 100%, 50%   0%,100%  50%}
+    60%{background-position:0%  50%, 50% 100%,100%   0%}
+    80%{background-position:0%  50%, 50%  50%,100% 100%}
+}
+
+.snapshot-missing-container {
+    display: flex;
+    flex-direction: column;
     align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.9);
+    z-index: 5;
+    font-size: 16px;
+    font-weight: 450;
+    padding: 20px;
+    gap: 10px;
+    color: var(--color-neutral-400);
+}
+
+.is-snapshot-missing .player-progress-left-cap {
+    background-color: var(--color-neutral-300);
 }

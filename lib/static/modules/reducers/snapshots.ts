@@ -8,8 +8,20 @@ export default (state: State, action: SomeAction): State => {
         case actionNames.SET_SNAPSHOTS_PLAYER_HIGHLIGHT_TIME: {
             return applyStateUpdate(state, {
                 app: {
-                    snapshots: {
-                        currentPlayerTime: action.payload.startTime
+                    snapshotsPlayer: {
+                        isActive: action.payload.isActive,
+                        highlightStartTime: action.payload.startTime,
+                        highlightEndTime: action.payload.endTime
+                    }
+                }
+            });
+        }
+
+        case actionNames.SNAPSHOTS_PLAYER_GO_TO_TIME: {
+            return applyStateUpdate(state, {
+                app: {
+                    snapshotsPlayer: {
+                        goToTime: action.payload.time
                     }
                 }
             });

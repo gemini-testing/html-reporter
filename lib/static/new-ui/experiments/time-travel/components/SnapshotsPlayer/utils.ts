@@ -1,5 +1,4 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
-import {NEW_ISSUE_LINK} from '@/constants';
 import {unzip} from 'fflate';
 import {ResultEntity} from '@/static/new-ui/types/store';
 import {useEventSource} from '@/static/new-ui/providers/event-source';
@@ -28,7 +27,6 @@ export const useScaleToFit = (container: HTMLElement | null, getElementToFit = (
 
             const elementToFit = getElementToFit(container);
             if (!elementToFit) {
-                console.warn(`Element to fit inside container was not found. If you are a report user and see this, please report it to us at ${NEW_ISSUE_LINK}.`);
                 return;
             }
             const elementWidth = elementToFit.clientWidth;
@@ -47,18 +45,7 @@ export const useScaleToFit = (container: HTMLElement | null, getElementToFit = (
     return scaleFactor;
 };
 
-export const loadSnapshotsFromZip = async (zipUrl: string): Promise<NumberedSnapshot[]> => {
-    const response = await fetch(zipUrl);
-    if (!response.ok) {
-        throw new Error([
-            `Failed to fetch zip with snapshots by URL: ${zipUrl}.`,
-            `Received status: ${response.statusText}.`
-        ].join('\n\n'));
-    }
-
-    const zipBlob = await response.blob();
-    const zipArrayBuffer = await zipBlob.arrayBuffer();
-
+const unzipSnapshots = (zipArrayBuffer: ArrayBuffer, zipUrl: string): Promise<NumberedSnapshot[]> => {
     return new Promise<NumberedSnapshot[]>((resolve, reject) => {
         unzip(new Uint8Array(zipArrayBuffer), (err, files) => {
             if (err) {
@@ -80,6 +67,66 @@ export const loadSnapshotsFromZip = async (zipUrl: string): Promise<NumberedSnap
             resolve(snapshots);
         });
     });
+};
+
+interface LoadSnapshotsFromZipOptions {
+    abortSignal?: AbortSignal;
+    onDownloadProgress?: (progressPercent: number) => void;
+}
+
+export const loadSnapshotsFromZip = async (zipUrl: string, {abortSignal, onDownloadProgress}: LoadSnapshotsFromZipOptions): Promise<NumberedSnapshot[]> => {
+    const response = await fetch(zipUrl, {signal: abortSignal});
+    if (!response.ok) {
+        throw new Error([
+            `Failed to fetch zip with snapshots by URL: ${zipUrl}.`,
+            `Received status: ${response.statusText}.`
+        ].join('\n\n'));
+    }
+
+    const contentLengthHeader = response.headers.get('Content-Length');
+    let totalSize: number | null = null;
+    if (contentLengthHeader) {
+        const parsed = parseInt(contentLengthHeader, 10);
+        if (!isNaN(parsed) && parsed > 0) {
+            totalSize = parsed;
+        }
+    }
+
+    const reader = response.body?.getReader();
+    if (!reader) {
+        // Fallback if the environment doesn’t support streaming, do normal .blob() with no progress
+        const zipBlob = await response.blob();
+        const zipArrayBuffer = await zipBlob.arrayBuffer();
+
+        return unzipSnapshots(zipArrayBuffer, zipUrl);
+    }
+
+    let received = 0;
+    const chunks: Uint8Array[] = [];
+
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+        const {done, value} = await reader.read();
+        if (done) {
+            // No more data
+            break;
+        }
+        if (value) {
+            chunks.push(value);
+            received += value.length;
+
+            if (totalSize && onDownloadProgress) {
+                const percent = (received / totalSize) * 100;
+                onDownloadProgress(Math.min(percent, 100));
+            }
+        }
+    }
+
+    const zipBlob = new Blob(chunks);
+
+    const zipArrayBuffer = await zipBlob.arrayBuffer();
+
+    return unzipSnapshots(zipArrayBuffer, zipUrl);
 };
 
 export const useLiveSnapshotsStream = (currentResult: ResultEntity | null, onSnapshotsReceive: (snapshots: NumberedSnapshot[]) => unknown): () => void => {

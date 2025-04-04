@@ -10,7 +10,7 @@ import yazl from 'yazl';
 
 import {ReporterTestResult} from '../../test-result';
 import {SNAPSHOTS_PATH} from '../../../constants';
-import {AttachmentType, SnapshotAttachment} from '../../../types';
+import {AttachmentType, SnapshotAttachment, TestStepKey} from '../../../types';
 import {EventSource} from '../../../gui/event-source';
 import {ClientEvents} from '../../../gui/constants';
 
@@ -92,7 +92,51 @@ export const finalizeSnapshotsForTest = async ({testResult, attempt, reportPath,
             return [];
         }
 
+        if (testResult.history && testResult.history.length > 0 && snapshots.length > 0) {
+            const firstSnapshotTime = snapshots[0].timestamp;
+            const lastSnapshotTime = snapshots[snapshots.length - 1].timestamp;
+
+            const firstHistoryTime = testResult.history[0][TestStepKey.TimeStart];
+            const lastHistoryTime = Math.max(testResult.history[testResult.history.length - 1][TestStepKey.TimeStart], firstHistoryTime + testResult.duration);
+
+            if (firstHistoryTime < firstSnapshotTime) {
+                const fakeStartSnapshot: RrwebEvent & {seqNo?: number} = {
+                    data: {id: 1, source: 3, x: 0, y: 0},
+                    timestamp: firstHistoryTime,
+                    type: 3,
+                    seqNo: -1
+                };
+                snapshots.unshift(fakeStartSnapshot);
+            }
+
+            if (lastHistoryTime > lastSnapshotTime) {
+                const fakeEndSnapshot: RrwebEvent & {seqNo?: number} = {
+                    data: {id: 1, source: 3, x: 0, y: 0},
+                    timestamp: lastHistoryTime,
+                    type: 3,
+                    seqNo: snapshots.length
+                };
+                snapshots.push(fakeEndSnapshot);
+            }
+
+            snapshots.forEach((snapshot, index) => {
+                (snapshot as RrwebEvent & {seqNo: number}).seqNo = index;
+            });
+        }
+
         const snapshotsSerialized = snapshots.map(s => JSON.stringify(s)).join('\n');
+        let maxWidth = 0, maxHeight = 0;
+        for (const snapshot of snapshots) {
+            if (snapshot.type !== 4) {
+                continue;
+            }
+            if (snapshot.data.width > maxWidth) {
+                maxWidth = snapshot.data.width;
+            }
+            if (snapshot.data.height > maxHeight) {
+                maxHeight = snapshot.data.height;
+            }
+        }
 
         const zipFilePath = createSnapshotFilePath({
             attempt,
@@ -114,7 +158,9 @@ export const finalizeSnapshotsForTest = async ({testResult, attempt, reportPath,
         zipfile.outputStream.pipe(output).on('close', () => {
             done([{
                 type: AttachmentType.Snapshot,
-                path: zipFilePath
+                path: zipFilePath,
+                maxWidth,
+                maxHeight
             }]);
         });
 

@@ -22,8 +22,10 @@ interface TreeListItemProps<T> {
     list: UseListResult<T>;
     mapItemDataToContentProps: (data: T) => ListItemViewContentType;
     status?: 'error' | 'corrupted';
+    isActive?: boolean;
     onItemClick?: (data: {id: string}) => unknown;
     onMouseMove?: () => unknown;
+    onMouseLeave?: () => unknown;
 }
 
 export function TreeViewItem<T>(props: TreeListItemProps<T>): ReactNode {
@@ -35,9 +37,11 @@ export function TreeViewItem<T>(props: TreeListItemProps<T>): ReactNode {
     >
         <ListItemView
             onMouseMove={props.onMouseMove}
-            className={classNames([styles.treeViewItem, {
-                [styles['tree-view-item--corrupted']]: props.status === 'corrupted',
-                [styles['tree-view-item--error']]: props.status === 'error'
+            onMouseLeave={props.onMouseLeave}
+            className={classNames([props.className, styles.treeViewItem, {
+                [styles['tree-view-item--active']]: props.isActive,
+                [styles['tree-view-item--corrupted']]: !props.isActive && props.status === 'corrupted',
+                [styles['tree-view-item--error']]: !props.isActive && props.status === 'error'
             }])}
             activeOnHover={true}
             style={{'--indent': indent + Number(!hasChildren)} as React.CSSProperties}

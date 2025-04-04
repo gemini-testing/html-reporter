@@ -312,6 +312,8 @@ export enum AttachmentType {
 export interface SnapshotAttachment {
     type: AttachmentType.Snapshot;
     path: string;
+    maxWidth: number;
+    maxHeight: number;
 }
 
 export type Attachment = SnapshotAttachment;

@@ -4,7 +4,8 @@ import {
     unstable_useList as useList
 } from '@gravity-ui/uikit/unstable';
 import {CircleExclamation, Paperclip} from '@gravity-ui/icons';
-import React, {ReactNode, useCallback} from 'react';
+import classNames from 'classnames';
+import React, {ReactNode, useCallback, useEffect} from 'react';
 import {connect, useDispatch, useSelector} from 'react-redux';
 import {bindActionCreators} from 'redux';
 
@@ -15,7 +16,7 @@ import {ErrorInfo} from '@/static/new-ui/components/ErrorInfo';
 import * as actions from '@/static/modules/actions';
 import {getCurrentResultId} from '@/static/new-ui/features/suites/selectors';
 import {getStepsExpandedById, getTestSteps} from './selectors';
-import {Action, Step, StepType} from './types';
+import {Step, StepType} from './types';
 import {ListItemViewContentType, TreeViewItem} from '../../../../components/TreeViewItem';
 import styles from './index.module.css';
 import {Screenshot} from '@/static/new-ui/components/Screenshot';
@@ -24,18 +25,21 @@ import {isErrorStatus, isFailStatus} from '@/common-utils';
 import {ScreenshotsTreeViewItem} from '@/static/new-ui/features/suites/components/ScreenshotsTreeViewItem';
 import {UseListResult} from '@gravity-ui/uikit/build/esm/components/useList';
 import {ErrorHandler} from '../../../error-handling/components/ErrorHandling';
-import {setCurrentPlayerTime} from '@/static/modules/actions/snapshots';
+import {goToTimeInSnapshotsPlayer, setCurrentPlayerHighlightTime} from '@/static/modules/actions/snapshots';
+import {setCurrentStep} from '@/static/modules/actions';
 
 type TestStepClickHandler = (item: {id: string}) => void
 
 interface TestStepProps {
     items: UseListResult<Step>;
     itemId: string;
+    isActive?: boolean;
+    className?: string;
 }
 
 interface TestStepPropsActionable extends TestStepProps {
     onItemClick: TestStepClickHandler;
-    onItemMouseMove: (time: number) => unknown;
+    onMouseMove?: () => unknown;
     index: number;
 
 }
@@ -54,21 +58,13 @@ function ListItemCorrupted({items, itemId}: TestStepProps): ReactNode {
     />;
 }
 
-function TestStep({onItemClick, items, itemId, index, onItemMouseMove}: TestStepPropsActionable): ReactNode {
+function TestStep({onItemClick, items, itemId, onMouseMove, isActive, className}: TestStepPropsActionable): ReactNode {
     const item = items.structure.itemsById[itemId];
 
     if (item.type === StepType.Action) {
-        let nextAction: Action | null = null;
-        for (let i = index + 1; i < items.structure.visibleFlattenIds.length; i++) {
-            const maybeAction = items.structure.itemsById[items.structure.visibleFlattenIds[i]];
-            if (maybeAction.type === StepType.Action) {
-                nextAction = maybeAction;
-                break;
-            }
-        }
         const shouldHighlightFail = (isErrorStatus(item.status) || isFailStatus(item.status)) && !item.isGroup;
 
-        return <TreeViewItem id={itemId} key={itemId} list={items} status={shouldHighlightFail ? 'error' : undefined} onItemClick={onItemClick} onMouseMove={(): void => void onItemMouseMove(nextAction?.startTime ?? item.startTime ?? 0)}
+        return <TreeViewItem className={className} id={itemId} key={itemId} list={items} status={shouldHighlightFail ? 'error' : undefined} onItemClick={onItemClick} onMouseMove={onMouseMove}
             mapItemDataToContentProps={(): ListItemViewContentType => {
                 return {
                     title: <div className={styles.stepContent}>
@@ -78,7 +74,7 @@ function TestStep({onItemClick, items, itemId, index, onItemMouseMove}: TestStep
                     </div>,
                     startSlot: <TreeViewItemIcon>{getIconByStatus(item.status)}</TreeViewItemIcon>
                 };
-            }}/>;
+            }} isActive={isActive}/>;
     }
 
     if (item.type === StepType.Attachment) {
@@ -123,6 +119,9 @@ function TestStepsInternal(props: TestStepsProps): ReactNode {
 
     const dispatch = useDispatch();
 
+    const currentStepId = useSelector(state => state.app.suitesPage.currentStepId);
+    const currentHighlightStepId = useSelector(state => state.app.suitesPage.currentHighlightedStepId);
+
     const items = useList({
         items: props.testSteps,
         withExpandedState: true,
@@ -131,9 +130,18 @@ function TestStepsInternal(props: TestStepsProps): ReactNode {
         }
     });
 
-    const onItemClick = useCallback(({id}: {id: string}): void => {
+    useEffect(() => {
+        dispatch(setCurrentStep({stepId: null}));
+    }, [props.resultId]);
+
+    const onItemClick = useCallback((id: string, step: Step): void => {
         if (props.stepsExpandedById[id] === undefined) {
-            return;
+            if (step.type !== StepType.Action || step.startTime === undefined || step.duration === undefined) {
+                return;
+            }
+
+            dispatch(setCurrentStep({stepId: id}));
+            dispatch(goToTimeInSnapshotsPlayer({time: step.startTime + step.duration}));
         }
 
         props.actions.setStepsExpandedState({
@@ -142,20 +150,44 @@ function TestStepsInternal(props: TestStepsProps): ReactNode {
         });
     }, [items, props.actions, props.stepsExpandedById]);
 
-    const currentPlayerTime = useSelector(state => state.app.snapshots.currentPlayerTime);
-    const onItemMouseMove = (time: number): void => {
-        if (time === currentPlayerTime) {
+    const currentSnapshotsPlayerState = useSelector(state => state.app.snapshotsPlayer);
+    const onStepMouseMove = useCallback((step: Step): void => {
+        if (step.type !== StepType.Action || step.startTime === undefined || step.duration === undefined) {
             return;
         }
 
-        dispatch(setCurrentPlayerTime({startTime: time}));
-    };
+        const startTime = step.startTime;
+        const endTime = step.startTime + step.duration;
 
-    return <ListContainerView className={props.className}>
+        if (startTime === currentSnapshotsPlayerState.highlightStartTime && endTime === currentSnapshotsPlayerState.highlightEndTime) {
+            return;
+        }
+
+        dispatch(setCurrentPlayerHighlightTime({startTime, endTime, isActive: true}));
+    }, [currentSnapshotsPlayerState]);
+
+    const onStepMouseLeave = useCallback((): void => {
+        dispatch(setCurrentPlayerHighlightTime({
+            startTime: currentSnapshotsPlayerState.highlightStartTime,
+            endTime: currentSnapshotsPlayerState.highlightEndTime,
+            isActive: false
+        }));
+    }, [currentSnapshotsPlayerState]);
+
+    return <ListContainerView className={props.className} extraProps={{onMouseLeave: (): void => onStepMouseLeave()}}>
         {items.structure.visibleFlattenIds.map((itemId, index) =>
             (
                 <ErrorHandler.Boundary key={itemId} fallback={<ListItemCorrupted items={items} itemId={itemId}/>}>
-                    <TestStep key={itemId} onItemClick={onItemClick} items={items} itemId={itemId} index={index} onItemMouseMove={onItemMouseMove} />
+                    <TestStep
+                        className={classNames(styles.step, {[styles['step--dimmed']]: currentHighlightStepId && currentHighlightStepId !== itemId})}
+                        key={itemId}
+                        isActive={itemId === currentStepId}
+                        onItemClick={(): void => onItemClick(itemId, items.structure.itemsById[itemId])}
+                        items={items}
+                        itemId={itemId}
+                        index={index}
+                        onMouseMove={(): void => onStepMouseMove(items.structure.itemsById[itemId])}
+                    />
                 </ErrorHandler.Boundary>
             )
         )}
