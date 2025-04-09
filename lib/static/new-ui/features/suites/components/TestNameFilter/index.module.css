@@ -1,0 +1,41 @@
+.container {
+    position: relative;
+    width: 100%;
+}
+
+.search-input :global(.g-text-input__control) {
+    padding-right: 54px;
+}
+
+.buttons-wrapper {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    gap: 2px;
+    width: fit-content;
+    flex-direction: row;
+    padding: 2px 2px 2px 0;
+}
+
+.buttons-wrapper :global(.g-button) {
+    color: rgb(113, 113, 122);
+}
+
+.buttons-wrapper :global(.g-button):hover {
+    color: rgb(9, 9, 11);
+}
+
+.buttons-wrapper :global(.g-button_selected):before {
+    background-color: var(--g-color-base-simple-hover);
+}
+
+.buttons-wrapper :global(.g-button_selected) {
+    color: rgb(9, 9, 11);
+}
+
+.buttons-wrapper__regex {
+    width: var(--_--height);
+    font-weight: 600;
+}
