@@ -1,0 +1,219 @@
+name: Testplane E2E
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  testplane-e2e:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    env:
+      DOCKER_IMAGE_NAME: html-reporter-browsers
+      SOURCE_REPORTS_DIR: test/func/tests/reports
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Use Node.js 20
+      uses: actions/setup-node@v2
+      with:
+        node-version: 20
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build the package
+      run: npm run build
+
+    - name: 'Prepare e2e tests: Install pwt-chromium'
+      run: npx playwright install chromium
+
+    - name: 'Prepare e2e tests: Build-packages'
+      run: npm run e2e:build-packages
+
+    - name: 'Prepare e2e tests: Cache browser docker image'
+      uses: actions/cache@v3
+      with:
+        path: ~/.docker/cache
+        key: docker-browser-image-${{ hashFiles('test/func/docker/Dockerfile') }}
+
+    - name: 'Prepare e2e tests: Pull browser docker image'
+      run: |
+        mkdir -p ~/.docker/cache
+        if [ -f ~/.docker/cache/image.tar ]; then
+          docker load -i ~/.docker/cache/image.tar
+        else
+          docker pull yinfra/html-reporter-browsers
+          docker save yinfra/html-reporter-browsers -o ~/.docker/cache/image.tar
+        fi
+
+    - name: 'Prepare e2e tests: Run browser docker image'
+      run: docker run -d --name ${{ env.DOCKER_IMAGE_NAME }} -it --rm --network=host $(which colima >/dev/null || echo --add-host=host.docker.internal:0.0.0.0) yinfra/html-reporter-browsers
+
+    - name: 'Prepare e2e tests: Generate fixtures'
+      run: npm run e2e:generate-fixtures || true
+
+    - name: 'Prepare e2e tests: Setup env'
+      run: |
+        REPORT_PREFIX=testplane-reports
+        REPORT_DATE=$(date '+%y-%m-%d')
+        echo "DEST_REPORTS_DIR=$REPORT_PREFIX/$REPORT_DATE/${{ github.run_id }}/${{ github.run_attempt }}" >> $GITHUB_ENV
+
+    - name: Upload fixtures reports
+      uses: actions/upload-artifact@v4
+      with:
+          name: testplane-fixtures
+          path: test/func/fixtures/*/report
+
+    - name: 'e2e: Run Testplane testplane-common'
+      id: 'testplane-testplane-common'
+      continue-on-error: true
+      working-directory: 'test/func/tests'
+      run: npm run testplane:testplane-common
+
+    - name: 'e2e: Run Testplane testplane-eye'
+      id: 'testplane-testplane-eye'
+      continue-on-error: true
+      working-directory: 'test/func/tests'
+      run: npm run testplane:testplane-eye
+
+    - name: 'e2e: Run Testplane testplane-gui'
+      id: 'testplane-testplane-gui'
+      continue-on-error: true
+      working-directory: 'test/func/tests'
+      run: npm run testplane:testplane-gui
+
+    - name: 'e2e: Run Testplane playwright'
+      id: 'testplane-playwright'
+      continue-on-error: true
+      working-directory: 'test/func/tests'
+      run: npm run testplane:playwright
+
+    - name: 'e2e: Run Testplane plugins'
+      id: 'testplane-plugins'
+      continue-on-error: true
+      working-directory: 'test/func/tests'
+      run: npm run testplane:plugins
+
+    - name: 'e2e: Run Testplane testplane-tinder'
+      id: 'testplane-testplane-tinder'
+      continue-on-error: true
+      working-directory: 'test/func/tests'
+      run: npm run testplane:testplane-tinder
+
+    - name: 'e2e: Run Testplane analytics'
+      id: 'testplane-analytics'
+      continue-on-error: true
+      working-directory: 'test/func/tests'
+      run: npm run testplane:analytics
+
+    - name: 'e2e: Stop browser docker image'
+      run: |
+        docker kill ${{ env.DOCKER_IMAGE_NAME }} || true
+        docker rm ${{ env.DOCKER_IMAGE_NAME }} || true
+
+    - name: Set IS_FAILED if any step didn't succeed
+      if: always()
+      run: |
+        if [ "${{ steps.testplane-testplane-common.outcome }}" != "success" ] || \
+            [ "${{ steps.testplane-testplane-gui.outcome }}" != "success" ] || \
+            [ "${{ steps.testplane-plugins.outcome }}" != "success" ] || \
+            [ "${{ steps.testplane-analytics.outcome }}" != "success" ] || \
+            [ "${{ steps.testplane-playwright.outcome }}" != "success" ] || \
+            [ "${{ steps.testplane-testplane-eye.outcome }}" != "success" ] || \
+            [ "${{ steps.testplane-testplane-tinder.outcome }}" != "success" ]; then
+          echo "IS_FAILED=true" >> $GITHUB_ENV
+        fi
+
+    - name: Deploy Testplane html-reporter reports
+      if: ${{ env.IS_FAILED }}
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ${{ env.SOURCE_REPORTS_DIR }}
+        destination_dir: ${{ env.DEST_REPORTS_DIR }}
+        keep_files: true
+
+    - name: Construct failed PR comment
+      if: ${{ env.IS_FAILED }}
+      run: |
+        comment="### ❌ Testplane run failed<br><br>"
+        link_base="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/${{ env.DEST_REPORTS_DIR }}"
+
+        if [[ ${{ steps.testplane-testplane-common.outcome }} == "success" ]]; then
+          comment+="- ✅ testplane-common: success. "
+        else
+          comment+="- ❌ testplane-common: failure. "
+        fi
+        comment+="[Report](${link_base}/testplane) <br>"
+
+        if [[ ${{ steps.testplane-testplane-gui.outcome }} == "success" ]]; then
+          comment+="- ✅ testplane-gui: success. "
+        else
+          comment+="- ❌ testplane-gui: failure. "
+        fi
+        comment+="[Report](${link_base}/testplane-gui) <br>"
+
+        if [[ ${{ steps.testplane-plugins.outcome }} == "success" ]]; then
+          comment+="- ✅ plugins: success. "
+        else
+          comment+="- ❌ plugins: failure. "
+        fi
+        comment+="[Report](${link_base}/plugins) <br>"
+
+        if [[ ${{ steps.testplane-analytics.outcome }} == "success" ]]; then
+          comment+="- ✅ analytics: success. "
+        else
+          comment+="- ❌ analytics: failure. "
+        fi
+        comment+="[Report](${link_base}/analytics) <br>"
+
+        if [[ ${{ steps.testplane-playwright.outcome }} == "success" ]]; then
+          comment+="- ✅ playwright: success. "
+        else
+          comment+="- ❌ playwright: failure. "
+        fi
+        comment+="[Report](${link_base}/playwright) <br>"
+
+        if [[ ${{ steps.testplane-testplane-eye.outcome }} == "success" ]]; then
+          comment+="- ✅ testplane-eye: success. "
+        else
+          comment+="- ❌ testplane-eye: failure. "
+        fi
+        comment+="[Report](${link_base}/testplane-eye) <br>"
+
+        if [[ ${{ steps.testplane-testplane-tinder.outcome }} == "success" ]]; then
+          comment+="- ✅ testplane-tinder: success. "
+        else
+          comment+="- ❌ testplane-tinder: failure. "
+        fi
+        comment+="[Report](${link_base}/testplane-tinder) <br>"
+
+        echo "FAILED_PR_COMMENT=${comment}" >> $GITHUB_ENV
+
+    - name: Leave failed comment to PR with link to Testplane HTML reports
+      if: env.IS_FAILED
+      id: leave-failed-comment-step
+      uses: thollander/actions-comment-pull-request@v3
+      with:
+          message: ${{ env.FAILED_PR_COMMENT }}
+          comment-tag: testplane_results
+
+    - name: Leave success comment to PR
+      if: steps.leave-failed-comment-step.outcome == 'skipped'
+      uses: thollander/actions-comment-pull-request@v3
+      with:
+          message: '### ✅ Testplane run succeed'
+          comment-tag: testplane_results
+
+    - name: Fail the job if any Testplane job is failed
+      if: env.IS_FAILED
+      run: exit 1
