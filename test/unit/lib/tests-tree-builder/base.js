@@ -109,7 +109,7 @@ describe('ResultsTreeBuilder', () => {
                 );
             });
 
-            it('should transform root suite into child suite', () => {
+            it('should transform root suite into non-root suite', () => {
                 builder.addTestResult(mkFormattedResult_({testPath: ['s1 s2', 's3']}));
 
                 assert.deepEqual(
@@ -137,6 +137,56 @@ describe('ResultsTreeBuilder', () => {
                         suitePath: ['s1', 's2'],
                         status: SUCCESS,
                         suiteIds: ['s1 s2 s3', 's1 s2 s4']
+                    }
+                );
+            });
+
+            it('should transform suite into child suite', () => {
+                builder.addTestResult(mkFormattedResult_({testPath: ['s1', 's2 s3', 's4']}));
+
+                assert.deepEqual(
+                    builder.tree.suites.byId['s1 s2 s3'],
+                    {
+                        id: 's1 s2 s3',
+                        name: 's2 s3',
+                        parentId: 's1',
+                        root: false,
+                        suitePath: ['s1', 's2 s3'],
+                        status: SUCCESS,
+                        suiteIds: ['s1 s2 s3 s4']
+                    }
+                );
+
+                builder.addTestResult(mkFormattedResult_({testPath: ['s1', 's2', 's3', 's5']}));
+
+                assert.deepEqual(
+                    builder.tree.suites.byId['s1 s2 s3'],
+                    {
+                        id: 's1 s2 s3',
+                        name: 's3',
+                        parentId: 's1 s2',
+                        root: false,
+                        suitePath: ['s1', 's2', 's3'],
+                        status: SUCCESS,
+                        suiteIds: ['s1 s2 s3 s4', 's1 s2 s3 s5']
+                    }
+                );
+            });
+
+            it('should merge suite into existing one', () => {
+                builder.addTestResult(mkFormattedResult_({testPath: ['s1', 's2', 's3', 's4']}));
+                builder.addTestResult(mkFormattedResult_({testPath: ['s1', 's2 s3', 's5']}));
+
+                assert.deepEqual(
+                    builder.tree.suites.byId['s1 s2 s3'],
+                    {
+                        id: 's1 s2 s3',
+                        name: 's3',
+                        parentId: 's1 s2',
+                        root: false,
+                        suitePath: ['s1', 's2', 's3'],
+                        status: SUCCESS,
+                        suiteIds: ['s1 s2 s3 s4', 's1 s2 s3 s5']
                     }
                 );
             });

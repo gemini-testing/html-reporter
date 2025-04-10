@@ -160,14 +160,17 @@ export class BaseTestsTreeBuilder {
                 const suite: TreeSuite = {id, parentId, name, suitePath, root: isRoot};
 
                 this._addSuite(suite);
-            } else if (!isRoot && suites.byId[id].root) {
+            } else if (suitePath.length > suites.byId[id].suitePath.length) {
                 const newParentId = this._buildId(suitePath.slice(0, -1));
 
-                suites.byId[id].root = false;
                 suites.byId[id].parentId = newParentId;
                 suites.byId[id].suitePath = suitePath;
-                suites.byId[id].name = suites.byId[id].name.slice(newParentId.length + 1);
-                suites.allRootIds.splice(suites.allRootIds.indexOf(id), 1);
+                suites.byId[id].name = suites.byId[id].id.slice(newParentId.length + 1);
+
+                if (suites.byId[id].root) {
+                    suites.byId[id].root = false;
+                    suites.allRootIds.splice(suites.allRootIds.indexOf(id), 1);
+                }
             }
 
             if (ind !== arr.length - 1) {
