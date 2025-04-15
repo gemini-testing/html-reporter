@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.16.0"></a>
+# [10.16.0](https://github.com/gemini-testing/html-reporter/compare/v10.15.2...v10.16.0) (2025-04-15)
+
+
+### Features
+
+* add fuzzy search, regexp mode, match case mode and sorting by relevance ([#649](https://github.com/gemini-testing/html-reporter/issues/649)) ([c0f013d](https://github.com/gemini-testing/html-reporter/commit/c0f013d))
+
+
+
 <a name="10.15.2"></a>
 ## [10.15.2](https://github.com/gemini-testing/html-reporter/compare/v10.15.1...v10.15.2) (2025-04-04)
 
