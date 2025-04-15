@@ -159,6 +159,8 @@ export interface BrowserState {
     // True if test is not shown because of its status. Useful when computing counts by status.
     isHiddenBecauseOfStatus?: boolean;
     checkStatus: CheckStatus;
+    // Measured from 0 to 1, higher is better
+    fuzzyMatchScore?: number;
 }
 
 export interface ResultState {
@@ -220,7 +222,8 @@ export enum SortType {
     ByFailedRuns,
     ByTestsCount,
     ByStartTime,
-    ByDuration
+    ByDuration,
+    ByRelevance
 }
 
 export enum SortDirection {
@@ -283,6 +286,9 @@ export interface State {
             availableExpressions: SortByExpression[];
             currentExpressionIds: string[];
             currentDirection: SortDirection;
+            // Used to restore the previous state that was set by user, for example after clearing search filter
+            previousExpressionIds: string[];
+            previousDirection: SortDirection;
         };
         guiServerConnection: {
             isConnected: boolean;
@@ -307,6 +313,8 @@ export interface State {
     view: {
         diffMode: DiffModeId;
         testNameFilter: string;
+        useRegexFilter: boolean;
+        useMatchCaseFilter: boolean;
         viewMode: ViewMode;
         filteredBrowsers: BrowserItem[];
         /** @deprecated Use tree.groups instead. */

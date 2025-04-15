@@ -1,13 +1,18 @@
-import {TextInput} from '@gravity-ui/uikit';
-import React, {ChangeEvent, ReactNode, useCallback, useState} from 'react';
+import React, {ChangeEvent, ReactNode, useCallback, useMemo, useState} from 'react';
 import {debounce} from 'lodash';
 import {connect, useSelector} from 'react-redux';
 import {bindActionCreators} from 'redux';
+import {Icon, TextInput} from '@gravity-ui/uikit';
+import {FontCase} from '@gravity-ui/icons';
 import * as actions from '@/static/modules/actions';
 import {getIsInitialized} from '@/static/new-ui/store/selectors';
+import {TestNameFilterButton} from '@/static/new-ui/features/suites/components/TestNameFilter/TestNameFilterButton';
+import styles from './index.module.css';
 
 interface TestNameFilterProps {
     testNameFilter: string;
+    useRegexFilter: boolean,
+    useMatchCaseFilter: boolean,
     actions: typeof actions;
 }
 
@@ -27,10 +32,65 @@ function TestNameFilterInternal(props: TestNameFilterProps): ReactNode {
 
     const isInitialized = useSelector(getIsInitialized);
 
-    return <TextInput disabled={!isInitialized} placeholder='Search or filter' value={testNameFilter} onChange={onChange}/>;
+    const onCaseSensitiveClick = (): void => {
+        props.actions.setMatchCaseFilter(!props.useMatchCaseFilter);
+    };
+
+    const onRegexClick = (): void => {
+        props.actions.setUseRegexFilter(!props.useRegexFilter);
+    };
+
+    const isRegexInvalid = useMemo(() => {
+        if (!props.useRegexFilter) {
+            return false;
+        }
+
+        try {
+            // eslint-disable-next-line no-new
+            new RegExp(testNameFilter);
+        } catch (e) {
+            return true;
+        }
+
+        return false;
+    }, [props.useRegexFilter, testNameFilter]);
+
+    return <div className={styles.container}>
+        <TextInput
+            disabled={!isInitialized}
+            placeholder="Search or filter"
+            value={testNameFilter}
+            onChange={onChange}
+            className={styles['search-input']}
+            error={isRegexInvalid}
+        />
+        <div className={styles['buttons-wrapper']}>
+            <TestNameFilterButton
+                selected={props.useMatchCaseFilter}
+                tooltip={'Match case'}
+                onClick={onCaseSensitiveClick}
+            >
+                <Icon data={FontCase}/>
+            </TestNameFilterButton>
+            <TestNameFilterButton
+                selected={props.useRegexFilter}
+                tooltip={'Regex'}
+                onClick={onRegexClick}
+                className={styles['buttons-wrapper__regex']}
+            >
+                .*
+            </TestNameFilterButton>
+        </div>
+    </div>;
 }
 
 export const TestNameFilter = connect(
-    state => ({testNameFilter: state.view.testNameFilter}),
-    (dispatch) => ({actions: bindActionCreators(actions, dispatch)})
+    state => ({
+        testNameFilter: state.view.testNameFilter,
+        useRegexFilter: state.view.useRegexFilter,
+        useMatchCaseFilter: state.view.useMatchCaseFilter
+    }),
+    (dispatch) => ({
+        actions: bindActionCreators(actions, dispatch)
+    })
 )(TestNameFilterInternal);

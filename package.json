@@ -195,6 +195,7 @@
     "eslint-plugin-react": "^7.32.2",
     "events": "^3.3.0",
     "fflate": "^0.8.2",
+    "fuse.js": "^7.1.0",
     "fork-ts-checker-webpack-plugin": "^9.0.0",
     "hermione-global-hook": "^1.0.1",
     "hermione-test-repeater": "^0.0.8",

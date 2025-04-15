@@ -71,6 +71,8 @@ export function getMetrikaMiddleware(analytics: YandexMetrika): Middleware<{}, S
             case actionNames.VIEW_UPDATE_BASE_HOST:
             case actionNames.SET_DIFF_MODE:
             case actionNames.VIEW_UPDATE_FILTER_BY_NAME:
+            case actionNames.VIEW_SET_FILTER_MATCH_CASE:
+            case actionNames.VIEW_SET_FILTER_USE_REGEX:
             case actionNames.VIEW_SET_STRICT_MATCH_FILTER:
             case actionNames.RUN_CUSTOM_GUI_ACTION:
             case actionNames.TOGGLE_SUITE_SECTION:

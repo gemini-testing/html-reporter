@@ -112,18 +112,30 @@ describe('static/modules/utils', () => {
         });
     });
 
-    describe('"isTestNameMatchFilters"', () => {
+    describe('"matchTestName"', () => {
         describe('should return "true" if', () => {
             it('filter by name is not passed', () => {
-                assert.isTrue(utils.isTestNameMatchFilters('some-test-name'));
+                assert.isTrue(utils.matchTestName('some-test-name').isMatch);
             });
 
             it('test name is contains name from filter', () => {
-                assert.isTrue(utils.isTestNameMatchFilters('some-test-name', 'some-browser', 'test'));
+                assert.isTrue(utils.matchTestName('some-test-name', 'some-browser', 'test').isMatch);
             });
 
             it('test name matches on filter strictly', () => {
-                assert.isTrue(utils.isTestNameMatchFilters('some-test-name', 'some-browser', 'some-test-name', true));
+                assert.isTrue(utils.matchTestName('some-test-name', 'some-browser', 'some-test-name', {strictMatchFilter: true}).isMatch);
+            });
+
+            it('test name matches on matchCase', () => {
+                assert.isTrue(utils.matchTestName('some-test-name', 'some-browser', 'some-test-name', {useMatchCaseFilter: true}).isMatch);
+            });
+
+            it('test name matches on Regex', () => {
+                assert.isTrue(utils.matchTestName('some-test-name', 'some-browser', '^[a-z]+(-[a-z]+)*$', {useRegexFilter: true}).isMatch);
+            });
+
+            it('test name matches on matchCase and on Regex', () => {
+                assert.isTrue(utils.matchTestName('some-test-name', 'some-browser', '^[a-z]+(-[a-z]+)*$', {useMatchCaseFilter: true, useRegexFilter: true}).isMatch);
             });
         });
 

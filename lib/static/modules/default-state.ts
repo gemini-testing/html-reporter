@@ -80,6 +80,8 @@ export default Object.assign({config: configDefaults}, {
         expand: EXPAND_ERRORS,
         baseHost: '',
         testNameFilter: '',
+        useRegexFilter: false,
+        useMatchCaseFilter: false,
         strictMatchFilter: false,
         filteredBrowsers: [],
         keyToGroupTestsBy: ''
@@ -127,7 +129,9 @@ export default Object.assign({config: configDefaults}, {
         sortTestsData: {
             availableExpressions: [],
             currentExpressionIds: [],
-            currentDirection: SortDirection.Asc
+            currentDirection: SortDirection.Asc,
+            previousExpressionIds: [],
+            previousDirection: SortDirection.Asc
         },
         guiServerConnection: {
             isConnected: false
