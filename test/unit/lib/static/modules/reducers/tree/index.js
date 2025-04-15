@@ -1217,32 +1217,6 @@ describe('lib/static/modules/reducers/tree', () => {
             });
         });
 
-        describe('if key is selected in group tests select', () => {
-            it('should close all browsers', () => {
-                const browsersById = {...mkBrowser({id: 'b1'}), ...mkBrowser({id: 'b2'})};
-                const browsersStateById = {b1: {shouldBeShown: true}, b2: {shouldBeShown: true}};
-                const tree = mkStateTree({browsersById, browsersStateById});
-                const view = mkStateView({keyToGroupTestsBy: 'some-key'});
-
-                const newState = reducer({tree, view}, {type: actionNames.GROUP_TESTS_BY_KEY});
-
-                assert.isFalse(newState.tree.browsers.stateById.b1.shouldBeShown);
-                assert.isFalse(newState.tree.browsers.stateById.b2.shouldBeShown);
-            });
-
-            it('should close all suites', () => {
-                const suitesById = {...mkSuite({id: 's1'}), ...mkSuite({id: 's2'})};
-                const suitesStateById = {s1: {shouldBeShown: true}, s2: {shouldBeShown: true}};
-                const tree = mkStateTree({suitesById, suitesStateById});
-                const view = mkStateView({keyToGroupTestsBy: 'some-key'});
-
-                const newState = reducer({tree, view}, {type: actionNames.GROUP_TESTS_BY_KEY});
-
-                assert.isFalse(newState.tree.suites.stateById.s1.shouldBeShown);
-                assert.isFalse(newState.tree.suites.stateById.s2.shouldBeShown);
-            });
-        });
-
         describe('if key is cleared in group tests select', () => {
             it('should calculate browser showness', () => {
                 const browsersById = {...mkBrowser({id: 'b1', resultIds: ['r1']}), ...mkBrowser({id: 'b2', resultIds: ['r2']})};

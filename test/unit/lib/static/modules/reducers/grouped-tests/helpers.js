@@ -32,11 +32,15 @@ describe('lib/static/modules/reducers/grouped-tests/helpers', () => {
                 ...mkBrowser({id: 'yabro-1', parentId: 'test-1'}),
                 ...mkBrowser({id: 'yabro-2', parentId: 'test-2'})
             };
+            const browsersStateById = {
+                'yabro-1': {id: 'yabro-1', parentId: 'test-1', shouldBeShown: true},
+                'yabro-2': {id: 'yabro-2', parentId: 'test-2', shouldBeShown: true}
+            };
             const resultsById = {
                 ...mkResult({id: 'res-1', parentId: 'yabro-1'}),
                 ...mkResult({id: 'res-2', parentId: 'yabro-2'})
             };
-            const tree = mkStateTree({browsersById, resultsById});
+            const tree = mkStateTree({browsersById, browsersStateById, resultsById});
             const resultCb = sinon.spy().named('onResultCb');
 
             module.handleActiveResults({tree, resultCb, viewMode: ViewMode.ALL});
@@ -55,7 +59,11 @@ describe('lib/static/modules/reducers/grouped-tests/helpers', () => {
                 ...mkResult({id: 'res-1', parentId: 'yabro-1'}),
                 ...mkResult({id: 'res-2', parentId: 'yabro-2'})
             };
-            const tree = mkStateTree({browsersById, resultsById});
+            const browsersStateById = {
+                'yabro-1': {id: 'yabro-1', parentId: 'test-1', shouldBeShown: true},
+                'yabro-2': {id: 'yabro-2', parentId: 'test-2', shouldBeShown: true}
+            };
+            const tree = mkStateTree({browsersById, browsersStateById, resultsById});
             const resultCb = sinon.spy().named('onResultCb');
             getFailedSuiteResults.withArgs(tree).returns([tree.results.byId['res-1']]);
 
@@ -64,27 +72,25 @@ describe('lib/static/modules/reducers/grouped-tests/helpers', () => {
             assert.calledOnceWith(resultCb, tree.results.byId['res-1']);
         });
 
-        [true, false].forEach((strictMatchFilter) => {
-            it(`should filter results by test name with "strictMatchFilter=${strictMatchFilter}"`, () => {
-                const browsersById = {
-                    ...mkBrowser({id: 'yabro-1', parentId: 'test-1'}),
-                    ...mkBrowser({id: 'yabro-2', parentId: 'test-2'})
-                };
-                const resultsById = {
-                    ...mkResult({id: 'res-1', parentId: 'yabro-1'}),
-                    ...mkResult({id: 'res-2', parentId: 'yabro-2'})
-                };
-                const tree = mkStateTree({browsersById, resultsById});
-                const resultCb = sinon.spy().named('onResultCb');
+        it(`should take browsers state into account`, () => {
+            const browsersById = {
+                ...mkBrowser({id: 'yabro-1', parentId: 'test-1'}),
+                ...mkBrowser({id: 'yabro-2', parentId: 'test-2'})
+            };
+            const resultsById = {
+                ...mkResult({id: 'res-1', parentId: 'yabro-1'}),
+                ...mkResult({id: 'res-2', parentId: 'yabro-2'})
+            };
+            const browsersStateById = {
+                'yabro-1': {id: 'yabro-1', parentId: 'test-1', shouldBeShown: true},
+                'yabro-2': {id: 'yabro-2', parentId: 'test-2', shouldBeShown: false}
+            };
+            const tree = mkStateTree({browsersById, browsersStateById, resultsById});
+            const resultCb = sinon.spy().named('onResultCb');
 
-                isTestNameMatchFilters
-                    .withArgs('test-1', 'default-bro', 'test-1', strictMatchFilter).returns(true)
-                    .withArgs('test-2', 'default-bro', 'test-1', strictMatchFilter).returns(false);
+            module.handleActiveResults({tree, resultCb});
 
-                module.handleActiveResults({tree, resultCb, testNameFilter: 'test-1', strictMatchFilter});
-
-                assert.calledOnceWith(resultCb, tree.results.byId['res-1']);
-            });
+            assert.calledOnceWith(resultCb, tree.results.byId['res-1']);
         });
 
         it('should filter tests by specified browsers', () => {
@@ -96,7 +102,11 @@ describe('lib/static/modules/reducers/grouped-tests/helpers', () => {
                 ...mkResult({id: 'res-1', parentId: 'yabro-1'}),
                 ...mkResult({id: 'res-2', parentId: 'yabro-2'})
             };
-            const tree = mkStateTree({browsersById, resultsById});
+            const browsersStateById = {
+                'yabro-1': {id: 'yabro-1', parentId: 'test-1', shouldBeShown: true},
+                'yabro-2': {id: 'yabro-2', parentId: 'test-2', shouldBeShown: true}
+            };
+            const tree = mkStateTree({browsersById, browsersStateById, resultsById});
             const resultCb = sinon.spy().named('onResultCb');
             const filteredBrowsers = ['yabro-1'];
 

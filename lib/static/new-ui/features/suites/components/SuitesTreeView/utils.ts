@@ -256,7 +256,8 @@ const extractWeight = (entitesContext: EntitiesContext, treeNode: TreeNode, chil
 
             if (
                 currentSortExpression.type === SortType.ByDuration ||
-                currentSortExpression.type === SortType.ByStartTime
+                currentSortExpression.type === SortType.ByStartTime ||
+                currentSortExpression.type === SortType.ByRelevance
             ) {
                 return childrenWeight;
             }
@@ -279,7 +280,8 @@ const extractWeight = (entitesContext: EntitiesContext, treeNode: TreeNode, chil
             if (
                 currentSortExpression.type === SortType.ByFailedRuns ||
                 currentSortExpression.type === SortType.ByTestsCount ||
-                currentSortExpression.type === SortType.ByStartTime
+                currentSortExpression.type === SortType.ByStartTime ||
+                currentSortExpression.type === SortType.ByRelevance
             ) {
                 return childrenWeight;
             }
@@ -325,6 +327,10 @@ const extractWeight = (entitesContext: EntitiesContext, treeNode: TreeNode, chil
                 const startTime = results[browser.resultIds[0]].timestamp;
 
                 return createWeight([startTime], {startTime});
+            }
+
+            if (currentSortExpression.type === SortType.ByRelevance) {
+                return createWeight([browsersState[treeNode.data.entityId].fuzzyMatchScore ?? 0]);
             }
 
             break;
@@ -378,6 +384,17 @@ const aggregateWeights = ({currentSortExpression}: EntitiesContext, weights: Tre
 
             if (weight.metadata.startTime !== undefined) {
                 newAccWeight.metadata.startTime = Math.min((newAccWeight.metadata.startTime || MAX_TIMESTAMP), weight.metadata.startTime);
+            }
+
+            return newAccWeight;
+        }, createWeight(new Array(weights[0]?.value?.length)));
+    }
+
+    if (currentSortExpression.type === SortType.ByRelevance) {
+        return weights.reduce<TreeNodeWeight>((accWeight, weight) => {
+            const newAccWeight = createWeight(accWeight.value.slice(0), accWeight.metadata);
+            for (let i = 0; i < weight.value.length; i++) {
+                newAccWeight.value[i] = Math.max(Number(accWeight.value[i] || 0), Number(weight.value[i]));
             }
 
             return newAccWeight;

@@ -23,6 +23,17 @@ const deserializeBrowserData = (data: string): {id: string; version: string} => 
     return {id: decodeURIComponent(idEncoded), version: decodeURIComponent(versionEncoded)};
 };
 
+const IconsPreloader = (): React.JSX.Element => {
+    const allBrowserIds = ['google', 'chrome', 'firefox', 'safari', 'edge', 'yandex', 'yabro', 'ie', 'explorer', 'opera', 'phone', 'mobile', 'tablet', 'ipad', 'browser'];
+    return (
+        <div style={{position: 'absolute', visibility: 'hidden', height: 0, width: 0, overflow: 'hidden'}}>
+            {allBrowserIds.map(id => (
+                <BrowserIcon key={id} name={id} />
+            ))}
+        </div>
+    );
+};
+
 interface BrowsersSelectProps {
     browsers: BrowserItem[];
     filteredBrowsers: BrowserItem[];
@@ -153,23 +164,26 @@ function BrowsersSelectInternal({browsers, filteredBrowsers, actions}: BrowsersS
     };
 
     return (
-        <Select
-            disablePortal
-            value={selected}
-            multiple={true}
-            hasCounter
-            filterable
-            renderFilter={renderFilter}
-            renderOption={renderOption}
-            renderControl={renderControl}
-            popupClassName={styles['browserlist__popup']}
-            className='browserlist'
-            onUpdate={onUpdate}
-            onFocus={onFocus}
-            onClose={onClose}
-        >
-            {renderOptions()}
-        </Select>
+        <>
+            <IconsPreloader />
+            <Select
+                disablePortal
+                value={selected}
+                multiple={true}
+                hasCounter
+                filterable
+                renderFilter={renderFilter}
+                renderOption={renderOption}
+                renderControl={renderControl}
+                popupClassName={styles['browserlist__popup']}
+                className='browserlist'
+                onUpdate={onUpdate}
+                onFocus={onFocus}
+                onClose={onClose}
+            >
+                {renderOptions()}
+            </Select>
+        </>
     );
 }
 

@@ -1,4 +1,4 @@
-import React, {ChangeEvent, ReactNode, useCallback, useState} from 'react';
+import React, {ChangeEvent, ReactNode, useCallback, useMemo, useState} from 'react';
 import {debounce} from 'lodash';
 import {connect, useSelector} from 'react-redux';
 import {bindActionCreators} from 'redux';
@@ -40,6 +40,21 @@ function TestNameFilterInternal(props: TestNameFilterProps): ReactNode {
         props.actions.setUseRegexFilter(!props.useRegexFilter);
     };
 
+    const isRegexInvalid = useMemo(() => {
+        if (!props.useRegexFilter) {
+            return false;
+        }
+
+        try {
+            // eslint-disable-next-line no-new
+            new RegExp(testNameFilter);
+        } catch (e) {
+            return true;
+        }
+
+        return false;
+    }, [props.useRegexFilter, testNameFilter]);
+
     return <div className={styles.container}>
         <TextInput
             disabled={!isInitialized}
@@ -47,6 +62,7 @@ function TestNameFilterInternal(props: TestNameFilterProps): ReactNode {
             value={testNameFilter}
             onChange={onChange}
             className={styles['search-input']}
+            error={isRegexInvalid}
         />
         <div className={styles['buttons-wrapper']}>
             <TestNameFilterButton
