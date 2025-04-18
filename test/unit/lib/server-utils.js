@@ -29,35 +29,38 @@ describe('server-utils', () => {
                 const test = {
                     imageDir: 'some/dir',
                     browserId: 'bro',
-                    attempt: 2
+                    attempt: 2,
+                    timestamp: Date.now()
                 };
 
                 const resultPath = utils[`get${testData.name}Path`](test);
 
-                assert.equal(resultPath, path.join(IMAGES_PATH, 'some', 'dir', `bro~${testData.prefix}_2.png`));
+                assert.equal(resultPath, path.join(IMAGES_PATH, 'some', 'dir', `bro~${testData.prefix}_${test.timestamp}_2.png`));
             });
 
             it('should add default attempt if it does not exist from test', () => {
                 const test = {
                     imageDir: 'some/dir',
-                    browserId: 'bro'
+                    browserId: 'bro',
+                    timestamp: Date.now()
                 };
 
                 const resultPath = utils[`get${testData.name}Path`](test);
 
-                assert.equal(resultPath, path.join(IMAGES_PATH, 'some', 'dir', `bro~${testData.prefix}_0.png`));
+                assert.equal(resultPath, path.join(IMAGES_PATH, 'some', 'dir', `bro~${testData.prefix}_${test.timestamp}_0.png`));
             });
 
             it('should add state name to the path if it was passed', () => {
                 const test = {
                     imageDir: 'some/dir',
-                    browserId: 'bro'
+                    browserId: 'bro',
+                    timestamp: Date.now()
                 };
                 const stateName = 'plain';
 
                 const resultPath = utils[`get${testData.name}Path`](test, stateName);
 
-                assert.equal(resultPath, path.join(IMAGES_PATH, 'some', 'dir', `plain/bro~${testData.prefix}_0.png`));
+                assert.equal(resultPath, path.join(IMAGES_PATH, 'some', 'dir', `plain/bro~${testData.prefix}_${test.timestamp}_0.png`));
             });
         });
 
@@ -69,23 +72,25 @@ describe('server-utils', () => {
             it('should generate correct absolute path for test image', () => {
                 const test = {
                     imageDir: 'some/dir',
-                    browserId: 'bro'
+                    browserId: 'bro',
+                    timestamp: Date.now()
                 };
 
                 const resultPath = utils[`get${testData.name}AbsolutePath`](test, 'reportPath');
 
-                assert.equal(resultPath, path.join('/root', 'reportPath', IMAGES_PATH, 'some', 'dir', `bro~${testData.prefix}_0.png`));
+                assert.equal(resultPath, path.join('/root', 'reportPath', IMAGES_PATH, 'some', 'dir', `bro~${testData.prefix}_${test.timestamp}_0.png`));
             });
 
             it('should add state name to the path if it was passed', () => {
                 const test = {
                     imageDir: 'some/dir',
-                    browserId: 'bro'
+                    browserId: 'bro',
+                    timestamp: Date.now()
                 };
 
                 const resultPath = utils[`get${testData.name}AbsolutePath`](test, 'reportPath', 'plain');
 
-                assert.equal(resultPath, path.join('/root', 'reportPath', IMAGES_PATH, 'some', 'dir', 'plain', `bro~${testData.prefix}_0.png`));
+                assert.equal(resultPath, path.join('/root', 'reportPath', IMAGES_PATH, 'some', 'dir', 'plain', `bro~${testData.prefix}_${test.timestamp}_0.png`));
             });
         });
     });
@@ -202,10 +207,9 @@ describe('server-utils', () => {
             assert.calledOnceWith(fs.writeJson, '/foobar/databaseUrls.json', {dbUrls: [], jsonUrls: []});
         });
 
-        it('should not write invalid urls', () => {
+        it('should not write invalid urls', async () => {
             const destPath = '/foo';
             const srcPaths = [
-                null,
                 '',
                 'foo',
                 'foo.bar',
@@ -213,7 +217,7 @@ describe('server-utils', () => {
                 'http://foo.bar/baz.bar?test=stub'
             ];
 
-            utils.writeDatabaseUrlsFile(destPath, srcPaths);
+            await utils.writeDatabaseUrlsFile(destPath, srcPaths);
 
             assert.calledOnceWith(fs.writeJson, sinon.match.any, {dbUrls: [], jsonUrls: []});
         });

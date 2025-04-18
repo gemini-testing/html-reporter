@@ -108,7 +108,7 @@ export class ReporterTestAdapter implements ReporterTestResult {
         return this._testResult.testPath;
     }
 
-    get timestamp(): number | undefined {
+    get timestamp(): number {
         return this._testResult.timestamp;
     }
 
