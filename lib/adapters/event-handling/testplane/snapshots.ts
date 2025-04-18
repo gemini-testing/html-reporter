@@ -87,7 +87,7 @@ export const finalizeSnapshotsForTest = async ({testResult, attempt, reportPath,
             return [];
         }
 
-        const shouldSave = recordConfig.mode !== RecordMode.LastFailedRun || (eventName === events.TEST_FAIL);
+        const shouldSave = RecordMode && (recordConfig.mode !== RecordMode.LastFailedRun || (eventName === events.TEST_FAIL));
         if (!shouldSave) {
             return [];
         }

@@ -14,11 +14,6 @@ import {ServerReadyData} from './api';
 import {BrowserFeature, ToolName} from '../constants';
 import type {TestplaneToolAdapter} from '../adapters/tool/testplane';
 import {ToolRunnerTree} from './tool-runner';
-import {
-    getSnapshotHashWithoutAttempt,
-    snapshotsInProgress,
-    TestContext
-} from '../adapters/event-handling/testplane/snapshots';
 
 interface CustomGuiError {
     response: {
@@ -149,8 +144,13 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
     });
 
     server.get('/running-test-data', async (req, res): Promise<void> => {
+        if (toolAdapter.toolName !== ToolName.Testplane) {
+            res.status(500).json({error: `Getting running test data supports only in Testplane tool`});
+        }
+
         try {
             const {testPath, browserId} = req.query;
+            const {getSnapshotHashWithoutAttempt, snapshotsInProgress} = await import('../adapters/event-handling/testplane/snapshots');
 
             if (!testPath || !browserId) {
                 res.status(400).json({error: `Missing one of the required GET parameters: testPath or browserId. Received testPath: ${testPath}, browserId: ${browserId}`});
@@ -169,7 +169,7 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
                 return;
             }
 
-            const context: TestContext = {testPath: parsedTestPath, browserId: browserId as string};
+            const context = {testPath: parsedTestPath, browserId: browserId as string};
             const snapshotKey = getSnapshotHashWithoutAttempt(context);
 
             const snapshots = snapshotsInProgress[snapshotKey] || [];
