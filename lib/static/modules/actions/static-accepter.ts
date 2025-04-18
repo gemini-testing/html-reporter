@@ -1,7 +1,8 @@
 import axios from 'axios';
 import {isEmpty} from 'lodash';
+import PQueue from 'p-queue';
 import {types as modalTypes} from '../../components/modals';
-import {getBlob} from '../utils';
+import {getBlobWithRetires} from '../utils';
 import {storeCommitInLocalStorage} from '../static-image-accepter';
 import actionNames from '../action-names';
 import defaultState from '../default-state';
@@ -83,13 +84,19 @@ export const staticAccepterCommitScreenshot = (
                 payload.append('meta', JSON.stringify(meta));
             }
 
-            await Promise.all(imagesInfo.map(async (imageInfo, index) => {
-                dispatch({type: actionNames.UPDATE_LOADING_TITLE, payload: `Preparing images to commit: ${index + 1} of ${imagesInfo.length}`});
+            const queue = new PQueue({concurrency: 256});
 
-                const blob = await getBlob(imageInfo.image);
+            for (let i = 0; i < imagesInfo.length; i++) {
+                queue.add(async () => {
+                    const blob = await getBlobWithRetires(imagesInfo[i].image);
 
-                payload.append('image', blob, imageInfo.path);
-            }));
+                    payload.append('image', blob, imagesInfo[i].path);
+
+                    dispatch({type: actionNames.UPDATE_LOADING_TITLE, payload: `Preparing images to commit: ${i + 1} of ${imagesInfo.length}`});
+                });
+            }
+
+            await queue.onIdle();
 
             dispatch({type: actionNames.UPDATE_LOADING_TITLE, payload: 'Uploading images'});
             const response = await axios.post(serviceUrl, payload, {
