@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.16.1"></a>
+## [10.16.1](https://github.com/gemini-testing/html-reporter/compare/v10.16.0...v10.16.1) (2025-04-18)
+
+
+### Bug Fixes
+
+* **merge-reports:** ability to merge reports locally ([d4febd8](https://github.com/gemini-testing/html-reporter/commit/d4febd8))
+* do not fail with old version of testplane that not support record snapshots ([6e146d8](https://github.com/gemini-testing/html-reporter/commit/6e146d8))
+* do not require testplane when use report with other tools ([74c38a4](https://github.com/gemini-testing/html-reporter/commit/74c38a4))
+
+
+
 <a name="10.16.0"></a>
 # [10.16.0](https://github.com/gemini-testing/html-reporter/compare/v10.15.2...v10.16.0) (2025-04-15)
 
