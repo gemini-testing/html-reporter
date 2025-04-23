@@ -110,7 +110,7 @@ export class TestplaneToolAdapter implements ToolAdapter {
         for (const browserConfig of this._browserConfigs) {
             const features: BrowserFeature[] = [];
 
-            if (browserConfig.record.mode === RecordMode.On) {
+            if (RecordMode && browserConfig.record && browserConfig.record.mode === RecordMode.On) {
                 features.push(BrowserFeature.LiveSnapshotsStreaming);
             }
 

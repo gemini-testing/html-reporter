@@ -83,13 +83,14 @@ export const finalizeSnapshotsForTest = async ({testResult, attempt, reportPath,
 
         delete snapshotsInProgress[hash];
 
-        if (!snapshots || snapshots.length === 0) {
-            console.warn(`No snapshots found for test hash: ${hash}`);
+        // Here we only check LastFailedRun, because in case of Off, we wouldn't even be here. LastFailedRun is the only case when we may want to not save snapshots.
+        const shouldSave = RecordMode && recordConfig && (recordConfig.mode !== RecordMode.LastFailedRun || (eventName === events.TEST_FAIL));
+        if (!shouldSave) {
             return [];
         }
 
-        const shouldSave = RecordMode && (recordConfig.mode !== RecordMode.LastFailedRun || (eventName === events.TEST_FAIL));
-        if (!shouldSave) {
+        if (!snapshots || snapshots.length === 0) {
+            console.warn(`No snapshots found for test hash: ${hash}`);
             return [];
         }
 
