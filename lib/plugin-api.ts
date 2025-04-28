@@ -3,7 +3,7 @@ import {PluginEvents, ToolName} from './constants';
 import {downloadDatabases, getTestsTreeFromDatabase, mergeDatabases} from './db-utils/server';
 import {LocalImageFileSaver} from './local-image-file-saver';
 import {version} from '../package.json';
-import {ImageFileSaver, ReporterConfig, ReportsSaver} from './types';
+import {ImageFileSaver, ReporterConfig, ReportsSaver, SnapshotsSaver} from './types';
 
 export interface HtmlReporterValues {
     toolName: ToolName;
@@ -11,6 +11,7 @@ export interface HtmlReporterValues {
     metaInfoExtenders: Record<string, string>;
     imagesSaver: ImageFileSaver;
     reportsSaver: ReportsSaver | null;
+    snapshotsSaver: SnapshotsSaver | null;
 }
 
 interface ReporterOptions {
@@ -42,7 +43,8 @@ export class HtmlReporter extends EventsEmitter2 {
             extraItems: {},
             metaInfoExtenders: {},
             imagesSaver: LocalImageFileSaver,
-            reportsSaver: null
+            reportsSaver: null,
+            snapshotsSaver: null
         };
         this._version = version;
     }
@@ -90,6 +92,14 @@ export class HtmlReporter extends EventsEmitter2 {
 
     get reportsSaver(): ReportsSaver | null {
         return this._values.reportsSaver;
+    }
+
+    set snapshotsSaver(snapshotsSaver: SnapshotsSaver) {
+        this._values.snapshotsSaver = snapshotsSaver;
+    }
+
+    get snapshotsSaver(): SnapshotsSaver | null {
+        return this._values?.snapshotsSaver ?? null;
     }
 
     get values(): HtmlReporterValues {

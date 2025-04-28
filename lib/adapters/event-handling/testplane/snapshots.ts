@@ -10,7 +10,7 @@ import yazl from 'yazl';
 
 import {ReporterTestResult} from '../../test-result';
 import {SNAPSHOTS_PATH} from '../../../constants';
-import {AttachmentType, SnapshotAttachment, TestStepKey} from '../../../types';
+import {AttachmentType, SnapshotAttachment, TestStepKey, SnapshotsSaver} from '../../../types';
 import {EventSource} from '../../../gui/event-source';
 import {ClientEvents} from '../../../gui/constants';
 
@@ -74,9 +74,10 @@ interface FinalizeSnapshotsParams {
     reportPath: string;
     eventName: Testplane['events'][keyof Testplane['events']];
     events: Testplane['events'];
+    snapshotsSaver?: SnapshotsSaver | null;
 }
 
-export const finalizeSnapshotsForTest = async ({testResult, attempt, reportPath, recordConfig, events, eventName}: FinalizeSnapshotsParams): Promise<SnapshotAttachment[]> => {
+export const finalizeSnapshotsForTest = async ({testResult, attempt, reportPath, recordConfig, events, eventName, snapshotsSaver}: FinalizeSnapshotsParams): Promise<SnapshotAttachment[]> => {
     try {
         const hash = getSnapshotHashWithoutAttempt(testResult);
         const snapshots = snapshotsInProgress[hash];
@@ -158,10 +159,24 @@ export const finalizeSnapshotsForTest = async ({testResult, attempt, reportPath,
 
         const zipfile = new yazl.ZipFile();
         const output = fs.createWriteStream(absoluteZipFilePath);
-        zipfile.outputStream.pipe(output).on('close', () => {
+        zipfile.outputStream.pipe(output).on('close', async () => {
+            let savedPath = zipFilePath;
+
+            if (snapshotsSaver) {
+                try {
+                    savedPath = await snapshotsSaver.saveSnapshot(absoluteZipFilePath, {
+                        destPath: zipFilePath,
+                        reportDir: reportPath
+                    });
+                } catch (e) {
+                    console.warn(`Failed to save snapshot using custom saver for test "${testResult?.testPath?.join(' ')}.${testResult?.browserId}": ${e}`);
+                    // If custom saver fails, we'll use the local path
+                }
+            }
+
             done([{
                 type: AttachmentType.Snapshot,
-                path: zipFilePath,
+                path: savedPath,
                 maxWidth,
                 maxHeight
             }]);
