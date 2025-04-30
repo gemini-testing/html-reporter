@@ -5,8 +5,9 @@ import fs from 'fs-extra';
 import NestedError from 'nested-error-stacks';
 
 import {getShortMD5} from './common-utils';
-import {TestStatus, DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS, LOCAL_DATABASE_NAME, DATABASE_URLS_JSON_NAME} from './constants';
+import {TestStatus, DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS, LOCAL_DATABASE_NAME, DATABASE_URLS_JSON_NAME, DB_CURRENT_VERSION} from './constants';
 import {createTablesQuery} from './db-utils/common';
+import {setDatabaseVersion} from './db-utils/migrations';
 import type {Attachment, ImageInfoFull, TestError, TestStepCompressed} from './types';
 import {HtmlReporter} from './plugin-api';
 import {ReporterTestResult} from './adapters/test-result';
@@ -90,7 +91,12 @@ export class SqliteClient {
             debug('db connection opened');
 
             createTablesQuery().forEach((query) => db?.prepare(query).run());
+
+            if (!options.reuse) {
+                setDatabaseVersion(db, DB_CURRENT_VERSION);
+            }
         } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
+            console.dir(err);
             throw new NestedError(`Error creating database at "${dbPath}"`, err);
         }
 

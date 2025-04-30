@@ -38,6 +38,17 @@ export const SUITES_TABLE_COLUMNS = [
     {name: DB_COLUMNS.ATTACHMENTS, type: DB_TYPES.text}
 ] as const;
 
+export const DB_VERSION_TABLE_NAME = 'version';
+export const VERSION_TABLE_COLUMNS = [
+    {name: 'version_number', type: DB_TYPES.int}
+] as const;
+
+export type LabeledVersionRow = {
+    [K in (typeof VERSION_TABLE_COLUMNS)[number]['name']]: string;
+};
+
+export const DB_CURRENT_VERSION = 1;
+
 export const DB_MAX_AVAILABLE_PAGE_SIZE = 65536; // helps to speed up queries
 export const DB_SUITES_TABLE_NAME = 'suites';
 export const LOCAL_DATABASE_NAME = 'sqlite.db';

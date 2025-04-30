@@ -17,7 +17,7 @@ import {ImagesInfoSaver} from '../../images-info-saver';
 import {SqliteImageStore} from '../../image-store';
 import * as reporterHelper from '../../reporter-helpers';
 import {logger, getShortMD5, isUpdatedStatus} from '../../common-utils';
-import {formatId, mkFullTitle, mergeDatabasesForReuse, filterByEqualDiffSizes} from './utils';
+import {formatId, mkFullTitle, mergeDatabasesForReuse, filterByEqualDiffSizes, prepareLocalDatabase} from './utils';
 import {getExpectedCacheKey} from '../../server-utils';
 import {getTestsTreeFromDatabase} from '../../db-utils/server';
 import {
@@ -106,6 +106,7 @@ export class ToolRunner {
 
     async initialize(): Promise<void> {
         await mergeDatabasesForReuse(this._reportPath);
+        await prepareLocalDatabase(this._reportPath);
 
         const dbClient = await SqliteClient.create({htmlReporter: this._toolAdapter.htmlReporter, reportPath: this._reportPath, reuse: true});
         const imageStore = new SqliteImageStore(dbClient);
