@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 import type {eventWithTime as RrwebEvent} from '@rrweb/types';
+import makeDebug from 'debug';
 import fsExtra from 'fs-extra';
 import _ from 'lodash';
 import type Testplane from 'testplane';
@@ -13,6 +14,8 @@ import {SNAPSHOTS_PATH} from '../../../constants';
 import {AttachmentType, SnapshotAttachment, TestStepKey, SnapshotsSaver} from '../../../types';
 import {EventSource} from '../../../gui/event-source';
 import {ClientEvents} from '../../../gui/constants';
+
+const debug = makeDebug('html-reporter:event-handling:snapshots');
 
 export interface TestContext {
     testPath: string[];
@@ -86,12 +89,10 @@ export const finalizeSnapshotsForTest = async ({testResult, attempt, reportPath,
 
         // Here we only check LastFailedRun, because in case of Off, we wouldn't even be here. LastFailedRun is the only case when we may want to not save snapshots.
         const shouldSave = RecordMode && recordConfig && (recordConfig.mode !== RecordMode.LastFailedRun || (eventName === events.TEST_FAIL));
-        if (!shouldSave) {
-            return [];
-        }
-
-        if (!snapshots || snapshots.length === 0) {
-            console.warn(`No snapshots found for test hash: ${hash}`);
+        if (!shouldSave || !snapshots || snapshots.length === 0) {
+            debug('Not saving snapshots for test "%s"', hash);
+            debug('shouldSave evaluated to: %s', shouldSave, ', recordConfig: ', recordConfig, ', eventName: ', eventName);
+            debug('snapshots: ', snapshots);
             return [];
         }
 
