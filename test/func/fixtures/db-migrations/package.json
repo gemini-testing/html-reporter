@@ -1,0 +1,10 @@
+{
+  "name": "db-migrations-fixture-report",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "clean": "rm -rf report",
+    "generate": "true # This fixture should not be generated. Report is commited to VCS so that sqlite.db is fixed at v0. Used to test html-reporter backwards compatibility with old sqlite formats.",
+    "gui": "npx testplane gui --hostname 0.0.0.0 --port 8001"
+  }
+}
