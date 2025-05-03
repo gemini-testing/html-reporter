@@ -12,6 +12,10 @@ import {TestEqualDiffsData, TestRefUpdateData} from '../../tests-tree-builder/gu
 import {ImageInfoDiff, ImageSize} from '../../types';
 import {backupAndReset, getDatabaseVersion, migrateDatabase} from '../../db-utils/migrations';
 
+import makeDebug from 'debug';
+
+const debug = makeDebug('html-reporter:gui:tool-runner:utils');
+
 export const formatId = (hash: string, browserId: string): string => `${hash}/${browserId}`;
 
 export const mkFullTitle = ({suite, state}: Pick<TestRefUpdateData, 'suite' | 'state'>): string => {
@@ -52,6 +56,7 @@ export const mergeDatabasesForReuse = async (reportPath: string): Promise<void> 
 };
 
 export const prepareLocalDatabase = async (reportPath: string): Promise<void> => {
+    debug('prepareLocalDatabase', reportPath);
     const dbPath = path.resolve(reportPath, LOCAL_DATABASE_NAME);
 
     if (!fs.existsSync(dbPath)) {
@@ -61,8 +66,9 @@ export const prepareLocalDatabase = async (reportPath: string): Promise<void> =>
     const db = new Database(dbPath);
     try {
         const version = getDatabaseVersion(db);
+        debug('determined db version', version);
 
-        if (version && version < DB_CURRENT_VERSION) {
+        if (version !== null && version < DB_CURRENT_VERSION) {
             await migrateDatabase(db, version);
         } else if (version === null) {
             const backupPath = await backupAndReset(reportPath);

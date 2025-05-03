@@ -25,6 +25,10 @@ module.exports = {
         analytics: {
             server: 8085,
             gui: 8075
+        },
+        'db-migrations': {
+            server: 8086,
+            gui: 8076
         }
     }
 };

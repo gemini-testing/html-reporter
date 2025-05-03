@@ -14,7 +14,7 @@ const serverHost = process.env.SERVER_HOST ?? 'host.docker.internal';
 const serverPort = process.env.SERVER_PORT ?? 8083;
 const projectUnderTest = process.env.PROJECT_UNDER_TEST;
 
-const isRunningGuiTests = projectUnderTest && projectUnderTest.includes('gui');
+const isRunningGuiTests = (projectUnderTest && projectUnderTest.includes('gui')) || projectUnderTest === 'db-migrations';
 const isRunningAnalyticsTests = projectUnderTest && projectUnderTest.includes('analytics');
 
 if (!projectUnderTest) {
@@ -45,6 +45,9 @@ const config = _.merge(commonConfig, {
         },
         analytics: {
             files: 'analytics/**/*.testplane.js'
+        },
+        'db-migrations': {
+            files: 'db-migrations/**/*.testplane.js'
         }
     },
 
