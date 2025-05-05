@@ -56,7 +56,8 @@ export const handleTestResults = (testplane: TestplaneWithHtmlReporter, reportBu
                         reportPath: testplane.htmlReporter.config.path,
                         events: testplane.events,
                         eventName,
-                        recordConfig: testplane.config.record
+                        recordConfig: testplane.config.record,
+                        snapshotsSaver: testplane.htmlReporter.snapshotsSaver
                     });
 
                     attachments.push(...snapshotAttachments);

@@ -26,6 +26,10 @@ export interface ReportsSaver {
     saveReportData: (localDbPath: string, options: {destPath: string; reportDir: string}) => string | Promise<string>;
 }
 
+export interface SnapshotsSaver {
+    saveSnapshot: (localFilePath: string, options: {destPath: string; reportDir: string}) => string | Promise<string>;
+}
+
 export interface ErrorDetails {
     title: string;
     data?: unknown;

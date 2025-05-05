@@ -136,7 +136,8 @@ async function handleTestResults(testplane: TestplaneWithHtmlReporter, reportBui
                         reportPath: testplane.htmlReporter.config.path,
                         recordConfig: testplane.config.record,
                         events: testplane.events,
-                        eventName
+                        eventName,
+                        snapshotsSaver: testplane.htmlReporter.snapshotsSaver
                     });
 
                     attachments.push(...snapshotAttachments);

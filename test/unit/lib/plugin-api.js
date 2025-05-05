@@ -28,13 +28,15 @@ describe('plugin api', () => {
         pluginApi.addMetaInfoExtender('key2', 'value2');
         pluginApi.imagesSaver = {some: 'images_saver'};
         pluginApi.reportsSaver = {some: 'reports_saver'};
+        pluginApi.snapshotsSaver = {some: 'snapshots_saver'};
 
         assert.deepEqual(pluginApi.values, {
             toolName: ToolName.Testplane,
             extraItems: {key1: 'value1'},
             metaInfoExtenders: {key2: 'value2'},
             imagesSaver: {some: 'images_saver'},
-            reportsSaver: {some: 'reports_saver'}
+            reportsSaver: {some: 'reports_saver'},
+            snapshotsSaver: {some: 'snapshots_saver'}
         });
     });
 

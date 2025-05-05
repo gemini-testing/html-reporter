@@ -58,7 +58,8 @@ export default Object.assign({config: configDefaults}, {
         extraItems: {},
         metaInfoExtenders: {},
         imagesSaver: {saveImg: () => ''},
-        reportsSaver: {saveReportData: () => ''}
+        reportsSaver: {saveReportData: () => ''},
+        snapshotsSaver: {saveSnapshot: () => ''}
     },
     loading: {},
     modals: [],
