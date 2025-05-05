@@ -2,7 +2,7 @@
 
 ## Overview
 
-Html-reporter adds an `htmlReporter` object to the `hermione` object with its own API.
+Html-reporter adds an `htmlReporter` object to the `testplane` object with its own API.
 
 | **Name** | **Type** | **Descriptiion** |
 | -------- | -------- | ---------------- |
@@ -10,6 +10,7 @@ Html-reporter adds an `htmlReporter` object to the `hermione` object with its ow
 | [extraItems](#extraitems) | Object | Additional elements to be added to the burger menu of the report. |
 | [imagesSaver](#imagessaver) | Object | Interface for saving images to the user's storage. |
 | [reportsSaver](#reportssaver) | Object | Interface for saving sqlite databases to the user's storage. |
+| [snapshotsSaver](#snapshotssaver) | Object | Interface for saving snapshots to the user's storage. |
 | [addExtraItem](#addextraitem) | Method | Adds an additional item to the burger menu of the report. |
 | [downloadDatabases](#downloaddatabases) | Method | Downloads all databases from the given files of the type _databaseUrls.json_. |
 | [mergeDatabases](#mergedatabases) | Method | Merges all given databases and saves the final report on the specified path. |
@@ -37,9 +38,9 @@ Interface for saving images to the user's storage.
 const MyStorage = require('my-storage');
 const myStorage = new MyStorage();
 
-module.exports = (hermione, opts) => {
-    hermione.on(hermione.events.INIT, async () => {
-        hermione.htmlReporter.imagesSaver = {
+module.exports = (testplane, opts) => {
+    testplane.on(testplane.events.INIT, async () => {
+        testplane.htmlReporter.imagesSaver = {
             /**
             * Save the image to a custom storage.
             * The function can be either asynchronous or synchronous.
@@ -73,9 +74,9 @@ Interface for saving sqlite databases to the user's storage.
 const MyStorage = require('my-storage');
 const myStorage = new MyStorage();
 
-module.exports = (hermione, opts) => {
-    hermione.on(hermione.events.INIT, async () => {
-        hermione.htmlReporter.reportsSaver = {
+module.exports = (testplane, opts) => {
+    testplane.on(testplane.events.INIT, async () => {
+        testplane.htmlReporter.reportsSaver = {
             /**
             * Save sqlite database to user storage.
             * The function can be either asynchronous or synchronous.
@@ -99,6 +100,42 @@ module.exports = (hermione, opts) => {
 };
 ```
 
+## snapshotsSaver
+
+Interface for saving DOM-snapshots to the user's storage.
+
+### Usage example
+
+```javascript
+const MyStorage = require('my-storage');
+const myStorage = new MyStorage();
+
+module.exports = (testplane, opts) => {
+    testplane.on(testplane.events.INIT, async () => {
+        testplane.htmlReporter.snapshotsSaver = {
+            /**
+            * Save snapshot to user storage.
+            * The function can be either asynchronous or synchronous.
+            * The function should return the path or URL to the saved snapshot.
+            * @property {String} localFilePath – the path to the snapshot on the file system
+            * @param {Object} options
+            * @param {String} options.destPath – the path to the snapshot in the html-report
+            * @param {String} options.reportDir - path to the html-report folder
+            * @returns {String} the path or URL to the snapshot
+            */
+            saveSnapshot: async (localFilePath, options) => {
+                const { destPath, reportDir } = options;
+                const snapshotUrl = await myStorage.save(localFilePath, destPath, reportDir);
+
+                // ...
+
+                return snapshotUrl;
+            }
+        }
+    });
+};
+```
+
 ## addExtraItem
 
 Adds an additional item to the burger menu of the report.
@@ -106,7 +143,7 @@ Adds an additional item to the burger menu of the report.
 ### Example of a call
 
 ```javascript
-hermione.htmlReporter.addExtraItem(caption, url);
+testplane.htmlReporter.addExtraItem(caption, url);
 ```
 
 ### Call parameters
@@ -125,7 +162,7 @@ Downloads all databases from the given files of the type `databaseUrls.json`.
 ### Example of a call
 
 ```javascript
-const dbPaths = await hermione.htmlReporter.downloadDatabases(
+const dbPaths = await testplane.htmlReporter.downloadDatabases(
     ['.\databaseUrls.json'], { pluginConfig }
 );
 ```
@@ -143,7 +180,7 @@ Merges all given databases and saves the final report on the specified path.
 ### Example of a call
 
 ```javascript
-await hermione.htmlReporter.mergeDatabases(srcDbPaths, path);
+await testplane.htmlReporter.mergeDatabases(srcDbPaths, path);
 ```
 
 ### Call parameters
@@ -160,7 +197,7 @@ Returns the test tree from the passed database.
 ### Example of a call
 
 ```javascript
-const dbTree = hermione.htmlReporter.getTestsTreeFromDatabase(mergedDbPath);
+const dbTree = testplane.htmlReporter.getTestsTreeFromDatabase(mergedDbPath);
 ```
 
 ### Call parameters
@@ -170,8 +207,8 @@ The function takes one argument&mdash;the path to the database with the result o
 ### Usage example
 
 ```javascript
-function getSuccessTestRunIds({ hermione, mergedDbPath }) {
-    const dbTree = hermione.htmlReporter.getTestsTreeFromDatabase(mergedDbPath);
+function getSuccessTestRunIds({ testplane, mergedDbPath }) {
+    const dbTree = testplane.htmlReporter.getTestsTreeFromDatabase(mergedDbPath);
 
     const successTestRunIds = [];
 

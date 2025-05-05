@@ -169,8 +169,7 @@ export const finalizeSnapshotsForTest = async ({testResult, attempt, reportPath,
                         reportDir: reportPath
                     });
                 } catch (e) {
-                    console.warn(`Failed to save snapshot using custom saver for test "${testResult?.testPath?.join(' ')}.${testResult?.browserId}": ${e}`);
-                    // If custom saver fails, we'll use the local path
+                    console.warn(`Failed to save snapshot using custom saver for test "${testResult?.testPath?.join(' ')}.${testResult?.browserId}" (local path will be used): ${e}`);
                 }
             }
 

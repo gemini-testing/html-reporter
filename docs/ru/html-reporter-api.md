@@ -2,7 +2,7 @@
 
 ## Обзор
 
-Html-reporter добавляет к объекту `hermione` объект `htmlReporter` со своим API.
+Html-reporter добавляет к объекту `testplane` объект `htmlReporter` со своим API.
 
 | **Имя** | **Тип** | **Описание** |
 | ------- | ------- | ------------ |
@@ -10,6 +10,7 @@ Html-reporter добавляет к объекту `hermione` объект `html
 | [extraItems](#extraitems) | Object | Дополнительные элементы, которые будут добавлены в бургер-меню отчета. |
 | [imagesSaver](#imagessaver) | Object | Интерфейс для сохранения изображений в хранилище пользователя. |
 | [reportsSaver](#reportssaver) | Object | Интерфейс для сохранения sqlite баз данных в хранилище пользователя. |
+| [snapshotsSaver](#snapshotssaver) | Object | Интерфейс для сохранения снимков в хранилище пользователя. |
 | [addExtraItem](#addextraitem) | Method | Добавляет дополнительный пункт в бургер-меню отчета. |
 | [downloadDatabases](#downloaddatabases) | Method | Скачивает все базы данных из переданных файлов типа _databaseUrls.json_. |
 | [mergeDatabases](#mergedatabases) | Method | Объединяет все переданные базы данных и сохраняет итоговый отчет по заданному пути. |
@@ -37,9 +38,9 @@ Html-reporter добавляет к объекту `hermione` объект `html
 const MyStorage = require('my-storage');
 const myStorage = new MyStorage();
 
-module.exports = (hermione, opts) => {
-    hermione.on(hermione.events.INIT, async () => {
-        hermione.htmlReporter.imagesSaver = {
+module.exports = (testplane, opts) => {
+    testplane.on(testplane.events.INIT, async () => {
+        testplane.htmlReporter.imagesSaver = {
             /**
             * Сохранить изображение в пользовательское хранилище.
             * Функция может быть как асинхронной, так и синхронной. 
@@ -73,9 +74,9 @@ module.exports = (hermione, opts) => {
 const MyStorage = require('my-storage');
 const myStorage = new MyStorage();
 
-module.exports = (hermione, opts) => {
-    hermione.on(hermione.events.INIT, async () => {
-        hermione.htmlReporter.reportsSaver = {
+module.exports = (testplane, opts) => {
+    testplane.on(testplane.events.INIT, async () => {
+        testplane.htmlReporter.reportsSaver = {
             /**
             * Сохранить sqlite базу данных в пользовательское хранилище.
             * Функция может быть как асинхронной, так и синхронной. 
@@ -99,6 +100,42 @@ module.exports = (hermione, opts) => {
 };
 ```
 
+## snapshotsSaver
+
+Интерфейс для сохранения DOM-снапшотов в хранилище пользователя.
+
+### Пример использования
+
+```javascript
+const MyStorage = require('my-storage');
+const myStorage = new MyStorage();
+
+module.exports = (testplane, opts) => {
+    testplane.on(testplane.events.INIT, async () => {
+        testplane.htmlReporter.snapshotsSaver = {
+            /**
+            * Сохранить снапшот в пользовательское хранилище.
+            * Функция может быть как асинхронной, так и синхронной. 
+            * Функция должна возвращать путь или URL к сохраненному снапшоту.
+            * @property {String} localFilePath – путь к снапшоту на файловой системе
+            * @param {Object} options
+            * @param {String} options.destPath – путь к снапшоту в html-отчете
+            * @param {String} options.reportDir - путь к папке html-отчета
+            * @returns {String} путь или URL к сохраненному снапшоту
+            */
+            saveSnapshot: async (localFilePath, options) => {
+                const { destPath, reportDir } = options;
+                const snapshotUrl = await myStorage.save(localFilePath, destPath, reportDir);
+
+                // ...
+
+                return snapshotUrl;
+            }
+        }
+    });
+};
+```
+
 ## addExtraItem
 
 Добавляет дополнительный пункт в виде ссылки в бургер-меню html-отчета.
@@ -106,7 +143,7 @@ module.exports = (hermione, opts) => {
 ### Пример вызова
 
 ```javascript
-hermione.htmlReporter.addExtraItem(caption, url);
+testplane.htmlReporter.addExtraItem(caption, url);
 ```
 
 ### Параметры вызова
@@ -125,7 +162,7 @@ hermione.htmlReporter.addExtraItem(caption, url);
 ### Пример вызова
 
 ```javascript
-const dbPaths = await hermione.htmlReporter.downloadDatabases(
+const dbPaths = await testplane.htmlReporter.downloadDatabases(
     ['.\databaseUrls.json'], { pluginConfig }
 );
 ```
@@ -143,7 +180,7 @@ const dbPaths = await hermione.htmlReporter.downloadDatabases(
 ### Пример вызова
 
 ```javascript
-await hermione.htmlReporter.mergeDatabases(srcDbPaths, path);
+await testplane.htmlReporter.mergeDatabases(srcDbPaths, path);
 ```
 
 ### Параметры вызова
@@ -160,7 +197,7 @@ await hermione.htmlReporter.mergeDatabases(srcDbPaths, path);
 ### Пример вызова
 
 ```javascript
-const dbTree = hermione.htmlReporter.getTestsTreeFromDatabase(mergedDbPath);
+const dbTree = testplane.htmlReporter.getTestsTreeFromDatabase(mergedDbPath);
 ```
 
 ### Параметры вызова
@@ -170,8 +207,8 @@ const dbTree = hermione.htmlReporter.getTestsTreeFromDatabase(mergedDbPath);
 ### Пример использования
 
 ```javascript
-function getSuccessTestRunIds({ hermione, mergedDbPath }) {
-    const dbTree = hermione.htmlReporter.getTestsTreeFromDatabase(mergedDbPath);
+function getSuccessTestRunIds({ testplane, mergedDbPath }) {
+    const dbTree = testplane.htmlReporter.getTestsTreeFromDatabase(mergedDbPath);
 
     const successTestRunIds = [];
 
