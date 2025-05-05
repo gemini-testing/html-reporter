@@ -51,7 +51,6 @@
     <details>
         <summary>Testplane</summary>
 
-        ```typescript
         // .testplane.config.ts
         export = {
             // ...
@@ -62,14 +61,12 @@
                 },
             },
         };
-        ```
 
     </details>
 
     <details>
         <summary>Playwright</summary>
 
-        ```typescript
         // playwright.config.ts
         export default defineConfig({
             // ...
@@ -81,13 +78,11 @@
                 }],
             ],
         });
-        ```
 
     </details>
     <details>
         <summary>Jest</summary>
 
-        ```typescript
         const config = {
             // ...
             reporters: [
@@ -96,7 +91,6 @@
                 }]
             ],
         };
-        ```
 
     </details>
 
