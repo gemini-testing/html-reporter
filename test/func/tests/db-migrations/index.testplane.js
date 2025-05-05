@@ -30,8 +30,7 @@ describe('Backwards compatibility with old sqlite formats', () => {
     // It's sufficient to check only v0, because that means all newer versions are also supported
     // through a chain of migrations v0 -> v1 -> ...
     it('should be able to open report with sqlite.db v0', async ({browser}) => {
-        await browser.pause(2000);
         const testSection = await browser.$(getTestSectionByNameSelector('failed test with ansi markup'));
-        await testSection.assertView('section');
+        await testSection.assertView('section', {screenshotDelay: 1000});
     });
 });

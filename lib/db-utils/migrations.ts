@@ -19,7 +19,7 @@ export const getDatabaseVersion = (db: Database.Database): number | null => {
         const versionTableExists = db.prepare(
             `SELECT name FROM sqlite_master WHERE type='table' AND name=?`
         ).get(DB_VERSION_TABLE_NAME);
-        debug('versionTableExists: ', versionTableExists);
+        debug('versionTableExists:', versionTableExists);
 
         if (versionTableExists) {
             const versionRow = db.prepare(`SELECT ${VERSION_TABLE_COLUMNS[0].name} FROM ${DB_VERSION_TABLE_NAME} LIMIT 1`).get() as LabeledVersionRow | null;
@@ -33,7 +33,7 @@ export const getDatabaseVersion = (db: Database.Database): number | null => {
 
         const tableInfo = db.prepare(`PRAGMA table_info(${DB_SUITES_TABLE_NAME})`).all() as {name: string}[];
         const columnNames = tableInfo.map(col => col.name);
-        debug('column names in db: ', columnNames);
+        debug('column names in db:', columnNames);
 
         const version0Columns = [
             DB_COLUMNS.SUITE_PATH,

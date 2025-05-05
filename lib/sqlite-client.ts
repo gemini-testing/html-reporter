@@ -96,7 +96,6 @@ export class SqliteClient {
                 setDatabaseVersion(db, DB_CURRENT_VERSION);
             }
         } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-            console.dir(err);
             throw new NestedError(`Error creating database at "${dbPath}"`, err);
         }
 

@@ -68,8 +68,8 @@ describe('lib/gui/tool-runner/utils', () => {
         it('should do nothing if database file does not exist', async () => {
             await utilsWithStubs.prepareLocalDatabase(reportPath);
 
-            sinon.assert.notCalled(backupAndResetStub);
-            sinon.assert.notCalled(consoleWarnStub);
+            assert.notCalled(backupAndResetStub);
+            assert.notCalled(consoleWarnStub);
         });
 
         it('should migrate database if version is less than current', async () => {
@@ -97,8 +97,8 @@ describe('lib/gui/tool-runner/utils', () => {
 
             await utilsWithStubs.prepareLocalDatabase(reportPath);
 
-            sinon.assert.notCalled(backupAndResetStub);
-            sinon.assert.notCalled(consoleWarnStub);
+            assert.notCalled(backupAndResetStub);
+            assert.notCalled(consoleWarnStub);
             const dbAfter = new Database(dbPath);
             const versionTableExists = dbAfter.prepare(
                 `SELECT name FROM sqlite_master WHERE type='table' AND name=?`
@@ -113,10 +113,10 @@ describe('lib/gui/tool-runner/utils', () => {
 
             await utilsWithStubs.prepareLocalDatabase(reportPath);
 
-            sinon.assert.calledOnce(backupAndResetStub);
-            sinon.assert.calledWith(backupAndResetStub, reportPath);
-            sinon.assert.calledOnce(consoleWarnStub);
-            sinon.assert.match(consoleWarnStub.firstCall.args[0], /unknown unsupported version/);
+            assert.calledOnce(backupAndResetStub);
+            assert.calledWith(backupAndResetStub, reportPath);
+            assert.calledOnce(consoleWarnStub);
+            assert.match(consoleWarnStub.firstCall.args[0], /unknown unsupported version/);
         });
 
         it('should backup and reset if database version is greater than current', async () => {
@@ -127,11 +127,11 @@ describe('lib/gui/tool-runner/utils', () => {
 
             await utilsWithStubs.prepareLocalDatabase(reportPath);
 
-            sinon.assert.calledOnce(backupAndResetStub);
-            sinon.assert.calledWith(backupAndResetStub, reportPath);
-            sinon.assert.calledOnce(consoleWarnStub);
-            sinon.assert.match(consoleWarnStub.firstCall.args[0], /unsupported version/);
-            sinon.assert.match(consoleWarnStub.firstCall.args[0], /newer version of html-reporter/);
+            assert.calledOnce(backupAndResetStub);
+            assert.calledWith(backupAndResetStub, reportPath);
+            assert.calledOnce(consoleWarnStub);
+            assert.match(consoleWarnStub.firstCall.args[0], /unsupported version/);
+            assert.match(consoleWarnStub.firstCall.args[0], /newer version of html-reporter/);
         });
 
         it('should do nothing if database version equals current version', async () => {
@@ -142,8 +142,8 @@ describe('lib/gui/tool-runner/utils', () => {
 
             await utilsWithStubs.prepareLocalDatabase(reportPath);
 
-            sinon.assert.notCalled(backupAndResetStub);
-            sinon.assert.notCalled(consoleWarnStub);
+            assert.notCalled(backupAndResetStub);
+            assert.notCalled(consoleWarnStub);
         });
 
         it('should close database connection even if an error occurs', async () => {
@@ -159,7 +159,7 @@ describe('lib/gui/tool-runner/utils', () => {
 
             await utilsWithErrorStub.prepareLocalDatabase(reportPath);
 
-            sinon.assert.calledOnce(databaseCloseStub);
+            assert.calledOnce(databaseCloseStub);
         });
     });
 });

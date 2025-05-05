@@ -24,7 +24,7 @@ describe('failed describe', function() {
     it('test with successful assertView and error', async ({browser}) => {
         await browser.url(browser.options.baseUrl);
 
-        await browser.assertView('header', 'header');
+        await browser.assertView('header', 'header', {ignoreDiffPixelCount: '100%'});
 
         throw new Error('Some error');
     });
