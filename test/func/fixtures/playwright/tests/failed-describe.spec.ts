@@ -38,7 +38,7 @@ test.describe('failed describe', () => {
     test('test with successful assertView and error', async ({page, baseURL}) => {
         await page.goto(baseURL as string);
 
-        await expect(page.locator('header')).toHaveScreenshot('header-success.png');
+        await expect(page.locator('header')).toHaveScreenshot('header-success.png', {maxDiffPixelRatio: 1});
 
         throw new Error('Some error');
     });

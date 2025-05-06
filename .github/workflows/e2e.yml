@@ -1,0 +1,119 @@
+name: Testplane E2E
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  testplane-e2e:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    env:
+      DOCKER_IMAGE_NAME: html-reporter-browsers
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Use Node.js 20
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build the package
+      run: npm run build
+
+    - name: 'Prepare e2e tests: Install pwt-chromium'
+      run: npx playwright install chromium
+
+    - name: 'Prepare e2e tests: Build-packages'
+      run: npm run e2e:build-packages
+
+    - name: 'Prepare e2e tests: Cache browser docker image'
+      uses: actions/cache@v3
+      with:
+        path: ~/.docker/cache
+        key: docker-browser-image-${{ hashFiles('test/func/docker/Dockerfile') }}
+
+    - name: 'Prepare e2e tests: Pull browser docker image'
+      run: |
+        mkdir -p ~/.docker/cache
+        if [ -f ~/.docker/cache/image.tar ]; then
+          docker load -i ~/.docker/cache/image.tar
+        else
+          docker pull yinfra/html-reporter-browsers
+          docker save yinfra/html-reporter-browsers -o ~/.docker/cache/image.tar
+        fi
+
+    - name: 'Prepare e2e tests: Run browser docker image'
+      run: docker run -d --name ${{ env.DOCKER_IMAGE_NAME }} -it --rm --network=host $(which colima >/dev/null || echo --add-host=host.docker.internal:0.0.0.0) yinfra/html-reporter-browsers
+
+    - name: 'Prepare e2e tests: Generate fixtures'
+      run: npm run e2e:generate-fixtures || true
+
+    - name: 'Prepare e2e tests: Setup env'
+      run: |
+        REPORT_PREFIX=testplane-reports
+        REPORT_DATE=$(date '+%y-%m-%d')
+        echo "DEST_REPORTS_DIR=$REPORT_PREFIX/$REPORT_DATE/${{ github.run_id }}/${{ github.run_attempt }}" >> $GITHUB_ENV
+
+    - name: Upload fixtures reports
+      uses: actions/upload-artifact@v4
+      with:
+          name: testplane-fixtures
+          path: test/func/fixtures/*/report
+
+    - name: 'e2e: Run Testplane'
+      id: 'testplane'
+      continue-on-error: true
+      working-directory: 'test/func/tests'
+      run: npm run test
+
+    - name: 'e2e: Stop browser docker image'
+      run: |
+        docker kill ${{ env.DOCKER_IMAGE_NAME }} || true
+        docker rm ${{ env.DOCKER_IMAGE_NAME }} || true
+
+    - name: Merge Testplane html-reporter reports
+      working-directory: 'test/func/tests'
+      run: |
+        mkdir -p ../../../${{ env.DEST_REPORTS_DIR }}
+        npx testplane merge-reports reports/*/sqlite.db -d ../../../${{ env.DEST_REPORTS_DIR }}
+
+    - name: Deploy Testplane html-reporter reports
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ${{ env.DEST_REPORTS_DIR }}
+        destination_dir: ${{ env.DEST_REPORTS_DIR }}
+        keep_files: true
+
+    - name: Construct PR comment
+      run: |
+        link="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/${{ env.DEST_REPORTS_DIR }}"
+        if [ "${{ steps.testplane.outcome }}" != "success" ]; then
+          comment="### ❌ Testplane run failed<br><br>[Report](${link})"
+          echo "PR_COMMENT=${comment}" >> $GITHUB_ENV
+        else
+          comment="### ✅ Testplane run succeed<br><br>[Report](${link})"
+          echo "PR_COMMENT=${comment}" >> $GITHUB_ENV
+        fi
+
+    - name: Leave comment to PR with link to Testplane HTML reports
+      uses: thollander/actions-comment-pull-request@v3
+      with:
+          message: ${{ env.PR_COMMENT }}
+          comment-tag: testplane_results
+
+    - name: Fail the job if any Testplane job is failed
+      if: ${{ steps.testplane.outcome != 'success' }}
+      run: exit 1

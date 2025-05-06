@@ -18,6 +18,7 @@ module.exports = (testplane, pluginConfig) => {
     testplane.on(testplane.events.RUNNER_START, () => {
         const app = express();
         app.use(express.static(path.resolve(__dirname, '../..')));
+
         server = app.listen(port, (err) => {
             if (err) {
                 console.error('Failed to start test server:');
@@ -25,10 +26,16 @@ module.exports = (testplane, pluginConfig) => {
             }
 
             console.info(`Server is listening on http://localhost:${port}`);
+        }).on('error', err => {
+            if (err.code === 'EADDRINUSE') {
+                console.warn(`Skip running server, because port ${port} is busy`);
+            } else {
+                throw err;
+            }
         });
     });
 
     testplane.on(testplane.events.RUNNER_END, () => {
-        server.close(() => console.info(`Server was closed`));
+        server && server.close(() => console.info(`Server was closed`));
     });
 };
