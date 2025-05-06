@@ -109,6 +109,7 @@ jobs:
         fi
 
     - name: Leave comment to PR with link to Testplane HTML reports
+      if: github.event.pull_request
       uses: thollander/actions-comment-pull-request@v3
       with:
           message: ${{ env.PR_COMMENT }}

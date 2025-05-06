@@ -1,0 +1,23 @@
+name: Remove old Testplane html reports
+on:
+    schedule: # Runs once daily
+        - cron: 0 0 * * *
+permissions:
+  contents: write
+jobs:
+  clean:
+    name: Remove old Testplane html reports
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+      - name: Remove reports
+        uses: gemini-testing/gh-actions-reports-ttl-cleaner@v1
+        with:
+          html-report-prefix: testplane-reports
+          ttl: 30
+          user-name: y-infra
+          user-email: y-infra@yandex.ru
