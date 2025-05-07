@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.17.0"></a>
+# [10.17.0](https://github.com/gemini-testing/html-reporter/compare/v10.16.4...v10.17.0) (2025-05-07)
+
+
+### Bug Fixes
+
+* do not throw when trying to merge single report ([#661](https://github.com/gemini-testing/html-reporter/issues/661)) ([97ee231](https://github.com/gemini-testing/html-reporter/commit/97ee231))
+* implement backwards compatibility with old sqlite formats ([#658](https://github.com/gemini-testing/html-reporter/issues/658)) ([da1eb28](https://github.com/gemini-testing/html-reporter/commit/da1eb28))
+
+
+### Features
+
+* add snapshots saver ([#657](https://github.com/gemini-testing/html-reporter/issues/657)) ([2e235bb](https://github.com/gemini-testing/html-reporter/commit/2e235bb))
+
+
+
 <a name="10.16.4"></a>
 ## [10.16.4](https://github.com/gemini-testing/html-reporter/compare/v10.16.3...v10.16.4) (2025-05-05)
 
