@@ -1,4 +1,4 @@
-const {Key} = require('webdriverio');
+const {Key} = require('@testplane/webdriverio');
 
 describe('View in browser button behavior', () => {
     beforeEach(async ({browser}) => {
