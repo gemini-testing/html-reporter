@@ -72,7 +72,7 @@ export function SnapshotsPlayer(): ReactNode {
     const [playerWidth, setPlayerWidth] = useState<number>(1200);
     const [playerHeight, setPlayerHeight] = useState<number>(800);
     const isLiveMaxSizeInitialized = useRef(false);
-    const [maxPlayerSize, setMaxPlayerSize] = useState<ImageSize>({height: 0, width: 0});
+    const [maxPlayerSize, setMaxPlayerSize] = useState<ImageSize>({height: 400, width: 700});
 
     const [totalTime, setTotalTime] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);

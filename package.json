@@ -257,7 +257,7 @@
     "stylus": "^0.57.0",
     "stylus-loader": "^7.1.3",
     "terser-webpack-plugin": "^5.3.9",
-    "testplane": "^8.26.0",
+    "testplane": "^8.28.1",
     "tree-kill": "^1.2.2",
     "ts-node": "^10.9.1",
     "type-fest": "^3.13.1",

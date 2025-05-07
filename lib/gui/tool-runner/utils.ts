@@ -75,7 +75,7 @@ export const prepareLocalDatabase = async (reportPath: string): Promise<void> =>
             console.warn(`SQLite db at ${dbPath} is of unknown unsupported version.\nBacked up to ${backupPath} and starting from scratch.`);
         } else if (version > DB_CURRENT_VERSION) {
             const backupPath = await backupAndReset(reportPath);
-            console.warn(`SQLite db at ${dbPath} is of unsupported version.` +
+            console.warn(`SQLite db at ${dbPath} is of unsupported version. ` +
                 'This probably happened because the report was generated with a newer version of html-reporter than you are trying to use now. ' +
                 'Please update html-reporter to the latest version to open this report.\n' +
                 `Backed up to ${backupPath} and starting from scratch.`);
