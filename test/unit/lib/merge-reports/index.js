@@ -10,7 +10,7 @@ const {IMAGES_PATH, SNAPSHOTS_PATH, ERROR_DETAILS_PATH, LOCAL_DATABASE_NAME, DAT
 
 describe('lib/merge-reports', () => {
     const sandbox = sinon.sandbox.create();
-    let htmlReporter, serverUtils, mergeReports, axiosStub;
+    let htmlReporter, serverUtils, mergeReports, axiosStub, consoleWarnBackup;
 
     const execMergeReports_ = async ({toolAdapter = stubToolAdapter(), paths = [], opts = {}}) => {
         opts = _.defaults(opts, {destination: 'default-dest-report/path'});
@@ -19,6 +19,9 @@ describe('lib/merge-reports', () => {
     };
 
     beforeEach(() => {
+        consoleWarnBackup = console.warn;
+        console.warn = sandbox.stub();
+
         serverUtils = _.clone(originalServerUtils);
         axiosStub = {get: sandbox.stub().rejects()};
 
@@ -42,7 +45,10 @@ describe('lib/merge-reports', () => {
         });
     });
 
-    afterEach(() => sandbox.restore());
+    afterEach(() => {
+        console.warn = consoleWarnBackup;
+        sandbox.restore();
+    });
 
     describe('options validation', () => {
         describe('should throw error if', () => {
@@ -50,13 +56,6 @@ describe('lib/merge-reports', () => {
                 await assert.isRejected(
                     execMergeReports_({paths: []}),
                     'Nothing to merge, no source reports are passed'
-                );
-            });
-
-            it('only one source report path is specified', async () => {
-                await assert.isRejected(
-                    execMergeReports_({paths: ['src-report/path']}),
-                    'Nothing to merge, only one source report is passed: src-report/path'
                 );
             });
 
@@ -138,6 +137,17 @@ describe('lib/merge-reports', () => {
                         }
                     }),
                     'Header must has key and value separated by "=" symbol, but got "foo_bar"'
+                );
+            });
+        });
+
+        describe('should warn if', () => {
+            it('only one source report path is specified', async () => {
+                await execMergeReports_({paths: ['src-report/path'], opts: {destPath: 'dest-report/path', headers: []}});
+
+                assert.calledWith(
+                    console.warn,
+                    'Nothing to merge, only one source report is passed: src-report/path'
                 );
             });
         });
