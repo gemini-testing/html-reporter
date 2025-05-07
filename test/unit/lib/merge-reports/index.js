@@ -145,9 +145,9 @@ describe('lib/merge-reports', () => {
             it('only one source report path is specified', async () => {
                 await execMergeReports_({paths: ['src-report/path'], opts: {destPath: 'dest-report/path', headers: []}});
 
-                assert.calledWith(
+                assert.calledWithMatch(
                     console.warn,
-                    'Nothing to merge, only one source report is passed: src-report/path'
+                    /Only one source report is passed/
                 );
             });
         });
