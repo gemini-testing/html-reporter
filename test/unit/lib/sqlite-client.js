@@ -67,10 +67,10 @@ describe('lib/sqlite-client', () => {
 
         beforeEach(async () => {
             getStub = sandbox.stub();
-            prepareStub = sandbox.stub(Database.prototype, 'prepare').returns({get: getStub});
+            prepareStub = sandbox.stub(Database.prototype, 'prepare').returns({get: getStub, run: sandbox.stub()});
             sqliteClient = await proxyquire('lib/sqlite-client', {
                 './db-utils/common': {createTablesQuery: () => []}
-            }).SqliteClient.create({htmlReporter, reportPath: 'test'});
+            }).SqliteClient.create({htmlReporter, reportPath: 'test', reuse: true});
         });
 
         describe('should create valid query string', () => {
@@ -136,7 +136,7 @@ describe('lib/sqlite-client', () => {
             prepareStub = sandbox.stub(Database.prototype, 'prepare').returns({run: runStub});
             sqliteClient = await proxyquire('lib/sqlite-client', {
                 './db-utils/common': {createTablesQuery: () => []}
-            }).SqliteClient.create({htmlReporter, reportPath: 'test'});
+            }).SqliteClient.create({htmlReporter, reportPath: 'test', reuse: true});
         });
 
         describe('should create valid sentence string', () => {

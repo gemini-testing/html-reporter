@@ -17,12 +17,12 @@ export function TestInfo(): ReactNode {
     const currentResult = useSelector(getCurrentResult);
     const browserFeatures = useSelector(state => state.browserFeatures);
 
-    const isSnapshotAvailable = currentResult?.attachments?.some(attachment => attachment.type === AttachmentType.Snapshot);
-    const isLiveStreamingAvailable = browserFeatures[currentResult?.name ?? '']?.some(feature => feature === BrowserFeature.LiveSnapshotsStreaming);
-    const shouldShowPlayer = isSnapshotAvailable || isLiveStreamingAvailable;
-
     const steps = useSelector(getTestSteps);
     const isRunning = useSelector(state => state.running);
+
+    const isSnapshotAvailable = currentResult?.attachments?.some(attachment => attachment.type === AttachmentType.Snapshot);
+    const isLiveStreamingAvailable = browserFeatures[currentResult?.name ?? '']?.some(feature => feature === BrowserFeature.LiveSnapshotsStreaming);
+    const shouldShowPlayer = isSnapshotAvailable || (isRunning && isLiveStreamingAvailable);
 
     return <>
         <CollapsibleSection id={'actions'} title={'Actions'}>
