@@ -22,23 +22,52 @@
 
 `html-reporter` or, as we also call it, Testplane UI — is an open-source project that can be used to view test results or interact with tools like [Testplane](https://testplane.io), [Playwright](https://playwright.dev/) or [Jest](https://jestjs.io/).
 
-### [Demo](https://storage.yandexcloud.net/testplane-ui-demo/v10.16.3/new-ui.html#/suites/Test%20results%20appearance%20Test%20with%20error%20should%20look%20as%20expected%20chrome)
+## Demo
 
-> [!IMPORTANT]
-> In the demo above, you don't see "Retry" or other action buttons, because this is a "static" report deployed to S3. If you download it and run it locally, you'll see all the buttons.
+One link is worth a thousand words, so [here it is](https://storage.yandexcloud.net/testplane-ui-demo/v10.16.3/new-ui.html#/suites/Test%20results%20appearance%20Test%20with%20error%20should%20look%20as%20expected%20chrome) — see all the features for yourself.
 
-### Benefits over regular reporters
+## Features
+
+#### Run and debug your tests
+
+View test steps, replay them and when something goes wrong, find the root cause with ease.
+
+![](docs/images/demo-gifs/run-debug.gif)
+
+#### Superb visual testing capabilities
+
+Accept or undo changes in visual checks with one click. Multiple viewing modes and dedicated visual checks tab will help you analyze the difference.
+
+![](docs/images/demo-gifs/visual-checks.gif)
+
+#### Unified UI for CI and local usage
+
+Something went wrong in CI? Pull the report and continue troubleshooting locally.
+
+![](docs/images/demo-gifs/ci-and-local.gif)
+
+#### Powerful analytics
+
+Spot flaky tests, slow tests or other issues using "sort by" and "group by" options.
+
+![](docs/images/demo-gifs/analytics.gif)
+
+#### And so much more
+
+Benefits over regular reporters include:
 
 - **More than a reporter**: it's not static, you can run your tests, update reference images, analyze test runs and more.
 - **Save developer time**: no need to relaunch reports or switch terminals during development — the whole workflow is possible from the UI.
-- **Unified UI for CI and local usage**: caught an issue in CI? Just pull the report and continue working on it locally.
-- **Powerful analytics**: find out what tests are flaky, what tests are slow and why, at a glance.
 - **No vendor lock-in**: all data is yours, the UI is open-source and everything is running locally on your machine. There's no cloud.
+- **Optimized to work at scale**: doesn't matter if you have 100 or 100,000+ tests in one report — the UI will work just as smoothly. Built-in support for artifacts uploading on the fly to S3 or other storage.
+- **Multiple data sources**: html-reporter can pull and merge data from any amount of data sources at runtime, or you can use dedicated merge-reports command.
 
 ## Getting started
 
 > [!IMPORTANT]
-> Currently `html-reporter` needs Node v18 or higher and works with Testplane, Playwright and Jest. More tools to come.
+> Currently `html-reporter` needs Node v18 or higher and works with Testplane, Playwright and Jest.
+>
+> Note that html-reporter is tool-agnostic at its core, so adding support for a new tool is a matter of implementing new data adapters. If you have a specific tool in mind, [raise an issue](https://github.com/gemini-testing/html-reporter/issues) — let's discuss what can be done.
 
 1. Install `html-reporter` with your favorite package manager:
 
