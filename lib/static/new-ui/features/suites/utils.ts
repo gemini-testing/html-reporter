@@ -51,3 +51,5 @@ export const findTreeNodeById = (nodes: TreeNode[], nodeId: string): TreeViewIte
         (node) => node.data.id === nodeId
     );
 };
+
+export const isSectionHidden = (sizeInPercent: number): boolean => sizeInPercent < 1;

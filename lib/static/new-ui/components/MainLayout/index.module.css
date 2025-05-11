@@ -19,3 +19,9 @@
 .footer-item--active {
     color: var(--gn-aside-header-item-current-icon-color) !important;
 }
+
+:global(.gn-composite-bar-item__menu-divider) {
+    background: linear-gradient(90deg, #9ca3af00, #9ca3af3d, #9ca3af00);
+    height: 1px;
+    border-top: none !important ;
+}

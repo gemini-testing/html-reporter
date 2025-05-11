@@ -43,7 +43,7 @@ export function App(): ReactNode {
                         <AnalyticsProvider>
                             <HashRouter>
                                 <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackAppCrash />}>
-                                    <MainLayout menuItems={pages}>
+                                    <MainLayout pages={pages}>
                                         <LoadingBar/>
                                         <Routes>
                                             <Route element={<Navigate to={'/suites'}/>} path={'/'}/>

@@ -1,0 +1,1 @@
+export const MIN_SECTION_SIZE_PERCENT = 25;

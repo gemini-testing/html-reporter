@@ -64,6 +64,18 @@ type SetTreeViewModeAction = Action<typeof actionNames.SUITES_PAGE_SET_TREE_VIEW
 export const setTreeViewMode = (payload: SetTreeViewModeAction['payload']): SetTreeViewModeAction =>
     ({type: actionNames.SUITES_PAGE_SET_TREE_VIEW_MODE, payload});
 
+type SetSectionSizesAction = Action<typeof actionNames.SUITES_PAGE_SET_SECTION_SIZES, {
+    sizes: number[];
+}>;
+export const setSectionSizes = (payload: SetSectionSizesAction['payload']): SetSectionSizesAction =>
+    ({type: actionNames.SUITES_PAGE_SET_SECTION_SIZES, payload});
+
+type SetBackupSectionSizesAction = Action<typeof actionNames.SUITES_PAGE_SET_BACKUP_SECTION_SIZES, {
+    sizes: number[];
+}>;
+export const setBackupSectionSizes = (payload: SetBackupSectionSizesAction['payload']): SetBackupSectionSizesAction =>
+    ({type: actionNames.SUITES_PAGE_SET_BACKUP_SECTION_SIZES, payload});
+
 export type SuitesPageAction =
     | SetTreeNodeExpandedStateAction
     | SetAllTreeNodesStateAction
@@ -73,4 +85,6 @@ export type SuitesPageAction =
     | RevealTreeNodeAction
     | SetTreeViewModeAction
     | SuitesPageSetCurrentStepAction
-    | SuitesPageSetCurrentHighlightStepAction;
+    | SuitesPageSetCurrentHighlightStepAction
+    | SetSectionSizesAction
+    | SetBackupSectionSizesAction;

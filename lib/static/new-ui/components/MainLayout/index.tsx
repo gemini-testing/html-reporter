@@ -1,24 +1,28 @@
 import {AsideHeader, MenuItem as GravityMenuItem} from '@gravity-ui/navigation';
 import classNames from 'classnames';
 import React, {ReactNode, useState} from 'react';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {useNavigate, matchPath, useLocation} from 'react-router-dom';
 
 import {getIsInitialized} from '@/static/new-ui/store/selectors';
 import {SettingsPanel} from '@/static/new-ui/components/SettingsPanel';
 import TestplaneIcon from '../../../icons/testplane-mono.svg';
+import {FullscreenLayoutIcon} from './FullscreenLayoutIcon';
 import styles from './index.module.css';
 import {Footer} from './Footer';
 import {EmptyReportCard} from '@/static/new-ui/components/Card/EmptyReportCard';
 import {InfoPanel} from '@/static/new-ui/components/InfoPanel';
 import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
+import {setSectionSizes} from '../../../modules/actions/suites-page';
+import {LayoutSplitSideContentLeft} from '@gravity-ui/icons';
+import {isSectionHidden} from '../../features/suites/utils';
 
 export enum PanelId {
     Settings = 'settings',
     Info = 'info',
 }
 
-interface MenuItem {
+interface MenutItemPage {
     title: string;
     url: string;
     icon: GravityMenuItem['icon'];
@@ -26,15 +30,16 @@ interface MenuItem {
 
 export interface MainLayoutProps {
     children: React.ReactNode;
-    menuItems: MenuItem[];
+    pages: MenutItemPage[];
 }
 
 export function MainLayout(props: MainLayoutProps): ReactNode {
+    const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation();
     const analytics = useAnalytics();
 
-    const gravityMenuItems: GravityMenuItem[] = props.menuItems.map(item => ({
+    const menuItems: GravityMenuItem[] = props.pages.map(item => ({
         id: item.url,
         title: item.title,
         icon: item.icon,
@@ -44,6 +49,23 @@ export function MainLayout(props: MainLayoutProps): ReactNode {
             navigate(item.url);
         }
     }));
+
+    const currentSuitesPageSectionSizes = useSelector(state => state.ui.suitesPage.sectionSizes);
+    const backupSuitesPageSectionSizes = useSelector(state => state.ui.suitesPage.backupSectionSizes);
+    if (/\/suites/.test(location.pathname)) {
+        const shouldExpandTree = isSectionHidden(currentSuitesPageSectionSizes[0]);
+        menuItems.push(
+            {id: 'divider', type: 'divider', title: '-'},
+            {
+                id: 'expand-collapse-tree',
+                title: shouldExpandTree ? 'Expand tree' : 'Collapse tree',
+                icon: shouldExpandTree ? LayoutSplitSideContentLeft : FullscreenLayoutIcon,
+                onItemClick: (): void => {
+                    dispatch(setSectionSizes({sizes: shouldExpandTree ? backupSuitesPageSectionSizes : [0, 100]}));
+                }
+            }
+        );
+    }
 
     const isInitialized = useSelector(getIsInitialized);
 
@@ -65,7 +87,7 @@ export function MainLayout(props: MainLayoutProps): ReactNode {
         logo={{text: 'Testplane UI', iconSrc: TestplaneIcon, iconSize: 32, onClick: () => navigate('/suites')}}
         compact={true}
         headerDecoration={false}
-        menuItems={gravityMenuItems}
+        menuItems={menuItems}
         customBackground={<div className={styles.asideHeaderBg}/>}
         customBackgroundClassName={styles.asideHeaderBgWrapper}
         renderContent={(): React.ReactNode => {

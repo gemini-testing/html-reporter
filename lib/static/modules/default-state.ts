@@ -5,6 +5,7 @@ import {EXPAND_ERRORS} from '../../constants/expand-modes';
 import {RESULT_KEYS} from '../../constants/group-tests';
 import {ToolName} from '../../constants';
 import {SortDirection, State, TreeViewMode} from '@/static/new-ui/types/store';
+import {MIN_SECTION_SIZE_PERCENT} from '../new-ui/features/suites/constants';
 
 export default Object.assign({config: configDefaults}, {
     gui: true,
@@ -150,7 +151,9 @@ export default Object.assign({config: configDefaults}, {
             retryIndexByTreeNodeId: {},
             expandedSectionsById: {},
             expandedStepsByResultId: {},
-            expandedTreeNodesById: {}
+            expandedTreeNodesById: {},
+            sectionSizes: [MIN_SECTION_SIZE_PERCENT, 100 - MIN_SECTION_SIZE_PERCENT],
+            backupSectionSizes: [MIN_SECTION_SIZE_PERCENT, 100 - MIN_SECTION_SIZE_PERCENT]
         },
         staticImageAccepterToolbar: {
             offset: {x: 0, y: 0}
