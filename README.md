@@ -22,10 +22,6 @@
 
 `html-reporter` or, as we also call it, Testplane UI — is an open-source project that can be used to view test results or interact with tools like [Testplane](https://testplane.io), [Playwright](https://playwright.dev/) or [Jest](https://jestjs.io/).
 
-## Demo
-
-One link is worth a thousand words, so [here it is](https://storage.yandexcloud.net/testplane-ui-demo/v10.16.3/new-ui.html#/suites/Test%20results%20appearance%20Test%20with%20error%20should%20look%20as%20expected%20chrome) — see all the features for yourself.
-
 ## Features
 
 #### Run and debug your tests
@@ -61,6 +57,10 @@ Benefits over regular reporters include:
 - **No vendor lock-in**: all data is yours, the UI is open-source and everything is running locally on your machine. There's no cloud.
 - **Optimized to work at scale**: doesn't matter if you have 100 or 100,000+ tests in one report — the UI will work just as smoothly. Built-in support for artifacts uploading on the fly to S3 or other storage.
 - **Multiple data sources**: html-reporter can pull and merge data from any amount of data sources at runtime, or you can use dedicated merge-reports command.
+
+## Demo
+
+One link is worth a thousand words, so [here it is](https://storage.yandexcloud.net/testplane-ui-demo/v10.16.3/new-ui.html#/suites/testplane%20New%20UI%20Suites%20page%20Expand%2Fcollapse%20suites%20tree%20button%20should%20offer%20to%20expand%20when%20collapsed%20using%20button%20chrome) — see all the features for yourself.
 
 ## Getting started
 
