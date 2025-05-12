@@ -74,7 +74,6 @@ if (isRunningAnalyticsTests) {
 
 if (!isRunningGuiTests && !isRunningAnalyticsTests) {
     _.set(config.plugins, ['hermione-global-hook', 'beforeEach'], async function({browser}) {
-        console.log('beforeEach');
         if (/new ui/i.test(browser.executionContext.ctx.currentTest.titlePath().join(' '))) {
             await browser.url(this.browser.options.baseUrl + 'new-ui.html');
         } else {
