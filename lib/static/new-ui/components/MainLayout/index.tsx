@@ -7,14 +7,13 @@ import {useNavigate, matchPath, useLocation} from 'react-router-dom';
 import {getIsInitialized} from '@/static/new-ui/store/selectors';
 import {SettingsPanel} from '@/static/new-ui/components/SettingsPanel';
 import TestplaneIcon from '../../../icons/testplane-mono.svg';
-import {FullscreenLayoutIcon} from './FullscreenLayoutIcon';
 import styles from './index.module.css';
 import {Footer} from './Footer';
 import {EmptyReportCard} from '@/static/new-ui/components/Card/EmptyReportCard';
 import {InfoPanel} from '@/static/new-ui/components/InfoPanel';
 import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
 import {setSectionSizes} from '../../../modules/actions/suites-page';
-import {LayoutSplitSideContentLeft} from '@gravity-ui/icons';
+import {LayoutSplitSideContentLeft, ArrowLeftToLine} from '@gravity-ui/icons';
 import {isSectionHidden} from '../../features/suites/utils';
 
 export enum PanelId {
@@ -59,10 +58,11 @@ export function MainLayout(props: MainLayoutProps): ReactNode {
             {
                 id: 'expand-collapse-tree',
                 title: shouldExpandTree ? 'Expand tree' : 'Collapse tree',
-                icon: shouldExpandTree ? LayoutSplitSideContentLeft : FullscreenLayoutIcon,
+                icon: shouldExpandTree ? LayoutSplitSideContentLeft : ArrowLeftToLine,
                 onItemClick: (): void => {
                     dispatch(setSectionSizes({sizes: shouldExpandTree ? backupSuitesPageSectionSizes : [0, 100]}));
-                }
+                },
+                qa: 'expand-collapse-suites-tree'
             }
         );
     }

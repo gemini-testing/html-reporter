@@ -5,6 +5,7 @@ import {SomeAction} from '@/static/modules/actions/types';
 import {getTreeViewItems} from '@/static/new-ui/features/suites/components/SuitesTreeView/selectors';
 import {findTreeNodeByBrowserId, findTreeNodeById, getGroupId} from '@/static/new-ui/features/suites/utils';
 import * as localStorageWrapper from '../local-storage-wrapper';
+import {MIN_SECTION_SIZE_PERCENT} from '@/static/new-ui/features/suites/constants';
 
 const SECTION_SIZES_LOCAL_STORAGE_KEY = 'suites-page-section-sizes';
 
@@ -42,7 +43,7 @@ export default (state: State, action: SomeAction): State => {
                 treeViewMode = action.payload.treeViewMode;
             }
 
-            const sectionSizes = localStorageWrapper.getItem(SECTION_SIZES_LOCAL_STORAGE_KEY, [25, 75]) as number[];
+            const sectionSizes = localStorageWrapper.getItem(SECTION_SIZES_LOCAL_STORAGE_KEY, [MIN_SECTION_SIZE_PERCENT, 100 - MIN_SECTION_SIZE_PERCENT]) as number[];
 
             return applyStateUpdate(state, {
                 app: {

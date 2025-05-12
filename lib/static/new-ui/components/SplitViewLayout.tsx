@@ -51,6 +51,7 @@ export function SplitViewLayout(props: SplitViewLayoutProps): ReactNode {
     const createGutter = (): HTMLDivElement => {
         const handle = document.createElement('div');
         handle.classList.add(styles.gutterHandle);
+        handle.setAttribute('data-qa', 'split-view-gutter-handle');
 
         const gutter = document.createElement('div');
         gutter.appendChild(handle);

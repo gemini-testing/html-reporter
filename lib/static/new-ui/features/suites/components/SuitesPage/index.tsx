@@ -107,7 +107,7 @@ function SuitesPageInternal({currentResult, actions, treeNodeId}: SuitesPageProp
     }, [stickyHeaderElement]);
 
     return <div className={styles.container}><SplitViewLayout sizes={sectionSizes} onSizesChange={onSectionSizesChange}>
-        <UiCard className={classNames(styles.card, styles.treeViewCard)} key='tree-view'>
+        <UiCard className={classNames(styles.card, styles.treeViewCard)} key='tree-view' qa='suites-tree-card'>
             <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try to reload page'}/>}>
                 <h2 className={classNames('text-display-1', styles['card__title'])}>Suites</h2>
                 <Flex gap={2}>

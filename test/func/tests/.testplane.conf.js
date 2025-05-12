@@ -25,7 +25,8 @@ const commonConfig = getCommonConfig(__dirname);
 
 const config = _.merge(commonConfig, {
     retry: 4,
-    baseUrl: `http://${serverHost}:${serverPort}/fixtures/${projectUnderTest}/report/index.html`,
+    baseUrl: `http://${serverHost}:${serverPort}/fixtures/${projectUnderTest}/report/`,
+    record: 'on',
 
     sets: {
         common: {
@@ -66,7 +67,12 @@ const config = _.merge(commonConfig, {
 
 if (!isRunningGuiTests && !isRunningAnalyticsTests) {
     _.set(config.plugins, ['hermione-global-hook', 'beforeEach'], async function({browser}) {
-        await browser.url(this.browser.options.baseUrl);
+        console.log('beforeEach');
+        if (/new ui/i.test(browser.executionContext.ctx.currentTest.titlePath().join(' '))) {
+            await browser.url(this.browser.options.baseUrl + 'new-ui.html');
+        } else {
+            await browser.url(this.browser.options.baseUrl);
+        }
 
         await browser.execute(() => {
             window.localStorage.clear();
