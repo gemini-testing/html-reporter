@@ -60,10 +60,17 @@ const config = _.merge(commonConfig, {
         'html-reporter-tester': {
             enabled: true,
             path: `reports/${projectUnderTest}`,
-            diffMode: '3-up'
+            diffMode: '3-up',
+            yandexMetrika: {
+                enabled: false
+            },
         }
     }
 });
+
+if (isRunningAnalyticsTests) {
+    _.unset(config.plugins, ['html-reporter-tester', 'yandexMetrika']);
+}
 
 if (!isRunningGuiTests && !isRunningAnalyticsTests) {
     _.set(config.plugins, ['hermione-global-hook', 'beforeEach'], async function({browser}) {

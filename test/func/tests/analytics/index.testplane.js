@@ -43,7 +43,7 @@ describe('New UI', () => {
             await generateFixtureReport(['-c', 'enabled.testplane.conf.js']);
             server = await launchStaticServer();
 
-            await browser.url(browser.options.baseUrl.replace('index.html', 'new-ui.html'));
+            await browser.url(browser.options.baseUrl + 'new-ui.html');
             const scriptElement = await browser.$('div[data-qa="metrika-script"] script');
 
             await expect(scriptElement).toBeExisting();
@@ -53,7 +53,7 @@ describe('New UI', () => {
             await generateFixtureReport(['-c', 'enabled.testplane.conf.js']);
             server = await launchStaticServer();
 
-            await browser.url(browser.options.baseUrl.replace('index.html', 'new-ui.html'));
+            await browser.url(browser.options.baseUrl + 'new-ui.html');
             await browser.execute(() => {
                 window.ym = (...args) => {
                     if (!window.ym.calls) {
@@ -81,7 +81,7 @@ describe('New UI', () => {
             await generateFixtureReport(['-c', 'disabled.testplane.conf.js']);
             server = await launchStaticServer();
 
-            await browser.url(browser.options.baseUrl.replace('index.html', 'new-ui.html'));
+            await browser.url(browser.options.baseUrl + 'new-ui.html');
             await browser.$('[data-qa="footer-item-info"]').click();
 
             const infoPanelElement = await browser.$('div*=Data sources');
@@ -93,7 +93,7 @@ describe('New UI', () => {
             await generateFixtureReport(['-c', 'disabled.testplane.conf.js']);
             server = await launchStaticServer();
 
-            await browser.url(browser.options.baseUrl.replace('index.html', 'new-ui.html'));
+            await browser.url(browser.options.baseUrl + 'new-ui.html');
             const scriptElement = await browser.$('div[data-qa="metrika-script"] script');
 
             await expect(scriptElement).not.toBeExisting();
@@ -103,7 +103,7 @@ describe('New UI', () => {
             await generateFixtureReport(['-c', 'enabled.testplane.conf.js'], {'html_reporter_yandex_metrika_enabled': false});
             server = await launchStaticServer();
 
-            await browser.url(browser.options.baseUrl.replace('index.html', 'new-ui.html'));
+            await browser.url(browser.options.baseUrl + 'new-ui.html');
             const scriptElement = await browser.$('div[data-qa="metrika-script"] script');
 
             await expect(scriptElement).not.toBeExisting();
@@ -113,7 +113,7 @@ describe('New UI', () => {
             await generateFixtureReport(['-c', 'enabled.testplane.conf.js'], {'NO_ANALYTICS': true});
             server = await launchStaticServer();
 
-            await browser.url(browser.options.baseUrl.replace('index.html', 'new-ui.html'));
+            await browser.url(browser.options.baseUrl + 'new-ui.html');
             const scriptElement = await browser.$('div[data-qa="metrika-script"] script');
 
             await expect(scriptElement).not.toBeExisting();
