@@ -31,90 +31,92 @@ const launchStaticServer = () => {
     });
 };
 
-describe('Analytics', () => {
-    let server;
+describe('New UI', () => {
+    describe('Analytics', () => {
+        let server;
 
-    afterEach(() => {
-        server?.kill();
-    });
-
-    it('should include metrika script by default', async ({browser}) => {
-        await generateFixtureReport(['-c', 'enabled.testplane.conf.js']);
-        server = await launchStaticServer();
-
-        await browser.url(browser.options.baseUrl.replace('index.html', 'new-ui.html'));
-        const scriptElement = await browser.$('div[data-qa="metrika-script"] script');
-
-        await expect(scriptElement).toBeExisting();
-    });
-
-    it('should track feature usage when opening info panel', async ({browser}) => {
-        await generateFixtureReport(['-c', 'enabled.testplane.conf.js']);
-        server = await launchStaticServer();
-
-        await browser.url(browser.options.baseUrl.replace('index.html', 'new-ui.html'));
-        await browser.execute(() => {
-            window.ym = (...args) => {
-                if (!window.ym.calls) {
-                    window.ym.calls = [];
-                }
-                window.ym.calls.push(args);
-            };
+        afterEach(() => {
+            server?.kill();
         });
 
-        await browser.$('[data-qa="footer-item-info"]').click();
+        it('should include metrika script by default', async ({browser}) => {
+            await generateFixtureReport(['-c', 'enabled.testplane.conf.js']);
+            server = await launchStaticServer();
 
-        const metrikaCalls = await browser.execute(() => {
-            return window.ym.calls;
+            await browser.url(browser.options.baseUrl.replace('index.html', 'new-ui.html'));
+            const scriptElement = await browser.$('div[data-qa="metrika-script"] script');
+
+            await expect(scriptElement).toBeExisting();
         });
 
-        expect(metrikaCalls).toContainEqual([
-            99267510,
-            'reachGoal',
-            'FEATURE_USAGE',
-            {featureName: 'Open info panel'}
-        ]);
-    });
+        it('should track feature usage when opening info panel', async ({browser}) => {
+            await generateFixtureReport(['-c', 'enabled.testplane.conf.js']);
+            server = await launchStaticServer();
 
-    it('should not fail when opening info panel with analytics not available', async ({browser}) => {
-        await generateFixtureReport(['-c', 'disabled.testplane.conf.js']);
-        server = await launchStaticServer();
+            await browser.url(browser.options.baseUrl.replace('index.html', 'new-ui.html'));
+            await browser.execute(() => {
+                window.ym = (...args) => {
+                    if (!window.ym.calls) {
+                        window.ym.calls = [];
+                    }
+                    window.ym.calls.push(args);
+                };
+            });
 
-        await browser.url(browser.options.baseUrl.replace('index.html', 'new-ui.html'));
-        await browser.$('[data-qa="footer-item-info"]').click();
+            await browser.$('[data-qa="footer-item-info"]').click();
 
-        const infoPanelElement = await browser.$('div*=Data sources');
+            const metrikaCalls = await browser.execute(() => {
+                return window.ym.calls;
+            });
 
-        await expect(infoPanelElement).toBeExisting();
-    });
+            expect(metrikaCalls).toContainEqual([
+                99267510,
+                'reachGoal',
+                'FEATURE_USAGE',
+                {featureName: 'Open info panel'}
+            ]);
+        });
 
-    it('should not include metrika script if analytics are disabled in config', async ({browser}) => {
-        await generateFixtureReport(['-c', 'disabled.testplane.conf.js']);
-        server = await launchStaticServer();
+        it('should not fail when opening info panel with analytics not available', async ({browser}) => {
+            await generateFixtureReport(['-c', 'disabled.testplane.conf.js']);
+            server = await launchStaticServer();
 
-        await browser.url(browser.options.baseUrl.replace('index.html', 'new-ui.html'));
-        const scriptElement = await browser.$('div[data-qa="metrika-script"] script');
+            await browser.url(browser.options.baseUrl.replace('index.html', 'new-ui.html'));
+            await browser.$('[data-qa="footer-item-info"]').click();
 
-        await expect(scriptElement).not.toBeExisting();
-    });
+            const infoPanelElement = await browser.$('div*=Data sources');
 
-    it('should not include metrika script if analytics are disabled via gemini-configparser env var', async ({browser}) => {
-        await generateFixtureReport(['-c', 'enabled.testplane.conf.js'], {'html_reporter_yandex_metrika_enabled': false});
-        server = await launchStaticServer();
+            await expect(infoPanelElement).toBeExisting();
+        });
 
-        await browser.url(browser.options.baseUrl.replace('index.html', 'new-ui.html'));
-        const scriptElement = await browser.$('div[data-qa="metrika-script"] script');
+        it('should not include metrika script if analytics are disabled in config', async ({browser}) => {
+            await generateFixtureReport(['-c', 'disabled.testplane.conf.js']);
+            server = await launchStaticServer();
 
-        await expect(scriptElement).not.toBeExisting();
-    });
+            await browser.url(browser.options.baseUrl.replace('index.html', 'new-ui.html'));
+            const scriptElement = await browser.$('div[data-qa="metrika-script"] script');
 
-    it('should not include metrika script if analytics are disabled via NO_ANALYTICS env var', async ({browser}) => {
-        await generateFixtureReport(['-c', 'enabled.testplane.conf.js'], {'NO_ANALYTICS': true});
-        server = await launchStaticServer();
+            await expect(scriptElement).not.toBeExisting();
+        });
 
-        await browser.url(browser.options.baseUrl.replace('index.html', 'new-ui.html'));
-        const scriptElement = await browser.$('div[data-qa="metrika-script"] script');
+        it('should not include metrika script if analytics are disabled via gemini-configparser env var', async ({browser}) => {
+            await generateFixtureReport(['-c', 'enabled.testplane.conf.js'], {'html_reporter_yandex_metrika_enabled': false});
+            server = await launchStaticServer();
 
-        await expect(scriptElement).not.toBeExisting();
+            await browser.url(browser.options.baseUrl.replace('index.html', 'new-ui.html'));
+            const scriptElement = await browser.$('div[data-qa="metrika-script"] script');
+
+            await expect(scriptElement).not.toBeExisting();
+        });
+
+        it('should not include metrika script if analytics are disabled via NO_ANALYTICS env var', async ({browser}) => {
+            await generateFixtureReport(['-c', 'enabled.testplane.conf.js'], {'NO_ANALYTICS': true});
+            server = await launchStaticServer();
+
+            await browser.url(browser.options.baseUrl.replace('index.html', 'new-ui.html'));
+            const scriptElement = await browser.$('div[data-qa="metrika-script"] script');
+
+            await expect(scriptElement).not.toBeExisting();
+        });
     });
 });
