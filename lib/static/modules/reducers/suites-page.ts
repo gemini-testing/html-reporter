@@ -4,6 +4,10 @@ import {applyStateUpdate} from '@/static/modules/utils/state';
 import {SomeAction} from '@/static/modules/actions/types';
 import {getTreeViewItems} from '@/static/new-ui/features/suites/components/SuitesTreeView/selectors';
 import {findTreeNodeByBrowserId, findTreeNodeById, getGroupId} from '@/static/new-ui/features/suites/utils';
+import * as localStorageWrapper from '../local-storage-wrapper';
+import {MIN_SECTION_SIZE_PERCENT} from '@/static/new-ui/features/suites/constants';
+
+const SECTION_SIZES_LOCAL_STORAGE_KEY = 'suites-page-section-sizes';
 
 export default (state: State, action: SomeAction): State => {
     switch (action.type) {
@@ -39,6 +43,8 @@ export default (state: State, action: SomeAction): State => {
                 treeViewMode = action.payload.treeViewMode;
             }
 
+            const sectionSizes = localStorageWrapper.getItem(SECTION_SIZES_LOCAL_STORAGE_KEY, [MIN_SECTION_SIZE_PERCENT, 100 - MIN_SECTION_SIZE_PERCENT]) as number[];
+
             return applyStateUpdate(state, {
                 app: {
                     suitesPage: {
@@ -49,7 +55,8 @@ export default (state: State, action: SomeAction): State => {
                 ui: {
                     suitesPage: {
                         expandedTreeNodesById,
-                        treeViewMode
+                        treeViewMode,
+                        sectionSizes
                     }
                 }
             });
@@ -161,6 +168,20 @@ export default (state: State, action: SomeAction): State => {
                         currentHighlightedStepId: action.payload.stepId
                     }
                 }
+            });
+        }
+        case actionNames.SUITES_PAGE_SET_SECTION_SIZES: {
+            localStorageWrapper.setItem(SECTION_SIZES_LOCAL_STORAGE_KEY, action.payload.sizes);
+
+            return applyStateUpdate(state, {
+                ui: {
+                    suitesPage: {sectionSizes: action.payload.sizes}
+                }
+            });
+        }
+        case actionNames.SUITES_PAGE_SET_BACKUP_SECTION_SIZES: {
+            return applyStateUpdate(state, {
+                ui: {suitesPage: {backupSectionSizes: action.payload.sizes}}
             });
         }
         default:

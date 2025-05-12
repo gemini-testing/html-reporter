@@ -302,6 +302,9 @@ export interface State {
             expandedTreeNodesById: Record<string, boolean>;
             expandedSectionsById: Record<string, boolean>;
             expandedStepsByResultId: Record<string, Record<string, boolean>>;
+            sectionSizes: number[];
+            // Used to restore the previous sections sizes after collapsing the tree with a button
+            backupSectionSizes: number[];
         };
         staticImageAccepterToolbar: {
             offset: Point;

@@ -26,11 +26,12 @@ import styles from './index.module.css';
 import {TestInfoSkeleton} from '@/static/new-ui/features/suites/components/SuitesPage/TestInfoSkeleton';
 import {TreeViewSkeleton} from '@/static/new-ui/features/suites/components/SuitesTreeView/TreeViewSkeleton';
 import {TreeActionsToolbar} from '@/static/new-ui/features/suites/components/TreeActionsToolbar';
-import {findTreeNodeById, getGroupId} from '@/static/new-ui/features/suites/utils';
+import {findTreeNodeById, getGroupId, isSectionHidden} from '@/static/new-ui/features/suites/utils';
 import {TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
 import {NEW_ISSUE_LINK, TimeTravelFeature} from '@/constants';
 import {ErrorHandler} from '../../../error-handling/components/ErrorHandling';
 import {TestInfo} from '@/static/new-ui/experiments/time-travel/components/TestInfo';
+import {MIN_SECTION_SIZE_PERCENT} from '../../constants';
 
 interface SuitesPageProps {
     actions: typeof actions;
@@ -77,7 +78,18 @@ function SuitesPageInternal({currentResult, actions, treeNodeId}: SuitesPageProp
         });
     };
 
+    const onSectionSizesChange = (sizes: number[]): void => {
+        actions.setSectionSizes({sizes});
+        if (isSectionHidden(sizes[0])) {
+            actions.setBackupSectionSizes({sizes: [MIN_SECTION_SIZE_PERCENT, 100 - MIN_SECTION_SIZE_PERCENT]});
+        } else {
+            actions.setBackupSectionSizes({sizes});
+        }
+    };
+
     const isTimeTravelEnabled = useSelector(state => state.app.availableFeatures.some(f => f.name === TimeTravelFeature.name));
+
+    const sectionSizes = useSelector(state => state.ui.suitesPage.sectionSizes);
 
     const [stickyHeaderElement, setStickyHeaderElement] = useState<HTMLDivElement | null>(null);
     const [stickyHeaderHeight, setStickyHeaderHeight] = useState(0);
@@ -94,8 +106,8 @@ function SuitesPageInternal({currentResult, actions, treeNodeId}: SuitesPageProp
         return () => resizeObserver.disconnect();
     }, [stickyHeaderElement]);
 
-    return <div className={styles.container}><SplitViewLayout>
-        <UiCard className={classNames(styles.card, styles.treeViewCard)} key='tree-view'>
+    return <div className={styles.container}><SplitViewLayout sizes={sectionSizes} onSizesChange={onSectionSizesChange}>
+        <UiCard className={classNames(styles.card, styles.treeViewCard)} key='tree-view' qa='suites-tree-card'>
             <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try to reload page'}/>}>
                 <h2 className={classNames('text-display-1', styles['card__title'])}>Suites</h2>
                 <Flex gap={2}>
