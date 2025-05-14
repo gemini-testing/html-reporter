@@ -1,4 +1,13 @@
-// This tsconfig file helps IDEs to correctly resolve TS projects
 {
-  "extends": ["../tsconfig.spec.json"]
+    "extends": ["../tsconfig.common.json"],
+    "exclude": ["./lib/static"],
+    "include": ["./types.ts", "./lib"],
+    "compilerOptions": {
+        "noEmit": true,
+        "module": "CommonJS",
+        "paths": {
+            "lib/*": ["../lib/*"],
+            "@/*": ["../lib/*"]
+        }
+    },
 }

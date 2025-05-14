@@ -1,5 +1,5 @@
 import {Eye, ListCheck} from '@gravity-ui/icons';
-import {ThemeProvider, ToasterComponent, ToasterProvider} from '@gravity-ui/uikit';
+import {ThemeProvider, Toaster, ToasterComponent, ToasterProvider} from '@gravity-ui/uikit';
 import '@gravity-ui/uikit/styles/fonts.css';
 import '@gravity-ui/uikit/styles/styles.css';
 import React, {ReactNode, StrictMode} from 'react';
@@ -19,6 +19,8 @@ import {AnalyticsProvider} from '@/static/new-ui/providers/analytics';
 import {MetrikaScript} from '@/static/new-ui/components/MetrikaScript';
 import {ErrorHandler} from '../features/error-handling/components/ErrorHandling';
 
+const toaster = new Toaster();
+
 export function App(): ReactNode {
     const pages = [
         {
@@ -37,7 +39,7 @@ export function App(): ReactNode {
         <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackAppCrash />}>
             <CustomScripts scripts={customScripts} />
             <ThemeProvider theme='light'>
-                <ToasterProvider>
+                <ToasterProvider toaster={toaster}>
                     <Provider store={store}>
                         <MetrikaScript/>
                         <AnalyticsProvider>

@@ -1,6 +1,6 @@
 import {ChevronLeft, ChevronRight} from '@gravity-ui/icons';
 import {Button, Icon, Select} from '@gravity-ui/uikit';
-import React, {ReactNode} from 'react';
+import React, {ReactNode, Ref} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import styles from './index.module.css';
@@ -42,8 +42,8 @@ export function CompactAttemptPicker(): ReactNode {
 
     return <div className={styles.container}>
         <Button view={'outlined'} onClick={onPreviousClick} disabled={currentAttemptIndex === 0}><Icon data={ChevronLeft}/></Button>
-        <Select renderControl={({onClick, onKeyDown, ref}): React.JSX.Element => {
-            return <Button className={styles.attemptSelect} onClick={onClick} extraProps={{onKeyDown}} ref={ref} view={'flat'}>
+        <Select renderControl={({triggerProps: {onClick, onKeyDown}, ref}): React.JSX.Element => {
+            return <Button className={styles.attemptSelect} onClick={onClick} onKeyDown={onKeyDown} ref={ref as Ref<HTMLButtonElement>} view={'flat'}>
                 Attempt <span className={styles.attemptNumber}>
                     {currentAttemptIndex !== null ? currentAttemptIndex + 1 : '–'}
                 </span> of <span className={styles.attemptNumber}>{totalAttemptsCount ?? '–'}</span>

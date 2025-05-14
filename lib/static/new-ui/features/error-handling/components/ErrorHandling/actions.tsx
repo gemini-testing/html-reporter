@@ -11,7 +11,7 @@ function reportIssue(): void {
 }
 
 export function FileIssue(props: ActionProps): ReactNode {
-    return <Button {...props} view="outlined" onClick={reportIssue}>
+    return <Button {...(props as ButtonProps)} view="outlined" onClick={reportIssue}>
         <Button.Icon>
             <img src={GithubIcon} alt="icon" width={17} height={17} />
         </Button.Icon>
@@ -25,7 +25,7 @@ function reloadPage(): void {
 }
 
 export function ReloadPage(props: ActionProps): ReactNode {
-    return <Button {...props} view="outlined" onClick={reloadPage}>
+    return <Button {...(props as ButtonProps)} view="outlined" onClick={reloadPage}>
         <Icon data={ArrowsRotateLeft} />
         Refresh this page
     </Button>;

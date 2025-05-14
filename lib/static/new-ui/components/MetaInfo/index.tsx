@@ -1,6 +1,6 @@
 import path from 'path';
 
-import {DefinitionList} from '@gravity-ui/components';
+import {DefinitionList} from '@gravity-ui/uikit';
 import {isEmpty, isObject, mapValues, omitBy} from 'lodash';
 import React, {ReactNode} from 'react';
 import {connect} from 'react-redux';
@@ -126,25 +126,22 @@ function MetaInfoInternal(props: MetaInfoInternalProps): ReactNode {
         });
     }
 
-    return <DefinitionList className={styles.metaInfo} qa={props.qa} items={
-        metaInfoItemsWithResolvedUrls.map((item) => {
+    return <DefinitionList className={styles.metaInfo} qa={props.qa}>
+        {metaInfoItemsWithResolvedUrls.map((item) => {
             if (item.url) {
-                return {
-                    name: item.label,
-                    content: <a className={styles.metaInfoValue} data-suite-view-link={item.url} target="_blank" href={item.url} rel="noreferrer">
+                return <DefinitionList.Item name={item.label} copyText={item.copyText ?? item.content as string} key={item.label}>
+                    <a className={styles.metaInfoValue} data-suite-view-link={item.url} target="_blank" href={item.url} rel="noreferrer">
                         {item.content}
-                    </a>,
-                    copyText: item.copyText ?? item.content as string
-                };
+                    </a>
+                </DefinitionList.Item>;
             }
 
-            return {
-                name: item.label,
-                content: <span className={styles.metaInfoValue}>{item.content}</span>,
-                copyText: item.copyText ?? item.content as string
-            };
+            return <DefinitionList.Item name={item.label} copyText={item.copyText ?? item.content as string} key={item.label}>
+                <span className={styles.metaInfoValue}>{item.content}</span>
+            </DefinitionList.Item>;
         })
-    }/>;
+        }
+    </DefinitionList>;
 }
 
 export const MetaInfo = connect(

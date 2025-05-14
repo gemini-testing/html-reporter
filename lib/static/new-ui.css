@@ -28,6 +28,7 @@
     --g-font-family-sans: 'Jost', sans-serif;
     --g-color-base-background: #eee;
     --g-color-text-danger-heavy: #e9043a;
+    --g-color-text-brand-heavy: var(--g-color-private-color-550-solid);
 }
 
 body {
@@ -45,6 +46,7 @@ body {
     position: relative;
     min-width: 100%;
     min-height: 100%;
+    overflow: hidden;
 }
 
 /* Aside header styles */

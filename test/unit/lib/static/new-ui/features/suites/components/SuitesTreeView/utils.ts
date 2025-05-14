@@ -1,4 +1,6 @@
 import {expect} from 'chai';
+import 'chai-deep-equal-ignore-undefined';
+
 import {
     buildTreeBottomUp,
     EntitiesContext,

@@ -10,7 +10,7 @@ if (process.env.TOOL === 'testplane') {
                         await expandCollapseButton.assertView('button');
 
                         const tooltip = await browser.$('.gn-composite-bar-item__icon-tooltip');
-                        await tooltip.assertView('tooltip');
+                        await expect(tooltip).toHaveText('Collapse tree');
                     });
 
                     it('should offer to expand when collapsed using button', async ({browser}) => {
@@ -21,7 +21,7 @@ if (process.env.TOOL === 'testplane') {
                         await expandCollapseButton.assertView('button');
 
                         const tooltip = await browser.$('.gn-composite-bar-item__icon-tooltip');
-                        await tooltip.assertView('tooltip');
+                        await expect(tooltip).toHaveText('Expand tree');
                     });
 
                     it('should offer to expand when collapsed manually', async ({browser}) => {
@@ -42,7 +42,7 @@ if (process.env.TOOL === 'testplane') {
                         await expandCollapseButton.assertView('button');
 
                         const tooltip = await browser.$('.gn-composite-bar-item__icon-tooltip');
-                        await tooltip.assertView('tooltip');
+                        await expect(tooltip).toHaveText('Expand tree');
                     });
                 });
 

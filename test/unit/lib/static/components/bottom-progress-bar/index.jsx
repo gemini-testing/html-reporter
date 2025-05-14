@@ -1,6 +1,6 @@
-import React from 'react';
-import proxyquire from 'proxyquire';
-import {mkConnectedComponent} from '../../utils';
+const React = require('react');
+const proxyquire = require('proxyquire');
+const {mkConnectedComponent} = require('../../utils');
 
 describe('<BottomProgressBar/> component', () => {
     const sandbox = sinon.sandbox.create();

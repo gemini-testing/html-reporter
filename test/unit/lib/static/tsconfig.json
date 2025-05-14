@@ -1,0 +1,14 @@
+{
+    "extends": ["../../../../tsconfig.common.json"],
+    "include": ["../../../../lib/static/new-ui/types/typings.d.ts", "../../../types.ts", "."],
+    "compilerOptions": {
+        "jsx": "react",
+        "allowJs": true,
+        "module": "CommonJS",
+        "noEmit": true,
+        "paths": {
+            "lib/*": ["../../../../lib/*"],
+            "@/*": ["../../../../lib/*"]
+        }
+    }
+}

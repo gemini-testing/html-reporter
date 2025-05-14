@@ -23,12 +23,13 @@ import {Screenshot} from '@/static/new-ui/components/Screenshot';
 import {getIndentStyle} from '@/static/new-ui/features/suites/components/TestSteps/utils';
 import {isErrorStatus, isFailStatus} from '@/common-utils';
 import {ScreenshotsTreeViewItem} from '@/static/new-ui/features/suites/components/ScreenshotsTreeViewItem';
-import {UseListResult} from '@gravity-ui/uikit/build/esm/components/useList';
 import {ErrorHandler} from '../../../error-handling/components/ErrorHandling';
 import {goToTimeInSnapshotsPlayer, setCurrentPlayerHighlightTime} from '@/static/modules/actions/snapshots';
 import {setCurrentStep} from '@/static/modules/actions';
 
 type TestStepClickHandler = (item: {id: string}) => void
+
+type UseListResult<T> = ReturnType<typeof useList<T>>;
 
 interface TestStepProps {
     items: UseListResult<Step>;

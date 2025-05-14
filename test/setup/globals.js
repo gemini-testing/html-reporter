@@ -7,6 +7,9 @@ Promise.config({longStackTraces: true});
 global.sinon = require('sinon');
 global.assert = chai.assert;
 
+global.requestAnimationFrame = () => {};
+global.cancelAnimationFrame = () => {};
+
 require.extensions['.styl'] = () => {};
 require.extensions['.css'] = () => {};
 require.extensions['.less'] = () => {};

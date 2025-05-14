@@ -124,7 +124,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             title: 'HTML report (New UI)',
             filename: 'new-ui-report.html',
-            template: 'template.html',
+            template: 'template-new-ui.html',
             chunks: ['newReport']
         }),
         new HtmlWebpackTagsPlugin({
@@ -135,7 +135,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             title: 'GUI report (New UI)',
             filename: 'new-ui-gui.html',
-            template: 'template.html',
+            template: 'template-new-ui.html',
             chunks: ['newGui']
         }),
         new HtmlWebpackTagsPlugin({
