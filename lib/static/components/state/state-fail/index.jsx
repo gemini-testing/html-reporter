@@ -1,6 +1,6 @@
 'use strict';
 
-import {Tabs} from '@gravity-ui/uikit';
+import {TabList, TabProvider, Tab} from '@gravity-ui/uikit';
 import PropTypes from 'prop-types';
 import React, {Fragment, useEffect, useState} from 'react';
 import {connect} from 'react-redux';
@@ -26,7 +26,15 @@ const StateFail = ({image, diffMode: diffModeProp, isScreenshotAccepterOpened}) 
     const renderDiffModeItems = () => {
         return (
             <div className="diff-modes">
-                <Tabs activeTab={diffMode} items={Object.values(DiffModes)} onSelectTab={(mode) => setDiffMode(mode)} size='m'/>
+                <TabProvider value={diffMode} onUpdate={setDiffMode}>
+                    <TabList size='m'>
+                        {Object.values(DiffModes).map(mode => (
+                            <Tab key={mode.id} value={mode.id}>
+                                {mode.label}
+                            </Tab>
+                        ))}
+                    </TabList>
+                </TabProvider>
             </div>
         );
     };

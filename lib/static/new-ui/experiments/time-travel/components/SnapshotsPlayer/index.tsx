@@ -1,4 +1,4 @@
-import {Gear, PauseFill, PlayFill} from '@gravity-ui/icons';
+import {Gear, PauseFill} from '@gravity-ui/icons';
 import {Button, Icon} from '@gravity-ui/uikit';
 import {Replayer} from '@rrweb/replay';
 import type {customEvent, eventWithTime as RrwebEvent} from '@rrweb/types';
@@ -18,9 +18,11 @@ import styles from './index.module.css';
 import {getTestSteps} from '@/static/new-ui/features/suites/components/TestSteps/selectors';
 import {setCurrentHighlightStep, setCurrentStep} from '@/static/modules/actions';
 import {Step, StepType} from '@/static/new-ui/features/suites/components/TestSteps/types';
-import {unstable_ListTreeItemType as ListTreeItemType} from '@gravity-ui/uikit/build/esm/unstable';
+import {unstable_ListTreeItemType as ListTreeItemType} from '@gravity-ui/uikit/unstable';
 import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
 import BrokenSnapshotIcon from '@/static/icons/broken-snapshot.svg';
+import {PlayIcon} from './PlayIcon';
+
 function isColorSchemeEvent(event: customEvent | RrwebEvent): event is customEvent<{colorScheme: 'light' | 'dark'}> {
     return event.type === 5 && // 5 is the EventType.Custom value
         event?.data?.tag === 'color-scheme-change';
@@ -449,7 +451,15 @@ export function SnapshotsPlayer(): ReactNode {
         aspectRatio: `${playerWidth} / ${playerHeight}`,
         maxWidth: `min(${playerWidth}px, 100%)`,
         maxHeight: '100%',
-        transition: 'opacity .5s ease'
+        transition: 'opacity .5s ease',
+        position: 'absolute',
+        height: playerHeight > playerWidth ? '100%' : 'auto',
+        width: playerHeight > playerWidth ? 'auto' : '100%'
+    };
+
+    const replayerContainerStyle: React.CSSProperties = {
+        ...playerStyle,
+        aspectRatio: undefined
     };
 
     const isLive = currentResult?.status === TestStatus.RUNNING;
@@ -494,7 +504,7 @@ export function SnapshotsPlayer(): ReactNode {
                     )}
 
                     {/* This container is for the player itself and matches size of the outer container */}
-                    <div className={styles.replayerContainer} ref={playerElementRef} style={playerStyle}>
+                    <div className={styles.replayerContainer} ref={playerElementRef} style={replayerContainerStyle}>
                         <div style={{width: '100vw'}}></div>
                     </div>
                 </div>
@@ -512,7 +522,8 @@ export function SnapshotsPlayer(): ReactNode {
                     <Icon data={PauseFill} size={14}/></div>
                 <div
                     className={classNames(styles.playPauseIcon, {[styles.playPauseIconVisible]: !isPlaying})}>
-                    <Icon data={PlayFill} size={14}/></div>
+                    <PlayIcon/>
+                </div>
             </Button>
             <Timeline
                 currentTime={currentPlayerTime}

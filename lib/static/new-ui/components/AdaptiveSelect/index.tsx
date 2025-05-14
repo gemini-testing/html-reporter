@@ -28,14 +28,12 @@ export function AdaptiveSelect(props: AdaptiveSelectProps): ReactNode {
 
     return <div className={styles.container}>
         <Tooltip
-            disablePortal={true}
             content={props.label}
-            contentClassName={styles.tooltip}
             openDelay={0}
             placement={'top'}
         >
             {/* This wrapper is crucial for the tooltip to position correctly */}
-            <div>
+            <div className={styles.tooltip}>
                 <Select
                     ref={selectRef}
                     renderSelectedOption={(option): ReactElement => option.title ? <span className={styles.selectedOption}>{option.title}</span> : <></>}

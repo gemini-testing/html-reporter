@@ -1,6 +1,6 @@
 import {PlanetEarth} from '@gravity-ui/icons';
 import {Button, Flex, Icon, Select, SelectRenderControlProps, SelectRenderOption} from '@gravity-ui/uikit';
-import React, {useState, useEffect, ReactNode} from 'react';
+import React, {useState, useEffect, ReactNode, Ref} from 'react';
 import {connect, useSelector} from 'react-redux';
 import {bindActionCreators} from 'redux';
 
@@ -9,6 +9,7 @@ import {BrowserIcon} from '@/static/new-ui/features/suites/components/BrowsersSe
 import {getIsInitialized} from '@/static/new-ui/store/selectors';
 import {BrowserItem} from '@/types';
 import styles from './index.module.css';
+import {IconButton} from '../../../../components/IconButton';
 
 // In the onUpdate callback we only have access to array of selected strings. That's why we need to serialize
 // id/version in string. Encoding to avoid errors if id/version contains delimiter.
@@ -121,10 +122,8 @@ function BrowsersSelectInternal({browsers, filteredBrowsers, actions}: BrowsersS
 
     const isInitialized = useSelector(getIsInitialized);
 
-    const renderControl = ({onClick, onKeyDown, ref}: SelectRenderControlProps): React.JSX.Element => {
-        return <Button ref={ref} onClick={onClick} extraProps={{onKeyDown}} view={'outlined'} disabled={!isInitialized}>
-            <Icon data={PlanetEarth}/>
-        </Button>;
+    const renderControl = ({ref, triggerProps: {onClick, onKeyDown}}: SelectRenderControlProps<HTMLElement>): React.JSX.Element => {
+        return <IconButton ref={ref as Ref<HTMLButtonElement>} onClick={onClick} onKeyDown={onKeyDown} view={'outlined'} disabled={!isInitialized} icon={<Icon data={PlanetEarth}/>} tooltip={'Filter by browser'} />;
     };
 
     const selected = selectedBrowsers.flatMap(browser => browser.versions.map(version => serializeBrowserData(browser.id, version)));

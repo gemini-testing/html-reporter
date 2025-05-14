@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, {Children, ReactNode, useEffect} from 'react';
+import React, {Children, ReactNode, useLayoutEffect} from 'react';
 import {useSelector} from 'react-redux';
 import Split from 'react-split';
 
@@ -39,7 +39,7 @@ export function SplitViewLayout(props: SplitViewLayoutProps): ReactNode {
         props.onSizesChange?.(sizes);
     };
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (!isDragging) {
             setShouldDisableTransitions(true);
         } else {

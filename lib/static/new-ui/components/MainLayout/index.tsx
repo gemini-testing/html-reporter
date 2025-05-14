@@ -13,7 +13,7 @@ import {EmptyReportCard} from '@/static/new-ui/components/Card/EmptyReportCard';
 import {InfoPanel} from '@/static/new-ui/components/InfoPanel';
 import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
 import {setSectionSizes} from '../../../modules/actions/suites-page';
-import {LayoutSplitSideContentLeft, ArrowLeftToLine} from '@gravity-ui/icons';
+import {ArrowLeftToLine, ArrowRightFromLine} from '@gravity-ui/icons';
 import {isSectionHidden} from '../../features/suites/utils';
 
 export enum PanelId {
@@ -58,7 +58,7 @@ export function MainLayout(props: MainLayoutProps): ReactNode {
             {
                 id: 'expand-collapse-tree',
                 title: shouldExpandTree ? 'Expand tree' : 'Collapse tree',
-                icon: shouldExpandTree ? LayoutSplitSideContentLeft : ArrowLeftToLine,
+                icon: shouldExpandTree ? ArrowRightFromLine : ArrowLeftToLine,
                 onItemClick: (): void => {
                     dispatch(setSectionSizes({sizes: shouldExpandTree ? backupSuitesPageSectionSizes : [0, 100]}));
                 },

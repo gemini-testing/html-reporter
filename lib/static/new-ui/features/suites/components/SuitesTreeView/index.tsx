@@ -150,7 +150,7 @@ export const SuitesTreeView = forwardRef<SuitesTreeViewHandle, SuitesTreeViewPro
                     style={{transform: `translateY(${virtualizedItems[0]?.start ?? 0}px)`}}
                 >
                     {virtualizedItems.map((virtualRow) => {
-                        const item = list.structure.itemsById[virtualRow.key];
+                        const item = list.structure.itemsById[virtualRow.key as string];
                         const isSelected = item.id === currentTreeNodeId;
                         const classes = [
                             styles['tree-view__item'],

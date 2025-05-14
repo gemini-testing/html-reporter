@@ -1,4 +1,4 @@
-import {RadioButton} from '@gravity-ui/uikit';
+import {SegmentedRadioGroup as RadioButton} from '@gravity-ui/uikit';
 import React, {ReactNode} from 'react';
 import {connect, useSelector} from 'react-redux';
 import {bindActionCreators} from 'redux';

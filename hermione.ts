@@ -1,3 +1,3 @@
 import pluginHandler from './testplane';
 
-export = pluginHandler;
+module.exports = pluginHandler;

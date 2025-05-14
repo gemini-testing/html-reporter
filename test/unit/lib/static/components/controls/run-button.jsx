@@ -94,7 +94,7 @@ describe('<RunButton />', () => {
 
         await user.click(component.getByRole('combobox'));
         await user.click(component.getByText('Failed Tests', {selector: '[role=combobox] > *'}));
-        await user.click(component.getByRole('button'));
+        await user.click(component.getByText('Run'));
 
         assert.calledOnceWith(actionsStub.thunkRunFailedTests, {tests: failedTests});
     });
@@ -109,7 +109,7 @@ describe('<RunButton />', () => {
 
         await user.click(component.getByRole('combobox'));
         await user.click(component.getByText('Checked Tests', {selector: '[role=combobox] > *'}));
-        await user.click(component.getByRole('button'));
+        await user.click(component.getByText('Run'));
 
         assert.calledOnceWith(actionsStub.thunkRunSuite, {tests: checkedTests});
     });
@@ -154,7 +154,7 @@ describe('<RunButton />', () => {
 
             await user.click(component.getByRole('combobox'));
             await user.click(component.getByText('All Tests', {selector: '[role=option] *'}));
-            await user.click(component.getByRole('button'));
+            await user.click(component.getByText('Run'));
 
             assert.calledWith(writeValueStub, 'All');
         });
@@ -168,7 +168,7 @@ describe('<RunButton />', () => {
 
             await user.click(component.getByRole('combobox'));
             await user.click(component.getByText('Failed Tests', {selector: '[role=option] *'}));
-            await user.click(component.getByRole('button'));
+            await user.click(component.getByText('Run'));
 
             assert.calledOnceWith(writeValueStub, 'Failed');
         });
@@ -182,7 +182,7 @@ describe('<RunButton />', () => {
 
             await user.click(component.getByRole('combobox'));
             await user.click(component.getByText('Checked Tests', {selector: '[role=option] *'}));
-            await user.click(component.getByRole('button'));
+            await user.click(component.getByText('Run'));
 
             assert.calledWith(writeValueStub, 'Checked');
         });

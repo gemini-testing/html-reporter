@@ -1,5 +1,5 @@
 import {ArrowUturnCcwLeft, Check} from '@gravity-ui/icons';
-import {Button, Icon, RadioButton, Select} from '@gravity-ui/uikit';
+import {Button, Icon, SegmentedRadioGroup as RadioButton, Select} from '@gravity-ui/uikit';
 import React, {ReactNode} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 

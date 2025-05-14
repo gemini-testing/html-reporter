@@ -5,6 +5,8 @@
     "compilerOptions": {
         "jsx": "react",
         "noEmit": true,
+        "module": "ES2020",
+        "moduleResolution": "bundler",
         "paths": {
             "lib/*": ["./lib/*"],
             "@/*": ["./lib/*"]
