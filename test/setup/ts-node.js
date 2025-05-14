@@ -1,4 +1,6 @@
 require('ts-node').register({
-    project: './tsconfig.spec.json',
-    swc: true
+    swc: true,
+    compilerOptions: {
+        jsx: 'react'
+    }
 });
