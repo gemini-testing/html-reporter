@@ -4,7 +4,14 @@ module.exports = {
     plugins: ['@typescript-eslint', 'react'],
     root: true,
     rules: {
-        '@typescript-eslint/no-empty-function': 'off'
+        '@typescript-eslint/no-empty-function': 'off',
+        '@typescript-eslint/no-restricted-imports': ['error', {
+            "paths": [{
+                "name": "testplane",
+                "message": "You probably shouldn't import values from testplane, because that would break html-reporter compatibility with other tools.",
+                "allowTypeImports": true
+            }]
+        }]
     },
     overrides: [
         {
