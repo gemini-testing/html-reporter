@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.17.1"></a>
+## [10.17.1](https://github.com/gemini-testing/html-reporter/compare/v10.17.0...v10.17.1) (2025-05-15)
+
+
+### Bug Fixes
+
+* improve cross-browser compatibility and update gravity-ui ([#664](https://github.com/gemini-testing/html-reporter/issues/664)) ([4eea0ca](https://github.com/gemini-testing/html-reporter/commit/4eea0ca))
+* restore compatibility with hermione and prohibit imports from testplane ([#665](https://github.com/gemini-testing/html-reporter/issues/665)) ([ca7b730](https://github.com/gemini-testing/html-reporter/commit/ca7b730))
+
+
+### Features
+
+* enhance README with new visuals, demo and usage instructions ([#659](https://github.com/gemini-testing/html-reporter/issues/659)) ([d7f4ad2](https://github.com/gemini-testing/html-reporter/commit/d7f4ad2))
+* remember section sizes in localstorage and implement quick show/hide suites tree button ([#662](https://github.com/gemini-testing/html-reporter/issues/662)) ([5df46bc](https://github.com/gemini-testing/html-reporter/commit/5df46bc))
+
+
+
 <a name="10.17.0"></a>
 # [10.17.0](https://github.com/gemini-testing/html-reporter/compare/v10.16.4...v10.17.0) (2025-05-07)
 
