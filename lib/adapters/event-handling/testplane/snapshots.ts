@@ -6,7 +6,6 @@ import makeDebug from 'debug';
 import fsExtra from 'fs-extra';
 import _ from 'lodash';
 import type Testplane from 'testplane';
-import {RecordMode} from 'testplane';
 import yazl from 'yazl';
 
 import {ReporterTestResult} from '../../test-result';
@@ -14,8 +13,11 @@ import {SNAPSHOTS_PATH} from '../../../constants';
 import {AttachmentType, SnapshotAttachment, TestStepKey, SnapshotsSaver} from '../../../types';
 import {EventSource} from '../../../gui/event-source';
 import {ClientEvents} from '../../../gui/constants';
+import {getRecordModeEnumSafe} from '../../../server-utils';
 
 const debug = makeDebug('html-reporter:event-handling:snapshots');
+
+const RecordMode = getRecordModeEnumSafe();
 
 export interface TestContext {
     testPath: string[];

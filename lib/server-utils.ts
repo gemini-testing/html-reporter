@@ -5,7 +5,7 @@ import url from 'url';
 import chalk from 'chalk';
 import {Router} from 'express';
 import fs from 'fs-extra';
-import type {Test as TestplaneTest} from 'testplane';
+import type {RecordMode as RecordModeType, Test as TestplaneTest} from 'testplane';
 import _ from 'lodash';
 import tmp from 'tmp';
 
@@ -330,4 +330,14 @@ export const getExpectedCacheKey = ([testResult, stateName]: [TestSpecByPath, st
 export const getImagesInfoByStateName = (imagesInfo: ReporterTestResult['imagesInfo'], stateName: string): ImageInfoWithState | undefined => {
     return imagesInfo.find(
         imagesInfo => (imagesInfo as ImageInfoWithState).stateName === stateName) as ImageInfoWithState | undefined;
+};
+
+export const getRecordModeEnumSafe = (): typeof RecordModeType | null => {
+    // This is to ensure compatibility of html-reporter with projects with older testplane versions and hermione
+    try {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        return require('testplane').RecordMode;
+    } catch { /* */ }
+
+    return null;
 };

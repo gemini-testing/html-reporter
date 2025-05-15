@@ -1,5 +1,6 @@
 import _ from 'lodash';
-import Testplane, {Config, RecordMode} from 'testplane';
+import type Testplane from 'testplane';
+import type {Config} from 'testplane';
 import type {CommanderStatic} from '@gemini-testing/commander';
 
 import {TestplaneTestCollectionAdapter} from '../../test-collection/testplane';
@@ -18,6 +19,7 @@ import {ToolAdapter, ToolAdapterOptionsFromCli, UpdateReferenceOpts} from '../in
 import type {CustomGuiActionPayload, TestSpec} from '../types';
 import type {CustomGuiItem, ReporterConfig} from '../../../types';
 import type {ConfigAdapter} from '../../config/index';
+import {getRecordModeEnumSafe} from '../../../server-utils';
 
 type HtmlReporterApi = {
     gui: ApiFacade;
@@ -110,6 +112,7 @@ export class TestplaneToolAdapter implements ToolAdapter {
         for (const browserConfig of this._browserConfigs) {
             const features: BrowserFeature[] = [];
 
+            const RecordMode = getRecordModeEnumSafe();
             if (RecordMode && browserConfig.record && browserConfig.record.mode === RecordMode.On) {
                 features.push(BrowserFeature.LiveSnapshotsStreaming);
             }
