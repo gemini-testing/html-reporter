@@ -153,7 +153,8 @@ export default Object.assign({config: configDefaults}, {
             expandedStepsByResultId: {},
             expandedTreeNodesById: {},
             sectionSizes: [MIN_SECTION_SIZE_PERCENT, 100 - MIN_SECTION_SIZE_PERCENT],
-            backupSectionSizes: [MIN_SECTION_SIZE_PERCENT, 100 - MIN_SECTION_SIZE_PERCENT]
+            backupSectionSizes: [MIN_SECTION_SIZE_PERCENT, 100 - MIN_SECTION_SIZE_PERCENT],
+            isSnapshotsPlayerVisible: true
         },
         staticImageAccepterToolbar: {
             offset: {x: 0, y: 0}

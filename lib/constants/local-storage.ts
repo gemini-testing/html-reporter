@@ -4,6 +4,8 @@ export enum LocalStorageKey {
 
 export const getTimeTravelFeatureLocalStorageKey = (toolName: string): string => `time-travel-${toolName}`;
 
+export const TIME_TRAVEL_PLAYER_VISIBILITY_KEY = 'time-travel-player-visibility';
+
 export enum UiMode {
     Old = 'old',
     New = 'new',

@@ -1,15 +1,17 @@
 import React, {ReactNode} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
-import {ArrowRotateRight} from '@gravity-ui/icons';
+import {ArrowRotateRight, CirclePlay} from '@gravity-ui/icons';
 
 import {AttemptPickerItem} from '@/static/new-ui/components/AttemptPickerItem';
 import styles from './index.module.css';
 import classNames from 'classnames';
-import {Button, Icon, Spin} from '@gravity-ui/uikit';
+import {Button, Divider, Icon, Spin} from '@gravity-ui/uikit';
 import {RunTestsFeature} from '@/constants';
 import {thunkRunTest} from '@/static/modules/actions';
-import {getCurrentBrowser, getCurrentResultId} from '@/static/new-ui/features/suites/selectors';
+import {getCurrentBrowser, getCurrentResultId, isTimeTravelPlayerAvailable} from '@/static/new-ui/features/suites/selectors';
 import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
+import {IconButton} from '@/static/new-ui/components/IconButton';
+import {toggleTimeTravelPlayerVisibility} from '@/static/modules/actions/snapshots';
 
 interface TestControlPanelProps {
     onAttemptChange?: (browserId: string, resultId: string, attemptIndex: number) => unknown;
@@ -26,13 +28,16 @@ export function TestControlPanel(props: TestControlPanelProps): ReactNode {
         return [];
     });
     const currentResultId = useSelector(getCurrentResultId) ?? '';
+    const isPlayerVisible = useSelector(state => state.ui.suitesPage.isSnapshotsPlayerVisible);
+    const isRunning = useSelector(state => state.running);
 
     const analytics = useAnalytics();
     const dispatch = useDispatch();
     const currentBrowser = useSelector(getCurrentBrowser);
     const isRunTestsAvailable = useSelector(state => state.app.availableFeatures)
         .find(feature => feature.name === RunTestsFeature.name);
-    const isRunning = useSelector(state => state.running);
+
+    const isPlayerAvailable = useSelector(isTimeTravelPlayerAvailable);
 
     const onAttemptPickHandler = (resultId: string, attemptIndex: number): void => {
         if (!browserId || currentResultId === resultId) {
@@ -49,6 +54,15 @@ export function TestControlPanel(props: TestControlPanelProps): ReactNode {
         }
     };
 
+    const onTogglePlayerVisibility = (): void => {
+        analytics?.trackFeatureUsage({featureName: 'Toggle time travel player visibility'});
+        dispatch(toggleTimeTravelPlayerVisibility(!isPlayerVisible));
+    };
+
+    const showRetryButton = !!isRunTestsAvailable;
+    const showPlayerButton = isPlayerAvailable;
+    const showDivider = showRetryButton && showPlayerButton;
+
     return <div className={styles.container}>
         <h3 className={classNames('text-header-1', styles.heading)}>Attempts</h3>
         <div className={styles.attemptsContainer}>
@@ -63,8 +77,22 @@ export function TestControlPanel(props: TestControlPanelProps): ReactNode {
                 />;
             })}
         </div>
-        {isRunTestsAvailable && <Button view={'action'} className={styles.retryButton} onClick={onRetryTestHandler} disabled={isRunning}>
-            {isRunning ? <Spin size={'xs'} /> : <Icon data={ArrowRotateRight}/>}Retry
-        </Button>}
+        <div className={styles.buttonsContainer}>
+            {showPlayerButton && (
+                <IconButton
+                    tooltip={isPlayerVisible ? 'Hide Time Travel Player' : 'Show Time Travel Player'}
+                    icon={<Icon data={CirclePlay}/>}
+                    onClick={onTogglePlayerVisibility}
+                    view='outlined'
+                    selected={isPlayerVisible}
+                />
+            )}
+            {showDivider && <Divider orientation='vertical' className={styles.divider}/>}
+            {showRetryButton && (
+                <Button view={'action'} className={styles.retryButton} onClick={onRetryTestHandler} disabled={isRunning}>
+                    {isRunning ? <Spin size={'xs'} /> : <Icon data={ArrowRotateRight}/>}Retry
+                </Button>
+            )}
+        </div>
     </div>;
 }

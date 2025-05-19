@@ -2,6 +2,8 @@ import {State} from '@/static/new-ui/types/store';
 import {SomeAction} from '@/static/modules/actions/types';
 import actionNames from '@/static/modules/action-names';
 import {applyStateUpdate} from '@/static/modules/utils';
+import * as localStorageWrapper from '../local-storage-wrapper';
+import {TIME_TRAVEL_PLAYER_VISIBILITY_KEY} from '@/constants/local-storage';
 
 export default (state: State, action: SomeAction): State => {
     switch (action.type) {
@@ -22,6 +24,17 @@ export default (state: State, action: SomeAction): State => {
                 app: {
                     snapshotsPlayer: {
                         goToTime: action.payload.time
+                    }
+                }
+            });
+        }
+
+        case actionNames.SNAPSHOTS_PLAYER_TOGGLE_VISIBILITY: {
+            localStorageWrapper.setItem(TIME_TRAVEL_PLAYER_VISIBILITY_KEY, action.payload.isVisible);
+            return applyStateUpdate(state, {
+                ui: {
+                    suitesPage: {
+                        isSnapshotsPlayerVisible: action.payload.isVisible
                     }
                 }
             });

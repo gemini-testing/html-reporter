@@ -19,6 +19,15 @@ export const goToTimeInSnapshotsPlayer = (payload: SnapshotsPlayerGoToTimeAction
     payload
 });
 
+export type ToggleTimeTravelPlayerVisibilityAction = Action<typeof actionNames.SNAPSHOTS_PLAYER_TOGGLE_VISIBILITY, {
+    isVisible: boolean;
+}>;
+export const toggleTimeTravelPlayerVisibility = (isVisible: boolean): ToggleTimeTravelPlayerVisibilityAction => ({
+    type: actionNames.SNAPSHOTS_PLAYER_TOGGLE_VISIBILITY,
+    payload: {isVisible}
+});
+
 export type SnapshotsAction =
     | SetSnapshotsPlayerHighlightTimeAction
-    | SnapshotsPlayerGoToTimeAction;
+    | SnapshotsPlayerGoToTimeAction
+    | ToggleTimeTravelPlayerVisibilityAction;

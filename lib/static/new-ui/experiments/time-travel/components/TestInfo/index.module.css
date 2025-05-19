@@ -28,6 +28,10 @@
     padding: 10px 20px;
 }
 
+.hidden {
+    display: none;
+}
+
 .collapsible-section__body {
     padding: 10px 30px 10px 2px;
     word-break: break-all;

@@ -13,7 +13,17 @@
     gap: 4px;
 }
 
+.buttons-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.divider {
+    height: 24px;
+}
+
 .retry-button {
     composes: regular-button from global, action-button from global;
-    margin-left: auto;
 }
