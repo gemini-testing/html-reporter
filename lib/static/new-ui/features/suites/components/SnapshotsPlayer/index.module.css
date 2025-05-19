@@ -176,3 +176,24 @@
 .is-snapshot-missing .player-progress-left-cap {
     background-color: var(--color-neutral-300);
 }
+
+.settings-select-option-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 8px 4px 8px;
+}
+
+.settings-button {
+    position: relative;
+    padding: 0;
+    width: 28px;
+}
+
+.settings-changed-dot {
+    position: absolute;
+    right: 4px;
+    top: 4px;
+}

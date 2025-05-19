@@ -22,10 +22,6 @@
     position: absolute;
     right: 0;
     top: 0;
-    height: 4px;
-    width: 4px;
-    border-radius: 100vh;
-    background-color: var(--g-color-private-red-600-solid);
 }
 
 @container (max-width: 450px) {

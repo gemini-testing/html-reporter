@@ -1,5 +1,5 @@
 import {Gear, PauseFill} from '@gravity-ui/icons';
-import {Button, Icon} from '@gravity-ui/uikit';
+import {Button, HelpMark, Icon, Select, SelectRenderControlProps, SelectOptions} from '@gravity-ui/uikit';
 import {Replayer} from '@rrweb/replay';
 import type {customEvent, eventWithTime as RrwebEvent} from '@rrweb/types';
 import classNames from 'classnames';
@@ -12,9 +12,6 @@ import {getCurrentResult} from '@/static/new-ui/features/suites/selectors';
 import {Timeline} from './Timeline';
 import {NumberedSnapshot} from './types';
 import {loadSnapshotsFromZip, useLiveSnapshotsStream, useScaleToFit} from './utils';
-
-import '@rrweb/replay/dist/style.css';
-import styles from './index.module.css';
 import {getTestSteps} from '@/static/new-ui/features/suites/components/TestSteps/selectors';
 import {setCurrentHighlightStep, setCurrentStep} from '@/static/modules/actions';
 import {Step, StepType} from '@/static/new-ui/features/suites/components/TestSteps/types';
@@ -22,6 +19,26 @@ import {unstable_ListTreeItemType as ListTreeItemType} from '@gravity-ui/uikit/u
 import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
 import BrokenSnapshotIcon from '@/static/icons/broken-snapshot.svg';
 import {PlayIcon} from './PlayIcon';
+import {ChangedDot} from '../../../../components/ChangedDot';
+
+import '@rrweb/replay/dist/style.css';
+import styles from './index.module.css';
+
+const SETTINGS_OPTIONS: SelectOptions = [
+    {
+        label: 'Speed',
+        data: {
+            hint: <span><b style={{fontWeight: 600}}>Note:</b> transitions or animations will still play at original speed.</span>
+        },
+        options: [
+            {value: '0.5', content: '0.5x'},
+            {value: '1', content: '1x'},
+            {value: '1.5', content: '1.5x'},
+            {value: '2', content: '2x'},
+            {value: '4', content: '4x'}
+        ]
+    }
+];
 
 function isColorSchemeEvent(event: customEvent | RrwebEvent): event is customEvent<{colorScheme: 'light' | 'dark'}> {
     return event.type === 5 && // 5 is the EventType.Custom value
@@ -70,6 +87,7 @@ export function SnapshotsPlayer(): ReactNode {
     const abortControllerRef = useRef<AbortController | null>(null);
     const customEventsRef = useRef<RrwebEvent[]>([]);
     const [iframeColorScheme, setIframeColorScheme] = useState<'light' | 'dark'>('light');
+    const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
 
     const [playerWidth, setPlayerWidth] = useState<number>(1200);
     const [playerHeight, setPlayerHeight] = useState<number>(800);
@@ -251,6 +269,48 @@ export function SnapshotsPlayer(): ReactNode {
         }
     }, []);
 
+    const onSpeedChange = useCallback((value: string[]): void => {
+        console.log(value);
+        if (value) {
+            // Picking the second value, because input data is of shape [previousValue, newValue]
+            const speed = Number(value[1]);
+
+            setPlaybackSpeed(speed);
+
+            if (playerRef.current) {
+                playerRef.current.setConfig({speed});
+            }
+        }
+    }, []);
+
+    const renderSettingsControl = ({ref, triggerProps}: SelectRenderControlProps<HTMLElement>): React.ReactElement => {
+        return (
+            <Button
+                disabled={isSnapshotMissing}
+                view={'flat'}
+                className={classNames(styles.controlButton, styles.settingsButton)}
+                onClick={triggerProps.onClick}
+                onKeyDown={triggerProps.onKeyDown}
+                ref={ref as React.Ref<HTMLButtonElement>}
+                title={`Playback Speed: ${playbackSpeed}x`}
+            >
+                {playbackSpeed !== 1 && <ChangedDot className={styles.settingsChangedDot} />}
+                <Gear width={16} height={16}/>
+            </Button>
+        );
+    };
+
+    const renderSettingsOptionGroup = (optionGroup: {label: string; data?: {hint?: string}}): React.ReactElement => {
+        return <div className={styles.settingsSelectOptionGroup}>
+            <span>{optionGroup.label}</span>
+            {optionGroup.data?.hint && (
+                <HelpMark popoverProps={{placement: 'top-end'}}>
+                    {optionGroup.data?.hint}
+                </HelpMark>
+            )}
+        </div>;
+    };
+
     useEffect(() => {
         if (!currentResult || !playerElement) {
             return;
@@ -259,7 +319,8 @@ export function SnapshotsPlayer(): ReactNode {
         if (currentResult.status === TestStatus.RUNNING) {
             playerRef.current = new Replayer([], {
                 liveMode: true,
-                root: playerElement
+                root: playerElement,
+                speed: playbackSpeed
             });
             initializePlayer(true);
             startStreaming();
@@ -290,7 +351,8 @@ export function SnapshotsPlayer(): ReactNode {
 
                     playerRef.current = new Replayer(events, {
                         liveMode: false,
-                        root: playerElement
+                        root: playerElement,
+                        speed: playbackSpeed
                     });
                     initializePlayer();
 
@@ -541,13 +603,18 @@ export function SnapshotsPlayer(): ReactNode {
                 highlightState={currentPlayerHighlightState}
                 isSnapshotMissing={isSnapshotMissing}
             />
-            <Button
-                disabled={true || isSnapshotMissing}
-                view={'flat'}
-                className={styles.controlButton}
+            <Select
+                value={[playbackSpeed.toString()]}
+                disabled={isSnapshotMissing}
+                renderControl={renderSettingsControl}
+                renderOptionGroup={renderSettingsOptionGroup}
+                popupPlacement="top-end"
+                popupWidth={100}
+                multiple={true}
+                onUpdate={onSpeedChange}
+                options={SETTINGS_OPTIONS}
             >
-                <Icon data={Gear}/>
-            </Button>
+            </Select>
         </div>
     </div>;
 }

@@ -863,7 +863,7 @@ a:active {
     --g-color-base-selection: var(--g-color-private-color-100);
     --g-color-base-selection-hover: var(--g-color-private-color-150);
     --g-color-line-brand: var(--g-color-private-color-500);
-    --g-color-text-brand: var(--g-color-private-color-300);
+    --g-color-text-brand: var(--g-color-base-brand);
     --g-color-text-link: var(--g-color-private-color-300);
     --g-color-text-link-hover: var(--g-color-private-color-500);
     --gn-aside-header-decoration-collapsed-background-color: var(--g-color-private-color-150);
