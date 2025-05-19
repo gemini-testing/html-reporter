@@ -1,5 +1,5 @@
 import React, {ReactNode} from 'react';
-import {connect, useDispatch, useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {ArrowRotateRight} from '@gravity-ui/icons';
 
 import {AttemptPickerItem} from '@/static/new-ui/components/AttemptPickerItem';
@@ -11,18 +11,21 @@ import {thunkRunTest} from '@/static/modules/actions';
 import {getCurrentBrowser, getCurrentResultId} from '@/static/new-ui/features/suites/selectors';
 import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
 
-interface AttemptPickerProps {
-    onChange?: (browserId: string, resultId: string, attemptIndex: number) => unknown;
+interface TestControlPanelProps {
+    onAttemptChange?: (browserId: string, resultId: string, attemptIndex: number) => unknown;
 }
 
-interface AttemptPickerInternalProps extends AttemptPickerProps {
-    browserId: string | null;
-    resultIds: string[];
-    currentResultId: string;
-}
+export function TestControlPanel(props: TestControlPanelProps): ReactNode {
+    const {onAttemptChange} = props;
 
-function AttemptPickerInternal(props: AttemptPickerInternalProps): ReactNode {
-    const {resultIds, currentResultId} = props;
+    const browserId = useSelector(state => state.app.suitesPage.currentBrowserId);
+    const resultIds = useSelector(state => {
+        if (browserId && state.tree.browsers.byId[browserId]) {
+            return state.tree.browsers.byId[browserId].resultIds;
+        }
+        return [];
+    });
+    const currentResultId = useSelector(getCurrentResultId) ?? '';
 
     const analytics = useAnalytics();
     const dispatch = useDispatch();
@@ -32,16 +35,16 @@ function AttemptPickerInternal(props: AttemptPickerInternalProps): ReactNode {
     const isRunning = useSelector(state => state.running);
 
     const onAttemptPickHandler = (resultId: string, attemptIndex: number): void => {
-        if (!props.browserId || currentResultId === resultId) {
+        if (!browserId || currentResultId === resultId) {
             return;
         }
 
-        props.onChange?.(props.browserId, resultId, attemptIndex);
+        onAttemptChange?.(browserId, resultId, attemptIndex);
     };
 
     const onRetryTestHandler = (): void => {
         if (currentBrowser) {
-            analytics?.trackFeatureUsage({featureName: 'Attempt picker: retry test button click'});
+            analytics?.trackFeatureUsage({featureName: 'Retry test button click in test control panel'});
             dispatch(thunkRunTest({test: {testName: currentBrowser.parentId, browserName: currentBrowser.name}}));
         }
     };
@@ -65,18 +68,3 @@ function AttemptPickerInternal(props: AttemptPickerInternalProps): ReactNode {
         </Button>}
     </div>;
 }
-
-export const AttemptPicker = connect(state => {
-    let resultIds: string[] = [];
-    const browserId = state.app.suitesPage.currentBrowserId;
-
-    if (browserId && state.tree.browsers.byId[browserId]) {
-        resultIds = state.tree.browsers.byId[browserId].resultIds;
-    }
-
-    return {
-        browserId,
-        resultIds,
-        currentResultId: getCurrentResultId(state) ?? ''
-    };
-})(AttemptPickerInternal);

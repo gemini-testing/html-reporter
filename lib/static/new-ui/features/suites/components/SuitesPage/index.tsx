@@ -20,7 +20,7 @@ import {CollapsibleSection} from '@/static/new-ui/features/suites/components/Col
 import {MetaInfo} from '@/static/new-ui/components/MetaInfo';
 import {getIsInitialized} from '@/static/new-ui/store/selectors';
 import {ResultEntity} from '@/static/new-ui/types/store';
-import {AttemptPicker} from '../../../../components/AttemptPicker';
+import {TestControlPanel} from '@/static/new-ui/features/suites/components/TestControlPanel';
 
 import styles from './index.module.css';
 import {TestInfoSkeleton} from '@/static/new-ui/features/suites/components/SuitesPage/TestInfoSkeleton';
@@ -132,7 +132,7 @@ function SuitesPageInternal({currentResult, actions, treeNodeId}: SuitesPageProp
                             totalItems={visibleTreeNodeIds.length}
                             onNext={(): void => onPrevNextSuiteHandler(1)}
                             onPrevious={(): void => onPrevNextSuiteHandler(-1)}/>
-                        <AttemptPicker onChange={onAttemptChangeHandler}/>
+                        <TestControlPanel onAttemptChange={onAttemptChangeHandler}/>
                     </div>
 
                     {isTimeTravelEnabled ? <TestInfo/> : <>
