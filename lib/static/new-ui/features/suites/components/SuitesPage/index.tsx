@@ -5,7 +5,6 @@ import {connect, useSelector} from 'react-redux';
 import {useParams} from 'react-router-dom';
 import {bindActionCreators} from 'redux';
 
-import {TestSteps} from '@/static/new-ui/features/suites/components/TestSteps';
 import {UiCard} from '@/static/new-ui/components/Card/UiCard';
 import {getCurrentResult} from '@/static/new-ui/features/suites/selectors';
 import {getTreeViewItems} from '@/static/new-ui/features/suites/components/SuitesTreeView/selectors';
@@ -16,8 +15,6 @@ import {TestStatusFilter} from '@/static/new-ui/features/suites/components/TestS
 import {BrowsersSelect} from '@/static/new-ui/features/suites/components/BrowsersSelect';
 import {SuiteTitle} from '../../../../components/SuiteTitle';
 import * as actions from '@/static/modules/actions';
-import {CollapsibleSection} from '@/static/new-ui/features/suites/components/CollapsibleSection';
-import {MetaInfo} from '@/static/new-ui/components/MetaInfo';
 import {getIsInitialized} from '@/static/new-ui/store/selectors';
 import {ResultEntity} from '@/static/new-ui/types/store';
 import {TestControlPanel} from '@/static/new-ui/features/suites/components/TestControlPanel';
@@ -28,9 +25,9 @@ import {TreeViewSkeleton} from '@/static/new-ui/features/suites/components/Suite
 import {TreeActionsToolbar} from '@/static/new-ui/features/suites/components/TreeActionsToolbar';
 import {findTreeNodeById, getGroupId, isSectionHidden} from '@/static/new-ui/features/suites/utils';
 import {TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
-import {NEW_ISSUE_LINK, TimeTravelFeature} from '@/constants';
+import {NEW_ISSUE_LINK} from '@/constants';
 import {ErrorHandler} from '../../../error-handling/components/ErrorHandling';
-import {TestInfo} from '@/static/new-ui/experiments/time-travel/components/TestInfo';
+import {TestInfo} from '@/static/new-ui/features/suites/components/TestInfo';
 import {MIN_SECTION_SIZE_PERCENT} from '../../constants';
 
 interface SuitesPageProps {
@@ -87,8 +84,6 @@ function SuitesPageInternal({currentResult, actions, treeNodeId}: SuitesPageProp
         }
     };
 
-    const isTimeTravelEnabled = useSelector(state => state.app.availableFeatures.some(f => f.name === TimeTravelFeature.name));
-
     const sectionSizes = useSelector(state => state.ui.suitesPage.sectionSizes);
 
     const [stickyHeaderElement, setStickyHeaderElement] = useState<HTMLDivElement | null>(null);
@@ -135,18 +130,7 @@ function SuitesPageInternal({currentResult, actions, treeNodeId}: SuitesPageProp
                         <TestControlPanel onAttemptChange={onAttemptChangeHandler}/>
                     </div>
 
-                    {isTimeTravelEnabled ? <TestInfo/> : <>
-                        <CollapsibleSection id={'overview'} title={'Overview'} className={styles['collapsible-section-overview']}>
-                            {currentResult && <div className={styles['collapsible-section__body']}>
-                                <MetaInfo resultId={currentResult.id} />
-                            </div>}
-                        </CollapsibleSection>
-                        <CollapsibleSection id={'steps'} title={'Steps'}>
-                            <ErrorHandler.Boundary watchFor={[currentResult]} fallback={<ErrorHandler.FallbackDataCorruption />}>
-                                <TestSteps />
-                            </ErrorHandler.Boundary>
-                        </CollapsibleSection>
-                    </>}
+                    <TestInfo/>
                 </>}
                 {!suiteIdParam && !currentResult && <div className={styles.hintContainer}><span className={styles.hint}>Select a test to see details</span></div>}
                 {suiteIdParam && !isInitialized && <TestInfoSkeleton />}
