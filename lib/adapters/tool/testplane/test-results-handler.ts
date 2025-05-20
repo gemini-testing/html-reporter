@@ -56,7 +56,7 @@ export const handleTestResults = (testplane: TestplaneWithHtmlReporter, reportBu
                         reportPath: testplane.htmlReporter.config.path,
                         events: testplane.events,
                         eventName,
-                        recordConfig: testplane.config.record,
+                        timeTravelConfig: testplane.config.timeTravel,
                         snapshotsSaver: testplane.htmlReporter.snapshotsSaver
                     });
 

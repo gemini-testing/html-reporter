@@ -13,11 +13,11 @@ import {SNAPSHOTS_PATH} from '../../../constants';
 import {AttachmentType, SnapshotAttachment, TestStepKey, SnapshotsSaver} from '../../../types';
 import {EventSource} from '../../../gui/event-source';
 import {ClientEvents} from '../../../gui/constants';
-import {getRecordModeEnumSafe} from '../../../server-utils';
+import {getTimeTravelModeEnumSafe} from '../../../server-utils';
 
 const debug = makeDebug('html-reporter:event-handling:snapshots');
 
-const RecordMode = getRecordModeEnumSafe();
+const TimeTravelMode = getTimeTravelModeEnumSafe();
 
 export interface TestContext {
     testPath: string[];
@@ -75,14 +75,14 @@ export const handleDomSnapshotsEvent = (client: EventSource | null, context: Tes
 interface FinalizeSnapshotsParams {
     testResult: ReporterTestResult;
     attempt: number;
-    recordConfig: Testplane['config']['record'];
+    timeTravelConfig: Testplane['config']['timeTravel'];
     reportPath: string;
     eventName: Testplane['events'][keyof Testplane['events']];
     events: Testplane['events'];
     snapshotsSaver?: SnapshotsSaver | null;
 }
 
-export const finalizeSnapshotsForTest = async ({testResult, attempt, reportPath, recordConfig, events, eventName, snapshotsSaver}: FinalizeSnapshotsParams): Promise<SnapshotAttachment[]> => {
+export const finalizeSnapshotsForTest = async ({testResult, attempt, reportPath, timeTravelConfig, events, eventName, snapshotsSaver}: FinalizeSnapshotsParams): Promise<SnapshotAttachment[]> => {
     try {
         const hash = getSnapshotHashWithoutAttempt(testResult);
         const snapshots = snapshotsInProgress[hash];
@@ -90,10 +90,10 @@ export const finalizeSnapshotsForTest = async ({testResult, attempt, reportPath,
         delete snapshotsInProgress[hash];
 
         // Here we only check LastFailedRun, because in case of Off, we wouldn't even be here. LastFailedRun is the only case when we may want to not save snapshots.
-        const shouldSave = RecordMode && recordConfig && (recordConfig.mode !== RecordMode.LastFailedRun || (eventName === events.TEST_FAIL));
+        const shouldSave = TimeTravelMode && timeTravelConfig && (timeTravelConfig.mode !== TimeTravelMode.LastFailedRun || (eventName === events.TEST_FAIL));
         if (!shouldSave || !snapshots || snapshots.length === 0) {
             debug('Not saving snapshots for test "%s"', hash);
-            debug('shouldSave evaluated to: %s', shouldSave, ', recordConfig: ', recordConfig, ', eventName: ', eventName);
+            debug('shouldSave evaluated to: %s', shouldSave, ', timeTravelConfig: ', timeTravelConfig, ', eventName: ', eventName);
             debug('snapshots: ', snapshots);
             return [];
         }

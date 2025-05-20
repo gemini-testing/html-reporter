@@ -1,6 +1,6 @@
 import makeDebug from 'debug';
 
-import {getRecordModeEnumSafe} from '../server-utils';
+import {getTimeTravelModeEnumSafe} from '../server-utils';
 import {TestplaneConfigAdapter} from '../adapters/config/testplane';
 import {ToolName} from '../constants';
 
@@ -17,9 +17,9 @@ export const overrideTestplaneConfig = (toolName: ToolName, config: TestplaneCon
         return;
     }
 
-    const RecordMode = getRecordModeEnumSafe();
-    if (!RecordMode) {
-        debug(`Skipping config overrides because RecordMode is not available`);
+    const TimeTravelMode = getTimeTravelModeEnumSafe();
+    if (!TimeTravelMode) {
+        debug(`Skipping config overrides because TimeTravelMode is not available`);
         return;
     }
 
@@ -52,7 +52,7 @@ export const overrideTestplaneConfig = (toolName: ToolName, config: TestplaneCon
             continue;
         }
 
-        browserConfig.record = {mode: RecordMode.On};
+        browserConfig.timeTravel = {mode: TimeTravelMode.On};
         browserConfig.saveHistoryMode = 'all';
 
         debug(`Overrides applied for browser: ${browserName}`);
