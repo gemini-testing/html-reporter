@@ -270,16 +270,16 @@ export function SnapshotsPlayer(): ReactNode {
     }, []);
 
     const onSpeedChange = useCallback((value: string[]): void => {
-        console.log(value);
-        if (value) {
-            // Picking the second value, because input data is of shape [previousValue, newValue]
-            const speed = Number(value[1]);
+        if (!value || !value?.[1]) {
+            return;
+        }
+        // Picking the second value, because input data is of shape [previousValue, newValue]
+        const speed = Number(value[1]);
 
-            setPlaybackSpeed(speed);
+        setPlaybackSpeed(speed);
 
-            if (playerRef.current) {
-                playerRef.current.setConfig({speed});
-            }
+        if (playerRef.current) {
+            playerRef.current.setConfig({speed});
         }
     }, []);
 

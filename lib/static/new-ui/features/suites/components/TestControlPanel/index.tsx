@@ -59,7 +59,7 @@ export function TestControlPanel(props: TestControlPanelProps): ReactNode {
         dispatch(toggleTimeTravelPlayerVisibility(!isPlayerVisible));
     };
 
-    const showRetryButton = !!isRunTestsAvailable;
+    const showRetryButton = Boolean(isRunTestsAvailable);
     const showPlayerButton = isPlayerAvailable;
     const showDivider = showRetryButton && showPlayerButton;
 
