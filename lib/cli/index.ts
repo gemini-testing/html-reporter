@@ -6,6 +6,7 @@ import pkg from '../../package.json';
 import {ToolName} from '../constants';
 import {makeToolAdapter, type ToolAdapter} from '../adapters/tool';
 import {logger} from '../common-utils';
+import {shouldIgnoreUnhandledRejection} from '../errors/utils/should-ignore-errors';
 
 export const commands = {
     GUI: 'gui',
@@ -21,6 +22,11 @@ process.on('uncaughtException', err => {
 });
 
 process.on('unhandledRejection', (reason, p) => {
+    if (shouldIgnoreUnhandledRejection(reason as Error)) {
+        logger.warn(`Unhandled Rejection "${reason}" in html-reporter:${process.pid} was ignored`);
+        return;
+    }
+
     const error = new Error([
         `Unhandled Rejection in ${toolAdapter ? toolAdapter.toolName + ':' : ''}${process.pid}:`,
         `Promise: ${JSON.stringify(p)}`,
