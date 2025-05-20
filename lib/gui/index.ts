@@ -7,8 +7,6 @@ import {logger} from '../common-utils';
 import * as utils from '../server-utils';
 
 import type {ToolAdapter} from '../adapters/tool';
-import {overrideTestplaneConfig} from './config-overrides';
-import {TestplaneConfigAdapter} from '../adapters/config/testplane';
 
 const {logError} = utils;
 
@@ -29,8 +27,6 @@ export interface ServerArgs {
 }
 
 export default (args: ServerArgs): void => {
-    overrideTestplaneConfig(args.toolAdapter.toolName, args.toolAdapter.config as TestplaneConfigAdapter);
-
     server.start(args)
         .then(({url}: { url: string }) => {
             logger.log(`GUI is running at ${chalk.cyan(url)}`);

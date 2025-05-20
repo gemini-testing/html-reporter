@@ -18,7 +18,7 @@ import {SqliteImageStore} from '../../image-store';
 import * as reporterHelper from '../../reporter-helpers';
 import {logger, getShortMD5, isUpdatedStatus} from '../../common-utils';
 import {formatId, mkFullTitle, mergeDatabasesForReuse, filterByEqualDiffSizes, prepareLocalDatabase} from './utils';
-import {getExpectedCacheKey} from '../../server-utils';
+import {getExpectedCacheKey, getTimeTravelModeEnumSafe} from '../../server-utils';
 import {getTestsTreeFromDatabase} from '../../db-utils/server';
 import {
     UPDATED,
@@ -28,7 +28,7 @@ import {
     DATABASE_URLS_JSON_NAME,
     LOCAL_DATABASE_NAME,
     PluginEvents,
-    UNKNOWN_ATTEMPT, BrowserFeature
+    UNKNOWN_ATTEMPT, BrowserFeature, Feature, TimeTravelFeature
 } from '../../constants';
 
 import {ToolAdapter} from '../../adapters/tool';
@@ -47,7 +47,10 @@ import type {TestAdapter} from '../../adapters/test/index';
 import type {TestCollectionAdapter} from '../../adapters/test-collection';
 import type {ConfigAdapter} from '../../adapters/config';
 
-export type ToolRunnerTree = GuiReportBuilderResult & Pick<GuiCliOptions, 'autoRun'> & { browserFeatures: Record<string, BrowserFeature[]>} ;
+export type ToolRunnerTree = GuiReportBuilderResult & Pick<GuiCliOptions, 'autoRun'> & {
+    features: Feature[];
+    browserFeatures: Record<string, BrowserFeature[]>
+};
 
 export interface UndoAcceptImagesResult {
     updatedImages: TreeImage[];
@@ -101,7 +104,15 @@ export class ToolRunner {
             return null;
         }
 
-        return Object.assign({}, this._tree, {browserFeatures: this._toolAdapter.browserFeatures});
+        const features: Feature[] = [];
+        if (this._toolAdapter.toolName === ToolName.Testplane && getTimeTravelModeEnumSafe()) {
+            features.push(TimeTravelFeature);
+        }
+
+        return Object.assign({}, this._tree, {
+            browserFeatures: this._toolAdapter.browserFeatures,
+            features
+        });
     }
 
     async initialize(): Promise<void> {
@@ -403,7 +414,7 @@ export class ToolRunner {
             reportBuilder.reuseTestsTree(testsTree);
         }
 
-        this._tree = {...reportBuilder.getResult(), autoRun, browserFeatures: {}};
+        this._tree = {...reportBuilder.getResult(), autoRun, browserFeatures: {}, features: []};
     }
 
     protected async _loadDataFromDatabase(): Promise<Tree | null> {

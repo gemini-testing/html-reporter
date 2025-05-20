@@ -1,5 +1,5 @@
 import {BrowserEntity, ImageEntity, ResultEntity, State} from '@/static/new-ui/types/store';
-import {BrowserFeature} from '@/constants';
+import {BrowserFeature, TimeTravelFeature} from '@/constants';
 import {AttachmentType} from '@/types';
 
 export const getCurrentBrowser = (state: State): BrowserEntity | null => {
@@ -66,6 +66,8 @@ export const isTimeTravelPlayerAvailable = (state: State): boolean => {
     const isRunning = state.running;
     const browserFeatures = state.browserFeatures;
     const isSnapshotAvailable = currentResult.attachments?.some(attachment => attachment.type === AttachmentType.Snapshot);
-    const isLiveStreamingAvailable = browserFeatures[currentResult.name]?.some(feature => feature === BrowserFeature.LiveSnapshotsStreaming);
+    const isTimeTravelAvailable = state.app.availableFeatures.some(f => f.name === TimeTravelFeature.name);
+    const isLiveStreamingAvailable = isTimeTravelAvailable && browserFeatures[currentResult.name]?.some(feature => feature === BrowserFeature.LiveSnapshotsStreaming);
+
     return isSnapshotAvailable || (isRunning && isLiveStreamingAvailable);
 };

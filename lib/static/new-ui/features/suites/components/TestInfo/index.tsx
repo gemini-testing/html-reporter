@@ -32,7 +32,7 @@ export function TestInfo(): ReactNode {
                     </ErrorHandler.Boundary> :
                     <div className={styles.emptyStepsContainer}>{isRunning ? <><Spin size={'xs'} style={{marginRight: '4px'}} />Test is running</> : 'No steps to show'}</div>
                 }
-                {<div className={classNames(styles.sticky, !shouldShowPlayer && styles.hidden)}>
+                {isPlayerAvailable && <div className={classNames(styles.sticky, !shouldShowPlayer && styles.hidden)}>
                     <SnapshotsPlayer/>
                 </div>}
             </div>
