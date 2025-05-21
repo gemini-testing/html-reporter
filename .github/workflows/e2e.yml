@@ -63,7 +63,7 @@ jobs:
     - name: 'Prepare e2e tests: Setup env'
       run: |
         REPORT_PREFIX=testplane-reports
-        REPORT_DATE=$(date '+%y-%m-%d')
+        REPORT_DATE=$(date '+%Y-%m-%d')
         echo "DEST_REPORTS_DIR=$REPORT_PREFIX/$REPORT_DATE/${{ github.run_id }}/${{ github.run_attempt }}" >> $GITHUB_ENV
 
     - name: Upload fixtures reports
