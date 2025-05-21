@@ -7,6 +7,7 @@ import {stringify} from '@/static/new-ui/utils';
 interface TestStepArgsProps {
     args: string[];
     isFailed?: boolean;
+    isActive?: boolean;
 }
 
 export function TestStepArgs(props: TestStepArgsProps): ReactNode {
@@ -17,7 +18,7 @@ export function TestStepArgs(props: TestStepArgsProps): ReactNode {
 
         return <div className={classNames(styles.wrapper, styles.collapseFirst)}>
             <span className={classNames([styles.item, styles.collapseSecond, {
-                [styles['item--failed']]: props.isFailed
+                [styles['item--failed']]: !props.isActive && props.isFailed
             }])}>{stringify(props.args[index])}</span>
             {renderItems(index + 1)}
         </div>;

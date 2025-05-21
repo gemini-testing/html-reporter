@@ -1,7 +1,7 @@
 import type axios from 'axios';
 import type {LooksSameOptions, CoordBounds} from 'looks-same';
 import type {default as Testplane, TestResult} from 'testplane';
-import {DiffModeId, SaveFormat, SUITES_TABLE_COLUMNS, TestStatus, ViewMode} from './constants';
+import {BrowserFeature, DiffModeId, SaveFormat, SUITES_TABLE_COLUMNS, TestStatus, ViewMode} from './constants';
 import type {HtmlReporter} from './plugin-api';
 import {ImageDiffError, NoRefImageError} from './errors';
 
@@ -321,3 +321,21 @@ export interface SnapshotAttachment {
 }
 
 export type Attachment = SnapshotAttachment;
+
+export interface ApiErrorResponse {
+    error: {
+        message: string;
+    };
+}
+
+type ApiResponse<T> = ApiErrorResponse | {
+    data: T;
+};
+
+export interface UpdateTimeTravelSettingsRequest {
+    useRecommendedSettings: boolean;
+}
+
+export type UpdateTimeTravelSettingsResponse = ApiResponse<{
+    browserFeatures: Record<string, BrowserFeature[]>;
+}>;

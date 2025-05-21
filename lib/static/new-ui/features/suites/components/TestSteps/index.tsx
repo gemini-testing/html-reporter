@@ -70,7 +70,7 @@ function TestStep({onItemClick, items, itemId, onMouseMove, isActive, className}
                 return {
                     title: <div className={styles.stepContent}>
                         <span className={styles.stepTitle}>{item.title}</span>
-                        <TestStepArgs args={item.args} isFailed={shouldHighlightFail}/>
+                        <TestStepArgs args={item.args} isFailed={shouldHighlightFail} isActive={isActive}/>
                         {item.duration !== undefined && <span className={styles.stepDuration}>{item.duration} ms</span>}
                     </div>,
                     startSlot: <TreeViewItemIcon>{getIconByStatus(item.status)}</TreeViewItemIcon>

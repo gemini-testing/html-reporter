@@ -18,6 +18,10 @@ import {GetInitResponse} from '@/gui/server';
 import {Tree} from '@/tests-tree-builder/base';
 import {BrowserItem} from '@/types';
 import {createNotificationError} from '@/static/modules/actions/notifications';
+import {LocalStorageKey} from '@/constants/local-storage';
+import * as localStorageWrapper from '@/static/modules/local-storage-wrapper';
+import {updateTimeTravelSettings} from '../../new-ui/utils/api';
+import {TimeTravelFeature} from '@/constants';
 
 export type InitGuiReportAction = Action<typeof actionNames.INIT_GUI_REPORT, GetInitResponse & {db: Database; isNewUi?: boolean}>;
 const initGuiReport = (payload: InitGuiReportAction['payload']): InitGuiReportAction =>
@@ -35,6 +39,11 @@ export const thunkInitGuiReport = ({isNewUi}: InitGuiReportData = {}): AppThunk 
 
             if (!appState.data) {
                 throw new Error('Could not load app data. The report might be broken. Please check your project settings or try deleting results folder and relaunching UI server.');
+            }
+
+            if (appState.data.features.some(f => f.name === TimeTravelFeature.name)) {
+                const ttUseRecommendedSettings = Boolean(localStorageWrapper.getItem(LocalStorageKey.TimeTravelUseRecommendedSettings, true));
+                await updateTimeTravelSettings({useRecommendedSettings: ttUseRecommendedSettings});
             }
 
             const mainDatabaseUrl = getMainDatabaseUrl();

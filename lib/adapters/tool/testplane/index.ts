@@ -19,7 +19,7 @@ import {ToolAdapter, ToolAdapterOptionsFromCli, UpdateReferenceOpts} from '../in
 import type {CustomGuiActionPayload, TestSpec} from '../types';
 import type {CustomGuiItem, ReporterConfig} from '../../../types';
 import type {ConfigAdapter} from '../../config/index';
-import {getRecordModeEnumSafe} from '../../../server-utils';
+import {getTimeTravelModeEnumSafe} from '../../../server-utils';
 
 type HtmlReporterApi = {
     gui: ApiFacade;
@@ -112,8 +112,8 @@ export class TestplaneToolAdapter implements ToolAdapter {
         for (const browserConfig of this._browserConfigs) {
             const features: BrowserFeature[] = [];
 
-            const RecordMode = getRecordModeEnumSafe();
-            if (RecordMode && browserConfig.record && browserConfig.record.mode === RecordMode.On) {
+            const TimeTravelMode = getTimeTravelModeEnumSafe();
+            if (TimeTravelMode && browserConfig.timeTravel && browserConfig.timeTravel.mode === TimeTravelMode.On) {
                 features.push(BrowserFeature.LiveSnapshotsStreaming);
             }
 

@@ -2,6 +2,7 @@ import {Select, SelectProps, Tooltip} from '@gravity-ui/uikit';
 import React, {ReactElement, ReactNode, useRef} from 'react';
 
 import styles from './index.module.css';
+import {ChangedDot} from '../ChangedDot';
 
 interface AdaptiveSelectProps {
     currentValue: string[];
@@ -43,7 +44,7 @@ export function AdaptiveSelect(props: AdaptiveSelectProps): ReactNode {
                     label={<>
                         <div className={styles.labelIconsContainer}>
                             {props.labelIcon}
-                            {props.showDot && <div className={styles.labelDot}></div>}
+                            {props.showDot && <ChangedDot className={styles.labelDot} />}
                         </div>
                     </> as unknown as string}
                     onUpdate={onUpdate}

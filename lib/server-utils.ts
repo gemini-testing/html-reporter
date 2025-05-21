@@ -5,7 +5,7 @@ import url from 'url';
 import chalk from 'chalk';
 import {Router} from 'express';
 import fs from 'fs-extra';
-import type {RecordMode as RecordModeType, Test as TestplaneTest} from 'testplane';
+import type {TimeTravelMode as TimeTravelModeType, Test as TestplaneTest} from 'testplane';
 import _ from 'lodash';
 import tmp from 'tmp';
 
@@ -332,11 +332,10 @@ export const getImagesInfoByStateName = (imagesInfo: ReporterTestResult['imagesI
         imagesInfo => (imagesInfo as ImageInfoWithState).stateName === stateName) as ImageInfoWithState | undefined;
 };
 
-export const getRecordModeEnumSafe = (): typeof RecordModeType | null => {
-    // This is to ensure compatibility of html-reporter with projects with older testplane versions and hermione
+export const getTimeTravelModeEnumSafe = (): typeof TimeTravelModeType | null => {
     try {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
-        return require('testplane').RecordMode;
+        return require('testplane').TimeTravelMode;
     } catch { /* */ }
 
     return null;

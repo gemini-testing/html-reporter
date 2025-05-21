@@ -26,7 +26,7 @@ const commonConfig = getCommonConfig(__dirname);
 const config = _.merge(commonConfig, {
     retry: 4,
     baseUrl: `http://${serverHost}:${serverPort}/fixtures/${projectUnderTest}/report/`,
-    record: 'on',
+    timeTravel: 'on',
 
     sets: {
         common: {

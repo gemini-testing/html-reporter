@@ -4,6 +4,7 @@ import {onExit} from 'signal-exit';
 import BluebirdPromise from 'bluebird';
 import bodyParser from 'body-parser';
 import {INTERNAL_SERVER_ERROR, OK} from 'http-codes';
+import type {Config} from 'testplane';
 
 import {App} from './app';
 import {MAX_REQUEST_SIZE, KEEP_ALIVE_TIMEOUT, HEADERS_TIMEOUT} from './constants';
@@ -11,9 +12,12 @@ import {logger} from '../common-utils';
 import {initPluginsRoutes} from './routes/plugins';
 import {ServerArgs} from './index';
 import {ServerReadyData} from './api';
-import {BrowserFeature, ToolName} from '../constants';
+import {BrowserFeature, Feature, ToolName} from '../constants';
 import type {TestplaneToolAdapter} from '../adapters/tool/testplane';
 import {ToolRunnerTree} from './tool-runner';
+import {getTimeTravelModeEnumSafe} from '../server-utils';
+import {TestplaneConfigAdapter} from '../adapters/config/testplane';
+import {UpdateTimeTravelSettingsRequest, UpdateTimeTravelSettingsResponse} from '../types';
 
 interface CustomGuiError {
     response: {
@@ -22,7 +26,11 @@ interface CustomGuiError {
     }
 }
 
-export type GetInitResponse = (ToolRunnerTree & {customGuiError?: CustomGuiError} & { browserFeatures: Record<string, BrowserFeature[]>}) | null;
+type TimeTravelConfig = Config['timeTravel'];
+
+const originalBrowserConfigs = new Map<string, {timeTravel?: TimeTravelConfig, saveHistoryMode?: Config['saveHistoryMode']}>();
+
+export type GetInitResponse = (ToolRunnerTree & {customGuiError?: CustomGuiError} & { browserFeatures: Record<string, BrowserFeature[]>, features: Feature[]}) | null;
 
 export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
     const {toolAdapter} = args;
@@ -79,6 +87,63 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
                     }
                 }
             } satisfies GetInitResponse);
+        }
+    });
+
+    server.post<string, unknown, UpdateTimeTravelSettingsResponse, UpdateTimeTravelSettingsRequest>('/update-time-travel-settings', (req, res) => {
+        try {
+            if (toolAdapter.toolName !== ToolName.Testplane) {
+                res.status(INTERNAL_SERVER_ERROR).json({error: {
+                    message: 'Time travel configuration is only supported for Testplane'
+                }});
+                return;
+            }
+
+            const {useRecommendedSettings} = req.body;
+
+            const tpAdapter = toolAdapter as TestplaneToolAdapter;
+            const tpConfig = tpAdapter.config as TestplaneConfigAdapter;
+            const TimeTravelMode = getTimeTravelModeEnumSafe();
+
+            if (!TimeTravelMode) {
+                res.status(INTERNAL_SERVER_ERROR).json({error: {
+                    message: 'Time Travel is not supported in this version of Testplane'
+                }});
+                return;
+            }
+
+            if (useRecommendedSettings) {
+                for (const browserId of tpConfig.browserIds) {
+                    const browserConfig = tpConfig.getBrowserConfig(browserId);
+                    if (!originalBrowserConfigs.has(browserId)) {
+                        originalBrowserConfigs.set(browserId, {
+                            timeTravel: browserConfig.timeTravel,
+                            saveHistoryMode: browserConfig.saveHistoryMode
+                        });
+                    }
+
+                    browserConfig.timeTravel = {mode: TimeTravelMode.On};
+                    browserConfig.saveHistoryMode = 'all';
+                }
+            } else {
+                for (const browserId of tpConfig.browserIds) {
+                    const browserConfig = tpConfig.getBrowserConfig(browserId);
+                    const originalConfig = originalBrowserConfigs.get(browserId);
+
+                    if (originalConfig && originalConfig.timeTravel && originalConfig.saveHistoryMode) {
+                        browserConfig.timeTravel = originalConfig.timeTravel;
+                        browserConfig.saveHistoryMode = originalConfig.saveHistoryMode;
+                    }
+                }
+            }
+
+            res.status(OK).json({data: {
+                browserFeatures: tpAdapter.browserFeatures
+            }});
+        } catch (e) {
+            res.status(INTERNAL_SERVER_ERROR).json({error: {
+                message: `Error updating time travel config: ${(e as Error).message}`
+            }});
         }
     });
 
@@ -146,6 +211,7 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
     server.get('/running-test-data', async (req, res): Promise<void> => {
         if (toolAdapter.toolName !== ToolName.Testplane) {
             res.status(500).json({error: `Getting running test data supports only in Testplane tool`});
+            return;
         }
 
         try {

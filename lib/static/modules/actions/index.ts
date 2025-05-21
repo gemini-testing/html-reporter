@@ -16,3 +16,4 @@ export * from './static-accepter';
 export * from './suites-page';
 export * from './suites-tree-state';
 export * from './visual-checks-page';
+export * from './browsers';

@@ -23,6 +23,7 @@ import type defaultState from '../default-state';
 import type {Tree} from '../../../tests-tree-builder/base';
 import {FeaturesAction} from '@/static/modules/actions/features';
 import {SnapshotsAction} from '@/static/modules/actions/snapshots';
+import {BrowsersAction} from '@/static/modules/actions/browsers';
 
 export type Store = Omit<typeof defaultState, 'tree'> & {tree: Tree};
 
@@ -50,4 +51,5 @@ export type SomeAction =
     | SuitesPageAction
     | SuiteTreeStateAction
     | FeaturesAction
-    | SnapshotsAction;
+    | SnapshotsAction
+    | BrowsersAction;

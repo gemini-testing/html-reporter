@@ -6,6 +6,7 @@ import {getTreeViewItems} from '@/static/new-ui/features/suites/components/Suite
 import {findTreeNodeByBrowserId, findTreeNodeById, getGroupId} from '@/static/new-ui/features/suites/utils';
 import * as localStorageWrapper from '../local-storage-wrapper';
 import {MIN_SECTION_SIZE_PERCENT} from '@/static/new-ui/features/suites/constants';
+import {TIME_TRAVEL_PLAYER_VISIBILITY_KEY} from '@/constants/local-storage';
 
 const SECTION_SIZES_LOCAL_STORAGE_KEY = 'suites-page-section-sizes';
 
@@ -45,6 +46,8 @@ export default (state: State, action: SomeAction): State => {
 
             const sectionSizes = localStorageWrapper.getItem(SECTION_SIZES_LOCAL_STORAGE_KEY, [MIN_SECTION_SIZE_PERCENT, 100 - MIN_SECTION_SIZE_PERCENT]) as number[];
 
+            const isSnapshotsPlayerVisible = Boolean(localStorageWrapper.getItem(TIME_TRAVEL_PLAYER_VISIBILITY_KEY, true));
+
             return applyStateUpdate(state, {
                 app: {
                     suitesPage: {
@@ -56,7 +59,8 @@ export default (state: State, action: SomeAction): State => {
                     suitesPage: {
                         expandedTreeNodesById,
                         treeViewMode,
-                        sectionSizes
+                        sectionSizes,
+                        isSnapshotsPlayerVisible
                     }
                 }
             });

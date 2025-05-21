@@ -1,0 +1,6 @@
+.dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 100vh;
+    background-color: var(--g-color-private-red-600-solid);
+}

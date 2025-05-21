@@ -1,4 +1,6 @@
 import {BrowserEntity, ImageEntity, ResultEntity, State} from '@/static/new-ui/types/store';
+import {BrowserFeature, TimeTravelFeature} from '@/constants';
+import {AttachmentType} from '@/types';
 
 export const getCurrentBrowser = (state: State): BrowserEntity | null => {
     const browserId = state.app.suitesPage.currentBrowserId;
@@ -53,4 +55,19 @@ export const getCurrentResultImages = (state: State): ImageEntity[] => {
     const result = getCurrentResult(state);
 
     return result?.imageIds.map(imageId => state.tree.images.byId[imageId]) ?? [];
+};
+
+export const isTimeTravelPlayerAvailable = (state: State): boolean => {
+    const currentResult = getCurrentResult(state);
+    if (!currentResult) {
+        return false;
+    }
+
+    const isRunning = state.running;
+    const browserFeatures = state.browserFeatures;
+    const isSnapshotAvailable = currentResult.attachments?.some(attachment => attachment.type === AttachmentType.Snapshot);
+    const isTimeTravelAvailable = state.app.availableFeatures.some(f => f.name === TimeTravelFeature.name);
+    const isLiveStreamingAvailable = isTimeTravelAvailable && browserFeatures[currentResult.name]?.some(feature => feature === BrowserFeature.LiveSnapshotsStreaming);
+
+    return isSnapshotAvailable || (isRunning && isLiveStreamingAvailable);
 };

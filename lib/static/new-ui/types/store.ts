@@ -305,6 +305,7 @@ export interface State {
             sectionSizes: number[];
             // Used to restore the previous sections sizes after collapsing the tree with a button
             backupSectionSizes: number[];
+            isSnapshotsPlayerVisible: boolean;
         };
         staticImageAccepterToolbar: {
             offset: Point;

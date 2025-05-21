@@ -51,6 +51,7 @@ describe('lib/static/modules/actions/lifecycle', () => {
         it('should fetch database from default html page', async () => {
             const href = 'http://127.0.0.1:8080/sqlite.db';
             getMainDatabaseUrl.returns({href});
+            axios.get.resolves({data: {some: 'data', features: []}});
 
             await actions.thunkInitGuiReport()(dispatch, sinon.stub(), sinon.stub());
 
@@ -60,13 +61,13 @@ describe('lib/static/modules/actions/lifecycle', () => {
         it('should dispatch "INIT_GUI_REPORT" action with data from "/init" route and connection to db', async () => {
             const db = {};
             connectToDatabaseStub.resolves(db);
-            axios.get.resolves({data: {some: 'data'}});
+            axios.get.resolves({data: {some: 'data', features: []}});
 
             await actions.thunkInitGuiReport()(dispatch, sinon.stub(), sinon.stub());
 
             assert.calledOnceWith(dispatch, {
                 type: actionNames.INIT_GUI_REPORT,
-                payload: {some: 'data', isNewUi: undefined, db}
+                payload: {some: 'data', isNewUi: undefined, db, features: []}
             });
         });
 
@@ -81,7 +82,7 @@ describe('lib/static/modules/actions/lifecycle', () => {
 
         it('should init plugins with the config from /init route', async () => {
             const config = {pluginsEnabled: true, plugins: []};
-            axios.get.withArgs('/init').resolves({data: {config}});
+            axios.get.withArgs('/init').resolves({data: {config, features: []}});
 
             await actions.thunkInitGuiReport()(dispatch, sinon.stub(), sinon.stub());
 
