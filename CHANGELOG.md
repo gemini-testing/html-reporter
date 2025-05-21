@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.18.0"></a>
+# [10.18.0](https://github.com/gemini-testing/html-reporter/compare/v10.17.1...v10.18.0) (2025-05-21)
+
+
+### Features
+
+* implement player show/hide button ([#666](https://github.com/gemini-testing/html-reporter/issues/666)) ([b9059e9](https://github.com/gemini-testing/html-reporter/commit/b9059e9))
+
+
+
 <a name="10.17.1"></a>
 ## [10.17.1](https://github.com/gemini-testing/html-reporter/compare/v10.17.0...v10.17.1) (2025-05-15)
 
