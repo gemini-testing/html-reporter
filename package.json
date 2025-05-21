@@ -14,6 +14,7 @@
   "scripts": {
     "build": "rimraf build && npm run build:client && npm run build:server && npm run build-bundle -- --minify",
     "build:client": "cross-env NODE_ENV=production webpack build --config=webpack.prod.js --progress && npm run copy-static",
+    "build:client:dev": "cross-env NODE_ENV=development webpack build --config=webpack.dev.js --progress && npm run copy-static",
     "build:server": "npx tsc",
     "build-bundle": "esbuild ./lib/bundle/index.ts --outdir=./build/lib/bundle --bundle --format=cjs --platform=node --target=ES2021",
     "copy-static": "copyfiles 'lib/static/icons/*' .npmignore build",

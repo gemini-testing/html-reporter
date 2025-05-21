@@ -2,7 +2,7 @@
 
 const _ = require('lodash');
 const {StaticTestsTreeBuilder} = require('lib/tests-tree-builder/static');
-const {SUCCESS} = require('lib/constants/test-statuses');
+const {SUCCESS, FAIL, SKIPPED} = require('lib/constants/test-statuses');
 const {BrowserVersions} = require('lib/constants/browser');
 const {ToolName} = require('lib/constants');
 
@@ -189,6 +189,73 @@ describe('StaticResultsTreeBuilder', () => {
                     {id: 'yabro1', versions: ['1']},
                     {id: 'yabro2', versions: ['2']}
                 ]);
+            });
+        });
+
+        describe('should calculate stats', () => {
+            it('failed and success tests', () => {
+                const dataFromDb1 = mkDataFromDb_({name: 'bro1', metaInfo: {browserVersion: 'v1'}, status: SUCCESS});
+                const dataFromDb2 = mkDataFromDb_({name: 'bro2', metaInfo: {browserVersion: 'v2'}, status: FAIL});
+                const rows = [mkDataRowFromDb_(dataFromDb1), mkDataRowFromDb_(dataFromDb2)];
+
+                const {stats} = builder.build(rows);
+
+                assert.deepEqual(stats.perBrowser.bro1.v1, {
+                    failed: 0,
+                    passed: 1,
+                    retries: 0,
+                    skipped: 0,
+                    total: 1
+                });
+
+                assert.deepEqual(stats.perBrowser.bro2.v2, {
+                    failed: 1,
+                    passed: 0,
+                    retries: 0,
+                    skipped: 0,
+                    total: 1
+                });
+
+                assert.match(stats, {
+                    failed: 1,
+                    passed: 1,
+                    retries: 0,
+                    skipped: 0,
+                    total: 2
+                });
+            });
+
+            it('mixed status test', () => {
+                const dataFromDb1 = mkDataFromDb_({name: 'bro1', metaInfo: {browserVersion: 'v1'}, status: SUCCESS});
+                const dataFromDb2 = mkDataFromDb_({name: 'bro1', metaInfo: {browserVersion: 'v1'}, status: FAIL});
+                const dataFromDb3 = mkDataFromDb_({name: 'bro1', metaInfo: {browserVersion: 'v1'}, status: SUCCESS});
+                const dataFromDb4 = mkDataFromDb_({name: 'bro1', metaInfo: {browserVersion: 'v1'}, status: FAIL});
+                const dataFromDb5 = mkDataFromDb_({name: 'bro1', metaInfo: {browserVersion: 'v1'}, status: SKIPPED});
+                const rows = [
+                    mkDataRowFromDb_(dataFromDb1),
+                    mkDataRowFromDb_(dataFromDb2),
+                    mkDataRowFromDb_(dataFromDb3),
+                    mkDataRowFromDb_(dataFromDb4),
+                    mkDataRowFromDb_(dataFromDb5)
+                ];
+
+                const {stats} = builder.build(rows);
+
+                assert.deepEqual(stats.perBrowser.bro1.v1, {
+                    failed: 0,
+                    passed: 0,
+                    retries: 4,
+                    skipped: 1,
+                    total: 1
+                });
+
+                assert.match(stats, {
+                    failed: 0,
+                    passed: 0,
+                    retries: 4,
+                    skipped: 1,
+                    total: 1
+                });
             });
         });
     });
