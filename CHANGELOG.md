@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.18.2"></a>
+## [10.18.2](https://github.com/gemini-testing/html-reporter/compare/v10.18.1...v10.18.2) (2025-05-23)
+
+
+### Bug Fixes
+
+* **merge-reports:** correctly end process with exit code 0 ([41aeb50](https://github.com/gemini-testing/html-reporter/commit/41aeb50))
+* **remove-unused-screens:** correctly end process with exit code 0 ([d55fc46](https://github.com/gemini-testing/html-reporter/commit/d55fc46))
+
+
+
 <a name="10.18.1"></a>
 ## [10.18.1](https://github.com/gemini-testing/html-reporter/compare/v10.18.0...v10.18.1) (2025-05-21)
 
