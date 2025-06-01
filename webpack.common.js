@@ -1,5 +1,6 @@
 'use strict';
 
+const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
@@ -11,6 +12,8 @@ const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const {ProgressPlugin} = require('webpack');
 
 const staticPath = path.resolve(__dirname, 'build', 'lib', 'static');
+
+const uiModeRedirectScript = fs.readFileSync(path.resolve(__dirname, 'lib', 'static', 'ui-mode-redirect.js'), 'utf8');
 
 module.exports = {
     entry: {
@@ -103,7 +106,10 @@ module.exports = {
             title: 'HTML report',
             filename: 'index.html',
             template: 'template.html',
-            chunks: ['report']
+            chunks: ['report'],
+            templateParameters: {
+                uiModeScript: uiModeRedirectScript
+            }
         }),
         new HtmlWebpackTagsPlugin({
             files: ['index.html'],
@@ -114,7 +120,10 @@ module.exports = {
             title: 'Gui report',
             filename: 'gui.html',
             template: 'template.html',
-            chunks: ['gui']
+            chunks: ['gui'],
+            templateParameters: {
+                uiModeScript: uiModeRedirectScript
+            }
         }),
         new HtmlWebpackTagsPlugin({
             files: ['gui.html'],
@@ -125,7 +134,10 @@ module.exports = {
             title: 'HTML report (New UI)',
             filename: 'new-ui-report.html',
             template: 'template-new-ui.html',
-            chunks: ['newReport']
+            chunks: ['newReport'],
+            templateParameters: {
+                uiModeScript: uiModeRedirectScript
+            }
         }),
         new HtmlWebpackTagsPlugin({
             files: ['new-ui-report.html'],
@@ -136,7 +148,10 @@ module.exports = {
             title: 'GUI report (New UI)',
             filename: 'new-ui-gui.html',
             template: 'template-new-ui.html',
-            chunks: ['newGui']
+            chunks: ['newGui'],
+            templateParameters: {
+                uiModeScript: uiModeRedirectScript
+            }
         }),
         new HtmlWebpackTagsPlugin({
             files: ['new-ui-gui.html'],

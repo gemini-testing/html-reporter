@@ -6,6 +6,7 @@ import {logger} from '../common-utils';
 import {configDefaults, DiffModeId, DiffModes, SaveFormat, ViewMode} from '../constants';
 import {assertCustomGui} from './custom-gui-asserts';
 import {ErrorPattern, PluginDescription, ReporterConfig, ReporterOptions} from '../types';
+import {UiMode} from '../constants/local-storage';
 
 const ENV_PREFIX = 'html_reporter_';
 const CLI_PREFIX = '--html-reporter-';
@@ -131,6 +132,16 @@ const assertDiffMode = (diffMode: unknown): asserts diffMode is DiffModeId => {
     }
 };
 
+const assertUiMode = (uiMode: unknown): asserts uiMode is UiMode | null => {
+    if (uiMode === null) {
+        return;
+    }
+
+    if (!_.isString(uiMode) || !Object.values(UiMode).includes(uiMode as UiMode)) {
+        throw new Error(`"uiMode" must be one of "${Object.values(UiMode).join('", "')}", but got "${uiMode}"`);
+    }
+};
+
 const mapErrorPatterns = (errorPatterns: (string | ErrorPattern)[]): ErrorPattern[] => {
     return errorPatterns.map(patternInfo => {
         return _.isString(patternInfo)
@@ -176,6 +187,10 @@ const getParser = (): ReturnType<typeof root<ReporterConfig>> => {
         diffMode: option<DiffModeId>({
             defaultValue: configDefaults.diffMode,
             validate: assertDiffMode
+        }),
+        uiMode: option({
+            defaultValue: configDefaults.uiMode,
+            validate: assertUiMode
         }),
         baseHost: option({
             defaultValue: configDefaults.baseHost,
