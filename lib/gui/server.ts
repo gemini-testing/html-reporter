@@ -56,6 +56,15 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
     server.get('/', (_req, res) => res.sendFile(path.join(__dirname, '../static', 'gui.html')));
     server.get('/new-ui', (_req, res) => res.sendFile(path.join(__dirname, '../static', 'new-ui-gui.html')));
 
+    server.get('/ui-mode', (_req, res) => {
+        try {
+            const uiMode = reporterConfig.uiMode || null;
+            res.json({uiMode});
+        } catch (e) {
+            res.status(INTERNAL_SERVER_ERROR).json({error: 'Failed to get UI config'});
+        }
+    });
+
     server.get('/events', (_req, res) => {
         res.writeHead(OK, {'Content-Type': 'text/event-stream'});
 
