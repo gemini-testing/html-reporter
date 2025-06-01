@@ -212,7 +212,8 @@ export type ConfigForStaticFile = Pick<ReporterConfig, 'defaultView' |
     'customScripts' |
     'yandexMetrika' |
     'pluginsEnabled' |
-    'plugins'>;
+    'plugins' |
+    'uiMode'>;
 
 export function getConfigForStaticFile(pluginConfig: ReporterConfig): ConfigForStaticFile {
     return _.pick(pluginConfig, [
@@ -225,7 +226,8 @@ export function getConfigForStaticFile(pluginConfig: ReporterConfig): ConfigForS
         'yandexMetrika',
         'pluginsEnabled',
         'plugins',
-        'staticImageAccepter'
+        'staticImageAccepter',
+        'uiMode'
     ]);
 }
 
