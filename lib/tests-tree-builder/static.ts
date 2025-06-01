@@ -5,7 +5,7 @@ import {ReporterTestResult} from '../adapters/test-result';
 import {SqliteTestResultAdapter} from '../adapters/test-result/sqlite';
 import {BrowserItem, RawSuitesRow} from '../types';
 
-interface Stats {
+export interface Stats {
     total: number;
     passed: number;
     failed: number;
@@ -13,13 +13,13 @@ interface Stats {
     retries: number;
 }
 
-export type FinalStats = Stats & {
-    perBrowser: {
-        [browserName: string]: {
-            [browserVersion: string]: Stats
-        }
+export interface PerBrowserStats {
+    [browserName: string]: {
+        [browserVersion: string]: Stats
     }
 }
+
+export type FinalStats = Stats & {perBrowser: PerBrowserStats}
 
 export interface SkipItem {
     browser: string;

@@ -15,6 +15,7 @@ import {AcceptableImage} from '@/static/modules/static-image-accepter';
 import {CheckStatus} from '@/constants/checked-statuses';
 import {EntityType} from '@/static/new-ui/features/suites/components/SuitesPage/types';
 import {DbDetails} from '@/db-utils/common';
+import {Stats, PerBrowserStats} from '@/tests-tree-builder/static';
 
 export interface GroupEntity {
     id: string;
@@ -342,6 +343,7 @@ export interface State {
     };
     timestamp: number;
     fetchDbDetails: DbDetails[];
+    stats: {all: Stats | Record<string, never>, perBrowser: PerBrowserStats | undefined} | null;
 }
 
 declare module 'react-redux' {
