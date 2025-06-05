@@ -257,6 +257,168 @@ describe('StaticResultsTreeBuilder', () => {
                     total: 1
                 });
             });
+
+            it('should handle SKIPPED->SUCCESS transition', () => {
+                const dataFromDb1 = mkDataFromDb_({name: 'bro1', metaInfo: {browserVersion: 'v1'}, status: SKIPPED});
+                const dataFromDb2 = mkDataFromDb_({name: 'bro1', metaInfo: {browserVersion: 'v1'}, status: SUCCESS});
+                const rows = [
+                    mkDataRowFromDb_(dataFromDb1),
+                    mkDataRowFromDb_(dataFromDb2)
+                ];
+
+                const {stats} = builder.build(rows);
+
+                assert.deepEqual(stats.perBrowser.bro1.v1, {
+                    failed: 0,
+                    passed: 1,
+                    retries: 1,
+                    skipped: 0,
+                    total: 1
+                });
+
+                assert.match(stats, {
+                    failed: 0,
+                    passed: 1,
+                    retries: 1,
+                    skipped: 0,
+                    total: 1
+                });
+            });
+
+            it('should handle SKIPPED->FAIL transition', () => {
+                const dataFromDb1 = mkDataFromDb_({name: 'bro1', metaInfo: {browserVersion: 'v1'}, status: SKIPPED});
+                const dataFromDb2 = mkDataFromDb_({name: 'bro1', metaInfo: {browserVersion: 'v1'}, status: FAIL});
+                const rows = [
+                    mkDataRowFromDb_(dataFromDb1),
+                    mkDataRowFromDb_(dataFromDb2)
+                ];
+
+                const {stats} = builder.build(rows);
+
+                assert.deepEqual(stats.perBrowser.bro1.v1, {
+                    failed: 1,
+                    passed: 0,
+                    retries: 1,
+                    skipped: 0,
+                    total: 1
+                });
+
+                assert.match(stats, {
+                    failed: 1,
+                    passed: 0,
+                    retries: 1,
+                    skipped: 0,
+                    total: 1
+                });
+            });
+
+            it('should handle SUCCESS->FAIL transition', () => {
+                const dataFromDb1 = mkDataFromDb_({name: 'bro1', metaInfo: {browserVersion: 'v1'}, status: SUCCESS});
+                const dataFromDb2 = mkDataFromDb_({name: 'bro1', metaInfo: {browserVersion: 'v1'}, status: FAIL});
+                const rows = [
+                    mkDataRowFromDb_(dataFromDb1),
+                    mkDataRowFromDb_(dataFromDb2)
+                ];
+
+                const {stats} = builder.build(rows);
+
+                assert.deepEqual(stats.perBrowser.bro1.v1, {
+                    failed: 1,
+                    passed: 0,
+                    retries: 1,
+                    skipped: 0,
+                    total: 1
+                });
+
+                assert.match(stats, {
+                    failed: 1,
+                    passed: 0,
+                    retries: 1,
+                    skipped: 0,
+                    total: 1
+                });
+            });
+
+            it('should handle FAIL->SUCCESS transition', () => {
+                const dataFromDb1 = mkDataFromDb_({name: 'bro1', metaInfo: {browserVersion: 'v1'}, status: FAIL});
+                const dataFromDb2 = mkDataFromDb_({name: 'bro1', metaInfo: {browserVersion: 'v1'}, status: SUCCESS});
+                const rows = [
+                    mkDataRowFromDb_(dataFromDb1),
+                    mkDataRowFromDb_(dataFromDb2)
+                ];
+
+                const {stats} = builder.build(rows);
+
+                assert.deepEqual(stats.perBrowser.bro1.v1, {
+                    failed: 0,
+                    passed: 1,
+                    retries: 1,
+                    skipped: 0,
+                    total: 1
+                });
+
+                assert.match(stats, {
+                    failed: 0,
+                    passed: 1,
+                    retries: 1,
+                    skipped: 0,
+                    total: 1
+                });
+            });
+
+            it('should handle SUCCESS->SKIPPED transition', () => {
+                const dataFromDb1 = mkDataFromDb_({name: 'bro1', metaInfo: {browserVersion: 'v1'}, status: SUCCESS});
+                const dataFromDb2 = mkDataFromDb_({name: 'bro1', metaInfo: {browserVersion: 'v1'}, status: SKIPPED});
+                const rows = [
+                    mkDataRowFromDb_(dataFromDb1),
+                    mkDataRowFromDb_(dataFromDb2)
+                ];
+
+                const {stats} = builder.build(rows);
+
+                assert.deepEqual(stats.perBrowser.bro1.v1, {
+                    failed: 0,
+                    passed: 0,
+                    retries: 1,
+                    skipped: 1,
+                    total: 1
+                });
+
+                assert.match(stats, {
+                    failed: 0,
+                    passed: 0,
+                    retries: 1,
+                    skipped: 1,
+                    total: 1
+                });
+            });
+
+            it('should handle FAIL->SKIPPED transition', () => {
+                const dataFromDb1 = mkDataFromDb_({name: 'bro1', metaInfo: {browserVersion: 'v1'}, status: FAIL});
+                const dataFromDb2 = mkDataFromDb_({name: 'bro1', metaInfo: {browserVersion: 'v1'}, status: SKIPPED});
+                const rows = [
+                    mkDataRowFromDb_(dataFromDb1),
+                    mkDataRowFromDb_(dataFromDb2)
+                ];
+
+                const {stats} = builder.build(rows);
+
+                assert.deepEqual(stats.perBrowser.bro1.v1, {
+                    failed: 0,
+                    passed: 0,
+                    retries: 1,
+                    skipped: 1,
+                    total: 1
+                });
+
+                assert.match(stats, {
+                    failed: 0,
+                    passed: 0,
+                    retries: 1,
+                    skipped: 1,
+                    total: 1
+                });
+            });
         });
     });
 });

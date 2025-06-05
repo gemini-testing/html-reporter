@@ -131,6 +131,21 @@ export class StaticTestsTreeBuilder extends BaseTestsTreeBuilder {
                     return;
                 }
 
+                if (this._skippedTestIds[testIdWithBrowser]) {
+                    delete this._skippedTestIds[testIdWithBrowser];
+                    this._failedTestIds[testIdWithBrowser] = true;
+
+                    this._stats.skipped--;
+                    this._stats.failed++;
+                    this._stats.retries++;
+
+                    this._stats.perBrowser[browserName][version].skipped--;
+                    this._stats.perBrowser[browserName][version].failed++;
+                    this._stats.perBrowser[browserName][version].retries++;
+
+                    return;
+                }
+
                 this._failedTestIds[testIdWithBrowser] = true;
 
                 this._stats.failed++;
@@ -157,6 +172,21 @@ export class StaticTestsTreeBuilder extends BaseTestsTreeBuilder {
                     this._stats.retries++;
 
                     this._stats.perBrowser[browserName][version].failed--;
+                    this._stats.perBrowser[browserName][version].passed++;
+                    this._stats.perBrowser[browserName][version].retries++;
+
+                    return;
+                }
+
+                if (this._skippedTestIds[testIdWithBrowser]) {
+                    delete this._skippedTestIds[testIdWithBrowser];
+                    this._passedTestIds[testIdWithBrowser] = true;
+
+                    this._stats.skipped--;
+                    this._stats.passed++;
+                    this._stats.retries++;
+
+                    this._stats.perBrowser[browserName][version].skipped--;
                     this._stats.perBrowser[browserName][version].passed++;
                     this._stats.perBrowser[browserName][version].retries++;
 
@@ -205,8 +235,8 @@ export class StaticTestsTreeBuilder extends BaseTestsTreeBuilder {
                     this._stats.retries++;
 
                     this._stats.perBrowser[browserName][version].passed--;
-                    this._stats.perBrowser[browserName][version].passed--;
-                    this._stats.perBrowser[browserName][version].passed--;
+                    this._stats.perBrowser[browserName][version].skipped++;
+                    this._stats.perBrowser[browserName][version].retries++;
 
                     this._skips.push({
                         browser: browserName,
