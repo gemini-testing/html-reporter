@@ -18,6 +18,7 @@ import {ToolRunnerTree} from './tool-runner';
 import {getTimeTravelModeEnumSafe} from '../server-utils';
 import {TestplaneConfigAdapter} from '../adapters/config/testplane';
 import {UpdateTimeTravelSettingsRequest, UpdateTimeTravelSettingsResponse} from '../types';
+import {NEW_ISSUE_LINK} from '../constants';
 
 interface CustomGuiError {
     response: {
@@ -61,7 +62,9 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
             const uiMode = reporterConfig.uiMode || null;
             res.json({uiMode});
         } catch (e) {
-            res.status(INTERNAL_SERVER_ERROR).json({error: 'Failed to get UI config'});
+            res.json({uiMode: null});
+            console.error(`Error while getting UI config. You may report this at: ${NEW_ISSUE_LINK}`);
+            console.error(e);
         }
     });
 
