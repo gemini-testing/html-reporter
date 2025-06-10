@@ -62,6 +62,7 @@ module.exports = {
         'html-reporter/hermione': {
             enabled: true,
             path: 'my/hermione-reports',
+            uiMode: 'new',
             defaultView: 'all',
             baseHost: 'test.com',
             errorPatterns: [
@@ -107,6 +108,7 @@ module.exports = {
 | [enabled](#enabled) | Boolean | true | Enable / disable the plugin. |
 | [path](#path) | String | "html-report" | The path to the folder for saving html-report files. |
 | [saveErrorDetails](#saveerrordetails) | Boolean | false | Save / do not save error details in json files. |
+| [uiMode](#uimode) | String | `null` | Default UI mode: "old" for classic interface, "new" for modern interface. |
 | [defaultView](#defaultview) | String | "all" | The test filtering mode when displayed, which will be set by default. |
 | [diffMode](#diffmode) | String | "3-up" | The mode of viewing diffs, which will be set by default. |
 | [baseHost](#basehost) | String | _N/A_ | Replaces the original host address for viewing in the browser. |
@@ -149,6 +151,16 @@ err.details = {
 
 throw err;
 ```
+
+### uiMode
+
+Default UI mode: "old" for classic interface, "new" for modern interface. This affects redirects between old and new UI.
+
+By default, no redirects are performed.
+
+The following values are available: `"old"`, `"new"`.
+
+For example, if `"new"` is set, then users will be redirected to new UI when trying to access old UI. However, if user manually clicks "go back to old UI" button, this settings will be remembered and he will always use old UI unless he switches back.
 
 ### defaultView
 

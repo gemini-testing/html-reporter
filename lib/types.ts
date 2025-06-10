@@ -4,6 +4,7 @@ import type {default as Testplane, TestResult} from 'testplane';
 import {BrowserFeature, DiffModeId, SaveFormat, SUITES_TABLE_COLUMNS, TestStatus, ViewMode} from './constants';
 import type {HtmlReporter} from './plugin-api';
 import {ImageDiffError, NoRefImageError} from './errors';
+import {UiMode} from './constants/local-storage';
 
 declare module 'tmp' {
     export const tmpdir: string;
@@ -250,6 +251,7 @@ export interface ReporterConfig {
     saveFormat: SaveFormat;
     yandexMetrika: { enabled?: boolean; counterNumber: null | number };
     staticImageAccepter: StaticImageAccepterConfig;
+    uiMode: UiMode | null;
 }
 
 export type ReporterOptions = Omit<ReporterConfig, 'errorPatterns'> & {errorPatterns: (string | ErrorPattern)[]};
