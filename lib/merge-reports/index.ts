@@ -1,30 +1,40 @@
-'use strict';
+import * as url from 'url';
+import * as path from 'path';
+import type {Stats} from 'fs';
+import fs from 'fs-extra';
+import axios from 'axios';
+import * as _ from 'lodash';
 
-const url = require('url');
-const urljoin = require('url-join');
-const path = require('path');
-const fs = require('fs-extra');
-const axios = require('axios');
-const _ = require('lodash');
+import * as serverUtils from '../server-utils';
+import {isUrl, logger} from '../common-utils';
+import * as dbServerUtils from '../db-utils/server';
+import {DB_FILE_EXTENSION, IMAGES_PATH, SNAPSHOTS_PATH, ERROR_DETAILS_PATH, DATABASE_URLS_JSON_NAME, LOCAL_DATABASE_NAME} from '../constants';
+import {ToolAdapter} from '../adapters/tool';
 
-const serverUtils = require('../server-utils');
-const {isUrl, logger} = require('../common-utils');
-const dbServerUtils = require('../db-utils/server');
-const {DB_FILE_EXTENSION, IMAGES_PATH, SNAPSHOTS_PATH, ERROR_DETAILS_PATH, DATABASE_URLS_JSON_NAME, LOCAL_DATABASE_NAME} = require('../constants');
+interface MergeOptions {
+    destPath: string;
+    headers: string[];
+}
 
-module.exports = async (toolAdapter, srcPaths, {destPath, headers}) => {
+interface DbPath {
+    src: string;
+    dest: string;
+}
+
+export const mergeReports = async (toolAdapter: ToolAdapter, srcPaths: string[], {destPath, headers}: MergeOptions): Promise<void> => {
     await validateOpts({srcPaths, destPath, headers});
 
-    let headersFromEnv;
+    let headersFromEnv: Record<string, string>;
     const {htmlReporter, reporterConfig} = toolAdapter;
 
     try {
         headersFromEnv = JSON.parse(process.env.html_reporter_headers || '{}');
-    } catch (e) {
-        throw new Error(`Couldn't parse headers from "html_reporter_headers" env variable: ${e.message}`);
+    } catch (e: unknown) {
+        const error = e as Error;
+        throw new Error(`Couldn't parse headers from "html_reporter_headers" env variable: ${error.message}`);
     }
 
-    const headersFromCli = headers.reduce((acc, header) => {
+    const headersFromCli = headers.reduce((acc: Record<string, string>, header: string) => {
         const [key, ...values] = header.split('=');
         return _.set(acc, key, values.join('='));
     }, {});
@@ -34,13 +44,15 @@ module.exports = async (toolAdapter, srcPaths, {destPath, headers}) => {
     const resolvedDbFiles = resolvedUrls.filter(serverUtils.isDbFile);
 
     const {true: remoteDbUrls = [], false: localDbPaths = []} = _.groupBy(resolvedDbFiles, isUrl);
-    const dbPaths = localDbPaths.map((db, ind, arr) => {
+    const dbPaths: DbPath[] = localDbPaths.map((db: string, ind: number, arr: string[]) => {
         const dbName = arr.length > 1 ? genUniqDbName(db, ind + 1) : path.basename(db);
         return {src: path.resolve(process.cwd(), db), dest: path.resolve(destPath, dbName)};
     });
 
     const allDbPaths = [...remoteDbUrls, ...dbPaths.map(({dest}) => path.parse(dest).base)];
-    const copyFilePromises = [];
+    const copyFilePromises: Promise<void>[] = [];
+
+    await fs.ensureDir(destPath);
 
     if (!_.isEmpty(localDbPaths)) {
         const srcReportPaths = _.uniq(localDbPaths.map(db => path.resolve(process.cwd(), path.parse(db).dir)));
@@ -62,7 +74,13 @@ module.exports = async (toolAdapter, srcPaths, {destPath, headers}) => {
     await htmlReporter.emitAsync(htmlReporter.events.REPORT_SAVED, {reportPath: destPath});
 };
 
-async function validateOpts({srcPaths, destPath, headers}) {
+interface ValidateOptsParams {
+    srcPaths: string[];
+    destPath: string;
+    headers: string[];
+}
+
+async function validateOpts({srcPaths, destPath, headers}: ValidateOptsParams): Promise<void> {
     if (!srcPaths.length) {
         throw new Error('Nothing to merge, no source reports are passed');
     }
@@ -80,12 +98,13 @@ async function validateOpts({srcPaths, destPath, headers}) {
             continue;
         }
 
-        let srcPathStat;
+        let srcPathStat: Stats;
 
         try {
             srcPathStat = await fs.stat(srcPath);
-        } catch (err) {
-            if (err.code !== 'ENOENT') {
+        } catch (err: unknown) {
+            const error = err as NodeJS.ErrnoException;
+            if (error.code !== 'ENOENT') {
                 throw err;
             } else {
                 throw new Error(`Specified source path: ${srcPath} doesn't exists on file system`);
@@ -101,7 +120,7 @@ async function validateOpts({srcPaths, destPath, headers}) {
             }
         } else {
             if (!srcPath.endsWith(DATABASE_URLS_JSON_NAME) && !srcPath.endsWith(LOCAL_DATABASE_NAME)) {
-                throw new Error(`Specified source path: ${srcPath} must ends with ${DATABASE_URLS_JSON_NAME} or ${LOCAL_DATABASE_NAME}`);
+                throw new Error(`Specified source path: ${srcPath} must be a directory or one of the following files: ${DATABASE_URLS_JSON_NAME}, ${LOCAL_DATABASE_NAME}.`);
             }
         }
     }
@@ -113,13 +132,13 @@ async function validateOpts({srcPaths, destPath, headers}) {
     }
 }
 
-async function tryResolveUrls(urls, headers) {
-    const resolvedUrls = [];
-    const results = await Promise.all(urls.map(async u => {
-        const extName = path.extname(isUrl(u) ? url.parse(u).pathname : u);
+async function tryResolveUrls(urls: string[], headers: Record<string, string>): Promise<string[]> {
+    const resolvedUrls: string[] = [];
+    const results = await Promise.all(urls.map(async (u: string) => {
+        const extName = path.extname(isUrl(u) ? url.parse(u).pathname || '' : u);
 
         if (!extName) {
-            u = isUrl(u) ? urljoin(u, DATABASE_URLS_JSON_NAME) : path.join(u, DATABASE_URLS_JSON_NAME);
+            u = isUrl(u) ? new URL(DATABASE_URLS_JSON_NAME, u).href : path.join(u, DATABASE_URLS_JSON_NAME);
         }
 
         return tryResolveUrl(u, headers);
@@ -132,9 +151,14 @@ async function tryResolveUrls(urls, headers) {
     return resolvedUrls;
 }
 
-async function tryResolveUrl(url, headers) {
-    const jsonUrls = [];
-    const dbUrls = [];
+interface ResolveUrlResult {
+    jsonUrls: string[];
+    dbUrls: string[];
+}
+
+async function tryResolveUrl(url: string, headers: Record<string, string>): Promise<ResolveUrlResult> {
+    const jsonUrls: string[] = [];
+    const dbUrls: string[] = [];
 
     if (serverUtils.isDbFile(url)) {
         dbUrls.push(url);
@@ -150,7 +174,7 @@ async function tryResolveUrl(url, headers) {
             const preparedDbUrls = dbServerUtils.prepareUrls(currentDbUrls, url);
             const preparedJsonUrls = dbServerUtils.prepareUrls(currentJsonUrls, url);
 
-            const responses = await Promise.all(preparedJsonUrls.map(url => tryResolveUrl(url, headers)));
+            const responses = await Promise.all(preparedJsonUrls.map((url: string) => tryResolveUrl(url, headers)));
 
             dbUrls.push(...preparedDbUrls);
 
@@ -158,8 +182,9 @@ async function tryResolveUrl(url, headers) {
                 dbUrls.push(...response.dbUrls);
                 jsonUrls.push(...response.jsonUrls);
             });
-        } catch (e) {
-            logger.warn(`Failed to handle ${url}: ${e.message}`);
+        } catch (e: unknown) {
+            const error = e as Error;
+            logger.warn(`Failed to handle ${url}: ${error.message}`);
             jsonUrls.push(url);
         }
     }
@@ -167,15 +192,21 @@ async function tryResolveUrl(url, headers) {
     return {jsonUrls, dbUrls};
 }
 
-function genUniqDbName(dbPath, num) {
+function genUniqDbName(dbPath: string, num: number): string {
     return `${path.basename(dbPath, DB_FILE_EXTENSION)}_${num}${DB_FILE_EXTENSION}`;
 }
 
-async function copyDbFiles(dbPaths) {
-    await Promise.all(dbPaths.map(({src, dest}) => fs.copy(src, dest)));
+async function copyDbFiles(dbPaths: DbPath[]): Promise<void> {
+    await Promise.all(dbPaths.map(({src, dest}: DbPath) => fs.copy(src, dest)));
 }
 
-async function copyArtifacts({srcPaths, destPath, folderName}) {
+interface CopyArtifactsParams {
+    srcPaths: string[];
+    destPath: string;
+    folderName: string;
+}
+
+async function copyArtifacts({srcPaths, destPath, folderName}: CopyArtifactsParams): Promise<void> {
     for (const reportPath of srcPaths) {
         const src = path.resolve(reportPath, folderName);
         const dest = path.resolve(destPath, folderName);

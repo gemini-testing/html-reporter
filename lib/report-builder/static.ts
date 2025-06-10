@@ -65,6 +65,7 @@ export class StaticReportBuilder {
     async saveStaticFiles(): Promise<void> {
         const destPath = this._reporterConfig.path;
 
+        await fs.ensureDir(destPath);
         await Promise.all([
             saveStaticFilesToReportDir(this._htmlReporter, this._reporterConfig, destPath),
             writeDatabaseUrlsFile(destPath, [LOCAL_DATABASE_NAME])
