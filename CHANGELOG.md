@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.18.4"></a>
+## [10.18.4](https://github.com/gemini-testing/html-reporter/compare/v10.18.3...v10.18.4) (2025-06-10)
+
+
+### Bug Fixes
+
+* add support for all transitions ([f2661e3](https://github.com/gemini-testing/html-reporter/commit/f2661e3))
+
+
+### Features
+
+* implement uiMode option in config ([#672](https://github.com/gemini-testing/html-reporter/issues/672)) ([3203729](https://github.com/gemini-testing/html-reporter/commit/3203729))
+
+
+
 <a name="10.18.3"></a>
 ## [10.18.3](https://github.com/gemini-testing/html-reporter/compare/v10.18.2...v10.18.3) (2025-06-01)
 

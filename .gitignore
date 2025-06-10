@@ -21,6 +21,7 @@ sqlite.db
 .nyc_output
 tmp
 **/.testplane
+html-reporter-*.tgz
 
 **/playwright-report
 hermione-report
