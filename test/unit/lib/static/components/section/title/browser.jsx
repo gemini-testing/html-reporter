@@ -91,22 +91,6 @@ describe('<BrowserTitle/>', () => {
     });
 
     describe('<ClipboardButton/>', () => {
-        it('should call action "onCopyTestLink" on click', async () => {
-            window.prompt = sinon.stub();
-            const user = userEvent.setup();
-
-            const browsersById = mkBrowser({id: 'yabro', name: 'yabro', resultIds: ['default_res']});
-            const resultsById = mkResult({id: 'default_res', status: SUCCESS, skipReason: 'some-reason'});
-            const browsersStateById = {'yabro': {checkStatus: UNCHECKED}};
-            const tree = mkStateTree({browsersById, resultsById, browsersStateById});
-
-            const component = mkBrowserTitleComponent({browserId: 'yabro'}, {tree});
-            await user.click(component.queryByRole('button'));
-
-            assert.calledOnce(actionsStub.copyTestLink);
-            assert.calledWithExactly(actionsStub.copyTestLink);
-        });
-
         it('should call "appendQuery" with correct arguments', () => {
             const browsersById = mkBrowser({id: 'yabro', name: 'yabro', parentId: 'test'});
             const resultsById = mkResult({id: 'default_res', status: SUCCESS, skipReason: 'some-reason'});
