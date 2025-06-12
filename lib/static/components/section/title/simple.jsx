@@ -8,17 +8,12 @@ import * as actions from '../../../modules/actions';
 import {mkGetTestsBySuiteId} from '../../../modules/selectors/tree';
 import {getToggledCheckboxState} from '../../../../common-utils';
 import Bullet from '../../bullet';
-import {Button, ClipboardButton, Spin} from '@gravity-ui/uikit';
+import {Button, Spin} from '@gravity-ui/uikit';
 import {ArrowRotateLeft} from '@gravity-ui/icons';
 import {TestStatus} from '../../../../constants';
+import {ClipboardButton} from '../../../new-ui/components/ClipboardButton';
 
 const SectionTitle = ({name, suiteId, handler, gui, checkStatus, suiteTests, actions, running, runningThis}) => {
-    const onCopySuiteName = (e) => {
-        e.stopPropagation();
-
-        actions.copySuiteName(suiteId);
-    };
-
     const onSuiteRetry = (e) => {
         e.stopPropagation();
 
@@ -34,12 +29,15 @@ const SectionTitle = ({name, suiteId, handler, gui, checkStatus, suiteTests, act
         });
     };
 
+    const onCopyButtonClick = (e) => {
+        e.stopPropagation();
+    };
+
     const drawCopyButton = () => (
         <ClipboardButton
             size='s'
-            onClick={onCopySuiteName}
-            title="copy to clipboard"
-            text={suiteId}>
+            text={suiteId}
+            onClick={onCopyButtonClick}>
         </ClipboardButton>
     );
 

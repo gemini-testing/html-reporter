@@ -10,33 +10,8 @@ import {EXPAND_ALL} from '../../../../constants/expand-modes';
 import {getToggledCheckboxState} from '../../../../common-utils';
 import ViewInBrowserIcon from '../../icons/view-in-browser';
 import Bullet from '../../bullet';
-import {ActionTooltip, Button, CopyToClipboard} from '@gravity-ui/uikit';
+import {ClipboardButton} from '../../../new-ui/components/ClipboardButton';
 import {ArrowShapeTurnUpRight} from '@gravity-ui/icons';
-
-const ShareButtonComponent = ({status, ...rest}) => {
-    return (
-        <ActionTooltip
-            title={status === 'success' ? 'Copied' : 'Copy test link'}
-        >
-            <Button
-                size='s'
-                view='flat'
-                extraProps={{
-                    'aria-label': 'Copy test link'
-                }}
-                {...rest}
-            >
-                <Button.Icon>
-                    <ArrowShapeTurnUpRight width={16} height={16}/>
-                </Button.Icon>
-            </Button>
-        </ActionTooltip>
-    );
-};
-
-ShareButtonComponent.propTypes = {
-    status: PropTypes.string.isRequired
-};
 
 const BrowserTitle = (props) => {
     const testUrl = React.useMemo(() => {
@@ -52,8 +27,6 @@ const BrowserTitle = (props) => {
 
     const onCopyTestLink = (e) => {
         e.stopPropagation();
-
-        props.actions.copyTestLink();
     };
 
     const onToggleCheckbox = (e) => {
@@ -70,9 +43,12 @@ const BrowserTitle = (props) => {
             <Bullet status={props.checkStatus} onClick={onToggleCheckbox} />
             {props.title}
             <ViewInBrowserIcon resultId={props.lastResultId}/>
-            <CopyToClipboard text={testUrl} timeout={1000}>
-                {(status) => <ShareButtonComponent onClick={onCopyTestLink} status={status}/>}
-            </CopyToClipboard>
+            <ClipboardButton
+                text={testUrl}
+                title="copy test link"
+                icon={<ArrowShapeTurnUpRight width={16} height={16}/>}
+                onClick={onCopyTestLink}
+            />
         </div>
     );
 };
