@@ -10,6 +10,5 @@
 .image {
     aspect-ratio: var(--natural-width) / var(--natural-height);
     max-width: calc(min(var(--natural-width) * 1px, 100%));
-    width: 100%;
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
 }

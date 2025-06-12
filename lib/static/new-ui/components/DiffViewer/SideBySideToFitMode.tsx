@@ -22,15 +22,15 @@ export function SideBySideToFitMode(props: SideBySideToFitModeProps): ReactNode 
     return <div className={styles.sideBySideToFitMode} style={{'--desired-height': props.desiredHeight} as React.CSSProperties}>
         <div className={styles.imageWrapper} style={getImageSizeCssVars(expected.size)}>
             {expected.label}
-            <Screenshot imageClassName={styles.image} image={expected} />
+            <Screenshot imageClassName={styles.image} image={expected} containerClassName={styles.imageContainer} />
         </div>
         <div className={styles.imageWrapper} style={getImageSizeCssVars(actual.size)}>
             {actual.label}
-            <Screenshot imageClassName={styles.image} image={actual} />
+            <Screenshot imageClassName={styles.image} image={actual} containerClassName={styles.imageContainer} />
         </div>
         <div className={styles.imageWrapper} style={getImageSizeCssVars(diff.size)}>
             {diff.label}
-            <Screenshot imageClassName={styles.image} image={diff} diffClusters={diff.diffClusters}/>
+            <Screenshot imageClassName={styles.image} image={diff} diffClusters={diff.diffClusters} containerClassName={styles.imageContainer} />
         </div>
     </div>;
 }
