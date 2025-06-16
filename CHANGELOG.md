@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.18.6"></a>
+## [10.18.6](https://github.com/gemini-testing/html-reporter/compare/v10.18.5...v10.18.6) (2025-06-16)
+
+
+### Bug Fixes
+
+* create destination directory beforehand during merge-reports ([#674](https://github.com/gemini-testing/html-reporter/issues/674)) ([90682ac](https://github.com/gemini-testing/html-reporter/commit/90682ac))
+* fix copying test name to clipboard ([#675](https://github.com/gemini-testing/html-reporter/issues/675)) ([f130afc](https://github.com/gemini-testing/html-reporter/commit/f130afc))
+* fix scroll issues in old ui ([#676](https://github.com/gemini-testing/html-reporter/issues/676)) ([23f860d](https://github.com/gemini-testing/html-reporter/commit/23f860d))
+
+
+
 <a name="10.18.5"></a>
 ## [10.18.5](https://github.com/gemini-testing/html-reporter/compare/v10.18.4...v10.18.5) (2025-06-10)
 
