@@ -42,7 +42,7 @@ describe('lib/merge-reports', () => {
         mergeReports = proxyquire('lib/merge-reports', {
             '../server-utils': serverUtils,
             'axios': axiosStub
-        });
+        }).mergeReports;
     });
 
     afterEach(() => {
@@ -120,7 +120,7 @@ describe('lib/merge-reports', () => {
                         paths: ['src-report/path-1/some-file.json', 'src-report/path-2'],
                         opts: {destPath: 'dest-report/path'}
                     }),
-                    `Specified source path: src-report/path-1/some-file.json must ends with ${DATABASE_URLS_JSON_NAME} or ${LOCAL_DATABASE_NAME}`
+                    `Specified source path: src-report/path-1/some-file.json must be a directory or one of the following files: ${DATABASE_URLS_JSON_NAME}, ${LOCAL_DATABASE_NAME}.`
                 );
             });
 
