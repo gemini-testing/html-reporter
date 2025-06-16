@@ -68,7 +68,7 @@ export const Screenshot = forwardRef<HTMLImageElement, ScreenshotProps>(function
     const imageClassName = classNames(styles.image, props.imageClassName);
     const imageStyle: React.CSSProperties = Object.assign({}, props.style);
     if (image.size) {
-        imageStyle.aspectRatio = `${image.size.width} / ${image.size.height} auto`;
+        imageStyle.aspectRatio = `${image.size.width} / ${image.size.height}`;
     }
 
     let diffCircles: ReactNode[] = [];

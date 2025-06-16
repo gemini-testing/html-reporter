@@ -17,15 +17,15 @@ export function SideBySideMode(props: SideBySideToFitModeProps): ReactNode {
     return <div className={styles.sideBySideMode}>
         <div className={styles.imageWrapper} style={getImageSizeCssVars(expected.size)}>
             {expected.label}
-            <Screenshot image={expected} />
+            <Screenshot image={expected} containerClassName={styles.imageContainer} />
         </div>
         <div className={styles.imageWrapper} style={getImageSizeCssVars(actual.size)}>
             {actual.label}
-            <Screenshot image={actual}/>
+            <Screenshot image={actual} containerClassName={styles.imageContainer} />
         </div>
         <div className={styles.imageWrapper} style={getImageSizeCssVars(diff.size)}>
             {diff.label}
-            <Screenshot image={diff} diffClusters={diff.diffClusters}/>
+            <Screenshot image={diff} diffClusters={diff.diffClusters} containerClassName={styles.imageContainer} />
         </div>
     </div>;
 }

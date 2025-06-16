@@ -9,3 +9,8 @@
     display: flex;
     flex-direction: column;
 }
+
+.image-container {
+    aspect-ratio: var(--natural-width) / var(--natural-height);
+    max-height: calc(var(--natural-height)* 1px);
+}
