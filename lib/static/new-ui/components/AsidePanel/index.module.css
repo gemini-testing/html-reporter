@@ -9,6 +9,18 @@
     --g-text-body-short-font-size: 15px;
 }
 
+.titleRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .divider {
     margin: 12px 0 20px 0;
+}
+
+.description {
+    color: var(--g-color-private-black-400);
+    margin: 8px 0 16px 0;
+    line-height: 1.3;
 }

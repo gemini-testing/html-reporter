@@ -1,0 +1,34 @@
+.iconContainer {
+    position: relative;
+    height: 1.5em;
+    padding: 0.25em;
+}
+
+.redIcon {
+    position: relative;
+    color: var(--g-color-private-red-400-solid);
+}
+
+.redIconPing {
+    position: absolute;
+    opacity: 0.75;
+    color: var(--g-color-private-red-500-solid);
+    animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.greenIcon {
+    color: var(--g-color-private-green-550-solid);
+}
+
+.icon {
+    width: 1em;
+    height: 1em;
+}
+
+@keyframes ping {
+    75%, 100% {
+        transform: scale(1.6);
+        opacity: 0;
+    }
+}
+
