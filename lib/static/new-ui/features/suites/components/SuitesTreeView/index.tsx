@@ -85,11 +85,11 @@ export const SuitesTreeView = forwardRef<SuitesTreeViewHandle, SuitesTreeViewPro
                 dispatch(revealTreeNode({nodeId: id}));
                 setTimeout(() => {
                     try {
-                        virtualizer.scrollToIndex(list.structure.visibleFlattenIds.indexOf(id), {align: 'start'});
+                        virtualizer.scrollToIndex(list.structure.visibleFlattenIds.indexOf(id), {align: 'auto'});
                     } catch { /* empty */ }
                 }, 50);
             } else {
-                virtualizer.scrollToIndex(list.structure.visibleFlattenIds.indexOf(id), {align: 'start'});
+                virtualizer.scrollToIndex(list.structure.visibleFlattenIds.indexOf(id), {align: 'auto'});
             }
         }
     }));

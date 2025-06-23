@@ -42,6 +42,11 @@ function SuitesPageInternal({currentResult, actions, treeNodeId}: SuitesPageProp
     const currentTreeNodeId = useSelector(state => state.app.suitesPage.currentTreeNodeId);
     const currentIndex = visibleTreeNodeIds.indexOf(currentTreeNodeId as string);
 
+    const {suiteId: suiteIdParam} = useParams();
+    const isInitialized = useSelector(getIsInitialized);
+
+    const suitesTreeViewRef = useRef<SuitesTreeViewHandle>(null);
+
     const onPrevNextSuiteHandler = (step: number): void => {
         const treeNodeId = visibleTreeNodeIds[currentIndex + step];
         const currentTreeNode = findTreeNodeById(tree, treeNodeId ?? '');
@@ -54,12 +59,9 @@ function SuitesPageInternal({currentResult, actions, treeNodeId}: SuitesPageProp
         const groupId = getGroupId(currentTreeNode as TreeViewItemData);
 
         actions.setCurrentTreeNode({treeNodeId, browserId: currentTreeNode.entityId, groupId});
+
+        suitesTreeViewRef?.current?.scrollToId(treeNodeId as string);
     };
-
-    const {suiteId: suiteIdParam} = useParams();
-    const isInitialized = useSelector(getIsInitialized);
-
-    const suitesTreeViewRef = useRef<SuitesTreeViewHandle>(null);
 
     const onHighlightCurrentTest = (): void => {
         if (suitesTreeViewRef.current && currentResult?.parentId) {
