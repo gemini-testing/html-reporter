@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.18.7"></a>
+## [10.18.7](https://github.com/gemini-testing/html-reporter/compare/v10.18.6...v10.18.7) (2025-06-23)
+
+
+### Bug Fixes
+
+* use old search algorithm in old ui ([#677](https://github.com/gemini-testing/html-reporter/issues/677)) ([38f12ff](https://github.com/gemini-testing/html-reporter/commit/38f12ff))
+
+
+### Features
+
+* **suites-page:** focus active test after list ([d3e0b24](https://github.com/gemini-testing/html-reporter/commit/d3e0b24))
+* **suites-page:** focus active test after list [#0](https://github.com/gemini-testing/html-reporter/issues/0) ([0dd5934](https://github.com/gemini-testing/html-reporter/commit/0dd5934))
+
+
+
 <a name="10.18.6"></a>
 ## [10.18.6](https://github.com/gemini-testing/html-reporter/compare/v10.18.5...v10.18.6) (2025-06-16)
 
