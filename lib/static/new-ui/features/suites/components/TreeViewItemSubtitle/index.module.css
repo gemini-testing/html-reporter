@@ -21,6 +21,33 @@
     word-break: break-word;
 }
 
+.image-diff {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+@container (max-width: 40vw) {
+    .image-diff-item:nth-child(1) {
+        display: none;
+    }
+
+    .image-diff-item:nth-child(2) {
+        display: none;
+    }
+}
+
+.image-diff-item{
+    img {
+        max-height: 40vh;
+    }
+
+    p {
+        font-size: 15px;
+        margin: 0 0 4px 0;
+    }
+}
+
 .skip-reason-container {
     font-size: 15px;
     overflow: hidden;
