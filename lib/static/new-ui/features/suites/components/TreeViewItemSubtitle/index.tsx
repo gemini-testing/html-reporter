@@ -19,27 +19,61 @@ interface TreeViewItemSubtitleProps {
 
 export function TreeViewItemSubtitle(props: TreeViewItemSubtitleProps): ReactNode {
     if (props.item.status === TestStatus.SKIPPED && props.item.skipReason) {
-        return <div className={styles.skipReasonContainer}>
-            <div className={styles.skipReason}>Skipped ⋅ {makeLinksClickable(props.item.skipReason)}</div>
-        </div>;
+        return (
+            <div className={styles.skipReasonContainer}>
+                <div className={styles.skipReason}>Skipped ⋅ {makeLinksClickable(props.item.skipReason)}</div>
+            </div>
+        );
     } else if (props.item.images?.length) {
-        return <div>
-            {props.item.images.map((imageEntity, index) => {
-                const image = (imageEntity as ImageEntityFail).diffImg ?? (imageEntity as ImageEntityFail).actualImg;
-                if (!image) {
-                    return;
-                }
+        return (
+            <div>
+                {props.item.images.map((imageEntity) => {
+                    const imageItem: ImageEntityFail = imageEntity as ImageEntityFail;
 
-                return <div key={index}>
-                    <span className={styles.imageStatus}>{(imageEntity as ImageEntityFail).stateName} ⋅ {getAssertViewStatusMessage(imageEntity)}</span>
-                    <ImageWithMagnifier image={image} style={{maxWidth: '99%', marginTop: '4px', maxHeight: '40vh'}} scrollContainerRef={props.scrollContainerRef}/>
-                </div>;
-            })}
-        </div>;
+                    if (!imageItem.diffImg) {
+                        return;
+                    }
+
+                    const images = [
+                        {
+                            title: 'Expected',
+                            image: imageItem.expectedImg
+                        },
+                        {
+                            title: 'Actual',
+                            image: imageItem.actualImg
+                        },
+                        {
+                            title: 'Diff',
+                            image: imageItem.diffImg
+                        }
+                    ];
+
+                    return (
+                        <div key={imageItem.id}>
+                            <span className={styles.imageStatus}>{imageItem.stateName} ⋅ {getAssertViewStatusMessage(imageEntity)}</span>
+                            <div className={styles.imageDiff}>
+                                {images.map((item) => (
+                                    <div className={styles.imageDiffItem} key={item.title}>
+                                        <p>{item.title}</p>
+                                        <ImageWithMagnifier
+                                            image={item.image}
+                                            scrollContainerRef={props.scrollContainerRef}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        );
     } else if (props.item.errorStack) {
-        return <div className={classNames(styles['tree-view-item-subtitle__error-stack'], props.className)}>
-            {(props.item.errorTitle + '\n' + stripAnsi(props.item.errorStack)).trim()}
-        </div>;
+        return (
+            <div className={classNames(styles['tree-view-item-subtitle__error-stack'], props.className)}>
+                {(props.item.errorTitle + '\n' + stripAnsi(props.item.errorStack)).trim()}
+            </div>
+        );
     }
 
     return null;
