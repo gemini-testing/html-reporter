@@ -12,6 +12,7 @@ export const configDefaults: StoreReporterConfig = {
     customScripts: [],
     defaultView: ViewMode.ALL,
     diffMode: DiffModes.THREE_UP.id,
+    uiMode: null,
     enabled: false,
     errorPatterns: [],
     lazyLoadOffset: null,

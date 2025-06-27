@@ -40,7 +40,7 @@ describe('lib/adapters/tool/playwright/index', () => {
         }).PlaywrightToolAdapter;
     };
 
-    const createPwtToolAdapter = (opts: ToolAdapterOptionsFromCli, config: FullConfig = {} as FullConfig): PlaywrightToolAdapter => {
+    const createPwtToolAdapter = async (opts: ToolAdapterOptionsFromCli, config: FullConfig = {} as FullConfig): Promise<PlaywrightToolAdapter> => {
         PlaywrightToolAdapter = proxyquirePwtToolAdapter(opts.configPath ? {[path.resolve(opts.configPath)]: config} : {});
 
         return PlaywrightToolAdapter.create(opts);
@@ -75,84 +75,84 @@ describe('lib/adapters/tool/playwright/index', () => {
 
     describe('constructor', () => {
         describe('should read config', () => {
-            it('passed by user', () => {
+            it('passed by user', async () => {
                 const configPath = './pwt.config.ts';
 
-                const toolAdapter = createPwtToolAdapter({toolName: ToolName.Playwright, configPath});
+                const toolAdapter = await createPwtToolAdapter({toolName: ToolName.Playwright, configPath});
 
                 assert.equal(toolAdapter.configPath, path.resolve(configPath));
             });
 
             DEFAULT_CONFIG_PATHS.forEach(configPath => {
-                it(`from "${configPath}" by default`, () => {
+                it(`from "${configPath}" by default`, async () => {
                     const stubs = {[path.resolve(configPath)]: {}};
                     const PlaywrightToolAdapter = proxyquirePwtToolAdapter(stubs);
 
-                    const toolAdapter = PlaywrightToolAdapter.create({toolName: ToolName.Playwright});
+                    const toolAdapter = await PlaywrightToolAdapter.create({toolName: ToolName.Playwright});
 
                     assert.equal(toolAdapter.configPath, path.resolve(configPath));
                 });
             });
         });
 
-        it('should throw error if config file is not found', () => {
-            assert.throws(
-                () => createPwtToolAdapter({toolName: ToolName.Playwright}),
+        it('should throw error if config file is not found', async () => {
+            await assert.isRejected(
+                createPwtToolAdapter({toolName: ToolName.Playwright}),
                 `Unable to read config from paths: ${DEFAULT_CONFIG_PATHS.join(', ')}`
             );
         });
 
         describe('parse options from "html-reporter/playwright" reporter', () => {
             describe('should call parser with empty opts if "reporter" option', () => {
-                it('does not exists in config', () => {
+                it('does not exists in config', async () => {
                     const config = {} as unknown as FullConfig;
 
-                    createPwtToolAdapter({toolName: ToolName.Playwright, configPath: './pwt.config.ts'}, config);
+                    await createPwtToolAdapter({toolName: ToolName.Playwright, configPath: './pwt.config.ts'}, config);
 
                     assert.calledOnceWith(parseConfigStub, {});
                 });
 
-                it('specified as string', () => {
+                it('specified as string', async () => {
                     const config = {reporter: 'html-reporter/playwright'} as unknown as FullConfig;
 
-                    createPwtToolAdapter({toolName: ToolName.Playwright, configPath: './pwt.config.ts'}, config);
+                    await createPwtToolAdapter({toolName: ToolName.Playwright, configPath: './pwt.config.ts'}, config);
 
                     assert.calledOnceWith(parseConfigStub, {});
                 });
 
-                it('specified as string inside array', () => {
+                it('specified as string inside array', async () => {
                     const config = {reporter: [['line'], ['html-reporter/playwright']]} as unknown as FullConfig;
 
-                    createPwtToolAdapter({toolName: ToolName.Playwright, configPath: './pwt.config.ts'}, config);
+                    await createPwtToolAdapter({toolName: ToolName.Playwright, configPath: './pwt.config.ts'}, config);
 
                     assert.calledOnceWith(parseConfigStub, {});
                 });
             });
 
-            it('should call parser with specified opts', () => {
+            it('should call parser with specified opts', async () => {
                 const pluginOpts = {
                     enabled: true,
                     path: 'playwright-report'
                 };
                 const config = {reporter: [['html-reporter/playwright', pluginOpts]]} as unknown as FullConfig;
 
-                createPwtToolAdapter({toolName: ToolName.Playwright, configPath: './pwt.config.ts'}, config);
+                await createPwtToolAdapter({toolName: ToolName.Playwright, configPath: './pwt.config.ts'}, config);
 
                 assert.calledOnceWith(parseConfigStub, pluginOpts);
             });
         });
 
-        it('should init htmlReporter instance with parsed reporter config', () => {
+        it('should init htmlReporter instance with parsed reporter config', async () => {
             const reporterConfig = {path: 'some/path'} as ReporterConfig;
             parseConfigStub.returns(reporterConfig);
 
-            createPwtToolAdapter({toolName: ToolName.Playwright, configPath: './pwt.config.ts'});
+            await createPwtToolAdapter({toolName: ToolName.Playwright, configPath: './pwt.config.ts'});
 
             assert.calledOnceWith(HtmlReporter.create as SinonStub, reporterConfig, {toolName: ToolName.Playwright});
         });
 
         it('should find pwt binary file', async () => {
-            createPwtToolAdapter({toolName: ToolName.Playwright, configPath: './pwt.config.ts'});
+            await createPwtToolAdapter({toolName: ToolName.Playwright, configPath: './pwt.config.ts'});
 
             (npmWhich.sync as SinonStub).calledOnceWith(ToolName.Playwright, {cwd: process.cwd()});
         });
@@ -164,7 +164,7 @@ describe('lib/adapters/tool/playwright/index', () => {
         let spawnProc: ChildProcessWithoutNullStreams;
 
         const readTests_ = async (config: FullConfig = {} as FullConfig): Promise<PlaywrightTestCollectionAdapter> => {
-            const toolAdapter = createPwtToolAdapter({toolName: ToolName.Playwright, configPath}, config);
+            const toolAdapter = await createPwtToolAdapter({toolName: ToolName.Playwright, configPath}, config);
 
             return toolAdapter.readTests();
         };
@@ -285,7 +285,7 @@ describe('lib/adapters/tool/playwright/index', () => {
 
         const run_ = async (opts: {tests?: TestSpec[], config?: FullConfig, reportBuilder?: GuiReportBuilder} = {}): Promise<boolean> => {
             const {tests = [], config = {} as FullConfig, reportBuilder = mkReportBuilder_()} = opts;
-            const toolAdapter = createPwtToolAdapter({toolName: ToolName.Playwright, configPath}, config);
+            const toolAdapter = await createPwtToolAdapter({toolName: ToolName.Playwright, configPath}, config);
 
             toolAdapter.handleTestResults(reportBuilder, eventSource);
 
@@ -302,7 +302,7 @@ describe('lib/adapters/tool/playwright/index', () => {
         });
 
         it('should throw if "reportBuilder" and "eventSource" instances are not specified', async () => {
-            const toolAdapter = createPwtToolAdapter({toolName: ToolName.Playwright, configPath});
+            const toolAdapter = await createPwtToolAdapter({toolName: ToolName.Playwright, configPath});
 
             await assert.isRejected(
                 toolAdapter.run(PlaywrightTestCollectionAdapter.create([]), []),
@@ -581,7 +581,7 @@ describe('lib/adapters/tool/playwright/index', () => {
                 {testName: 'foo', browserName: 'yabro'}
             ];
 
-            const toolAdapter = createPwtToolAdapter({toolName: ToolName.Playwright, configPath}, config);
+            const toolAdapter = await createPwtToolAdapter({toolName: ToolName.Playwright, configPath}, config);
             toolAdapter.handleTestResults(mkReportBuilder_(), eventSource);
 
             P.delay(10).then(() => spawnProc.emit('exit', 0));

@@ -2,6 +2,59 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.18.7"></a>
+## [10.18.7](https://github.com/gemini-testing/html-reporter/compare/v10.18.6...v10.18.7) (2025-06-23)
+
+
+### Bug Fixes
+
+* use old search algorithm in old ui ([#677](https://github.com/gemini-testing/html-reporter/issues/677)) ([38f12ff](https://github.com/gemini-testing/html-reporter/commit/38f12ff))
+
+
+### Features
+
+* **suites-page:** focus active test after list ([d3e0b24](https://github.com/gemini-testing/html-reporter/commit/d3e0b24))
+* **suites-page:** focus active test after list [#0](https://github.com/gemini-testing/html-reporter/issues/0) ([0dd5934](https://github.com/gemini-testing/html-reporter/commit/0dd5934))
+
+
+
+<a name="10.18.6"></a>
+## [10.18.6](https://github.com/gemini-testing/html-reporter/compare/v10.18.5...v10.18.6) (2025-06-16)
+
+
+### Bug Fixes
+
+* create destination directory beforehand during merge-reports ([#674](https://github.com/gemini-testing/html-reporter/issues/674)) ([90682ac](https://github.com/gemini-testing/html-reporter/commit/90682ac))
+* fix copying test name to clipboard ([#675](https://github.com/gemini-testing/html-reporter/issues/675)) ([f130afc](https://github.com/gemini-testing/html-reporter/commit/f130afc))
+* fix scroll issues in old ui ([#676](https://github.com/gemini-testing/html-reporter/issues/676)) ([23f860d](https://github.com/gemini-testing/html-reporter/commit/23f860d))
+
+
+
+<a name="10.18.5"></a>
+## [10.18.5](https://github.com/gemini-testing/html-reporter/compare/v10.18.4...v10.18.5) (2025-06-10)
+
+
+### Bug Fixes
+
+* **pwt:** support async config ([d4a7e79](https://github.com/gemini-testing/html-reporter/commit/d4a7e79))
+
+
+
+<a name="10.18.4"></a>
+## [10.18.4](https://github.com/gemini-testing/html-reporter/compare/v10.18.3...v10.18.4) (2025-06-10)
+
+
+### Bug Fixes
+
+* add support for all transitions ([f2661e3](https://github.com/gemini-testing/html-reporter/commit/f2661e3))
+
+
+### Features
+
+* implement uiMode option in config ([#672](https://github.com/gemini-testing/html-reporter/issues/672)) ([3203729](https://github.com/gemini-testing/html-reporter/commit/3203729))
+
+
+
 <a name="10.18.3"></a>
 ## [10.18.3](https://github.com/gemini-testing/html-reporter/compare/v10.18.2...v10.18.3) (2025-06-01)
 

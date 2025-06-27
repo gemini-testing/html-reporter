@@ -36,6 +36,11 @@ import type {FullConfig, TestCase, TestResult} from '@playwright/test/reporter';
 import type {TestBranch} from '../../../tests-tree-builder/gui';
 import type {PwtEventMessage} from './reporter';
 
+type PlaywrightToolAdapterOptions = ToolAdapterOptionsFromCli & {
+    config: FullConfig;
+    configPath: string;
+}
+
 export const DEFAULT_CONFIG_PATHS = [
     `${ToolName.Playwright}.config.ts`,
     `${ToolName.Playwright}.config.js`,
@@ -57,18 +62,18 @@ export class PlaywrightToolAdapter implements ToolAdapter {
     private _eventSource!: EventSource;
     private _guiApi?: GuiApi;
 
-    static create(
-        this: new (options: ToolAdapterOptionsFromCli) => PlaywrightToolAdapter,
+    static async create(
+        this: new (options: PlaywrightToolAdapterOptions) => PlaywrightToolAdapter,
         options: ToolAdapterOptionsFromCli
-    ): PlaywrightToolAdapter {
-        return new this(options);
+    ): Promise<PlaywrightToolAdapter> {
+        const {config, configPath} = await readPwtConfig(options);
+
+        return new this({...options, config, configPath});
     }
 
-    constructor(opts: ToolAdapterOptionsFromCli) {
-        const {config, configPath} = readPwtConfig(opts);
-
-        this._configPath = configPath;
-        this._config = PlaywrightConfigAdapter.create(config);
+    constructor(opts: PlaywrightToolAdapterOptions) {
+        this._configPath = opts.configPath;
+        this._config = PlaywrightConfigAdapter.create(opts.config);
         this._toolName = opts.toolName;
 
         const pluginOpts = getPluginOptions(this._config.original);
@@ -218,7 +223,7 @@ export class PlaywrightToolAdapter implements ToolAdapter {
     }
 }
 
-function readPwtConfig(opts: ToolAdapterOptionsFromCli): {configPath: string, config: FullConfig} {
+async function readPwtConfig(opts: ToolAdapterOptionsFromCli): Promise<{configPath: string, config: FullConfig}> {
     const configPaths = opts.configPath ? [opts.configPath] : DEFAULT_CONFIG_PATHS;
     let originalConfig!: FullConfig;
     let resolvedConfigPath!: string;
@@ -230,7 +235,7 @@ function readPwtConfig(opts: ToolAdapterOptionsFromCli): {configPath: string, co
             resolvedConfigPath = path.resolve(configPath);
             // eslint-disable-next-line @typescript-eslint/no-var-requires
             const configModule = require(resolvedConfigPath);
-            originalConfig = configModule.__esModule ? configModule.default : configModule;
+            originalConfig = await (configModule.__esModule ? configModule.default : configModule);
 
             break;
         } catch (err) {

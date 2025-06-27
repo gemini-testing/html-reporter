@@ -2,3 +2,9 @@
     display: flex;
     flex-direction: column;
 }
+
+.image-container {
+    display: flex;
+    aspect-ratio: var(--natural-width) / var(--natural-height);
+    max-height: calc(var(--natural-height) * 1px);
+}
