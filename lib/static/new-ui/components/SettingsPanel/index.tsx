@@ -13,6 +13,8 @@ import {PanelSection} from '@/static/new-ui/components/PanelSection';
 import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
 import {NamedSwitch} from '@/static/new-ui/components/NamedSwitch';
 import {isApiErrorResponse, updateTimeTravelSettings} from '../../utils/api';
+import {ExtensionPoint} from '@/static/new-ui/features/plugins/components/ExtensionPoint';
+import {ExtensionPointName} from '@/static/new-ui/features/plugins/types';
 
 import styles from './index.module.css';
 
@@ -79,5 +81,7 @@ export function SettingsPanel(): ReactNode {
                 onUpdate={onTimeTravelRecommendedSettingsToggle}
             />
         </PanelSection>}
+
+        <ExtensionPoint name={ExtensionPointName.Settings} />
     </AsidePanel>;
 }

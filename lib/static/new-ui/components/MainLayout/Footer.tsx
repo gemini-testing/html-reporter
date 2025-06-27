@@ -9,7 +9,7 @@ import {UiModeHintNotification} from '@/static/new-ui/components/UiModeHintNotif
 import styles from '@/static/new-ui/components/MainLayout/index.module.css';
 import {getIsInitialized} from '@/static/new-ui/store/selectors';
 import useLocalStorage from '@/static/hooks/useLocalStorage';
-import {PanelId} from '@/static/new-ui/components/MainLayout/index';
+import {PanelId, PanelIdStatic} from '@/static/new-ui/components/MainLayout/index';
 
 interface FooterProps {
     visiblePanel: PanelId | null;
@@ -45,13 +45,13 @@ export function Footer(props: FooterProps): ReactNode {
         }
     }, [props.visiblePanel]);
 
-    const isInfoCurrent = props.visiblePanel === PanelId.Info;
-    const isSettingsCurrent = props.visiblePanel === PanelId.Settings;
+    const isInfoCurrent = props.visiblePanel === PanelIdStatic.Info;
+    const isSettingsCurrent = props.visiblePanel === PanelIdStatic.Settings;
 
     return <>
         <UiModeHintNotification isVisible={isHintVisible} onClose={(): void => setIsHintVisible(false)} />
         <FooterItem compact={false} item={{
-            id: PanelId.Info,
+            id: PanelIdStatic.Info,
             title: 'Info',
             onItemClick: props.onFooterItemClick,
             current: isInfoCurrent,
@@ -66,7 +66,7 @@ export function Footer(props: FooterProps): ReactNode {
             })
         }} />
         <FooterItem compact={false} item={{
-            id: PanelId.Settings,
+            id: PanelIdStatic.Settings,
             title: 'Settings',
             onItemClick: props.onFooterItemClick,
             current: isSettingsCurrent,
