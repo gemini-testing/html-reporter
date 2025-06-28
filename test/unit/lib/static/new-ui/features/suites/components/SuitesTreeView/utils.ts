@@ -7,7 +7,8 @@ import {
     formatEntityToTreeNodeData,
     getTitlePath,
     sortTreeNodes
-} from '@/static/new-ui/features/suites/components/SuitesTreeView/utils';
+} from '@/static/new-ui/features/suites/components/SuitesPage/utils';
+
 import {
     BrowserEntity,
     ResultEntity,

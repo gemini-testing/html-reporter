@@ -1,51 +1,84 @@
-import {Flex} from '@gravity-ui/uikit';
 import classNames from 'classnames';
-import React, {ReactNode, useLayoutEffect, useRef, useState} from 'react';
-import {connect, useSelector} from 'react-redux';
-import {useParams} from 'react-router-dom';
-import {bindActionCreators} from 'redux';
+import React, {ReactNode, useCallback, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
+import {useNavigate, useParams} from 'react-router-dom';
 
 import {UiCard} from '@/static/new-ui/components/Card/UiCard';
 import {getCurrentResult} from '@/static/new-ui/features/suites/selectors';
-import {getTreeViewItems} from '@/static/new-ui/features/suites/components/SuitesTreeView/selectors';
 import {SplitViewLayout} from '@/static/new-ui/components/SplitViewLayout';
-import {TestNameFilter} from '@/static/new-ui/features/suites/components/TestNameFilter';
-import {SuitesTreeView, SuitesTreeViewHandle} from '@/static/new-ui/features/suites/components/SuitesTreeView';
-import {TestStatusFilter} from '@/static/new-ui/features/suites/components/TestStatusFilter';
-import {BrowsersSelect} from '@/static/new-ui/features/suites/components/BrowsersSelect';
-import {SuiteTitle} from '../../../../components/SuiteTitle';
+import {TreeViewHandle} from '@/static/new-ui/components/TreeView';
+import {SuiteTitle} from '@/static/new-ui/components/SuiteTitle';
 import * as actions from '@/static/modules/actions';
 import {getIsInitialized} from '@/static/new-ui/store/selectors';
-import {ResultEntity} from '@/static/new-ui/types/store';
 import {TestControlPanel} from '@/static/new-ui/features/suites/components/TestControlPanel';
 
 import styles from './index.module.css';
 import {TestInfoSkeleton} from '@/static/new-ui/features/suites/components/SuitesPage/TestInfoSkeleton';
-import {TreeViewSkeleton} from '@/static/new-ui/features/suites/components/SuitesTreeView/TreeViewSkeleton';
-import {TreeActionsToolbar} from '@/static/new-ui/features/suites/components/TreeActionsToolbar';
 import {findTreeNodeById, getGroupId, isSectionHidden} from '@/static/new-ui/features/suites/utils';
-import {TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
-import {NEW_ISSUE_LINK} from '@/constants';
+import {EntityType, TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
+import {NEW_ISSUE_LINK, TestStatus, ViewMode} from '@/constants';
 import {ErrorHandler} from '../../../error-handling/components/ErrorHandling';
 import {TestInfo} from '@/static/new-ui/features/suites/components/TestInfo';
 import {MIN_SECTION_SIZE_PERCENT} from '../../constants';
+import {SideBar} from '@/static/new-ui/components/SideBar';
+import {getSuitesStatusCounts, getSuitesThreeViewData} from './selectors';
+import {getIconByStatus} from '@/static/new-ui/utils';
+import {Pages} from '@/static/new-ui/types/store';
 
-interface SuitesPageProps {
-    actions: typeof actions;
-    currentResult: ResultEntity | null;
-    treeNodeId: string | null;
-}
+export function SuitesPage(): ReactNode {
+    const currentResult = useSelector(getCurrentResult);
+    const treeData = useSelector(getSuitesThreeViewData);
+    const {visibleTreeNodeIds, tree} = treeData;
 
-function SuitesPageInternal({currentResult, actions, treeNodeId}: SuitesPageProps): ReactNode {
-    const {visibleTreeNodeIds, tree} = useSelector(getTreeViewItems);
-
-    const currentTreeNodeId = useSelector(state => state.app.suitesPage.currentTreeNodeId);
+    const currentTreeNodeId = useSelector(state => state.app[Pages.suitesPage].currentTreeNodeId);
     const currentIndex = visibleTreeNodeIds.indexOf(currentTreeNodeId as string);
 
     const {suiteId: suiteIdParam} = useParams();
     const isInitialized = useSelector(getIsInitialized);
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
 
-    const suitesTreeViewRef = useRef<SuitesTreeViewHandle>(null);
+    const statusValue = useSelector((state) => state.view.viewMode);
+    const statusCounts = useSelector((state) => getSuitesStatusCounts(state));
+    const onStatusChange = useCallback((value: string) => {
+        dispatch(actions.changeViewMode(value as ViewMode));
+    }, []);
+
+    const suitesTreeViewRef = useRef<TreeViewHandle>(null);
+
+    const treeViewExpandedById = useSelector((state) => state.ui[Pages.suitesPage].expandedTreeNodesById);
+
+    const statusList = useMemo(() => [
+        {
+            title: 'All',
+            value: ViewMode.ALL,
+            count: statusCounts.total
+        },
+        {
+            icon: getIconByStatus(TestStatus.SUCCESS),
+            title: 'Passed',
+            value: ViewMode.PASSED,
+            count: statusCounts.success
+        },
+        {
+            icon: getIconByStatus(TestStatus.FAIL),
+            title: 'Failed',
+            value: ViewMode.FAILED,
+            count: statusCounts.fail
+        },
+        {
+            icon: getIconByStatus(TestStatus.RETRY),
+            title: 'Retried',
+            value: ViewMode.RETRIED,
+            count: statusCounts.retried
+        },
+        {
+            icon: getIconByStatus(TestStatus.SKIPPED),
+            title: 'Skipped',
+            value: ViewMode.SKIPPED,
+            count: statusCounts.skipped
+        }
+    ], [statusCounts]);
 
     const onPrevNextSuiteHandler = (step: number): void => {
         const treeNodeId = visibleTreeNodeIds[currentIndex + step];
@@ -58,7 +91,7 @@ function SuitesPageInternal({currentResult, actions, treeNodeId}: SuitesPageProp
 
         const groupId = getGroupId(currentTreeNode as TreeViewItemData);
 
-        actions.setCurrentTreeNode({treeNodeId, browserId: currentTreeNode.entityId, groupId});
+        dispatch(actions.setCurrentTreeNode({treeNodeId, browserId: currentTreeNode.entityId, groupId}));
 
         suitesTreeViewRef?.current?.scrollToId(treeNodeId as string);
     };
@@ -69,24 +102,36 @@ function SuitesPageInternal({currentResult, actions, treeNodeId}: SuitesPageProp
         }
     };
 
+    const onThreeItemClick = useCallback((item: TreeViewItemData, expanded: boolean) => {
+        if (item.entityType === EntityType.Browser) {
+            dispatch(actions.setCurrentTreeNode({treeNodeId: item.id, browserId: item.entityId, groupId: getGroupId(item)}));
+
+            navigate(encodeURIComponent(item.entityId));
+        } else {
+            dispatch(actions.setTreeNodeExpandedState({nodeId: item.id, isExpanded: !expanded}));
+        }
+    }, []);
+
     const onAttemptChangeHandler = (browserId: string, _: unknown, retryIndex: number): void => {
-        actions.changeTestRetry({
-            browserId,
-            retryIndex,
-            suitesPage: treeNodeId ? {treeNodeId} : undefined
-        });
+        dispatch(
+            actions.changeTestRetry({
+                browserId,
+                retryIndex,
+                [Pages.suitesPage]: currentTreeNodeId ? {treeNodeId: currentTreeNodeId} : undefined
+            })
+        );
     };
 
     const onSectionSizesChange = (sizes: number[]): void => {
-        actions.setSectionSizes({sizes});
+        dispatch(actions.setSectionSizes({sizes, page: Pages.suitesPage}));
         if (isSectionHidden(sizes[0])) {
-            actions.setBackupSectionSizes({sizes: [MIN_SECTION_SIZE_PERCENT, 100 - MIN_SECTION_SIZE_PERCENT]});
+            dispatch(actions.setBackupSectionSizes({sizes: [MIN_SECTION_SIZE_PERCENT, 100 - MIN_SECTION_SIZE_PERCENT], page: Pages.suitesPage}));
         } else {
-            actions.setBackupSectionSizes({sizes});
+            dispatch(actions.setBackupSectionSizes({sizes, page: Pages.suitesPage}));
         }
     };
 
-    const sectionSizes = useSelector(state => state.ui.suitesPage.sectionSizes);
+    const sectionSizes = useSelector(state => state.ui[Pages.suitesPage].sectionSizes);
 
     const [stickyHeaderElement, setStickyHeaderElement] = useState<HTMLDivElement | null>(null);
     const [stickyHeaderHeight, setStickyHeaderHeight] = useState(0);
@@ -103,53 +148,44 @@ function SuitesPageInternal({currentResult, actions, treeNodeId}: SuitesPageProp
         return () => resizeObserver.disconnect();
     }, [stickyHeaderElement]);
 
-    return <div className={styles.container}><SplitViewLayout sizes={sectionSizes} onSizesChange={onSectionSizesChange}>
-        <UiCard className={classNames(styles.card, styles.treeViewCard)} key='tree-view' qa='suites-tree-card'>
-            <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try to reload page'}/>}>
-                <h2 className={classNames('text-display-1', styles['card__title'])}>Suites</h2>
-                <Flex gap={2}>
-                    <TestNameFilter/>
-                    <BrowsersSelect/>
-                </Flex>
-                <TestStatusFilter/>
-                <TreeActionsToolbar onHighlightCurrentTest={onHighlightCurrentTest} />
-                {isInitialized && <SuitesTreeView ref={suitesTreeViewRef}/>}
-                {!isInitialized && <TreeViewSkeleton/>}
-            </ErrorHandler.Boundary>
-        </UiCard>
-        <UiCard key="test-view" className={classNames(styles.card, styles.testViewCard)} style={{'--sticky-header-height': stickyHeaderHeight + 'px'} as React.CSSProperties}>
-            <ErrorHandler.Boundary watchFor={[currentResult, suiteIdParam, isInitialized]} fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try to choose another item'}/>}>
-                {currentResult && <>
-                    <div className={styles.stickyHeader} ref={(ref): void => setStickyHeaderElement(ref)}>
-                        <SuiteTitle
-                            className={styles['card__title']}
-                            suitePath={currentResult.suitePath}
-                            browserName={currentResult.name}
-                            index={currentIndex}
-                            totalItems={visibleTreeNodeIds.length}
-                            onNext={(): void => onPrevNextSuiteHandler(1)}
-                            onPrevious={(): void => onPrevNextSuiteHandler(-1)}/>
-                        <TestControlPanel onAttemptChange={onAttemptChangeHandler}/>
-                    </div>
+    return (
+        <div className={styles.container}>
+            <SplitViewLayout sizes={sectionSizes} onSizesChange={onSectionSizesChange}>
+                <SideBar
+                    title="Suites"
+                    onHighlightCurrentTest={onHighlightCurrentTest}
+                    isInitialized={isInitialized}
+                    treeViewRef={suitesTreeViewRef}
+                    treeData={treeData}
+                    treeViewExpandedById={treeViewExpandedById}
+                    currentTreeNodeId={currentTreeNodeId}
+                    onClick={onThreeItemClick}
+                    statusList={statusList}
+                    statusValue={statusValue}
+                    onStatusChange={onStatusChange}
+                />
+                <UiCard key="test-view" className={classNames(styles.card, styles.testViewCard)} style={{'--sticky-header-height': stickyHeaderHeight + 'px'} as React.CSSProperties}>
+                    <ErrorHandler.Boundary watchFor={[currentResult, suiteIdParam, isInitialized]} fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try to choose another item'}/>}>
+                        {currentResult && <>
+                            <div className={styles.stickyHeader} ref={(ref): void => setStickyHeaderElement(ref)}>
+                                <SuiteTitle
+                                    className={styles['card__title']}
+                                    suitePath={currentResult.suitePath}
+                                    browserName={currentResult.name}
+                                    index={currentIndex}
+                                    totalItems={visibleTreeNodeIds.length}
+                                    onNext={(): void => onPrevNextSuiteHandler(1)}
+                                    onPrevious={(): void => onPrevNextSuiteHandler(-1)}/>
+                                <TestControlPanel onAttemptChange={onAttemptChangeHandler}/>
+                            </div>
 
-                    <TestInfo/>
-                </>}
-                {!suiteIdParam && !currentResult && <div className={styles.hintContainer}><span className={styles.hint}>Select a test to see details</span></div>}
-                {suiteIdParam && !isInitialized && <TestInfoSkeleton />}
-            </ErrorHandler.Boundary>
-        </UiCard>
-    </SplitViewLayout></div>;
+                            <TestInfo/>
+                        </>}
+                        {!suiteIdParam && !currentResult && <div className={styles.hintContainer}><span className={styles.hint}>Select a test to see details</span></div>}
+                        {suiteIdParam && !isInitialized && <TestInfoSkeleton />}
+                    </ErrorHandler.Boundary>
+                </UiCard>
+            </SplitViewLayout>
+        </div>
+    );
 }
-
-export const SuitesPage = connect(
-    state => {
-        const currentResult = getCurrentResult(state);
-        const treeNodeId = state.app.suitesPage.currentTreeNodeId;
-
-        return {
-            currentResult,
-            treeNodeId
-        };
-    },
-    (dispatch) => ({actions: bindActionCreators(actions, dispatch)})
-)(SuitesPageInternal);

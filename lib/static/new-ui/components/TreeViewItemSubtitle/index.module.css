@@ -28,11 +28,11 @@
 }
 
 @container (max-width: 40vw) {
-    .image-diff-item:nth-child(1) {
+    .image-diff-item:nth-child(2) {
         display: none;
     }
 
-    .image-diff-item:nth-child(2) {
+    .image-diff-item:nth-child(3) {
         display: none;
     }
 }

@@ -9,52 +9,60 @@ import {
 import {useVirtualizer} from '@tanstack/react-virtual';
 import classNames from 'classnames';
 import React, {forwardRef, ReactNode, useCallback, useEffect, useImperativeHandle} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
-import {useNavigate, useParams} from 'react-router-dom';
+import {useDispatch} from 'react-redux';
+import {useParams} from 'react-router-dom';
 
-import {EntityType, TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
-import {TreeViewItemTitle} from '@/static/new-ui/features/suites/components/TreeViewItemTitle';
-import {TreeViewItemSubtitle} from '@/static/new-ui/features/suites/components/TreeViewItemSubtitle';
-import {getTreeViewItems} from '@/static/new-ui/features/suites/components/SuitesTreeView/selectors';
+import {EntityType, TreeNode, TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
+import {TreeViewItemTitle} from '@/static/new-ui/components/TreeViewItemTitle';
+import {TreeViewItemSubtitle} from '@/static/new-ui/components/TreeViewItemSubtitle';
 import {TestStatus} from '@/constants';
-import {TreeViewItemIcon} from '../../../../components/TreeViewItemIcon';
+import {TreeViewItemIcon} from '@/static/new-ui/components/TreeViewItemIcon';
 import {getIconByStatus} from '@/static/new-ui/utils';
 import {
     revealTreeNode,
     setCurrentTreeNode,
-    setStrictMatchFilter,
-    setTreeNodeExpandedState
+    setStrictMatchFilter
 } from '@/static/modules/actions';
-import {findTreeNodeByBrowserId, getGroupId} from '@/static/new-ui/features/suites/utils';
+import {findTreeNodeByBrowserId} from '@/static/new-ui/features/suites/utils';
 import styles from './index.module.css';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface SuitesTreeViewProps {}
+export interface TreeViewData {
+    tree: TreeNode[];
+    visibleTreeNodeIds: string[];
+    allTreeNodeIds: string[];
+}
 
-export interface SuitesTreeViewHandle {
+export interface TreeViewProps {
+    currentTreeNodeId: string | null;
+    treeData: TreeViewData;
+    treeViewExpandedById: Record<string, boolean>;
+    onClick: (item: TreeViewItemData, expanded: boolean) => void;
+}
+
+export interface TreeViewHandle {
     scrollToId: (id: string) => void;
 }
 
-export const SuitesTreeView = forwardRef<SuitesTreeViewHandle, SuitesTreeViewProps>(function SuitesTreeViewInternal(_props, ref): ReactNode {
+export const TreeView = forwardRef<TreeViewHandle, TreeViewProps>(function TreeViewInternal(props, ref): ReactNode {
+    const {currentTreeNodeId, treeData, treeViewExpandedById, onClick} = props;
     const dispatch = useDispatch();
-    const navigate = useNavigate();
     const {suiteId} = useParams();
-
-    const isInitialized = useSelector((state) => state.app.isInitialized);
-    const currentTreeNodeId = useSelector((state) => state.app.suitesPage.currentTreeNodeId);
-    const treeData = useSelector((state) => getTreeViewItems(state));
-    const treeViewExpandedById = useSelector((state) => state.ui.suitesPage.expandedTreeNodesById);
 
     const list = useList({
         items: treeData.tree,
         withExpandedState: true,
-        getItemId: item => {
-            return (item as TreeViewItemData).id;
-        },
+        getItemId: (item: TreeViewItemData) => item.id,
         controlledState: {
             expandedById: treeViewExpandedById
         }
     });
+
+    // Event handlers
+    const onItemClick = useCallback(({id}: {id: string}): void => {
+        const item = list.structure.itemsById[id];
+
+        onClick(item, (list.state.expandedById as Record<string, boolean>)[id]);
+    }, [list, treeViewExpandedById]);
 
     const parentRef = React.useRef<HTMLDivElement>(null);
 
@@ -96,10 +104,6 @@ export const SuitesTreeView = forwardRef<SuitesTreeViewHandle, SuitesTreeViewPro
 
     // Effects
     useEffect(() => {
-        if (!isInitialized) {
-            return;
-        }
-
         dispatch(setStrictMatchFilter(false));
 
         let timeoutId: NodeJS.Timeout;
@@ -118,20 +122,7 @@ export const SuitesTreeView = forwardRef<SuitesTreeViewHandle, SuitesTreeViewPro
         }
 
         return () => clearTimeout(timeoutId);
-    }, [isInitialized]);
-
-    // Event handlers
-    const onItemClick = useCallback(({id}: {id: string}): void => {
-        const item = list.structure.itemsById[id];
-
-        if (item.entityType === EntityType.Browser) {
-            dispatch(setCurrentTreeNode({treeNodeId: item.id, browserId: item.entityId, groupId: getGroupId(item)}));
-
-            navigate(encodeURIComponent(item.entityId));
-        } else {
-            dispatch(setTreeNodeExpandedState({nodeId: item.id, isExpanded: !(list.state.expandedById as Record<string, boolean>)[item.id]}));
-        }
-    }, [list, treeViewExpandedById]);
+    }, []);
 
     if (list.structure.visibleFlattenIds.length === 0) {
         return <div className={styles.emptyHintContainer}>
@@ -177,7 +168,7 @@ export const SuitesTreeView = forwardRef<SuitesTreeViewHandle, SuitesTreeViewPro
                                     id: virtualRow.key.toString(),
                                     list,
                                     onItemClick,
-                                    mapItemDataToContentProps: (x) => {
+                                    mapItemDataToContentProps: (x: TreeViewItemData) => {
                                         return {
                                             startSlot: <TreeViewItemIcon>{x.status ? getIconByStatus(x.status) : <Cubes3Overlap/>}</TreeViewItemIcon>,
                                             title: <TreeViewItemTitle item={x} className={isSelected ? styles['tree-view__item__title--current'] : ''} />,
