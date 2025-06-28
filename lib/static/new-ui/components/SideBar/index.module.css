@@ -1,0 +1,11 @@
+.card {
+    height: 100%;
+}
+
+.card__title {
+    margin: 20px 0 8px 0;
+}
+
+.tree-view-card {
+    gap: 8px;
+}

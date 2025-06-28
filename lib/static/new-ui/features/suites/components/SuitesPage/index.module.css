@@ -30,10 +30,6 @@
     padding-top: 20px;
 }
 
-.tree-view-card {
-    gap: 8px;
-}
-
 .test-view-card {
     gap: 12px;
     overflow: scroll;

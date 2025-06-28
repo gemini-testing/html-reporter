@@ -26,6 +26,7 @@ import {preloadImageEntity} from '../../../../../modules/utils/imageEntity';
 
 interface VisualChecksStickyHeaderProps {
     currentNamedImage: NamedImageEntity | null;
+    onImageChange: (id: string) => void;
 }
 
 export const PRELOAD_IMAGES_COUNT = 3;

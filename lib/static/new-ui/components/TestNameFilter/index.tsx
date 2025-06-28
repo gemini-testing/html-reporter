@@ -6,7 +6,7 @@ import {Icon, TextInput} from '@gravity-ui/uikit';
 import {FontCase} from '@gravity-ui/icons';
 import * as actions from '@/static/modules/actions';
 import {getIsInitialized} from '@/static/new-ui/store/selectors';
-import {TestNameFilterButton} from '@/static/new-ui/features/suites/components/TestNameFilter/TestNameFilterButton';
+import {TestNameFilterButton} from '@/static/new-ui/components/TestNameFilter/TestNameFilterButton';
 import styles from './index.module.css';
 
 interface TestNameFilterProps {

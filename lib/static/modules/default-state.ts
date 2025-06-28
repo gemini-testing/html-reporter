@@ -4,7 +4,7 @@ import {DiffModes} from '../../constants/diff-modes';
 import {EXPAND_ERRORS} from '../../constants/expand-modes';
 import {RESULT_KEYS} from '../../constants/group-tests';
 import {ToolName} from '../../constants';
-import {SortDirection, State, TreeViewMode} from '@/static/new-ui/types/store';
+import {Pages, SortDirection, State, TreeViewMode} from '@/static/new-ui/types/store';
 import {MIN_SECTION_SIZE_PERCENT} from '../new-ui/features/suites/constants';
 
 export default Object.assign({config: configDefaults}, {
@@ -78,6 +78,7 @@ export default Object.assign({config: configDefaults}, {
     },
     view: {
         viewMode: ViewMode.ALL,
+        visualChecksViewMode: ViewMode.ALL,
         diffMode: DiffModes.THREE_UP.id,
         expand: EXPAND_ERRORS,
         baseHost: '',
@@ -104,14 +105,14 @@ export default Object.assign({config: configDefaults}, {
         isNewUi: false,
         isInitialized: false,
         availableFeatures: [],
-        suitesPage: {
+        [Pages.suitesPage]: {
             currentBrowserId: null,
             currentTreeNodeId: null,
             currentGroupId: null,
             currentStepId: null,
             currentHighlightedStepId: null
         },
-        visualChecksPage: {
+        [Pages.visualChecksPage]: {
             currentNamedImageId: null
         },
         loading: {
@@ -146,7 +147,7 @@ export default Object.assign({config: configDefaults}, {
         }
     },
     ui: {
-        suitesPage: {
+        [Pages.suitesPage]: {
             treeViewMode: TreeViewMode.Tree,
             retryIndexByTreeNodeId: {},
             expandedSectionsById: {},
@@ -155,6 +156,10 @@ export default Object.assign({config: configDefaults}, {
             sectionSizes: [MIN_SECTION_SIZE_PERCENT, 100 - MIN_SECTION_SIZE_PERCENT],
             backupSectionSizes: [MIN_SECTION_SIZE_PERCENT, 100 - MIN_SECTION_SIZE_PERCENT],
             isSnapshotsPlayerVisible: true
+        },
+        [Pages.visualChecksPage]: {
+            sectionSizes: [MIN_SECTION_SIZE_PERCENT, 100 - MIN_SECTION_SIZE_PERCENT],
+            backupSectionSizes: [MIN_SECTION_SIZE_PERCENT, 100 - MIN_SECTION_SIZE_PERCENT]
         },
         staticImageAccepterToolbar: {
             offset: {x: 0, y: 0}

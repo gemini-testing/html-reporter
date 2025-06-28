@@ -5,11 +5,11 @@ import {connect, useSelector} from 'react-redux';
 import {bindActionCreators} from 'redux';
 
 import * as actions from '@/static/modules/actions';
-import {BrowserIcon} from '@/static/new-ui/features/suites/components/BrowsersSelect/BrowserIcon';
+import {BrowserIcon} from '@/static/new-ui/components/BrowsersSelect/BrowserIcon';
 import {getIsInitialized} from '@/static/new-ui/store/selectors';
 import {BrowserItem} from '@/types';
 import styles from './index.module.css';
-import {IconButton} from '../../../../components/IconButton';
+import {IconButton} from '../IconButton';
 
 // In the onUpdate callback we only have access to array of selected strings. That's why we need to serialize
 // id/version in string. Encoding to avoid errors if id/version contains delimiter.

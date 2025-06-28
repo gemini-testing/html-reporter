@@ -31,7 +31,7 @@ export function TreeViewItemSubtitle(props: TreeViewItemSubtitleProps): ReactNod
                     const imageItem: ImageEntityFail = imageEntity as ImageEntityFail;
 
                     if (!imageItem.diffImg) {
-                        return;
+                        // return;
                     }
 
                     const images = [
@@ -47,7 +47,7 @@ export function TreeViewItemSubtitle(props: TreeViewItemSubtitleProps): ReactNod
                             title: 'Diff',
                             image: imageItem.diffImg
                         }
-                    ];
+                    ].filter(({image}) => Boolean(image));
 
                     return (
                         <div key={imageItem.id}>
