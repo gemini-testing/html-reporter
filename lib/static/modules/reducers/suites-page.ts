@@ -1,8 +1,8 @@
-import {State} from '@/static/new-ui/types/store';
+import {Pages, State} from '@/static/new-ui/types/store';
 import actionNames from '@/static/modules/action-names';
 import {applyStateUpdate} from '@/static/modules/utils/state';
 import {SomeAction} from '@/static/modules/actions/types';
-import {getTreeViewItems} from '@/static/new-ui/features/suites/components/SuitesTreeView/selectors';
+import {getSuitesThreeViewData} from '@/static/new-ui/features/suites/components/SuitesPage/selectors';
 import {findTreeNodeByBrowserId, findTreeNodeById, getGroupId} from '@/static/new-ui/features/suites/utils';
 import * as localStorageWrapper from '../local-storage-wrapper';
 import {MIN_SECTION_SIZE_PERCENT} from '@/static/new-ui/features/suites/constants';
@@ -17,7 +17,7 @@ export default (state: State, action: SomeAction): State => {
         case actionNames.SUITES_PAGE_SET_TREE_VIEW_MODE:
         case actionNames.CHANGE_VIEW_MODE as any: // eslint-disable-line @typescript-eslint/no-explicit-any
         case actionNames.GROUP_TESTS_SET_CURRENT_EXPRESSION: {
-            const {allTreeNodeIds} = getTreeViewItems(state);
+            const {allTreeNodeIds} = getSuitesThreeViewData(state);
 
             const expandedTreeNodesById: Record<string, boolean> = Object.assign({}, state.ui.suitesPage.expandedTreeNodesById);
 
@@ -31,7 +31,7 @@ export default (state: State, action: SomeAction): State => {
             if (action.type === actionNames.GROUP_TESTS_SET_CURRENT_EXPRESSION || action.type === actionNames.SUITES_PAGE_SET_TREE_VIEW_MODE) {
                 const {currentBrowserId} = state.app.suitesPage;
                 if (currentBrowserId) {
-                    const {tree} = getTreeViewItems(state);
+                    const {tree} = getSuitesThreeViewData(state);
                     const browserTreeViewData = findTreeNodeByBrowserId(tree, currentBrowserId);
                     currentTreeNodeId = browserTreeViewData?.id;
                     if (browserTreeViewData) {
@@ -44,7 +44,15 @@ export default (state: State, action: SomeAction): State => {
                 treeViewMode = action.payload.treeViewMode;
             }
 
-            const sectionSizes = localStorageWrapper.getItem(SECTION_SIZES_LOCAL_STORAGE_KEY, [MIN_SECTION_SIZE_PERCENT, 100 - MIN_SECTION_SIZE_PERCENT]) as number[];
+            const suitesSectionSizes = localStorageWrapper.getItem(
+                `${SECTION_SIZES_LOCAL_STORAGE_KEY}-${Pages.suitesPage}`,
+                [MIN_SECTION_SIZE_PERCENT, 100 - MIN_SECTION_SIZE_PERCENT]
+            ) as number[];
+
+            const visualChecksSectionSizes = localStorageWrapper.getItem(
+                `${SECTION_SIZES_LOCAL_STORAGE_KEY}-${Pages.visualChecksPage}`,
+                [MIN_SECTION_SIZE_PERCENT, 100 - MIN_SECTION_SIZE_PERCENT]
+            ) as number[];
 
             const isSnapshotsPlayerVisible = Boolean(localStorageWrapper.getItem(TIME_TRAVEL_PLAYER_VISIBILITY_KEY, true));
 
@@ -59,8 +67,11 @@ export default (state: State, action: SomeAction): State => {
                     suitesPage: {
                         expandedTreeNodesById,
                         treeViewMode,
-                        sectionSizes,
+                        sectionSizes: suitesSectionSizes,
                         isSnapshotsPlayerVisible
+                    },
+                    visualChecksPage: {
+                        sectionSizes: visualChecksSectionSizes
                     }
                 }
             });
@@ -137,7 +148,7 @@ export default (state: State, action: SomeAction): State => {
             }) as State;
         }
         case actionNames.SUITES_PAGE_REVEAL_TREE_NODE: {
-            const {tree} = getTreeViewItems(state);
+            const {tree} = getSuitesThreeViewData(state);
             let nodeData = findTreeNodeById(tree, action.payload.nodeId);
             const newExpandedTreeNodesById: Record<string, boolean> = {};
 
@@ -174,18 +185,19 @@ export default (state: State, action: SomeAction): State => {
                 }
             });
         }
-        case actionNames.SUITES_PAGE_SET_SECTION_SIZES: {
-            localStorageWrapper.setItem(SECTION_SIZES_LOCAL_STORAGE_KEY, action.payload.sizes);
+        case actionNames.PAGE_SET_SECTION_SIZES: {
+            const localStorageSizesKey = `${SECTION_SIZES_LOCAL_STORAGE_KEY}-${action.payload.page}`;
+            localStorageWrapper.setItem(localStorageSizesKey, action.payload.sizes);
 
             return applyStateUpdate(state, {
                 ui: {
-                    suitesPage: {sectionSizes: action.payload.sizes}
+                    [action.payload.page]: {sectionSizes: action.payload.sizes}
                 }
             });
         }
-        case actionNames.SUITES_PAGE_SET_BACKUP_SECTION_SIZES: {
+        case actionNames.PAGE_SET_BACKUP_SECTION_SIZES: {
             return applyStateUpdate(state, {
-                ui: {suitesPage: {backupSectionSizes: action.payload.sizes}}
+                ui: {[action.payload.page]: {backupSectionSizes: action.payload.sizes}}
             });
         }
         default:

@@ -8,6 +8,7 @@ import {NEW_ISSUE_LINK} from '@/constants';
 export const getItemCheckStatus = createSelector(
     [getBrowsersState, getSuitesState, getGroups, (_state: State, item: TreeViewItemData): TreeViewItemData => item],
     (browsersStateById, suitesStateById, groups, item): CheckStatus => {
+        return UNCHECKED;
         if (item.entityType === EntityType.Suite) {
             return suitesStateById[item.entityId].checkStatus;
         } else if (item.entityType === EntityType.Browser) {

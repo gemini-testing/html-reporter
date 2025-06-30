@@ -59,6 +59,7 @@ describe('lib/static/modules/middlewares/local-storage', () => {
                     expand: EXPAND_ERRORS,
                     strictMatchFilter: false,
                     viewMode: ViewMode.ALL,
+                    visualChecksViewMode: ViewMode.ALL,
                     diffMode: DiffModes.THREE_UP.id
                 });
             });

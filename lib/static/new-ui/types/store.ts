@@ -250,12 +250,17 @@ export interface SnapshotsPlayerHighlightState {
     goToTime: number;
 }
 
+export enum Pages {
+    suitesPage = 'suitesPage',
+    visualChecksPage = 'visualChecksPage',
+}
+
 export interface State {
     app: {
         isNewUi: boolean;
         isInitialized: boolean;
         availableFeatures: Feature[],
-        suitesPage: {
+        [Pages.suitesPage]: {
             currentTreeNodeId: string | null;
             currentBrowserId: string | null;
             currentGroupId: string | null;
@@ -263,7 +268,7 @@ export interface State {
             // Is used when hovering over a timeline of a snapshots player to highlight corresponding step
             currentHighlightedStepId: string | null;
         };
-        visualChecksPage: {
+        [Pages.visualChecksPage]: {
             currentNamedImageId: string | null;
         };
         loading: {
@@ -297,7 +302,7 @@ export interface State {
         snapshotsPlayer: SnapshotsPlayerHighlightState
     };
     ui: {
-        suitesPage: {
+        [Pages.suitesPage]: {
             treeViewMode: TreeViewMode;
             retryIndexByTreeNodeId: Record<string, number | null>;
             expandedTreeNodesById: Record<string, boolean>;
@@ -307,6 +312,11 @@ export interface State {
             // Used to restore the previous sections sizes after collapsing the tree with a button
             backupSectionSizes: number[];
             isSnapshotsPlayerVisible: boolean;
+        };
+        [Pages.visualChecksPage]: {
+            sectionSizes: number[];
+            // Used to restore the previous sections sizes after collapsing the tree with a button
+            backupSectionSizes: number[];
         };
         staticImageAccepterToolbar: {
             offset: Point;
@@ -321,6 +331,7 @@ export interface State {
         useRegexFilter: boolean;
         useMatchCaseFilter: boolean;
         viewMode: ViewMode;
+        visualChecksViewMode: ViewMode;
         filteredBrowsers: BrowserItem[];
         /** @deprecated Use tree.groups instead. */
         keyToGroupTestsBy: string;

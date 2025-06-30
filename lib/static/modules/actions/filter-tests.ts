@@ -39,6 +39,9 @@ export const selectBrowsers = (browsers: BrowserItem[]): SelectBrowsersAction =>
 export type ChangeViewModeAction = Action<typeof actionNames.CHANGE_VIEW_MODE, ViewMode>;
 export const changeViewMode = (payload: ChangeViewModeAction['payload']): ChangeViewModeAction => ({type: actionNames.CHANGE_VIEW_MODE, payload});
 
+export type ChangeVisualCheksModeAction = Action<typeof actionNames.CHANGE_VISUAL_CHECKS_VIEW_MODE, ViewMode>;
+export const changeVisualCheksViewMode = (payload: ChangeVisualCheksModeAction['payload']): ChangeVisualCheksModeAction => ({type: actionNames.CHANGE_VISUAL_CHECKS_VIEW_MODE, payload});
+
 export type FilterTestsAction =
     | UpdateTestNameFilterAction
     | SetMatchCaseFilterAction
