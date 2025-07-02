@@ -20,6 +20,7 @@ class ControlButtons extends Component {
             viewMode: PropTypes.string.isRequired,
             diffMode: PropTypes.string.isRequired
         }),
+        app: PropTypes.object.isRequired,
         isStatisImageAccepterEnabled: PropTypes.bool,
         actions: PropTypes.object.isRequired
     };
@@ -44,15 +45,15 @@ class ControlButtons extends Component {
     }
 
     render() {
-        const {actions, view} = this.props;
+        const {actions, view, app} = this.props;
 
         return (
             <React.Fragment>
                 <ControlSelect
                     size='s'
                     label="Show tests"
-                    value={view.viewMode}
-                    handler={actions.changeViewMode}
+                    value={app.suitesPage.viewMode}
+                    handler={(data) => actions.changeViewMode({data, page: 'suitesPage'})}
                     options = {this._getShowTestsOptions()}
                 />
                 <ControlSelect
@@ -90,6 +91,6 @@ class ControlButtons extends Component {
 }
 
 export default connect(
-    ({view, staticImageAccepter: {enabled}}) => ({view, isStatisImageAccepterEnabled: enabled}),
+    ({view, app, staticImageAccepter: {enabled}}) => ({view, app, isStatisImageAccepterEnabled: enabled}),
     (dispatch) => ({actions: bindActionCreators(actions, dispatch)})
 )(ControlButtons);

@@ -77,16 +77,10 @@ export default Object.assign({config: configDefaults}, {
         perBrowser: {}
     },
     view: {
-        viewMode: ViewMode.ALL,
-        visualChecksViewMode: ViewMode.ALL,
         diffMode: DiffModes.THREE_UP.id,
         expand: EXPAND_ERRORS,
         baseHost: '',
-        testNameFilter: '',
-        useRegexFilter: false,
-        useMatchCaseFilter: false,
         strictMatchFilter: false,
-        filteredBrowsers: [],
         keyToGroupTestsBy: ''
     },
     db: undefined,
@@ -110,10 +104,22 @@ export default Object.assign({config: configDefaults}, {
             currentTreeNodeId: null,
             currentGroupId: null,
             currentStepId: null,
-            currentHighlightedStepId: null
+            currentHighlightedStepId: null,
+
+            viewMode: ViewMode.ALL,
+            nameFilter: '',
+            useRegexFilter: false,
+            useMatchCaseFilter: false,
+            filteredBrowsers: []
         },
         [Pages.visualChecksPage]: {
-            currentNamedImageId: null
+            currentNamedImageId: null,
+
+            viewMode: ViewMode.ALL,
+            nameFilter: '',
+            useRegexFilter: false,
+            useMatchCaseFilter: false,
+            filteredBrowsers: []
         },
         loading: {
             taskTitle: 'Loading Testplane UI',

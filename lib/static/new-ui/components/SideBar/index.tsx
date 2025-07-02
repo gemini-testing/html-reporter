@@ -3,7 +3,7 @@ import classNames from 'classnames';
 import styles from './index.module.css';
 import {ErrorHandler} from '@/static/new-ui/features/error-handling/components/ErrorHandling';
 import {Flex, Text} from '@gravity-ui/uikit';
-import {TestNameFilter} from '../TestNameFilter';
+import {NameFilter} from '../NameFilter';
 import {BrowsersSelect} from '../BrowsersSelect';
 import {TabsSelect, TabsSelectItem} from '../TabsSelect';
 import {TreeActionsToolbar} from '../TreeActionsToolbar';
@@ -19,7 +19,6 @@ interface SideBarProps extends TreeViewProps {
     statusList: TabsSelectItem[];
     statusValue: string;
     onStatusChange: (value: string) => void;
-    hideSearch?: boolean; // @todo: remove after implement search on visual checks page
 }
 
 export function SideBar({
@@ -30,19 +29,16 @@ export function SideBar({
     statusList,
     statusValue,
     onStatusChange,
-    hideSearch,
     ...props
 }: SideBarProps): ReactNode {
     return (
         <UiCard className={classNames(styles.card, styles.treeViewCard)} key='tree-view' qa='suites-tree-card'>
             <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try to reload page'}/>}>
                 <Text variant="header-2" className={styles['card__title']}>{title}</Text>
-                {!hideSearch && (
-                    <Flex gap={2}>
-                        <TestNameFilter/>
-                        <BrowsersSelect/>
-                    </Flex>
-                )}
+                <Flex gap={2}>
+                    <NameFilter/>
+                    <BrowsersSelect/>
+                </Flex>
                 <TabsSelect
                     list={statusList}
                     value={statusValue}

@@ -267,9 +267,23 @@ export interface State {
             currentStepId: string | null;
             // Is used when hovering over a timeline of a snapshots player to highlight corresponding step
             currentHighlightedStepId: string | null;
+
+            // Filters in top of sidebar
+            nameFilter: string;
+            useRegexFilter: boolean;
+            useMatchCaseFilter: boolean;
+            viewMode: ViewMode;
+            filteredBrowsers: BrowserItem[];
         };
         [Pages.visualChecksPage]: {
             currentNamedImageId: string | null;
+
+            // Filters in top of sidebar
+            nameFilter: string;
+            useRegexFilter: boolean;
+            useMatchCaseFilter: boolean;
+            viewMode: ViewMode;
+            filteredBrowsers: BrowserItem[];
         };
         loading: {
             /** @note Determines whether the loading bar is visible */
@@ -327,12 +341,6 @@ export interface State {
     tree: TreeEntity;
     view: {
         diffMode: DiffModeId;
-        testNameFilter: string;
-        useRegexFilter: boolean;
-        useMatchCaseFilter: boolean;
-        viewMode: ViewMode;
-        visualChecksViewMode: ViewMode;
-        filteredBrowsers: BrowserItem[];
         /** @deprecated Use tree.groups instead. */
         keyToGroupTestsBy: string;
         baseHost: string;

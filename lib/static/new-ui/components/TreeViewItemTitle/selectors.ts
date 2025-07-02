@@ -13,12 +13,12 @@ export const getItemCheckStatus = createSelector(
                 if (suitesStateById[item.entityId]) {
                     return suitesStateById[item.entityId].checkStatus;
                 }
-                break;
+                return UNCHECKED;
             case EntityType.Browser:
                 if (browsersStateById[item.entityId]) {
                     return browsersStateById[item.entityId].checkStatus;
                 }
-                break;
+                return UNCHECKED;
             case EntityType.Group: {
                 const group = groups[item.entityId];
                 const childCount = group.browserIds.length;
@@ -32,6 +32,7 @@ export const getItemCheckStatus = createSelector(
 
         console.warn(`Unknown entity type while trying to determine checkbox status. Item: ${JSON.stringify(item)}. ` +
         `Please report this to our team at ${NEW_ISSUE_LINK}.`);
+
         return UNCHECKED;
     }
 );
