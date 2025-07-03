@@ -26,7 +26,7 @@ export default (state: State, action: SomeAction): State => {
             }
 
             let currentGroupId: string | null | undefined = null;
-            let currentTreeNodeId: string | null | undefined;
+            let currentTreeNodeId: string | null | undefined = state.app[Pages.suitesPage].currentTreeNodeId;
             let treeViewMode = state.ui.suitesPage.treeViewMode;
             if (action.type === actionNames.GROUP_TESTS_SET_CURRENT_EXPRESSION || action.type === actionNames.SUITES_PAGE_SET_TREE_VIEW_MODE) {
                 const {currentBrowserId} = state.app.suitesPage;

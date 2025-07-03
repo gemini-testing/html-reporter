@@ -24,17 +24,19 @@ export function TreeViewItemSubtitle(props: TreeViewItemSubtitleProps): ReactNod
                 <div className={styles.skipReason}>Skipped ⋅ {makeLinksClickable(props.item.skipReason)}</div>
             </div>
         );
-    } else if (props.item.images?.length) {
+    }
+
+    if (props.item.images?.length) {
         return (
             <div>
                 {props.item.images.map((imageEntity) => {
                     const imageItem: ImageEntityFail = imageEntity as ImageEntityFail;
 
-                    if (!imageItem.diffImg) {
-                        // return;
-                    }
-
                     const images = [
+                        {
+                            title: 'Diff',
+                            image: imageItem.diffImg
+                        },
                         {
                             title: 'Expected',
                             image: imageItem.expectedImg
@@ -42,10 +44,6 @@ export function TreeViewItemSubtitle(props: TreeViewItemSubtitleProps): ReactNod
                         {
                             title: 'Actual',
                             image: imageItem.actualImg
-                        },
-                        {
-                            title: 'Diff',
-                            image: imageItem.diffImg
                         }
                     ].filter(({image}) => Boolean(image));
 
@@ -68,7 +66,9 @@ export function TreeViewItemSubtitle(props: TreeViewItemSubtitleProps): ReactNod
                 })}
             </div>
         );
-    } else if (props.item.errorStack) {
+    }
+
+    if (props.item.errorStack) {
         return (
             <div className={classNames(styles['tree-view-item-subtitle__error-stack'], props.className)}>
                 {(props.item.errorTitle + '\n' + stripAnsi(props.item.errorStack)).trim()}

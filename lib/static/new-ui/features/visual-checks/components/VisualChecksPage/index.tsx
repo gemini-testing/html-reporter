@@ -116,15 +116,22 @@ export function VisualChecksPage(): ReactNode {
                                 {currentNamedImage && (
                                     <VisualChecksStickyHeader
                                         currentNamedImage={currentNamedImage}
+                                        visibleNamedImageIds={treeData.allTreeNodeIds}
                                         onImageChange={onImageChange}
                                     />
                                 )}
 
-                                {currentImage && <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try to choose another item'}/>}>
-                                    <AssertViewResult result={currentImage} />
-                                </ErrorHandler.Boundary>}
+                                {currentImage && (
+                                    <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try to choose another item'}/>}>
+                                        <div className={styles.currentImage}>
+                                            <AssertViewResult result={currentImage} />
+                                        </div>
+                                    </ErrorHandler.Boundary>
+                                )}
 
-                                {!currentImage && <div className={styles.hint}>This run doesn&apos;t have an image with name &quot;{currentNamedImage?.stateName}&quot;</div>}
+                                {!currentImage && (
+                                    <div className={styles.hint}>This run doesn&apos;t have an image with name &quot;{currentNamedImage?.stateName}&quot;</div>
+                                )}
                             </>
                             : <AssertViewResultSkeleton />}
                     </ErrorHandler.Boundary>

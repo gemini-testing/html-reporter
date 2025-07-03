@@ -71,6 +71,7 @@ export const getVisualThreeViewData = createSelector(
                         stats[ViewMode.PASSED]++;
                         return visualChecksViewMode === ViewMode.PASSED || visualChecksViewMode === ViewMode.ALL;
                     case TestStatus.FAIL:
+                    case TestStatus.ERROR:
                     case TestStatus.UPDATED:
                         stats[ViewMode.FAILED]++;
                         return visualChecksViewMode === ViewMode.FAILED || visualChecksViewMode === ViewMode.ALL;
@@ -93,7 +94,7 @@ export const getVisualThreeViewData = createSelector(
                         tags: [],
                         title: [...item.suitePath, item.browserName],
                         images: [
-                            images[item.imageIds[0]] as ImageEntity
+                            images[item.imageIds[item.imageIds.length - 1]] as ImageEntity
                         ]
                     },
                     parentNode
