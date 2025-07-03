@@ -78,6 +78,11 @@ type SetBackupSectionSizesAction = Action<typeof actionNames.PAGE_SET_BACKUP_SEC
 export const setBackupSectionSizes = (payload: SetBackupSectionSizesAction['payload']): SetBackupSectionSizesAction =>
     ({type: actionNames.PAGE_SET_BACKUP_SECTION_SIZES, payload});
 
+export type SetStrictMatchFilterAction = Action<typeof actionNames.VIEW_SET_STRICT_MATCH_FILTER, boolean>;
+export const setStrictMatchFilter = (strictMatchFilter: SetStrictMatchFilterAction['payload']): SetStrictMatchFilterAction => {
+    return {type: actionNames.VIEW_SET_STRICT_MATCH_FILTER, payload: strictMatchFilter};
+};
+
 export type SuitesPageAction =
     | SetTreeNodeExpandedStateAction
     | SetAllTreeNodesStateAction
@@ -89,4 +94,5 @@ export type SuitesPageAction =
     | SuitesPageSetCurrentStepAction
     | SuitesPageSetCurrentHighlightStepAction
     | SetSectionSizesAction
-    | SetBackupSectionSizesAction;
+    | SetBackupSectionSizesAction
+    | SetStrictMatchFilterAction;

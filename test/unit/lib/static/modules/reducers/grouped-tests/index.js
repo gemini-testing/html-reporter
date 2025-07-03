@@ -25,14 +25,20 @@ describe('lib/static/modules/reducers/grouped-tests', () => {
 
     const mkViewArgs_ = (opts = {}) => {
         return defaults(opts, {
-            viewMode: ViewMode.ALL,
-            testNameFilter: '',
-            useMatchCaseFilter: false,
-            useRegexFilter: false,
-            strictMatchFilter: false,
-            filteredBrowsers: []
+            strictMatchFilter: false
         });
     };
+
+    const mkAppArgs_ = (opts = {}) => ({
+        suitesPage: {
+            viewMode: ViewMode.ALL,
+            nameFilter: '',
+            useMatchCaseFilter: false,
+            useRegexFilter: false,
+            filteredBrowsers: [],
+            ...opts
+        }
+    });
 
     [
         actionNames.INIT_GUI_REPORT,
@@ -52,12 +58,13 @@ describe('lib/static/modules/reducers/grouped-tests', () => {
                 const state = {
                     ...defaultState,
                     tree: mkStateTree(),
-                    view: mkStateView({keyToGroupTestsBy: '', ...viewArgs})
+                    view: mkStateView({keyToGroupTestsBy: '', ...viewArgs}),
+                    app: mkAppArgs_()
                 };
 
                 reducer(state, {type: actionName});
 
-                assert.calledOnceWith(groupMeta, {tree: state.tree, group: state.groupedTests.meta, diff: {}, ...viewArgs});
+                assert.calledOnceWith(groupMeta, {tree: state.tree, group: state.groupedTests.meta, diff: {}, ...viewArgs, ...state.app.suitesPage});
                 assert.notCalled(groupResult);
             });
 
@@ -68,6 +75,7 @@ describe('lib/static/modules/reducers/grouped-tests', () => {
                     ...defaultState,
                     tree: mkStateTree(),
                     view: mkStateView({keyToGroupTestsBy, ...viewArgs}),
+                    app: mkAppArgs_(),
                     config: {errorPatterns: ['some-pattern']}
                 };
 
@@ -79,7 +87,8 @@ describe('lib/static/modules/reducers/grouped-tests', () => {
                     diff: {},
                     groupKey: ERROR_KEY,
                     errorPatterns: state.config.errorPatterns,
-                    ...viewArgs
+                    ...viewArgs,
+                    ...state.app.suitesPage
                 });
                 assert.notCalled(groupMeta);
             });
@@ -91,7 +100,8 @@ describe('lib/static/modules/reducers/grouped-tests', () => {
                 const state = {
                     ...defaultState,
                     tree: mkStateTree(),
-                    view: mkStateView({keyToGroupTestsBy, ...viewArgs})
+                    view: mkStateView({keyToGroupTestsBy, ...viewArgs}),
+                    app: mkAppArgs_()
                 };
 
                 reducer(state, {type: actionName});
@@ -101,7 +111,8 @@ describe('lib/static/modules/reducers/grouped-tests', () => {
                     group: state.groupedTests[SECTIONS.META],
                     groupKey,
                     diff: {},
-                    ...viewArgs
+                    ...viewArgs,
+                    ...state.app.suitesPage
                 });
                 assert.notCalled(groupResult);
             });

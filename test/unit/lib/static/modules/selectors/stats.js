@@ -28,9 +28,9 @@ describe('stats selectors', () => {
         };
 
         it('should return correct statistics when it is not filtered', () => {
-            const view = {filteredBrowsers: []};
+            const app = {suitesPage: {filteredBrowsers: []}};
 
-            const filteredStats = getStatsFilteredByBrowsers({stats, view});
+            const filteredStats = getStatsFilteredByBrowsers({stats, app});
 
             assert.deepEqual(filteredStats, {
                 total: 40,
@@ -42,9 +42,9 @@ describe('stats selectors', () => {
         });
 
         it('should return correct statistics for one filtered browser', () => {
-            const view = {filteredBrowsers: [{id: 'bro1'}]};
+            const app = {suitesPage: {filteredBrowsers: [{id: 'bro1'}]}};
 
-            const filteredStats = getStatsFilteredByBrowsers({stats, view});
+            const filteredStats = getStatsFilteredByBrowsers({stats, app});
 
             assert.deepEqual(filteredStats, {
                 passed: 2,
@@ -53,9 +53,9 @@ describe('stats selectors', () => {
         });
 
         it('should return correct statistics for several filtered browsers', () => {
-            const view = {filteredBrowsers: [{id: 'bro1'}, {id: 'bro2'}]};
+            const app = {suitesPage: {filteredBrowsers: [{id: 'bro1'}, {id: 'bro2'}]}};
 
-            const filteredStats = getStatsFilteredByBrowsers({stats, view});
+            const filteredStats = getStatsFilteredByBrowsers({stats, app});
 
             assert.deepEqual(filteredStats, {
                 passed: 4,
@@ -64,14 +64,16 @@ describe('stats selectors', () => {
         });
 
         it('should return correct statistics corresponding to versions', () => {
-            const view = {
-                filteredBrowsers: [
-                    {id: 'bro1', versions: ['ver1', 'ver2']},
-                    {id: 'bro2', versions: ['ver1']}
-                ]
+            const app = {
+                suitesPage: {
+                    filteredBrowsers: [
+                        {id: 'bro1', versions: ['ver1', 'ver2']},
+                        {id: 'bro2', versions: ['ver1']}
+                    ]
+                }
             };
 
-            const filteredStats = getStatsFilteredByBrowsers({stats, view});
+            const filteredStats = getStatsFilteredByBrowsers({stats, app});
 
             assert.deepEqual(filteredStats, {
                 passed: 3,

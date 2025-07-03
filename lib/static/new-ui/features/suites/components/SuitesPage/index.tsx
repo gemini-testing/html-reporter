@@ -24,8 +24,10 @@ import {SideBar} from '@/static/new-ui/components/SideBar';
 import {getSuitesStatusCounts, getSuitesThreeViewData} from './selectors';
 import {getIconByStatus} from '@/static/new-ui/utils';
 import {Pages} from '@/static/new-ui/types/store';
+import {usePage} from '@/static/new-ui/hooks/usePage';
 
 export function SuitesPage(): ReactNode {
+    const page = usePage();
     const currentResult = useSelector(getCurrentResult);
     const treeData = useSelector(getSuitesThreeViewData);
     const {visibleTreeNodeIds, tree} = treeData;
@@ -38,11 +40,14 @@ export function SuitesPage(): ReactNode {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    const statusValue = useSelector((state) => state.view.viewMode);
+    const statusValue = useSelector((state) => state.app[page].viewMode);
     const statusCounts = useSelector((state) => getSuitesStatusCounts(state));
     const onStatusChange = useCallback((value: string) => {
-        dispatch(actions.changeViewMode(value as ViewMode));
-    }, []);
+        dispatch(actions.changeViewMode({
+            data: value as ViewMode,
+            page
+        }));
+    }, [page]);
 
     const suitesTreeViewRef = useRef<TreeViewHandle>(null);
 

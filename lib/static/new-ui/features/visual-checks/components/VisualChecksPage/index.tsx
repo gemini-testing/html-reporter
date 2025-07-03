@@ -4,7 +4,7 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import {SplitViewLayout} from '@/static/new-ui/components/SplitViewLayout';
 import {UiCard} from '@/static/new-ui/components/Card/UiCard';
-import {getCurrentImage, getCurrentNamedImage, getNamedImages} from '@/static/new-ui/features/visual-checks/selectors';
+import {getCurrentImage, getCurrentNamedImage} from '@/static/new-ui/features/visual-checks/selectors';
 import {AssertViewResult} from '@/static/new-ui/components/AssertViewResult';
 import styles from './index.module.css';
 import {
@@ -23,12 +23,13 @@ import {getIconByStatus} from '@/static/new-ui/utils';
 import {isSectionHidden} from '@/static/new-ui/features/suites/utils';
 import {MIN_SECTION_SIZE_PERCENT} from '@/static/new-ui/features/suites/constants';
 import {Pages} from '@/static/new-ui/types/store';
+import {usePage} from '@/static/new-ui/hooks/usePage';
 
 export function VisualChecksPage(): ReactNode {
     const dispatch = useDispatch();
+    const page = usePage();
     const currentNamedImage = useSelector(getCurrentNamedImage);
     const currentImage = useSelector(getCurrentImage);
-    const namedImages = useSelector(getNamedImages);
 
     const currentTreeNodeId = useSelector((state) => state.app.visualChecksPage.currentNamedImageId);
 
@@ -65,32 +66,33 @@ export function VisualChecksPage(): ReactNode {
     };
 
     const statusList = useMemo(() => {
-        const namedImagesList = Object.values(namedImages);
-
         return [
             {
                 title: 'All',
                 value: ViewMode.ALL,
-                count: namedImagesList.length
+                count: treeData.stats[ViewMode.ALL]
             },
             {
                 icon: getIconByStatus(TestStatus.SUCCESS),
                 title: 'Passed',
                 value: ViewMode.PASSED,
-                count: namedImagesList.filter(({status}) => status === TestStatus.SUCCESS).length
+                count: treeData.stats[ViewMode.PASSED]
             },
             {
                 icon: getIconByStatus(TestStatus.FAIL),
                 title: 'Failed',
                 value: ViewMode.FAILED,
-                count: namedImagesList.filter(({status}) => status === TestStatus.FAIL).length
+                count: treeData.stats[ViewMode.FAILED]
             }
         ];
-    }, [namedImages]);
+    }, [treeData]);
 
     const onStatusChange = useCallback((value: string) => {
-        dispatch(actions.changeVisualCheksViewMode(value as ViewMode));
-    }, []);
+        dispatch(actions.changeViewMode({
+            data: value as ViewMode,
+            page
+        }));
+    }, [page]);
 
     return (
         <div className={styles.container}>
@@ -106,7 +108,6 @@ export function VisualChecksPage(): ReactNode {
                     statusList={statusList}
                     statusValue={statusValue}
                     onStatusChange={onStatusChange}
-                    hideSearch
                 />
                 <UiCard key="test-view" className={classNames(styles.card, styles.testViewCard)}>
                     <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try to reload page'} />}>

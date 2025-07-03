@@ -1,4 +1,4 @@
-import {SortDirection, State} from '@/static/new-ui/types/store';
+import {Pages, SortDirection, State} from '@/static/new-ui/types/store';
 import {SomeAction} from '@/static/modules/actions/types';
 import actionNames from '@/static/modules/action-names';
 import {applyStateUpdate} from '@/static/modules/utils';
@@ -93,24 +93,28 @@ export default (state: State, action: SomeAction): State => {
             });
         }
         case actionNames.VIEW_UPDATE_FILTER_BY_NAME: {
-            const sortTestsData: Partial<State['app']['sortTestsData']> = {};
-            const availableExpressions = [...state.app.sortTestsData.availableExpressions];
-            const previousExpressionIds = state.app.sortTestsData.previousExpressionIds;
-            const previousDirection = state.app.sortTestsData.previousDirection;
+            if (action.payload.page === Pages.suitesPage) {
+                const sortTestsData: Partial<State['app']['sortTestsData']> = {};
+                const availableExpressions = [...state.app.sortTestsData.availableExpressions];
+                const previousExpressionIds = state.app.sortTestsData.previousExpressionIds;
+                const previousDirection = state.app.sortTestsData.previousDirection;
 
-            if (action.payload.length > 0 && !availableExpressions.some(expr => expr.id === SORT_BY_RELEVANCE.id)) {
-                sortTestsData.availableExpressions = [...availableExpressions, SORT_BY_RELEVANCE];
-                sortTestsData.currentExpressionIds = [SORT_BY_RELEVANCE.id];
-                sortTestsData.currentDirection = SortDirection.Desc;
-            } else if (action.payload.length === 0 && availableExpressions.some(expr => expr.id === SORT_BY_RELEVANCE.id)) {
-                sortTestsData.availableExpressions = availableExpressions.filter(expr => expr.id !== SORT_BY_RELEVANCE.id);
-                sortTestsData.currentExpressionIds = previousExpressionIds;
-                sortTestsData.currentDirection = previousDirection;
+                if (action.payload.data.length > 0 && !availableExpressions.some(expr => expr.id === SORT_BY_RELEVANCE.id)) {
+                    sortTestsData.availableExpressions = [...availableExpressions, SORT_BY_RELEVANCE];
+                    sortTestsData.currentExpressionIds = [SORT_BY_RELEVANCE.id];
+                    sortTestsData.currentDirection = SortDirection.Desc;
+                } else if (action.payload.data.length === 0 && availableExpressions.some(expr => expr.id === SORT_BY_RELEVANCE.id)) {
+                    sortTestsData.availableExpressions = availableExpressions.filter(expr => expr.id !== SORT_BY_RELEVANCE.id);
+                    sortTestsData.currentExpressionIds = previousExpressionIds;
+                    sortTestsData.currentDirection = previousDirection;
+                }
+
+                return applyStateUpdate(state, {
+                    app: {sortTestsData}
+                });
             }
 
-            return applyStateUpdate(state, {
-                app: {sortTestsData}
-            });
+            return state;
         }
         default:
             return state;
