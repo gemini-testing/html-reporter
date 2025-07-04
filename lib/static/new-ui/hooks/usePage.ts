@@ -2,14 +2,15 @@ import {useLocation} from 'react-router-dom';
 import {Pages} from '@/static/new-ui/types/store';
 
 function getPageByPathname(pathname: string): Pages {
-    switch (pathname) {
-        case '/visual-checks':
-            return Pages.visualChecksPage;
-        case '/suites':
-            return Pages.suitesPage;
-        default:
-            return Pages.suitesPage;
+    if (pathname.startsWith('/visual-checks')) {
+        return Pages.visualChecksPage;
     }
+
+    if (pathname.startsWith('/suites')) {
+        return Pages.suitesPage;
+    }
+
+    return Pages.suitesPage;
 }
 
 export const usePage = (): Pages => {
