@@ -24,12 +24,16 @@ import {isSectionHidden} from '@/static/new-ui/features/suites/utils';
 import {MIN_SECTION_SIZE_PERCENT} from '@/static/new-ui/features/suites/constants';
 import {Pages} from '@/static/new-ui/types/store';
 import {usePage} from '@/static/new-ui/hooks/usePage';
+import {useLocation, useNavigate} from 'react-router-dom';
 
 export function VisualChecksPage(): ReactNode {
     const dispatch = useDispatch();
     const page = usePage();
+
     const currentNamedImage = useSelector(getCurrentNamedImage);
     const currentImage = useSelector(getCurrentImage);
+    const navigate = useNavigate();
+    const location = useLocation();
 
     const currentTreeNodeId = useSelector((state) => state.app.visualChecksPage.currentNamedImageId);
 
@@ -46,6 +50,21 @@ export function VisualChecksPage(): ReactNode {
     }, []);
     const onThreeItemClick = useCallback((item: TreeViewItemData) => {
         dispatch(visualChecksPageSetCurrentNamedImage(item.id));
+    }, []);
+
+    useEffect(() => {
+        if (currentTreeNodeId) {
+            navigate(encodeURIComponent(currentTreeNodeId as string));
+        }
+    }, [currentTreeNodeId]);
+
+    useEffect(() => {
+        if (!currentTreeNodeId) {
+            const path = decodeURIComponent(location.pathname).split('/');
+            if (path && path[2]) {
+                dispatch(visualChecksPageSetCurrentNamedImage(path[2]));
+            }
+        }
     }, []);
 
     const statusValue = useSelector(getVisualChecksViewMode);

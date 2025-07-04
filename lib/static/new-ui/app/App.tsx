@@ -33,7 +33,9 @@ export function App(): ReactNode {
         {
             title: 'Visual Checks',
             url: '/visual-checks',
-            icon: Eye, element: <VisualChecksPage/>
+            icon: Eye,
+            element: <VisualChecksPage/>,
+            children: [<Route key={'image'} path=':imageId' element={<VisualChecksPage/>} />]
         }
     ];
 
