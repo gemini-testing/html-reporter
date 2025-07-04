@@ -30,7 +30,11 @@ export function App(): ReactNode {
             element: <SuitesPage/>,
             children: [<Route key={'suite'} path=':suiteId' element={<SuitesPage/>} />]
         },
-        {title: 'Visual Checks', url: '/visual-checks', icon: Eye, element: <VisualChecksPage/>}
+        {
+            title: 'Visual Checks',
+            url: '/visual-checks',
+            icon: Eye, element: <VisualChecksPage/>
+        }
     ];
 
     const customScripts = (store.getState() as State).config.customScripts;

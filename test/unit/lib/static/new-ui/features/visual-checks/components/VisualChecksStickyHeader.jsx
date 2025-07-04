@@ -1,6 +1,7 @@
 import React from 'react';
 import {addBrowserToTree, addImageToTree, addResultToTree, addSuiteToTree, mkBrowserEntity, mkEmptyTree, mkImageEntityFail, mkRealStore, mkResultEntity, mkSuiteEntityLeaf, renderWithStore} from '../../../../utils';
 import proxyquire from 'proxyquire';
+import {getNamedImages} from '@/static/new-ui/features/visual-checks/selectors';
 
 describe('<VisualChecksStickyHeader />', () => {
     const sandbox = sinon.sandbox.create();
@@ -41,12 +42,13 @@ describe('<VisualChecksStickyHeader />', () => {
         preloadImageEntityStub = sandbox.stub();
 
         store = prepareTestStore();
+        const visibleNamedImageIds = Object.values(getNamedImages(store.getState())).map(({id}) => id);
 
         const VisualChecksStickyHeader = proxyquire('lib/static/new-ui/features/visual-checks/components/VisualChecksPage/VisualChecksStickyHeader', {
             '../../../../../modules/utils/imageEntity': {preloadImageEntity: preloadImageEntityStub}
         }).VisualChecksStickyHeader;
 
-        renderWithStore(<VisualChecksStickyHeader />, store);
+        renderWithStore(<VisualChecksStickyHeader visibleNamedImageIds={visibleNamedImageIds} />, store);
     });
 
     afterEach(() => {

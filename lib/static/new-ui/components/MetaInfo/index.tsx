@@ -147,11 +147,11 @@ function MetaInfoInternal(props: MetaInfoInternalProps): ReactNode {
 export const MetaInfo = connect(
     ({tree, config: {metaInfoBaseUrls}, apiValues, view}: State, {resultId}: MetaInfoProps) => {
         const result = tree.results.byId[resultId];
-        const browser = tree.browsers.byId[result.parentId];
+        const browser = tree.browsers.byId[result?.parentId];
 
         return {
             result,
-            testName: browser.parentId,
+            testName: browser?.parentId,
             metaInfoBaseUrls,
             apiValues,
             baseHost: view.baseHost

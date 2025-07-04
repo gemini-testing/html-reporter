@@ -1,5 +1,5 @@
 export * from './custom-gui';
-export * from './filter-tests';
+export * from './filters';
 export * from './find-same-diffs';
 export * from './group-tests';
 export * from './gui-server-connection';

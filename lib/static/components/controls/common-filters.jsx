@@ -44,7 +44,10 @@ const CommonFilters = (props) => {
             <BrowserList
                 available={props.browsers}
                 selected={props.filteredBrowsers}
-                onChange={props.actions.selectBrowsers}
+                onChange={(list) => props.actions.selectBrowsers({
+                    data: list,
+                    page: 'suitesPage'
+                })}
             />
             <TestNameFilterInput/>
             <StrictMatchFilterInput/>
@@ -69,8 +72,8 @@ CommonFilters.propTypes = {
 };
 
 export default connect(
-    ({view, browsers, gui, staticImageAccepter}) => ({
-        filteredBrowsers: view.filteredBrowsers,
+    ({app, browsers, gui, staticImageAccepter}) => ({
+        filteredBrowsers: app.suitesPage.filteredBrowsers,
         browsers,
         gui,
         staticImageAccepter

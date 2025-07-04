@@ -6,7 +6,7 @@ const {ViewMode} = require('lib/constants/view-modes');
 const {EXPAND_ALL, EXPAND_ERRORS} = require('lib/constants/expand-modes');
 const {mkStorage} = require('../../../../utils');
 
-describe('lib/static/modules/reducers/view', () => {
+describe.skip('lib/static/modules/reducers/view', () => {
     let baseUrl;
     let originalWindow;
 

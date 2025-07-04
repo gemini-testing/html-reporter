@@ -173,9 +173,9 @@ Suites.propTypes = {
 export default connect(
     (state) => ({
         visibleRootSuiteIds: getVisibleRootSuiteIds(state),
-        viewMode: state.view.viewMode,
-        filteredBrowsers: state.view.filteredBrowsers,
-        testNameFilter: state.view.testNameFilter,
+        viewMode: state.app.suitesPage.viewMode,
+        filteredBrowsers: state.app.suitesPage.filteredBrowsers,
+        testNameFilter: state.app.suitesPage.nameFilter,
         strictMatchFilter: state.view.strictMatchFilter,
         isReportEmpty: isEmpty(state.tree.browsers.byId)
     }),

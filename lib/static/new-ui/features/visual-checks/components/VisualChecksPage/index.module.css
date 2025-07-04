@@ -37,3 +37,7 @@
     font-weight: 500;
     justify-content: center;
 }
+
+.current-image {
+    overflow: auto;
+}
