@@ -40,30 +40,32 @@ export function CompactAttemptPicker(): ReactNode {
         return null;
     }
 
-    return <div className={styles.container}>
-        <Button view={'outlined'} onClick={onPreviousClick} disabled={currentAttemptIndex === 0}><Icon data={ChevronLeft}/></Button>
-        <Select renderControl={({triggerProps: {onClick, onKeyDown}, ref}): React.JSX.Element => {
-            return <Button className={styles.attemptSelect} onClick={onClick} onKeyDown={onKeyDown} ref={ref as Ref<HTMLButtonElement>} view={'flat'}>
-                Attempt <span className={styles.attemptNumber}>
-                    {currentAttemptIndex !== null ? currentAttemptIndex + 1 : '–'}
-                </span> of <span className={styles.attemptNumber}>{totalAttemptsCount ?? '–'}</span>
-            </Button>;
-        }}
-        renderOption={(option): React.JSX.Element => {
-            const attemptStatus = resultsById[option.data.resultId].status;
-            return <div className={styles.attemptOption}>
-                {getIconByStatus(attemptStatus)}
-                <span>{option.content}</span>
-            </div>;
-        }} popupClassName={styles.attemptSelectPopup}
-        onUpdate={onUpdate}
-        >
-            {currentBrowser.resultIds.map((resultId, index) => {
-                return <Select.Option key={index} value={index.toString()} content={`Attempt #${index + 1}`} data={{resultId}}></Select.Option>;
-            })}
-        </Select>
-        <Button view={'outlined'} onClick={onNextClick} disabled={totalAttemptsCount === null || currentAttemptIndex === totalAttemptsCount - 1}>
-            <Icon data={ChevronRight}/>
-        </Button>
-    </div>;
+    return (
+        <div className={styles.container}>
+            <Button view={'outlined'} onClick={onPreviousClick} disabled={currentAttemptIndex === 0}><Icon data={ChevronLeft}/></Button>
+            <Select
+                renderControl={({triggerProps: {onClick, onKeyDown}, ref}): React.JSX.Element => (
+                    <Button className={styles.attemptSelect} onClick={onClick} onKeyDown={onKeyDown} ref={ref as Ref<HTMLButtonElement>} view={'flat'}>
+                        Attempt <span className={styles.attemptNumber}>
+                            {currentAttemptIndex !== null ? currentAttemptIndex + 1 : '–'}
+                        </span> of <span className={styles.attemptNumber}>{totalAttemptsCount ?? '–'}</span>
+                    </Button>
+                )}
+                renderOption={(option): React.JSX.Element => (
+                    <div className={styles.attemptOption}>
+                        {getIconByStatus(resultsById[option.data.resultId].status)}
+                        <span>{option.content}</span>
+                    </div>
+                )} popupClassName={styles.attemptSelectPopup}
+                onUpdate={onUpdate}
+            >
+                {currentBrowser.resultIds.map((resultId, index) => (
+                    <Select.Option key={index} value={index.toString()} content={`Attempt #${index + 1}`} data={{resultId}}></Select.Option>
+                ))}
+            </Select>
+            <Button view={'outlined'} onClick={onNextClick} disabled={totalAttemptsCount === null || currentAttemptIndex === totalAttemptsCount - 1}>
+                <Icon data={ChevronRight}/>
+            </Button>
+        </div>
+    );
 }
