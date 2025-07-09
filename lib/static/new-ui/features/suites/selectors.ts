@@ -71,3 +71,13 @@ export const isTimeTravelPlayerAvailable = (state: State): boolean => {
 
     return isSnapshotAvailable || (isRunning && isLiveStreamingAvailable);
 };
+
+export const getAttempt = (state: State): number | null => {
+    const browserId = state.app.suitesPage.currentBrowserId;
+
+    if (browserId) {
+        return state.tree.browsers.stateById[browserId].retryIndex;
+    }
+
+    return null;
+};

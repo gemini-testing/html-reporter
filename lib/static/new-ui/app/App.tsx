@@ -28,14 +28,14 @@ export function App(): ReactNode {
             url: '/suites',
             icon: ListCheck,
             element: <SuitesPage/>,
-            children: [<Route key={'suite'} path=':suiteId' element={<SuitesPage/>} />]
+            children: [<Route key={'suite'} path='/suites/:suiteId?/:stateName?/:attempt?' element={<SuitesPage/>} />]
         },
         {
             title: 'Visual Checks',
             url: '/visual-checks',
             icon: Eye,
             element: <VisualChecksPage/>,
-            children: [<Route key={'image'} path=':imageId' element={<VisualChecksPage/>} />]
+            children: [<Route key={'image'} path='/visual-checks/:imageId?/:attempt?' element={<VisualChecksPage/>} />]
         }
     ];
 
