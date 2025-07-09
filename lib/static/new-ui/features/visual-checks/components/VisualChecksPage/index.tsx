@@ -4,7 +4,11 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import {SplitViewLayout} from '@/static/new-ui/components/SplitViewLayout';
 import {UiCard} from '@/static/new-ui/components/Card/UiCard';
-import {getAttempt, getCurrentImage, getCurrentNamedImage} from '@/static/new-ui/features/visual-checks/selectors';
+import {
+    getAttempt,
+    getCurrentImage,
+    getCurrentNamedImage
+} from '@/static/new-ui/features/visual-checks/selectors';
 import {AssertViewResult} from '@/static/new-ui/components/AssertViewResult';
 import styles from './index.module.css';
 import {
@@ -25,6 +29,7 @@ import {MIN_SECTION_SIZE_PERCENT} from '@/static/new-ui/features/suites/constant
 import {Pages} from '@/static/new-ui/types/store';
 import {usePage} from '@/static/new-ui/hooks/usePage';
 import {useNavigate, useParams} from 'react-router-dom';
+import {Spin} from '@gravity-ui/uikit';
 
 export function VisualChecksPage(): ReactNode {
     const dispatch = useDispatch();
@@ -36,6 +41,7 @@ export function VisualChecksPage(): ReactNode {
     const navigate = useNavigate();
     const params = useParams();
     const inited = useRef(false);
+    const isRunning = useSelector((state) => state.running);
 
     const currentTreeNodeId = useSelector((state) => state.app.visualChecksPage.currentNamedImageId);
 
@@ -92,34 +98,32 @@ export function VisualChecksPage(): ReactNode {
         }
     };
 
-    const statusList = useMemo(() => {
-        return [
-            {
-                title: 'All',
-                value: ViewMode.ALL,
-                count: treeData.stats[ViewMode.ALL]
-            },
-            {
-                icon: getIconByStatus(TestStatus.SUCCESS),
-                title: 'Passed',
-                value: ViewMode.PASSED,
-                count: treeData.stats[ViewMode.PASSED]
-            },
-            {
-                icon: getIconByStatus(TestStatus.FAIL),
-                title: 'Failed',
-                value: ViewMode.FAILED,
-                count: treeData.stats[ViewMode.FAILED]
-            }
-        ];
-    }, [treeData]);
+    const statusList = useMemo(() => [
+        {
+            title: 'All',
+            value: ViewMode.ALL,
+            count: treeData.stats[ViewMode.ALL]
+        },
+        {
+            icon: getIconByStatus(TestStatus.SUCCESS),
+            title: 'Passed',
+            value: ViewMode.PASSED,
+            count: treeData.stats[ViewMode.PASSED]
+        },
+        {
+            icon: getIconByStatus(TestStatus.FAIL),
+            title: 'Failed',
+            value: ViewMode.FAILED,
+            count: treeData.stats[ViewMode.FAILED]
+        }
+    ], [treeData]);
 
-    const onStatusChange = useCallback((value: string) => {
+    const onStatusChange = useCallback((value: string) => (
         dispatch(actions.changeViewMode({
             data: value as ViewMode,
             page
-        }));
-    }, [page]);
+        }))
+    ), [page]);
 
     return (
         <div className={styles.container}>
@@ -156,8 +160,13 @@ export function VisualChecksPage(): ReactNode {
                                     </ErrorHandler.Boundary>
                                 )}
 
-                                {!currentImage && (
+                                {!currentImage && !isRunning && (
                                     <div className={styles.hint}>This run doesn&apos;t have an image with name &quot;{currentNamedImage?.stateName}&quot;</div>
+                                )}
+                                {!currentImage && isRunning && (
+                                    <div className={styles.emptyStepsContainer}>
+                                        <Spin size={'xs'} style={{marginRight: '4px'}} />Test is running
+                                    </div>
                                 )}
                             </>
                             : <AssertViewResultSkeleton />}
