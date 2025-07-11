@@ -4,7 +4,7 @@ import {DiffModes} from '../../constants/diff-modes';
 import {EXPAND_ERRORS} from '../../constants/expand-modes';
 import {RESULT_KEYS} from '../../constants/group-tests';
 import {ToolName} from '../../constants';
-import {Pages, SortDirection, State, TreeViewMode} from '@/static/new-ui/types/store';
+import {Page, SortDirection, State, TreeViewMode} from '@/static/new-ui/types/store';
 import {MIN_SECTION_SIZE_PERCENT} from '../new-ui/features/suites/constants';
 
 export default Object.assign({config: configDefaults}, {
@@ -99,7 +99,7 @@ export default Object.assign({config: configDefaults}, {
         isNewUi: false,
         isInitialized: false,
         availableFeatures: [],
-        [Pages.suitesPage]: {
+        [Page.suitesPage]: {
             currentBrowserId: null,
             currentTreeNodeId: null,
             currentGroupId: null,
@@ -112,7 +112,7 @@ export default Object.assign({config: configDefaults}, {
             useMatchCaseFilter: false,
             filteredBrowsers: []
         },
-        [Pages.visualChecksPage]: {
+        [Page.visualChecksPage]: {
             currentNamedImageId: null,
 
             viewMode: ViewMode.ALL,
@@ -153,7 +153,7 @@ export default Object.assign({config: configDefaults}, {
         }
     },
     ui: {
-        [Pages.suitesPage]: {
+        [Page.suitesPage]: {
             treeViewMode: TreeViewMode.Tree,
             retryIndexByTreeNodeId: {},
             expandedSectionsById: {},
@@ -163,7 +163,7 @@ export default Object.assign({config: configDefaults}, {
             backupSectionSizes: [MIN_SECTION_SIZE_PERCENT, 100 - MIN_SECTION_SIZE_PERCENT],
             isSnapshotsPlayerVisible: true
         },
-        [Pages.visualChecksPage]: {
+        [Page.visualChecksPage]: {
             sectionSizes: [MIN_SECTION_SIZE_PERCENT, 100 - MIN_SECTION_SIZE_PERCENT],
             backupSectionSizes: [MIN_SECTION_SIZE_PERCENT, 100 - MIN_SECTION_SIZE_PERCENT]
         },

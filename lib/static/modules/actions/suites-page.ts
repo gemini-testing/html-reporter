@@ -1,6 +1,6 @@
 import actionNames from '@/static/modules/action-names';
 import {Action} from '@/static/modules/actions/types';
-import {Pages, TreeViewMode} from '@/static/new-ui/types/store';
+import {Page, TreeViewMode} from '@/static/new-ui/types/store';
 
 export type SuitesPageSetCurrentTreeNodeAction = Action<typeof actionNames.SUITES_PAGE_SET_CURRENT_SUITE, Partial<{
     treeNodeId: string;
@@ -66,14 +66,14 @@ export const setTreeViewMode = (payload: SetTreeViewModeAction['payload']): SetT
 
 type SetSectionSizesAction = Action<typeof actionNames.PAGE_SET_SECTION_SIZES, {
     sizes: number[];
-    page: Pages;
+    page: Page;
 }>;
 export const setSectionSizes = (payload: SetSectionSizesAction['payload']): SetSectionSizesAction =>
     ({type: actionNames.PAGE_SET_SECTION_SIZES, payload});
 
 type SetBackupSectionSizesAction = Action<typeof actionNames.PAGE_SET_BACKUP_SECTION_SIZES, {
     sizes: number[];
-    page: Pages;
+    page: Page;
 }>;
 export const setBackupSectionSizes = (payload: SetBackupSectionSizesAction['payload']): SetBackupSectionSizesAction =>
     ({type: actionNames.PAGE_SET_BACKUP_SECTION_SIZES, payload});

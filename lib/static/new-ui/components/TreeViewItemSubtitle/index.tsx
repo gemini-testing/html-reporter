@@ -34,16 +34,16 @@ export function TreeViewItemSubtitle(props: TreeViewItemSubtitleProps): ReactNod
 
                     const images = [
                         {
-                            title: 'Diff',
-                            image: imageItem.diffImg
-                        },
-                        {
                             title: 'Expected',
                             image: imageItem.expectedImg
                         },
                         {
                             title: 'Actual',
                             image: imageItem.actualImg
+                        },
+                        {
+                            title: 'Diff',
+                            image: imageItem.diffImg
                         }
                     ].filter(({image}) => Boolean(image));
 
@@ -52,7 +52,12 @@ export function TreeViewItemSubtitle(props: TreeViewItemSubtitleProps): ReactNod
                             <span className={styles.imageStatus}>{imageItem.stateName} ⋅ {getAssertViewStatusMessage(imageEntity)}</span>
                             <div className={styles.imageDiff}>
                                 {images.map((item) => (
-                                    <div className={styles.imageDiffItem} key={item.title}>
+                                    <div
+                                        className={
+                                            classNames(styles.imageDiffItem, images.length === 3 && item.title !== 'Diff' && styles.canHide)
+                                        }
+                                        key={item.title}
+                                    >
                                         <p>{item.title}</p>
                                         <ImageWithMagnifier
                                             image={item.image}

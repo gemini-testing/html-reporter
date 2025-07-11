@@ -1,4 +1,4 @@
-import {Pages, State} from '@/static/new-ui/types/store';
+import {Page, State} from '@/static/new-ui/types/store';
 import actionNames from '@/static/modules/action-names';
 import {FiltersAction, InitGuiReportAction, InitStaticReportAction} from '@/static/modules/actions';
 import {ViewMode} from '@/constants';
@@ -6,6 +6,7 @@ import {BrowserItem} from '@/types';
 import * as localStorageWrapper from '@/static/modules/local-storage-wrapper';
 import {getViewQuery} from '@/static/modules/custom-queries';
 import {isEmpty} from 'lodash';
+import {applyStateUpdate} from '@/static/modules/utils/state';
 
 interface FilterData {
     viewMode?: ViewMode;
@@ -15,17 +16,8 @@ interface FilterData {
     filteredBrowsers?: BrowserItem[];
 }
 
-const updateAppState = (state: State, page: Pages, data: FilterData): State => (
-    {
-        ...state,
-        app: {
-            ...state.app,
-            [page]: {
-                ...state.app[page],
-                ...data
-            }
-        }
-    }
+const updateAppState = (state: State, page: Page, data: FilterData): State => (
+    applyStateUpdate(state, {app: {[page]: data}})
 );
 
 export default (state: State, action: FiltersAction | InitGuiReportAction | InitStaticReportAction): State => {
@@ -45,21 +37,24 @@ export default (state: State, action: FiltersAction | InitGuiReportAction | Init
                 ...state,
                 app: {
                     ...state.app,
-                    [Pages.suitesPage]: {
-                        ...state.app[Pages.suitesPage],
+                    [Page.suitesPage]: {
+                        ...state.app[Page.suitesPage],
                         viewMode: suitesPageViewMode
                     },
-                    [Pages.visualChecksPage]: {
-                        ...state.app[Pages.visualChecksPage],
+                    [Page.visualChecksPage]: {
+                        ...state.app[Page.visualChecksPage],
                         viewMode: visualChecksPageViewMode
                     }
                 }
             };
 
-            if (window.location.hash === 'visual-checks-page') {
-                newState.app[Pages.visualChecksPage].filteredBrowsers = viewQuery.filteredBrowsers as BrowserItem[];
-            } else {
-                newState.app[Pages.suitesPage].filteredBrowsers = viewQuery.filteredBrowsers as BrowserItem[];
+            switch (window.location.hash) {
+                case '#/visual-checks':
+                    newState.app[Page.visualChecksPage].filteredBrowsers = viewQuery.filteredBrowsers as BrowserItem[];
+                    break;
+                case '#/suites':
+                    newState.app[Page.suitesPage].filteredBrowsers = viewQuery.filteredBrowsers as BrowserItem[];
+                    break;
             }
 
             return newState;

@@ -1,14 +1,14 @@
 import {createSelector} from 'reselect';
 import {getImages} from '@/static/new-ui/store/selectors';
-import {TreeNode} from '@/static/new-ui/features/suites/components/SuitesPage/types';
-import {ImageEntity, Pages, State} from '@/static/new-ui/types/store';
+import {EntityType, TreeRoot} from '@/static/new-ui/features/suites/components/SuitesPage/types';
+import {ImageEntity, Page, State} from '@/static/new-ui/types/store';
 import {getNamedImages} from '@/static/new-ui/features/visual-checks/selectors';
 import {TreeViewData} from '@/static/new-ui/components/TreeView';
 import {TestStatus, ViewMode} from '@/constants';
 import {BrowserItem} from '@/types';
 import {matchTestName} from '@/static/modules/utils';
 
-export const getVisualChecksViewMode = (state: State): ViewMode => state.app[Pages.visualChecksPage].viewMode;
+export const getVisualChecksViewMode = (state: State): ViewMode => state.app[Page.visualChecksPage].viewMode;
 
 type Stats = Pick<Record<ViewMode, number>, ViewMode.ALL | ViewMode.PASSED | ViewMode.FAILED>;
 
@@ -16,15 +16,15 @@ interface VisualTreeViewData extends TreeViewData{
     stats: Stats;
 }
 
-export const getVisualThreeViewData = createSelector(
+export const getVisualTreeViewData = createSelector(
     [
         getImages,
         getNamedImages,
         getVisualChecksViewMode,
-        (state: State): BrowserItem[] => state.app[Pages.visualChecksPage].filteredBrowsers,
-        (state: State): string => state.app[Pages.visualChecksPage].nameFilter,
-        (state: State): boolean => state.app[Pages.visualChecksPage].useRegexFilter,
-        (state: State): boolean => state.app[Pages.visualChecksPage].useMatchCaseFilter
+        (state: State): BrowserItem[] => state.app[Page.visualChecksPage].filteredBrowsers,
+        (state: State): string => state.app[Page.visualChecksPage].nameFilter,
+        (state: State): boolean => state.app[Page.visualChecksPage].useRegexFilter,
+        (state: State): boolean => state.app[Page.visualChecksPage].useMatchCaseFilter
     ],
     (
         images,
@@ -38,7 +38,7 @@ export const getVisualThreeViewData = createSelector(
         const browsers = new Set(filteredBrowsers.map(({id}) => id));
         const browsersLen = browsers.size;
 
-        const parentNode = {
+        const parentNode: TreeRoot = {
             isRoot: true,
             data: undefined
         };
@@ -84,7 +84,7 @@ export const getVisualThreeViewData = createSelector(
                     data: {
                         id: item.id,
                         entityId: item.id,
-                        entityType: 'browser',
+                        entityType: EntityType.Browser,
                         errorStack: undefined,
                         errorTitle: undefined,
                         parentData: undefined,
@@ -99,7 +99,7 @@ export const getVisualThreeViewData = createSelector(
                     },
                     parentNode
                 };
-            }) as TreeNode[];
+            });
 
         return {
             allTreeNodeIds: tree.map(({data}) => data.id),

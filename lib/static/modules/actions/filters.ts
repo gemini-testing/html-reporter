@@ -3,10 +3,10 @@ import type {Action} from '@/static/modules/actions/types';
 import {setFilteredBrowsers} from '@/static/modules/query-params';
 import {BrowserItem} from '@/types';
 import {ViewMode} from '@/constants';
-import {Pages} from '@/static/new-ui/types/store';
+import {Page} from '@/static/new-ui/types/store';
 
 interface FilterPayload<T>{
-    page: Pages;
+    page: Page;
     data: T;
 }
 

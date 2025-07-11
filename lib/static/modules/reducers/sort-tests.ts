@@ -1,4 +1,4 @@
-import {Pages, SortDirection, State} from '@/static/new-ui/types/store';
+import {Page, SortDirection, State} from '@/static/new-ui/types/store';
 import {SomeAction} from '@/static/modules/actions/types';
 import actionNames from '@/static/modules/action-names';
 import {applyStateUpdate} from '@/static/modules/utils';
@@ -93,7 +93,7 @@ export default (state: State, action: SomeAction): State => {
             });
         }
         case actionNames.VIEW_UPDATE_FILTER_BY_NAME: {
-            if (action.payload.page === Pages.suitesPage) {
+            if (action.payload.page === Page.suitesPage) {
                 const sortTestsData: Partial<State['app']['sortTestsData']> = {};
                 const availableExpressions = [...state.app.sortTestsData.availableExpressions];
                 const previousExpressionIds = state.app.sortTestsData.previousExpressionIds;

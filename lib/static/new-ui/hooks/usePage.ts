@@ -1,18 +1,18 @@
 import {useLocation} from 'react-router-dom';
-import {Pages} from '@/static/new-ui/types/store';
+import {Page} from '@/static/new-ui/types/store';
 
-function getPageByPathname(pathname: string): Pages {
+function getPageByPathname(pathname: string): Page {
     switch (pathname) {
         case '/visual-checks':
-            return Pages.visualChecksPage;
+            return Page.visualChecksPage;
         case '/suites':
-            return Pages.suitesPage;
+            return Page.suitesPage;
         default:
-            return Pages.suitesPage;
+            return Page.suitesPage;
     }
 }
 
-export const usePage = (): Pages => {
+export const usePage = (): Page => {
     const location = useLocation();
 
     return getPageByPathname(location.pathname);

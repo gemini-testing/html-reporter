@@ -1,4 +1,4 @@
-import {Pages, State} from '@/static/new-ui/types/store';
+import {Page, State} from '@/static/new-ui/types/store';
 import actionNames from '@/static/modules/action-names';
 import {applyStateUpdate} from '@/static/modules/utils/state';
 import {SomeAction} from '@/static/modules/actions/types';
@@ -9,6 +9,10 @@ import {MIN_SECTION_SIZE_PERCENT} from '@/static/new-ui/features/suites/constant
 import {TIME_TRAVEL_PLAYER_VISIBILITY_KEY} from '@/constants/local-storage';
 
 const SECTION_SIZES_LOCAL_STORAGE_KEY = 'suites-page-section-sizes';
+
+const getLocalStorageKeyPage = (page: Page): string => (
+    `${SECTION_SIZES_LOCAL_STORAGE_KEY}-${page}`
+);
 
 export default (state: State, action: SomeAction): State => {
     switch (action.type) {
@@ -26,7 +30,7 @@ export default (state: State, action: SomeAction): State => {
             }
 
             let currentGroupId: string | null | undefined = null;
-            let currentTreeNodeId: string | null | undefined = state.app[Pages.suitesPage].currentTreeNodeId;
+            let currentTreeNodeId: string | null | undefined = state.app[Page.suitesPage].currentTreeNodeId;
             let treeViewMode = state.ui.suitesPage.treeViewMode;
             if (action.type === actionNames.GROUP_TESTS_SET_CURRENT_EXPRESSION || action.type === actionNames.SUITES_PAGE_SET_TREE_VIEW_MODE) {
                 const {currentBrowserId} = state.app.suitesPage;
@@ -45,12 +49,12 @@ export default (state: State, action: SomeAction): State => {
             }
 
             const suitesSectionSizes = localStorageWrapper.getItem(
-                `${SECTION_SIZES_LOCAL_STORAGE_KEY}-${Pages.suitesPage}`,
+                getLocalStorageKeyPage(Page.suitesPage),
                 [MIN_SECTION_SIZE_PERCENT, 100 - MIN_SECTION_SIZE_PERCENT]
             ) as number[];
 
             const visualChecksSectionSizes = localStorageWrapper.getItem(
-                `${SECTION_SIZES_LOCAL_STORAGE_KEY}-${Pages.visualChecksPage}`,
+                getLocalStorageKeyPage(Page.visualChecksPage),
                 [MIN_SECTION_SIZE_PERCENT, 100 - MIN_SECTION_SIZE_PERCENT]
             ) as number[];
 
@@ -186,7 +190,7 @@ export default (state: State, action: SomeAction): State => {
             });
         }
         case actionNames.PAGE_SET_SECTION_SIZES: {
-            const localStorageSizesKey = `${SECTION_SIZES_LOCAL_STORAGE_KEY}-${action.payload.page}`;
+            const localStorageSizesKey = getLocalStorageKeyPage(action.payload.page);
             localStorageWrapper.setItem(localStorageSizesKey, action.payload.sizes);
 
             return applyStateUpdate(state, {

@@ -15,7 +15,7 @@ import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
 import {setSectionSizes} from '../../../modules/actions/suites-page';
 import {ArrowLeftToLine, ArrowRightFromLine} from '@gravity-ui/icons';
 import {isSectionHidden} from '../../features/suites/utils';
-import {Pages} from '@/static/new-ui/types/store';
+import {Page} from '@/static/new-ui/types/store';
 
 export enum PanelId {
     Settings = 'settings',
@@ -50,8 +50,8 @@ export function MainLayout(props: MainLayoutProps): ReactNode {
         }
     }));
 
-    const currentSuitesPageSectionSizes = useSelector(state => state.ui[Pages.suitesPage].sectionSizes);
-    const backupSuitesPageSectionSizes = useSelector(state => state.ui[Pages.suitesPage].backupSectionSizes);
+    const currentSuitesPageSectionSizes = useSelector(state => state.ui[Page.suitesPage].sectionSizes);
+    const backupSuitesPageSectionSizes = useSelector(state => state.ui[Page.suitesPage].backupSectionSizes);
     if (/\/suites/.test(location.pathname)) {
         const shouldExpandTree = isSectionHidden(currentSuitesPageSectionSizes[0]);
         menuItems.push(
@@ -61,15 +61,15 @@ export function MainLayout(props: MainLayoutProps): ReactNode {
                 title: shouldExpandTree ? 'Expand tree' : 'Collapse tree',
                 icon: shouldExpandTree ? ArrowRightFromLine : ArrowLeftToLine,
                 onItemClick: (): void => {
-                    dispatch(setSectionSizes({sizes: shouldExpandTree ? backupSuitesPageSectionSizes : [0, 100], page: Pages.suitesPage}));
+                    dispatch(setSectionSizes({sizes: shouldExpandTree ? backupSuitesPageSectionSizes : [0, 100], page: Page.suitesPage}));
                 },
                 qa: 'expand-collapse-suites-tree'
             }
         );
     }
 
-    const currentVisualChecksPageSectionSizes = useSelector(state => state.ui[Pages.visualChecksPage].sectionSizes);
-    const backupVisualChecksPageSectionSizes = useSelector(state => state.ui[Pages.visualChecksPage].backupSectionSizes);
+    const currentVisualChecksPageSectionSizes = useSelector(state => state.ui[Page.visualChecksPage].sectionSizes);
+    const backupVisualChecksPageSectionSizes = useSelector(state => state.ui[Page.visualChecksPage].backupSectionSizes);
     if (/\/visual-checks/.test(location.pathname)) {
         const shouldExpandTree = isSectionHidden(currentVisualChecksPageSectionSizes[0]);
         menuItems.push(
@@ -79,7 +79,7 @@ export function MainLayout(props: MainLayoutProps): ReactNode {
                 title: shouldExpandTree ? 'Expand tree' : 'Collapse tree',
                 icon: shouldExpandTree ? ArrowRightFromLine : ArrowLeftToLine,
                 onItemClick: (): void => {
-                    dispatch(setSectionSizes({sizes: shouldExpandTree ? backupVisualChecksPageSectionSizes : [0, 100], page: Pages.visualChecksPage}));
+                    dispatch(setSectionSizes({sizes: shouldExpandTree ? backupVisualChecksPageSectionSizes : [0, 100], page: Page.visualChecksPage}));
                 },
                 qa: 'expand-collapse-visual-checks'
             }

@@ -15,14 +15,14 @@ import {ErrorHandler} from '../../../error-handling/components/ErrorHandling';
 import * as actions from '@/static/modules/actions';
 import {visualChecksPageSetCurrentNamedImage} from '@/static/modules/actions';
 import {SideBar} from '@/static/new-ui/components/SideBar';
-import {getVisualChecksViewMode, getVisualThreeViewData} from './selectors';
+import {getVisualChecksViewMode, getVisualTreeViewData} from './selectors';
 import {TreeViewHandle} from '@/static/new-ui/components/TreeView';
 import {TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
 import {TestStatus, ViewMode} from '@/constants';
 import {getIconByStatus} from '@/static/new-ui/utils';
 import {isSectionHidden} from '@/static/new-ui/features/suites/utils';
 import {MIN_SECTION_SIZE_PERCENT} from '@/static/new-ui/features/suites/constants';
-import {Pages} from '@/static/new-ui/types/store';
+import {Page} from '@/static/new-ui/types/store';
 import {usePage} from '@/static/new-ui/hooks/usePage';
 
 export function VisualChecksPage(): ReactNode {
@@ -33,7 +33,7 @@ export function VisualChecksPage(): ReactNode {
 
     const currentTreeNodeId = useSelector((state) => state.app.visualChecksPage.currentNamedImageId);
 
-    const treeData = useSelector(getVisualThreeViewData);
+    const treeData = useSelector(getVisualTreeViewData);
     const suitesTreeViewRef = useRef<TreeViewHandle>(null);
 
     useEffect(() => {
@@ -44,23 +44,23 @@ export function VisualChecksPage(): ReactNode {
     const onImageChange = useCallback((imageId: string) => {
         dispatch(visualChecksPageSetCurrentNamedImage(imageId));
     }, []);
-    const onThreeItemClick = useCallback((item: TreeViewItemData) => {
+    const onTreeItemClick = useCallback((item: TreeViewItemData) => {
         dispatch(visualChecksPageSetCurrentNamedImage(item.id));
     }, []);
 
     const statusValue = useSelector(getVisualChecksViewMode);
 
-    const sectionSizes = useSelector(state => state.ui[Pages.visualChecksPage].sectionSizes);
+    const sectionSizes = useSelector(state => state.ui[Page.visualChecksPage].sectionSizes);
 
     const onSectionSizesChange = (sizes: number[]): void => {
-        dispatch(actions.setSectionSizes({sizes, page: Pages.visualChecksPage}));
+        dispatch(actions.setSectionSizes({sizes, page: Page.visualChecksPage}));
         if (isSectionHidden(sizes[0])) {
             dispatch(
-                actions.setBackupSectionSizes({sizes: [MIN_SECTION_SIZE_PERCENT, 100 - MIN_SECTION_SIZE_PERCENT], page: Pages.visualChecksPage})
+                actions.setBackupSectionSizes({sizes: [MIN_SECTION_SIZE_PERCENT, 100 - MIN_SECTION_SIZE_PERCENT], page: Page.visualChecksPage})
             );
         } else {
             dispatch(
-                actions.setBackupSectionSizes({sizes, page: Pages.visualChecksPage})
+                actions.setBackupSectionSizes({sizes, page: Page.visualChecksPage})
             );
         }
     };
@@ -104,7 +104,7 @@ export function VisualChecksPage(): ReactNode {
                     treeData={treeData}
                     treeViewExpandedById={{}}
                     currentTreeNodeId={currentTreeNodeId}
-                    onClick={onThreeItemClick}
+                    onClick={onTreeItemClick}
                     statusList={statusList}
                     statusValue={statusValue}
                     onStatusChange={onStatusChange}

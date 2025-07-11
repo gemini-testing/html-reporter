@@ -250,7 +250,7 @@ export interface SnapshotsPlayerHighlightState {
     goToTime: number;
 }
 
-export enum Pages {
+export enum Page {
     suitesPage = 'suitesPage',
     visualChecksPage = 'visualChecksPage',
 }
@@ -260,7 +260,7 @@ export interface State {
         isNewUi: boolean;
         isInitialized: boolean;
         availableFeatures: Feature[],
-        [Pages.suitesPage]: {
+        [Page.suitesPage]: {
             currentTreeNodeId: string | null;
             currentBrowserId: string | null;
             currentGroupId: string | null;
@@ -275,7 +275,7 @@ export interface State {
             viewMode: ViewMode;
             filteredBrowsers: BrowserItem[];
         };
-        [Pages.visualChecksPage]: {
+        [Page.visualChecksPage]: {
             currentNamedImageId: string | null;
 
             // Filters in top of sidebar
@@ -316,7 +316,7 @@ export interface State {
         snapshotsPlayer: SnapshotsPlayerHighlightState
     };
     ui: {
-        [Pages.suitesPage]: {
+        [Page.suitesPage]: {
             treeViewMode: TreeViewMode;
             retryIndexByTreeNodeId: Record<string, number | null>;
             expandedTreeNodesById: Record<string, boolean>;
@@ -327,7 +327,7 @@ export interface State {
             backupSectionSizes: number[];
             isSnapshotsPlayerVisible: boolean;
         };
-        [Pages.visualChecksPage]: {
+        [Page.visualChecksPage]: {
             sectionSizes: number[];
             // Used to restore the previous sections sizes after collapsing the tree with a button
             backupSectionSizes: number[];

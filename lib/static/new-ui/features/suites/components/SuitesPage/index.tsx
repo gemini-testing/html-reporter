@@ -23,7 +23,7 @@ import {MIN_SECTION_SIZE_PERCENT} from '../../constants';
 import {SideBar} from '@/static/new-ui/components/SideBar';
 import {getSuitesStatusCounts, getSuitesThreeViewData} from './selectors';
 import {getIconByStatus} from '@/static/new-ui/utils';
-import {Pages} from '@/static/new-ui/types/store';
+import {Page} from '@/static/new-ui/types/store';
 import {usePage} from '@/static/new-ui/hooks/usePage';
 
 export function SuitesPage(): ReactNode {
@@ -32,7 +32,7 @@ export function SuitesPage(): ReactNode {
     const treeData = useSelector(getSuitesThreeViewData);
     const {visibleTreeNodeIds, tree} = treeData;
 
-    const currentTreeNodeId = useSelector(state => state.app[Pages.suitesPage].currentTreeNodeId);
+    const currentTreeNodeId = useSelector(state => state.app[Page.suitesPage].currentTreeNodeId);
     const currentIndex = visibleTreeNodeIds.indexOf(currentTreeNodeId as string);
 
     const {suiteId: suiteIdParam} = useParams();
@@ -51,7 +51,7 @@ export function SuitesPage(): ReactNode {
 
     const suitesTreeViewRef = useRef<TreeViewHandle>(null);
 
-    const treeViewExpandedById = useSelector((state) => state.ui[Pages.suitesPage].expandedTreeNodesById);
+    const treeViewExpandedById = useSelector((state) => state.ui[Page.suitesPage].expandedTreeNodesById);
 
     const statusList = useMemo(() => [
         {
@@ -107,7 +107,7 @@ export function SuitesPage(): ReactNode {
         }
     };
 
-    const onThreeItemClick = useCallback((item: TreeViewItemData, expanded: boolean) => {
+    const onTreeItemClick = useCallback((item: TreeViewItemData, expanded: boolean) => {
         if (item.entityType === EntityType.Browser) {
             dispatch(actions.setCurrentTreeNode({treeNodeId: item.id, browserId: item.entityId, groupId: getGroupId(item)}));
 
@@ -122,21 +122,21 @@ export function SuitesPage(): ReactNode {
             actions.changeTestRetry({
                 browserId,
                 retryIndex,
-                [Pages.suitesPage]: currentTreeNodeId ? {treeNodeId: currentTreeNodeId} : undefined
+                [Page.suitesPage]: currentTreeNodeId ? {treeNodeId: currentTreeNodeId} : undefined
             })
         );
     };
 
     const onSectionSizesChange = (sizes: number[]): void => {
-        dispatch(actions.setSectionSizes({sizes, page: Pages.suitesPage}));
+        dispatch(actions.setSectionSizes({sizes, page: Page.suitesPage}));
         if (isSectionHidden(sizes[0])) {
-            dispatch(actions.setBackupSectionSizes({sizes: [MIN_SECTION_SIZE_PERCENT, 100 - MIN_SECTION_SIZE_PERCENT], page: Pages.suitesPage}));
+            dispatch(actions.setBackupSectionSizes({sizes: [MIN_SECTION_SIZE_PERCENT, 100 - MIN_SECTION_SIZE_PERCENT], page: Page.suitesPage}));
         } else {
-            dispatch(actions.setBackupSectionSizes({sizes, page: Pages.suitesPage}));
+            dispatch(actions.setBackupSectionSizes({sizes, page: Page.suitesPage}));
         }
     };
 
-    const sectionSizes = useSelector(state => state.ui[Pages.suitesPage].sectionSizes);
+    const sectionSizes = useSelector(state => state.ui[Page.suitesPage].sectionSizes);
 
     const [stickyHeaderElement, setStickyHeaderElement] = useState<HTMLDivElement | null>(null);
     const [stickyHeaderHeight, setStickyHeaderHeight] = useState(0);
@@ -164,7 +164,7 @@ export function SuitesPage(): ReactNode {
                     treeData={treeData}
                     treeViewExpandedById={treeViewExpandedById}
                     currentTreeNodeId={currentTreeNodeId}
-                    onClick={onThreeItemClick}
+                    onClick={onTreeItemClick}
                     statusList={statusList}
                     statusValue={statusValue}
                     onStatusChange={onStatusChange}
