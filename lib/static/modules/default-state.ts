@@ -4,7 +4,7 @@ import {DiffModes} from '../../constants/diff-modes';
 import {EXPAND_ERRORS} from '../../constants/expand-modes';
 import {RESULT_KEYS} from '../../constants/group-tests';
 import {ToolName} from '../../constants';
-import {SortDirection, State, TreeViewMode} from '@/static/new-ui/types/store';
+import {Page, SortDirection, State, TreeViewMode} from '@/static/new-ui/types/store';
 import {MIN_SECTION_SIZE_PERCENT} from '../new-ui/features/suites/constants';
 
 export default Object.assign({config: configDefaults}, {
@@ -77,15 +77,10 @@ export default Object.assign({config: configDefaults}, {
         perBrowser: {}
     },
     view: {
-        viewMode: ViewMode.ALL,
         diffMode: DiffModes.THREE_UP.id,
         expand: EXPAND_ERRORS,
         baseHost: '',
-        testNameFilter: '',
-        useRegexFilter: false,
-        useMatchCaseFilter: false,
         strictMatchFilter: false,
-        filteredBrowsers: [],
         keyToGroupTestsBy: ''
     },
     db: undefined,
@@ -104,15 +99,27 @@ export default Object.assign({config: configDefaults}, {
         isNewUi: false,
         isInitialized: false,
         availableFeatures: [],
-        suitesPage: {
+        [Page.suitesPage]: {
             currentBrowserId: null,
             currentTreeNodeId: null,
             currentGroupId: null,
             currentStepId: null,
-            currentHighlightedStepId: null
+            currentHighlightedStepId: null,
+
+            viewMode: ViewMode.ALL,
+            nameFilter: '',
+            useRegexFilter: false,
+            useMatchCaseFilter: false,
+            filteredBrowsers: []
         },
-        visualChecksPage: {
-            currentNamedImageId: null
+        [Page.visualChecksPage]: {
+            currentNamedImageId: null,
+
+            viewMode: ViewMode.ALL,
+            nameFilter: '',
+            useRegexFilter: false,
+            useMatchCaseFilter: false,
+            filteredBrowsers: []
         },
         loading: {
             taskTitle: 'Loading Testplane UI',
@@ -146,7 +153,7 @@ export default Object.assign({config: configDefaults}, {
         }
     },
     ui: {
-        suitesPage: {
+        [Page.suitesPage]: {
             treeViewMode: TreeViewMode.Tree,
             retryIndexByTreeNodeId: {},
             expandedSectionsById: {},
@@ -155,6 +162,10 @@ export default Object.assign({config: configDefaults}, {
             sectionSizes: [MIN_SECTION_SIZE_PERCENT, 100 - MIN_SECTION_SIZE_PERCENT],
             backupSectionSizes: [MIN_SECTION_SIZE_PERCENT, 100 - MIN_SECTION_SIZE_PERCENT],
             isSnapshotsPlayerVisible: true
+        },
+        [Page.visualChecksPage]: {
+            sectionSizes: [MIN_SECTION_SIZE_PERCENT, 100 - MIN_SECTION_SIZE_PERCENT],
+            backupSectionSizes: [MIN_SECTION_SIZE_PERCENT, 100 - MIN_SECTION_SIZE_PERCENT]
         },
         staticImageAccepterToolbar: {
             offset: {x: 0, y: 0}

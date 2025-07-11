@@ -28,11 +28,7 @@
 }
 
 @container (max-width: 40vw) {
-    .image-diff-item:nth-child(1) {
-        display: none;
-    }
-
-    .image-diff-item:nth-child(2) {
+    .can-hide {
         display: none;
     }
 }

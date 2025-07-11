@@ -8,7 +8,7 @@ import {getToggledCheckboxState, isCheckboxChecked, isCheckboxIndeterminate} fro
 import {EntityType, TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
 import {toggleBrowserCheckbox, toggleGroupCheckbox, toggleSuiteCheckbox} from '@/static/modules/actions';
 import {getAreCheckboxesNeeded} from '@/static/new-ui/store/selectors';
-import {getItemCheckStatus} from '@/static/new-ui/features/suites/components/TreeViewItemTitle/selectors';
+import {getItemCheckStatus} from '@/static/new-ui/components/TreeViewItemTitle/selectors';
 import styles from './index.module.css';
 
 interface TreeViewItemTitleProps {
@@ -22,6 +22,7 @@ export function TreeViewItemTitle({item}: TreeViewItemTitleProps): React.JSX.Ele
     const groups = useSelector(state => state.tree.groups.byId);
     const checkStatus = useSelector(state => getItemCheckStatus(state, item));
     const ref = useRef<HTMLInputElement>(null);
+    const isVisualChecksPage = /\/visual-checks/.test(location.hash); // @todo: remove after implement search on visual checks page
 
     useEffect(() => {
         if (ref.current) {
@@ -76,6 +77,6 @@ export function TreeViewItemTitle({item}: TreeViewItemTitleProps): React.JSX.Ele
                 </div>
             }
         </div>
-        {areCheckboxesNeeded && <Checkbox checked={isCheckboxChecked(checkStatus)} indeterminate={isCheckboxIndeterminate(checkStatus)} className={styles.checkbox} size={'m'} controlRef={ref}/>}
+        {(areCheckboxesNeeded && !isVisualChecksPage) && <Checkbox checked={isCheckboxChecked(checkStatus)} indeterminate={isCheckboxIndeterminate(checkStatus)} className={styles.checkbox} size={'m'} controlRef={ref}/>}
     </div>;
 }

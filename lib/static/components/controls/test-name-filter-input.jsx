@@ -12,7 +12,10 @@ const TestNameFilterInput = ({actions, testNameFilter: testNameFilterProp}) => {
     const [testNameFilter, setTestNameFilter] = useState(testNameFilterProp);
 
     const _debouncedUpdate = useCallback(debounce(
-        (testName) => actions.updateTestNameFilter(testName),
+        (testName) => actions.updateNameFilter({
+            data: testName,
+            page: 'suitesPage'
+        }),
         500,
         {maxWait: 3000}
     ), []);
@@ -40,6 +43,6 @@ TestNameFilterInput.propTypes = {
 };
 
 export default connect(
-    (state) => ({testNameFilter: state.view.testNameFilter}),
+    (state) => ({testNameFilter: state.app.suitesPage.nameFilter}),
     (dispatch) => ({actions: bindActionCreators(actions, dispatch)})
 )(TestNameFilterInput);

@@ -129,7 +129,3 @@ export const getImagesByNamedImageIds = (state: State, names: string[]): ImageEn
 
     return results;
 };
-
-export const getVisibleNamedImageIds = createSelector([getNamedImages], (namedImages): string[] => {
-    return Object.values(namedImages).map(namedImage => namedImage.id);
-});

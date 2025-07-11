@@ -1,6 +1,6 @@
 import actionNames from '@/static/modules/action-names';
 import {Action} from '@/static/modules/actions/types';
-import {TreeViewMode} from '@/static/new-ui/types/store';
+import {Page, TreeViewMode} from '@/static/new-ui/types/store';
 
 export type SuitesPageSetCurrentTreeNodeAction = Action<typeof actionNames.SUITES_PAGE_SET_CURRENT_SUITE, Partial<{
     treeNodeId: string;
@@ -64,17 +64,24 @@ type SetTreeViewModeAction = Action<typeof actionNames.SUITES_PAGE_SET_TREE_VIEW
 export const setTreeViewMode = (payload: SetTreeViewModeAction['payload']): SetTreeViewModeAction =>
     ({type: actionNames.SUITES_PAGE_SET_TREE_VIEW_MODE, payload});
 
-type SetSectionSizesAction = Action<typeof actionNames.SUITES_PAGE_SET_SECTION_SIZES, {
+type SetSectionSizesAction = Action<typeof actionNames.PAGE_SET_SECTION_SIZES, {
     sizes: number[];
+    page: Page;
 }>;
 export const setSectionSizes = (payload: SetSectionSizesAction['payload']): SetSectionSizesAction =>
-    ({type: actionNames.SUITES_PAGE_SET_SECTION_SIZES, payload});
+    ({type: actionNames.PAGE_SET_SECTION_SIZES, payload});
 
-type SetBackupSectionSizesAction = Action<typeof actionNames.SUITES_PAGE_SET_BACKUP_SECTION_SIZES, {
+type SetBackupSectionSizesAction = Action<typeof actionNames.PAGE_SET_BACKUP_SECTION_SIZES, {
     sizes: number[];
+    page: Page;
 }>;
 export const setBackupSectionSizes = (payload: SetBackupSectionSizesAction['payload']): SetBackupSectionSizesAction =>
-    ({type: actionNames.SUITES_PAGE_SET_BACKUP_SECTION_SIZES, payload});
+    ({type: actionNames.PAGE_SET_BACKUP_SECTION_SIZES, payload});
+
+export type SetStrictMatchFilterAction = Action<typeof actionNames.VIEW_SET_STRICT_MATCH_FILTER, boolean>;
+export const setStrictMatchFilter = (strictMatchFilter: SetStrictMatchFilterAction['payload']): SetStrictMatchFilterAction => {
+    return {type: actionNames.VIEW_SET_STRICT_MATCH_FILTER, payload: strictMatchFilter};
+};
 
 export type SuitesPageAction =
     | SetTreeNodeExpandedStateAction
@@ -87,4 +94,5 @@ export type SuitesPageAction =
     | SuitesPageSetCurrentStepAction
     | SuitesPageSetCurrentHighlightStepAction
     | SetSectionSizesAction
-    | SetBackupSectionSizesAction;
+    | SetBackupSectionSizesAction
+    | SetStrictMatchFilterAction;
