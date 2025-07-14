@@ -39,11 +39,13 @@ export default (state: State, action: FiltersAction | InitGuiReportAction | Init
                     ...state.app,
                     [Page.suitesPage]: {
                         ...state.app[Page.suitesPage],
-                        viewMode: suitesPageViewMode
+                        viewMode: suitesPageViewMode,
+                        filterName: 'visualChecks'
                     },
                     [Page.visualChecksPage]: {
                         ...state.app[Page.visualChecksPage],
-                        viewMode: visualChecksPageViewMode
+                        viewMode: visualChecksPageViewMode,
+                        filterName: 'visualChecks'
                     }
                 }
             };
@@ -51,9 +53,14 @@ export default (state: State, action: FiltersAction | InitGuiReportAction | Init
             switch (window.location.hash) {
                 case '#/visual-checks':
                     newState.app[Page.visualChecksPage].filteredBrowsers = viewQuery.filteredBrowsers as BrowserItem[];
+                    newState.app[Page.visualChecksPage].viewMode = viewQuery.viewMode as ViewMode || ViewMode.ALL;
+                    newState.app[Page.visualChecksPage].nameFilter = viewQuery.testNameFilter as string || '';
                     break;
                 case '#/suites':
+                default: // Need for backward compatibility with old ui where are suites page only
                     newState.app[Page.suitesPage].filteredBrowsers = viewQuery.filteredBrowsers as BrowserItem[];
+                    newState.app[Page.suitesPage].viewMode = viewQuery.viewMode as ViewMode || ViewMode.ALL;
+                    newState.app[Page.suitesPage].nameFilter = viewQuery.testNameFilter as string || '';
                     break;
             }
 

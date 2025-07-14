@@ -34,7 +34,7 @@ export function SideBar({
     return (
         <UiCard className={classNames(styles.card, styles.treeViewCard)} key='tree-view' qa='suites-tree-card'>
             <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try to reload page'}/>}>
-                <Text variant="header-2" className={styles['card__title']}>{title}</Text>
+                <Text variant="header-2" className={styles['card__title']} qa="sidebar-title">{title}</Text>
                 <Flex gap={2}>
                     <NameFilter/>
                     <BrowsersSelect/>

@@ -47,7 +47,8 @@ export function MainLayout(props: MainLayoutProps): ReactNode {
         onItemClick: (): void => {
             analytics?.trackFeatureUsage({featureName: `Go to ${item.url} page`});
             navigate(item.url);
-        }
+        },
+        qa: `${item.url.slice(1)}-page-menu-item`
     }));
 
     const currentSuitesPageSectionSizes = useSelector(state => state.ui[Page.suitesPage].sectionSizes);

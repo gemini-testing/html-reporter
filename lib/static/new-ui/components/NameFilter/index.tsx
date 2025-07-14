@@ -75,6 +75,7 @@ export const NameFilter = (): ReactNode => {
                 onChange={onChange}
                 className={styles['search-input']}
                 error={isRegexInvalid}
+                qa="filter-input"
             />
             <div className={styles['buttons-wrapper']}>
                 <NameFilterButton

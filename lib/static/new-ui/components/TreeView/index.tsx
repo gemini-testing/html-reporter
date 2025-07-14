@@ -139,6 +139,7 @@ export const TreeView = forwardRef<TreeViewHandle, TreeViewProps>(function TreeV
                 <div
                     className={styles['tree-view__visible-window']}
                     style={{transform: `translateY(${virtualizedItems[0]?.start ?? 0}px)`}}
+                    data-qa="tree-view-list"
                 >
                     {virtualizedItems.map((virtualRow) => {
                         const item = list.structure.itemsById[virtualRow.key as string];
