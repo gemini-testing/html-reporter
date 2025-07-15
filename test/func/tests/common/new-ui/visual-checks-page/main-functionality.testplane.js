@@ -14,6 +14,25 @@ if (process.env.TOOL === 'testplane') {
                         await expect(pageTitle).toHaveText('Visual Checks');
                     });
 
+                    it('change url after select screenshot', async ({browser}) => {
+                        const secondElement = await browser.$('[data-qa="tree-view-list"] > div + div');
+                        await secondElement.click();
+
+                        const currentUrl = await browser.getUrl();
+                        const hash = currentUrl.split('#')[1];
+
+                        await expect(hash).toBe('/visual-checks/failed%20describe%20test%20with%20image%20comparison%20diff%20chrome%20header');
+                    });
+
+                    it('open screenshot by url', async ({browser}) => {
+                        await browser.url('/fixtures/testplane/report/new-ui.html#/visual-checks/failed%20describe%20test%20with%20image%20comparison%20diff%20chrome%20header');
+                        await browser.execute(() => window.location.reload()); // need for catch data from changed hash
+
+                        const rightSideTitle = await browser.$('h2.text-display-1');
+
+                        await expect(rightSideTitle).toHaveText('test with image comparison diff');
+                    });
+
                     it('click to screenshot', async ({browser}) => {
                         const secondElement = await browser.$('[data-qa="tree-view-list"] > div + div');
                         await secondElement.click();
