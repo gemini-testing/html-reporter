@@ -8,7 +8,7 @@ on:
 
 jobs:
   testplane-e2e:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-arc
 
     permissions:
       contents: write
