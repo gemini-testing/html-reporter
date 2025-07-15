@@ -24,12 +24,15 @@ import {isSectionHidden} from '@/static/new-ui/features/suites/utils';
 import {MIN_SECTION_SIZE_PERCENT} from '@/static/new-ui/features/suites/constants';
 import {Page} from '@/static/new-ui/types/store';
 import {usePage} from '@/static/new-ui/hooks/usePage';
+import {useNavigate, useParams} from 'react-router-dom';
 
 export function VisualChecksPage(): ReactNode {
     const dispatch = useDispatch();
     const page = usePage();
     const currentNamedImage = useSelector(getCurrentNamedImage);
     const currentImage = useSelector(getCurrentImage);
+    const navigate = useNavigate();
+    const {imageId} = useParams();
 
     const currentTreeNodeId = useSelector((state) => state.app.visualChecksPage.currentNamedImageId);
 
@@ -46,6 +49,18 @@ export function VisualChecksPage(): ReactNode {
     }, []);
     const onTreeItemClick = useCallback((item: TreeViewItemData) => {
         dispatch(visualChecksPageSetCurrentNamedImage(item.id));
+    }, []);
+
+    useEffect(() => {
+        if (currentTreeNodeId) {
+            navigate(encodeURIComponent(currentTreeNodeId as string));
+        }
+    }, [currentTreeNodeId]);
+
+    useEffect(() => {
+        if (!currentTreeNodeId && imageId) {
+            dispatch(visualChecksPageSetCurrentNamedImage(imageId));
+        }
     }, []);
 
     const statusValue = useSelector(getVisualChecksViewMode);
@@ -130,7 +145,7 @@ export function VisualChecksPage(): ReactNode {
                                 )}
 
                                 {!currentImage && (
-                                    <div className={styles.hint}>This run doesn&apos;t have an image with name &quot;{currentNamedImage?.stateName}&quot;</div>
+                                    <div className={styles.hint}>This run doesn&apos;t have an image with id &quot;{imageId}&quot;</div>
                                 )}
                             </>
                             : <AssertViewResultSkeleton />}
