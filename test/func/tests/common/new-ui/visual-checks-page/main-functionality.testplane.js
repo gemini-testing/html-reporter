@@ -1,5 +1,5 @@
 if (process.env.TOOL === 'testplane') {
-    describe.only(process.env.TOOL || 'Default', () => {
+    describe(process.env.TOOL || 'Default', () => {
         describe('New UI', () => {
             describe('Visual checks page', () => {
                 describe('Expand/collapse visual checks list button', () => {
