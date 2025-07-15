@@ -14,7 +14,7 @@ import {SuiteTreeStateAction} from '@/static/modules/actions/suites-tree-state';
 import {ModalsAction} from '@/static/modules/actions/modals';
 import {LoadingAction} from '@/static/modules/actions/loading';
 import {CustomGuiAction} from '@/static/modules/actions/custom-gui';
-import {FilterTestsAction} from '@/static/modules/actions/filter-tests';
+import {FiltersAction} from '@/static/modules/actions/filters';
 import {SettingsAction} from '@/static/modules/actions/settings';
 import {ProcessingAction} from '@/static/modules/actions/processing';
 import {StaticAccepterAction} from '@/static/modules/actions/static-accepter';
@@ -36,7 +36,7 @@ export type AppThunk<ReturnType = Promise<void>> = ThunkAction<ReturnType, State
 
 export type SomeAction =
     | CustomGuiAction
-    | FilterTestsAction
+    | FiltersAction
     | GroupTestsAction
     | GuiServerConnectionAction
     | LifecycleAction

@@ -10,17 +10,12 @@ import {
     getSuites,
     getTreeViewMode
 } from '@/static/new-ui/store/selectors';
-import {TreeNode} from '@/static/new-ui/features/suites/components/SuitesPage/types';
 import {buildTreeBottomUp, collectTreeLeafIds, formatEntityToTreeNodeData, sortTreeNodes} from './utils';
-
-interface TreeViewData {
-    tree: TreeNode[];
-    visibleTreeNodeIds: string[];
-    allTreeNodeIds: string[];
-}
+import {TestStatus} from '@/constants';
+import {TreeViewData} from '@/static/new-ui/components/TreeView';
 
 // Converts the existing store structure to the one that can be consumed by GravityUI
-export const getTreeViewItems = createSelector(
+export const getSuitesThreeViewData = createSelector(
     [getGroups, getSuites, getAllRootGroupIds, getBrowsers, getBrowsersState, getResults, getImages, getTreeViewMode, getSortTestsData],
     (groups, suites, rootGroupIds, browsers, browsersState, results, images, treeViewMode, sortTestsData): TreeViewData => {
         const currentSortDirection = sortTestsData.currentDirection;
@@ -68,3 +63,57 @@ export const getTreeViewItems = createSelector(
             tree: suitesTreeRoot.children ?? []
         };
     });
+
+export interface SuitesStatusCounts {
+    success: number;
+    fail: number;
+    skipped: number;
+    total: number;
+    retried: number;
+    retries: number;
+    idle: number;
+}
+
+export const getSuitesStatusCounts = createSelector(
+    [getResults, getBrowsersState],
+    (results, browsersState) => {
+        const latestAttempts: Record<string, {attempt: number; status: string, timestamp: number}> = {};
+        const retriedTests = new Set<string>();
+
+        let retries = 0;
+        Object.values(results).forEach(result => {
+            const {parentId: testId, attempt, status, timestamp} = result;
+            if (!browsersState[testId].shouldBeShown && !browsersState[testId].isHiddenBecauseOfStatus) {
+                return;
+            }
+            if (attempt > 0) {
+                retriedTests.add(testId);
+            }
+            if (!latestAttempts[testId] || latestAttempts[testId].timestamp < timestamp) {
+                retries -= latestAttempts[testId]?.attempt ?? 0;
+                retries += attempt;
+
+                latestAttempts[testId] = {attempt, status, timestamp};
+            }
+        });
+
+        const counts: SuitesStatusCounts = {
+            success: 0,
+            fail: 0,
+            skipped: 0,
+            total: Object.keys(latestAttempts).length,
+            retried: retriedTests.size,
+            retries,
+            idle: 0
+        };
+
+        Object.values(latestAttempts).forEach(({status: resultStatus}) => {
+            const status = resultStatus === TestStatus.ERROR ? 'fail' : resultStatus;
+            if (Object.prototype.hasOwnProperty.call(counts, status)) {
+                counts[status as keyof SuitesStatusCounts]++;
+            }
+        });
+
+        return counts;
+    }
+);

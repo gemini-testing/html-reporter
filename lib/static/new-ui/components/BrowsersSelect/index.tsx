@@ -1,15 +1,15 @@
 import {PlanetEarth} from '@gravity-ui/icons';
 import {Button, Flex, Icon, Select, SelectRenderControlProps, SelectRenderOption} from '@gravity-ui/uikit';
-import React, {useState, useEffect, ReactNode, Ref} from 'react';
-import {connect, useSelector} from 'react-redux';
-import {bindActionCreators} from 'redux';
+import React, {ReactNode, Ref, useEffect, useState} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
 
-import * as actions from '@/static/modules/actions';
-import {BrowserIcon} from '@/static/new-ui/features/suites/components/BrowsersSelect/BrowserIcon';
+import {selectBrowsers} from '@/static/modules/actions';
+import {BrowserIcon} from '@/static/new-ui/components/BrowsersSelect/BrowserIcon';
 import {getIsInitialized} from '@/static/new-ui/store/selectors';
 import {BrowserItem} from '@/types';
 import styles from './index.module.css';
-import {IconButton} from '../../../../components/IconButton';
+import {IconButton} from '../IconButton';
+import {usePage} from '@/static/new-ui/hooks/usePage';
 
 // In the onUpdate callback we only have access to array of selected strings. That's why we need to serialize
 // id/version in string. Encoding to avoid errors if id/version contains delimiter.
@@ -35,14 +35,12 @@ const IconsPreloader = (): React.JSX.Element => {
     );
 };
 
-interface BrowsersSelectProps {
-    browsers: BrowserItem[];
-    filteredBrowsers: BrowserItem[];
-    actions: typeof actions;
-}
-
-function BrowsersSelectInternal({browsers, filteredBrowsers, actions}: BrowsersSelectProps): ReactNode {
+export function BrowsersSelect(): ReactNode {
     const [selectedBrowsers, setSelectedBrowsers] = useState<BrowserItem[]>([]);
+    const page = usePage();
+    const browsers = useSelector((state) => state.browsers);
+    const filteredBrowsers = useSelector((state) => state.app[page].filteredBrowsers);
+    const dispatch = useDispatch();
 
     useEffect(() => {
         setSelectedBrowsers(filteredBrowsers);
@@ -129,7 +127,12 @@ function BrowsersSelectInternal({browsers, filteredBrowsers, actions}: BrowsersS
     const selected = selectedBrowsers.flatMap(browser => browser.versions.map(version => serializeBrowserData(browser.id, version)));
 
     const onClose = (): void => {
-        actions.selectBrowsers(selectedBrowsers.filter(browser => browser.versions.length > 0));
+        dispatch(
+            selectBrowsers({
+                data: selectedBrowsers.filter(browser => browser.versions.length > 0, page),
+                page
+            })
+        );
     };
 
     const onFocus = (): void => {
@@ -185,11 +188,3 @@ function BrowsersSelectInternal({browsers, filteredBrowsers, actions}: BrowsersS
         </>
     );
 }
-
-export const BrowsersSelect = connect(
-    state => ({
-        filteredBrowsers: state.view.filteredBrowsers,
-        browsers: state.browsers
-    }),
-    (dispatch) => ({actions: bindActionCreators(actions, dispatch)})
-)(BrowsersSelectInternal);

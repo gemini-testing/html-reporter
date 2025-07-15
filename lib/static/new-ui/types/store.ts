@@ -250,21 +250,40 @@ export interface SnapshotsPlayerHighlightState {
     goToTime: number;
 }
 
+export enum Page {
+    suitesPage = 'suitesPage',
+    visualChecksPage = 'visualChecksPage',
+}
+
 export interface State {
     app: {
         isNewUi: boolean;
         isInitialized: boolean;
         availableFeatures: Feature[],
-        suitesPage: {
+        [Page.suitesPage]: {
             currentTreeNodeId: string | null;
             currentBrowserId: string | null;
             currentGroupId: string | null;
             currentStepId: string | null;
             // Is used when hovering over a timeline of a snapshots player to highlight corresponding step
             currentHighlightedStepId: string | null;
+
+            // Filters in top of sidebar
+            nameFilter: string;
+            useRegexFilter: boolean;
+            useMatchCaseFilter: boolean;
+            viewMode: ViewMode;
+            filteredBrowsers: BrowserItem[];
         };
-        visualChecksPage: {
+        [Page.visualChecksPage]: {
             currentNamedImageId: string | null;
+
+            // Filters in top of sidebar
+            nameFilter: string;
+            useRegexFilter: boolean;
+            useMatchCaseFilter: boolean;
+            viewMode: ViewMode;
+            filteredBrowsers: BrowserItem[];
         };
         loading: {
             /** @note Determines whether the loading bar is visible */
@@ -297,7 +316,7 @@ export interface State {
         snapshotsPlayer: SnapshotsPlayerHighlightState
     };
     ui: {
-        suitesPage: {
+        [Page.suitesPage]: {
             treeViewMode: TreeViewMode;
             retryIndexByTreeNodeId: Record<string, number | null>;
             expandedTreeNodesById: Record<string, boolean>;
@@ -308,6 +327,11 @@ export interface State {
             backupSectionSizes: number[];
             isSnapshotsPlayerVisible: boolean;
         };
+        [Page.visualChecksPage]: {
+            sectionSizes: number[];
+            // Used to restore the previous sections sizes after collapsing the tree with a button
+            backupSectionSizes: number[];
+        };
         staticImageAccepterToolbar: {
             offset: Point;
         };
@@ -317,11 +341,6 @@ export interface State {
     tree: TreeEntity;
     view: {
         diffMode: DiffModeId;
-        testNameFilter: string;
-        useRegexFilter: boolean;
-        useMatchCaseFilter: boolean;
-        viewMode: ViewMode;
-        filteredBrowsers: BrowserItem[];
         /** @deprecated Use tree.groups instead. */
         keyToGroupTestsBy: string;
         baseHost: string;

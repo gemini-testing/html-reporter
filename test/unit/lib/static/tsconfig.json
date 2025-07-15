@@ -8,7 +8,8 @@
         "noEmit": true,
         "paths": {
             "lib/*": ["../../../../lib/*"],
-            "@/*": ["../../../../lib/*"]
+            "@/*": ["../../../../lib/*"],
+            "@gravity-ui/uikit/unstable": ["../../../../node_modules/@gravity-ui/uikit/build/esm/unstable.d.ts"]
         }
     }
 }

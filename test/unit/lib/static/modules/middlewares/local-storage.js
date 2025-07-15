@@ -4,6 +4,7 @@ const defaultState = require('lib/static/modules/default-state').default;
 const {ViewMode} = require('lib/constants/view-modes');
 const {DiffModes} = require('lib/constants/diff-modes');
 const {EXPAND_ERRORS} = require('lib/constants/expand-modes');
+const {mkStatePageFilters} = require('../../state-utils');
 
 describe('lib/static/modules/middlewares/local-storage', () => {
     const sandbox = sinon.sandbox.create();
@@ -49,18 +50,26 @@ describe('lib/static/modules/middlewares/local-storage', () => {
     ].forEach((type) => {
         describe(`"${type}" action`, () => {
             it('should store view state in local storage for "VIEW" prefix and init report actions', () => {
-                const store = mkStore_({view: defaultState.view});
-                const action = {type};
+                const store = mkStore_({
+                    view: defaultState.view,
+                    app: {
+                        suitesPage: mkStatePageFilters({}),
+                        visualChecksPage: mkStatePageFilters({})
+                    }
+                });
+                const action = {type, payload: {page: 'suitesPage'}};
                 const localStorageMw = mkMiddleware_();
 
                 localStorageMw(store)(next)(action);
 
-                assert.calledOnceWith(localStorageWrapper.setItem, 'view', {
+                assert.calledWith(localStorageWrapper.setItem, 'view', {
                     expand: EXPAND_ERRORS,
-                    strictMatchFilter: false,
-                    viewMode: ViewMode.ALL,
-                    diffMode: DiffModes.THREE_UP.id
+                    diffMode: DiffModes.THREE_UP.id,
+                    strictMatchFilter: false
                 });
+
+                assert.calledWith(localStorageWrapper.setItem, 'app.suitesPage.viewMode', ViewMode.ALL);
+                assert.calledWith(localStorageWrapper.setItem, 'app.visualChecksPage.viewMode', ViewMode.ALL);
             });
         });
     });

@@ -2,7 +2,7 @@ import {AsideHeader, MenuItem as GravityMenuItem} from '@gravity-ui/navigation';
 import classNames from 'classnames';
 import React, {ReactNode, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
-import {useNavigate, matchPath, useLocation} from 'react-router-dom';
+import {matchPath, useLocation, useNavigate} from 'react-router-dom';
 
 import {getIsInitialized} from '@/static/new-ui/store/selectors';
 import {SettingsPanel} from '@/static/new-ui/components/SettingsPanel';
@@ -15,6 +15,7 @@ import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
 import {setSectionSizes} from '../../../modules/actions/suites-page';
 import {ArrowLeftToLine, ArrowRightFromLine} from '@gravity-ui/icons';
 import {isSectionHidden} from '../../features/suites/utils';
+import {Page} from '@/static/new-ui/types/store';
 
 export enum PanelId {
     Settings = 'settings',
@@ -46,11 +47,12 @@ export function MainLayout(props: MainLayoutProps): ReactNode {
         onItemClick: (): void => {
             analytics?.trackFeatureUsage({featureName: `Go to ${item.url} page`});
             navigate(item.url);
-        }
+        },
+        qa: `${item.url.slice(1)}-page-menu-item`
     }));
 
-    const currentSuitesPageSectionSizes = useSelector(state => state.ui.suitesPage.sectionSizes);
-    const backupSuitesPageSectionSizes = useSelector(state => state.ui.suitesPage.backupSectionSizes);
+    const currentSuitesPageSectionSizes = useSelector(state => state.ui[Page.suitesPage].sectionSizes);
+    const backupSuitesPageSectionSizes = useSelector(state => state.ui[Page.suitesPage].backupSectionSizes);
     if (/\/suites/.test(location.pathname)) {
         const shouldExpandTree = isSectionHidden(currentSuitesPageSectionSizes[0]);
         menuItems.push(
@@ -60,9 +62,27 @@ export function MainLayout(props: MainLayoutProps): ReactNode {
                 title: shouldExpandTree ? 'Expand tree' : 'Collapse tree',
                 icon: shouldExpandTree ? ArrowRightFromLine : ArrowLeftToLine,
                 onItemClick: (): void => {
-                    dispatch(setSectionSizes({sizes: shouldExpandTree ? backupSuitesPageSectionSizes : [0, 100]}));
+                    dispatch(setSectionSizes({sizes: shouldExpandTree ? backupSuitesPageSectionSizes : [0, 100], page: Page.suitesPage}));
                 },
                 qa: 'expand-collapse-suites-tree'
+            }
+        );
+    }
+
+    const currentVisualChecksPageSectionSizes = useSelector(state => state.ui[Page.visualChecksPage].sectionSizes);
+    const backupVisualChecksPageSectionSizes = useSelector(state => state.ui[Page.visualChecksPage].backupSectionSizes);
+    if (/\/visual-checks/.test(location.pathname)) {
+        const shouldExpandTree = isSectionHidden(currentVisualChecksPageSectionSizes[0]);
+        menuItems.push(
+            {id: 'divider', type: 'divider', title: '-'},
+            {
+                id: 'expand-collapse-tree',
+                title: shouldExpandTree ? 'Expand tree' : 'Collapse tree',
+                icon: shouldExpandTree ? ArrowRightFromLine : ArrowLeftToLine,
+                onItemClick: (): void => {
+                    dispatch(setSectionSizes({sizes: shouldExpandTree ? backupVisualChecksPageSectionSizes : [0, 100], page: Page.visualChecksPage}));
+                },
+                qa: 'expand-collapse-visual-checks'
             }
         );
     }

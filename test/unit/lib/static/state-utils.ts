@@ -132,23 +132,31 @@ export const mkStateTree = (
 };
 
 export interface View {
+    strictMatchFilter: boolean,
+    keyToGroupTestsBy: string
+}
+
+export interface PageFilters {
     viewMode: ViewMode,
-    testNameFilter: string,
+    nameFilter: string,
     useRegexFilter: boolean,
     useMatchCaseFilter: boolean,
-    strictMatchFilter: boolean,
     filteredBrowsers: {id: string, versions: string[]}[],
-    keyToGroupTestsBy: string
 }
 
 export const mkStateView = (opts = {}): View => {
     return defaults(opts, {
+        strictMatchFilter: false,
+        keyToGroupTestsBy: ''
+    });
+};
+
+export const mkStatePageFilters = (opts = {}): PageFilters => {
+    return defaults(opts, {
         viewMode: ViewMode.ALL,
-        testNameFilter: '',
+        nameFilter: '',
         useRegexFilter: false,
         useMatchCaseFilter: false,
-        strictMatchFilter: false,
-        filteredBrowsers: [],
-        keyToGroupTestsBy: ''
+        filteredBrowsers: []
     });
 };

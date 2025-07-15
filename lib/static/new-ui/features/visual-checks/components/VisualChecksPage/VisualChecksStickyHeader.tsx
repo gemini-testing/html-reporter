@@ -4,7 +4,7 @@ import React, {ReactNode, useEffect, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {
-    getCurrentImage, getVisibleNamedImageIds,
+    getCurrentImage,
     getImagesByNamedImageIds,
     NamedImageEntity
 } from '@/static/new-ui/features/visual-checks/selectors';
@@ -26,6 +26,8 @@ import {preloadImageEntity} from '../../../../../modules/utils/imageEntity';
 
 interface VisualChecksStickyHeaderProps {
     currentNamedImage: NamedImageEntity | null;
+    visibleNamedImageIds: string[];
+    onImageChange: (id: string) => void;
 }
 
 export const PRELOAD_IMAGES_COUNT = 3;
@@ -53,14 +55,12 @@ const usePreloadImages = (
     }, []);
 };
 
-export function VisualChecksStickyHeader({currentNamedImage}: VisualChecksStickyHeaderProps): ReactNode {
+export function VisualChecksStickyHeader({currentNamedImage, visibleNamedImageIds}: VisualChecksStickyHeaderProps): ReactNode {
     const dispatch = useDispatch();
 
     const analytics = useAnalytics();
 
     const currentImage = useSelector(getCurrentImage);
-
-    const visibleNamedImageIds = useSelector(getVisibleNamedImageIds);
 
     const currentNamedImageIndex = visibleNamedImageIds.indexOf(currentNamedImage?.id as string);
     const onPreviousImageHandler = (): void => void dispatch(visualChecksPageSetCurrentNamedImage(visibleNamedImageIds[currentNamedImageIndex - 1]));
@@ -134,12 +134,32 @@ export function VisualChecksStickyHeader({currentNamedImage}: VisualChecksSticky
                 )}
             </Select>
 
-            {isEditScreensAvailable && <div className={styles.buttonsContainer}>
-                {isUndoAvailable && <Button view={'action'} className={styles.acceptButton} disabled={isRunning || isProcessing} onClick={onScreenshotUndo}><Icon
-                    data={ArrowUturnCcwLeft}/>Undo</Button>}
-                {currentImage && isAcceptable(currentImage) && <Button view={'action'} className={styles.acceptButton} disabled={isRunning || isProcessing} onClick={onScreenshotAccept}><Icon
-                    data={Check}/>Accept</Button>}
-            </div>}
+            {isEditScreensAvailable && (
+                <div className={styles.buttonsContainer}>
+                    {isUndoAvailable && (
+                        <Button
+                            view="action"
+                            className={styles.acceptButton}
+                            disabled={isRunning || isProcessing}
+                            onClick={onScreenshotUndo}
+                            qa="undo-button"
+                        >
+                            <Icon data={ArrowUturnCcwLeft}/>Undo
+                        </Button>
+                    )}
+                    {currentImage && isAcceptable(currentImage) && (
+                        <Button
+                            view="action"
+                            className={styles.acceptButton}
+                            disabled={isRunning || isProcessing}
+                            onClick={onScreenshotAccept}
+                            qa=""
+                        >
+                            <Icon data={Check}/>Accept
+                        </Button>
+                    )}
+                </div>
+            )}
         </div>
     </div>;
 }

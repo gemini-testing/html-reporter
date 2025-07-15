@@ -1,7 +1,7 @@
 import React, {ReactNode} from 'react';
 import {Button, Tooltip} from '@gravity-ui/uikit';
 
-interface TestNameFilterButtonProps {
+interface NameFilterButtonProps {
     children: ReactNode,
     selected: boolean,
     tooltip: string;
@@ -9,8 +9,8 @@ interface TestNameFilterButtonProps {
     className?: string
 }
 
-export function TestNameFilterButton(props: TestNameFilterButtonProps): ReactNode {
-    return <Tooltip content={props.tooltip} placement={'top'} openDelay={0}>
+export const NameFilterButton = (props: NameFilterButtonProps): ReactNode => (
+    <Tooltip content={props.tooltip} placement={'top'} openDelay={0}>
         <Button
             size='s'
             selected={props.selected}
@@ -20,5 +20,5 @@ export function TestNameFilterButton(props: TestNameFilterButtonProps): ReactNod
         >
             {props.children}
         </Button>
-    </Tooltip>;
-}
+    </Tooltip>
+);
