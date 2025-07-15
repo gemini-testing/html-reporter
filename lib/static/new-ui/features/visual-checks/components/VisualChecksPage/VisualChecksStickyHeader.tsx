@@ -134,12 +134,32 @@ export function VisualChecksStickyHeader({currentNamedImage, visibleNamedImageId
                 )}
             </Select>
 
-            {isEditScreensAvailable && <div className={styles.buttonsContainer}>
-                {isUndoAvailable && <Button view={'action'} className={styles.acceptButton} disabled={isRunning || isProcessing} onClick={onScreenshotUndo}><Icon
-                    data={ArrowUturnCcwLeft}/>Undo</Button>}
-                {currentImage && isAcceptable(currentImage) && <Button view={'action'} className={styles.acceptButton} disabled={isRunning || isProcessing} onClick={onScreenshotAccept}><Icon
-                    data={Check}/>Accept</Button>}
-            </div>}
+            {isEditScreensAvailable && (
+                <div className={styles.buttonsContainer}>
+                    {isUndoAvailable && (
+                        <Button
+                            view="action"
+                            className={styles.acceptButton}
+                            disabled={isRunning || isProcessing}
+                            onClick={onScreenshotUndo}
+                            qa="undo-button"
+                        >
+                            <Icon data={ArrowUturnCcwLeft}/>Undo
+                        </Button>
+                    )}
+                    {currentImage && isAcceptable(currentImage) && (
+                        <Button
+                            view="action"
+                            className={styles.acceptButton}
+                            disabled={isRunning || isProcessing}
+                            onClick={onScreenshotAccept}
+                            qa=""
+                        >
+                            <Icon data={Check}/>Accept
+                        </Button>
+                    )}
+                </div>
+            )}
         </div>
     </div>;
 }

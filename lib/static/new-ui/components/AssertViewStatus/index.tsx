@@ -8,5 +8,5 @@ interface AssertViewStatusProps {
 }
 
 export function AssertViewStatus({image}: AssertViewStatusProps): ReactNode {
-    return <div className={styles.container}>{getAssertViewStatusIcon(image)}<span>{getAssertViewStatusMessage(image)}</span></div>;
+    return <div className={styles.container}>{getAssertViewStatusIcon(image)}<span data-qa="assert-view-status">{getAssertViewStatusMessage(image)}</span></div>;
 }

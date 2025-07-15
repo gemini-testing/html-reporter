@@ -6,16 +6,24 @@ if (process.env.TOOL === 'testplane') {
                     beforeEach(async ({browser}) => {
                         const menuItem = await browser.$('[data-qa="visual-checks-page-menu-item"]');
                         await menuItem.click();
-                        await browser.pause(1000);
                     });
 
-                    it('Visual checks page open', async ({browser}) => {
+                    it('page open', async ({browser}) => {
                         const pageTitle = await browser.$('[data-qa="sidebar-title"]');
 
                         await expect(pageTitle).toHaveText('Visual Checks');
                     });
 
-                    it('Visual checks select only failed', async ({browser}) => {
+                    it('click to screenshot', async ({browser}) => {
+                        const secondElement = await browser.$('[data-qa="tree-view-list"] > div + div');
+                        await secondElement.click();
+
+                        const rightSideTitle = await browser.$('h2.text-display-1');
+
+                        await expect(rightSideTitle).toHaveText('test with image comparison diff');
+                    });
+
+                    it('select only failed', async ({browser}) => {
                         const failedOption = await browser.$('[title="Failed"] > input');
                         await failedOption.click();
 

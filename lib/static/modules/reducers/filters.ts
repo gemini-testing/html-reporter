@@ -33,35 +33,28 @@ export default (state: State, action: FiltersAction | InitGuiReportAction | Init
                 viewQuery.filteredBrowsers = state.browsers;
             }
 
-            const newState = {
-                ...state,
-                app: {
-                    ...state.app,
-                    [Page.suitesPage]: {
-                        ...state.app[Page.suitesPage],
-                        viewMode: suitesPageViewMode,
-                        filterName: 'visualChecks'
-                    },
-                    [Page.visualChecksPage]: {
-                        ...state.app[Page.visualChecksPage],
-                        viewMode: visualChecksPageViewMode,
-                        filterName: 'visualChecks'
+            const newState = applyStateUpdate(
+                state,
+                {
+                    app: {
+                        [Page.suitesPage]: {
+                            viewMode: suitesPageViewMode
+                        },
+                        [Page.visualChecksPage]: {
+                            viewMode: visualChecksPageViewMode
+                        }
                     }
                 }
-            };
+            );
 
-            switch (window.location.hash) {
-                case '#/visual-checks':
-                    newState.app[Page.visualChecksPage].filteredBrowsers = viewQuery.filteredBrowsers as BrowserItem[];
-                    newState.app[Page.visualChecksPage].viewMode = viewQuery.viewMode as ViewMode || ViewMode.ALL;
-                    newState.app[Page.visualChecksPage].nameFilter = viewQuery.testNameFilter as string || '';
-                    break;
-                case '#/suites':
-                default: // Need for backward compatibility with old ui where are suites page only
-                    newState.app[Page.suitesPage].filteredBrowsers = viewQuery.filteredBrowsers as BrowserItem[];
-                    newState.app[Page.suitesPage].viewMode = viewQuery.viewMode as ViewMode || ViewMode.ALL;
-                    newState.app[Page.suitesPage].nameFilter = viewQuery.testNameFilter as string || '';
-                    break;
+            if (window.location.hash?.startsWith('#/visual-checks')) {
+                newState.app[Page.visualChecksPage].filteredBrowsers = viewQuery.filteredBrowsers as BrowserItem[];
+                newState.app[Page.visualChecksPage].viewMode = viewQuery.viewMode as ViewMode || visualChecksPageViewMode;
+                newState.app[Page.visualChecksPage].nameFilter = viewQuery.testNameFilter as string || '';
+            } else { // Need for backward compatibility with old ui where are suites page only
+                newState.app[Page.suitesPage].filteredBrowsers = viewQuery.filteredBrowsers as BrowserItem[];
+                newState.app[Page.suitesPage].viewMode = viewQuery.viewMode as ViewMode || suitesPageViewMode;
+                newState.app[Page.suitesPage].nameFilter = viewQuery.testNameFilter as string || '';
             }
 
             return newState;
