@@ -41,3 +41,14 @@
 .current-image {
     overflow: auto;
 }
+
+.empty-steps-container {
+    align-self: stretch;
+    justify-content: center;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    color: var(--g-color-private-black-400);
+    font-weight: 500;
+    --g-color-line-brand: var(--g-color-private-black-400);
+}
