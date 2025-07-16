@@ -25,7 +25,7 @@ import {MIN_SECTION_SIZE_PERCENT} from '@/static/new-ui/features/suites/constant
 import {Page} from '@/static/new-ui/types/store';
 import {usePage} from '@/static/new-ui/hooks/usePage';
 import {useNavigate, useParams} from 'react-router-dom';
-import {Spin} from '@gravity-ui/uikit';
+import {RunTestLoading} from '@/static/new-ui/components/RunTestLoading';
 
 export function VisualChecksPage(): ReactNode {
     const dispatch = useDispatch();
@@ -150,7 +150,7 @@ export function VisualChecksPage(): ReactNode {
                                     />
                                 )}
 
-                                {currentImage && (
+                                {currentImage && !isRunning && (
                                     <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try to choose another item'}/>}>
                                         <div className={styles.currentImage}>
                                             <AssertViewResult result={currentImage} />
@@ -158,13 +158,11 @@ export function VisualChecksPage(): ReactNode {
                                     </ErrorHandler.Boundary>
                                 )}
 
-                                {!currentImage && (
+                                {!currentImage && !isRunning && (
                                     <div className={styles.hint}>This run doesn&apos;t have an image with id &quot;{params.imageId}&quot;</div>
                                 )}
-                                {!currentImage && isRunning && (
-                                    <div className={styles.emptyStepsContainer}>
-                                        <Spin size={'xs'} style={{marginRight: '4px'}} />Test is running
-                                    </div>
+                                {isRunning && (
+                                    <RunTestLoading />
                                 )}
                             </>
                             : <AssertViewResultSkeleton />}
