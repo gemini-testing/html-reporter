@@ -17,7 +17,7 @@ interface RunTestProps {
     browser: BrowserEntity | null;
 }
 
-export function RunTest({showPlayer = true, browser}: RunTestProps): ReactNode {
+export const RunTest = ({showPlayer = true, browser}: RunTestProps): ReactNode => {
     const isPlayerVisible = useSelector(state => state.ui.suitesPage.isSnapshotsPlayerVisible);
     const isRunning = useSelector(state => state.running);
 
@@ -63,4 +63,4 @@ export function RunTest({showPlayer = true, browser}: RunTestProps): ReactNode {
             )}
         </div>
     );
-}
+};
