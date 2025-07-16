@@ -23,18 +23,20 @@ export function TestInfo(): ReactNode {
 
     const shouldShowPlayer = isPlayerAvailable && isPlayerVisible;
 
-    if (isRunning) {
-        return <RunTestLoading />;
-    }
-
     return <>
         <CollapsibleSection id={'actions'} title={'Actions'}>
             <div className={styles.stepsContainer}>
-                {steps.length > 0 ?
+                {steps.length > 0 ? (
                     <ErrorHandler.Boundary watchFor={[currentResult]} fallback={<ErrorHandler.FallbackDataCorruption />}>
                         <TestSteps className={styles.stepsListContainer}/>
-                    </ErrorHandler.Boundary> :
-                    <div className={styles.emptyStepsContainer}>No steps to show</div>
+                    </ErrorHandler.Boundary>
+                ) : (
+                    isRunning ? (
+                        <RunTestLoading />
+                    ) : (
+                        <div className={styles.emptyStepsContainer}>No steps to show</div>
+                    )
+                )
                 }
                 {isPlayerAvailable && <div className={classNames(styles.sticky, !shouldShowPlayer && styles.hidden)}>
                     <SnapshotsPlayer/>
@@ -42,7 +44,7 @@ export function TestInfo(): ReactNode {
             </div>
         </CollapsibleSection>
         <CollapsibleSection id={'metadata'} title={'Metadata'}>
-            {currentResult && !isRunning && <div className={styles['collapsible-section__body']}>
+            {currentResult && <div className={styles['collapsible-section__body']}>
                 <MetaInfo resultId={currentResult.id}/>
             </div>}
         </CollapsibleSection>
