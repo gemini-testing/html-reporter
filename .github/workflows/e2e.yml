@@ -66,12 +66,6 @@ jobs:
         REPORT_DATE=$(date '+%Y-%m-%d')
         echo "DEST_REPORTS_DIR=$REPORT_PREFIX/$REPORT_DATE/${{ github.run_id }}/${{ github.run_attempt }}" >> $GITHUB_ENV
 
-    - name: Upload fixtures reports
-      uses: actions/upload-artifact@v4
-      with:
-          name: testplane-fixtures
-          path: test/func/fixtures/*/report
-
     - name: 'e2e: Run Testplane'
       id: 'testplane'
       continue-on-error: true
