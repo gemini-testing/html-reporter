@@ -1,9 +1,10 @@
-import {ArrowUturnCcwLeft, Check} from '@gravity-ui/icons';
-import {Button, Divider, Icon, Select} from '@gravity-ui/uikit';
+import {ArrowUturnCcwLeft, Check, ListCheck} from '@gravity-ui/icons';
+import {Button, Divider, Icon, Select, Flex} from '@gravity-ui/uikit';
 import React, {ReactNode, useEffect, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {
+    getAttempt,
     getCurrentImage,
     getImagesByNamedImageIds,
     NamedImageEntity
@@ -23,6 +24,7 @@ import {thunkAcceptImages, thunkRevertImages} from '@/static/modules/actions/scr
 import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
 
 import {preloadImageEntity} from '../../../../../modules/utils/imageEntity';
+import {useNavigate} from 'react-router-dom';
 
 interface VisualChecksStickyHeaderProps {
     currentNamedImage: NamedImageEntity | null;
@@ -57,10 +59,10 @@ const usePreloadImages = (
 
 export function VisualChecksStickyHeader({currentNamedImage, visibleNamedImageIds}: VisualChecksStickyHeaderProps): ReactNode {
     const dispatch = useDispatch();
-
     const analytics = useAnalytics();
-
     const currentImage = useSelector(getCurrentImage);
+    const attempt = useSelector(getAttempt);
+    const navigate = useNavigate();
 
     const currentNamedImageIndex = visibleNamedImageIds.indexOf(currentNamedImage?.id as string);
     const onPreviousImageHandler = (): void => void dispatch(visualChecksPageSetCurrentNamedImage(visibleNamedImageIds[currentNamedImageIndex - 1]));
@@ -111,55 +113,81 @@ export function VisualChecksStickyHeader({currentNamedImage, visibleNamedImageId
     const isLastResult = Boolean(currentResultId && currentBrowser && currentResultId === currentBrowser.resultIds[currentBrowser.resultIds.length - 1]);
     const isUndoAvailable = isScreenRevertable({gui: isGui, image: currentImage ?? {}, isLastResult, isStaticImageAccepterEnabled});
 
-    return <div className={styles.stickyHeader}>
-        {currentNamedImage && <SuiteTitle
-            className={styles['card__title']}
-            suitePath={currentNamedImage.suitePath}
-            browserName={currentNamedImage.browserName}
-            index={currentNamedImageIndex}
-            totalItems={visibleNamedImageIds.length}
-            onPrevious={onPreviousImageHandler}
-            stateName={currentNamedImage.stateName}
-            onNext={onNextImageHandler}/>
+    const onSuites = (): void => {
+        if (currentNamedImage) {
+            navigate('/' + [
+                'suites',
+                currentNamedImage?.browserId as string,
+                currentNamedImage?.stateName as string,
+                attempt?.toString() as string
+            ].map(encodeURIComponent).join('/'));
         }
+    };
 
-        <div className={styles.toolbarContainer}>
-            <CompactAttemptPicker/>
-            <Divider orientation={'vertical'}/>
-            <AssertViewStatus image={currentImage}/>
-            <Divider orientation={'vertical'}/>
-            <Select className={styles.diffModeSelect} label='Diff Mode' value={[diffMode]} onUpdate={([diffMode]): void => onChangeHandler(diffMode as DiffModeId)} multiple={false}>
-                {Object.values(DiffModes).map(diffMode =>
-                    <Select.Option value={diffMode.id} content={diffMode.title} title={diffMode.description} key={diffMode.id}/>
-                )}
-            </Select>
-
-            {isEditScreensAvailable && (
-                <div className={styles.buttonsContainer}>
-                    {isUndoAvailable && (
-                        <Button
-                            view="action"
-                            className={styles.acceptButton}
-                            disabled={isRunning || isProcessing}
-                            onClick={onScreenshotUndo}
-                            qa="undo-button"
-                        >
-                            <Icon data={ArrowUturnCcwLeft}/>Undo
-                        </Button>
-                    )}
-                    {currentImage && isAcceptable(currentImage) && (
-                        <Button
-                            view="action"
-                            className={styles.acceptButton}
-                            disabled={isRunning || isProcessing}
-                            onClick={onScreenshotAccept}
-                            qa=""
-                        >
-                            <Icon data={Check}/>Accept
-                        </Button>
-                    )}
-                </div>
+    return (
+        <div className={styles.stickyHeader}>
+            {currentNamedImage && (
+                <SuiteTitle
+                    className={styles['card__title']}
+                    suitePath={currentNamedImage.suitePath}
+                    browserName={currentNamedImage.browserName}
+                    index={currentNamedImageIndex}
+                    totalItems={visibleNamedImageIds.length}
+                    onPrevious={onPreviousImageHandler}
+                    stateName={currentNamedImage.stateName}
+                    onNext={onNextImageHandler}
+                />
             )}
+
+            <div className={styles.toolbarContainer}>
+                <CompactAttemptPicker/>
+                <Divider orientation={'vertical'}/>
+                <AssertViewStatus image={currentImage}/>
+                <Divider orientation={'vertical'}/>
+                <Select className={styles.diffModeSelect} label='Diff Mode' value={[diffMode]} onUpdate={([diffMode]): void => onChangeHandler(diffMode as DiffModeId)} multiple={false}>
+                    {Object.values(DiffModes).map(diffMode =>
+                        <Select.Option value={diffMode.id} content={diffMode.title} title={diffMode.description} key={diffMode.id}/>
+                    )}
+                </Select>
+
+                <Flex className={styles.buttonsContainer} gap={2}>
+                    <Button
+                        view="outlined"
+                        className={styles.acceptButton}
+                        disabled={isRunning || isProcessing}
+                        onClick={onSuites}
+                        qa="go-suites-button"
+                    >
+                        <Icon data={ListCheck}/>Go to Suites
+                    </Button>
+                    {isEditScreensAvailable && (
+                        <>
+                            {isUndoAvailable && (
+                                <Button
+                                    view="action"
+                                    className={styles.acceptButton}
+                                    disabled={isRunning || isProcessing}
+                                    onClick={onScreenshotUndo}
+                                    qa="undo-button"
+                                >
+                                    <Icon data={ArrowUturnCcwLeft}/>Undo
+                                </Button>
+                            )}
+                            {currentImage && isAcceptable(currentImage) && (
+                                <Button
+                                    view={'action'}
+                                    className={styles.acceptButton}
+                                    disabled={isRunning || isProcessing}
+                                    onClick={onScreenshotAccept}
+                                    qa="accept-button"
+                                >
+                                    <Icon data={Check}/>Accept
+                                </Button>
+                            )}
+                        </>
+                    )}
+                </Flex>
+            </div>
         </div>
-    </div>;
+    );
 }

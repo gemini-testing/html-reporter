@@ -2,7 +2,7 @@ import {Page, State} from '@/static/new-ui/types/store';
 import actionNames from '@/static/modules/action-names';
 import {applyStateUpdate} from '@/static/modules/utils/state';
 import {SomeAction} from '@/static/modules/actions/types';
-import {getSuitesThreeViewData} from '@/static/new-ui/features/suites/components/SuitesPage/selectors';
+import {getSuitesTreeViewData} from '@/static/new-ui/features/suites/components/SuitesPage/selectors';
 import {findTreeNodeByBrowserId, findTreeNodeById, getGroupId} from '@/static/new-ui/features/suites/utils';
 import * as localStorageWrapper from '../local-storage-wrapper';
 import {MIN_SECTION_SIZE_PERCENT} from '@/static/new-ui/features/suites/constants';
@@ -21,7 +21,7 @@ export default (state: State, action: SomeAction): State => {
         case actionNames.SUITES_PAGE_SET_TREE_VIEW_MODE:
         case actionNames.CHANGE_VIEW_MODE as any: // eslint-disable-line @typescript-eslint/no-explicit-any
         case actionNames.GROUP_TESTS_SET_CURRENT_EXPRESSION: {
-            const {allTreeNodeIds} = getSuitesThreeViewData(state);
+            const {allTreeNodeIds} = getSuitesTreeViewData(state);
 
             const expandedTreeNodesById: Record<string, boolean> = Object.assign({}, state.ui.suitesPage.expandedTreeNodesById);
 
@@ -35,7 +35,7 @@ export default (state: State, action: SomeAction): State => {
             if (action.type === actionNames.GROUP_TESTS_SET_CURRENT_EXPRESSION || action.type === actionNames.SUITES_PAGE_SET_TREE_VIEW_MODE) {
                 const {currentBrowserId} = state.app.suitesPage;
                 if (currentBrowserId) {
-                    const {tree} = getSuitesThreeViewData(state);
+                    const {tree} = getSuitesTreeViewData(state);
                     const browserTreeViewData = findTreeNodeByBrowserId(tree, currentBrowserId);
                     currentTreeNodeId = browserTreeViewData?.id;
                     if (browserTreeViewData) {
@@ -152,7 +152,7 @@ export default (state: State, action: SomeAction): State => {
             }) as State;
         }
         case actionNames.SUITES_PAGE_REVEAL_TREE_NODE: {
-            const {tree} = getSuitesThreeViewData(state);
+            const {tree} = getSuitesTreeViewData(state);
             let nodeData = findTreeNodeById(tree, action.payload.nodeId);
             const newExpandedTreeNodesById: Record<string, boolean> = {};
 

@@ -15,7 +15,7 @@ import {TestStatus} from '@/constants';
 import {TreeViewData} from '@/static/new-ui/components/TreeView';
 
 // Converts the existing store structure to the one that can be consumed by GravityUI
-export const getSuitesThreeViewData = createSelector(
+export const getSuitesTreeViewData = createSelector(
     [getGroups, getSuites, getAllRootGroupIds, getBrowsers, getBrowsersState, getResults, getImages, getTreeViewMode, getSortTestsData],
     (groups, suites, rootGroupIds, browsers, browsersState, results, images, treeViewMode, sortTestsData): TreeViewData => {
         const currentSortDirection = sortTestsData.currentDirection;

@@ -1,10 +1,10 @@
 import classNames from 'classnames';
-import React, {ReactNode, useCallback, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {ReactNode, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {useNavigate, useParams} from 'react-router-dom';
 
 import {UiCard} from '@/static/new-ui/components/Card/UiCard';
-import {getCurrentResult} from '@/static/new-ui/features/suites/selectors';
+import {getAttempt, getCurrentResult, getCurrentResultImages} from '@/static/new-ui/features/suites/selectors';
 import {SplitViewLayout} from '@/static/new-ui/components/SplitViewLayout';
 import {TreeViewHandle} from '@/static/new-ui/components/TreeView';
 import {SuiteTitle} from '@/static/new-ui/components/SuiteTitle';
@@ -14,28 +14,36 @@ import {TestControlPanel} from '@/static/new-ui/features/suites/components/TestC
 
 import styles from './index.module.css';
 import {TestInfoSkeleton} from '@/static/new-ui/features/suites/components/SuitesPage/TestInfoSkeleton';
-import {findTreeNodeById, getGroupId, isSectionHidden} from '@/static/new-ui/features/suites/utils';
+import {
+    findTreeNodeByBrowserId,
+    findTreeNodeById,
+    getGroupId,
+    isSectionHidden
+} from '@/static/new-ui/features/suites/utils';
 import {EntityType, TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
 import {NEW_ISSUE_LINK, TestStatus, ViewMode} from '@/constants';
 import {ErrorHandler} from '../../../error-handling/components/ErrorHandling';
 import {TestInfo} from '@/static/new-ui/features/suites/components/TestInfo';
 import {MIN_SECTION_SIZE_PERCENT} from '../../constants';
 import {SideBar} from '@/static/new-ui/components/SideBar';
-import {getSuitesStatusCounts, getSuitesThreeViewData} from './selectors';
+import {getSuitesStatusCounts, getSuitesTreeViewData} from './selectors';
 import {getIconByStatus} from '@/static/new-ui/utils';
 import {Page} from '@/static/new-ui/types/store';
 import {usePage} from '@/static/new-ui/hooks/usePage';
+import {changeTestRetry, setCurrentTreeNode, setStrictMatchFilter} from '@/static/modules/actions';
 
 export function SuitesPage(): ReactNode {
     const page = usePage();
     const currentResult = useSelector(getCurrentResult);
-    const treeData = useSelector(getSuitesThreeViewData);
+    const treeData = useSelector(getSuitesTreeViewData);
+    const resultImages = useSelector(getCurrentResultImages);
     const {visibleTreeNodeIds, tree} = treeData;
+    const params = useParams();
+    const attempt = useSelector(getAttempt);
 
     const currentTreeNodeId = useSelector(state => state.app[Page.suitesPage].currentTreeNodeId);
     const currentIndex = visibleTreeNodeIds.indexOf(currentTreeNodeId as string);
 
-    const {suiteId: suiteIdParam} = useParams();
     const isInitialized = useSelector(getIsInitialized);
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -49,7 +57,40 @@ export function SuitesPage(): ReactNode {
         }));
     }, [page]);
 
+    useEffect(() => {
+        if (currentResult?.parentId && attempt !== null && resultImages.length) {
+            navigate('/' + [
+                'suites',
+                currentResult.parentId as string,
+                params.stateName !== undefined ? params.stateName : resultImages[0].stateName as string,
+                attempt?.toString() as string
+            ].map(encodeURIComponent).join('/'));
+        }
+    }, [currentResult, attempt]);
+
+    useEffect(() => {
+        dispatch(setStrictMatchFilter(false));
+
+        if (isInitialized && params.suiteId) {
+            const treeNode = findTreeNodeByBrowserId(treeData.tree, params.suiteId);
+
+            if (!treeNode) {
+                return;
+            }
+
+            dispatch(setCurrentTreeNode({browserId: params.suiteId, treeNodeId: treeNode.id}));
+
+            if (params.attempt !== undefined) {
+                dispatch(changeTestRetry({browserId: params.suiteId, retryIndex: Number(params.attempt)}));
+            }
+        }
+    }, [isInitialized, params]);
+
     const suitesTreeViewRef = useRef<TreeViewHandle>(null);
+
+    useEffect(() => {
+        suitesTreeViewRef?.current?.scrollToId(currentTreeNodeId as string);
+    }, [suitesTreeViewRef, currentTreeNodeId]);
 
     const treeViewExpandedById = useSelector((state) => state.ui[Page.suitesPage].expandedTreeNodesById);
 
@@ -110,8 +151,6 @@ export function SuitesPage(): ReactNode {
     const onTreeItemClick = useCallback((item: TreeViewItemData, expanded: boolean) => {
         if (item.entityType === EntityType.Browser) {
             dispatch(actions.setCurrentTreeNode({treeNodeId: item.id, browserId: item.entityId, groupId: getGroupId(item)}));
-
-            navigate(encodeURIComponent(item.entityId));
         } else {
             dispatch(actions.setTreeNodeExpandedState({nodeId: item.id, isExpanded: !expanded}));
         }
@@ -170,7 +209,7 @@ export function SuitesPage(): ReactNode {
                     onStatusChange={onStatusChange}
                 />
                 <UiCard key="test-view" className={classNames(styles.card, styles.testViewCard)} style={{'--sticky-header-height': stickyHeaderHeight + 'px'} as React.CSSProperties}>
-                    <ErrorHandler.Boundary watchFor={[currentResult, suiteIdParam, isInitialized]} fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try to choose another item'}/>}>
+                    <ErrorHandler.Boundary watchFor={[currentResult, params.suiteId, isInitialized]} fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try to choose another item'}/>}>
                         {currentResult && <>
                             <div className={styles.stickyHeader} ref={(ref): void => setStickyHeaderElement(ref)}>
                                 <SuiteTitle
@@ -186,8 +225,8 @@ export function SuitesPage(): ReactNode {
 
                             <TestInfo/>
                         </>}
-                        {!suiteIdParam && !currentResult && <div className={styles.hintContainer}><span className={styles.hint}>Select a test to see details</span></div>}
-                        {suiteIdParam && !isInitialized && <TestInfoSkeleton />}
+                        {!params.suiteId && !currentResult && <div className={styles.hintContainer}><span className={styles.hint}>Select a test to see details</span></div>}
+                        {params.suiteId && !isInitialized && <TestInfoSkeleton />}
                     </ErrorHandler.Boundary>
                 </UiCard>
             </SplitViewLayout>
