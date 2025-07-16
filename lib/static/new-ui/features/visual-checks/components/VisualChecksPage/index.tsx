@@ -25,6 +25,7 @@ import {MIN_SECTION_SIZE_PERCENT} from '@/static/new-ui/features/suites/constant
 import {Page} from '@/static/new-ui/types/store';
 import {usePage} from '@/static/new-ui/hooks/usePage';
 import {useNavigate, useParams} from 'react-router-dom';
+import {Spin} from '@gravity-ui/uikit';
 
 export function VisualChecksPage(): ReactNode {
     const dispatch = useDispatch();
@@ -36,6 +37,7 @@ export function VisualChecksPage(): ReactNode {
     const navigate = useNavigate();
     const params = useParams();
     const inited = useRef(false);
+    const isRunning = useSelector((state) => state.running);
 
     const currentTreeNodeId = useSelector((state) => state.app.visualChecksPage.currentNamedImageId);
 
@@ -92,8 +94,8 @@ export function VisualChecksPage(): ReactNode {
         }
     };
 
-    const statusList = useMemo(() => {
-        return [
+    const statusList = useMemo(() => (
+        [
             {
                 title: 'All',
                 value: ViewMode.ALL,
@@ -111,8 +113,8 @@ export function VisualChecksPage(): ReactNode {
                 value: ViewMode.FAILED,
                 count: treeData.stats[ViewMode.FAILED]
             }
-        ];
-    }, [treeData]);
+        ]
+    ), [treeData]);
 
     const onStatusChange = useCallback((value: string) => {
         dispatch(actions.changeViewMode({
@@ -158,6 +160,11 @@ export function VisualChecksPage(): ReactNode {
 
                                 {!currentImage && (
                                     <div className={styles.hint}>This run doesn&apos;t have an image with id &quot;{params.imageId}&quot;</div>
+                                )}
+                                {!currentImage && isRunning && (
+                                    <div className={styles.emptyStepsContainer}>
+                                        <Spin size={'xs'} style={{marginRight: '4px'}} />Test is running
+                                    </div>
                                 )}
                             </>
                             : <AssertViewResultSkeleton />}

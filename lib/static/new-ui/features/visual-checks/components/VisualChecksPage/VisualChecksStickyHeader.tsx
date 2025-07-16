@@ -25,6 +25,7 @@ import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
 
 import {preloadImageEntity} from '../../../../../modules/utils/imageEntity';
 import {useNavigate} from 'react-router-dom';
+import {RunTest} from '../../../../components/RunTest';
 
 interface VisualChecksStickyHeaderProps {
     currentNamedImage: NamedImageEntity | null;
@@ -106,8 +107,15 @@ export function VisualChecksStickyHeader({currentNamedImage, visibleNamedImageId
         }
     };
 
-    const currentBrowserId = useSelector(state => state.tree.results.byId[currentImage?.parentId ?? '']?.parentId);
-    const currentBrowser = useSelector(state => currentBrowserId && state.tree.browsers.byId[currentBrowserId]);
+    const currentBrowser = useSelector(state => {
+        const currentBrowserId = state.tree.results.byId[currentImage?.parentId ?? '']?.parentId;
+
+        if (currentBrowserId && state.tree.browsers.byId[currentBrowserId]) {
+            return state.tree.browsers.byId[currentBrowserId];
+        }
+
+        return null;
+    });
 
     const currentResultId = currentImage?.parentId;
     const isLastResult = Boolean(currentResultId && currentBrowser && currentResultId === currentBrowser.resultIds[currentBrowser.resultIds.length - 1]);
@@ -184,6 +192,7 @@ export function VisualChecksStickyHeader({currentNamedImage, visibleNamedImageId
                                     <Icon data={Check}/>Accept
                                 </Button>
                             )}
+                            <RunTest showPlayer={false} browser={currentBrowser} />
                         </>
                     )}
                 </Flex>
