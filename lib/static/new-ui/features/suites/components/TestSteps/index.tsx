@@ -14,7 +14,7 @@ import {TestStepArgs} from '@/static/new-ui/features/suites/components/TestStepA
 import {getIconByStatus} from '@/static/new-ui/utils';
 import {ErrorInfo} from '@/static/new-ui/components/ErrorInfo';
 import * as actions from '@/static/modules/actions';
-import {getCurrentResultId} from '@/static/new-ui/features/suites/selectors';
+import {getCurrentResult, getCurrentResultId} from '@/static/new-ui/features/suites/selectors';
 import {getStepsExpandedById, getTestSteps} from './selectors';
 import {Step, StepType} from './types';
 import {ListItemViewContentType, TreeViewItem} from '../../../../components/TreeViewItem';
@@ -26,6 +26,7 @@ import {ScreenshotsTreeViewItem} from '@/static/new-ui/features/suites/component
 import {ErrorHandler} from '../../../error-handling/components/ErrorHandling';
 import {goToTimeInSnapshotsPlayer, setCurrentPlayerHighlightTime} from '@/static/modules/actions/snapshots';
 import {setCurrentStep} from '@/static/modules/actions';
+import {useNavigate} from 'react-router-dom';
 
 type TestStepClickHandler = (item: {id: string}) => void
 
@@ -119,6 +120,8 @@ function TestStepsInternal(props: TestStepsProps): ReactNode {
     }
 
     const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const currentResult = useSelector(getCurrentResult);
 
     const currentStepId = useSelector(state => state.app.suitesPage.currentStepId);
     const currentHighlightStepId = useSelector(state => state.app.suitesPage.currentHighlightedStepId);
@@ -149,6 +152,15 @@ function TestStepsInternal(props: TestStepsProps): ReactNode {
             resultId: props.resultId,
             expandedById: Object.assign({}, props.stepsExpandedById, {[id]: !props.stepsExpandedById[id]})
         });
+
+        if (step.type === StepType.Action) {
+            navigate('/' + [
+                'suites',
+                currentResult?.parentId as string,
+                step.args[0] as string,
+                currentResult?.attempt?.toString() as string
+            ].map(encodeURIComponent).join('/'));
+        }
     }, [items, props.actions, props.stepsExpandedById]);
 
     const currentSnapshotsPlayerState = useSelector(state => state.app.snapshotsPlayer);

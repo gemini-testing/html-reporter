@@ -41,7 +41,7 @@ import {
 } from '@/static/new-ui/store/selectors';
 import {isAcceptable, isScreenRevertable} from '@/static/modules/utils';
 import {EditScreensFeature, RunTestsFeature} from '@/constants';
-import {getSuitesThreeViewData} from '@/static/new-ui/features/suites/components/SuitesPage/selectors';
+import {getSuitesTreeViewData} from '@/static/new-ui/features/suites/components/SuitesPage/selectors';
 import {GroupBySelect} from '@/static/new-ui/features/suites/components/GroupBySelect';
 import {SortBySelect} from '@/static/new-ui/features/suites/components/SortBySelect';
 import {thunkAcceptImages, thunkRevertImages} from '@/static/modules/actions/screenshots';
@@ -94,7 +94,7 @@ export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
 
     const treeViewMode = useSelector(state => state.ui.suitesPage.treeViewMode);
     const currentTreeNodeId = useSelector(state => state.app.suitesPage.currentTreeNodeId);
-    const {visibleTreeNodeIds} = useSelector(getSuitesThreeViewData);
+    const {visibleTreeNodeIds} = useSelector(getSuitesTreeViewData);
     const isFocusAvailable = isInitialized && currentTreeNodeId && visibleTreeNodeIds.includes(currentTreeNodeId);
 
     const isAtLeastOneAcceptable = activeImages.some(image => isAcceptable(image));

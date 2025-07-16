@@ -8,9 +8,8 @@ import {
 } from '@gravity-ui/uikit/unstable';
 import {useVirtualizer} from '@tanstack/react-virtual';
 import classNames from 'classnames';
-import React, {forwardRef, ReactNode, useCallback, useEffect, useImperativeHandle} from 'react';
+import React, {forwardRef, ReactNode, useCallback, useImperativeHandle} from 'react';
 import {useDispatch} from 'react-redux';
-import {useParams} from 'react-router-dom';
 
 import {EntityType, TreeNode, TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
 import {TreeViewItemTitle} from '@/static/new-ui/components/TreeViewItemTitle';
@@ -18,12 +17,8 @@ import {TreeViewItemSubtitle} from '@/static/new-ui/components/TreeViewItemSubti
 import {TestStatus} from '@/constants';
 import {TreeViewItemIcon} from '@/static/new-ui/components/TreeViewItemIcon';
 import {getIconByStatus} from '@/static/new-ui/utils';
-import {
-    revealTreeNode,
-    setCurrentTreeNode,
-    setStrictMatchFilter
-} from '@/static/modules/actions';
-import {findTreeNodeByBrowserId} from '@/static/new-ui/features/suites/utils';
+import {revealTreeNode} from '@/static/modules/actions';
+
 import styles from './index.module.css';
 
 export interface TreeViewData {
@@ -46,7 +41,6 @@ export interface TreeViewHandle {
 export const TreeView = forwardRef<TreeViewHandle, TreeViewProps>(function TreeViewInternal(props, ref): ReactNode {
     const {currentTreeNodeId, treeData, treeViewExpandedById, onClick} = props;
     const dispatch = useDispatch();
-    const {suiteId} = useParams();
 
     const list = useList({
         items: treeData.tree,
@@ -102,85 +96,67 @@ export const TreeView = forwardRef<TreeViewHandle, TreeViewProps>(function TreeV
         }
     }));
 
-    // Effects
-    useEffect(() => {
-        dispatch(setStrictMatchFilter(false));
-
-        let timeoutId: NodeJS.Timeout;
-        if (suiteId) {
-            const treeNode = findTreeNodeByBrowserId(treeData.tree, suiteId);
-            if (!treeNode) {
-                return;
-            }
-
-            dispatch(setCurrentTreeNode({browserId: suiteId, treeNodeId: treeNode.id}));
-
-            // This tiny timeout helps when report contains thousands of items and scrolls to invalid position before they are done rendering.
-            timeoutId = setTimeout(() => {
-                virtualizer.scrollToIndex(list.structure.visibleFlattenIds.indexOf(treeNode.id), {align: 'center'});
-            }, 50);
-        }
-
-        return () => clearTimeout(timeoutId);
-    }, []);
-
     if (list.structure.visibleFlattenIds.length === 0) {
         return <div className={styles.emptyHintContainer}>
             There are no tests that match selected filters
         </div>;
     }
 
-    return <ListContainerView className={styles.treeView}>
-        <div ref={parentRef} className={styles['tree-view__container']}>
-            <div
-                className={styles['tree-view__total-size-wrapper']}
-                style={{height: virtualizer.getTotalSize()}}
-            >
+    return (
+        <ListContainerView className={styles.treeView}>
+            <div ref={parentRef} className={styles['tree-view__container']}>
                 <div
-                    className={styles['tree-view__visible-window']}
-                    style={{transform: `translateY(${virtualizedItems[0]?.start ?? 0}px)`}}
-                    data-qa="tree-view-list"
+                    className={styles['tree-view__total-size-wrapper']}
+                    style={{height: virtualizer.getTotalSize()}}
                 >
-                    {virtualizedItems.map((virtualRow) => {
-                        const item = list.structure.itemsById[virtualRow.key as string];
-                        const isSelected = item.id === currentTreeNodeId;
-                        const classes = [
-                            styles['tree-view__item'],
-                            {
-                                // Global classes are useful for deeply nested elements like tags
-                                'current-tree-node': isSelected,
-                                'error-tree-node': item.entityType === EntityType.Browser && (item.status === TestStatus.FAIL || item.status === TestStatus.ERROR),
-                                [styles['tree-view__item--current']]: isSelected,
-                                [styles['tree-view__item--browser']]: item.entityType === EntityType.Browser,
-                                [styles['tree-view__item--error']]: item.entityType === EntityType.Browser && (item.status === TestStatus.FAIL || item.status === TestStatus.ERROR)
-                            }
-                        ];
+                    <div
+                        className={styles['tree-view__visible-window']}
+                        style={{transform: `translateY(${virtualizedItems[0]?.start ?? 0}px)`}}
+                        data-qa="tree-view-list"
+                    >
+                        {virtualizedItems.map((virtualRow) => {
+                            const item = list.structure.itemsById[virtualRow.key as string];
+                            const isSelected = item.id === currentTreeNodeId;
+                            const classes = [
+                                styles['tree-view__item'],
+                                {
+                                    // Global classes are useful for deeply nested elements like tags
+                                    'current-tree-node': isSelected,
+                                    'error-tree-node': item.entityType === EntityType.Browser && (item.status === TestStatus.FAIL || item.status === TestStatus.ERROR),
+                                    [styles['tree-view__item--current']]: isSelected,
+                                    [styles['tree-view__item--browser']]: item.entityType === EntityType.Browser,
+                                    [styles['tree-view__item--error']]: item.entityType === EntityType.Browser && (item.status === TestStatus.FAIL || item.status === TestStatus.ERROR)
+                                }
+                            ];
 
-                        return <Box
-                            key={virtualRow.key}
-                            data-index={virtualRow.index}
-                            ref={virtualizer.measureElement}
-                            spacing={{pt: 1}}
-                        >
-                            <ListItemView
-                                height={0} // To prevent GravityUI from setting incorrect min-height
-                                className={classNames(classes)}
-                                {...getItemRenderState({
-                                    id: virtualRow.key.toString(),
-                                    list,
-                                    onItemClick,
-                                    mapItemDataToContentProps: (x: TreeViewItemData) => {
-                                        return {
-                                            startSlot: <TreeViewItemIcon>{x.status ? getIconByStatus(x.status) : <Cubes3Overlap/>}</TreeViewItemIcon>,
-                                            title: <TreeViewItemTitle item={x} className={isSelected ? styles['tree-view__item__title--current'] : ''} />,
-                                            subtitle: <TreeViewItemSubtitle item={x} className={isSelected ? styles['tree-view__item__error--current'] : ''} scrollContainerRef={parentRef}/>
-                                        };
-                                    }
-                                }).props}/>
-                        </Box>;
-                    })}
+                            return (
+                                <Box
+                                    key={virtualRow.key}
+                                    data-index={virtualRow.index}
+                                    ref={virtualizer.measureElement}
+                                    spacing={{pt: 1}}
+                                >
+                                    <ListItemView
+                                        height={0} // To prevent GravityUI from setting incorrect min-height
+                                        className={classNames(classes)}
+                                        {...getItemRenderState({
+                                            id: virtualRow.key.toString(),
+                                            list,
+                                            onItemClick,
+                                            mapItemDataToContentProps: (x: TreeViewItemData) => {
+                                                return {
+                                                    startSlot: <TreeViewItemIcon>{x.status ? getIconByStatus(x.status) : <Cubes3Overlap/>}</TreeViewItemIcon>,
+                                                    title: <TreeViewItemTitle item={x} className={isSelected ? styles['tree-view__item__title--current'] : ''} />,
+                                                    subtitle: <TreeViewItemSubtitle item={x} className={isSelected ? styles['tree-view__item__error--current'] : ''} scrollContainerRef={parentRef}/>
+                                                };
+                                            }
+                                        }).props}/>
+                                </Box>
+                            );
+                        })}
+                    </div>
                 </div>
             </div>
-        </div>
-    </ListContainerView>;
+        </ListContainerView>
+    );
 });

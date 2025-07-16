@@ -4,7 +4,7 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import {SplitViewLayout} from '@/static/new-ui/components/SplitViewLayout';
 import {UiCard} from '@/static/new-ui/components/Card/UiCard';
-import {getCurrentImage, getCurrentNamedImage} from '@/static/new-ui/features/visual-checks/selectors';
+import {getAttempt, getCurrentImage, getCurrentNamedImage} from '@/static/new-ui/features/visual-checks/selectors';
 import {AssertViewResult} from '@/static/new-ui/components/AssertViewResult';
 import styles from './index.module.css';
 import {
@@ -13,7 +13,7 @@ import {
 import {VisualChecksStickyHeader} from './VisualChecksStickyHeader';
 import {ErrorHandler} from '../../../error-handling/components/ErrorHandling';
 import * as actions from '@/static/modules/actions';
-import {visualChecksPageSetCurrentNamedImage} from '@/static/modules/actions';
+import {changeTestRetry, visualChecksPageSetCurrentNamedImage} from '@/static/modules/actions';
 import {SideBar} from '@/static/new-ui/components/SideBar';
 import {getVisualChecksViewMode, getVisualTreeViewData} from './selectors';
 import {TreeViewHandle} from '@/static/new-ui/components/TreeView';
@@ -29,10 +29,13 @@ import {useNavigate, useParams} from 'react-router-dom';
 export function VisualChecksPage(): ReactNode {
     const dispatch = useDispatch();
     const page = usePage();
+
     const currentNamedImage = useSelector(getCurrentNamedImage);
     const currentImage = useSelector(getCurrentImage);
+    const attempt = useSelector(getAttempt);
     const navigate = useNavigate();
-    const {imageId} = useParams();
+    const params = useParams();
+    const inited = useRef(false);
 
     const currentTreeNodeId = useSelector((state) => state.app.visualChecksPage.currentNamedImageId);
 
@@ -52,16 +55,25 @@ export function VisualChecksPage(): ReactNode {
     }, []);
 
     useEffect(() => {
-        if (currentTreeNodeId) {
-            navigate(encodeURIComponent(currentTreeNodeId as string));
+        if (currentTreeNodeId && attempt !== null) {
+            navigate(`${encodeURIComponent(currentTreeNodeId as string)}/${attempt}`);
         }
-    }, [currentTreeNodeId]);
+    }, [currentTreeNodeId, attempt]);
 
     useEffect(() => {
-        if (!currentTreeNodeId && imageId) {
-            dispatch(visualChecksPageSetCurrentNamedImage(imageId));
+        if (params && isInitialized && !inited.current) {
+            inited.current = true;
+
+            if (params.imageId) {
+                dispatch(visualChecksPageSetCurrentNamedImage(params.imageId));
+
+                if (params.attempt !== undefined) {
+                    const browserId = params.imageId.split(' ').slice(0, -1).join(' ');
+                    dispatch(changeTestRetry({browserId, retryIndex: Number(params.attempt)}));
+                }
+            }
         }
-    }, []);
+    }, [params, isInitialized]);
 
     const statusValue = useSelector(getVisualChecksViewMode);
 
@@ -145,7 +157,7 @@ export function VisualChecksPage(): ReactNode {
                                 )}
 
                                 {!currentImage && (
-                                    <div className={styles.hint}>This run doesn&apos;t have an image with id &quot;{imageId}&quot;</div>
+                                    <div className={styles.hint}>This run doesn&apos;t have an image with id &quot;{params.imageId}&quot;</div>
                                 )}
                             </>
                             : <AssertViewResultSkeleton />}

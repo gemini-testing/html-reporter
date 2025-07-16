@@ -16,19 +16,48 @@
     justify-content: center;
 }
 
-.accept-button {
+.accept-button, .go-to-visual {
     composes: regular-button from global, action-button from global;
 }
 
 .buttons-container {
     display: flex;
-    margin-left: auto;
+    overflow: hidden;
+    justify-content: flex-end;
+    container-name: buttons-container;
+    container-type: inline-size;
+    flex-grow: 1;
+
+    .go-to-visual {
+        flex-shrink: 1;
+        overflow: hidden;
+
+        :global(.g-button__icon) {
+            flex-shrink: 0;
+        }
+
+        :global(.g-button__text) {
+            display: block;
+            flex-shrink: 1;
+            word-break: break-all;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    }
+}
+
+@container buttons-container (max-width: 200px) {
+    .go-to-visual :global(.g-button__text) {
+        display: none !important;
+    }
 }
 
 .diff-mode-container {
     container-type: inline-size;
     flex-grow: 1;
     display: flex;
+    min-width: 100px;
 }
 
 .diff-mode-switcher {
