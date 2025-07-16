@@ -794,7 +794,7 @@ describe('lib/static/modules/reducers/tree', () => {
         });
     });
 
-    [actionNames.TEST_RESULT, actionNames.COMMIT_ACCEPTED_IMAGES_TO_TREE].forEach((actionName) => {
+    [actionNames.TEST_BEGIN, actionNames.TEST_RESULT, actionNames.COMMIT_ACCEPTED_IMAGES_TO_TREE].forEach((actionName) => {
         describe(`${actionName} action`, () => {
             it('should change "retryIndex" in browser state', () => {
                 const suitesById = {...mkSuite({id: 's1', browserIds: ['b1']})};
