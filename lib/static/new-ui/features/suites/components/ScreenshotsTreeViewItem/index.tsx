@@ -37,7 +37,7 @@ function getScrollParent(node: HTMLElement | null): HTMLElement | null {
     }
 }
 
-const MARGIN_TOP = 169; // --sticky-header-height + --gn-aside-header-size
+const MARGIN_TOP = 200; // enough for scroll below sticky header
 
 export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): ReactNode {
     const dispatch = useDispatch();
@@ -128,9 +128,10 @@ export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): Re
                     <Flex className={styles.buttonsContainer} gap={2}>
                         <Button
                             view="outlined"
-                            className={styles.acceptButton}
+                            className={styles.goToVisual}
                             disabled={isRunning || isProcessing}
                             onClick={onVisualChecks}
+                            qa="go-visual-button"
                         >
                             <Icon data={Eye}/>Go to Visual Checks
                         </Button>
