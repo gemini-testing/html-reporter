@@ -73,7 +73,7 @@ export const getNamedImages = createSelector(
                 browserName: group.browserName,
                 stateName: group.stateName,
                 imageIds: group.images.map(img => img.id),
-                status: group.images[group.images.length - 1].status
+                status: lastResult.status
             };
         }
 

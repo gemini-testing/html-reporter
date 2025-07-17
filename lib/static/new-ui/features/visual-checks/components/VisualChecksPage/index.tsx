@@ -37,7 +37,7 @@ export function VisualChecksPage(): ReactNode {
     const navigate = useNavigate();
     const params = useParams();
     const inited = useRef(false);
-    const isRunning = useSelector((state) => state.running);
+    const isRunning = currentNamedImage?.status === TestStatus.RUNNING;
 
     const currentTreeNodeId = useSelector((state) => state.app.visualChecksPage.currentNamedImageId);
 
