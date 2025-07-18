@@ -238,10 +238,9 @@ const getParser = (): ReturnType<typeof root<ReporterConfig>> => {
             }),
             counterNumber: option({
                 isDeprecated: true,
-                defaultValue: configDefaults.yandexMetrika.counterNumber,
+                defaultValue: null,
                 parseEnv: Number,
-                parseCli: Number,
-                map: () => configDefaults.yandexMetrika.counterNumber
+                parseCli: Number
             })
         }),
         pluginsEnabled: option({

@@ -445,8 +445,8 @@ describe('config', () => {
         });
 
         describe('counterNumber', () => {
-            it('should have default value', () => {
-                assert.deepEqual(parseConfig({}).yandexMetrika.counterNumber, configDefaults.yandexMetrika.counterNumber);
+            it('should\'nt have default value', () => {
+                assert.deepEqual(parseConfig({}).yandexMetrika.counterNumber, null);
             });
 
             it('should ignore any value passed by user', () => {
@@ -456,7 +456,7 @@ describe('config', () => {
                     }
                 });
 
-                assert.equal(config.yandexMetrika.counterNumber, configDefaults.yandexMetrika.counterNumber);
+                assert.equal(config.yandexMetrika.counterNumber, null);
             });
 
             it('should write deprecation warning', () => {
