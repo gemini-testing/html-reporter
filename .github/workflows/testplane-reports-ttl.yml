@@ -4,16 +4,21 @@ on:
         - cron: 0 0 * * *
 permissions:
   contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   clean:
     name: Remove old Testplane html reports
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-arc
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           ref: gh-pages
-          token: ${{ secrets.GH_ACCESS_TOKEN }}
+          token: ${{ secrets.GH_ACCESS_TOKEN_V2 }}
       - name: Remove reports
         uses: gemini-testing/gh-actions-reports-ttl-cleaner@v1
         with:
