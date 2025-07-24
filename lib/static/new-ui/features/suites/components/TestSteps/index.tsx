@@ -69,11 +69,14 @@ function TestStep({onItemClick, items, itemId, onMouseMove, isActive, className}
         return <TreeViewItem className={className} id={itemId} key={itemId} list={items} status={shouldHighlightFail ? 'error' : undefined} onItemClick={onItemClick} onMouseMove={onMouseMove}
             mapItemDataToContentProps={(): ListItemViewContentType => {
                 return {
-                    title: <div className={styles.stepContent}>
-                        <span className={styles.stepTitle}>{item.title}</span>
-                        <TestStepArgs args={item.args} isFailed={shouldHighlightFail} isActive={isActive}/>
-                        {item.duration !== undefined && <span className={styles.stepDuration}>{item.duration} ms</span>}
-                    </div>,
+                    title: (
+                        <div className={styles.stepContent}>
+                            <span className={styles.stepTitle}>{item.title}</span>
+                            <TestStepArgs args={item.args} isFailed={shouldHighlightFail} isActive={isActive}/>
+                            {item.repeat && <div className={styles.stepRepeat}>x{item.repeat}</div>}
+                            {item.duration !== undefined && <span className={styles.stepDuration}>{item.duration} ms</span>}
+                        </div>
+                    ),
                     startSlot: <TreeViewItemIcon>{getIconByStatus(item.status)}</TreeViewItemIcon>
                 };
             }} isActive={isActive}/>;

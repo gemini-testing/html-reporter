@@ -53,22 +53,40 @@ const wrapSkipComment = (skipComment: string | null | undefined): string => {
 };
 
 const getHistory = (history?: TestplaneTestResult['history']): TestStepCompressed[] => {
-    return history?.map(h => {
+    return history?.reduce<TestStepCompressed[]>((arr, step) => {
+        const prevStep = _.last(arr);
         const result: TestStepCompressed = {
-            [TestStepKey.Name]: h[TestStepKey.Name],
-            [TestStepKey.Args]: h[TestStepKey.Args],
-            [TestStepKey.Duration]: h[TestStepKey.Duration],
-            [TestStepKey.TimeStart]: h[TestStepKey.TimeStart],
-            [TestStepKey.IsFailed]: h[TestStepKey.IsFailed],
-            [TestStepKey.IsGroup]: h[TestStepKey.IsGroup]
+            [TestStepKey.Name]: step[TestStepKey.Name],
+            [TestStepKey.Args]: step[TestStepKey.Args],
+            [TestStepKey.Duration]: step[TestStepKey.Duration],
+            [TestStepKey.TimeStart]: step[TestStepKey.TimeStart],
+            [TestStepKey.IsFailed]: step[TestStepKey.IsFailed],
+            [TestStepKey.IsGroup]: step[TestStepKey.IsGroup]
         };
 
-        if (h[TestStepKey.Children] && h[TestStepKey.IsFailed]) {
-            result[TestStepKey.Children] = getHistory(h[TestStepKey.Children]);
+        if (step[TestStepKey.Children] && step[TestStepKey.IsGroup]) {
+            result[TestStepKey.Children] = getHistory(step[TestStepKey.Children]);
         }
 
-        return result;
-    }) ?? [];
+        if (
+            prevStep &&
+            (!prevStep[TestStepKey.Children] || !step[TestStepKey.Children]) &&
+            prevStep[TestStepKey.Name] === step[TestStepKey.Name] &&
+            prevStep[TestStepKey.Args].join() === step[TestStepKey.Args].join()
+        ) {
+            if (prevStep[TestStepKey.Repeat]) {
+                prevStep[TestStepKey.Repeat]++;
+            } else {
+                prevStep[TestStepKey.Repeat] = 2;
+            }
+
+            prevStep[TestStepKey.Duration] += step[TestStepKey.Duration];
+        } else {
+            arr.push(result);
+        }
+
+        return arr;
+    }, []) ?? [];
 };
 
 export interface TestplaneTestResultAdapterOptions {
