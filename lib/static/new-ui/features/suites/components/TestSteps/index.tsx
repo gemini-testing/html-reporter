@@ -3,7 +3,7 @@ import {
     unstable_ListTreeItemType as ListTreeItemType,
     unstable_useList as useList
 } from '@gravity-ui/uikit/unstable';
-import {CircleExclamation, Paperclip} from '@gravity-ui/icons';
+import {CircleExclamation, Paperclip, Cubes3Overlap} from '@gravity-ui/icons';
 import classNames from 'classnames';
 import React, {ReactNode, useCallback, useEffect} from 'react';
 import {connect, useDispatch, useSelector} from 'react-redux';
@@ -66,20 +66,35 @@ function TestStep({onItemClick, items, itemId, onMouseMove, isActive, className}
     if (item.type === StepType.Action) {
         const shouldHighlightFail = (isErrorStatus(item.status) || isFailStatus(item.status)) && !item.isGroup;
 
-        return <TreeViewItem className={className} id={itemId} key={itemId} list={items} status={shouldHighlightFail ? 'error' : undefined} onItemClick={onItemClick} onMouseMove={onMouseMove}
-            mapItemDataToContentProps={(): ListItemViewContentType => {
-                return {
+        const isRepeatedGroup = item.repeat && item.hasChildren;
+        const isRepeatedGroupItem = item.repeat === -1;
+
+        return (
+            <TreeViewItem
+                className={className}
+                id={itemId}
+                key={itemId}
+                list={items}
+                status={shouldHighlightFail ? 'error' : undefined}
+                onItemClick={onItemClick}
+                onMouseMove={onMouseMove}
+                mapItemDataToContentProps={(): ListItemViewContentType => ({
                     title: (
                         <div className={styles.stepContent}>
                             <span className={styles.stepTitle}>{item.title}</span>
                             <TestStepArgs args={item.args} isFailed={shouldHighlightFail} isActive={isActive}/>
-                            {item.repeat && <div className={styles.stepRepeat}>x{item.repeat}</div>}
-                            {item.duration !== undefined && <span className={styles.stepDuration}>{item.duration} ms</span>}
+                            {(item.repeat && item.repeat > 0) && <div className={styles.stepRepeat}>×{item.repeat}</div>}
+                            {item.duration !== undefined && (
+                                <span
+                                    className={classNames(styles.stepDuration, isRepeatedGroupItem && styles.stepDurationAvg)}
+                                >{item.duration} ms</span>
+                            )}
                         </div>
                     ),
-                    startSlot: <TreeViewItemIcon>{getIconByStatus(item.status)}</TreeViewItemIcon>
-                };
-            }} isActive={isActive}/>;
+                    startSlot: <TreeViewItemIcon>{isRepeatedGroup ? <Cubes3Overlap /> : getIconByStatus(item.status)}</TreeViewItemIcon>
+                })}
+                isActive={isActive}/>
+        );
     }
 
     if (item.type === StepType.Attachment) {

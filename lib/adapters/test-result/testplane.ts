@@ -13,9 +13,8 @@ import {
     isNoRefImageError
 } from '../../common-utils';
 import {
+    Attachment,
     ErrorDetails,
-    TestplaneSuite,
-    TestplaneTestResult,
     ImageBase64,
     ImageFile,
     ImageInfoDiff,
@@ -25,7 +24,11 @@ import {
     ImageInfoPageSuccess,
     ImageInfoSuccess,
     ImageInfoUpdated,
-    TestError, TestStepCompressed, TestStepKey, Attachment
+    TestError,
+    TestplaneSuite,
+    TestplaneTestResult,
+    TestStepCompressed,
+    TestStepKey
 } from '../../types';
 import {ReporterTestResult} from './index';
 import {getSuitePath} from '../../plugin-utils';
@@ -52,42 +55,132 @@ const wrapSkipComment = (skipComment: string | null | undefined): string => {
     return skipComment ?? 'Unknown reason';
 };
 
-const getHistory = (history?: TestplaneTestResult['history']): TestStepCompressed[] => {
-    return history?.reduce<TestStepCompressed[]>((arr, step) => {
-        const prevStep = _.last(arr);
-        const result: TestStepCompressed = {
-            [TestStepKey.Name]: step[TestStepKey.Name],
-            [TestStepKey.Args]: step[TestStepKey.Args],
-            [TestStepKey.Duration]: step[TestStepKey.Duration],
-            [TestStepKey.TimeStart]: step[TestStepKey.TimeStart],
-            [TestStepKey.IsFailed]: step[TestStepKey.IsFailed],
-            [TestStepKey.IsGroup]: step[TestStepKey.IsGroup]
-        };
+const testItemsTheSame = (a: TestStepCompressed, b: TestStepCompressed): boolean => (
+    a &&
+    (!a[TestStepKey.Children] || !b[TestStepKey.Children]) &&
+    (!a[TestStepKey.IsFailed] || !b[TestStepKey.IsFailed]) &&
+    a[TestStepKey.Name] === b[TestStepKey.Name] &&
+    a[TestStepKey.Args].join() === b[TestStepKey.Args].join()
+);
 
-        if (step[TestStepKey.Children] && step[TestStepKey.IsGroup]) {
-            result[TestStepKey.Children] = getHistory(step[TestStepKey.Children]);
+const arraysEqual = <I>(a: I[], b: I[], checkFunc: (a: I, b: I) => boolean): boolean => {
+    if (a.length !== b.length) {
+        return false;
+    }
+
+    return a.every((val, idx) => checkFunc(val, b[idx]));
+};
+
+const getTotalTime = (items: TestStepCompressed[], start: number, size: number): number => {
+    let total = 0;
+
+    for (let i = start; i < (start + size); i++) {
+        total += items[i][TestStepKey.Duration];
+    }
+
+    return total;
+};
+
+const getItemAverageTime = (
+    items: TestStepCompressed[],
+    start: number,
+    repeat: number,
+    index: number,
+    groupLen: number
+): number => {
+    let total = 0;
+
+    for (let i = 0; i < (repeat - 1); i++) {
+        total += items[start + (i * groupLen) + index][TestStepKey.Duration];
+    }
+
+    return total / (repeat - 1);
+};
+
+const collapseRepeatingGroups = (arr: TestStepCompressed[]): TestStepCompressed[] => {
+    const result: TestStepCompressed[] = [];
+    let i = 0;
+
+    while (i < arr.length) {
+        let foundGroup = false;
+
+        for (let groupLen = 1; groupLen <= Math.floor((arr.length - i) / 2); groupLen++) {
+            const group = arr.slice(i, i + groupLen);
+            const next = arr.slice(i + groupLen, i + 2 * groupLen);
+
+            if (arraysEqual(group, next, testItemsTheSame)) {
+                foundGroup = true;
+                let repeatCount = 2;
+
+                while (
+                    arraysEqual<TestStepCompressed>(
+                        arr.slice(i, i + groupLen),
+                        arr.slice(i + groupLen * (repeatCount - 1), i + groupLen * repeatCount),
+                        testItemsTheSame
+                    )
+                ) {
+                    repeatCount++;
+                }
+
+                const groupsTotalLen = groupLen * (repeatCount - 1);
+
+                if (groupLen === 1) {
+                    result.push({
+                        ...group[0],
+                        [TestStepKey.Duration]: getTotalTime(arr, i, groupsTotalLen),
+                        [TestStepKey.Repeat]: repeatCount - 1
+                    });
+                } else {
+                    result.push({
+                        [TestStepKey.Name]: 'Repeated group',
+                        [TestStepKey.Args]: [`${group.length} items`],
+                        [TestStepKey.Duration]: getTotalTime(arr, i, groupsTotalLen),
+                        [TestStepKey.TimeStart]: group[0][TestStepKey.TimeStart],
+                        [TestStepKey.IsFailed]: false,
+                        [TestStepKey.IsGroup]: true,
+                        [TestStepKey.Children]: group.map((item, index) => ({
+                            ...item,
+                            [TestStepKey.Repeat]: -1,
+                            [TestStepKey.Duration]: getItemAverageTime(arr, i, repeatCount, index, groupLen)
+                        })),
+                        [TestStepKey.Repeat]: repeatCount - 1
+                    });
+                }
+
+                i += groupsTotalLen;
+                break;
+            }
         }
 
-        if (
-            prevStep &&
-            (!prevStep[TestStepKey.Children] || !step[TestStepKey.Children]) &&
-            prevStep[TestStepKey.Name] === step[TestStepKey.Name] &&
-            prevStep[TestStepKey.Args].join() === step[TestStepKey.Args].join()
-        ) {
-            if (prevStep[TestStepKey.Repeat]) {
-                prevStep[TestStepKey.Repeat]++;
-            } else {
-                prevStep[TestStepKey.Repeat] = 2;
+        if (!foundGroup) {
+            result.push(arr[i]);
+            i++;
+        }
+    }
+
+    return result;
+};
+
+const getHistory = (history?: TestplaneTestResult['history']): TestStepCompressed[] => (
+    collapseRepeatingGroups(
+        history?.map((step) => {
+            const result: TestStepCompressed = {
+                [TestStepKey.Name]: step[TestStepKey.Name],
+                [TestStepKey.Args]: step[TestStepKey.Args],
+                [TestStepKey.Duration]: step[TestStepKey.Duration],
+                [TestStepKey.TimeStart]: step[TestStepKey.TimeStart],
+                [TestStepKey.IsFailed]: step[TestStepKey.IsFailed],
+                [TestStepKey.IsGroup]: step[TestStepKey.IsGroup]
+            };
+
+            if (step[TestStepKey.Children] && (step[TestStepKey.IsGroup] || step[TestStepKey.IsFailed])) {
+                result[TestStepKey.Children] = getHistory(step[TestStepKey.Children]);
             }
 
-            prevStep[TestStepKey.Duration] += step[TestStepKey.Duration];
-        } else {
-            arr.push(result);
-        }
-
-        return arr;
-    }, []) ?? [];
-};
+            return result;
+        }) ?? []
+    )
+);
 
 export interface TestplaneTestResultAdapterOptions {
     attempt: number;

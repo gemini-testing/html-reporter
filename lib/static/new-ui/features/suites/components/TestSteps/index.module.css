@@ -29,9 +29,15 @@
     white-space: nowrap;
 }
 
+.step-duration-avg::before {
+    content: '~';
+    display: inline-block;
+    padding-right: 2px;
+}
+
 .step-repeat {
     font-size: 16px;
-    color: var(--g-color-private-black-400);
+    color: var(--g-color-private-black-400-solid);
     margin-left: 8px;
 }
 
