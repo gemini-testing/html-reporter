@@ -97,32 +97,59 @@ const getItemAverageTime = (
     return total / (repeat - 1);
 };
 
-const collapseRepeatingGroups = (arr: TestStepCompressed[]): TestStepCompressed[] => {
+const MIN_REPEATS = 3; // Min count of repeats elements of group elements for squash
+
+const collapseRepeatingGroups = (
+    arr: TestStepCompressed[],
+    minRepeats: number = MIN_REPEATS
+): TestStepCompressed[] => {
     const result: TestStepCompressed[] = [];
     let i = 0;
 
     while (i < arr.length) {
         let foundGroup = false;
 
-        for (let groupLen = 1; groupLen <= Math.floor((arr.length - i) / 2); groupLen++) {
+        // max len of group can't be more that totalLen / minRepeats
+        for (let groupLen = 1; groupLen <= Math.floor((arr.length - i) / minRepeats); groupLen++) {
             const group = arr.slice(i, i + groupLen);
-            const next = arr.slice(i + groupLen, i + 2 * groupLen);
 
-            if (arraysEqual(group, next, testItemsTheSame)) {
+            let allGroupsMatch = true;
+
+            // check that group is repeated required count of times
+            for (let repeat = 1; repeat < minRepeats; repeat++) {
+                const nextGroupStart = i + repeat * groupLen;
+                const nextGroupEnd = nextGroupStart + groupLen;
+
+                if (nextGroupEnd > arr.length) {
+                    allGroupsMatch = false;
+                    break;
+                }
+
+                const nextGroup = arr.slice(nextGroupStart, nextGroupEnd);
+
+                if (!arraysEqual(group, nextGroup, testItemsTheSame)) {
+                    allGroupsMatch = false;
+                    break;
+                }
+            }
+
+            if (allGroupsMatch) {
                 foundGroup = true;
-                let repeatCount = 2;
+                let repeatCount = minRepeats;
 
+                // finding another repeats of group
                 while (
-                    arraysEqual<TestStepCompressed>(
-                        arr.slice(i, i + groupLen),
-                        arr.slice(i + groupLen * (repeatCount - 1), i + groupLen * repeatCount),
+                    i + groupLen * repeatCount <= arr.length &&
+                    arraysEqual(
+                        group,
+                        arr.slice(i + groupLen * repeatCount, i + groupLen * (repeatCount + 1)),
                         testItemsTheSame
                     )
                 ) {
                     repeatCount++;
                 }
 
-                const groupsTotalLen = groupLen * (repeatCount - 1);
+                const groupsTotalLen = groupLen * repeatCount;
 
                 if (groupLen === 1) {
                     result.push({
@@ -140,10 +167,10 @@ const collapseRepeatingGroups = (arr: TestStepCompressed[]): TestStepCompressed[
                         [TestStepKey.IsGroup]: true,
                         [TestStepKey.Children]: group.map((item, index) => ({
                             ...item,
-                            [TestStepKey.Repeat]: -1,
+                            [TestStepKey.Repeat]: -1, // -1 need to detect in ui that this is child of group for show ~ in duration
                             [TestStepKey.Duration]: getItemAverageTime(arr, i, repeatCount, index, groupLen)
                         })),
-                        [TestStepKey.Repeat]: repeatCount - 1
+                        [TestStepKey.Repeat]: repeatCount
                     });
                 }
 
@@ -178,7 +205,8 @@ const getHistory = (history?: TestplaneTestResult['history']): TestStepCompresse
             }
 
             return result;
-        }) ?? []
+        }) ?? [],
+        MIN_REPEATS
     )
 );
 
