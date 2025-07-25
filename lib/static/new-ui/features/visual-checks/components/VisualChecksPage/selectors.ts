@@ -51,19 +51,24 @@ export const getVisualTreeViewData = createSelector(
 
         const tree = Object
             .values(namedImages)
-            .filter(({browserId, browserName}) => {
+            .filter(({browserId, browserName, imageIds}) => {
+                // filter by name using search text
                 if (browsersLen && !browsers.has(browserName)) {
                     return false;
                 }
 
-                return matchTestName(
-                    browserId.slice(0, -browserName.length - 1),
-                    browserName,
-                    nameFilter,
-                    {strictMatchFilter: false, useMatchCaseFilter, useRegexFilter, isNewUi: true}
-                ).isMatch;
-            })
-            .filter(({imageIds}) => {
+                if (
+                    !matchTestName(
+                        browserId.slice(0, -browserName.length - 1),
+                        browserName,
+                        nameFilter,
+                        {strictMatchFilter: false, useMatchCaseFilter, useRegexFilter, isNewUi: true}
+                    ).isMatch
+                ) {
+                    return false;
+                }
+
+                // filter by real status from last attempt + calculate stats
                 const status = images[imageIds[imageIds.length - 1]].status;
                 stats[ViewMode.ALL]++;
 
