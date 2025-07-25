@@ -63,7 +63,8 @@ export const getVisualTreeViewData = createSelector(
                     {strictMatchFilter: false, useMatchCaseFilter, useRegexFilter, isNewUi: true}
                 ).isMatch;
             })
-            .filter(({status}) => {
+            .filter(({imageIds}) => {
+                const status = images[imageIds[imageIds.length - 1]].status;
                 stats[ViewMode.ALL]++;
 
                 switch (status) {
@@ -79,27 +80,25 @@ export const getVisualTreeViewData = createSelector(
                         return true;
                 }
             })
-            .map((item) => {
-                return {
-                    data: {
-                        id: item.id,
-                        entityId: item.id,
-                        entityType: EntityType.Browser,
-                        errorStack: undefined,
-                        errorTitle: undefined,
-                        parentData: undefined,
-                        isActive: true,
-                        skipReason: 'Unknown reason',
-                        status: item.status,
-                        tags: [],
-                        title: [...item.suitePath, item.browserName],
-                        images: [
-                            images[item.imageIds[item.imageIds.length - 1]] as ImageEntity
-                        ]
-                    },
-                    parentNode
-                };
-            });
+            .map((item) => ({
+                data: {
+                    id: item.id,
+                    entityId: item.id,
+                    entityType: EntityType.Browser,
+                    errorStack: undefined,
+                    errorTitle: undefined,
+                    parentData: undefined,
+                    isActive: true,
+                    skipReason: 'Unknown reason',
+                    status: item.status === TestStatus.RUNNING ? item.status : images[item.imageIds[item.imageIds.length - 1]].status,
+                    tags: [],
+                    title: [...item.suitePath, item.browserName],
+                    images: [
+                        images[item.imageIds[item.imageIds.length - 1]] as ImageEntity
+                    ]
+                },
+                parentNode
+            }));
 
         return {
             allTreeNodeIds: tree.map(({data}) => data.id),
