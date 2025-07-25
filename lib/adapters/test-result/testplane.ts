@@ -94,7 +94,7 @@ const getItemAverageTime = (
         total += items[start + (i * groupLen) + index][TestStepKey.Duration];
     }
 
-    return total / (repeat - 1);
+    return parseFloat((total / (repeat - 1)).toFixed(2));
 };
 
 const MIN_REPEATS = 3; // Min count of repeats elements of group elements for squash
