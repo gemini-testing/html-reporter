@@ -59,7 +59,8 @@ export const getNamedImages = createSelector(
             const browser = browsers[group.browserId];
             const lastResultId = browser.resultIds[browser.resultIds.length - 1];
             const lastResult = results[lastResultId];
-            if (!lastResult.imageIds.find(imageId => images[imageId].stateName === group.stateName)) {
+
+            if (lastResult.status !== TestStatus.RUNNING && !lastResult.imageIds.find(imageId => images[imageId].stateName === group.stateName)) {
                 continue;
             }
 
@@ -72,7 +73,7 @@ export const getNamedImages = createSelector(
                 browserName: group.browserName,
                 stateName: group.stateName,
                 imageIds: group.images.map(img => img.id),
-                status: group.images[group.images.length - 1].status
+                status: lastResult.status
             };
         }
 

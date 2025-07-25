@@ -1,4 +1,3 @@
-import {Spin} from '@gravity-ui/uikit';
 import classNames from 'classnames';
 import React, {ReactNode} from 'react';
 import {useSelector} from 'react-redux';
@@ -10,6 +9,7 @@ import {getCurrentResult, isTimeTravelPlayerAvailable} from '@/static/new-ui/fea
 import {getTestSteps} from '@/static/new-ui/features/suites/components/TestSteps/selectors';
 import {SnapshotsPlayer} from '@/static/new-ui/features/suites/components/SnapshotsPlayer';
 import {ErrorHandler} from '@/static/new-ui/features/error-handling/components/ErrorHandling';
+import {RunTestLoading} from '@/static/new-ui/components/RunTestLoading';
 
 import styles from './index.module.css';
 
@@ -26,11 +26,17 @@ export function TestInfo(): ReactNode {
     return <>
         <CollapsibleSection id={'actions'} title={'Actions'}>
             <div className={styles.stepsContainer}>
-                {steps.length > 0 ?
+                {steps.length > 0 ? (
                     <ErrorHandler.Boundary watchFor={[currentResult]} fallback={<ErrorHandler.FallbackDataCorruption />}>
                         <TestSteps className={styles.stepsListContainer}/>
-                    </ErrorHandler.Boundary> :
-                    <div className={styles.emptyStepsContainer}>{isRunning ? <><Spin size={'xs'} style={{marginRight: '4px'}} />Test is running</> : 'No steps to show'}</div>
+                    </ErrorHandler.Boundary>
+                ) : (
+                    isRunning ? (
+                        <RunTestLoading />
+                    ) : (
+                        <div className={styles.emptyStepsContainer}>No steps to show</div>
+                    )
+                )
                 }
                 {isPlayerAvailable && <div className={classNames(styles.sticky, !shouldShowPlayer && styles.hidden)}>
                     <SnapshotsPlayer/>

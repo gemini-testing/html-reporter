@@ -51,19 +51,25 @@ export const getVisualTreeViewData = createSelector(
 
         const tree = Object
             .values(namedImages)
-            .filter(({browserId, browserName}) => {
+            .filter(({browserId, browserName, imageIds}) => {
+                // filter by name using search text
                 if (browsersLen && !browsers.has(browserName)) {
                     return false;
                 }
 
-                return matchTestName(
-                    browserId.slice(0, -browserName.length - 1),
-                    browserName,
-                    nameFilter,
-                    {strictMatchFilter: false, useMatchCaseFilter, useRegexFilter, isNewUi: true}
-                ).isMatch;
-            })
-            .filter(({status}) => {
+                if (
+                    !matchTestName(
+                        browserId.slice(0, -browserName.length - 1),
+                        browserName,
+                        nameFilter,
+                        {strictMatchFilter: false, useMatchCaseFilter, useRegexFilter, isNewUi: true}
+                    ).isMatch
+                ) {
+                    return false;
+                }
+
+                // filter by real status from last attempt + calculate stats
+                const status = images[imageIds[imageIds.length - 1]].status;
                 stats[ViewMode.ALL]++;
 
                 switch (status) {
@@ -79,27 +85,25 @@ export const getVisualTreeViewData = createSelector(
                         return true;
                 }
             })
-            .map((item) => {
-                return {
-                    data: {
-                        id: item.id,
-                        entityId: item.id,
-                        entityType: EntityType.Browser,
-                        errorStack: undefined,
-                        errorTitle: undefined,
-                        parentData: undefined,
-                        isActive: true,
-                        skipReason: 'Unknown reason',
-                        status: item.status,
-                        tags: [],
-                        title: [...item.suitePath, item.browserName],
-                        images: [
-                            images[item.imageIds[item.imageIds.length - 1]] as ImageEntity
-                        ]
-                    },
-                    parentNode
-                };
-            });
+            .map((item) => ({
+                data: {
+                    id: item.id,
+                    entityId: item.id,
+                    entityType: EntityType.Browser,
+                    errorStack: undefined,
+                    errorTitle: undefined,
+                    parentData: undefined,
+                    isActive: true,
+                    skipReason: 'Unknown reason',
+                    status: item.status === TestStatus.RUNNING ? item.status : images[item.imageIds[item.imageIds.length - 1]].status,
+                    tags: [],
+                    title: [...item.suitePath, item.browserName],
+                    images: [
+                        images[item.imageIds[item.imageIds.length - 1]] as ImageEntity
+                    ]
+                },
+                parentNode
+            }));
 
         return {
             allTreeNodeIds: tree.map(({data}) => data.id),
