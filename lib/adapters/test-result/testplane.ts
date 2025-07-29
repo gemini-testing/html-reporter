@@ -155,7 +155,7 @@ const collapseRepeatingGroups = (
                     result.push({
                         ...group[0],
                         [TestStepKey.Duration]: getTotalTime(arr, i, groupsTotalLen),
-                        [TestStepKey.Repeat]: repeatCount - 1
+                        [TestStepKey.Repeat]: groupsTotalLen
                     });
                 } else {
                     result.push({
