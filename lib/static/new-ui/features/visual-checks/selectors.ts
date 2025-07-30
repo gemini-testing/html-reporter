@@ -60,7 +60,13 @@ export const getNamedImages = createSelector(
             const lastResultId = browser.resultIds[browser.resultIds.length - 1];
             const lastResult = results[lastResultId];
 
-            if (lastResult.status !== TestStatus.RUNNING && !lastResult.imageIds.find(imageId => images[imageId].stateName === group.stateName)) {
+            // if last result 'ok' (not error and running) and doesn't have images we skip it
+            // but if last result error (or running) we show it, because there are can be image
+            if (
+                lastResult.status !== TestStatus.RUNNING &&
+                lastResult.status !== TestStatus.ERROR &&
+                !lastResult.imageIds.find(imageId => images[imageId].stateName === group.stateName)
+            ) {
                 continue;
             }
 
