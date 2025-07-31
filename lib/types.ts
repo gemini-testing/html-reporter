@@ -298,7 +298,8 @@ export enum TestStepKey {
     IsFailed = 'f',
     Children = 'c',
     IsGroup = 'g',
-    TimeStart = 'ts'
+    TimeStart = 'ts',
+    Repeat = 'r'
 }
 
 export interface TestStepCompressed {
@@ -309,6 +310,7 @@ export interface TestStepCompressed {
     [TestStepKey.IsFailed]: boolean;
     [TestStepKey.IsGroup]: boolean;
     [TestStepKey.Children]?: TestStepCompressed[];
+    [TestStepKey.Repeat]?: number;
 }
 
 export enum AttachmentType {
