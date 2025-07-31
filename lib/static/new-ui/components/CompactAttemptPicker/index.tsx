@@ -1,6 +1,6 @@
 import {ChevronLeft, ChevronRight} from '@gravity-ui/icons';
 import {Button, Icon, Select, Tooltip} from '@gravity-ui/uikit';
-import React, {ReactNode, Ref} from 'react';
+import React, {ReactNode, Ref, useMemo} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import styles from './index.module.css';
@@ -24,6 +24,27 @@ export function CompactAttemptPicker(): ReactNode {
             dispatch(changeTestRetry({browserId: currentBrowserId, retryIndex: Number(value)}));
         }
     };
+
+    const isDisabled = (next: boolean): boolean => {
+        if (currentBrowser && currentAttemptIndex !== null) {
+            let i = next ? currentAttemptIndex + 1 : currentAttemptIndex - 1;
+
+            while (next ? (i < currentBrowser?.resultIds.length) : (i >= 0)) {
+                const imageId = `${currentBrowser?.resultIds[i]} ${currentImage?.stateName}`;
+
+                if (images[imageId]) {
+                    return false;
+                }
+
+                i += next ? 1 : -1;
+            }
+        }
+
+        return true;
+    };
+
+    const nextDisabled = useMemo(() => isDisabled(true), [currentAttemptIndex, currentBrowser]);
+    const prevDisabled = useMemo(() => isDisabled(false), [currentAttemptIndex, currentBrowser]);
 
     const onNextPrev = (next: boolean): void => {
         if (currentBrowser && currentAttemptIndex !== null) {
@@ -63,7 +84,7 @@ export function CompactAttemptPicker(): ReactNode {
                     aria-label="Prev screenshot"
                     view="outlined"
                     onClick={(): void => onNextPrev(false)}
-                    disabled={currentAttemptIndex === 0}
+                    disabled={prevDisabled}
                 >
                     <Icon data={ChevronLeft}/>
                 </Button>
@@ -71,7 +92,7 @@ export function CompactAttemptPicker(): ReactNode {
             <Tooltip
                 content="Show all attempts"
                 openDelay={0}
-                placement={'top'}
+                placement="top"
             >
                 <Select
                     renderControl={({triggerProps: {onClick, onKeyDown}, ref}): React.JSX.Element => (
@@ -108,7 +129,7 @@ export function CompactAttemptPicker(): ReactNode {
                 <Button
                     view="outlined"
                     onClick={(): void => onNextPrev(true)}
-                    disabled={totalAttemptsCount === null || currentAttemptIndex === totalAttemptsCount - 1}
+                    disabled={nextDisabled}
                 >
                     <Icon data={ChevronRight}/>
                 </Button>
