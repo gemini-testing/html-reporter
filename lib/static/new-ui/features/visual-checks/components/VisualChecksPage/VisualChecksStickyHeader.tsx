@@ -5,9 +5,9 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import {
     getAttempt,
+    getCurrentBrowser,
     getCurrentImage,
     getImagesByNamedImageIds,
-    getNamedImages,
     NamedImageEntity
 } from '@/static/new-ui/features/visual-checks/selectors';
 import {SuiteTitle} from '@/static/new-ui/components/SuiteTitle';
@@ -108,18 +108,7 @@ export function VisualChecksStickyHeader({currentNamedImage, visibleNamedImageId
         }
     };
 
-    const currentBrowser = useSelector(state => {
-        const currentNamedImageId = state.app.visualChecksPage.currentNamedImageId;
-        const namedImages = getNamedImages(state);
-
-        if (currentNamedImageId) {
-            const namedImage = namedImages[currentNamedImageId];
-
-            return state.tree.browsers.byId[namedImage.browserId];
-        }
-
-        return null;
-    });
+    const currentBrowser = useSelector(getCurrentBrowser);
 
     const currentResultId = currentImage?.parentId;
     const isLastResult = Boolean(currentResultId && currentBrowser && currentResultId === currentBrowser.resultIds[currentBrowser.resultIds.length - 1]);
