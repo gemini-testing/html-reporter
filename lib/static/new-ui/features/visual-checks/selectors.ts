@@ -2,7 +2,7 @@ import {createSelector} from 'reselect';
 
 import {getBrowsers, getImages, getResults} from '@/static/new-ui/store/selectors';
 import {TestStatus} from '@/constants';
-import {ImageEntity, State} from '@/static/new-ui/types/store';
+import {BrowserEntity, ImageEntity, State} from '@/static/new-ui/types/store';
 
 /** @note NamedImageEntity describes visual assertion, not bound to specific attempt */
 export interface NamedImageEntity {
@@ -142,6 +142,38 @@ export const getAttempt = (state: State): number | null => {
 
     if (namedImage) {
         return state.tree.browsers.stateById[namedImage?.browserId].retryIndex;
+    }
+
+    return null;
+};
+
+export const getLastAttempt = (state: State): number => {
+    const currentNamedImage = getCurrentNamedImage(state);
+    const images = getImages(state);
+    const currentBrowserId = currentNamedImage?.browserId;
+    const currentBrowser = currentBrowserId && state.tree.browsers.byId[currentBrowserId];
+
+    if (currentBrowser) {
+        for (let i = currentBrowser?.resultIds.length - 1; i >= 0; i--) {
+            const imageId = `${currentBrowser?.resultIds[i]} ${currentNamedImage?.stateName}`;
+
+            if (images[imageId]) {
+                return i;
+            }
+        }
+    }
+
+    return 0;
+};
+
+export const getCurrentBrowser = (state: State): BrowserEntity | null => {
+    const currentNamedImageId = state.app.visualChecksPage.currentNamedImageId;
+    const namedImages = getNamedImages(state);
+
+    if (currentNamedImageId) {
+        const namedImage = namedImages[currentNamedImageId];
+
+        return state.tree.browsers.byId[namedImage.browserId];
     }
 
     return null;
