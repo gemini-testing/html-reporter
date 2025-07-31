@@ -4,7 +4,6 @@ import stripAnsi from 'strip-ansi';
 
 import {TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
 import {ImageWithMagnifier} from '@/static/new-ui/components/ImageWithMagnifier';
-import {ImageEntityFail} from '@/static/new-ui/types/store';
 import styles from './index.module.css';
 import {getAssertViewStatusMessage} from '@/static/new-ui/utils/assert-view-status';
 import {makeLinksClickable} from '@/static/new-ui/utils';
@@ -30,28 +29,41 @@ export function TreeViewItemSubtitle(props: TreeViewItemSubtitleProps): ReactNod
         return (
             <div>
                 {props.item.images.map((imageEntity) => {
-                    const imageItem: ImageEntityFail = imageEntity as ImageEntityFail;
+                    const images = [];
 
-                    const images = [
-                        {
+                    if (
+                        imageEntity.status === TestStatus.FAIL ||
+                        imageEntity.status === TestStatus.UPDATED ||
+                        imageEntity.status === TestStatus.SUCCESS
+                    ) {
+                        images.push({
                             title: 'Expected',
-                            image: imageItem.expectedImg
-                        },
-                        {
+                            image: imageEntity.expectedImg
+                        });
+                    }
+
+                    if (
+                        imageEntity.status !== TestStatus.UPDATED &&
+                        imageEntity.status !== TestStatus.SUCCESS
+                    ) {
+                        images.push({
                             title: 'Actual',
-                            image: imageItem.actualImg
-                        },
-                        {
+                            image: imageEntity.actualImg
+                        });
+                    }
+
+                    if (imageEntity.status === TestStatus.FAIL) {
+                        images.push({
                             title: 'Diff',
-                            image: imageItem.diffImg
-                        }
-                    ].filter(({image}) => Boolean(image));
+                            image: imageEntity.diffImg
+                        });
+                    }
 
                     return (
-                        <div key={imageItem.id}>
-                            <span className={styles.imageStatus}>{imageItem.stateName} ⋅ {getAssertViewStatusMessage(imageEntity)}</span>
+                        <div key={imageEntity.id}>
+                            <span className={styles.imageStatus}>{imageEntity.stateName} ⋅ {getAssertViewStatusMessage(imageEntity)}</span>
                             <div className={styles.imageDiff}>
-                                {images.map((item) => (
+                                {images.filter(({image}) => Boolean(image)).map((item) => (
                                     <div
                                         className={
                                             classNames(styles.imageDiffItem, images.length === 3 && item.title !== 'Diff' && styles.canHide)
