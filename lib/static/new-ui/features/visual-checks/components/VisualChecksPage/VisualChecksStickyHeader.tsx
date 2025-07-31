@@ -5,6 +5,7 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import {
     getAttempt,
+    getCurrentBrowser,
     getCurrentImage,
     getImagesByNamedImageIds,
     NamedImageEntity
@@ -107,15 +108,7 @@ export function VisualChecksStickyHeader({currentNamedImage, visibleNamedImageId
         }
     };
 
-    const currentBrowser = useSelector(state => {
-        const currentBrowserId = state.tree.results.byId[currentImage?.parentId ?? '']?.parentId;
-
-        if (currentBrowserId && state.tree.browsers.byId[currentBrowserId]) {
-            return state.tree.browsers.byId[currentBrowserId];
-        }
-
-        return null;
-    });
+    const currentBrowser = useSelector(getCurrentBrowser);
 
     const currentResultId = currentImage?.parentId;
     const isLastResult = Boolean(currentResultId && currentBrowser && currentResultId === currentBrowser.resultIds[currentBrowser.resultIds.length - 1]);

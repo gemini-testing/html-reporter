@@ -1,10 +1,15 @@
 import classNames from 'classnames';
-import React, {ReactNode, useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {ReactNode, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {SplitViewLayout} from '@/static/new-ui/components/SplitViewLayout';
 import {UiCard} from '@/static/new-ui/components/Card/UiCard';
-import {getAttempt, getCurrentImage, getCurrentNamedImage} from '@/static/new-ui/features/visual-checks/selectors';
+import {
+    getAttempt,
+    getLastAttempt,
+    getCurrentNamedImage,
+    getCurrentBrowser, getCurrentImage
+} from '@/static/new-ui/features/visual-checks/selectors';
 import {AssertViewResult} from '@/static/new-ui/components/AssertViewResult';
 import styles from './index.module.css';
 import {
@@ -32,8 +37,12 @@ export function VisualChecksPage(): ReactNode {
     const page = usePage();
 
     const currentNamedImage = useSelector(getCurrentNamedImage);
-    const currentImage = useSelector(getCurrentImage);
     const attempt = useSelector(getAttempt);
+    const lastAttempt = useSelector(getLastAttempt);
+    const currentImage = useSelector(getCurrentImage);
+    const currentBrowser = useSelector(getCurrentBrowser);
+    const [imageChanged, setImageChanged] = useState<boolean>(false);
+
     const navigate = useNavigate();
     const params = useParams();
     const inited = useRef(false);
@@ -51,10 +60,20 @@ export function VisualChecksPage(): ReactNode {
     const isInitialized = useSelector(state => state.app.isInitialized);
     const onImageChange = useCallback((imageId: string) => {
         dispatch(visualChecksPageSetCurrentNamedImage(imageId));
-    }, []);
+        setImageChanged(true);
+    }, [currentBrowser, attempt]);
+
     const onTreeItemClick = useCallback((item: TreeViewItemData) => {
         dispatch(visualChecksPageSetCurrentNamedImage(item.id));
-    }, []);
+        setImageChanged(true);
+    }, [currentBrowser, attempt]);
+
+    useEffect(() => {
+        if (imageChanged && currentBrowser) {
+            dispatch(changeTestRetry({browserId: currentBrowser?.id, retryIndex: lastAttempt}));
+            setImageChanged(false);
+        }
+    }, [imageChanged, currentBrowser]);
 
     useEffect(() => {
         if (currentTreeNodeId && attempt !== null) {
