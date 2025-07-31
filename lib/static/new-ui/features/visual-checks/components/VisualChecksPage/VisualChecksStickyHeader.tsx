@@ -7,6 +7,7 @@ import {
     getAttempt,
     getCurrentImage,
     getImagesByNamedImageIds,
+    getNamedImages,
     NamedImageEntity
 } from '@/static/new-ui/features/visual-checks/selectors';
 import {SuiteTitle} from '@/static/new-ui/components/SuiteTitle';
@@ -108,10 +109,13 @@ export function VisualChecksStickyHeader({currentNamedImage, visibleNamedImageId
     };
 
     const currentBrowser = useSelector(state => {
-        const currentBrowserId = state.tree.results.byId[currentImage?.parentId ?? '']?.parentId;
+        const currentNamedImageId = state.app.visualChecksPage.currentNamedImageId;
+        const namedImages = getNamedImages(state);
 
-        if (currentBrowserId && state.tree.browsers.byId[currentBrowserId]) {
-            return state.tree.browsers.byId[currentBrowserId];
+        if (currentNamedImageId) {
+            const namedImage = namedImages[currentNamedImageId];
+
+            return state.tree.browsers.byId[namedImage.browserId];
         }
 
         return null;
