@@ -2,18 +2,20 @@ import {TestplaneTestResultAdapter} from '../test-result/testplane';
 import {DEFAULT_TITLE_DELIMITER, UNKNOWN_ATTEMPT} from '../../constants';
 
 import type {TestAdapter, CreateTestResultOpts} from './';
-import type {Test, Suite} from 'testplane';
+import type {Test, Suite, Config} from 'testplane';
 import type {ReporterTestResult} from '../test-result';
 
 export class TestplaneTestAdapter implements TestAdapter {
     private _test: Test;
+    private _saveHistoryMode?: Config['saveHistoryMode'];
 
-    static create<T extends TestplaneTestAdapter>(this: new (test: Test) => T, test: Test): T {
-        return new this(test);
+    static create<T extends TestplaneTestAdapter>(this: new (test: Test, saveHistoryMode?: Config['saveHistoryMode']) => T, test: Test, saveHistoryMode?: Config['saveHistoryMode']): T {
+        return new this(test, saveHistoryMode);
     }
 
-    constructor(test: Test) {
+    constructor(test: Test, saveHistoryMode?: Config['saveHistoryMode']) {
         this._test = test;
+        this._saveHistoryMode = saveHistoryMode;
     }
 
     get original(): Test {
@@ -68,7 +70,7 @@ export class TestplaneTestAdapter implements TestAdapter {
             }
         });
 
-        return TestplaneTestResultAdapter.create(test, {attempt, status, duration});
+        return TestplaneTestResultAdapter.create(test, {attempt, status, duration, saveHistoryMode: this._saveHistoryMode});
     }
 }
 

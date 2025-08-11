@@ -10,7 +10,7 @@ import {TestplaneToolAdapter, TestplaneWithHtmlReporter} from './lib/adapters/to
 import {getStatus} from './lib/adapters/test-result/testplane';
 import {commands as cliCommands} from './lib/cli';
 import {parseConfig} from './lib/config';
-import {ToolName} from './lib/constants';
+import {ToolName, UNKNOWN_ATTEMPT} from './lib/constants';
 import {StaticReportBuilder} from './lib/report-builder/static';
 import {formatTestResult, logPathToHtmlReport, logError, getExpectedCacheKey} from './lib/server-utils';
 import {SqliteClient} from './lib/sqlite-client';
@@ -126,7 +126,12 @@ async function handleTestResults(testplane: TestplaneWithHtmlReporter, reportBui
 
             testplane.on(eventName as AnyTestplaneTestEvent, (testResult: TestplaneTestResult) => {
                 promises.push(queue.add(async () => {
-                    const formattedResult = formatTestResult(testResult, getStatus(eventName, testplane.events, testResult));
+                    const formattedResult = formatTestResult(
+                        testResult,
+                        getStatus(eventName, testplane.events, testResult),
+                        UNKNOWN_ATTEMPT,
+                        testplane.config.saveHistoryMode
+                    );
 
                     const attachments: Attachment[] = [];
                     const attempt = reportBuilder.registerAttempt({fullName: formattedResult.fullName, browserId: formattedResult.browserId}, formattedResult.status);

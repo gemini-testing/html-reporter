@@ -5,7 +5,7 @@ import url from 'url';
 import chalk from 'chalk';
 import {Router} from 'express';
 import fs from 'fs-extra';
-import type {TimeTravelMode as TimeTravelModeType, Test as TestplaneTest} from 'testplane';
+import type {TimeTravelMode as TimeTravelModeType, Test as TestplaneTest, Config} from 'testplane';
 import _ from 'lodash';
 import tmp from 'tmp';
 
@@ -304,9 +304,10 @@ export function mapPlugins<T>(plugins: ReporterConfig['plugins'], callback: (nam
 export const formatTestResult = (
     rawResult: TestplaneTest | TestplaneTestResult,
     status: TestStatus,
-    attempt: number = UNKNOWN_ATTEMPT
+    attempt: number = UNKNOWN_ATTEMPT,
+    saveHistoryMode: Config['saveHistoryMode']
 ): ReporterTestResult => {
-    return new TestplaneTestResultAdapter(rawResult, {attempt, status, duration: (rawResult as TestplaneTestResult).duration});
+    return new TestplaneTestResultAdapter(rawResult, {attempt, status, duration: (rawResult as TestplaneTestResult).duration, saveHistoryMode});
 };
 
 export const saveErrorDetails = async (testResult: ReporterTestResult, reportPath: string): Promise<void> => {

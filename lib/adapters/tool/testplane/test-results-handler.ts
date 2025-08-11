@@ -5,7 +5,7 @@ import {ClientEvents} from '../../../gui/constants';
 import {getSuitePath} from '../../../plugin-utils';
 import {createWorkers, CreateWorkersRunner} from '../../../workers/create-workers';
 import {logError, formatTestResult} from '../../../server-utils';
-import {TestStatus} from '../../../constants';
+import {TestStatus, UNKNOWN_ATTEMPT} from '../../../constants';
 import {GuiReportBuilder} from '../../../report-builder/gui';
 import {EventSource} from '../../../gui/event-source';
 import {Attachment, TestplaneTestResult} from '../../../types';
@@ -44,7 +44,12 @@ export const handleTestResults = (testplane: TestplaneWithHtmlReporter, reportBu
         testplane.on(eventName as AnyTestplaneTestEvent, (data: TestplaneTest | TestplaneTestResult) => {
             queue.add(async () => {
                 const status = getStatus(eventName, testplane.events, data as TestplaneTestResult);
-                const formattedResultWithoutAttempt = formatTestResult(data, status);
+                const formattedResultWithoutAttempt = formatTestResult(
+                    data,
+                    status,
+                    UNKNOWN_ATTEMPT,
+                    testplane.config.saveHistoryMode
+                );
 
                 const attachments: Attachment[] = [];
                 if (eventName !== testplane.events.TEST_BEGIN) {
