@@ -75,9 +75,9 @@ describe('TestplaneTestResultAdapter', () => {
         TestplaneTestResultAdapter = proxyquire('lib/adapters/test-result/testplane', {
             tmp,
             'fs-extra': fs,
-            '../../plugin-utils': {getSuitePath},
-            '../server-utils': utils,
-            './utils': testAdapterUtils
+            '../../../plugin-utils': {getSuitePath},
+            '../../server-utils': utils,
+            '../utils': testAdapterUtils
         }).TestplaneTestResultAdapter;
         sandbox.stub(utils, 'getCurrentPath').returns('');
         sandbox.stub(utils, 'getDiffPath').returns('');
