@@ -14,7 +14,7 @@ import * as originalTestAdapterUtils from 'lib/adapters/test-result/utils';
 
 import type Testplane from 'testplane';
 import type {ReporterTestResult} from 'lib/adapters/test-result';
-import {mkTestStepCompressed} from '../../../utils';
+import {mkTestStepCompressed} from '../../../../utils';
 
 describe('getStatus', () => {
     it('should be "error" if test has both: runtime errors and assertview fails', () => {
