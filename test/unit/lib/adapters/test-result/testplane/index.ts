@@ -14,7 +14,7 @@ import * as originalTestAdapterUtils from 'lib/adapters/test-result/utils';
 
 import type Testplane from 'testplane';
 import type {ReporterTestResult} from 'lib/adapters/test-result';
-import {mkTestStepCompressed} from '../../../utils';
+import {mkTestStepCompressed} from '../../../../utils';
 
 describe('getStatus', () => {
     it('should be "error" if test has both: runtime errors and assertview fails', () => {
@@ -75,9 +75,9 @@ describe('TestplaneTestResultAdapter', () => {
         TestplaneTestResultAdapter = proxyquire('lib/adapters/test-result/testplane', {
             tmp,
             'fs-extra': fs,
-            '../../plugin-utils': {getSuitePath},
-            '../server-utils': utils,
-            './utils': testAdapterUtils
+            '../../../plugin-utils': {getSuitePath},
+            '../../server-utils': utils,
+            '../utils': testAdapterUtils
         }).TestplaneTestResultAdapter;
         sandbox.stub(utils, 'getCurrentPath').returns('');
         sandbox.stub(utils, 'getDiffPath').returns('');

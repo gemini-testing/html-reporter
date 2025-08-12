@@ -1,21 +1,23 @@
 import {TestplaneTestAdapter} from '../test/testplane';
 import type {TestCollectionAdapter} from './';
-import type {TestCollection} from 'testplane';
+import type {Config, TestCollection} from 'testplane';
 
 export class TestplaneTestCollectionAdapter implements TestCollectionAdapter {
     private _testCollection: TestCollection;
     private _testAdapters: TestplaneTestAdapter[];
 
     static create<T>(
-        this: new (testCollection: TestCollection) => T,
-        testCollection: TestCollection
+        this: new (testCollection: TestCollection, saveHistoryMode?: Config['saveHistoryMode']) => T,
+        testCollection: TestCollection,
+        saveHistoryMode?: Config['saveHistoryMode']
     ): T {
-        return new this(testCollection);
+        return new this(testCollection, saveHistoryMode);
     }
 
-    constructor(testCollection: TestCollection) {
+    constructor(testCollection: TestCollection, saveHistoryMode?: Config['saveHistoryMode']) {
         this._testCollection = testCollection;
-        this._testAdapters = this._testCollection.mapTests(test => TestplaneTestAdapter.create(test));
+
+        this._testAdapters = this._testCollection.mapTests(test => TestplaneTestAdapter.create(test, saveHistoryMode));
     }
 
     get original(): TestCollection {

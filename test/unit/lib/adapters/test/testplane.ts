@@ -97,12 +97,12 @@ describe('lib/adapters/test/testplane', () => {
             const test = mkState({clone: () => clonedTest}) as unknown as Test;
             const status = TestStatus.SUCCESS;
             const attempt = 0;
-            sandbox.stub(TestplaneTestResultAdapter, 'create').withArgs(clonedTest, {status, attempt, duration: 0}).returns(testResultAdapter);
+            sandbox.stub(TestplaneTestResultAdapter, 'create').withArgs(clonedTest, {status, attempt, duration: 0, saveHistoryMode: undefined}).returns(testResultAdapter);
 
             const formattedTestResult = TestplaneTestAdapter.create(test).createTestResult({status, attempt, duration: 0});
 
             assert.equal(formattedTestResult, testResultAdapter);
-            assert.calledOnceWith(TestplaneTestResultAdapter.create as SinonStub, clonedTest, {status, attempt, duration: 0});
+            assert.calledOnceWith(TestplaneTestResultAdapter.create as SinonStub, clonedTest, {status, attempt, duration: 0, saveHistoryMode: undefined});
         });
     });
 });

@@ -34,6 +34,7 @@ export const getTestSteps = createSelector(
                         status: step[TestStepKey.IsFailed] ? TestStatus.ERROR : TestStatus.SUCCESS,
                         args: step[TestStepKey.Args],
                         isGroup: step[TestStepKey.IsGroup],
+                        repeat: step[TestStepKey.Repeat],
                         hasChildren
                     }
                 };

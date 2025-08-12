@@ -1,21 +1,10 @@
-import path from 'path';
-import _ from 'lodash';
+import {ERROR, FAIL, SUCCESS, TestStatus, UNKNOWN_SESSION_ID, UPDATED} from '../../../constants';
+import {ReporterTestResult} from '../index';
 import type Testplane from 'testplane';
-import type {Test as TestplaneTest} from 'testplane';
-import {ValueOf} from 'type-fest';
-
-import {ERROR, FAIL, SUCCESS, TestStatus, UNKNOWN_SESSION_ID, UPDATED} from '../../constants';
+import type {Test as TestplaneTest, Config} from 'testplane';
 import {
-    getError,
-    hasUnrelatedToScreenshotsErrors,
-    isImageDiffError,
-    isInvalidRefImageError,
-    isNoRefImageError
-} from '../../common-utils';
-import {
+    Attachment,
     ErrorDetails,
-    TestplaneSuite,
-    TestplaneTestResult,
     ImageBase64,
     ImageFile,
     ImageInfoDiff,
@@ -25,11 +14,24 @@ import {
     ImageInfoPageSuccess,
     ImageInfoSuccess,
     ImageInfoUpdated,
-    TestError, TestStepCompressed, TestStepKey, Attachment
-} from '../../types';
-import {ReporterTestResult} from './index';
-import {getSuitePath} from '../../plugin-utils';
-import {extractErrorDetails} from './utils';
+    TestError,
+    TestplaneTestResult,
+    TestStepCompressed
+} from '../../../types';
+import _ from 'lodash';
+import {
+    getError,
+    hasUnrelatedToScreenshotsErrors,
+    isImageDiffError,
+    isInvalidRefImageError,
+    isNoRefImageError
+} from '../../../common-utils';
+import {getSuitePath} from '../../../plugin-utils';
+import {extractErrorDetails} from '../utils';
+import path from 'path';
+import {ValueOf} from 'type-fest';
+
+import {getHistory, wrapSkipComment, getSkipComment} from './history';
 
 export const getStatus = (eventName: ValueOf<Testplane['events']>, events: Testplane['events'], testResult: TestplaneTestResult): TestStatus => {
     if (eventName === events.TEST_PASS) {
@@ -44,37 +46,11 @@ export const getStatus = (eventName: ValueOf<Testplane['events']>, events: Testp
     return TestStatus.IDLE;
 };
 
-const getSkipComment = (suite: TestplaneTestResult | TestplaneSuite): string | null | undefined => {
-    return suite.skipReason || suite.parent && getSkipComment(suite.parent);
-};
-
-const wrapSkipComment = (skipComment: string | null | undefined): string => {
-    return skipComment ?? 'Unknown reason';
-};
-
-const getHistory = (history?: TestplaneTestResult['history']): TestStepCompressed[] => {
-    return history?.map(h => {
-        const result: TestStepCompressed = {
-            [TestStepKey.Name]: h[TestStepKey.Name],
-            [TestStepKey.Args]: h[TestStepKey.Args],
-            [TestStepKey.Duration]: h[TestStepKey.Duration],
-            [TestStepKey.TimeStart]: h[TestStepKey.TimeStart],
-            [TestStepKey.IsFailed]: h[TestStepKey.IsFailed],
-            [TestStepKey.IsGroup]: h[TestStepKey.IsGroup]
-        };
-
-        if (h[TestStepKey.Children] && h[TestStepKey.IsFailed]) {
-            result[TestStepKey.Children] = getHistory(h[TestStepKey.Children]);
-        }
-
-        return result;
-    }) ?? [];
-};
-
 export interface TestplaneTestResultAdapterOptions {
     attempt: number;
     status: TestStatus;
     duration: number;
+    saveHistoryMode?: Config['saveHistoryMode'];
 }
 
 export class TestplaneTestResultAdapter implements ReporterTestResult {
@@ -84,6 +60,7 @@ export class TestplaneTestResultAdapter implements ReporterTestResult {
     private _attempt: number;
     private _status: TestStatus;
     private _duration: number;
+    private _saveHistoryMode?: Config['saveHistoryMode'];
 
     static create(
         this: new (testResult: TestplaneTest | TestplaneTestResult, options: TestplaneTestResultAdapterOptions) => TestplaneTestResultAdapter,
@@ -93,7 +70,7 @@ export class TestplaneTestResultAdapter implements ReporterTestResult {
         return new this(testResult, options);
     }
 
-    constructor(testResult: TestplaneTest | TestplaneTestResult, {attempt, status, duration}: TestplaneTestResultAdapterOptions) {
+    constructor(testResult: TestplaneTest | TestplaneTestResult, {attempt, status, duration, saveHistoryMode}: TestplaneTestResultAdapterOptions) {
         this._testResult = testResult;
         this._errorDetails = null;
         this._timestamp = (this._testResult as TestplaneTestResult).startTime
@@ -107,6 +84,8 @@ export class TestplaneTestResultAdapter implements ReporterTestResult {
 
         this._attempt = attempt;
         this._duration = duration;
+
+        this._saveHistoryMode = saveHistoryMode;
     }
 
     get fullName(): string {
@@ -200,7 +179,7 @@ export class TestplaneTestResultAdapter implements ReporterTestResult {
     }
 
     get history(): TestStepCompressed[] {
-        return getHistory((this._testResult as TestplaneTestResult).history);
+        return getHistory((this._testResult as TestplaneTestResult).history, this._saveHistoryMode);
     }
 
     get error(): undefined | TestError {

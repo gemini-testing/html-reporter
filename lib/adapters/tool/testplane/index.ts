@@ -136,7 +136,7 @@ export class TestplaneToolAdapter implements ToolAdapter {
 
         const testCollection = await this._tool.readTests(paths, {grep, sets, browsers, replMode});
 
-        return TestplaneTestCollectionAdapter.create(testCollection);
+        return TestplaneTestCollectionAdapter.create(testCollection, this._tool.config.saveHistoryMode);
     }
 
     async run(testCollectionAdapter: TestplaneTestCollectionAdapter, tests: TestSpec[] = [], cliTool: CommanderStatic): Promise<boolean> {
