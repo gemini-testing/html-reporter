@@ -9,7 +9,7 @@ export const wrapSkipComment = (skipComment: string | null | undefined): string 
     skipComment ?? 'Unknown reason'
 );
 
-const testItemsTheSame = (a: TestStepCompressed, b: TestStepCompressed): boolean => (
+const testItemsAreTheSame = (a: TestStepCompressed, b: TestStepCompressed): boolean => (
     a &&
     (!a[TestStepKey.Children] || !b[TestStepKey.Children]) &&
     (!a[TestStepKey.IsFailed] || !b[TestStepKey.IsFailed]) &&
@@ -83,7 +83,7 @@ export const collapseRepeatingGroups = (
 
                 const nextGroup = arr.slice(nextGroupStart, nextGroupEnd);
 
-                if (!arraysEqual(group, nextGroup, testItemsTheSame)) {
+                if (!arraysEqual(group, nextGroup, testItemsAreTheSame)) {
                     allGroupsMatch = false;
                     break;
                 }
@@ -99,7 +99,7 @@ export const collapseRepeatingGroups = (
                     arraysEqual(
                         group,
                         arr.slice(i + groupLen * repeatCount, i + groupLen * (repeatCount + 1)),
-                        testItemsTheSame
+                        testItemsAreTheSame
                     )
                 ) {
                     repeatCount++;
