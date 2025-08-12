@@ -114,6 +114,7 @@ export function CompactAttemptPicker(): ReactNode {
                     }}
                     popupClassName={styles.attemptSelectPopup}
                     onUpdate={onUpdate}
+                    value={currentAttemptIndex ? [currentAttemptIndex.toString()] : []}
                 >
                     {currentBrowser.resultIds.map((resultId, index) => (
                         <Select.Option key={index} value={index.toString()} content={`Attempt #${index + 1}`} data={{resultId}}></Select.Option>
