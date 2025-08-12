@@ -1,0 +1,38 @@
+<!doctype html><html><head><title>HTML report</title><meta charset="utf-8"><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css"/><link id="dynamic-favicon" rel="icon" type="image/png" href="icons/favicon.png"/><link rel="preload" href="databaseUrls.json" as="fetch" crossorigin="anonymous"/><link rel="preload" href="sql-wasm.wasm" as="fetch" crossorigin="anonymous"/><link href="https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,100..900;1,100..900&amp;family=Roboto+Mono:ital,wght@0,100..700;1,100..700&amp;display=swap" rel="stylesheet"><script defer="defer" src="data.js"></script><script defer="defer" src="sql-wasm.js"></script><script defer="defer" src="report.min.js"></script><link href="report.min.css" rel="stylesheet"></head><script type="module">let uiMode;
+try {
+    uiMode = JSON.parse(localStorage.getItem('html-reporter:ui-mode'));
+} catch { /* */ }
+
+function performRedirect(mode) {
+    if (mode === 'old' && /\/new-ui(?:\.html)?$/.test(window.location.pathname)) {
+        window.location.pathname = window.location.pathname.replace(/\/new-ui(\.html)?$/, (match, ending) => ending ? '/index.html' : '/');
+    } else if (mode === 'new' && !/\/new-ui(?:\.html)?$/.test(window.location.pathname)) {
+        window.location.pathname = window.location.pathname.replace(/\/(index\.html)?$/, (match, ending) => ending ? '/new-ui.html' : '/new-ui');
+    }
+}
+
+async function getConfigData() {
+    const staticRequest = fetch('data.js')
+        .then(r => r.text())
+        .then(jsCode => {
+            const func = new Function(jsCode + '; return typeof data !== "undefined" ? data : null;');
+            const dataFromStaticFile = func();
+            return dataFromStaticFile?.config?.uiMode;
+        });
+
+    const guiRequest = fetch('/ui-mode')
+        .then(r => r.json())
+        .then(configData => configData.uiMode);
+
+    return Promise.any([staticRequest, guiRequest]);
+}
+
+if (!uiMode) {
+    try {
+        uiMode = await getConfigData();
+    } catch { /* */ }
+}
+
+if (typeof uiMode === 'string') {
+    performRedirect(uiMode);
+}</script><body class="report"><div id="app"></div></body></html>
