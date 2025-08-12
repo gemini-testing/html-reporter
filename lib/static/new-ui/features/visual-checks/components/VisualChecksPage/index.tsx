@@ -61,7 +61,7 @@ export function VisualChecksPage(): ReactNode {
     const onImageChange = useCallback((imageId: string) => {
         dispatch(visualChecksPageSetCurrentNamedImage(imageId));
         setImageChanged(true);
-    }, [currentBrowser, attempt]);
+    }, [currentBrowser]);
 
     const onTreeItemClick = useCallback((item: TreeViewItemData) => {
         dispatch(visualChecksPageSetCurrentNamedImage(item.id));

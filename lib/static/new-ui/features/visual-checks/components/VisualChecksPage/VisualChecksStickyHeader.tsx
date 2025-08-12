@@ -16,8 +16,8 @@ import {CompactAttemptPicker} from '@/static/new-ui/components/CompactAttemptPic
 import {DiffModeId, DiffModes, EditScreensFeature} from '@/constants';
 import {
     setDiffMode,
-    staticAccepterStageScreenshot, staticAccepterUnstageScreenshot,
-    visualChecksPageSetCurrentNamedImage
+    staticAccepterStageScreenshot,
+    staticAccepterUnstageScreenshot
 } from '@/static/modules/actions';
 import {isAcceptable, isScreenRevertable} from '@/static/modules/utils';
 import {AssertViewStatus} from '@/static/new-ui/components/AssertViewStatus';
@@ -59,7 +59,7 @@ const usePreloadImages = (
     }, []);
 };
 
-export function VisualChecksStickyHeader({currentNamedImage, visibleNamedImageIds}: VisualChecksStickyHeaderProps): ReactNode {
+export function VisualChecksStickyHeader({currentNamedImage, visibleNamedImageIds, onImageChange}: VisualChecksStickyHeaderProps): ReactNode {
     const dispatch = useDispatch();
     const analytics = useAnalytics();
     const currentImage = useSelector(getCurrentImage);
@@ -67,8 +67,8 @@ export function VisualChecksStickyHeader({currentNamedImage, visibleNamedImageId
     const navigate = useNavigate();
 
     const currentNamedImageIndex = visibleNamedImageIds.indexOf(currentNamedImage?.id as string);
-    const onPreviousImageHandler = (): void => void dispatch(visualChecksPageSetCurrentNamedImage(visibleNamedImageIds[currentNamedImageIndex - 1]));
-    const onNextImageHandler = (): void => void dispatch(visualChecksPageSetCurrentNamedImage(visibleNamedImageIds[currentNamedImageIndex + 1]));
+    const onPreviousImageHandler = (): void => onImageChange(visibleNamedImageIds[currentNamedImageIndex - 1]);
+    const onNextImageHandler = (): void => onImageChange(visibleNamedImageIds[currentNamedImageIndex + 1]);
 
     usePreloadImages(currentNamedImageIndex, visibleNamedImageIds);
 
