@@ -14,63 +14,33 @@ import {TestStatus} from '@/constants';
 import {isInvalidRefImageError, isNoRefImageError} from '@/common-utils';
 import React, {ReactNode} from 'react';
 
-export const getAssertViewStatusIcon = (image: ImageEntity | null): {
-    icon: ReactNode;
-    className: string;
-} => {
+export const getAssertViewStatusIcon = (image: ImageEntity | null, color = false): ReactNode => {
     if (image === null) {
-        return {
-            icon: <Icon data={SquareExclamation} width={16}/>,
-            className: 'icon-skip'
-        };
+        return <Icon data={SquareExclamation} width={16} className={color ? 'icon-skip' : ''}/>;
     }
 
     if (isNoRefImageError((image as ImageEntityError).error)) {
-        return {
-            icon: <Icon data={FileLetterX} width={16}/>,
-            className: 'icon-fail'
-        };
+        return <Icon data={FileLetterX} width={16} className={color ? 'icon-fail' : ''}/>;
     }
 
     if (isInvalidRefImageError((image as ImageEntityError).error)) {
-        return {
-            icon: <Icon data={FileExclamation} width={16}/>,
-            className: 'icon-fail'
-        };
+        return <Icon data={FileExclamation} width={16} className={color ? 'icon-fail' : ''}/>;
     }
 
     switch (image.status) {
         case TestStatus.SUCCESS:
-            return {
-                icon: <Icon data={CircleCheck} width={16}/>,
-                className: 'icon-success'
-            };
+            return <Icon data={CircleCheck} width={16} className={color ? 'icon-success' : ''}/>;
         case TestStatus.STAGED:
-            return {
-                icon: <Icon data={FilePlus} width={16}/>,
-                className: 'icon-success'
-            };
+            return <Icon data={FilePlus} width={16} className={color ? 'icon-success' : ''}/>;
         case TestStatus.COMMITED:
-            return {
-                icon: <Icon data={FileArrowUp} width={16}/>,
-                className: 'icon-committed'
-            };
+            return <Icon data={FileArrowUp} width={16} className={color ? 'icon-committed' : ''}/>;
         case TestStatus.FAIL:
-            return {
-                icon: <Icon data={ArrowRightArrowLeft} width={16}/>,
-                className: 'icon-fail'
-            };
+            return <Icon data={ArrowRightArrowLeft} width={16} className={color ? 'icon-fail' : ''}/>;
         case TestStatus.UPDATED:
-            return {
-                icon: <Icon data={FileCheck} width={16}/>,
-                className: 'icon-updated'
-            };
+            return <Icon data={FileCheck} width={16} className={color ? 'icon-updated' : ''}/>;
     }
 
-    return {
-        icon: <Icon data={SquareXmark} width={16}/>,
-        className: ''
-    };
+    return <Icon data={SquareXmark} width={16}/>;
 };
 
 export const getAssertViewStatusMessage = (image: ImageEntity | null): string => {

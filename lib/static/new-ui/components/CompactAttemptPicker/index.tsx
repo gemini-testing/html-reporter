@@ -104,11 +104,10 @@ export function CompactAttemptPicker(): ReactNode {
                     )}
                     renderOption={(option): React.JSX.Element => {
                         const imageId = `${option.data.resultId} ${currentImage?.stateName}`;
-                        const {icon, className} = getAssertViewStatusIcon(images[imageId] || null);
 
                         return (
                             <div className={styles.attemptOption}>
-                                <span className={className}>{icon}</span>
+                                {getAssertViewStatusIcon(images[imageId] || null, true)}
                                 <span>{option.content}</span>
                             </div>
                         );
