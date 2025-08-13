@@ -40,6 +40,7 @@ export function SuitesPage(): ReactNode {
     const {visibleTreeNodeIds, tree} = treeData;
     const params = useParams();
     const attempt = useSelector(getAttempt);
+    const currentBrowser = useSelector(state => state.app[Page.suitesPage].currentBrowserId);
 
     const currentTreeNodeId = useSelector(state => state.app[Page.suitesPage].currentTreeNodeId);
     const currentIndex = visibleTreeNodeIds.indexOf(currentTreeNodeId as string);
@@ -69,6 +70,10 @@ export function SuitesPage(): ReactNode {
     }, [currentResult, attempt]);
 
     useEffect(() => {
+        if (currentBrowser === params.suiteId) {
+            return;
+        }
+
         dispatch(setStrictMatchFilter(false));
 
         if (isInitialized && params.suiteId) {
@@ -84,7 +89,7 @@ export function SuitesPage(): ReactNode {
                 dispatch(changeTestRetry({browserId: params.suiteId, retryIndex: Number(params.attempt)}));
             }
         }
-    }, [isInitialized, params]);
+    }, [isInitialized, params, currentBrowser]);
 
     const suitesTreeViewRef = useRef<TreeViewHandle>(null);
 
