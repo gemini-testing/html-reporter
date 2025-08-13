@@ -89,7 +89,7 @@ export function SuitesPage(): ReactNode {
                 dispatch(changeTestRetry({browserId: params.suiteId, retryIndex: Number(params.attempt)}));
             }
         }
-    }, [isInitialized, params, currentBrowser]);
+    }, [isInitialized, params]);
 
     const suitesTreeViewRef = useRef<TreeViewHandle>(null);
 
