@@ -1,19 +1,20 @@
 import {ChevronLeft, ChevronRight} from '@gravity-ui/icons';
-import {Button, Icon, Select} from '@gravity-ui/uikit';
-import React, {ReactNode, Ref} from 'react';
+import {Button, Icon, Select, Tooltip} from '@gravity-ui/uikit';
+import React, {ReactNode, Ref, useMemo} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import styles from './index.module.css';
 import {getCurrentNamedImage} from '@/static/new-ui/features/visual-checks/selectors';
-import {getIconByStatus} from '@/static/new-ui/utils';
 import {changeTestRetry} from '@/static/modules/actions';
+import {getAssertViewStatusIcon} from '@/static/new-ui/utils/assert-view-status';
+import {getImages} from '@/static/new-ui/store/selectors';
 
 export function CompactAttemptPicker(): ReactNode {
     const dispatch = useDispatch();
     const currentImage = useSelector(getCurrentNamedImage);
+    const images = useSelector(getImages);
     const currentBrowserId = currentImage?.browserId;
     const currentBrowser = useSelector(state => currentBrowserId && state.tree.browsers.byId[currentBrowserId]);
-    const resultsById = useSelector(state => state.tree.results.byId);
 
     const totalAttemptsCount = currentBrowser ? currentBrowser.resultIds.length : null;
     const currentAttemptIndex = useSelector(state => currentBrowser ? state.tree.browsers.stateById[currentBrowser.id].retryIndex : null);
@@ -24,15 +25,47 @@ export function CompactAttemptPicker(): ReactNode {
         }
     };
 
-    const onPreviousClick = (): void => {
-        if (currentBrowserId && currentAttemptIndex !== null && currentAttemptIndex > 0) {
-            dispatch(changeTestRetry({browserId: currentBrowserId, retryIndex: currentAttemptIndex - 1}));
+    const isDisabled = (next: boolean): boolean => {
+        if (currentBrowser && currentAttemptIndex !== null) {
+            let i = next ? currentAttemptIndex + 1 : currentAttemptIndex - 1;
+
+            while (next ? (i < currentBrowser?.resultIds.length) : (i >= 0)) {
+                const imageId = `${currentBrowser?.resultIds[i]} ${currentImage?.stateName}`;
+
+                if (images[imageId]) {
+                    return false;
+                }
+
+                i += next ? 1 : -1;
+            }
         }
+
+        return true;
     };
 
-    const onNextClick = (): void => {
-        if (currentBrowserId && currentAttemptIndex !== null && totalAttemptsCount !== null && currentAttemptIndex < totalAttemptsCount - 1) {
-            dispatch(changeTestRetry({browserId: currentBrowserId, retryIndex: currentAttemptIndex + 1}));
+    const nextDisabled = useMemo(() => isDisabled(true), [currentAttemptIndex, currentBrowser]);
+    const prevDisabled = useMemo(() => isDisabled(false), [currentAttemptIndex, currentBrowser]);
+
+    const onNextPrev = (next: boolean): void => {
+        if (currentBrowser && currentAttemptIndex !== null) {
+            let nextIndex = null;
+
+            let i = next ? currentAttemptIndex + 1 : currentAttemptIndex - 1;
+
+            while (next ? (i < currentBrowser?.resultIds.length) : (i >= 0)) {
+                const imageId = `${currentBrowser?.resultIds[i]} ${currentImage?.stateName}`;
+
+                if (images[imageId]) {
+                    nextIndex = i;
+                    break;
+                }
+
+                i += next ? 1 : -1;
+            }
+
+            if (currentBrowserId && nextIndex !== null) {
+                dispatch(changeTestRetry({browserId: currentBrowserId, retryIndex: nextIndex}));
+            }
         }
     };
 
@@ -42,30 +75,65 @@ export function CompactAttemptPicker(): ReactNode {
 
     return (
         <div className={styles.container}>
-            <Button view={'outlined'} onClick={onPreviousClick} disabled={currentAttemptIndex === 0}><Icon data={ChevronLeft}/></Button>
-            <Select
-                renderControl={({triggerProps: {onClick, onKeyDown}, ref}): React.JSX.Element => (
-                    <Button className={styles.attemptSelect} onClick={onClick} onKeyDown={onKeyDown} ref={ref as Ref<HTMLButtonElement>} view={'flat'}>
-                        Attempt <span className={styles.attemptNumber}>
-                            {currentAttemptIndex !== null ? currentAttemptIndex + 1 : '–'}
-                        </span> of <span className={styles.attemptNumber}>{totalAttemptsCount ?? '–'}</span>
-                    </Button>
-                )}
-                renderOption={(option): React.JSX.Element => (
-                    <div className={styles.attemptOption}>
-                        {getIconByStatus(resultsById[option.data.resultId].status)}
-                        <span>{option.content}</span>
-                    </div>
-                )} popupClassName={styles.attemptSelectPopup}
-                onUpdate={onUpdate}
+            <Tooltip
+                content="Prev screenshot"
+                openDelay={0}
+                placement="top"
             >
-                {currentBrowser.resultIds.map((resultId, index) => (
-                    <Select.Option key={index} value={index.toString()} content={`Attempt #${index + 1}`} data={{resultId}}></Select.Option>
-                ))}
-            </Select>
-            <Button view={'outlined'} onClick={onNextClick} disabled={totalAttemptsCount === null || currentAttemptIndex === totalAttemptsCount - 1}>
-                <Icon data={ChevronRight}/>
-            </Button>
+                <Button
+                    aria-label="Prev screenshot"
+                    view="outlined"
+                    onClick={(): void => onNextPrev(false)}
+                    disabled={prevDisabled}
+                >
+                    <Icon data={ChevronLeft}/>
+                </Button>
+            </Tooltip>
+            <Tooltip
+                content="Show all attempts"
+                openDelay={0}
+                placement="top"
+            >
+                <Select
+                    renderControl={({triggerProps: {onClick, onKeyDown}, ref}): React.JSX.Element => (
+                        <Button className={styles.attemptSelect} onClick={onClick} onKeyDown={onKeyDown} ref={ref as Ref<HTMLButtonElement>} view={'flat'}>
+                                Attempt <span className={styles.attemptNumber}>
+                                {currentAttemptIndex !== null ? currentAttemptIndex + 1 : '–'}
+                            </span> of <span className={styles.attemptNumber}>{totalAttemptsCount ?? '–'}</span>
+                        </Button>
+                    )}
+                    renderOption={(option): React.JSX.Element => {
+                        const imageId = `${option.data.resultId} ${currentImage?.stateName}`;
+
+                        return (
+                            <div className={styles.attemptOption}>
+                                {getAssertViewStatusIcon(images[imageId] || null, true)}
+                                <span>{option.content}</span>
+                            </div>
+                        );
+                    }}
+                    popupClassName={styles.attemptSelectPopup}
+                    onUpdate={onUpdate}
+                    value={currentAttemptIndex ? [currentAttemptIndex.toString()] : []}
+                >
+                    {currentBrowser.resultIds.map((resultId, index) => (
+                        <Select.Option key={index} value={index.toString()} content={`Attempt #${index + 1}`} data={{resultId}}></Select.Option>
+                    ))}
+                </Select>
+            </Tooltip>
+            <Tooltip
+                content="Next screenshot"
+                openDelay={0}
+                placement="top"
+            >
+                <Button
+                    view="outlined"
+                    onClick={(): void => onNextPrev(true)}
+                    disabled={nextDisabled}
+                >
+                    <Icon data={ChevronRight}/>
+                </Button>
+            </Tooltip>
         </div>
     );
 }
