@@ -5,6 +5,7 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import {
     getAttempt,
+    getCurrentBrowser,
     getCurrentImage,
     getImagesByNamedImageIds,
     NamedImageEntity
@@ -15,8 +16,8 @@ import {CompactAttemptPicker} from '@/static/new-ui/components/CompactAttemptPic
 import {DiffModeId, DiffModes, EditScreensFeature} from '@/constants';
 import {
     setDiffMode,
-    staticAccepterStageScreenshot, staticAccepterUnstageScreenshot,
-    visualChecksPageSetCurrentNamedImage
+    staticAccepterStageScreenshot,
+    staticAccepterUnstageScreenshot
 } from '@/static/modules/actions';
 import {isAcceptable, isScreenRevertable} from '@/static/modules/utils';
 import {AssertViewStatus} from '@/static/new-ui/components/AssertViewStatus';
@@ -58,7 +59,7 @@ const usePreloadImages = (
     }, []);
 };
 
-export function VisualChecksStickyHeader({currentNamedImage, visibleNamedImageIds}: VisualChecksStickyHeaderProps): ReactNode {
+export function VisualChecksStickyHeader({currentNamedImage, visibleNamedImageIds, onImageChange}: VisualChecksStickyHeaderProps): ReactNode {
     const dispatch = useDispatch();
     const analytics = useAnalytics();
     const currentImage = useSelector(getCurrentImage);
@@ -66,8 +67,8 @@ export function VisualChecksStickyHeader({currentNamedImage, visibleNamedImageId
     const navigate = useNavigate();
 
     const currentNamedImageIndex = visibleNamedImageIds.indexOf(currentNamedImage?.id as string);
-    const onPreviousImageHandler = (): void => void dispatch(visualChecksPageSetCurrentNamedImage(visibleNamedImageIds[currentNamedImageIndex - 1]));
-    const onNextImageHandler = (): void => void dispatch(visualChecksPageSetCurrentNamedImage(visibleNamedImageIds[currentNamedImageIndex + 1]));
+    const onPreviousImageHandler = (): void => onImageChange(visibleNamedImageIds[currentNamedImageIndex - 1]);
+    const onNextImageHandler = (): void => onImageChange(visibleNamedImageIds[currentNamedImageIndex + 1]);
 
     usePreloadImages(currentNamedImageIndex, visibleNamedImageIds);
 
@@ -107,15 +108,7 @@ export function VisualChecksStickyHeader({currentNamedImage, visibleNamedImageId
         }
     };
 
-    const currentBrowser = useSelector(state => {
-        const currentBrowserId = state.tree.results.byId[currentImage?.parentId ?? '']?.parentId;
-
-        if (currentBrowserId && state.tree.browsers.byId[currentBrowserId]) {
-            return state.tree.browsers.byId[currentBrowserId];
-        }
-
-        return null;
-    });
+    const currentBrowser = useSelector(getCurrentBrowser);
 
     const currentResultId = currentImage?.parentId;
     const isLastResult = Boolean(currentResultId && currentBrowser && currentResultId === currentBrowser.resultIds[currentBrowser.resultIds.length - 1]);

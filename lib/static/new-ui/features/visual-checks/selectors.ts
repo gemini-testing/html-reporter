@@ -2,7 +2,7 @@ import {createSelector} from 'reselect';
 
 import {getBrowsers, getImages, getResults} from '@/static/new-ui/store/selectors';
 import {TestStatus} from '@/constants';
-import {ImageEntity, State} from '@/static/new-ui/types/store';
+import {BrowserEntity, ImageEntity, State} from '@/static/new-ui/types/store';
 
 /** @note NamedImageEntity describes visual assertion, not bound to specific attempt */
 export interface NamedImageEntity {
@@ -60,7 +60,13 @@ export const getNamedImages = createSelector(
             const lastResultId = browser.resultIds[browser.resultIds.length - 1];
             const lastResult = results[lastResultId];
 
-            if (lastResult.status !== TestStatus.RUNNING && !lastResult.imageIds.find(imageId => images[imageId].stateName === group.stateName)) {
+            // if last result 'ok' (not error and running) and doesn't have images we skip it
+            // but if last result error (or running) we show it, because there are can be image
+            if (
+                lastResult.status !== TestStatus.RUNNING &&
+                lastResult.status !== TestStatus.ERROR &&
+                !lastResult.imageIds.find(imageId => images[imageId].stateName === group.stateName)
+            ) {
                 continue;
             }
 
@@ -136,6 +142,42 @@ export const getAttempt = (state: State): number | null => {
 
     if (namedImage) {
         return state.tree.browsers.stateById[namedImage?.browserId].retryIndex;
+    }
+
+    return null;
+};
+
+export const getLastAttempt = (state: State): number => {
+    const currentNamedImage = getCurrentNamedImage(state);
+    const images = getImages(state);
+    const currentBrowserId = currentNamedImage?.browserId;
+    const currentBrowser = currentBrowserId && state.tree.browsers.byId[currentBrowserId];
+
+    if (currentBrowser) {
+        for (let i = currentBrowser?.resultIds.length - 1; i >= 0; i--) {
+            const imageId = `${currentBrowser?.resultIds[i]} ${currentNamedImage?.stateName}`;
+
+            if (images[imageId]) {
+                return i;
+            }
+        }
+    }
+
+    return 0;
+};
+
+export const getCurrentBrowser = (state: State): BrowserEntity | null => {
+    const currentNamedImageId = state.app.visualChecksPage.currentNamedImageId;
+    const namedImages = getNamedImages(state);
+
+    if (currentNamedImageId) {
+        const namedImage = namedImages[currentNamedImageId];
+
+        if (!namedImage) {
+            return null;
+        }
+
+        return state.tree.browsers.byId[namedImage.browserId];
     }
 
     return null;
