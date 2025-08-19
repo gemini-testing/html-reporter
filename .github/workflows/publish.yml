@@ -18,6 +18,8 @@ jobs:
     runs-on: self-hosted-arc
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_ACCESS_TOKEN_V2 }}
       - name: Setup Node JS
         uses: actions/setup-node@v4
         with:
