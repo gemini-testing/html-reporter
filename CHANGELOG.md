@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.19.0"></a>
+# [10.19.0](https://github.com/gemini-testing/html-reporter/compare/v10.18.7...v10.19.0) (2025-08-19)
+
+
+### Features
+
+* **move-button:** button for fast move between visual checks and suites ([#685](https://github.com/gemini-testing/html-reporter/issues/685)) ([793c543](https://github.com/gemini-testing/html-reporter/commit/793c543))
+* **new-ui:** hide unnecessary screenshots ([d191b56](https://github.com/gemini-testing/html-reporter/commit/d191b56))
+* **new-ui:** show screenshots from retry with errors ([8cf38e1](https://github.com/gemini-testing/html-reporter/commit/8cf38e1))
+* **new-ui:** squash repeated steps ([#689](https://github.com/gemini-testing/html-reporter/issues/689)) ([1103aba](https://github.com/gemini-testing/html-reporter/commit/1103aba)), closes [#1](https://github.com/gemini-testing/html-reporter/issues/1) [#2](https://github.com/gemini-testing/html-reporter/issues/2) [#3](https://github.com/gemini-testing/html-reporter/issues/3) [#4](https://github.com/gemini-testing/html-reporter/issues/4) [#5](https://github.com/gemini-testing/html-reporter/issues/5) [#6](https://github.com/gemini-testing/html-reporter/issues/6) [#7](https://github.com/gemini-testing/html-reporter/issues/7) [#7](https://github.com/gemini-testing/html-reporter/issues/7) [#8](https://github.com/gemini-testing/html-reporter/issues/8)
+* **tree-view:** show expected and actual images ([084f531](https://github.com/gemini-testing/html-reporter/commit/084f531))
+* **visual-checks-retry:** visual checks retry button ([47a78cd](https://github.com/gemini-testing/html-reporter/commit/47a78cd))
+* **visual-checks-retry:** visual checks retry button [#0](https://github.com/gemini-testing/html-reporter/issues/0) ([3437d0b](https://github.com/gemini-testing/html-reporter/commit/3437d0b))
+* **visual-checks-retry:** visual checks retry button [#1](https://github.com/gemini-testing/html-reporter/issues/1) ([1cf6c11](https://github.com/gemini-testing/html-reporter/commit/1cf6c11))
+* **visual-checks-retry:** visual checks retry button [#2](https://github.com/gemini-testing/html-reporter/issues/2) ([2684e6e](https://github.com/gemini-testing/html-reporter/commit/2684e6e))
+* **visual-checks-retry:** visual checks retry button [#3](https://github.com/gemini-testing/html-reporter/issues/3) ([10158da](https://github.com/gemini-testing/html-reporter/commit/10158da))
+* **visual-checks-retry:** visual checks retry button [#4](https://github.com/gemini-testing/html-reporter/issues/4) ([b307e01](https://github.com/gemini-testing/html-reporter/commit/b307e01))
+* **visual-checks-retry:** visual checks retry button [#5](https://github.com/gemini-testing/html-reporter/issues/5) ([79bbfd1](https://github.com/gemini-testing/html-reporter/commit/79bbfd1))
+* **visual-checks-sidebar:** add sidebar for visual checks page ([#682](https://github.com/gemini-testing/html-reporter/issues/682)) ([dd3da05](https://github.com/gemini-testing/html-reporter/commit/dd3da05)), closes [#0](https://github.com/gemini-testing/html-reporter/issues/0) [#1](https://github.com/gemini-testing/html-reporter/issues/1) [#2](https://github.com/gemini-testing/html-reporter/issues/2) [#3](https://github.com/gemini-testing/html-reporter/issues/3) [#4](https://github.com/gemini-testing/html-reporter/issues/4)
+* **visual-checks-url:** save current screenshot in url ([#684](https://github.com/gemini-testing/html-reporter/issues/684)) ([077725e](https://github.com/gemini-testing/html-reporter/commit/077725e))
+
+
+
 <a name="10.18.7"></a>
 ## [10.18.7](https://github.com/gemini-testing/html-reporter/compare/v10.18.6...v10.18.7) (2025-06-23)
 
