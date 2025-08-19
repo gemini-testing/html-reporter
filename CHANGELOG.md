@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="10.19.0"></a>
+# 10.19.0 (2025-08-19)
+
+
+
 <a name="10.18.7"></a>
 ## [10.18.7](https://github.com/gemini-testing/html-reporter/compare/v10.18.6...v10.18.7) (2025-06-23)
 
