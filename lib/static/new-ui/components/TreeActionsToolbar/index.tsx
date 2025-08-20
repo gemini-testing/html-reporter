@@ -205,6 +205,7 @@ export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
             onClick={handleToggleAll}
             disabled={!isInitialized}
             className={styles.selectAllButton}
+            qa="select-all-button"
         />}
     </>;
 
@@ -219,7 +220,7 @@ export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
             className={classNames(styles.selectedContainer, {[styles['selected-container--visible']]: isSelectedAtLeastOne})}>
             <div className={styles.selectedTitle}>
                 <Icon data={CircleInfo}/>
-                <span>{selectedTestsCount} {selectedTestsCount > 1 ? 'tests' : 'test'} selected</span>
+                <span data-qa="selected-tests-count">{selectedTestsCount} {selectedTestsCount > 1 ? 'tests' : 'test'} selected</span>
             </div>
 
             <div className={styles.buttonsContainer}>
