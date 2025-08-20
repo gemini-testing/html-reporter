@@ -40,6 +40,10 @@
         user-select: none;
     }
 
+        .tree-view__item > div {
+            gap: 8px !important;
+        }
+
         .tree-view__item svg {
             flex-shrink: 0;
         }
