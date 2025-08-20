@@ -70,10 +70,14 @@
     transition: scale .3s, opacity 0.5s 0.5s, left .2s, visibility 0.5s 0.5s;
 }
 
-.is-live .player-progress-knob-bg, .is-live .highlight-region, .is-live .player-progress, .is-live .player-progress-left-cap {
+.is-live .player-progress-knob-bg, .is-live .highlight-region, .is-live .player-progress {
     transition: none;
     opacity: 0;
     visibility: hidden;
+}
+
+.is-live .player-progress-left-cap {
+    background: var(--color-neutral-100);
 }
 
 .highlight-region {
