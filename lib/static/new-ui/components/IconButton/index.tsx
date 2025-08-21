@@ -10,6 +10,7 @@ interface IconButtonProps {
     disabled?: boolean;
     className?: string;
     selected?: boolean;
+    qa?: string;
 }
 
 export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(function IconButtonInternal(props, ref) {
@@ -22,6 +23,7 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(f
             disabled={props.disabled}
             ref={ref}
             selected={props.selected}
+            qa={props.qa}
         >
             {props.icon}
         </Button>

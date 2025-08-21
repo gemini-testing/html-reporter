@@ -61,3 +61,7 @@
 .icon-button[disabled] {
     opacity: 0.5;
 }
+
+.select-all-button {
+    width: 34px !important;
+}
