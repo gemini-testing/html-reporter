@@ -2,7 +2,7 @@ import path from 'path';
 import crypto from 'crypto';
 import axios from 'axios';
 import fs from 'fs-extra';
-import Database from 'better-sqlite3';
+import initSqlJs, {type Database} from '@gemini-testing/sql.js';
 import chalk from 'chalk';
 import NestedError from 'nested-error-stacks';
 
@@ -17,6 +17,22 @@ import {ReporterTestResult} from '../adapters/test-result';
 import {SqliteClient} from '../sqlite-client';
 
 export * from './common';
+
+export const makeSqlDatabaseFromData = async (data: Buffer | undefined): Promise<Database & {filename: string}> => {
+    const sqlJs = await initSqlJs();
+
+    return new sqlJs.Database(data) as Database & {filename: string};
+};
+
+export const makeSqlDatabaseFromFile = async (dbPath: string | null): Promise<Database & {filename: string}> => {
+    let data: Buffer | undefined;
+
+    if (dbPath && fs.existsSync(dbPath)) {
+        data = await fs.readFile(dbPath);
+    }
+
+    return makeSqlDatabaseFromData(data);
+};
 
 export const prepareUrls = (urls: string[], baseUrl: string): string[] => {
     return isUrl(baseUrl)
@@ -43,10 +59,20 @@ export async function mergeDatabases(srcDbPaths: string[], reportPath: string): 
     try {
         const mainDatabaseUrls = path.resolve(reportPath, DATABASE_URLS_JSON_NAME);
         const mergedDbPath = path.resolve(reportPath, LOCAL_DATABASE_NAME);
-        const mergedDb = new Database(mergedDbPath);
 
-        commonSqliteUtils.mergeTables({db: mergedDb, dbPaths: srcDbPaths, getExistingTables: (statement) => {
-            return statement.all().map((table) => (table as {name: string}).name);
+        const mergedDb = await makeSqlDatabaseFromFile(mergedDbPath);
+
+        const dbPaths = await Promise.all(srcDbPaths.map(p => makeSqlDatabaseFromFile(p).then(db => db.filename)));
+
+        commonSqliteUtils.mergeTables({db: mergedDb, dbPaths, getExistingTables: (statement) => {
+            const tables: string[] = [];
+            while (statement.step()) {
+                const row = statement.get();
+                if (Array.isArray(row) && row.length > 0) {
+                    tables.push(row[0] as string);
+                }
+            }
+            return tables;
         }});
 
         for (const dbPath of srcDbPaths) {
@@ -55,22 +81,34 @@ export async function mergeDatabases(srcDbPaths: string[], reportPath: string): 
 
         await rewriteDatabaseUrls([mergedDbPath], mainDatabaseUrls, reportPath);
 
+        await fs.writeFile(mergedDbPath, mergedDb.export());
         mergedDb.close();
     } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
         throw new NestedError('Error while merging databases', err);
     }
 }
 
-export function getTestsTreeFromDatabase(dbPath: string, baseHost: string): Tree {
+export async function getTestsTreeFromDatabase(dbPath: string, baseHost: string): Promise<Tree> {
     try {
-        const db = new Database(dbPath, {readonly: true, fileMustExist: true});
+        await fs.ensureFile(dbPath);
+
+        const db = await makeSqlDatabaseFromFile(dbPath);
+
         const testsTreeBuilder = StaticTestsTreeBuilder.create({baseHost});
 
-        const suitesRows = (db.prepare(commonSqliteUtils.selectAllSuitesQuery())
-            .raw()
-            .all() as RawSuitesRow[])
-            .sort(commonSqliteUtils.compareDatabaseRowsByTimestamp);
-        const {tree} = testsTreeBuilder.build(suitesRows);
+        const suitesQueryStatement = db.prepare(commonSqliteUtils.selectAllSuitesQuery());
+        const suitesRows: RawSuitesRow[] = [];
+
+        while (suitesQueryStatement.step()) {
+            const row = suitesQueryStatement.get();
+            if (Array.isArray(row)) {
+                suitesRows.push(row as RawSuitesRow);
+            }
+        }
+        suitesQueryStatement.free();
+
+        const sortedRows = suitesRows.sort(commonSqliteUtils.compareDatabaseRowsByTimestamp);
+        const {tree} = testsTreeBuilder.build(sortedRows);
 
         db.close();
 

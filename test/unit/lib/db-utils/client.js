@@ -170,7 +170,8 @@ describe('lib/db-utils/client', () => {
             statement = {
                 step: () => {},
                 get: () => {},
-                run: () => {}
+                run: () => {},
+                free: () => {}
             };
 
             SQL = {

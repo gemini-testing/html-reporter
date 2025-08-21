@@ -2,12 +2,12 @@ import _ from 'lodash';
 import path from 'path';
 import fs from 'fs-extra';
 import chalk from 'chalk';
-import Database from 'better-sqlite3';
+import initSqlJs, {type Statement} from '@gemini-testing/sql.js';
 import type {CoordBounds} from 'looks-same';
 
 import {logger} from '../../common-utils';
 import {DATABASE_URLS_JSON_NAME, DB_CURRENT_VERSION, LOCAL_DATABASE_NAME} from '../../constants';
-import {mergeTables} from '../../db-utils/server';
+import {makeSqlDatabaseFromData, makeSqlDatabaseFromFile, mergeTables} from '../../db-utils/server';
 import {TestEqualDiffsData, TestRefUpdateData} from '../../tests-tree-builder/gui';
 import {ImageInfoDiff, ImageSize} from '../../types';
 import {backupAndReset, getDatabaseVersion, migrateDatabase} from '../../db-utils/migrations';
@@ -32,27 +32,45 @@ export const mergeDatabasesForReuse = async (reportPath: string): Promise<void> 
 
     const {dbUrls = []}: {dbUrls: string[]} = await fs.readJson(dbUrlsJsonPath);
 
-    const dbPaths = dbUrls
+    const extraDbPaths = dbUrls
         .filter(u => u !== LOCAL_DATABASE_NAME)
         .map(u => path.resolve(reportPath, u));
 
-    if (!dbPaths.length) {
+    if (!extraDbPaths.length) {
         return;
     }
 
     logger.warn(chalk.yellow(`Merge databases to ${LOCAL_DATABASE_NAME}`));
 
-    const mergedDatabase = new Database(mergedDbPath);
+    let dbData: Buffer | undefined;
+    if (await fs.pathExists(mergedDbPath)) {
+        dbData = await fs.readFile(mergedDbPath);
+    }
+
+    const mergedDatabase = await makeSqlDatabaseFromData(dbData);
+
+    const dbPaths = await Promise.all(extraDbPaths.map(p => makeSqlDatabaseFromFile(p).then(db => db.filename)));
+
     mergeTables({
         db: mergedDatabase,
         dbPaths,
-        getExistingTables: (statement: Database.Statement) => {
-            return statement.all().map((table) => (table as {name: string}).name);
+        getExistingTables: (statement: Statement) => {
+            const tables: string[] = [];
+            while (statement.step()) {
+                const row = statement.get();
+                if (Array.isArray(row) && row.length > 0) {
+                    tables.push(row[0] as string);
+                }
+            }
+            return tables;
         }
     });
+
+    const data = mergedDatabase.export();
+    await fs.writeFile(mergedDbPath, data);
     mergedDatabase.close();
 
-    await Promise.all(dbPaths.map(p => fs.remove(p)));
+    await Promise.all(extraDbPaths.map(p => fs.remove(p)));
 };
 
 export const prepareLocalDatabase = async (reportPath: string): Promise<void> => {
@@ -63,13 +81,22 @@ export const prepareLocalDatabase = async (reportPath: string): Promise<void> =>
         return;
     }
 
-    const db = new Database(dbPath);
+    const SQL = await initSqlJs();
+
+    // Load database from file
+    const buffer = await fs.readFile(dbPath);
+    const dbData = new Uint8Array(buffer);
+    const db = new SQL.Database(dbData);
+
     try {
         const version = getDatabaseVersion(db);
         debug('determined db version', version);
 
         if (version !== null && version < DB_CURRENT_VERSION) {
             await migrateDatabase(db, version);
+            // Save migrated database back to file
+            const data = db.export();
+            await fs.writeFile(dbPath, data);
         } else if (version === null) {
             const backupPath = await backupAndReset(reportPath);
             console.warn(`SQLite db at ${dbPath} is of unknown unsupported version.\nBacked up to ${backupPath} and starting from scratch.`);

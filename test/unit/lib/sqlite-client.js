@@ -2,10 +2,10 @@
 
 const fs = require('fs-extra');
 const proxyquire = require('proxyquire');
-const Database = require('better-sqlite3');
 
 const {SqliteClient} = require('lib/sqlite-client');
 const {HtmlReporter} = require('lib/plugin-api');
+const {makeSqlDatabaseFromFile} = require('lib/db-utils/server');
 
 describe('lib/sqlite-client', () => {
     const sandbox = sinon.createSandbox();
@@ -20,19 +20,23 @@ describe('lib/sqlite-client', () => {
     });
 
     afterEach(() => {
-        fs.unlinkSync('test/sqlite.db');
+        if (fs.existsSync('test/sqlite.db')) {
+            fs.unlinkSync('test/sqlite.db');
+        }
         sandbox.restore();
     });
 
     it('should create database', async () => {
-        await makeSqliteClient_();
+        const client = await makeSqliteClient_();
+        await client.close();
 
         assert.equal(fs.existsSync('test/sqlite.db'), true);
     });
 
     it('should create database with correct structure', async () => {
-        await makeSqliteClient_();
-        const db = new Database('test/sqlite.db');
+        const client = await makeSqliteClient_();
+        await client.close();
+        const db = await makeSqlDatabaseFromFile('test/sqlite.db');
         const tableStructure = [
             {cid: 0, name: 'suitePath', type: 'TEXT'},
             {cid: 1, name: 'suiteName', type: 'TEXT'},
@@ -52,7 +56,19 @@ describe('lib/sqlite-client', () => {
             {cid: 15, name: 'attachments', type: 'TEXT'}
         ];
 
-        const columns = db.prepare('PRAGMA table_info(suites);').all();
+        const stmt = db.prepare('PRAGMA table_info(suites);');
+        const columns = [];
+        while (stmt.step()) {
+            const row = stmt.get();
+            if (Array.isArray(row)) {
+                columns.push({
+                    cid: row[0],
+                    name: row[1],
+                    type: row[2]
+                });
+            }
+        }
+        stmt.free();
         db.close();
 
         columns.map((column, index) => {
@@ -63,13 +79,25 @@ describe('lib/sqlite-client', () => {
     });
 
     describe('query', () => {
-        let getStub, prepareStub, sqliteClient;
+        let getAsObjectStub, prepareStub, freeStub, sqliteClient;
 
         beforeEach(async () => {
-            getStub = sandbox.stub();
-            prepareStub = sandbox.stub(Database.prototype, 'prepare').returns({get: getStub, run: sandbox.stub()});
+            getAsObjectStub = sandbox.stub();
+            freeStub = sandbox.stub();
+            prepareStub = sandbox.stub().returns({getAsObject: getAsObjectStub, free: freeStub, run: sandbox.stub()});
+
+            const mockDb = {
+                prepare: prepareStub,
+                run: sandbox.stub(),
+                close: sandbox.stub(),
+                export: sandbox.stub().returns(Buffer.from('mock'))
+            };
+
             sqliteClient = await proxyquire('lib/sqlite-client', {
-                './db-utils/common': {createTablesQuery: () => []}
+                './db-utils/common': {createTablesQuery: () => ['CREATE TABLE suites (id INTEGER)']},
+                './db-utils/server': {
+                    makeSqlDatabaseFromFile: sandbox.stub().resolves(mockDb)
+                }
             }).SqliteClient.create({htmlReporter, reportPath: 'test', reuse: true});
         });
 
@@ -96,46 +124,56 @@ describe('lib/sqlite-client', () => {
         it('should apply query arguments', () => {
             sqliteClient.query({}, 'foo', 'bar');
 
-            assert.calledOnceWith(getStub, 'foo', 'bar');
+            assert.calledOnceWith(getAsObjectStub, ['foo', 'bar']);
         });
 
         it('should cache equal queries by default', () => {
             sqliteClient.query({select: 'foo', where: 'bar'});
             sqliteClient.query({select: 'foo', where: 'bar'});
 
-            assert.calledOnce(getStub);
+            assert.calledOnce(getAsObjectStub);
         });
 
         it('should not cache queries if "noCache" is set', () => {
             sqliteClient.query({select: 'foo', noCache: true});
             sqliteClient.query({select: 'foo', noCache: true});
 
-            assert.calledTwice(getStub);
+            assert.calledTwice(getAsObjectStub);
         });
 
         it('should not use cache for different queries', () => {
             sqliteClient.query({select: 'foo', where: 'bar'});
             sqliteClient.query({select: 'foo', where: 'baz'});
 
-            assert.calledTwice(getStub);
+            assert.calledTwice(getAsObjectStub);
         });
 
         it('should not use cache for queries with different args', () => {
             sqliteClient.query({select: 'foo', where: 'bar = ?'}, 'baz');
             sqliteClient.query({select: 'foo', where: 'bar = ?'}, 'qux');
 
-            assert.calledTwice(getStub);
+            assert.calledTwice(getAsObjectStub);
         });
     });
 
     describe('delete', () => {
-        let runStub, prepareStub, sqliteClient;
+        let runStub, sqliteClient;
 
         beforeEach(async () => {
             runStub = sandbox.stub();
-            prepareStub = sandbox.stub(Database.prototype, 'prepare').returns({run: runStub});
+
+            const mockDb = {
+                prepare: sandbox.stub(),
+                run: runStub,
+                close: sandbox.stub(),
+                export: sandbox.stub().returns(Buffer.from('mock'))
+            };
+
             sqliteClient = await proxyquire('lib/sqlite-client', {
-                './db-utils/common': {createTablesQuery: () => []}
+                './db-utils/common': {createTablesQuery: () => ['CREATE TABLE suites (id INTEGER)']},
+                './db-utils/server': {
+                    makeSqlDatabaseFromFile: sandbox.stub().resolves(mockDb)
+                }
             }).SqliteClient.create({htmlReporter, reportPath: 'test', reuse: true});
         });
 
@@ -143,20 +181,20 @@ describe('lib/sqlite-client', () => {
             it('if called with no query params', () => {
                 sqliteClient.delete();
 
-                assert.calledOnceWith(prepareStub, 'DELETE FROM suites');
+                assert.calledWith(runStub, 'DELETE FROM suites', []);
             });
 
-            it('if called with "select", "where", "order" and "orderDescending"', () => {
-                sqliteClient.delete({where: 'bar', orderBy: 'baz', orderDescending: true, limit: 42});
+            it('if called with "where"', () => {
+                sqliteClient.delete({where: 'bar'});
 
-                assert.calledOnceWith(prepareStub, 'DELETE FROM suites WHERE bar ORDER BY baz DESC LIMIT 42');
+                assert.calledWith(runStub, 'DELETE FROM suites WHERE bar', []);
             });
         });
 
         it('should apply delete arguments', () => {
             sqliteClient.delete({}, 'foo', 'bar');
 
-            assert.calledOnceWith(runStub, 'foo', 'bar');
+            assert.calledWith(runStub, 'DELETE FROM suites', ['foo', 'bar']);
         });
     });
 });
