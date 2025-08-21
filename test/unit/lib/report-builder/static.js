@@ -2,13 +2,13 @@
 
 const fsOriginal = require('fs-extra');
 const _ = require('lodash');
-const Database = require('better-sqlite3');
 const proxyquire = require('proxyquire');
 const sinon = require('sinon');
 const {HtmlReporter} = require('lib/plugin-api');
 const {ERROR} = require('lib/constants/test-statuses');
 const {LOCAL_DATABASE_NAME} = require('lib/constants/database');
 const {SqliteClient} = require('lib/sqlite-client');
+const {makeSqlDatabaseFromFile} = require('lib/db-utils/server');
 
 const TEST_REPORT_PATH = 'test';
 const TEST_DB_PATH = `${TEST_REPORT_PATH}/${LOCAL_DATABASE_NAME}`;
@@ -91,32 +91,47 @@ describe('StaticReportBuilder', () => {
 
         it('should use test results status', async () => {
             await reportBuilder.addTestResult(stubTest_({status: ERROR}));
-            const db = new Database(TEST_DB_PATH);
 
-            const [{status}] = db.prepare('SELECT * from suites').all();
+            dbClient.close();
+
+            const db = await makeSqlDatabaseFromFile(TEST_DB_PATH);
+
+            const stmt = db.prepare('SELECT * from suites');
+            const result = stmt.getAsObject([]);
+            stmt.free();
             db.close();
 
-            assert.equal(status, ERROR);
+            assert.equal(result.status, ERROR);
         });
 
         it('should use timestamp from test result when it is present', async () => {
             await reportBuilder.addTestResult(stubTest_({timestamp: 100500}));
-            const db = new Database(TEST_DB_PATH);
 
-            const [{timestamp}] = db.prepare('SELECT * from suites').all();
+            dbClient.close();
+
+            const db = await makeSqlDatabaseFromFile(TEST_DB_PATH);
+
+            const stmt = db.prepare('SELECT * from suites');
+            const result = stmt.getAsObject([]);
+            stmt.free();
             db.close();
 
-            assert.equal(timestamp, 100500);
+            assert.equal(result.timestamp, 100500);
         });
 
         it('should use some current timestamp when test result misses one', async () => {
             await reportBuilder.addTestResult(stubTest_());
-            const db = new Database(TEST_DB_PATH);
 
-            const [{timestamp}] = db.prepare('SELECT * from suites').all();
+            dbClient.close();
+
+            const db = await makeSqlDatabaseFromFile(TEST_DB_PATH);
+
+            const stmt = db.prepare('SELECT * from suites');
+            const result = stmt.getAsObject([]);
+            stmt.free();
             db.close();
 
-            assert.isNumber(timestamp);
+            assert.isNumber(result.timestamp);
         });
     });
 
