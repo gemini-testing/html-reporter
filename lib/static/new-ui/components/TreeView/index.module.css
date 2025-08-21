@@ -41,7 +41,7 @@
     }
 
         .tree-view__item > div {
-            gap: 8px !important;
+            gap: 4px !important;
         }
 
         .tree-view__item svg {
@@ -53,7 +53,7 @@
         }
 
         .tree-view__item > div > div {
-            align-items: start !important;
+            align-items: baseline !important;
         }
 
         .tree-view__item--current {
