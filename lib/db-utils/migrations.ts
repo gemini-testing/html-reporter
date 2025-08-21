@@ -1,38 +1,46 @@
 import fs from 'fs-extra';
 import makeDebug from 'debug';
-import Database from 'better-sqlite3';
+import type {Database} from '@gemini-testing/sql.js';
 import {
     DB_VERSION_TABLE_NAME,
     DB_CURRENT_VERSION,
     DB_SUITES_TABLE_NAME,
     DB_COLUMNS,
-    VERSION_TABLE_COLUMNS,
-    LabeledVersionRow
+    VERSION_TABLE_COLUMNS
 } from '../constants/database';
 import {isEqual} from 'lodash';
 import {createTableQuery} from './common';
 const debug = makeDebug('html-reporter:db-migrations');
 
-export const getDatabaseVersion = (db: Database.Database): number | null => {
+export const getDatabaseVersion = (db: Database): number | null => {
     debug('getDatabaseVersion');
     try {
-        const versionTableExists = db.prepare(
-            `SELECT name FROM sqlite_master WHERE type='table' AND name=?`
-        ).get(DB_VERSION_TABLE_NAME);
+        const versionTableExists = db.exec(`SELECT name FROM sqlite_master WHERE type='table' AND name=?`, [DB_VERSION_TABLE_NAME])[0];
         debug('versionTableExists:', versionTableExists);
 
         if (versionTableExists) {
-            const versionRow = db.prepare(`SELECT ${VERSION_TABLE_COLUMNS[0].name} FROM ${DB_VERSION_TABLE_NAME} LIMIT 1`).get() as LabeledVersionRow | null;
-            debug('versionRow: ', versionRow);
+            const getVersionNumberStatement = db.prepare(`SELECT ${VERSION_TABLE_COLUMNS[0].name} FROM ${DB_VERSION_TABLE_NAME} LIMIT 1`);
+            const versionNumberQueryResult = getVersionNumberStatement.getAsObject([]);
+            getVersionNumberStatement.free();
+            debug('versionRow: ', versionNumberQueryResult);
 
-            const version = Number(versionRow?.[VERSION_TABLE_COLUMNS[0].name]);
-            if (!isNaN(version) && version >= 0) {
-                return version;
+            if (versionNumberQueryResult && typeof versionNumberQueryResult[VERSION_TABLE_COLUMNS[0].name] === 'number') {
+                const version = Number(versionNumberQueryResult[VERSION_TABLE_COLUMNS[0].name]);
+                if (!isNaN(version) && version >= 0) {
+                    return version;
+                }
             }
         }
 
-        const tableInfo = db.prepare(`PRAGMA table_info(${DB_SUITES_TABLE_NAME})`).all() as {name: string}[];
-        const columnNames = tableInfo.map(col => col.name);
+        const tableInfoStatement = db.prepare(`PRAGMA table_info(${DB_SUITES_TABLE_NAME})`);
+        const columnNames: string[] = [];
+        while (tableInfoStatement.step()) {
+            const row = tableInfoStatement.getAsObject() as {name: string};
+            if (row && row.name) {
+                columnNames.push(row.name);
+            }
+        }
+        tableInfoStatement.free();
         debug('column names in db:', columnNames);
 
         const version0Columns = [
@@ -66,23 +74,23 @@ export const getDatabaseVersion = (db: Database.Database): number | null => {
     return null;
 };
 
-export const setDatabaseVersion = (db: Database.Database, version: number): void => {
-    db.prepare(`DELETE FROM ${DB_VERSION_TABLE_NAME}`).run();
-    db.prepare(`INSERT INTO ${DB_VERSION_TABLE_NAME} (${VERSION_TABLE_COLUMNS[0].name}) VALUES (?)`).run(version);
+export const setDatabaseVersion = (db: Database, version: number): void => {
+    db.run(`DELETE FROM ${DB_VERSION_TABLE_NAME}`);
+    db.run(`INSERT INTO ${DB_VERSION_TABLE_NAME} (${VERSION_TABLE_COLUMNS[0].name}) VALUES (?)`, [version]);
 };
 
 /**
  * Migration from version 0 to version 1
  * - Adds attachments column to suites table
  */
-const migrateV0ToV1 = (db: Database.Database): void => {
+const migrateV0ToV1 = (db: Database): void => {
     debug('migrating from v0 to v1');
-    db.prepare(`ALTER TABLE ${DB_SUITES_TABLE_NAME} ADD COLUMN ${DB_COLUMNS.ATTACHMENTS} TEXT DEFAULT '[]'`).run();
+    db.run(`ALTER TABLE ${DB_SUITES_TABLE_NAME} ADD COLUMN ${DB_COLUMNS.ATTACHMENTS} TEXT DEFAULT '[]'`);
 
-    db.prepare(createTableQuery(DB_VERSION_TABLE_NAME, VERSION_TABLE_COLUMNS)).run();
+    db.run(createTableQuery(DB_VERSION_TABLE_NAME, VERSION_TABLE_COLUMNS));
 };
 
-export const migrateDatabase = async (db: Database.Database, version: number): Promise<void> => {
+export const migrateDatabase = async (db: Database, version: number): Promise<void> => {
     const migrations = [
         migrateV0ToV1
     ];

@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+import type {Database} from '@gemini-testing/sql.js';
 import actionNames from '@/static/modules/action-names';
 import {Action, AppThunk} from '@/static/modules/actions/types';
 import {TestSpec} from '@/adapters/tool/types';
@@ -75,7 +76,7 @@ export const thunkStopTests = (): AppThunk => {
 };
 
 export type TestsEndAction = Action<typeof actionNames.TESTS_END, {
-    db: TestBranch[];
+    db: Database;
 }>;
 export const testsEnd = (payload: TestsEndAction['payload']): TestsEndAction => ({type: actionNames.TESTS_END, payload});
 

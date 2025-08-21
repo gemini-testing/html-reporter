@@ -24,9 +24,9 @@ export class SqliteImageStore implements ImageStore {
             orderBy: DB_COLUMNS.TIMESTAMP,
             orderDescending: true,
             noCache: true
-        }, suitePathString, browserName);
+        }, suitePathString, browserName)?.imagesInfo;
 
-        const imagesInfo: ImageInfoFull[] = imagesInfoResult && JSON.parse(imagesInfoResult[DB_COLUMNS.IMAGES_INFO as keyof Pick<LabeledSuitesRow, 'imagesInfo'>]) || [];
+        const imagesInfo: ImageInfoFull[] = imagesInfoResult && JSON.parse(imagesInfoResult) || [];
         return imagesInfo.find(info => (info as {stateName?: string}).stateName === stateName);
     }
 }

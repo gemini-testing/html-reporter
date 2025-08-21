@@ -1,18 +1,23 @@
 'use strict';
 
 const _ = require('lodash');
-const Database = require('better-sqlite3');
 const fsOriginal = require('fs-extra');
 const proxyquire = require('proxyquire').noPreserveCache();
 const {logger} = require('lib/common-utils');
 const {stubTool, NoRefImageError, ImageDiffError} = require('./utils');
 
 const mkSqliteDb = () => {
-    const instance = sinon.createStubInstance(Database);
-
-    instance.prepare = sinon.stub().returns({run: sinon.stub()});
-
-    return instance;
+    return {
+        run: sinon.stub(),
+        prepare: sinon.stub().returns({
+            run: sinon.stub(),
+            get: sinon.stub(),
+            getAsObject: sinon.stub(),
+            free: sinon.stub()
+        }),
+        close: sinon.stub(),
+        export: sinon.stub().returns(Buffer.from('mock'))
+    };
 };
 
 describe('lib/testplane', () => {

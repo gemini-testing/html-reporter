@@ -1,7 +1,7 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as os from 'os';
-import Database from 'better-sqlite3';
+import initSqlJs from '@gemini-testing/sql.js';
 import * as sinon from 'sinon';
 import proxyquire from 'proxyquire';
 import {
@@ -73,7 +73,8 @@ describe('lib/gui/tool-runner/utils', () => {
         });
 
         it('should migrate database if version is less than current', async () => {
-            const db = new Database(dbPath);
+            const SQL = await initSqlJs();
+            const db = new SQL.Database();
             const columns = [
                 DB_COLUMNS.SUITE_PATH,
                 DB_COLUMNS.SUITE_NAME,
@@ -91,7 +92,9 @@ describe('lib/gui/tool-runner/utils', () => {
                 DB_COLUMNS.TIMESTAMP,
                 DB_COLUMNS.DURATION
             ].join(' TEXT, ') + ' TEXT';
-            db.prepare(`CREATE TABLE ${DB_SUITES_TABLE_NAME} (${columns})`).run();
+            db.run(`CREATE TABLE ${DB_SUITES_TABLE_NAME} (${columns})`);
+
+            await fs.writeFile(dbPath, db.export());
             db.close();
             assert.isTrue(await fs.pathExists(dbPath));
 
@@ -99,16 +102,21 @@ describe('lib/gui/tool-runner/utils', () => {
 
             assert.notCalled(backupAndResetStub);
             assert.notCalled(consoleWarnStub);
-            const dbAfter = new Database(dbPath);
-            const versionTableExists = dbAfter.prepare(
-                `SELECT name FROM sqlite_master WHERE type='table' AND name=?`
-            ).get(DB_VERSION_TABLE_NAME);
+
+            const buffer = await fs.readFile(dbPath);
+            const dbAfter = new SQL.Database(buffer);
+            const versionTableStmt = dbAfter.prepare(`SELECT name FROM sqlite_master WHERE type='table' AND name=?`);
+            const versionTableExists = versionTableStmt.get([DB_VERSION_TABLE_NAME]);
+            versionTableStmt.free();
             dbAfter.close();
             assert.isNotNull(versionTableExists);
         });
 
         it('should backup and reset if database version is null', async () => {
-            const db = new Database(dbPath);
+            const SQL = await initSqlJs();
+            const db = new SQL.Database();
+            const data = db.export();
+            await fs.writeFile(dbPath, data);
             db.close();
 
             await utilsWithStubs.prepareLocalDatabase(reportPath);
@@ -120,9 +128,12 @@ describe('lib/gui/tool-runner/utils', () => {
         });
 
         it('should backup and reset if database version is greater than current', async () => {
-            const db = new Database(dbPath);
-            db.prepare(`CREATE TABLE ${DB_VERSION_TABLE_NAME} (${VERSION_TABLE_COLUMNS[0].name} INTEGER)`).run();
-            db.prepare(`INSERT INTO ${DB_VERSION_TABLE_NAME} (${VERSION_TABLE_COLUMNS[0].name}) VALUES (?)`).run(DB_CURRENT_VERSION + 1);
+            const SQL = await initSqlJs();
+            const db = new SQL.Database();
+            db.run(`CREATE TABLE ${DB_VERSION_TABLE_NAME} (${VERSION_TABLE_COLUMNS[0].name} INTEGER)`);
+            db.run(`INSERT INTO ${DB_VERSION_TABLE_NAME} (${VERSION_TABLE_COLUMNS[0].name}) VALUES (?)`, [DB_CURRENT_VERSION + 1]);
+            const data = db.export();
+            await fs.writeFile(dbPath, data);
             db.close();
 
             await utilsWithStubs.prepareLocalDatabase(reportPath);
@@ -135,9 +146,12 @@ describe('lib/gui/tool-runner/utils', () => {
         });
 
         it('should do nothing if database version equals current version', async () => {
-            const db = new Database(dbPath);
-            db.prepare(`CREATE TABLE ${DB_VERSION_TABLE_NAME} (${VERSION_TABLE_COLUMNS[0].name} INTEGER)`).run();
-            db.prepare(`INSERT INTO ${DB_VERSION_TABLE_NAME} (${VERSION_TABLE_COLUMNS[0].name}) VALUES (?)`).run(DB_CURRENT_VERSION);
+            const SQL = await initSqlJs();
+            const db = new SQL.Database();
+            db.run(`CREATE TABLE ${DB_VERSION_TABLE_NAME} (${VERSION_TABLE_COLUMNS[0].name} INTEGER)`);
+            db.run(`INSERT INTO ${DB_VERSION_TABLE_NAME} (${VERSION_TABLE_COLUMNS[0].name}) VALUES (?)`, [DB_CURRENT_VERSION]);
+            const data = db.export();
+            await fs.writeFile(dbPath, data);
             db.close();
 
             await utilsWithStubs.prepareLocalDatabase(reportPath);
@@ -147,19 +161,20 @@ describe('lib/gui/tool-runner/utils', () => {
         });
 
         it('should close database connection even if an error occurs', async () => {
-            const db = new Database(dbPath);
+            const SQL = await initSqlJs();
+            const db = new SQL.Database();
+            const data = db.export();
+            await fs.writeFile(dbPath, data);
             db.close();
-            const databaseCloseStub = sinon.stub();
-            const databaseErrorStub = sinon.stub().returns({
-                close: databaseCloseStub
-            });
+
+            const dbStub = {close: sinon.stub()};
             const utilsWithErrorStub = proxyquire('lib/gui/tool-runner/utils', {
-                'better-sqlite3': databaseErrorStub
+                '../../db-utils/server': ({makeSqlDatabaseFromFile: () => Promise.resolve(dbStub)})
             });
 
             await utilsWithErrorStub.prepareLocalDatabase(reportPath);
 
-            assert.calledOnce(databaseCloseStub);
+            assert.calledOnce(dbStub.close);
         });
     });
 });

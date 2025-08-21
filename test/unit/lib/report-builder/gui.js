@@ -129,7 +129,21 @@ describe('GuiReportBuilder', () => {
                 status: SKIPPED,
                 fullName: 'some-name',
                 skipReason: 'some-reason',
-                browserId: 'some-browser'
+                browserId: 'some-browser',
+                testPath: ['some-suite'],
+                url: '',
+                meta: {sessionId: 'sessionId-default'},
+                file: 'default/path/file.js',
+                sessionId: 'sessionId-default',
+                history: [],
+                description: null,
+                error: null,
+                imagesInfo: [],
+                screenshot: false,
+                multipleTabs: false,
+                timestamp: Date.now(),
+                duration: 0,
+                attachments: []
             }));
 
             const result = reportBuilder.getResult();

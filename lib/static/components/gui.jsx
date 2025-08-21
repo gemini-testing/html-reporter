@@ -6,16 +6,16 @@ import {bindActionCreators} from 'redux';
 
 import {ROOT} from '../../constants/extension-points';
 import * as actions from '../modules/actions';
-import StickyHeader from './sticky-header/gui';
 import Loading from './loading';
+import StickyHeader from './sticky-header/gui';
 import ModalContainer from '../containers/modal';
 import MainTree from './main-tree';
 import {CustomScripts} from '../new-ui/components/CustomScripts';
-import {ClientEvents} from '../../gui/constants/client-events';
 import FaviconChanger from './favicon-changer';
 import ExtensionPoint from './extension-point';
 import BottomProgressBar from './bottom-progress-bar';
 import {MetrikaScript} from '@/static/new-ui/components/MetrikaScript';
+import {ClientEvents} from '../../gui/constants/client-events';
 
 class Gui extends Component {
     static propTypes = {

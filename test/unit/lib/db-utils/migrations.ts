@@ -1,7 +1,4 @@
-import * as fs from 'fs-extra';
-import * as path from 'path';
-import * as os from 'os';
-import Database from 'better-sqlite3';
+import initSqlJs, {type Database} from '@gemini-testing/sql.js';
 import {
     getDatabaseVersion,
     setDatabaseVersion,
@@ -16,19 +13,16 @@ import {
 } from 'lib/constants/database';
 
 describe('lib/db-utils/migrations', () => {
-    let db: Database.Database;
-    let tempDir: string;
-    let dbPath: string;
+    let db: Database;
 
     beforeEach(async () => {
-        tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'html-reporter-test-'));
-        dbPath = path.join(tempDir, 'test.db');
-        db = new Database(dbPath);
+        const sqlJs = await initSqlJs();
+
+        db = new sqlJs.Database();
     });
 
     afterEach(async () => {
         db.close();
-        await fs.remove(tempDir);
     });
 
     describe('getDatabaseVersion', () => {
@@ -38,8 +32,8 @@ describe('lib/db-utils/migrations', () => {
         });
 
         it('should return the correct version from version table', () => {
-            db.prepare(`CREATE TABLE ${DB_VERSION_TABLE_NAME} (${VERSION_TABLE_COLUMNS[0].name} INTEGER)`).run();
-            db.prepare(`INSERT INTO ${DB_VERSION_TABLE_NAME} (${VERSION_TABLE_COLUMNS[0].name}) VALUES (?)`).run(1);
+            db.run(`CREATE TABLE ${DB_VERSION_TABLE_NAME} (${VERSION_TABLE_COLUMNS[0].name} INTEGER)`);
+            db.run(`INSERT INTO ${DB_VERSION_TABLE_NAME} (${VERSION_TABLE_COLUMNS[0].name}) VALUES (?)`, [1]);
 
             const version = getDatabaseVersion(db);
 
@@ -64,7 +58,7 @@ describe('lib/db-utils/migrations', () => {
                 DB_COLUMNS.TIMESTAMP,
                 DB_COLUMNS.DURATION
             ].join(' TEXT, ') + ' TEXT';
-            db.prepare(`CREATE TABLE ${DB_SUITES_TABLE_NAME} (${columns})`).run();
+            db.run(`CREATE TABLE ${DB_SUITES_TABLE_NAME} (${columns})`);
 
             const version = getDatabaseVersion(db);
 
@@ -90,7 +84,7 @@ describe('lib/db-utils/migrations', () => {
                 DB_COLUMNS.DURATION,
                 DB_COLUMNS.ATTACHMENTS
             ].join(' TEXT, ') + ' TEXT';
-            db.prepare(`CREATE TABLE ${DB_SUITES_TABLE_NAME} (${columns})`).run();
+            db.run(`CREATE TABLE ${DB_SUITES_TABLE_NAME} (${columns})`);
 
             const version = getDatabaseVersion(db);
 
@@ -100,22 +94,22 @@ describe('lib/db-utils/migrations', () => {
 
     describe('setDatabaseVersion', () => {
         it('should set the database version in the version table', () => {
-            db.prepare(`CREATE TABLE ${DB_VERSION_TABLE_NAME} (${VERSION_TABLE_COLUMNS[0].name} INTEGER)`).run();
+            db.run(`CREATE TABLE ${DB_VERSION_TABLE_NAME} (${VERSION_TABLE_COLUMNS[0].name} INTEGER)`);
 
             setDatabaseVersion(db, 2);
 
-            const versionRow = db.prepare(`SELECT ${VERSION_TABLE_COLUMNS[0].name} FROM ${DB_VERSION_TABLE_NAME}`).get() as {[key: string]: number};
-            assert.strictEqual(versionRow[VERSION_TABLE_COLUMNS[0].name], 2);
+            const [result] = db.exec(`SELECT ${VERSION_TABLE_COLUMNS[0].name} FROM ${DB_VERSION_TABLE_NAME}`)[0].values;
+            assert.strictEqual(Array.isArray(result) ? result[0] : null, 2);
         });
 
         it('should update the version if it already exists', () => {
-            db.prepare(`CREATE TABLE ${DB_VERSION_TABLE_NAME} (${VERSION_TABLE_COLUMNS[0].name} INTEGER)`).run();
-            db.prepare(`INSERT INTO ${DB_VERSION_TABLE_NAME} (${VERSION_TABLE_COLUMNS[0].name}) VALUES (?)`).run(1);
+            db.run(`CREATE TABLE ${DB_VERSION_TABLE_NAME} (${VERSION_TABLE_COLUMNS[0].name} INTEGER)`);
+            db.run(`INSERT INTO ${DB_VERSION_TABLE_NAME} (${VERSION_TABLE_COLUMNS[0].name}) VALUES (?)`, [1]);
 
             setDatabaseVersion(db, 2);
 
-            const versionRow = db.prepare(`SELECT ${VERSION_TABLE_COLUMNS[0].name} FROM ${DB_VERSION_TABLE_NAME}`).get() as {[key: string]: number};
-            assert.strictEqual(versionRow[VERSION_TABLE_COLUMNS[0].name], 2);
+            const [result] = db.exec(`SELECT ${VERSION_TABLE_COLUMNS[0].name} FROM ${DB_VERSION_TABLE_NAME}`)[0].values;
+            assert.strictEqual(Array.isArray(result) ? result[0] : null, 2);
         });
     });
 
@@ -138,7 +132,7 @@ describe('lib/db-utils/migrations', () => {
                 DB_COLUMNS.TIMESTAMP,
                 DB_COLUMNS.DURATION
             ].join(' TEXT, ') + ' TEXT';
-            db.prepare(`CREATE TABLE ${DB_SUITES_TABLE_NAME} (${columns})`).run();
+            db.run(`CREATE TABLE ${DB_SUITES_TABLE_NAME} (${columns})`);
 
             const initialVersion = getDatabaseVersion(db);
             assert.strictEqual(initialVersion, 0);
@@ -147,12 +141,23 @@ describe('lib/db-utils/migrations', () => {
 
             const newVersion = getDatabaseVersion(db);
             assert.strictEqual(newVersion, DB_CURRENT_VERSION);
-            const tableInfo = db.prepare(`PRAGMA table_info(${DB_SUITES_TABLE_NAME})`).all() as {name: string}[];
+
+            const tableInfoStmt = db.prepare(`PRAGMA table_info(${DB_SUITES_TABLE_NAME})`);
+            const tableInfo: {name: string}[] = [];
+            while (tableInfoStmt.step()) {
+                const row = tableInfoStmt.get();
+                if (Array.isArray(row) && row.length > 1) {
+                    tableInfo.push({name: row[1] as string});
+                }
+            }
+            tableInfoStmt.free();
+
             const columnNames = tableInfo.map(col => col.name);
             assert.include(columnNames, DB_COLUMNS.ATTACHMENTS);
-            const versionTableExists = db.prepare(
-                `SELECT name FROM sqlite_master WHERE type='table' AND name=?`
-            ).get(DB_VERSION_TABLE_NAME);
+
+            const versionTableStmt = db.prepare(`SELECT name FROM sqlite_master WHERE type='table' AND name=?`);
+            const versionTableExists = versionTableStmt.get([DB_VERSION_TABLE_NAME]);
+            versionTableStmt.free();
             assert.isNotNull(versionTableExists);
         });
 
