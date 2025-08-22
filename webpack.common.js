@@ -160,6 +160,7 @@ module.exports = {
         })
     ],
     optimization: {
+        splitChunks: {chunks: 'all'},
         minimizer: [
             new CssMinimizerPlugin(),
             new TerserPlugin({
@@ -173,8 +174,5 @@ module.exports = {
             })
         ]
     },
-    performance: {
-        maxEntrypointSize: 2100000,
-        assetFilter: assetFilename => !['gui.min.js', 'report.min.js'].includes(assetFilename)
-    }
+    performance: {maxEntrypointSize: 5000000}
 };

@@ -135,7 +135,8 @@ export async function saveStaticFilesToReportDir(htmlReporter: HtmlReporter, plu
             prepareCommonJSData(getDataForStaticFile(htmlReporter, pluginConfig)),
             'utf8'
         ),
-        copyToReportDir(destPath, ['report.min.js', 'report.min.css', 'newReport.min.js', 'newReport.min.css'], staticFolder),
+        copyFilesToReportDir(destPath, '.js', staticFolder),
+        copyFilesToReportDir(destPath, '.css', staticFolder),
         fs.copy(path.resolve(staticFolder, 'index.html'), path.resolve(destPath, 'index.html')),
         fs.copy(path.resolve(staticFolder, 'new-ui-report.html'), path.resolve(destPath, 'new-ui.html')),
         fs.copy(path.resolve(staticFolder, 'icons'), path.resolve(destPath, 'icons')),
@@ -196,11 +197,19 @@ export async function writeDatabaseUrlsFile(destPath: string, srcPaths: string[]
     await fs.writeJson(path.resolve(destPath, 'databaseUrls.json'), data);
 }
 
-export function copyToReportDir(destPath: string, files: string[], sourceDirectory: string): Promise<void[]> {
-    return Promise.all(files.map(fileName => {
-        const from = path.resolve(sourceDirectory, fileName);
-        const to = path.resolve(destPath, fileName);
-        return fs.copy(from, to);
+export async function copyFilesToReportDir(destPath: string, ext: string, sourceDirectory: string): Promise<void[]> {
+    const sourceDirectoryEntries = await fs.readdir(sourceDirectory);
+    const extensionFilteredEntries = sourceDirectoryEntries.filter(entry => entry.endsWith(ext));
+
+    return Promise.all(extensionFilteredEntries.map(async entry => {
+        const from = path.resolve(sourceDirectory, entry);
+        const to = path.resolve(destPath, entry);
+
+        const isFile = await fs.stat(from).then(stat => stat.isFile());
+
+        if (isFile) {
+            await fs.copy(from, to);
+        }
     }));
 }
 
