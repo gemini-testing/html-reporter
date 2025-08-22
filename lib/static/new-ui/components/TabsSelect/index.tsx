@@ -1,5 +1,6 @@
 import {SegmentedRadioGroup as RadioButton} from '@gravity-ui/uikit';
 import React, {ReactNode} from 'react';
+import classNames from 'classnames';
 
 import {TestStatus, ViewMode} from '@/constants';
 import styles from './index.module.css';
@@ -29,13 +30,14 @@ export interface TabsSelectProps {
     value: string;
     onChange: (value: string) => void;
     disabled: boolean;
+    className?: string;
 }
 
-export function TabsSelect({list, value, onChange, disabled}: TabsSelectProps): ReactNode {
+export function TabsSelect({list, value, onChange, disabled, className}: TabsSelectProps): ReactNode {
     return (
         <RadioButton
             disabled={disabled}
-            className={styles.testStatusFilter}
+            className={classNames(styles.testStatusFilter, className)}
             width={'max'}
             value={value}
             onChange={(e): void => onChange(e.target.value)}

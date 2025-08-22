@@ -50,11 +50,12 @@ import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
 
 interface TreeActionsToolbarProps {
     onHighlightCurrentTest?: () => void;
+    className?: string;
 }
 
 const ANALYTICS_PREFIX = 'Tree actions toolbar:';
 
-export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
+export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActionsToolbarProps): ReactNode {
     const dispatch = useDispatch();
     const analytics = useAnalytics();
 
@@ -192,7 +193,7 @@ export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
             view={'flat'}
             onClick={handleToggleTreeView}
             disabled={!isInitialized} />
-        <IconButton icon={<Icon data={SquareDashed} height={14}/>} tooltip={'Focus on active test'} view={'flat'} onClick={props.onHighlightCurrentTest} disabled={!isFocusAvailable}/>
+        <IconButton icon={<Icon data={SquareDashed} height={14}/>} tooltip={'Focus on active test'} view={'flat'} onClick={onHighlightCurrentTest} disabled={!isFocusAvailable}/>
         <IconButton icon={<Icon data={ChevronsExpandVertical} height={14}/>} tooltip={'Expand all'} view={'flat'} onClick={handleExpandAll} disabled={!isInitialized}/>
         <IconButton icon={<Icon data={ChevronsCollapseVertical} height={14}/>} tooltip={'Collapse all'} view={'flat'} onClick={handleCollapseAll} disabled={!isInitialized}/>
         {areCheckboxesNeeded && <IconButton
@@ -206,7 +207,7 @@ export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
         />}
     </>;
 
-    return <div className={styles.container}>
+    return <div className={classNames(styles.container, className)}>
         <GroupBySelect />
         <SortBySelect />
         <div className={styles.buttonsContainer}>
