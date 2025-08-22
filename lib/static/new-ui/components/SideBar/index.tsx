@@ -35,19 +35,20 @@ export function SideBar({
         <UiCard className={classNames(styles.card, styles.treeViewCard)} key='tree-view' qa='suites-tree-card'>
             <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try to reload page'}/>}>
                 <Text variant="header-2" className={styles['card__title']} qa="sidebar-title">{title}</Text>
-                <Flex gap={2}>
+                <Flex gap={2} className={styles['filters-container']}>
                     <NameFilter/>
                     <BrowsersSelect/>
                 </Flex>
                 <TabsSelect
+                    className={styles['tabs-container']}
                     list={statusList}
                     value={statusValue}
                     onChange={onStatusChange}
                     disabled={!isInitialized}
                 />
-                {onHighlightCurrentTest && <TreeActionsToolbar onHighlightCurrentTest={onHighlightCurrentTest} />}
-                {isInitialized && <TreeView ref={treeViewRef} {...props}/>}
-                {!isInitialized && <TreeViewSkeleton/>}
+                {onHighlightCurrentTest && <TreeActionsToolbar className={styles['toolbar-container']} onHighlightCurrentTest={onHighlightCurrentTest} />}
+                {isInitialized && <TreeView ref={treeViewRef} {...props} containerClassName={styles['tree-view-container']}/>}
+                {!isInitialized && <div className={styles['skeleton-container']}><TreeViewSkeleton/></div>}
             </ErrorHandler.Boundary>
         </UiCard>
     );

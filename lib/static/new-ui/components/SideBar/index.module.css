@@ -3,9 +3,13 @@
 }
 
 .card__title {
-    margin: 20px 0 8px 0;
+    margin: 20px 20px 8px 0;
 }
 
 .tree-view-card {
     gap: 8px;
+}
+
+.filters-container, .tabs-container, .toolbar-container, .skeleton-container, .tree-view-container {
+    padding-right: 20px;
 }

@@ -33,6 +33,7 @@ export interface TreeViewProps {
     treeData: TreeViewData;
     treeViewExpandedById: Record<string, boolean>;
     onClick: (item: TreeViewItemData, expanded: boolean) => void;
+    containerClassName?: string;
 }
 
 export interface TreeViewHandle {
@@ -40,7 +41,7 @@ export interface TreeViewHandle {
 }
 
 export const TreeView = forwardRef<TreeViewHandle, TreeViewProps>(function TreeViewInternal(props, ref): ReactNode {
-    const {currentTreeNodeId, treeData, treeViewExpandedById, onClick} = props;
+    const {currentTreeNodeId, treeData, treeViewExpandedById, onClick, containerClassName} = props;
     const dispatch = useDispatch();
     const treeViewMode = useSelector(getTreeViewMode);
 
@@ -176,7 +177,7 @@ export const TreeView = forwardRef<TreeViewHandle, TreeViewProps>(function TreeV
 
     return (
         <ListContainerView className={styles.treeView}>
-            <div ref={parentRef} className={styles['tree-view__container']}>
+            <div ref={parentRef} className={classNames(styles['tree-view__container'], containerClassName)}>
                 <div
                     className={styles['tree-view__total-size-wrapper']}
                     style={{height: virtualizer.getTotalSize()}}
