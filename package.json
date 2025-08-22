@@ -92,7 +92,6 @@
     }
   },
   "dependencies": {
-    "@babel/runtime": "^7.22.5",
     "@gemini-testing/commander": "^2.15.3",
     "@gemini-testing/sql.js": "^3.0.0",
     "ansi-html-community": "^0.0.8",
