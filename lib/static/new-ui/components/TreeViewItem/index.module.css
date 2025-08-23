@@ -24,6 +24,10 @@
     transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out;
 }
 
+.tree-view-item > div > div {
+    align-items: baseline !important;
+}
+
 .tree-view-item--active {
     background: var(--g-color-base-brand);
     --g-color-base-simple-hover: var(--g-color-base-brand);
