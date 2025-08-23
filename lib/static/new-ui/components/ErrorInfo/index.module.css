@@ -1,6 +1,8 @@
 .code {
     white-space: pre;
     font-family: monospace;
+    line-height: 1.2;
+    font-size: 14px;
     overflow-x: scroll;
     overflow-y: hidden;
     background: #101827;
