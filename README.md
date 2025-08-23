@@ -11,6 +11,7 @@
 <p align="center">
     <a href="https://testplane.io"><img src="https://img.shields.io/badge/Docs-Website-6c47ff" alt="Total Downloads"></a>
     <a href="https://www.npmjs.com/package/html-reporter"><img src="https://img.shields.io/npm/dt/html-reporter.svg" alt="Total Downloads"></a>
+    <a href="https://dependents.info/gemini-testing/html-reporter"><img src="https://dependents.info/gemini-testing/html-reporter/badge" alt="Network Dependents" /></a>
     <a href="https://github.com/gemini-testing/html-reporter/releases"><img src="https://img.shields.io/npm/v/html-reporter.svg" alt="Latest Release"></a>
     <a href="https://github.com/gemini-testing/html-reporter/blob/master/LICENSE"><img src="https://img.shields.io/npm/l/html-reporter.svg" alt="License"></a>
     <a href="https://t.me/testplane"><img src="https://img.shields.io/badge/community-chat-blue?logo=telegram" alt="Community Chat"></a>
@@ -21,6 +22,12 @@
 <br/>
 
 `html-reporter` or, as we also call it, Testplane UI — is an open-source project that can be used to view test results or interact with tools like [Testplane](https://testplane.io), [Playwright](https://playwright.dev/) or [Jest](https://jestjs.io/).
+
+## Used by
+
+<a href="https://dependents.info/gemini-testing/html-reporter">
+  <img src="https://dependents.info/gemini-testing/html-reporter/image" alt="Users Image" />
+</a>
 
 ## Features
 
