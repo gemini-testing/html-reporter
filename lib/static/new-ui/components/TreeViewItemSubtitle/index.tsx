@@ -27,7 +27,7 @@ export function TreeViewItemSubtitle(props: TreeViewItemSubtitleProps): ReactNod
 
     if (props.item.images?.length) {
         return (
-            <div>
+            <div style={{overflow: 'hidden'}}>
                 {props.item.images.map((imageEntity) => {
                     const images = [];
 
