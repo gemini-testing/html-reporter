@@ -11,8 +11,10 @@
 
     line-height: 20px;
 
-    padding: 4px 0;
+    padding: 6px 0;
     font-size: 18px;
+
+    border-radius: 8px;
 
     user-select: none;
     cursor: pointer;
@@ -20,6 +22,10 @@
     padding-left: calc(var(--indent) * 24px);
 
     transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out;
+}
+
+.tree-view-item > div > div {
+    align-items: baseline !important;
 }
 
 .tree-view-item--active {

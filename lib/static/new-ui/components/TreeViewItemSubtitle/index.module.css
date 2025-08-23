@@ -36,6 +36,8 @@
 .image-diff-item{
     img {
         max-height: 40vh;
+        max-width: calc(min(var(--natural-width) * 1px, 40vh * var(--natural-width) / var(--natural-height), 100%));
+        width: 100vw;
     }
 
     p {
