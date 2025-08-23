@@ -34,6 +34,7 @@
     gap: 12px;
     overflow: scroll;
     container-type: size;
+    padding-right: 20px;
 }
 
 .sticky-header {
