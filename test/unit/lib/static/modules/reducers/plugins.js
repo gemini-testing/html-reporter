@@ -10,7 +10,7 @@ describe('lib/static/modules/reducers/plugins', () => {
     beforeEach(() => {
         forEachStub = sandbox.stub();
         reducer = proxyquire('lib/static/modules/reducers/plugins', {
-            '../plugins': {forEach: forEachStub}
+            '../plugins': {forEachPlugin: forEachStub}
         }).default;
 
         forEachStub.callsFake((callback) => callback({reducers: [

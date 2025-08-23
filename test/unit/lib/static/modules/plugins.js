@@ -125,14 +125,14 @@ describe('static/modules/plugins', () => {
         it('should throw when requested plugin is not loaded', async () => {
             await plugins.loadAll();
 
-            assert.throws(() => plugins.get('plugin-x', 'TestComponent'), 'Plugin "plugin-x" is not loaded.');
+            assert.throws(() => plugins.getPluginField('plugin-x', 'TestComponent'), 'Plugin "plugin-x" is not loaded.');
         });
 
         it('should throw when specified plugin component does not exist', async () => {
             loadPluginStub.resolves({});
             await plugins.loadAll({pluginsEnabled: true, plugins: [{name: 'plugin-a'}]});
 
-            assert.throws(() => plugins.get('plugin-a', 'TestComponent'), '"TestComponent" is not defined on plugin "plugin-a".');
+            assert.throws(() => plugins.getPluginField('plugin-a', 'TestComponent'), '"TestComponent" is not defined on plugin "plugin-a".');
         });
 
         it('should return requested component when plugin is loaded', async () => {
@@ -140,7 +140,7 @@ describe('static/modules/plugins', () => {
             loadPluginStub.resolves({TestComponent});
             await plugins.loadAll({pluginsEnabled: true, plugins: [{name: 'plugin-a'}]});
 
-            const result = plugins.get('plugin-a', 'TestComponent');
+            const result = plugins.getPluginField('plugin-a', 'TestComponent');
 
             assert.strictEqual(result, TestComponent);
         });
@@ -156,7 +156,7 @@ describe('static/modules/plugins', () => {
         it('should not call the callback when no plugins are loaded', async () => {
             await plugins.loadAll();
 
-            plugins.forEach(callbackStub);
+            plugins.forEachPlugin(callbackStub);
 
             assert.notCalled(callbackStub);
         });
@@ -164,7 +164,7 @@ describe('static/modules/plugins', () => {
         it('should not call the callback when plugins are enabled but not defined', async () => {
             await plugins.loadAll({pluginsEnabled: true});
 
-            plugins.forEach(callbackStub);
+            plugins.forEachPlugin(callbackStub);
 
             assert.notCalled(callbackStub);
         });
@@ -182,7 +182,7 @@ describe('static/modules/plugins', () => {
                 ]
             });
 
-            plugins.forEach(callbackStub);
+            plugins.forEachPlugin(callbackStub);
 
             assert.notCalled(callbackStub);
         });
@@ -207,7 +207,7 @@ describe('static/modules/plugins', () => {
                 ]
             });
 
-            plugins.forEach(callbackStub);
+            plugins.forEachPlugin(callbackStub);
 
             assert.deepStrictEqual(callbackStub.args, [
                 [pluginsToLoad['plugin-a'], 'plugin-a'],
