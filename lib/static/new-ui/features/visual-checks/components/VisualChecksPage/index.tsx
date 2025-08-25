@@ -41,6 +41,7 @@ export function VisualChecksPage(): ReactNode {
     const lastAttempt = useSelector(getLastAttempt);
     const currentImage = useSelector(getCurrentImage);
     const currentBrowser = useSelector(getCurrentBrowser);
+    const diffMode = useSelector(state => state.app.visualChecksPage.diffMode);
     const [imageChanged, setImageChanged] = useState<boolean>(false);
 
     const navigate = useNavigate();
@@ -172,7 +173,7 @@ export function VisualChecksPage(): ReactNode {
                                 {currentImage && !isRunning && (
                                     <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try to choose another item'}/>}>
                                         <div className={styles.currentImage}>
-                                            <AssertViewResult result={currentImage} />
+                                            <AssertViewResult result={currentImage} diffMode={diffMode} />
                                         </div>
                                     </ErrorHandler.Boundary>
                                 )}

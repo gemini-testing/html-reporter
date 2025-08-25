@@ -1,0 +1,23 @@
+.toolbar {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 100;
+    pointer-events: auto;
+    --g-button-background-color: rgba(255, 255, 255, 0.8);
+    --g-button-background-color-hover: var(--color-neutral-100);
+    --g-button-border-color: rgba(210, 210, 210, 0.4);
+    --g-button-border-width: 1px;
+    --g-button-text-color: var(--color-neutral-500);
+}
+
+.toolbar-button {
+    opacity: 0.6;
+}
+
+.toolbar-button:hover {
+    opacity: 1;
+}

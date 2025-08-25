@@ -35,6 +35,11 @@ export const DiffModes = {
         id: 'onion-skin',
         title: 'Onion skin',
         description: 'Onion Skin. Change the image opacity to compare expected and actual images.'
+    },
+    TWO_UP_INTERACTIVE: {
+        id: '2-up-interactive',
+        title: '2-up Interactive',
+        description: '2-up Interactive. Compare expected and actual images side by side with synchronized pan and zoom.'
     }
 } as const;
 
