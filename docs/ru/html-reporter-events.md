@@ -24,7 +24,7 @@ hermione.htmlReporter.on(hermione.htmlReporter.events.DATABASE_CREATED, (db) => 
 
 #### Параметры обработчика
 
-В обработчик события передается инстанс базы данных.
+В обработчик события передается инстанс базы данных [sql.js](https://www.npmjs.com/package/sql.js).
 
 ### Пример использования
 

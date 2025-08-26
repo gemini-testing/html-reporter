@@ -1,7 +1,10 @@
 const childProcess = require('child_process');
+const {existsSync} = require('fs');
 const fs = require('fs/promises');
 const path = require('path');
-const treeKill = require('tree-kill');
+const {promisify} = require('util');
+
+const treeKill = promisify(require('tree-kill'));
 
 const {PORTS} = require('../../utils/constants');
 const {hideScreenshots, runGui, waitForFsChanges, getFsDiffFromVcs} = require('../utils');
@@ -21,7 +24,12 @@ describe('Tinder mode', () => {
     let guiProcess;
 
     beforeEach(async ({browser}) => {
-        await fs.cp(reportDir, reportBackupDir, {recursive: true});
+        if (existsSync(reportBackupDir)) {
+            await fs.rm(reportDir, {recursive: true, force: true, maxRetries: 3});
+            await fs.cp(reportBackupDir, reportDir, {recursive: true, force: true});
+        } else {
+            await fs.cp(reportDir, reportBackupDir, {recursive: true});
+        }
 
         guiProcess = await runGui(projectDir);
 
@@ -34,9 +42,6 @@ describe('Tinder mode', () => {
 
     afterEach(async () => {
         await treeKill(guiProcess.pid);
-
-        await fs.rm(reportDir, {recursive: true, force: true, maxRetries: 3});
-        await fs.rename(reportBackupDir, reportDir);
 
         childProcess.execSync('git restore .', {cwd: screensDir});
         childProcess.execSync('git clean -dfx .', {cwd: screensDir});

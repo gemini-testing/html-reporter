@@ -1,5 +1,5 @@
 import path from 'path';
-import Database from 'better-sqlite3';
+import type {Database, Statement} from '@gemini-testing/sql.js';
 import makeDebug from 'debug';
 import fs from 'fs-extra';
 import NestedError from 'nested-error-stacks';
@@ -12,6 +12,7 @@ import type {Attachment, ImageInfoFull, TestError, TestStepCompressed} from './t
 import {HtmlReporter} from './plugin-api';
 import {ReporterTestResult} from './adapters/test-result';
 import {DbTestResultTransformer} from './adapters/test-result/transformers/db';
+import {makeSqlDatabaseFromFile} from './db-utils/server';
 
 const debug = makeDebug('html-reporter:sqlite-client');
 
@@ -26,9 +27,6 @@ interface QueryParams {
 
 interface DeleteParams {
     where?: string;
-    orderBy?: string;
-    orderDescending?: boolean;
-    limit?: number;
 }
 
 export interface DbTestResult {
@@ -63,19 +61,21 @@ interface SqliteClientOptions {
 }
 
 export class SqliteClient {
-    private readonly _db: Database.Database;
+    private readonly _db: Database;
+    private readonly _dbPath: string;
+    private readonly _insertSuitesStatement: Statement;
     private _queryCache: Map<string, unknown>;
     private _transformer: DbTestResultTransformer;
 
     static async create<T extends SqliteClient>(
-        this: { new(db: Database.Database, transformer: DbTestResultTransformer): T },
+        this: { new(db: Database, dbPath: string, transformer: DbTestResultTransformer): T },
         options: SqliteClientOptions
     ): Promise<T> {
         const {htmlReporter, reportPath} = options;
         const dbPath = path.resolve(reportPath, LOCAL_DATABASE_NAME);
         const dbUrlsJsonPath = path.resolve(reportPath, DATABASE_URLS_JSON_NAME);
 
-        let db: Database.Database;
+        let db: Database;
 
         try {
             if (!options.reuse) {
@@ -87,10 +87,12 @@ export class SqliteClient {
 
             await fs.ensureDir(reportPath);
 
-            db = new Database(dbPath);
+            db = await makeSqlDatabaseFromFile(options.reuse ? dbPath : null);
             debug('db connection opened');
 
-            createTablesQuery().forEach((query) => db?.prepare(query).run());
+            createTablesQuery().forEach((query) => db.run(query));
+
+            Object.defineProperty(db, 'transaction', {value: (cb: unknown) => cb});
 
             if (!options.reuse) {
                 setDatabaseVersion(db, DB_CURRENT_VERSION);
@@ -101,23 +103,28 @@ export class SqliteClient {
 
         const transformer = new DbTestResultTransformer({baseHost: htmlReporter.config.baseHost});
 
-        return new this(db, transformer);
+        return new this(db, dbPath, transformer);
     }
 
-    constructor(db: Database.Database, transformer: DbTestResultTransformer) {
+    constructor(db: Database, dbPath: string, transformer: DbTestResultTransformer) {
         this._db = db;
+        this._dbPath = dbPath;
         this._queryCache = new Map();
         this._transformer = transformer;
+
+        const placeholders = Array(SUITES_TABLE_COLUMNS.length).fill('?').join(', ');
+        this._insertSuitesStatement = this._db.prepare(`INSERT INTO ${DB_SUITES_TABLE_NAME} VALUES (${placeholders})`);
     }
 
-    getRawConnection(): Database.Database {
+    getRawConnection(): Database {
         return this._db;
     }
 
     close(): void {
-        this._db.prepare('VACUUM').run();
+        fs.writeFileSync(this._dbPath, this._db.run('VACUUM').export());
 
         debug('db connection closed');
+
         this._db.close();
     }
 
@@ -132,7 +139,9 @@ export class SqliteClient {
         const sentence = `SELECT ${select || '*'} FROM ${DB_SUITES_TABLE_NAME}`
             + this._createSentence({where, orderBy, orderDescending, limit});
 
-        const result = this._db.prepare(sentence).get(...queryArgs);
+        const getStatement = this._db.prepare(sentence);
+        const result = getStatement.getAsObject(queryArgs);
+        getStatement.free();
 
         if (!noCache) {
             this._queryCache.set(cacheKey, result);
@@ -145,15 +154,14 @@ export class SqliteClient {
         const dbTestResult = this._transformer.transform(testResult);
         const values = this._createValuesArray(dbTestResult);
 
-        const placeholders = values.map(() => '?').join(', ');
-        this._db.prepare(`INSERT INTO ${DB_SUITES_TABLE_NAME} VALUES (${placeholders})`).run(...values);
+        this._insertSuitesStatement.run(values);
     }
 
     delete(deleteParams: DeleteParams = {}, ...deleteArgs: string[]): void {
         const sentence = `DELETE FROM ${DB_SUITES_TABLE_NAME}`
             + this._createSentence(deleteParams);
 
-        this._db.prepare(sentence).run(...deleteArgs);
+        this._db.run(sentence, deleteArgs);
     }
 
     private _createSentence(params: { where?: string; orderBy?: string; orderDescending?: boolean; limit?: number }): string {

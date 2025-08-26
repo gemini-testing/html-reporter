@@ -24,7 +24,7 @@ hermione.htmlReporter.on(hermione.htmlReporter.events.DATABASE_CREATED, (db) => 
 
 #### Handler parameters
 
-A database instance is passed to the event handler.
+A [sql.js](https://www.npmjs.com/package/sql.js) database instance is passed to the event handler.
 
 ### Usage example
 

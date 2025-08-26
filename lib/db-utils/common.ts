@@ -2,7 +2,7 @@ import _ from 'lodash';
 import {logger} from '../common-utils';
 import {DB_MAX_AVAILABLE_PAGE_SIZE, DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS, DB_COLUMN_INDEXES, DB_VERSION_TABLE_NAME, VERSION_TABLE_COLUMNS} from '../constants';
 import {DbUrlsJsonData, RawSuitesRow, ReporterConfig} from '../types';
-import type {Database as BetterSqlite3Database, Statement} from 'better-sqlite3';
+import type {Database as SqlJsDatabase, Statement} from '@gemini-testing/sql.js';
 import {ReadonlyDeep} from 'type-fest';
 
 export const selectAllQuery = (tableName: string): string => `SELECT * FROM ${tableName}`;
@@ -69,21 +69,22 @@ export const handleDatabases = async (dbJsonUrls: string[], opts: HandleDatabase
     );
 };
 
-export const mergeTables = ({db, dbPaths, getExistingTables = (): string[] => []}: { db: BetterSqlite3Database, dbPaths: string[], getExistingTables?: (getTablesStatement: Statement<[]>) => string[] }): void => {
-    db.prepare(`PRAGMA page_size = ${DB_MAX_AVAILABLE_PAGE_SIZE}`).run();
+export const mergeTables = ({db, dbPaths, getExistingTables = (): string[] => []}: { db: SqlJsDatabase, dbPaths: string[], getExistingTables?: (getTablesStatement: Statement) => string[] }): void => {
+    db.run(`PRAGMA page_size = ${DB_MAX_AVAILABLE_PAGE_SIZE}`);
 
     for (const dbPath of dbPaths) {
-        db.prepare(`ATTACH DATABASE '${dbPath}' AS attached`).run();
+        db.run(`ATTACH DATABASE '${dbPath}' AS attached`);
 
-        const getTablesStatement = db.prepare<[]>(`SELECT name FROM attached.sqlite_master WHERE type='table'`);
+        const getTablesStatement = db.prepare(`SELECT name FROM attached.sqlite_master WHERE type='table'`);
         const tables = getExistingTables(getTablesStatement);
+        getTablesStatement.free();
 
         for (const tableName of tables) {
-            db.prepare(`CREATE TABLE IF NOT EXISTS ${tableName} AS SELECT * FROM attached.${tableName} LIMIT 0`).run();
-            db.prepare(`INSERT OR IGNORE INTO ${tableName} SELECT * FROM attached.${tableName}`).run();
+            db.run(`CREATE TABLE IF NOT EXISTS ${tableName} AS SELECT * FROM attached.${tableName} LIMIT 0`);
+            db.run(`INSERT OR IGNORE INTO ${tableName} SELECT * FROM attached.${tableName}`);
         }
 
-        db.prepare(`DETACH attached`).run();
+        db.run(`DETACH attached`);
     }
 };
 
