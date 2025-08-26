@@ -10,7 +10,7 @@ const {stubToolAdapter, stubReporterConfig} = require('test/unit/utils');
 
 describe('lib/cli/commands/remove-unused-screens', () => {
     const sandbox = sinon.sandbox.create();
-    let actionPromise, removeUnusedScreens, getTestsFromFs, findScreens, askQuestion;
+    let actionPromise, removeUnusedScreens, getTestsFromFs, findScreens, askConfirm;
     let identifyOutdatedScreens, identifyUnusedScreens, removeScreens, filesizeMock;
 
     const mkProgram_ = (options = {}) => ({
@@ -58,7 +58,7 @@ describe('lib/cli/commands/remove-unused-screens', () => {
 
         getTestsFromFs = sandbox.stub().resolves(mkTestsTreeFromFs_());
         findScreens = sandbox.stub().resolves([]);
-        askQuestion = sandbox.stub().resolves(true);
+        askConfirm = sandbox.stub().resolves(true);
         identifyOutdatedScreens = sandbox.stub().returns([]);
         identifyUnusedScreens = sandbox.stub().returns([]);
         removeScreens = sandbox.stub().resolves();
@@ -68,7 +68,7 @@ describe('lib/cli/commands/remove-unused-screens', () => {
         removeUnusedScreens = proxyquire('lib/cli/commands/remove-unused-screens', {
             ora: () => ({start: sandbox.stub(), succeed: sandbox.stub()}),
             filesize: filesizeMock,
-            './utils': {getTestsFromFs, findScreens, askQuestion, identifyOutdatedScreens, identifyUnusedScreens, removeScreens}
+            './utils': {getTestsFromFs, findScreens, askConfirm, identifyOutdatedScreens, identifyUnusedScreens, removeScreens}
         });
     });
 
@@ -161,7 +161,7 @@ describe('lib/cli/commands/remove-unused-screens', () => {
 
             await removeUnusedScreens_({program});
 
-            assert.calledWith(askQuestion,
+            assert.calledWith(askConfirm,
                 sinon.match({message: 'Identify outdated reference images (tests for them are removed)?'}),
                 program.options
             );
@@ -169,7 +169,7 @@ describe('lib/cli/commands/remove-unused-screens', () => {
 
         it('should not handle outdated images if user say "no"', async () => {
             const program = mkProgram_({pattern: ['some/pattern'], skipQuestions: false});
-            askQuestion.withArgs(sinon.match({name: 'identifyOutdated'}), program.options).resolves(false);
+            askConfirm.withArgs(sinon.match({message: 'Identify outdated reference images (tests for them are removed)?'}), program.options).resolves(false);
 
             await removeUnusedScreens_({program});
 
@@ -181,8 +181,8 @@ describe('lib/cli/commands/remove-unused-screens', () => {
 
             beforeEach(() => {
                 skipQuestions = false;
-                askQuestion.withArgs(
-                    sinon.match({name: 'identifyOutdated'}),
+                askConfirm.withArgs(
+                    sinon.match({message: 'Identify outdated reference images (tests for them are removed)?'}),
                     sinon.match({skipQuestions})
                 ).resolves(true);
             });
@@ -262,7 +262,7 @@ describe('lib/cli/commands/remove-unused-screens', () => {
 
                     await removeUnusedScreens_({program});
 
-                    assert.calledWith(askQuestion,
+                    assert.calledWith(askConfirm,
                         sinon.match({message: 'Show list of outdated reference images? (2 paths)'}),
                         program.options
                     );
@@ -270,7 +270,7 @@ describe('lib/cli/commands/remove-unused-screens', () => {
 
                 it('should not show list if user say "no"', async () => {
                     const program = mkProgram_({pattern: ['some/pattern'], skipQuestions: false});
-                    askQuestion.withArgs(sinon.match({name: 'shouldShowList'}), program.options).resolves(false);
+                    askConfirm.withArgs(sinon.match({message: 'Show list of outdated reference images? (2 paths)'}), program.options).resolves(false);
 
                     await removeUnusedScreens_({program});
 
@@ -279,7 +279,7 @@ describe('lib/cli/commands/remove-unused-screens', () => {
 
                 it('should show list if user say "yes"', async () => {
                     const program = mkProgram_({pattern: ['some/pattern'], skipQuestions: false});
-                    askQuestion.withArgs(sinon.match({name: 'shouldShowList'}), program.options).resolves(true);
+                    askConfirm.withArgs(sinon.match({message: 'Show list of outdated reference images? (2 paths)'}), program.options).resolves(true);
 
                     await removeUnusedScreens_({program});
 
@@ -297,7 +297,7 @@ describe('lib/cli/commands/remove-unused-screens', () => {
 
                     await removeUnusedScreens_({program});
 
-                    assert.calledWith(askQuestion,
+                    assert.calledWith(askConfirm,
                         sinon.match({message: 'Remove outdated reference images?'}),
                         program.options
                     );
@@ -305,7 +305,7 @@ describe('lib/cli/commands/remove-unused-screens', () => {
 
                 it('should not remove if user say "no"', async () => {
                     const program = mkProgram_({pattern: ['some/pattern'], skipQuestions: false});
-                    askQuestion.withArgs(sinon.match({name: 'shouldRemove'}), program.options).resolves(false);
+                    askConfirm.withArgs(sinon.match({message: 'Remove outdated reference images?'}), program.options).resolves(false);
                     identifyOutdatedScreens.returns(['/root/outdatedTestId/1.png', '/root/outdatedTestId/2.png']);
 
                     await removeUnusedScreens_({program});
@@ -317,7 +317,7 @@ describe('lib/cli/commands/remove-unused-screens', () => {
                     const outdatedScreens = ['/root/outdatedTestId/1.png', '/root/outdatedTestId/2.png'];
                     identifyOutdatedScreens.returns(outdatedScreens);
                     const program = mkProgram_({pattern: ['some/pattern'], skipQuestions: false});
-                    askQuestion.withArgs(sinon.match({name: 'shouldRemove'}), program.options).resolves(true);
+                    askConfirm.withArgs(sinon.match({message: 'Remove outdated reference images?'}), program.options).resolves(true);
 
                     await removeUnusedScreens_({program});
 
@@ -333,7 +333,7 @@ describe('lib/cli/commands/remove-unused-screens', () => {
 
             await removeUnusedScreens_({program});
 
-            assert.calledWith(askQuestion,
+            assert.calledWith(askConfirm,
                 sinon.match({message: sinon.match(/Identify unused reference images?/)}),
                 program.options
             );
@@ -342,7 +342,7 @@ describe('lib/cli/commands/remove-unused-screens', () => {
         it('should not handle unused images if user say "no"', async () => {
             const toolAdapter = mkToolAdapter_();
             const program = mkProgram_({pattern: ['some/pattern'], skipQuestions: false});
-            askQuestion.withArgs(sinon.match({name: 'identifyUnused'}), program.options).resolves(false);
+            askConfirm.withArgs(sinon.match({message: sinon.match(/Identify unused reference images?/)}), program.options).resolves(false);
 
             await removeUnusedScreens_({toolAdapter, program});
 
@@ -357,7 +357,7 @@ describe('lib/cli/commands/remove-unused-screens', () => {
                 toolAdapter = mkToolAdapter_({reporterConfig});
                 program = mkProgram_({pattern: ['some/pattern'], skipQuestions: false});
 
-                askQuestion.withArgs(sinon.match({name: 'identifyUnused'}), program.options).resolves(true);
+                askConfirm.withArgs(sinon.match({message: sinon.match(/Identify unused reference images?/)}), program.options).resolves(true);
             });
 
             it('should inform user if report with the result of test run is missing on fs', async () => {
@@ -491,14 +491,14 @@ describe('lib/cli/commands/remove-unused-screens', () => {
                 it('should ask user about it', async () => {
                     await removeUnusedScreens_({program});
 
-                    assert.calledWith(askQuestion,
+                    assert.calledWith(askConfirm,
                         sinon.match({message: 'Show list of unused reference images? (2 paths)'}),
                         program.options
                     );
                 });
 
                 it('should not show list if user say "no"', async () => {
-                    askQuestion.withArgs(sinon.match({name: 'shouldShowList'}), program.options).resolves(false);
+                    askConfirm.withArgs(sinon.match({message: 'Show list of unused reference images? (2 paths)'}), program.options).resolves(false);
 
                     await removeUnusedScreens_({program});
 
@@ -506,7 +506,7 @@ describe('lib/cli/commands/remove-unused-screens', () => {
                 });
 
                 it('should show list if user say "yes"', async () => {
-                    askQuestion.withArgs(sinon.match({name: 'shouldShowList'}), program.options).resolves(true);
+                    askConfirm.withArgs(sinon.match({message: 'Show list of unused reference images? (2 paths)'}), program.options).resolves(true);
 
                     await removeUnusedScreens_({program});
 
@@ -523,14 +523,14 @@ describe('lib/cli/commands/remove-unused-screens', () => {
 
                     await removeUnusedScreens_({program});
 
-                    assert.calledWith(askQuestion,
+                    assert.calledWith(askConfirm,
                         sinon.match({message: 'Remove unused reference images?'}),
                         program.options
                     );
                 });
 
                 it('should not remove if user say "no"', async () => {
-                    askQuestion.withArgs(sinon.match({name: 'shouldRemove'}), program.options).resolves(false);
+                    askConfirm.withArgs(sinon.match({message: 'Remove unused reference images?'}), program.options).resolves(false);
                     identifyUnusedScreens.returns(['/root/unusedTestId/1.png', '/root/unusedTestId/2.png']);
 
                     await removeUnusedScreens_({program});
@@ -541,7 +541,7 @@ describe('lib/cli/commands/remove-unused-screens', () => {
                 it('should remove if user say "yes"', async () => {
                     const unusedScreens = ['/root/unusedTestId/1.png', '/root/unusedTestId/2.png'];
                     identifyUnusedScreens.returns(unusedScreens);
-                    askQuestion.withArgs(sinon.match({name: 'shouldRemove'}), program.options).resolves(true);
+                    askConfirm.withArgs(sinon.match({message: 'Remove unused reference images?'}), program.options).resolves(true);
 
                     await removeUnusedScreens_({program});
 

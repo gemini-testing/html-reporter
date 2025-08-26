@@ -151,6 +151,7 @@ describe('lib/testplane', () => {
 
         sandbox.spy(HtmlReporter, 'create');
 
+        sandbox.stub(fs, 'readdir').resolves([]);
         sandbox.stub(fs, 'ensureDir').resolves();
         sandbox.stub(fs, 'writeFile').resolves();
         sandbox.stub(fs, 'writeJson').resolves();

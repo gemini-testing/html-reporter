@@ -3,7 +3,7 @@
 const _ = require('lodash');
 const fs = require('fs-extra');
 const proxyquire = require('proxyquire');
-const inquirer = require('inquirer');
+const confirm = require('@inquirer/confirm');
 
 const {TestplaneTestAdapter} = require('lib/adapters/test/testplane');
 const {TestplaneConfigAdapter} = require('lib/adapters/config/testplane');
@@ -179,20 +179,20 @@ describe('lib/cli/commands/remove-unused-screens/utils', () => {
         });
     });
 
-    describe('"askQuestion" method', () => {
+    describe('"askConfirm" method', () => {
         beforeEach(() => {
-            sandbox.stub(inquirer, 'prompt').resolves({});
+            sandbox.stub(confirm, 'default').resolves({});
         });
 
         describe('cli option of skip questions is true', () => {
             it('should not ask user any questions', async () => {
-                await utils.askQuestion({default: false}, {skipQuestions: true});
+                await utils.askConfirm({default: false}, {skipQuestions: true});
 
-                assert.notCalled(inquirer.prompt);
+                assert.notCalled(confirm.default);
             });
 
             it('should return default answer', async () => {
-                const result = await utils.askQuestion({default: false}, {skipQuestions: true});
+                const result = await utils.askConfirm({default: false}, {skipQuestions: true});
 
                 assert.isFalse(result);
             });
@@ -200,18 +200,18 @@ describe('lib/cli/commands/remove-unused-screens/utils', () => {
 
         describe('cli option of skip questions is false', () => {
             it('should ask user passed question', async () => {
-                const question = {name: 'someQuestion'};
+                const question = {message: 'someQuestion'};
 
-                await utils.askQuestion(question);
+                await utils.askConfirm(question);
 
-                assert.calledOnceWith(inquirer.prompt, [question]);
+                assert.calledOnceWith(confirm.default, question);
             });
 
             it('should return user answer on passed question', async () => {
-                const question = {name: 'someQuestion'};
-                inquirer.prompt.withArgs([question]).resolves({someQuestion: true});
+                const question = {message: 'someQuestion'};
+                confirm.default.withArgs(question).resolves(true);
 
-                const result = await utils.askQuestion(question);
+                const result = await utils.askConfirm(question);
 
                 assert.isTrue(result);
             });
