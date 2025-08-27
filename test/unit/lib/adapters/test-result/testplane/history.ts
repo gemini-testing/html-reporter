@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import {getHistory, collapseRepeatingGroups} from 'lib/adapters/test-result/testplane/history';
 import {TestStepCompressed, TestStepKey} from 'lib/types';
 import {getHistoryInput, getHistoryResultAll, getHistoryResultOnlyFailed} from './mocks';
@@ -26,6 +27,22 @@ const getHistoryList = (list: CompressedTestResult[]): TestStepCompressed[] => (
     }))
 );
 
+const removeUndefinedPropertiesDeep = (steps: TestStepCompressed[]): TestStepCompressed[] => {
+    for (const step of steps) {
+        for (const key in step) {
+            if (_.isUndefined(step[key])) {
+                delete step[key];
+            }
+        }
+
+        if (TestStepKey.Children in step) {
+            removeUndefinedPropertiesDeep(step[TestStepKey.Children]);
+        }
+    }
+
+    return steps;
+};
+
 const repeatArray = <T>(arr: T[], n: number): T[] => Array(n).fill(arr).flat();
 
 describe('collapseRepeatingGroups', () => {
@@ -35,9 +52,9 @@ describe('collapseRepeatingGroups', () => {
             ['pause', ['1000'], 1000, 0, false, false],
             ['pause', ['1000'], 1000, 0, false, false]
         ];
-        const result = collapseRepeatingGroups(getHistoryList(list));
+        const actual = collapseRepeatingGroups(getHistoryList(list));
 
-        expect(result).toEqual([{
+        assert.deepEqual(removeUndefinedPropertiesDeep(actual), [{
             [TestStepKey.Name]: 'pause',
             [TestStepKey.Args]: ['1000'],
             [TestStepKey.Duration]: 3000,
@@ -59,7 +76,7 @@ describe('collapseRepeatingGroups', () => {
         );
         const result = collapseRepeatingGroups(getHistoryList(list));
 
-        expect(result).toEqual([{
+        assert.deepEqual(result, [{
             [TestStepKey.Name]: 'Repeated group',
             [TestStepKey.Args]: ['3 items'],
             [TestStepKey.Duration]: 4080,
@@ -113,16 +130,20 @@ describe('collapseRepeatingGroups', () => {
         );
         const result = collapseRepeatingGroups(getHistoryList(list));
 
-        expect(result.length).toEqual(list.length);
+        assert.equal(result.length, list.length);
     });
 });
 
 describe('getHistory', () => {
     it('saveHistoryMode: all', () => {
-        expect(getHistory(getHistoryInput, 'all')).toEqual(getHistoryResultAll);
+        const actual = getHistory(getHistoryInput, 'all');
+
+        assert.deepEqual(removeUndefinedPropertiesDeep(actual), getHistoryResultAll);
     });
 
     it('saveHistoryMode: onlyFailed', () => {
-        expect(getHistory(getHistoryInput, 'onlyFailed')).toEqual(getHistoryResultOnlyFailed);
+        const actual = getHistory(getHistoryInput, 'onlyFailed');
+
+        assert.deepEqual(removeUndefinedPropertiesDeep(actual), getHistoryResultOnlyFailed);
     });
 });
