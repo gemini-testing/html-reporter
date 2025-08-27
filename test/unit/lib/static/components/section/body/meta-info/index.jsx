@@ -6,18 +6,13 @@ import userEvent from '@testing-library/user-event';
 
 describe('<MetaInfo />', () => {
     const sandbox = sinon.sandbox.create();
-    let MetaInfo, MetaInfoContent, actionsStub;
+    let MetaInfo, MetaInfoContent;
 
     beforeEach(() => {
-        actionsStub = {
-            toggleMetaInfo: sandbox.stub().returns({type: 'some-type'})
-        };
-
         MetaInfoContent = sinon.stub().returns(null);
 
         MetaInfo = proxyquire('lib/static/components/section/body/meta-info', {
-            '@/static/new-ui/components/MetaInfo': {MetaInfo: MetaInfoContent},
-            '../../../../modules/actions': actionsStub
+            '@/static/new-ui/components/MetaInfo': {MetaInfo: MetaInfoContent}
         }).default;
     });
 
@@ -42,17 +37,6 @@ describe('<MetaInfo />', () => {
                 MetaInfoContent,
                 {qa: 'meta-info', resultId: 'some-result'}
             );
-        });
-    });
-
-    describe('"toggleMetaInfo" action', () => {
-        it('should call on click in details', async () => {
-            const user = userEvent.setup();
-            const component = mkMetaInfoComponent();
-
-            await user.click(component.getByText('Meta'));
-
-            assert.calledOnceWith(actionsStub.toggleMetaInfo);
         });
     });
 });
