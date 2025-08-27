@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import {ReporterTestResult} from '../index';
-import {TupleToUnion} from 'type-fest';
+import type {TupleToUnion} from 'type-fest';
 import {ErrorDetails, ImageInfoDiff, ImageInfoFull} from '../../../types';
 import {ERROR_DETAILS_PATH} from '../../../constants';
 import {ReporterTestAdapter} from '../reporter';

@@ -6,7 +6,6 @@ import makeDebug from 'debug';
 import fsExtra from 'fs-extra';
 import _ from 'lodash';
 import type Testplane from 'testplane';
-import yazl from 'yazl';
 
 import {ReporterTestResult} from '../../test-result';
 import {SNAPSHOTS_PATH} from '../../../constants';
@@ -16,8 +15,6 @@ import {ClientEvents} from '../../../gui/constants';
 import {getTimeTravelModeEnumSafe} from '../../../server-utils';
 
 const debug = makeDebug('html-reporter:event-handling:snapshots');
-
-const TimeTravelMode = getTimeTravelModeEnumSafe();
 
 export interface TestContext {
     testPath: string[];
@@ -84,6 +81,7 @@ interface FinalizeSnapshotsParams {
 
 export const finalizeSnapshotsForTest = async ({testResult, attempt, reportPath, timeTravelConfig, events, eventName, snapshotsSaver}: FinalizeSnapshotsParams): Promise<SnapshotAttachment[]> => {
     try {
+        const TimeTravelMode = getTimeTravelModeEnumSafe();
         const hash = getSnapshotHashWithoutAttempt(testResult);
         const snapshots = snapshotsInProgress[hash];
 
@@ -160,6 +158,7 @@ export const finalizeSnapshotsForTest = async ({testResult, attempt, reportPath,
             done = resolve;
         });
 
+        const {default: yazl} = await import('yazl');
         const zipfile = new yazl.ZipFile();
         const output = fs.createWriteStream(absoluteZipFilePath);
         zipfile.outputStream.pipe(output).on('close', async () => {

@@ -1,5 +1,4 @@
 import path from 'path';
-import tmp from 'tmp';
 import _ from 'lodash';
 import {getShortMD5, isImageInfoWithState} from './common-utils';
 import * as utils from './server-utils';
@@ -14,6 +13,8 @@ const mkReferenceHash = (testId: string, stateName: string): string => getShortM
 type OnReferenceUpdateCb = (testResult: ReporterTestResult, images: ImageInfoUpdated, state: string) => void;
 
 export const updateReferenceImages = async (testResult: ReporterTestResult, reportPath: string, onReferenceUpdateCb: OnReferenceUpdateCb): Promise<ReporterTestResult> => {
+    const {default: tmp} = await import('tmp');
+
     const newImagesInfo: ImageInfoFull[] = await Promise.all(testResult.imagesInfo.map(async (imageInfo) => {
         const newImageInfo = _.clone(imageInfo);
 
@@ -55,6 +56,8 @@ export const updateReferenceImages = async (testResult: ReporterTestResult, repo
 };
 
 export const revertReferenceImage = async (removedResult: ReporterTestResult, newResult: ReporterTestResult, stateName: string): Promise<void> => {
+    const {default: tmp} = await import('tmp');
+
     const referenceId = removedResult.id;
     const referenceHash = mkReferenceHash(referenceId, stateName);
     const oldReferencePath = path.resolve(tmp.tmpdir, referenceHash);

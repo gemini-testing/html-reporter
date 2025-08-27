@@ -1,9 +1,9 @@
 import _ from 'lodash';
 import {BaseTestsTreeBuilder, BaseTestsTreeBuilderOptions, Tree} from './base';
 import {BrowserVersions, DB_COLUMN_INDEXES, TestStatus} from '../constants';
-import {ReporterTestResult} from '../adapters/test-result';
 import {SqliteTestResultAdapter} from '../adapters/test-result/sqlite';
-import {BrowserItem, RawSuitesRow} from '../types';
+import type {ReporterTestResult} from '../adapters/test-result';
+import type {BrowserItem, RawSuitesRow} from '../types';
 
 export interface Stats {
     total: number;

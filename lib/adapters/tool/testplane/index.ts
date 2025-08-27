@@ -3,7 +3,7 @@ import type Testplane from 'testplane';
 import type {Config} from 'testplane';
 import type {CommanderStatic} from '@gemini-testing/commander';
 
-import {TestplaneTestCollectionAdapter} from '../../test-collection/testplane';
+import type {TestplaneTestCollectionAdapter} from '../../test-collection/testplane';
 import {TestplaneConfigAdapter} from '../../config/testplane';
 import {GuiApi} from '../../../gui/api';
 import {parseConfig} from '../../../config';
@@ -131,6 +131,7 @@ export class TestplaneToolAdapter implements ToolAdapter {
     }
 
     async readTests(paths: string[], cliTool: CommanderStatic): Promise<TestplaneTestCollectionAdapter> {
+        const {TestplaneTestCollectionAdapter} = await import('../../test-collection/testplane');
         const {grep, set: sets, browser: browsers} = cliTool;
         const replMode = getReplModeOption(cliTool);
 
