@@ -1,4 +1,4 @@
-import {Response} from 'express';
+import type {Response} from 'express';
 
 import {ToolRunner, ToolRunnerTree, UndoAcceptImagesResult} from './tool-runner';
 import {TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../tests-tree-builder/gui';

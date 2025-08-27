@@ -10,8 +10,8 @@ import {
     RawSuitesRow, TestStepCompressed, Attachment
 } from '../../types';
 import {ReporterTestResult} from './index';
-import {Writable} from 'type-fest';
 import {getTestHash} from '../../common-utils';
+import type {Writable} from 'type-fest';
 
 const tryParseJson = (json: string): unknown | undefined => {
     try {

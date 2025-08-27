@@ -1,6 +1,6 @@
 import {CoordBounds} from 'looks-same';
 import {DiffOptions, ImageFile} from '../types';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 
 export const ErrorName = {
     GENERAL_ERROR: 'Error',

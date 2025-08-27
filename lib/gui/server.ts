@@ -10,15 +10,15 @@ import {App} from './app';
 import {MAX_REQUEST_SIZE, KEEP_ALIVE_TIMEOUT, HEADERS_TIMEOUT} from './constants';
 import {logger} from '../common-utils';
 import {initPluginsRoutes} from './routes/plugins';
-import {ServerArgs} from './index';
-import {ServerReadyData} from './api';
 import {BrowserFeature, Feature, ToolName} from '../constants';
-import type {TestplaneToolAdapter} from '../adapters/tool/testplane';
-import {ToolRunnerTree} from './tool-runner';
 import {getTimeTravelModeEnumSafe} from '../server-utils';
-import {TestplaneConfigAdapter} from '../adapters/config/testplane';
-import {UpdateTimeTravelSettingsRequest, UpdateTimeTravelSettingsResponse} from '../types';
 import {NEW_ISSUE_LINK} from '../constants';
+import type {ServerArgs} from './index';
+import type {ServerReadyData} from './api';
+import type {TestplaneToolAdapter} from '../adapters/tool/testplane';
+import type {ToolRunnerTree} from './tool-runner';
+import type {TestplaneConfigAdapter} from '../adapters/config/testplane';
+import type {UpdateTimeTravelSettingsRequest, UpdateTimeTravelSettingsResponse} from '../types';
 
 interface CustomGuiError {
     response: {

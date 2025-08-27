@@ -9,8 +9,6 @@ import {TestStatus, UNKNOWN_ATTEMPT} from '../../../constants';
 import {GuiReportBuilder} from '../../../report-builder/gui';
 import {EventSource} from '../../../gui/event-source';
 import {Attachment, TestplaneTestResult} from '../../../types';
-import {getStatus} from '../../test-result/testplane';
-import {finalizeSnapshotsForTest, handleDomSnapshotsEvent} from '../../event-handling/testplane/snapshots';
 import {TestplaneWithHtmlReporter} from '../../tool/testplane/index';
 import {copyAndUpdate} from '../../test-result/utils';
 
@@ -43,6 +41,8 @@ export const handleTestResults = (testplane: TestplaneWithHtmlReporter, reportBu
 
         testplane.on(eventName as AnyTestplaneTestEvent, (data: TestplaneTest | TestplaneTestResult) => {
             queue.add(async () => {
+                const {getStatus} = await import('../../test-result/testplane');
+                const {finalizeSnapshotsForTest} = await import('../../event-handling/testplane/snapshots');
                 const status = getStatus(eventName, testplane.events, data as TestplaneTestResult);
                 const formattedResultWithoutAttempt = formatTestResult(
                     data,
@@ -87,5 +87,9 @@ export const handleTestResults = (testplane: TestplaneWithHtmlReporter, reportBu
         }
     });
 
-    testplane.on(testplane.events.DOM_SNAPSHOTS, (context, data) => handleDomSnapshotsEvent(client, context, data));
+    testplane.on(testplane.events.DOM_SNAPSHOTS, (context, data) => {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const {handleDomSnapshotsEvent} = require('../../event-handling/testplane/snapshots');
+        handleDomSnapshotsEvent(client, context, data);
+    });
 };

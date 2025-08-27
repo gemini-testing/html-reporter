@@ -1,8 +1,7 @@
 import path from 'path';
 import crypto from 'crypto';
-import axios from 'axios';
 import fs from 'fs-extra';
-import initSqlJs, {type Database} from '@gemini-testing/sql.js';
+import type {Database} from '@gemini-testing/sql.js';
 import chalk from 'chalk';
 import NestedError from 'nested-error-stacks';
 
@@ -19,6 +18,8 @@ import {SqliteClient} from '../sqlite-client';
 export * from './common';
 
 export const makeSqlDatabaseFromData = async (data: Buffer | undefined): Promise<Database & {filename: string}> => {
+    const {default: initSqlJs} = await import('@gemini-testing/sql.js');
+
     const sqlJs = await initSqlJs();
 
     return new sqlJs.Database(data) as Database & {filename: string};
@@ -127,6 +128,7 @@ async function downloadSingleDatabase(dbUrl: string, {pluginConfig}: {pluginConf
 
     logger.log(chalk.green(`Download ${dbUrl} to ${pluginConfig.path}`));
 
+    const {default: axios} = await import('axios');
     const response = await axios({
         url: dbUrl,
         responseType: 'stream'
