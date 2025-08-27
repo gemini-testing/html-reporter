@@ -1,5 +1,5 @@
 import {ApiFacade} from './facade';
-import {Express} from 'express';
+import type {Express} from 'express';
 
 export interface ServerReadyData {
     url: string;

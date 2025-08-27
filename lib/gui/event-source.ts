@@ -1,4 +1,4 @@
-import {Response} from 'express';
+import type {Response} from 'express';
 import stringify from 'json-stringify-safe';
 import {ClientEvents} from './constants';
 

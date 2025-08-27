@@ -4,22 +4,17 @@ import type Testplane from 'testplane';
 import type {TestResult as TestplaneTestResult} from 'testplane';
 import _ from 'lodash';
 import PQueue from 'p-queue';
-import {CommanderStatic} from '@gemini-testing/commander';
+import type {CommanderStatic} from '@gemini-testing/commander';
 
-import {TestplaneToolAdapter, TestplaneWithHtmlReporter} from './lib/adapters/tool/testplane';
-import {getStatus} from './lib/adapters/test-result/testplane';
-import {commands as cliCommands} from './lib/cli';
+import type {TestplaneWithHtmlReporter} from './lib/adapters/tool/testplane';
+import {cliCommands} from './lib/cli/commands';
 import {parseConfig} from './lib/config';
 import {ToolName, UNKNOWN_ATTEMPT} from './lib/constants';
-import {StaticReportBuilder} from './lib/report-builder/static';
+import type {StaticReportBuilder} from './lib/report-builder/static';
 import {formatTestResult, logPathToHtmlReport, logError, getExpectedCacheKey} from './lib/server-utils';
-import {SqliteClient} from './lib/sqlite-client';
-import {Attachment, ReporterOptions, TestSpecByPath} from './lib/types';
+import type {Attachment, ReporterOptions, TestSpecByPath} from './lib/types';
 import {createWorkers, CreateWorkersRunner} from './lib/workers/create-workers';
-import {SqliteImageStore} from './lib/image-store';
 import {Cache} from './lib/cache';
-import {ImagesInfoSaver} from './lib/images-info-saver';
-import {finalizeSnapshotsForTest, handleDomSnapshotsEvent} from './lib/adapters/event-handling/testplane/snapshots';
 import {copyAndUpdate} from './lib/adapters/test-result/utils';
 
 export default (testplane: Testplane, opts: Partial<ReporterOptions>): void => {
@@ -35,6 +30,10 @@ export default (testplane: Testplane, opts: Partial<ReporterOptions>): void => {
         return;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const {TestplaneToolAdapter} = require('./lib/adapters/tool/testplane');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const {StaticReportBuilder} = require('./lib/report-builder/static');
     const toolAdapter = TestplaneToolAdapter.create({toolName: ToolName.Testplane, tool: testplane, reporterConfig: config});
     const {htmlReporter} = toolAdapter;
 
@@ -66,6 +65,11 @@ export default (testplane: Testplane, opts: Partial<ReporterOptions>): void => {
     });
 
     testplane.on(testplane.events.INIT, withMiddleware(async () => {
+        const [{SqliteClient}, {SqliteImageStore}, {ImagesInfoSaver}] = await Promise.all([
+            import('./lib/sqlite-client'),
+            import('./lib/image-store'),
+            import('./lib/images-info-saver')
+        ]);
         const dbClient = await SqliteClient.create({htmlReporter, reportPath: config.path});
         const imageStore = new SqliteImageStore(dbClient);
         const expectedPathsCache = new Cache<[TestSpecByPath, string | undefined], string>(getExpectedCacheKey);
@@ -126,6 +130,8 @@ async function handleTestResults(testplane: TestplaneWithHtmlReporter, reportBui
 
             testplane.on(eventName as AnyTestplaneTestEvent, (testResult: TestplaneTestResult) => {
                 promises.push(queue.add(async () => {
+                    const {getStatus} = await import('./lib/adapters/test-result/testplane');
+                    const {finalizeSnapshotsForTest} = await import('./lib/adapters/event-handling/testplane/snapshots');
                     const formattedResult = formatTestResult(
                         testResult,
                         getStatus(eventName, testplane.events, testResult),
@@ -158,6 +164,10 @@ async function handleTestResults(testplane: TestplaneWithHtmlReporter, reportBui
             return Promise.all(promises).then(() => resolve(), reject);
         });
 
-        testplane.on(testplane.events.DOM_SNAPSHOTS, (context, data) => handleDomSnapshotsEvent(null, context, data));
+        testplane.on(testplane.events.DOM_SNAPSHOTS, (context, data) => {
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            const {handleDomSnapshotsEvent} = require('./lib/adapters/event-handling/testplane/snapshots');
+            handleDomSnapshotsEvent(null, context, data);
+        });
     });
 }

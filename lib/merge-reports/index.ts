@@ -1,9 +1,8 @@
+import _ from 'lodash';
 import * as url from 'url';
 import * as path from 'path';
 import type {Stats} from 'fs';
 import fs from 'fs-extra';
-import axios from 'axios';
-import * as _ from 'lodash';
 
 import * as serverUtils from '../server-utils';
 import {isUrl, logger} from '../common-utils';
@@ -164,6 +163,7 @@ async function tryResolveUrl(url: string, headers: Record<string, string>): Prom
         dbUrls.push(url);
     } else if (serverUtils.isJsonUrl(url)) {
         try {
+            const {default: axios} = await import('axios');
             const data = isUrl(url)
                 ? (await axios.get(url, {headers})).data
                 : await fs.readJSON(url);

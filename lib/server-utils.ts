@@ -3,23 +3,21 @@ import path from 'path';
 import url from 'url';
 
 import chalk from 'chalk';
-import {Router} from 'express';
+import type {Router} from 'express';
 import fs from 'fs-extra';
 import type {TimeTravelMode as TimeTravelModeType, Test as TestplaneTest, Config} from 'testplane';
 import _ from 'lodash';
-import tmp from 'tmp';
 
 import {getShortMD5, logger, mkTestId, isUrl} from './common-utils';
 import {UPDATED, RUNNING, IDLE, SKIPPED, IMAGES_PATH, TestStatus, UNKNOWN_ATTEMPT, DB_FILE_EXTENSION} from './constants';
 import type {HtmlReporter} from './plugin-api';
 import type {ReporterTestResult} from './adapters/test-result';
-import {
+import type {
     TestplaneTestResult,
     ImageInfoWithState,
     ReporterConfig,
     TestSpecByPath
 } from './types';
-import {TestplaneTestResultAdapter} from './adapters/test-result/testplane';
 
 const DATA_FILE_NAME = 'data.js';
 
@@ -68,7 +66,11 @@ export function createPath({attempt: attemptInput, imageDir: imageDirInput, time
     return path.join(...components);
 }
 
-export const getTempPath = (destPath: string): string => path.resolve(tmp.tmpdir, destPath);
+export const getTempPath = async (destPath: string): Promise<string> => {
+    const {default: tmp} = await import('tmp');
+
+    return path.resolve(tmp.tmpdir, destPath);
+};
 
 export function createHash(buffer: Buffer): string {
     return crypto
@@ -316,6 +318,9 @@ export const formatTestResult = (
     attempt: number = UNKNOWN_ATTEMPT,
     saveHistoryMode: Config['saveHistoryMode']
 ): ReporterTestResult => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const {TestplaneTestResultAdapter} = require('./adapters/test-result/testplane');
+
     return new TestplaneTestResultAdapter(rawResult, {attempt, status, duration: (rawResult as TestplaneTestResult).duration, saveHistoryMode});
 };
 

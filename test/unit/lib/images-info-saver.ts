@@ -1,6 +1,6 @@
 import * as fsOriginal from 'fs-extra';
 import {ImagesInfoSaver as ImagesInfoSaverOriginal} from 'lib/images-info-saver';
-import {Writable} from 'type-fest';
+import type {Writable} from 'type-fest';
 import {ReporterTestResult} from 'lib/adapters/test-result';
 import {
     ImageBase64,
@@ -52,7 +52,7 @@ describe('images-info-saver', () => {
             sandbox.stub(utils, 'getCurrentPath').returns('report-current-path');
             sandbox.stub(utils, 'getDiffPath').returns('report-diff-path');
             sandbox.stub(utils, 'getReferencePath').returns('report-expected-path');
-            sandbox.stub(utils, 'getTempPath').returns('temp-path');
+            sandbox.stub(utils, 'getTempPath').resolves('temp-path');
 
             reportPath = 'test-report-path';
             imageFileSaver = {

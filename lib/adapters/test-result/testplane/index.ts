@@ -1,8 +1,9 @@
+import _ from 'lodash';
 import {ERROR, FAIL, SUCCESS, TestStatus, UNKNOWN_SESSION_ID, UPDATED} from '../../../constants';
 import {ReporterTestResult} from '../index';
 import type Testplane from 'testplane';
 import type {Test as TestplaneTest, Config} from 'testplane';
-import {
+import type {
     Attachment,
     ErrorDetails,
     ImageBase64,
@@ -18,7 +19,6 @@ import {
     TestplaneTestResult,
     TestStepCompressed
 } from '../../../types';
-import _ from 'lodash';
 import {
     getError,
     hasUnrelatedToScreenshotsErrors,
@@ -29,7 +29,7 @@ import {
 import {getSuitePath} from '../../../plugin-utils';
 import {extractErrorDetails} from '../utils';
 import path from 'path';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 
 import {getHistory, wrapSkipComment, getSkipComment} from './history';
 

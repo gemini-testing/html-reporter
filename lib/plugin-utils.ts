@@ -1,4 +1,4 @@
-import {TestplaneSuite} from './types';
+import type {TestplaneSuite} from './types';
 
 export const getSuitePath = (suite?: TestplaneSuite | null): string[] => {
     if (!suite) {
