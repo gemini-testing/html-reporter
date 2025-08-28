@@ -39,7 +39,7 @@ describe('GUI mode', () => {
         });
 
         it('should show indeterminate state when one test selected', async ({browser}) => {
-            const firstCheckbox = await browser.$('.g-checkbox__control');
+            const firstCheckbox = await browser.$('[data-qa="tree-item-checkbox"]');
             await firstCheckbox.click();
 
             await browser.pause(500);

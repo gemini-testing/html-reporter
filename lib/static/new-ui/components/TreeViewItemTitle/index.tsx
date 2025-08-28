@@ -73,7 +73,7 @@ export function TreeViewItemTitle({item}: TreeViewItemTitleProps): React.JSX.Ele
             }
         </div>
         {(areCheckboxesNeeded && !isVisualChecksPage) &&
-            <div className={styles.checkboxWrapper} onClick={handleCheckboxClick}>
+            <div className={styles.checkboxWrapper} onClick={handleCheckboxClick} data-qa="tree-item-checkbox">
                 <Checkbox
                     checked={isCheckboxChecked(checkStatus)}
                     indeterminate={isCheckboxIndeterminate(checkStatus)}

@@ -87,9 +87,7 @@ export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
         });
     }, [suitesStateById, rootSuiteIds]);
 
-    const isIndeterminate = useMemo(() => {
-        return isSelectedAtLeastOne && !isSelectedAll;
-    }, [isSelectedAtLeastOne, isSelectedAll]);
+    const isIndeterminate = isSelectedAtLeastOne && !isSelectedAll;
 
     const isStaticImageAccepterEnabled = useSelector(getIsStaticImageAccepterEnabled);
     const isGuiMode = useSelector(getIsGui);
@@ -114,7 +112,6 @@ export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
     }, [browsersStateById]);
 
     const handleToggleAll = (): void => {
-        // If at least one is selected, deselect all
         if (isSelectedAtLeastOne) {
             dispatch(deselectAll());
         } else {
