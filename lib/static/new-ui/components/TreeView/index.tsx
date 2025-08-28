@@ -212,6 +212,7 @@ export const TreeView = forwardRef<TreeViewHandle, TreeViewProps>(function TreeV
                             return (
                                 <ListItemView
                                     key={virtualRow.key}
+                                    data-qa="tree-view-item"
                                     data-index={virtualRow.index}
                                     ref={virtualizer.measureElement}
                                     height={0}

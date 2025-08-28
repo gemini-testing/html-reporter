@@ -18,7 +18,8 @@ if (process.env.TOOL === 'testplane') {
                         const pageTitle = await browser.$('[data-qa="sidebar-title"]');
                         const rightSideTitle = await browser.$('h2.text-display-1');
 
-                        const secondElement = await browser.$('[data-qa="tree-view-list"] > div + div');
+                        const treeViewItems = await browser.$$('[data-qa="tree-view-item"]');
+                        const secondElement = treeViewItems[1];
                         await secondElement.click();
 
                         const goSuitesElement = await browser.$('[data-qa="go-suites-button"]');
@@ -35,7 +36,8 @@ if (process.env.TOOL === 'testplane') {
                     });
 
                     it('change url after select screenshot', async ({browser}) => {
-                        const secondElement = await browser.$('[data-qa="tree-view-list"] > div + div');
+                        const treeViewItems = await browser.$$('[data-qa="tree-view-item"]');
+                        const secondElement = treeViewItems[1];
                         await secondElement.click();
 
                         const currentUrl = await browser.getUrl();
@@ -54,7 +56,8 @@ if (process.env.TOOL === 'testplane') {
                     });
 
                     it('click to screenshot', async ({browser}) => {
-                        const secondElement = await browser.$('[data-qa="tree-view-list"] > div + div');
+                        const treeViewItems = await browser.$$('[data-qa="tree-view-item"]');
+                        const secondElement = treeViewItems[1];
                         await secondElement.click();
 
                         const rightSideTitle = await browser.$('h2.text-display-1');
