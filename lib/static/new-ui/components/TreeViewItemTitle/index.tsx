@@ -1,7 +1,7 @@
 import {ChevronRight} from '@gravity-ui/icons';
 import {Checkbox} from '@gravity-ui/uikit';
 import classNames from 'classnames';
-import React, {useEffect, useRef} from 'react';
+import React from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {getToggledCheckboxState, isCheckboxChecked, isCheckboxIndeterminate} from '@/common-utils';
@@ -21,35 +21,30 @@ export function TreeViewItemTitle({item}: TreeViewItemTitleProps): React.JSX.Ele
     const areCheckboxesNeeded = useSelector(getAreCheckboxesNeeded);
     const groups = useSelector(state => state.tree.groups.byId);
     const checkStatus = useSelector(state => getItemCheckStatus(state, item));
-    const ref = useRef<HTMLInputElement>(null);
     const isVisualChecksPage = /\/visual-checks/.test(location.hash); // @todo: remove after implement search on visual checks page
 
-    useEffect(() => {
-        if (ref.current) {
-            ref.current.onclick = (e): void => {
-                e.stopPropagation();
+    const handleCheckboxClick = (e: React.MouseEvent): void => {
+        e.stopPropagation();
 
-                if (item.entityType === EntityType.Group) {
-                    const group = groups[item.entityId];
+        if (item.entityType === EntityType.Group) {
+            const group = groups[item.entityId];
 
-                    dispatch(toggleGroupCheckbox({
-                        browserIds: group.browserIds,
-                        checkStatus: getToggledCheckboxState(checkStatus)
-                    }));
-                } else if (item.entityType === EntityType.Suite) {
-                    dispatch(toggleSuiteCheckbox({
-                        suiteId: item.entityId,
-                        checkStatus: getToggledCheckboxState(checkStatus)
-                    }));
-                } else if (item.entityType === EntityType.Browser) {
-                    dispatch(toggleBrowserCheckbox({
-                        suiteBrowserId: item.entityId,
-                        checkStatus: getToggledCheckboxState(checkStatus)
-                    }));
-                }
-            };
+            dispatch(toggleGroupCheckbox({
+                browserIds: group.browserIds,
+                checkStatus: getToggledCheckboxState(checkStatus)
+            }));
+        } else if (item.entityType === EntityType.Suite) {
+            dispatch(toggleSuiteCheckbox({
+                suiteId: item.entityId,
+                checkStatus: getToggledCheckboxState(checkStatus)
+            }));
+        } else if (item.entityType === EntityType.Browser) {
+            dispatch(toggleBrowserCheckbox({
+                suiteBrowserId: item.entityId,
+                checkStatus: getToggledCheckboxState(checkStatus)
+            }));
         }
-    }, [ref, item, checkStatus]);
+    };
 
     const headTitleParts = item.title.slice(0, -1);
     const tailTitlePart = item.title[item.title.length - 1];
@@ -77,6 +72,15 @@ export function TreeViewItemTitle({item}: TreeViewItemTitleProps): React.JSX.Ele
                 </div>
             }
         </div>
-        {(areCheckboxesNeeded && !isVisualChecksPage) && <Checkbox checked={isCheckboxChecked(checkStatus)} indeterminate={isCheckboxIndeterminate(checkStatus)} className={styles.checkbox} size={'m'} controlRef={ref}/>}
+        {(areCheckboxesNeeded && !isVisualChecksPage) &&
+            <div className={styles.checkboxWrapper} onClick={handleCheckboxClick} data-qa="tree-item-checkbox">
+                <Checkbox
+                    checked={isCheckboxChecked(checkStatus)}
+                    indeterminate={isCheckboxIndeterminate(checkStatus)}
+                    className={styles.checkbox}
+                    size={'m'}
+                />
+            </div>
+        }
     </div>;
 }

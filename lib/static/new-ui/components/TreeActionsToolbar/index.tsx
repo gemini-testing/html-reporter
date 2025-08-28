@@ -10,6 +10,7 @@ import {
     Square,
     SquareCheck,
     SquareDashed,
+    SquareMinus,
     ListUl,
     Hierarchy
 } from '@gravity-ui/icons';
@@ -73,7 +74,8 @@ export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
         .find(feature => feature.name === EditScreensFeature.name);
 
     const isSelectedAll = useMemo(() => {
-        return rootSuiteIds.every(suiteId => suitesStateById[suiteId].checkStatus === CHECKED);
+        const visibleRootSuiteIds = rootSuiteIds.filter(suiteId => suitesStateById[suiteId].shouldBeShown);
+        return visibleRootSuiteIds.length > 0 && visibleRootSuiteIds.every(suiteId => suitesStateById[suiteId].checkStatus === CHECKED);
     }, [suitesStateById, rootSuiteIds]);
 
     const isSelectedAtLeastOne = useMemo(() => {
@@ -84,6 +86,8 @@ export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
             return isShown && isChecked;
         });
     }, [suitesStateById, rootSuiteIds]);
+
+    const isIndeterminate = isSelectedAtLeastOne && !isSelectedAll;
 
     const isStaticImageAccepterEnabled = useSelector(getIsStaticImageAccepterEnabled);
     const isGuiMode = useSelector(getIsGui);
@@ -108,7 +112,7 @@ export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
     }, [browsersStateById]);
 
     const handleToggleAll = (): void => {
-        if (isSelectedAll) {
+        if (isSelectedAtLeastOne) {
             dispatch(deselectAll());
         } else {
             dispatch(selectAll());
@@ -191,7 +195,15 @@ export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
         <IconButton icon={<Icon data={SquareDashed} height={14}/>} tooltip={'Focus on active test'} view={'flat'} onClick={props.onHighlightCurrentTest} disabled={!isFocusAvailable}/>
         <IconButton icon={<Icon data={ChevronsExpandVertical} height={14}/>} tooltip={'Expand all'} view={'flat'} onClick={handleExpandAll} disabled={!isInitialized}/>
         <IconButton icon={<Icon data={ChevronsCollapseVertical} height={14}/>} tooltip={'Collapse all'} view={'flat'} onClick={handleCollapseAll} disabled={!isInitialized}/>
-        {areCheckboxesNeeded && <IconButton icon={<Icon data={isSelectedAll ? Square : SquareCheck}/>} tooltip={isSelectedAll ? 'Deselect all' : 'Select all'} view={'flat'} onClick={handleToggleAll} disabled={!isInitialized}/>}
+        {areCheckboxesNeeded && <IconButton
+            icon={<Icon data={isIndeterminate ? SquareMinus : (isSelectedAll ? SquareCheck : Square)}/>}
+            tooltip={isSelectedAtLeastOne ? 'Deselect all' : 'Select all'}
+            view={'flat'}
+            onClick={handleToggleAll}
+            disabled={!isInitialized}
+            className={styles.selectAllButton}
+            qa="select-all-button"
+        />}
     </>;
 
     return <div className={styles.container}>
@@ -205,7 +217,7 @@ export function TreeActionsToolbar(props: TreeActionsToolbarProps): ReactNode {
             className={classNames(styles.selectedContainer, {[styles['selected-container--visible']]: isSelectedAtLeastOne})}>
             <div className={styles.selectedTitle}>
                 <Icon data={CircleInfo}/>
-                <span>{selectedTestsCount} {selectedTestsCount > 1 ? 'tests' : 'test'} selected</span>
+                <span data-qa="selected-tests-count">{selectedTestsCount} {selectedTestsCount > 1 ? 'tests' : 'test'} selected</span>
             </div>
 
             <div className={styles.buttonsContainer}>
