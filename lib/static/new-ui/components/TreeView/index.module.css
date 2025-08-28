@@ -1,4 +1,6 @@
-.tree-view {}
+.tree-view {
+    --g-list-item-height: 34px;
+}
 
     .tree-view :global(.g-text_ellipsis) {
         white-space: normal;
