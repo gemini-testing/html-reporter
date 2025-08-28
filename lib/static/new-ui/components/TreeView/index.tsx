@@ -140,11 +140,13 @@ export const TreeView = forwardRef<TreeViewHandle, TreeViewProps>(function TreeV
             const id = list.structure.visibleFlattenIds[index];
             const item = list.structure.itemsById[id];
 
-            // Groups on average take 3 lines: 2 lines of text (clamped) + 1 line for tags -> 68px in total
-            // Regular items on average take 1 line -> 34px
-            // Providing more precise estimates here greatly improves scrolling performance
-            const GROUP_ROW_HEIGHT = 68;
+            // Regular items on average take 1 line -> 34px. This is just a height of the tree view item, measured by hand via DevTools.
+            // We need to update this every time we change the tree view item height.
+            // Providing more precise estimates here greatly improves scrolling performance!
             const REGULAR_ROW_HEIGHT = 34;
+            // Group tree items on average take 3 lines: 2 lines of text (clamped) + 1 line for tags -> 68px in total
+            // We can measure this value by opening the report in browser, selecting group by error message and measuring the height of the group item.
+            const GROUP_ROW_HEIGHT = 68;
 
             return item.entityType === EntityType.Group ? GROUP_ROW_HEIGHT : REGULAR_ROW_HEIGHT;
         },

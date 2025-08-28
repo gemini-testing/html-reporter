@@ -208,21 +208,24 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
     </>;
 
     return <div className={classNames(styles.container, className)}>
-        <GroupBySelect />
-        <SortBySelect />
-        <div className={styles.buttonsContainer}>
-            {viewButtons}
-        </div>
-
-        <div
-            className={classNames(styles.selectedContainer, {[styles['selected-container--visible']]: isSelectedAtLeastOne})}>
-            <div className={styles.selectedTitle}>
-                <Icon data={CircleInfo}/>
-                <span data-qa="selected-tests-count">{selectedTestsCount} {selectedTestsCount > 1 ? 'tests' : 'test'} selected</span>
-            </div>
-
+        {/* This one is needed for paddings to work correctly for absolutely positioned selectedContainer */}
+        <div className={styles.innerContainer}>
+            <GroupBySelect />
+            <SortBySelect />
             <div className={styles.buttonsContainer}>
                 {viewButtons}
+            </div>
+
+            <div
+                className={classNames(styles.selectedContainer, {[styles['selected-container--visible']]: isSelectedAtLeastOne})}>
+                <div className={styles.selectedTitle}>
+                    <Icon data={CircleInfo}/>
+                    <span data-qa="selected-tests-count">{selectedTestsCount} {selectedTestsCount > 1 ? 'tests' : 'test'} selected</span>
+                </div>
+
+                <div className={styles.buttonsContainer}>
+                    {viewButtons}
+                </div>
             </div>
         </div>
     </div>;
