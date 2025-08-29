@@ -1,5 +1,4 @@
 import {Cubes3Overlap} from '@gravity-ui/icons';
-import {Box} from '@gravity-ui/uikit';
 import {
     unstable_getItemRenderState as getItemRenderState,
     unstable_ListContainerView as ListContainerView,
@@ -8,8 +7,8 @@ import {
 } from '@gravity-ui/uikit/unstable';
 import {useVirtualizer} from '@tanstack/react-virtual';
 import classNames from 'classnames';
-import React, {forwardRef, ReactNode, useCallback, useImperativeHandle} from 'react';
-import {useDispatch} from 'react-redux';
+import React, {forwardRef, ReactNode, useCallback, useImperativeHandle, useMemo} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
 
 import {EntityType, TreeNode, TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
 import {TreeViewItemTitle} from '@/static/new-ui/components/TreeViewItemTitle';
@@ -18,6 +17,8 @@ import {TestStatus} from '@/constants';
 import {TreeViewItemIcon} from '@/static/new-ui/components/TreeViewItemIcon';
 import {getIconByStatus} from '@/static/new-ui/utils';
 import {revealTreeNode} from '@/static/modules/actions';
+import {TreeViewMode} from '@/static/new-ui/types/store';
+import {getTreeViewMode} from '@/static/new-ui/store/selectors';
 
 import styles from './index.module.css';
 
@@ -32,6 +33,7 @@ export interface TreeViewProps {
     treeData: TreeViewData;
     treeViewExpandedById: Record<string, boolean>;
     onClick: (item: TreeViewItemData, expanded: boolean) => void;
+    containerClassName?: string;
 }
 
 export interface TreeViewHandle {
@@ -39,8 +41,9 @@ export interface TreeViewHandle {
 }
 
 export const TreeView = forwardRef<TreeViewHandle, TreeViewProps>(function TreeViewInternal(props, ref): ReactNode {
-    const {currentTreeNodeId, treeData, treeViewExpandedById, onClick} = props;
+    const {currentTreeNodeId, treeData, treeViewExpandedById, onClick, containerClassName} = props;
     const dispatch = useDispatch();
+    const treeViewMode = useSelector(getTreeViewMode);
 
     const list = useList({
         items: treeData.tree,
@@ -50,6 +53,76 @@ export const TreeView = forwardRef<TreeViewHandle, TreeViewProps>(function TreeV
             expandedById: treeViewExpandedById
         }
     });
+
+    const hasBackground = (item: TreeViewItemData, isSelected: boolean): boolean => {
+        const isError = item.status === TestStatus.FAIL || item.status === TestStatus.ERROR;
+        return isSelected || isError;
+    };
+
+    // These are used to visually group leaf items together using border radiuses
+    const leafPositions = useMemo(() => {
+        const positions: Record<string, 'first' | 'middle' | 'last' | 'single'> = {};
+
+        const browserGroups: Map<string, string[]> = new Map();
+
+        for (let i = 0; i < list.structure.visibleFlattenIds.length; i++) {
+            const id = list.structure.visibleFlattenIds[i];
+            const item = list.structure.itemsById[id];
+
+            if (item.entityType === EntityType.Browser) {
+                const groupKey = treeViewMode === TreeViewMode.List ? 'root' : (item.parentData?.id || 'root');
+                if (!browserGroups.has(groupKey)) {
+                    browserGroups.set(groupKey, []);
+                }
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                browserGroups.get(groupKey)!.push(id);
+            }
+        }
+
+        for (const [, siblingIds] of browserGroups) {
+            let i = 0;
+            while (i < siblingIds.length) {
+                const currentId = siblingIds[i];
+                const currentItem = list.structure.itemsById[currentId];
+                const isCurrentSelected = currentItem.id === currentTreeNodeId;
+
+                if (!hasBackground(currentItem, isCurrentSelected)) {
+                    i++;
+                    continue;
+                }
+
+                let groupEnd = i;
+                while (groupEnd < siblingIds.length - 1) {
+                    const nextId = siblingIds[groupEnd + 1];
+                    const nextItem = list.structure.itemsById[nextId];
+                    const isNextSelected = nextItem.id === currentTreeNodeId;
+                    if (hasBackground(nextItem, isNextSelected)) {
+                        groupEnd++;
+                    } else {
+                        break;
+                    }
+                }
+
+                if (i === groupEnd) {
+                    positions[currentId] = 'single';
+                } else {
+                    for (let j = i; j <= groupEnd; j++) {
+                        if (j === i) {
+                            positions[siblingIds[j]] = 'first';
+                        } else if (j === groupEnd) {
+                            positions[siblingIds[j]] = 'last';
+                        } else {
+                            positions[siblingIds[j]] = 'middle';
+                        }
+                    }
+                }
+
+                i = groupEnd + 1;
+            }
+        }
+
+        return positions;
+    }, [list.structure.visibleFlattenIds, list.structure.itemsById, currentTreeNodeId, treeViewMode]);
 
     // Event handlers
     const onItemClick = useCallback(({id}: {id: string}): void => {
@@ -67,11 +140,13 @@ export const TreeView = forwardRef<TreeViewHandle, TreeViewProps>(function TreeV
             const id = list.structure.visibleFlattenIds[index];
             const item = list.structure.itemsById[id];
 
-            // Groups on average take 3 lines: 2 lines of text (clamped) + 1 line for tags -> 73px in total
-            // Regular items on average take 1 line -> 32px
-            // Providing more precise estimates here greatly improves scrolling performance
-            const GROUP_ROW_HEIGHT = 73;
-            const REGULAR_ROW_HEIGHT = 32;
+            // Regular items on average take 1 line -> 34px. This is just a height of the tree view item, measured by hand via DevTools.
+            // We need to update this every time we change the tree view item height.
+            // Providing more precise estimates here greatly improves scrolling performance!
+            const REGULAR_ROW_HEIGHT = 34;
+            // Group tree items on average take 3 lines: 2 lines of text (clamped) + 1 line for tags -> 68px in total
+            // We can measure this value by opening the report in browser, selecting group by error message and measuring the height of the group item.
+            const GROUP_ROW_HEIGHT = 68;
 
             return item.entityType === EntityType.Group ? GROUP_ROW_HEIGHT : REGULAR_ROW_HEIGHT;
         },
@@ -104,7 +179,7 @@ export const TreeView = forwardRef<TreeViewHandle, TreeViewProps>(function TreeV
 
     return (
         <ListContainerView className={styles.treeView}>
-            <div ref={parentRef} className={styles['tree-view__container']}>
+            <div ref={parentRef} className={classNames(styles['tree-view__container'], containerClassName)}>
                 <div
                     className={styles['tree-view__total-size-wrapper']}
                     style={{height: virtualizer.getTotalSize()}}
@@ -117,41 +192,43 @@ export const TreeView = forwardRef<TreeViewHandle, TreeViewProps>(function TreeV
                         {virtualizedItems.map((virtualRow) => {
                             const item = list.structure.itemsById[virtualRow.key as string];
                             const isSelected = item.id === currentTreeNodeId;
+                            const leafPosition = item.entityType === EntityType.Browser ? leafPositions[virtualRow.key as string] : undefined;
+
                             const classes = [
                                 styles['tree-view__item'],
                                 {
-                                    // Global classes are useful for deeply nested elements like tags
                                     'current-tree-node': isSelected,
                                     'error-tree-node': item.entityType === EntityType.Browser && (item.status === TestStatus.FAIL || item.status === TestStatus.ERROR),
                                     [styles['tree-view__item--current']]: isSelected,
                                     [styles['tree-view__item--browser']]: item.entityType === EntityType.Browser,
-                                    [styles['tree-view__item--error']]: item.entityType === EntityType.Browser && (item.status === TestStatus.FAIL || item.status === TestStatus.ERROR)
+                                    [styles['tree-view__item--error']]: item.entityType === EntityType.Browser && (item.status === TestStatus.FAIL || item.status === TestStatus.ERROR),
+                                    [styles['tree-view__item--leaf-first']]: leafPosition === 'first',
+                                    [styles['tree-view__item--leaf-middle']]: leafPosition === 'middle',
+                                    [styles['tree-view__item--leaf-last']]: leafPosition === 'last',
+                                    [styles['tree-view__item--leaf-single']]: leafPosition === 'single'
                                 }
                             ];
 
                             return (
-                                <Box
+                                <ListItemView
                                     key={virtualRow.key}
+                                    data-qa="tree-view-item"
                                     data-index={virtualRow.index}
                                     ref={virtualizer.measureElement}
-                                    spacing={{pt: 1}}
-                                >
-                                    <ListItemView
-                                        height={0} // To prevent GravityUI from setting incorrect min-height
-                                        className={classNames(classes)}
-                                        {...getItemRenderState({
-                                            id: virtualRow.key.toString(),
-                                            list,
-                                            onItemClick,
-                                            mapItemDataToContentProps: (x: TreeViewItemData) => {
-                                                return {
-                                                    startSlot: <TreeViewItemIcon>{x.status ? getIconByStatus(x.status) : <Cubes3Overlap/>}</TreeViewItemIcon>,
-                                                    title: <TreeViewItemTitle item={x} className={isSelected ? styles['tree-view__item__title--current'] : ''} />,
-                                                    subtitle: <TreeViewItemSubtitle item={x} className={isSelected ? styles['tree-view__item__error--current'] : ''} scrollContainerRef={parentRef}/>
-                                                };
-                                            }
-                                        }).props}/>
-                                </Box>
+                                    height={0}
+                                    className={classNames(classes)}
+                                    {...getItemRenderState({
+                                        id: virtualRow.key.toString(),
+                                        list,
+                                        onItemClick,
+                                        mapItemDataToContentProps: (x: TreeViewItemData) => {
+                                            return {
+                                                startSlot: <TreeViewItemIcon>{x.status ? getIconByStatus(x.status) : <Cubes3Overlap/>}</TreeViewItemIcon>,
+                                                title: <TreeViewItemTitle item={x} className={isSelected ? styles['tree-view__item__title--current'] : ''} />,
+                                                subtitle: <TreeViewItemSubtitle item={x} className={isSelected ? styles['tree-view__item__error--current'] : ''} scrollContainerRef={parentRef}/>
+                                            };
+                                        }
+                                    }).props}/>
                             );
                         })}
                     </div>

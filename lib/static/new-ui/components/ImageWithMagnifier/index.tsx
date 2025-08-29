@@ -101,7 +101,7 @@ export function ImageWithMagnifier({
         });
     }, [showMagnifier, imgWidth, imgHeight, x, y]);
 
-    return <div>
+    return <div className={styles.wrapper}>
         <Screenshot
             image={image}
             style={style}

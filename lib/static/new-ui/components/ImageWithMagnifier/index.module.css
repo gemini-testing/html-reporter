@@ -1,3 +1,7 @@
+.wrapper {
+    display: flex;
+}
+
 .magnifier {
     background-color: white;
     background-repeat: no-repeat;

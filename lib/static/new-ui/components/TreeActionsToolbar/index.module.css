@@ -2,7 +2,9 @@
     --g-color-text-info: #000;
     --divider-color: rgba(0, 0, 0, 0.1);
     --g-text-accent-font-weight: 500;
+}
 
+.inner-container {
     display: flex;
     gap: 4px;
     position: relative;

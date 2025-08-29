@@ -1,4 +1,6 @@
-.tree-view {}
+.tree-view {
+    --g-list-item-height: 34px;
+}
 
     .tree-view :global(.g-text_ellipsis) {
         white-space: normal;
@@ -38,6 +40,7 @@
         font-size: 18px;
 
         user-select: none;
+        border-radius: 8px;
     }
 
         .tree-view__item > div {
@@ -95,6 +98,27 @@
 
         .tree-view__item--error svg {
             color: var(--g-color-private-red-600-solid);
+        }
+
+        /* Leaf sticking styles - only for browser items */
+        .tree-view__item--leaf-first.tree-view__item--browser {
+            border-radius: 8px 8px 0 0;
+            margin-bottom: 0 !important;
+        }
+
+        .tree-view__item--leaf-middle.tree-view__item--browser {
+            border-radius: 0;
+            margin-top: 0 !important;
+            margin-bottom: 0 !important;
+        }
+
+        .tree-view__item--leaf-last.tree-view__item--browser {
+            border-radius: 0 0 8px 8px;
+            margin-top: 0 !important;
+        }
+
+        .tree-view__item--leaf-single.tree-view__item--browser {
+            border-radius: 8px;
         }
 
 .empty-hint-container {
