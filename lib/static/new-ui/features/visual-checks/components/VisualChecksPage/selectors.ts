@@ -7,6 +7,7 @@ import {TreeViewData} from '@/static/new-ui/components/TreeView';
 import {TestStatus, ViewMode} from '@/constants';
 import {BrowserItem} from '@/types';
 import {matchTestName} from '@/static/modules/utils';
+import {search} from '@/static/modules/search';
 
 export const getVisualChecksViewMode = (state: State): ViewMode => state.app[Page.visualChecksPage].viewMode;
 
@@ -49,21 +50,31 @@ export const getVisualTreeViewData = createSelector(
             [ViewMode.FAILED]: 0
         };
 
-        const tree = Object
-            .values(namedImages)
+        const values = Object.values(namedImages);
+        const founded = search(
+            values.map(({browserId, browserName}) => browserId.slice(0, -browserName.length - 1)),
+            nameFilter,
+            useMatchCaseFilter
+        );
+
+        const tree = values
             .filter(({browserId, browserName, imageIds}) => {
                 // filter by name using search text
                 if (browsersLen && !browsers.has(browserName)) {
                     return false;
                 }
 
+                const searchName = browserId.slice(0, -browserName.length - 1);
+
                 if (
-                    !matchTestName(
-                        browserId.slice(0, -browserName.length - 1),
-                        browserName,
-                        nameFilter,
-                        {strictMatchFilter: false, useMatchCaseFilter, useRegexFilter, isNewUi: true}
-                    ).isMatch
+                    !(
+                        matchTestName(
+                            searchName,
+                            browserName,
+                            nameFilter,
+                            {strictMatchFilter: false, useMatchCaseFilter, useRegexFilter, isNewUi: true}
+                        ) || founded.has(searchName)
+                    )
                 ) {
                     return false;
                 }
