@@ -3,15 +3,10 @@ import _ from 'lodash';
 import {Command} from '@gemini-testing/commander';
 import pkg from '../../package.json';
 
+import {cliCommands} from './commands';
 import {ToolName} from '../constants';
 import {makeToolAdapter, type ToolAdapter} from '../adapters/tool';
 import {logger} from '../common-utils';
-
-export const commands = {
-    GUI: 'gui',
-    MERGE_REPORTS: 'merge-reports',
-    REMOVE_UNUSED_SCREENS: 'remove-unused-screens'
-} as const;
 
 let toolAdapter: ToolAdapter;
 
@@ -51,7 +46,7 @@ export const run = async (): Promise<void> => {
 
     toolAdapter = await makeToolAdapter({toolName: toolName as ToolName, configPath});
 
-    for (const commandName of _.values(commands)) {
+    for (const commandName of _.values(cliCommands)) {
         const registerCmd = (await import(path.resolve(__dirname, './commands', commandName))).default;
 
         registerCmd(program, toolAdapter);

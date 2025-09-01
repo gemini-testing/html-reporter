@@ -2,8 +2,8 @@ import type {CommanderStatic} from '@gemini-testing/commander';
 
 import {TestCollectionAdapter} from '../test-collection';
 import {ConfigAdapter} from '../config';
-import {GuiApi} from '../../gui/api';
-import {EventSource} from '../../gui/event-source';
+import type {GuiApi} from '../../gui/api';
+import type {EventSource} from '../../gui/event-source';
 import {GuiReportBuilder} from '../../report-builder/gui';
 import {BrowserFeature, ToolName} from '../../constants';
 

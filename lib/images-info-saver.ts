@@ -145,7 +145,9 @@ export class ImagesInfoSaver extends EventEmitter2 {
     }
 
     private async _saveImage(imageData: ImageFile | ImageBuffer | ImageBase64, destPath: string): Promise<string> {
-        const sourceFilePath = isImageBufferData(imageData) || isBase64Image(imageData) ? getTempPath(destPath) : imageData.path;
+        const sourceFilePath = isImageBufferData(imageData) || isBase64Image(imageData)
+            ? await getTempPath(destPath)
+            : imageData.path;
         if (isImageBufferData(imageData)) {
             await makeDirFor(sourceFilePath);
             await fs.writeFile(sourceFilePath, Buffer.from(imageData.buffer));

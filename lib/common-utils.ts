@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import {isEmpty, pick} from 'lodash';
 import url from 'url';
-import axios, {AxiosRequestConfig} from 'axios';
+import type {AxiosRequestConfig} from 'axios';
 import {
     ERROR,
     FAIL,
@@ -17,7 +17,8 @@ import {
 } from './constants';
 
 import {CHECKED, CheckStatus, INDETERMINATE, UNCHECKED} from './constants/checked-statuses';
-import {
+import {ErrorName, ImageDiffError, InvalidRefImageError, NoRefImageError} from './errors';
+import type {
     ImageBase64,
     ImageBuffer,
     ImageFile,
@@ -26,7 +27,6 @@ import {
     ImageInfoWithState,
     TestError
 } from './types';
-import {ErrorName, ImageDiffError, InvalidRefImageError, NoRefImageError} from './errors';
 import type {ReporterTestResult} from './adapters/test-result';
 
 export const getShortMD5 = (str: string): string => {
@@ -197,6 +197,8 @@ export const isUrl = (str: string): boolean => {
 };
 
 export const fetchFile = async <T = unknown>(url: string, options?: AxiosRequestConfig) : Promise<{data: T | null, status: number}> => {
+    const {default: axios} = await import('axios');
+
     try {
         const {data, status} = await axios.get(url, options);
 

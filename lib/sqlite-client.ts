@@ -9,7 +9,7 @@ import {TestStatus, DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS, LOCAL_DATABASE_N
 import {createTablesQuery} from './db-utils/common';
 import {setDatabaseVersion} from './db-utils/migrations';
 import type {Attachment, ImageInfoFull, TestError, TestStepCompressed} from './types';
-import {HtmlReporter} from './plugin-api';
+import type {HtmlReporter} from './plugin-api';
 import {ReporterTestResult} from './adapters/test-result';
 import {DbTestResultTransformer} from './adapters/test-result/transformers/db';
 import {makeSqlDatabaseFromFile} from './db-utils/server';

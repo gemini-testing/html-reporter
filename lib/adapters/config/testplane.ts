@@ -1,6 +1,6 @@
 import type {Config} from 'testplane';
 import type {ConfigAdapter} from './';
-import {TestplaneTestAdapter} from '../test/testplane';
+import type {TestplaneTestAdapter} from '../test/testplane';
 
 export class TestplaneConfigAdapter implements ConfigAdapter {
     private _config: Config;
