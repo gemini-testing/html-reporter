@@ -5,7 +5,6 @@ import {ImageEntity, Page, State} from '@/static/new-ui/types/store';
 import {getNamedImages} from '@/static/new-ui/features/visual-checks/selectors';
 import {TreeViewData} from '@/static/new-ui/components/TreeView';
 import {TestStatus, ViewMode} from '@/constants';
-import {BrowserItem} from '@/types';
 import {matchTestName} from '@/static/modules/utils';
 import {search} from '@/static/modules/search';
 
@@ -22,7 +21,6 @@ export const getVisualTreeViewData = createSelector(
         getImages,
         getNamedImages,
         getVisualChecksViewMode,
-        (state: State): BrowserItem[] => state.app[Page.visualChecksPage].filteredBrowsers,
         (state: State): string => state.app[Page.visualChecksPage].nameFilter,
         (state: State): boolean => state.app[Page.visualChecksPage].useRegexFilter,
         (state: State): boolean => state.app[Page.visualChecksPage].useMatchCaseFilter
@@ -31,14 +29,10 @@ export const getVisualTreeViewData = createSelector(
         images,
         namedImages,
         visualChecksViewMode,
-        filteredBrowsers,
         nameFilter,
         useRegexFilter,
         useMatchCaseFilter
     ): VisualTreeViewData => {
-        const browsers = new Set(filteredBrowsers.map(({id}) => id));
-        const browsersLen = browsers.size;
-
         const parentNode: TreeRoot = {
             isRoot: true,
             data: undefined
@@ -50,30 +44,23 @@ export const getVisualTreeViewData = createSelector(
             [ViewMode.FAILED]: 0
         };
 
-        const values = Object.values(namedImages);
         const founded = search(
-            values.map(({browserId, browserName}) => browserId.slice(0, -browserName.length - 1)),
             nameFilter,
             useMatchCaseFilter
         );
 
-        const tree = values
+        const tree = Object
+            .values(namedImages)
             .filter(({browserId, browserName, imageIds}) => {
-                // filter by name using search text
-                if (browsersLen && !browsers.has(browserName)) {
-                    return false;
-                }
-
-                const searchName = browserId.slice(0, -browserName.length - 1);
-
                 if (
                     !(
                         matchTestName(
-                            searchName,
+                            browserId,
                             browserName,
                             nameFilter,
-                            {strictMatchFilter: false, useMatchCaseFilter, useRegexFilter, isNewUi: true}
-                        ) || founded.has(searchName)
+                            {strictMatchFilter: false, useMatchCaseFilter, useRegexFilter, isNewUi: true},
+                            founded.has(browserId)
+                        )
                     )
                 ) {
                     return false;

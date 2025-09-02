@@ -119,7 +119,7 @@ describe('static/modules/utils', () => {
             });
 
             it('test name is contains name from filter', () => {
-                assert.isTrue(utils.matchTestName('some-test-name', 'some-browser', 'test'));
+                assert.isTrue(utils.matchTestName('some-test-name', 'some-browser', 'test', {}, true));
             });
 
             it('test name matches on filter strictly', () => {
@@ -127,7 +127,7 @@ describe('static/modules/utils', () => {
             });
 
             it('test name matches on matchCase', () => {
-                assert.isTrue(utils.matchTestName('some-test-name', 'some-browser', 'some-test-name', {useMatchCaseFilter: true}));
+                assert.isTrue(utils.matchTestName('some-test-name', 'some-browser', 'some-test-name', {useMatchCaseFilter: true}, true));
             });
 
             it('test name matches on Regex', () => {

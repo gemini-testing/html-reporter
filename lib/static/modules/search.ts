@@ -1,20 +1,42 @@
 import Fuse from 'fuse.js';
+
 import {keyboardLayoutConverter} from '@/static/modules/utils';
 
-export const search = (list: string[], testNameFilter: string, matchCase = false): Set<string> => {
-    const fuze = new Fuse(
+type Element = {title: string};
+
+let fuze: Fuse<Element>;
+let fuzeMatchCase: Fuse<Element>;
+
+export const initSearch = (list: string[]): void => {
+    fuze = new Fuse(
         list.map((title) => ({title})),
         {
             keys: ['title'],
             threshold: 0.1,
-            isCaseSensitive: matchCase,
+            isCaseSensitive: false,
             findAllMatches: true,
             ignoreLocation: true,
             includeScore: false,
             distance: 50
         }
     );
-    if (!fuze) {
+
+    fuzeMatchCase = new Fuse(
+        list.map((title) => ({title})),
+        {
+            keys: ['title'],
+            threshold: 0.1,
+            isCaseSensitive: true,
+            findAllMatches: true,
+            ignoreLocation: true,
+            includeScore: false,
+            distance: 50
+        }
+    );
+};
+
+export const search = (testNameFilter: string, matchCase = false): Set<string> => {
+    if (!fuze || !fuzeMatchCase || !testNameFilter) {
         return new Set([]);
     }
 
@@ -22,5 +44,9 @@ export const search = (list: string[], testNameFilter: string, matchCase = false
         $or: [{title: testNameFilter}, {title: keyboardLayoutConverter(testNameFilter)}]
     };
 
-    return new Set(fuze.search(query).map((item) => item.item.title));
+    if (matchCase) {
+        return new Set(fuzeMatchCase.search(query).map((item) => item.item.title));
+    } else {
+        return new Set(fuze.search(query).map((item) => item.item.title));
+    }
 };
