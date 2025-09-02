@@ -280,7 +280,7 @@ describe('ResultsTreeBuilder', () => {
                     mkFormattedResult_({status: ERROR, testPath: ['s1', 's3']})
                 );
 
-                assert.calledWith(determineFinalStatus.getCall(3), ['s1 s2 status', 's1 s3 status']);
+                assert.calledWith(determineFinalStatus.getCall(2), ['s1 s2 status', 's1 s3 status']);
             });
         });
     });

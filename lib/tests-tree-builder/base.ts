@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import {determineFinalStatus} from '../common-utils';
 import {BrowserVersions, DEFAULT_TITLE_DELIMITER, TestStatus} from '../constants';
 import {ReporterTestResult} from '../adapters/test-result';
@@ -162,11 +161,29 @@ export class BaseTestsTreeBuilder {
                 this._addSuite(suite);
             }
 
+            const treeSuite = this._tree.suites.byId[id];
+
             if (ind !== arr.length - 1) {
                 const childSuiteId = this._buildId(id, arr[ind + 1]);
-                this._addNodeId(id, childSuiteId, {fieldName: 'suiteIds'});
+
+                if (treeSuite.suiteIds) {
+                    // We add suites from parent to child
+                    // So if there is no child yet, its not present in "treeSuite.suiteIds"
+                    // But it will in next iteration of this "reduce" cycle, which is synchronous
+                    if (!this._tree.suites.byId[childSuiteId] || !treeSuite.suiteIds.includes(childSuiteId)) {
+                        treeSuite.suiteIds.push(childSuiteId);
+                    }
+                } else {
+                    treeSuite.suiteIds = [childSuiteId];
+                }
             } else {
-                this._addNodeId(id, browserId, {fieldName: 'browserIds'});
+                if (treeSuite.browserIds) {
+                    if (!this._tree.browsers.byId[browserId] || !treeSuite.browserIds.includes(browserId)) {
+                        treeSuite.browserIds.push(browserId);
+                    }
+                } else {
+                    treeSuite.browserIds = [browserId];
+                }
             }
 
             return suites;
@@ -182,23 +199,6 @@ export class BaseTestsTreeBuilder {
         if (suite.root) {
             suites.allRootIds.push(suite.id);
         }
-    }
-
-    protected _addNodeId(parentSuiteId: string, nodeId: string, {fieldName}: {fieldName: 'browserIds' | 'suiteIds'}): void {
-        const {suites} = this._tree;
-
-        if (!suites.byId[parentSuiteId][fieldName]) {
-            suites.byId[parentSuiteId][fieldName] = [nodeId];
-            return;
-        }
-
-        if (!this._isNodeIdExists(parentSuiteId, nodeId, {fieldName})) {
-            suites.byId[parentSuiteId][fieldName]?.push(nodeId);
-        }
-    }
-
-    protected _isNodeIdExists(parentSuiteId: string, nodeId: string, {fieldName}: {fieldName: 'browserIds' | 'suiteIds'}): boolean {
-        return _.includes(this._tree.suites.byId[parentSuiteId][fieldName], nodeId);
     }
 
     protected _addBrowser({id, parentId, name, version}: BrowserPayload, testResultId: string, attempt: number): void {
@@ -241,26 +241,59 @@ export class BaseTestsTreeBuilder {
         }
 
         const suite = this._tree.suites.byId[suiteId];
+        const uniqueChildStatuses: TestStatus[] = [];
 
-        const resultStatuses = _.compact(([] as (string | undefined)[]).concat(suite.browserIds))
-            .map((browserId: string) => {
-                const browser = this._tree.browsers.byId[browserId];
-                const lastResultId = _.last(browser.resultIds) as string;
+        for (const browserId of suite.browserIds || []) {
+            if (!browserId) {
+                continue;
+            }
 
-                return this._tree.results.byId[lastResultId].status;
-            });
+            const browserResultIds = this._tree.browsers.byId[browserId].resultIds;
+            const lastResultId = browserResultIds[browserResultIds.length - 1];
+            const lastResultStatus = this._tree.results.byId[lastResultId].status;
 
-        const childrenSuiteStatuses = _.compact(([] as (string | undefined)[]).concat(suite.suiteIds))
-            .map((childSuiteId: string) => this._tree.suites.byId[childSuiteId].status);
+            if (lastResultStatus && !uniqueChildStatuses.includes(lastResultStatus)) {
+                uniqueChildStatuses.push(lastResultStatus);
+            }
+        }
 
-        const status = determineFinalStatus(_.compact([...resultStatuses, ...childrenSuiteStatuses]));
+        for (const childSuiteId of suite.suiteIds || []) {
+            if (!childSuiteId) {
+                continue;
+            }
 
-        // if newly determined status is the same as current status, do nothing
-        if (suite.status === status) {
+            const childSuiteStatus = this._tree.suites.byId[childSuiteId].status;
+
+            if (childSuiteStatus && !uniqueChildStatuses.includes(childSuiteStatus)) {
+                uniqueChildStatuses.push(childSuiteStatus);
+            }
+        }
+
+        // Updating parent suites status, implying "finalStatus(A, A, A, B) === finalStatus(A, B)"
+        suite.status = determineFinalStatus(uniqueChildStatuses) || void 0;
+
+        if (!suite.status) {
             return;
         }
 
-        suite.status = status || undefined;
-        this._setStatusForBranch(testPath.slice(0, -1));
+        // Updating parent suites status, implying "finalStatus(finalStatus(A, B), C) === finalStatus(A, B, C)"
+        for (let i = 1; i < testPath.length; i++) {
+            const parentSuiteId = this._buildId(testPath.slice(0, -i));
+            const parentSuite = this._tree.suites.byId[parentSuiteId];
+
+            if (!parentSuite.status) {
+                parentSuite.status = suite.status;
+                continue;
+            }
+
+            const newParentSuiteStatus = determineFinalStatus([parentSuite.status, suite.status]);
+
+            // Implying "newParentSuiteStatus" could either be "parentSuite.status" or "suite.status"
+            if (newParentSuiteStatus !== parentSuite.status) {
+                parentSuite.status = newParentSuiteStatus || parentSuite.status;
+            } else {
+                break;
+            }
+        }
     }
 }
