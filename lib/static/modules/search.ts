@@ -8,29 +8,30 @@ let fuze: Fuse<Element>;
 let fuzeMatchCase: Fuse<Element>;
 
 export const initSearch = (list: string[]): void => {
+    const preparedList = list.map((title) => ({title}));
+
+    const options = {
+        keys: ['title'],
+        threshold: 0.1,
+        findAllMatches: true,
+        ignoreLocation: true,
+        includeScore: false,
+        distance: 10
+    };
+
     fuze = new Fuse(
-        list.map((title) => ({title})),
+        preparedList,
         {
-            keys: ['title'],
-            threshold: 0.1,
-            isCaseSensitive: false,
-            findAllMatches: true,
-            ignoreLocation: true,
-            includeScore: false,
-            distance: 50
+            ...options,
+            isCaseSensitive: false
         }
     );
 
     fuzeMatchCase = new Fuse(
-        list.map((title) => ({title})),
+        preparedList,
         {
-            keys: ['title'],
-            threshold: 0.1,
-            isCaseSensitive: true,
-            findAllMatches: true,
-            ignoreLocation: true,
-            includeScore: false,
-            distance: 50
+            ...options,
+            isCaseSensitive: true
         }
     );
 };
