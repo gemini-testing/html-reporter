@@ -21,6 +21,12 @@ interface SideBarProps extends TreeViewProps {
     onStatusChange: (value: string) => void;
 }
 
+const Loader = ({loading}: {loading: boolean}): ReactNode => (
+    <div className={styles.loaderContainer}>
+        {loading && <div className={styles.loader} />}
+    </div>
+);
+
 export function SideBar({
     title,
     isInitialized,
@@ -31,12 +37,14 @@ export function SideBar({
     onStatusChange,
     ...props
 }: SideBarProps): ReactNode {
+    const [loading, setLoading] = React.useState(false);
+
     return (
         <UiCard className={classNames(styles.card, styles.treeViewCard)} key='tree-view' qa='suites-tree-card'>
             <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try to reload page'}/>}>
                 <Text variant="header-2" className={styles['card__title']} qa="sidebar-title">{title}</Text>
                 <Flex gap={2} className={styles['filters-container']}>
-                    <NameFilter/>
+                    <NameFilter onLoading={setLoading} />
                     <BrowsersSelect/>
                 </Flex>
                 <TabsSelect
@@ -47,6 +55,7 @@ export function SideBar({
                     disabled={!isInitialized}
                 />
                 {onHighlightCurrentTest && <TreeActionsToolbar className={styles['toolbar-container']} onHighlightCurrentTest={onHighlightCurrentTest} />}
+                <Loader loading={loading} />
                 {isInitialized && <TreeView ref={treeViewRef} {...props} containerClassName={styles['tree-view-container']}/>}
                 {!isInitialized && <div className={styles['skeleton-container']}><TreeViewSkeleton/></div>}
             </ErrorHandler.Boundary>

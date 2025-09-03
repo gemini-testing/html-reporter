@@ -8,8 +8,9 @@ import {getIsInitialized} from '@/static/new-ui/store/selectors';
 import {NameFilterButton} from './NameFilterButton';
 import styles from './index.module.css';
 import {usePage} from '@/static/new-ui/hooks/usePage';
+import {search} from '@/static/modules/search';
 
-export const NameFilter = (): ReactNode => {
+export const NameFilter = ({onLoading}: {onLoading: (f: boolean) => void}): ReactNode => {
     const dispatch = useDispatch();
     const page = usePage();
     const nameFilter = useSelector((state) => state.app[page].nameFilter);
@@ -18,12 +19,20 @@ export const NameFilter = (): ReactNode => {
     const [testNameFilter, setNameFilter] = useState(nameFilter);
 
     const updateNameFilter = useCallback(debounce(
-        (testName) => dispatch(
-            actions.updateNameFilter({
-                data: testName,
-                page
-            })
-        ),
+        (testName) => {
+            onLoading(true);
+            search(testName, useMatchCaseFilter).then(() => {
+                dispatch(
+                    actions.updateNameFilter({
+                        data: testName,
+                        page
+                    })
+                );
+                onLoading(false);
+            }).catch(() => {
+                onLoading(false);
+            });
+        },
         500,
         {maxWait: 3000}
     ), []);

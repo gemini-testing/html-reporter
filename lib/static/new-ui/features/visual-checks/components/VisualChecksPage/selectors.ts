@@ -6,7 +6,7 @@ import {getNamedImages} from '@/static/new-ui/features/visual-checks/selectors';
 import {TreeViewData} from '@/static/new-ui/components/TreeView';
 import {TestStatus, ViewMode} from '@/constants';
 import {matchTestName} from '@/static/modules/utils';
-import {search} from '@/static/modules/search';
+import {checkSearch} from '@/static/modules/search';
 
 export const getVisualChecksViewMode = (state: State): ViewMode => state.app[Page.visualChecksPage].viewMode;
 
@@ -44,11 +44,6 @@ export const getVisualTreeViewData = createSelector(
             [ViewMode.FAILED]: 0
         };
 
-        const founded = search(
-            nameFilter,
-            useMatchCaseFilter
-        );
-
         const tree = Object
             .values(namedImages)
             .filter(({browserId, browserName, imageIds}) => {
@@ -59,7 +54,7 @@ export const getVisualTreeViewData = createSelector(
                             browserName,
                             nameFilter,
                             {strictMatchFilter: false, useMatchCaseFilter, useRegexFilter, isNewUi: true},
-                            founded.has(browserId)
+                            checkSearch(browserId)
                         )
                     )
                 ) {
