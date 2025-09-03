@@ -10,7 +10,7 @@ import styles from './index.module.css';
 import {usePage} from '@/static/new-ui/hooks/usePage';
 import {search} from '@/static/modules/search';
 
-export const NameFilter = ({onLoading}: {onLoading: (f: boolean) => void}): ReactNode => {
+export const NameFilter = (): ReactNode => {
     const dispatch = useDispatch();
     const page = usePage();
     const nameFilter = useSelector((state) => state.app[page].nameFilter);
@@ -19,19 +19,8 @@ export const NameFilter = ({onLoading}: {onLoading: (f: boolean) => void}): Reac
     const [testNameFilter, setNameFilter] = useState(nameFilter);
 
     const updateNameFilter = useCallback(debounce(
-        (testName) => {
-            onLoading(true);
-            search(testName, useMatchCaseFilter).then(() => {
-                dispatch(
-                    actions.updateNameFilter({
-                        data: testName,
-                        page
-                    })
-                );
-                onLoading(false);
-            }).catch(() => {
-                onLoading(false);
-            });
+        (text) => {
+            search(text, useMatchCaseFilter, page, false, dispatch);
         },
         500,
         {maxWait: 3000}
@@ -45,10 +34,7 @@ export const NameFilter = ({onLoading}: {onLoading: (f: boolean) => void}): Reac
     const isInitialized = useSelector(getIsInitialized);
 
     const onCaseSensitiveClick = (): void => {
-        dispatch(actions.setMatchCaseFilter({
-            data: !useMatchCaseFilter,
-            page
-        }));
+        search(nameFilter, !useMatchCaseFilter, page, true, dispatch);
     };
 
     const onRegexClick = (): void => {

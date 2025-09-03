@@ -12,7 +12,7 @@ const initSearch = (list: string[]): void => {
 
     const options = {
         keys: ['title'],
-        threshold: 0.2,
+        threshold: 0.1,
         findAllMatches: true,
         ignoreLocation: true,
         includeScore: false,
@@ -36,7 +36,7 @@ const initSearch = (list: string[]): void => {
     );
 };
 
-const worker = (testNameFilter: string, matchCase = false): string[] => {
+const search = (testNameFilter: string, matchCase = false): string[] => {
     if (!fuze || !fuzeMatchCase || !testNameFilter) {
         return [];
     }
@@ -73,7 +73,7 @@ self.onmessage = (event: MessageEvent<InitMessage | SearchMessage>): void => {
             break;
         }
         case 'search': {
-            const result: string[] = worker(event.data.data.text, event.data.data.matchCase);
+            const result: string[] = search(event.data.data.text, event.data.data.matchCase);
             self.postMessage(result);
             break;
         }

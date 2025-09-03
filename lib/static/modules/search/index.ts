@@ -1,3 +1,6 @@
+import {setSearchLoading, updateNameFilter, setMatchCaseFilter} from '@/static/modules/actions';
+import {Page} from '@/static/new-ui/types/store';
+
 let worker: Worker;
 let searchResult: Set<string> = new Set([]);
 
@@ -14,8 +17,16 @@ export const initSearch = (list: string[]): void => {
 
 export const checkSearch = (browserId: string): boolean => searchResult.has(browserId);
 
-export const search = (text: string, matchCase = false): Promise<string[]> => {
-    return new Promise((resolve, reject) => {
+export const search = (
+    text: string,
+    matchCase = false,
+    page: Page,
+    updateMatchCase: boolean,
+    dispatch: (action: unknown) => void
+): void => {
+    dispatch(setSearchLoading(true));
+
+    new Promise((resolve: (list: string[]) => void) => {
         if (worker) {
             worker.postMessage({
                 type: 'search',
@@ -27,16 +38,31 @@ export const search = (text: string, matchCase = false): Promise<string[]> => {
 
             worker.onmessage = (event: MessageEvent<string[]>): void => {
                 resolve(event.data);
-                searchResult = new Set(event.data);
             };
 
-            worker.onerror = (err): void => {
-                searchResult = new Set([]);
-                reject(err);
+            worker.onerror = (): void => {
+                resolve([]);
             };
         } else {
-            searchResult = new Set([]);
-            reject();
+            resolve([]);
         }
+    }).then((result: string[]) => {
+        searchResult = new Set(result);
+
+        if (updateMatchCase) {
+            dispatch(setMatchCaseFilter({
+                data: matchCase,
+                page
+            }));
+        } else {
+            dispatch(
+                updateNameFilter({
+                    data: text,
+                    page
+                })
+            );
+        }
+
+        dispatch(setSearchLoading(false));
     });
 };

@@ -32,6 +32,11 @@ export const selectBrowsers = (payload: SelectBrowsersAction['payload']): Select
     return {type: actionNames.BROWSERS_SELECTED, payload};
 };
 
+export type SetSearchLoading = Action<typeof actionNames.SET_SEARCH_LOADING, boolean>;
+export const setSearchLoading = (payload: boolean): SetSearchLoading => {
+    return {type: actionNames.SET_SEARCH_LOADING, payload};
+};
+
 export type ChangeViewModeAction = Action<typeof actionNames.CHANGE_VIEW_MODE, FilterPayload<ViewMode>>;
 export const changeViewMode = (payload: ChangeViewModeAction['payload']): ChangeViewModeAction => ({type: actionNames.CHANGE_VIEW_MODE, payload});
 
@@ -40,4 +45,5 @@ export type FiltersAction =
     | SetMatchCaseFilterAction
     | SetUseRegexFilterAction
     | SelectBrowsersAction
-    | ChangeViewModeAction;
+    | ChangeViewModeAction
+    | SetSearchLoading;
