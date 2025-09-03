@@ -131,3 +131,25 @@
     margin-top: -170px;
     flex-direction: column;
 }
+
+@keyframes b-pulse {
+    0% { left: 0; width: 10px; }
+    25% {width: 30px; }
+    50% { left: calc(100% - 30px); width: 10px; }
+    75% { width: 30px; }
+    100% {left: 0; width: 10px; }
+}
+
+.loader::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 18px;
+    height: 2px;
+    background: var(--g-color-base-brand);
+    border-radius: 100px;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+    animation: b-pulse 6s ease-in-out infinite;
+    opacity: 1;
+}

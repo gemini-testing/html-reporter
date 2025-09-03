@@ -1,10 +1,23 @@
-import {get, isPlainObject, isUndefined} from 'lodash';
+import {get, isUndefined} from 'lodash';
 import {State} from '@/static/new-ui/types/store';
 import {DeepPartial} from 'redux';
 
+// simplest and faster than lodash realisation
+const isPlainObject = (value: unknown): value is Record<string, unknown> => (
+    value !== null &&
+    typeof value === 'object' &&
+    (value.constructor === Object || Object.getPrototypeOf(value) === null)
+);
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function copyAndMerge(state: any, diff: any): unknown {
-    const result = {...state};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result: any = {};
+
+    // works faster that {...state}
+    for (const key in state) {
+        result[key] = state[key];
+    }
 
     for (const key in diff) {
         if (isPlainObject(diff[key]) && isPlainObject(state[key])) {

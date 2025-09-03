@@ -8,6 +8,7 @@ import {getIsInitialized} from '@/static/new-ui/store/selectors';
 import {NameFilterButton} from './NameFilterButton';
 import styles from './index.module.css';
 import {usePage} from '@/static/new-ui/hooks/usePage';
+import {search} from '@/static/modules/search';
 
 export const NameFilter = (): ReactNode => {
     const dispatch = useDispatch();
@@ -18,12 +19,9 @@ export const NameFilter = (): ReactNode => {
     const [testNameFilter, setNameFilter] = useState(nameFilter);
 
     const updateNameFilter = useCallback(debounce(
-        (testName) => dispatch(
-            actions.updateNameFilter({
-                data: testName,
-                page
-            })
-        ),
+        (text) => {
+            search(text, useMatchCaseFilter, page, false, dispatch);
+        },
         500,
         {maxWait: 3000}
     ), []);
@@ -36,10 +34,7 @@ export const NameFilter = (): ReactNode => {
     const isInitialized = useSelector(getIsInitialized);
 
     const onCaseSensitiveClick = (): void => {
-        dispatch(actions.setMatchCaseFilter({
-            data: !useMatchCaseFilter,
-            page
-        }));
+        search(nameFilter, !useMatchCaseFilter, page, true, dispatch);
     };
 
     const onRegexClick = (): void => {

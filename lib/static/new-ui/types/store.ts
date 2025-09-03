@@ -260,6 +260,7 @@ export interface State {
         isNewUi: boolean;
         isInitialized: boolean;
         availableFeatures: Feature[],
+        isSearchLoading?: boolean;
         [Page.suitesPage]: {
             currentTreeNodeId: string | null;
             currentBrowserId: string | null;
