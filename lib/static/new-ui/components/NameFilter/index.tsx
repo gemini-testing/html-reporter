@@ -20,11 +20,11 @@ export const NameFilter = (): ReactNode => {
 
     const updateNameFilter = useCallback(debounce(
         (text) => {
-            search(text, useMatchCaseFilter, page, false, dispatch);
+            search(text, useMatchCaseFilter, useRegexFilter, page, false, dispatch);
         },
         500,
         {maxWait: 3000}
-    ), []);
+    ), [useMatchCaseFilter, useRegexFilter, page]);
 
     const onChange = useCallback((event: ChangeEvent<HTMLInputElement>): void => {
         setNameFilter(event.target.value);
@@ -34,7 +34,7 @@ export const NameFilter = (): ReactNode => {
     const isInitialized = useSelector(getIsInitialized);
 
     const onCaseSensitiveClick = (): void => {
-        search(nameFilter, !useMatchCaseFilter, page, true, dispatch);
+        search(nameFilter, !useMatchCaseFilter, useRegexFilter, page, true, dispatch);
     };
 
     const onRegexClick = (): void => {
@@ -44,6 +44,7 @@ export const NameFilter = (): ReactNode => {
                 page
             })
         );
+        search(nameFilter, useMatchCaseFilter, !useRegexFilter, page, true, dispatch);
     };
 
     const isRegexInvalid = useMemo(() => {

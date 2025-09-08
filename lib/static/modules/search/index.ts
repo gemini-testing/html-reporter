@@ -15,11 +15,12 @@ export const initSearch = (list: string[]): void => {
     }
 };
 
-export const checkSearch = (browserId: string): boolean => searchResult.has(browserId);
+export const checkSearchResultExits = (browserId: string): boolean => searchResult.has(browserId);
 
 export const search = (
     text: string,
     matchCase = false,
+    useRegexFilter = false,
     page: Page,
     updateMatchCase: boolean,
     dispatch: (action: unknown) => void
@@ -27,6 +28,13 @@ export const search = (
     dispatch(setSearchLoading(true));
 
     new Promise((resolve: (list: string[]) => void) => {
+        if (useRegexFilter) {
+            console.log('SEARCHING REGEX');
+            resolve([]);
+            return;
+        }
+        console.log('SEARCHING TEXT');
+
         if (worker) {
             worker.postMessage({
                 type: 'search',
@@ -47,6 +55,7 @@ export const search = (
             resolve([]);
         }
     }).then((result: string[]) => {
+        console.log('SEARCHING END');
         searchResult = new Set(result);
 
         if (updateMatchCase) {

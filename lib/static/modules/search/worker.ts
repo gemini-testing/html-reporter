@@ -4,8 +4,8 @@ import {keyboardLayoutConverter} from '@/static/modules/utils';
 
 type Element = {title: string};
 
-let fuze: Fuse<Element>;
-let fuzeMatchCase: Fuse<Element>;
+let fuse: Fuse<Element>;
+let fuseMatchCase: Fuse<Element>;
 
 const initSearch = (list: string[]): void => {
     const preparedList = list.map((title) => ({title}));
@@ -19,7 +19,7 @@ const initSearch = (list: string[]): void => {
         distance: 100
     };
 
-    fuze = new Fuse(
+    fuse = new Fuse(
         preparedList,
         {
             ...options,
@@ -27,7 +27,7 @@ const initSearch = (list: string[]): void => {
         }
     );
 
-    fuzeMatchCase = new Fuse(
+    fuseMatchCase = new Fuse(
         preparedList,
         {
             ...options,
@@ -37,7 +37,7 @@ const initSearch = (list: string[]): void => {
 };
 
 const search = (testNameFilter: string, matchCase = false): string[] => {
-    if (!fuze || !fuzeMatchCase || !testNameFilter) {
+    if (!fuse || !fuseMatchCase || !testNameFilter) {
         return [];
     }
 
@@ -46,9 +46,9 @@ const search = (testNameFilter: string, matchCase = false): string[] => {
     };
 
     if (matchCase) {
-        return fuzeMatchCase.search(query).map((item) => item.item.title);
+        return fuseMatchCase.search(query).map((item) => item.item.title);
     } else {
-        return fuze.search(query).map((item) => item.item.title);
+        return fuse.search(query).map((item) => item.item.title);
     }
 };
 
