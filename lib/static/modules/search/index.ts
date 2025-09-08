@@ -29,11 +29,9 @@ export const search = (
 
     new Promise((resolve: (list: string[]) => void) => {
         if (useRegexFilter) {
-            console.log('SEARCHING REGEX');
             resolve([]);
             return;
         }
-        console.log('SEARCHING TEXT');
 
         if (worker) {
             worker.postMessage({
@@ -49,13 +47,13 @@ export const search = (
             };
 
             worker.onerror = (): void => {
+                console.error(`Error while searching ${text}`);
                 resolve([]);
             };
         } else {
             resolve([]);
         }
     }).then((result: string[]) => {
-        console.log('SEARCHING END');
         searchResult = new Set(result);
 
         if (updateMatchCase) {
