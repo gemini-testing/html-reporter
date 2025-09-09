@@ -105,6 +105,9 @@ export default (state: State, action: FiltersAction | InitGuiReportAction | Init
                 }
             );
 
+        case actionNames.SET_SEARCH_LOADING:
+            return applyStateUpdate(state, {app: {isSearchLoading: action.payload}});
+
         default:
             return state;
     }

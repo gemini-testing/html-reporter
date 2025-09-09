@@ -1,4 +1,5 @@
 import React, {ReactNode, Ref} from 'react';
+import {useSelector} from 'react-redux';
 import classNames from 'classnames';
 import styles from './index.module.css';
 import {ErrorHandler} from '@/static/new-ui/features/error-handling/components/ErrorHandling';
@@ -31,12 +32,14 @@ export function SideBar({
     onStatusChange,
     ...props
 }: SideBarProps): ReactNode {
+    const isSearchLoading = useSelector((state) => state.app.isSearchLoading);
+
     return (
         <UiCard className={classNames(styles.card, styles.treeViewCard)} key='tree-view' qa='suites-tree-card'>
             <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try to reload page'}/>}>
                 <Text variant="header-2" className={styles['card__title']} qa="sidebar-title">{title}</Text>
                 <Flex gap={2} className={styles['filters-container']}>
-                    <NameFilter/>
+                    <NameFilter />
                     <BrowsersSelect/>
                 </Flex>
                 <TabsSelect
@@ -47,7 +50,14 @@ export function SideBar({
                     disabled={!isInitialized}
                 />
                 {onHighlightCurrentTest && <TreeActionsToolbar className={styles['toolbar-container']} onHighlightCurrentTest={onHighlightCurrentTest} />}
-                {isInitialized && <TreeView ref={treeViewRef} {...props} containerClassName={styles['tree-view-container']}/>}
+                {isInitialized && (
+                    <TreeView
+                        ref={treeViewRef}
+                        containerClassName={styles['tree-view-container']}
+                        loading={isSearchLoading}
+                        {...props}
+                    />
+                )}
                 {!isInitialized && <div className={styles['skeleton-container']}><TreeViewSkeleton/></div>}
             </ErrorHandler.Boundary>
         </UiCard>

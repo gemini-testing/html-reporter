@@ -7,6 +7,7 @@ interface NameFilterButtonProps {
     tooltip: string;
     onClick?: () => void;
     className?: string
+    qa?: string
 }
 
 export const NameFilterButton = (props: NameFilterButtonProps): ReactNode => (
@@ -17,6 +18,7 @@ export const NameFilterButton = (props: NameFilterButtonProps): ReactNode => (
             onClick={props.onClick}
             view={'flat'}
             className={props.className}
+            qa={props.qa}
         >
             {props.children}
         </Button>

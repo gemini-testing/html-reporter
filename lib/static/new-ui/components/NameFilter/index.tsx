@@ -8,6 +8,7 @@ import {getIsInitialized} from '@/static/new-ui/store/selectors';
 import {NameFilterButton} from './NameFilterButton';
 import styles from './index.module.css';
 import {usePage} from '@/static/new-ui/hooks/usePage';
+import {search} from '@/static/modules/search';
 
 export const NameFilter = (): ReactNode => {
     const dispatch = useDispatch();
@@ -18,15 +19,12 @@ export const NameFilter = (): ReactNode => {
     const [testNameFilter, setNameFilter] = useState(nameFilter);
 
     const updateNameFilter = useCallback(debounce(
-        (testName) => dispatch(
-            actions.updateNameFilter({
-                data: testName,
-                page
-            })
-        ),
+        (text) => {
+            search(text, useMatchCaseFilter, useRegexFilter, page, false, dispatch);
+        },
         500,
         {maxWait: 3000}
-    ), []);
+    ), [useMatchCaseFilter, useRegexFilter, page]);
 
     const onChange = useCallback((event: ChangeEvent<HTMLInputElement>): void => {
         setNameFilter(event.target.value);
@@ -36,10 +34,7 @@ export const NameFilter = (): ReactNode => {
     const isInitialized = useSelector(getIsInitialized);
 
     const onCaseSensitiveClick = (): void => {
-        dispatch(actions.setMatchCaseFilter({
-            data: !useMatchCaseFilter,
-            page
-        }));
+        search(nameFilter, !useMatchCaseFilter, useRegexFilter, page, true, dispatch);
     };
 
     const onRegexClick = (): void => {
@@ -49,6 +44,7 @@ export const NameFilter = (): ReactNode => {
                 page
             })
         );
+        search(nameFilter, useMatchCaseFilter, !useRegexFilter, page, true, dispatch);
     };
 
     const isRegexInvalid = useMemo(() => {
@@ -75,13 +71,14 @@ export const NameFilter = (): ReactNode => {
                 onChange={onChange}
                 className={styles['search-input']}
                 error={isRegexInvalid}
-                qa="filter-input"
+                qa="name-filter"
             />
             <div className={styles['buttons-wrapper']}>
                 <NameFilterButton
                     selected={useMatchCaseFilter}
                     tooltip={'Match case'}
                     onClick={onCaseSensitiveClick}
+                    qa="match-case"
                 >
                     <Icon data={FontCase}/>
                 </NameFilterButton>
@@ -90,6 +87,7 @@ export const NameFilter = (): ReactNode => {
                     tooltip={'Regex'}
                     onClick={onRegexClick}
                     className={styles['buttons-wrapper__regex']}
+                    qa="regex"
                 >
                     .*
                 </NameFilterButton>

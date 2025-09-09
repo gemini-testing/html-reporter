@@ -115,27 +115,27 @@ describe('static/modules/utils', () => {
     describe('"matchTestName"', () => {
         describe('should return "true" if', () => {
             it('filter by name is not passed', () => {
-                assert.isTrue(utils.matchTestName('some-test-name').isMatch);
+                assert.isTrue(utils.matchTestName('some-test-name'));
             });
 
             it('test name is contains name from filter', () => {
-                assert.isTrue(utils.matchTestName('some-test-name', 'some-browser', 'test').isMatch);
+                assert.isTrue(utils.matchTestName('some-test-name', 'some-browser', 'test', {}, true));
             });
 
             it('test name matches on filter strictly', () => {
-                assert.isTrue(utils.matchTestName('some-test-name', 'some-browser', 'some-test-name', {strictMatchFilter: true}).isMatch);
+                assert.isTrue(utils.matchTestName('some-test-name', 'some-browser', 'some-test-name', {strictMatchFilter: true}));
             });
 
             it('test name matches on matchCase', () => {
-                assert.isTrue(utils.matchTestName('some-test-name', 'some-browser', 'some-test-name', {useMatchCaseFilter: true}).isMatch);
+                assert.isTrue(utils.matchTestName('some-test-name', 'some-browser', 'some-test-name', {useMatchCaseFilter: true}, true));
             });
 
             it('test name matches on Regex', () => {
-                assert.isTrue(utils.matchTestName('some-test-name', 'some-browser', '^[a-z]+(-[a-z]+)*$', {useRegexFilter: true}).isMatch);
+                assert.isTrue(utils.matchTestName('some-test-name', 'some-browser', '^[a-z]+(-[a-z]+)*$', {useRegexFilter: true}));
             });
 
             it('test name matches on matchCase and on Regex', () => {
-                assert.isTrue(utils.matchTestName('some-test-name', 'some-browser', '^[a-z]+(-[a-z]+)*$', {useMatchCaseFilter: true, useRegexFilter: true}).isMatch);
+                assert.isTrue(utils.matchTestName('some-test-name', 'some-browser', '^[a-z]+(-[a-z]+)*$', {useMatchCaseFilter: true, useRegexFilter: true}));
             });
         });
 
