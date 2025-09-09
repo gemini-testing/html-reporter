@@ -78,6 +78,7 @@ export const NameFilter = (): ReactNode => {
                     selected={useMatchCaseFilter}
                     tooltip={'Match case'}
                     onClick={onCaseSensitiveClick}
+                    qa="match-case"
                 >
                     <Icon data={FontCase}/>
                 </NameFilterButton>
@@ -86,6 +87,7 @@ export const NameFilter = (): ReactNode => {
                     tooltip={'Regex'}
                     onClick={onRegexClick}
                     className={styles['buttons-wrapper__regex']}
+                    qa="regex"
                 >
                     .*
                 </NameFilterButton>
