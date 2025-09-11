@@ -1,8 +1,13 @@
-.image-label, .image-label + div {
+.image-label {
     margin-bottom: 8px;
+    display: flex;
 }
 
 .image-label-subtitle {
     color: var(--g-color-private-black-400);
     margin-left: 4px;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
