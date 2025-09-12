@@ -58,7 +58,7 @@ This will create a project in `testplane-test-project` directory.
 Go to html-reporter repo directory and run:
 
 ```shell
-cd testplane
+cd html-reporter
 npm link
 ```
 
