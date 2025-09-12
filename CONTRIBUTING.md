@@ -1,7 +1,94 @@
 # Contribution guide
 
-> This document is currently a work in progress and is not yet comprehensive.
-> Additional info will be added over time.
+## Legal info
+
+Hello! In order for us (YANDEX LLC) to accept patches and other contributions from you, you will have to adopt our Contributor License Agreement (the “CLA”). The current version of the CLA you may find here:
+
+* https://yandex.ru/legal/cla/?lang=en (in English)
+* https://yandex.ru/legal/cla/?lang=ru (in Russian).
+
+By adopting the CLA, you state the following:
+
+* You obviously wish and are willingly licensing your contributions to us for our open source projects under the terms of the CLA,
+* You have read the terms and conditions of the CLA and agree with them in full,
+* You are legally able to provide and license your contributions as stated,
+* We may use your contributions for our open source projects and for any other our project too,
+* We rely on your assurances concerning the rights of third parties in relation to your contributions.
+
+If you agree with these principles, please read and adopt our CLA. By providing us your contributions, you hereby declare that you have read and adopted our CLA, and we may freely merge your contributions with our corresponding open source project and use it in further in accordance with terms and conditions of the CLA.
+
+### Provide contributions
+If you have adopted terms and conditions of the CLA, you are able to provide your contributions. When you submit your pull request, please add the following information into it:
+
+```
+I hereby agree to the terms of the CLA available at: [link].
+```
+
+Replace the bracketed text as follows:
+
+* [link] is the link at the current version of the CLA (you may add here a link https://yandex.ru/legal/cla/?lang=en (in English) or a link https://yandex.ru/legal/cla/?lang=ru (in Russian).
+It is enough to provide us with such notification once.
+
+## How to develop
+
+### Create your own copy of HTML Reporter repo
+
+**Note.** If you are not a member of gemini-testing and going to submit a PR, you should first create a fork of html-reporter repo.
+
+```bash
+git clone https://github.com/gemini-testing/html-reporter.git # Replace with your fork URL
+cd html-reporter
+npm install
+```
+
+### Create a test project
+
+When working with html-reporter, you'd want to test your changes on a real project as if you were a user.
+
+To create a test project, use our CLI wizard:
+
+```
+npm init testplane@latest testplane-test-project
+```
+
+This will create a project in `testplane-test-project` directory.
+
+### Link your local HTML Reporter repo to your test project
+
+Go to html-reporter repo directory and run:
+
+```shell
+cd testplane
+npm link
+```
+
+Then go to your test project's directory and run:
+
+```shell
+cd testplane-test-project
+npm link html-reporter
+```
+
+### Build HTML Reporter
+
+To build html-reporter, you may use `npm run build` command or `npm run watch` to watch for changes.
+
+Great! Now you have everything set up. You can now make some tweaks in html-reporter and run `npx testplane gui` in your test project to see how it works with your changes!
+
+A few important notes:
+- If you are changing frontend (`static` directory in html-reporter repo), running build in watch mode and just force refreshing GUI page is enough to see your changes
+- If you are changing server-side code of html-reporter, you need to restart gui server (`npx testplane gui`) each time to see your changes
+- If you want to see your changes in static report (the one you are viewing using `npx http-server report-dir`) you should either re-generate it from scratch by running testplane once again (`npx testplane`) or replace all js/css files from `build/static`
+
+### Running basic checks locally
+
+You may run all linters and tests locally using the command below.
+
+```shell
+npm test
+```
+
+For a more granular checks, see scripts section in `package.json`.
 
 ### Running e2e tests
 
@@ -42,6 +129,9 @@ If you want a finer-grained control over the process, the following commands may
 - `npm run e2e:test` — run e2e tests only, without building packages or generating fixtures
 
 ### Working with browser docker images
+
+> [!NOTE]
+> If you just want to develop html-reporter, you don't need info below. You should just use prebuilt docker images as described above.
 
 #### Building an image for current platform
 
