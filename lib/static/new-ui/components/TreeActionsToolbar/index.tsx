@@ -1,4 +1,4 @@
-import {Icon} from '@gravity-ui/uikit';
+import {Icon, Spin} from '@gravity-ui/uikit';
 import classNames from 'classnames';
 import {
     ArrowUturnCcwLeft,
@@ -28,6 +28,7 @@ import {
 import {ImageEntity, TreeViewMode} from '@/static/new-ui/types/store';
 import {CHECKED, INDETERMINATE} from '@/constants/checked-statuses';
 import {IconButton} from '@/static/new-ui/components/IconButton';
+import {TestStatus} from '@/constants';
 import {
     getCheckedTests,
     getSelectedImages,
@@ -69,7 +70,9 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
 
     const isRunTestsAvailable = useSelector(state => state.app.availableFeatures)
         .find(feature => feature.name === RunTestsFeature.name);
-    const isRunning = useSelector(state => state.running);
+    const isRunning = useSelector(state => (
+        state.tree.suites.allRootIds.every((id) => state.tree.suites.byId[id].status === TestStatus.RUNNING)
+    ));
 
     const isEditScreensAvailable = useSelector(state => state.app.availableFeatures)
         .find(feature => feature.name === EditScreensFeature.name);
@@ -177,35 +180,49 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
     const selectedOrVisible = isSelectedAtLeastOne ? 'selected' : 'visible';
     const areActionsDisabled = isRunning || !isInitialized;
 
-    const viewButtons = <>
-        {isRunTestsAvailable && <IconButton className={styles.iconButton} icon={<Icon data={Play} height={14}/>}
-            tooltip={`Run ${selectedOrVisible}`} view={'flat'} onClick={handleRun}
-            disabled={isRunning || !isInitialized}></IconButton>}
-        {isEditScreensAvailable && (
-            isUndoButtonVisible ?
-                <IconButton className={styles.iconButton} icon={<Icon data={ArrowUturnCcwLeft} />} tooltip={`Undo accepting ${selectedOrVisible} screenshots`} view={'flat'} onClick={handleUndo} disabled={areActionsDisabled}></IconButton> :
-                <IconButton className={styles.iconButton} icon={<Icon data={Check} />} tooltip={`Accept ${selectedOrVisible} screenshots`} view={'flat'} onClick={handleAccept} disabled={areActionsDisabled || !isAtLeastOneAcceptable}></IconButton>
-        )}
-        {(isRunTestsAvailable || isEditScreensAvailable) && <div className={styles.buttonsDivider}></div>}
-        <IconButton
-            icon={<Icon data={treeViewMode === TreeViewMode.Tree ? ListUl : Hierarchy} height={14}/>}
-            tooltip={treeViewMode === TreeViewMode.Tree ? 'Switch to list view' : 'Switch to tree view'}
-            view={'flat'}
-            onClick={handleToggleTreeView}
-            disabled={!isInitialized} />
-        <IconButton icon={<Icon data={SquareDashed} height={14}/>} tooltip={'Focus on active test'} view={'flat'} onClick={onHighlightCurrentTest} disabled={!isFocusAvailable}/>
-        <IconButton icon={<Icon data={ChevronsExpandVertical} height={14}/>} tooltip={'Expand all'} view={'flat'} onClick={handleExpandAll} disabled={!isInitialized}/>
-        <IconButton icon={<Icon data={ChevronsCollapseVertical} height={14}/>} tooltip={'Collapse all'} view={'flat'} onClick={handleCollapseAll} disabled={!isInitialized}/>
-        {areCheckboxesNeeded && <IconButton
-            icon={<Icon data={isIndeterminate ? SquareMinus : (isSelectedAll ? SquareCheck : Square)}/>}
-            tooltip={isSelectedAtLeastOne ? 'Deselect all' : 'Select all'}
-            view={'flat'}
-            onClick={handleToggleAll}
-            disabled={!isInitialized}
-            className={styles.selectAllButton}
-            qa="select-all-button"
-        />}
-    </>;
+    const getViewButtons = (): ReactNode => (
+        <>
+            {isRunTestsAvailable && (
+                isRunning
+                    ? (
+                        <Spin size={'xs'} style={{marginRight: '6px'}}/>
+                    ) : (
+                        <IconButton
+                            className={styles.iconButton}
+                            icon={<Icon data={Play} height={14}/>}
+                            tooltip={`Run ${selectedOrVisible}`}
+                            view={'flat'}
+                            onClick={handleRun}
+                            disabled={isRunning || !isInitialized}
+                        />
+                    )
+            )}
+            {isEditScreensAvailable && (
+                isUndoButtonVisible ?
+                    <IconButton className={styles.iconButton} icon={<Icon data={ArrowUturnCcwLeft} />} tooltip={`Undo accepting ${selectedOrVisible} screenshots`} view={'flat'} onClick={handleUndo} disabled={areActionsDisabled}></IconButton> :
+                    <IconButton className={styles.iconButton} icon={<Icon data={Check} />} tooltip={`Accept ${selectedOrVisible} screenshots`} view={'flat'} onClick={handleAccept} disabled={areActionsDisabled || !isAtLeastOneAcceptable}></IconButton>
+            )}
+            {(isRunTestsAvailable || isEditScreensAvailable) && <div className={styles.buttonsDivider}></div>}
+            <IconButton
+                icon={<Icon data={treeViewMode === TreeViewMode.Tree ? ListUl : Hierarchy} height={14}/>}
+                tooltip={treeViewMode === TreeViewMode.Tree ? 'Switch to list view' : 'Switch to tree view'}
+                view={'flat'}
+                onClick={handleToggleTreeView}
+                disabled={!isInitialized} />
+            <IconButton icon={<Icon data={SquareDashed} height={14}/>} tooltip={'Focus on active test'} view={'flat'} onClick={onHighlightCurrentTest} disabled={!isFocusAvailable}/>
+            <IconButton icon={<Icon data={ChevronsExpandVertical} height={14}/>} tooltip={'Expand all'} view={'flat'} onClick={handleExpandAll} disabled={!isInitialized}/>
+            <IconButton icon={<Icon data={ChevronsCollapseVertical} height={14}/>} tooltip={'Collapse all'} view={'flat'} onClick={handleCollapseAll} disabled={!isInitialized}/>
+            {areCheckboxesNeeded && <IconButton
+                icon={<Icon data={isIndeterminate ? SquareMinus : (isSelectedAll ? SquareCheck : Square)}/>}
+                tooltip={isSelectedAtLeastOne ? 'Deselect all' : 'Select all'}
+                view={'flat'}
+                onClick={handleToggleAll}
+                disabled={!isInitialized}
+                className={styles.selectAllButton}
+                qa="select-all-button"
+            />}
+        </>
+    );
 
     return <div className={classNames(styles.container, className)}>
         {/* This one is needed for paddings to work correctly for absolutely positioned selectedContainer */}
@@ -213,7 +230,7 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
             <GroupBySelect />
             <SortBySelect />
             <div className={styles.buttonsContainer}>
-                {viewButtons}
+                {getViewButtons()}
             </div>
 
             <div
@@ -224,7 +241,7 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
                 </div>
 
                 <div className={styles.buttonsContainer}>
-                    {viewButtons}
+                    {getViewButtons()}
                 </div>
             </div>
         </div>
