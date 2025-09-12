@@ -276,22 +276,20 @@ export class BaseTestsTreeBuilder {
             return;
         }
 
-        // Updating parent suites status, implying "finalStatus(finalStatus(A, B), C) === finalStatus(A, B, C)"
         for (let i = 1; i < testPath.length; i++) {
-            const parentSuiteId = this._buildId(testPath.slice(0, -i));
+            const parentTestPath = testPath.slice(0, -i);
+            const parentSuiteId = this._buildId(parentTestPath);
             const parentSuite = this._tree.suites.byId[parentSuiteId];
+
+            if (parentSuite.status === suite.status) {
+                return;
+            }
 
             if (!parentSuite.status) {
                 parentSuite.status = suite.status;
                 continue;
-            }
-
-            const newParentSuiteStatus = determineFinalStatus([parentSuite.status, suite.status]);
-
-            // Implying "newParentSuiteStatus" could either be "parentSuite.status" or "suite.status"
-            if (newParentSuiteStatus !== parentSuite.status) {
-                parentSuite.status = newParentSuiteStatus || parentSuite.status;
             } else {
+                this._setStatusForBranch(parentTestPath);
                 break;
             }
         }
