@@ -128,7 +128,7 @@ export class SqliteClient {
         this._db.close();
     }
 
-    query<T = unknown>(queryParams: QueryParams = {}, ...queryArgs: string[]): T {
+    query<T = unknown>(queryParams: QueryParams = {}, ...queryArgs: string[]): T | undefined {
         const {select, where, orderBy, orderDescending, limit, noCache = false} = queryParams;
         const cacheKey = (!noCache && getShortMD5(`${select}#${where}#${orderBy}${orderDescending}${queryArgs.join('#')}`)) as string;
 
@@ -142,6 +142,13 @@ export class SqliteClient {
         const getStatement = this._db.prepare(sentence);
         const result = getStatement.getAsObject(queryArgs);
         getStatement.free();
+
+        const resultValues = Object.values(result);
+        const isEmptyObject = resultValues.length && resultValues.every(value => typeof value === 'undefined');
+
+        if (isEmptyObject) {
+            return;
+        }
 
         if (!noCache) {
             this._queryCache.set(cacheKey, result);

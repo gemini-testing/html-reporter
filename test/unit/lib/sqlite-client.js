@@ -82,7 +82,7 @@ describe('lib/sqlite-client', () => {
         let getAsObjectStub, prepareStub, freeStub, sqliteClient;
 
         beforeEach(async () => {
-            getAsObjectStub = sandbox.stub();
+            getAsObjectStub = sandbox.stub().returns({foo: 'bar'});
             freeStub = sandbox.stub();
             prepareStub = sandbox.stub().returns({getAsObject: getAsObjectStub, free: freeStub, run: sandbox.stub()});
 
@@ -153,6 +153,14 @@ describe('lib/sqlite-client', () => {
             sqliteClient.query({select: 'foo', where: 'bar = ?'}, 'qux');
 
             assert.calledTwice(getAsObjectStub);
+        });
+
+        it('should return undefined if record is not found', () => {
+            getAsObjectStub.returns({foo: undefined});
+
+            const result = sqliteClient.query({select: 'foo', where: 'bar = ?'}, 'baz');
+
+            assert.isUndefined(result);
         });
     });
 

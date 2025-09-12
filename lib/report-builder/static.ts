@@ -10,7 +10,7 @@ import {
     LOCAL_DATABASE_NAME,
     PluginEvents, UNKNOWN_ATTEMPT, UPDATED, TestStatus
 } from '../constants';
-import type {SqliteClient} from '../sqlite-client';
+import type {DbTestResult, SqliteClient} from '../sqlite-client';
 import {ReporterTestResult} from '../adapters/test-result';
 import {saveErrorDetails, saveStaticFilesToReportDir, writeDatabaseUrlsFile} from '../server-utils';
 import {ReporterConfig} from '../types';
@@ -124,7 +124,9 @@ export class StaticReportBuilder {
         const testResultWithImagePaths = await this._saveTestResultData(formattedResult);
 
         // To prevent skips duplication on reporter startup
-        const isPreviouslySkippedTest = testResultWithImagePaths.status === SKIPPED && getTestFromDb(this._dbClient, formattedResult);
+        const isImgSkipped = testResultWithImagePaths.status === SKIPPED;
+
+        const isPreviouslySkippedTest = isImgSkipped && getTestFromDb<DbTestResult>(this._dbClient, formattedResult);
 
         if (!ignoredStatuses.includes(testResultWithImagePaths.status) && !isPreviouslySkippedTest) {
             this._dbClient.write(testResultWithImagePaths);
