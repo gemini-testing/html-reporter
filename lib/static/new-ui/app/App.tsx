@@ -18,6 +18,7 @@ import {State} from '@/static/new-ui/types/store';
 import {AnalyticsProvider} from '@/static/new-ui/providers/analytics';
 import {MetrikaScript} from '@/static/new-ui/components/MetrikaScript';
 import {ErrorHandler} from '../features/error-handling/components/ErrorHandling';
+import FaviconChanger from '../../components/favicon-changer';
 
 const toaster = new Toaster();
 
@@ -48,6 +49,7 @@ export function App(): ReactNode {
                 <ToasterProvider toaster={toaster}>
                     <Provider store={store}>
                         <MetrikaScript/>
+                        <FaviconChanger />
                         <AnalyticsProvider>
                             <HashRouter>
                                 <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackAppCrash />}>
