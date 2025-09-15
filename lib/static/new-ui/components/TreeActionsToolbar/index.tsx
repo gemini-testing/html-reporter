@@ -71,7 +71,7 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
     const isRunTestsAvailable = useSelector(state => state.app.availableFeatures)
         .find(feature => feature.name === RunTestsFeature.name);
     const isRunning = useSelector(state => (
-        state.tree.suites.allRootIds.every((id) => state.tree.suites.byId[id].status === TestStatus.RUNNING)
+        state.tree.suites.allRootIds.some((id) => state.tree.suites.byId[id].status === TestStatus.RUNNING)
     ));
 
     const isEditScreensAvailable = useSelector(state => state.app.availableFeatures)
