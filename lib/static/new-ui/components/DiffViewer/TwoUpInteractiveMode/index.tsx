@@ -18,12 +18,15 @@ interface TwoUpInteractiveModeProps {
     diffRatio?: number;
 }
 
-export function TwoUpInteractiveMode(props: TwoUpInteractiveModeProps): ReactNode {
-    const viewportContextValue = useSyncedViewport();
-    const is2UpDiffVisible = useSelector(state => state.ui.visualChecksPage.is2UpDiffVisible);
-    const globalTwoUpFitMode = useSelector(state => state.ui.visualChecksPage.twoUpFitMode);
+interface TwoUpInteractiveModePureProps extends TwoUpInteractiveModeProps {
+    is2UpDiffVisible: boolean;
+    globalTwoUpFitMode: TwoUpFitMode;
+}
 
-    const defaultFitMode = globalTwoUpFitMode === TwoUpFitMode.FitToView
+export function TwoUpInteractiveModePure(props: TwoUpInteractiveModePureProps): ReactNode {
+    const viewportContextValue = useSyncedViewport();
+
+    const defaultFitMode = props.globalTwoUpFitMode === TwoUpFitMode.FitToView
         ? InteractiveFitMode.FitView
         : InteractiveFitMode.FitWidth;
 
@@ -35,9 +38,9 @@ export function TwoUpInteractiveMode(props: TwoUpInteractiveModeProps): ReactNod
     }, [props.expected.size, props.actual.size]);
 
     useEffect(() => {
-        if (globalTwoUpFitMode === TwoUpFitMode.FitToView) {
+        if (props.globalTwoUpFitMode === TwoUpFitMode.FitToView) {
             viewportContextValue.setFitMode(InteractiveFitMode.FitView);
-        } else if (globalTwoUpFitMode === TwoUpFitMode.FitToWidth) {
+        } else if (props.globalTwoUpFitMode === TwoUpFitMode.FitToWidth) {
             viewportContextValue.setFitMode(InteractiveFitMode.FitWidth);
         }
         viewportContextValue.updateViewport({
@@ -45,7 +48,7 @@ export function TwoUpInteractiveMode(props: TwoUpInteractiveModeProps): ReactNod
             translateX: 0,
             translateY: 0
         });
-    }, [globalTwoUpFitMode]);
+    }, [props.globalTwoUpFitMode]);
 
     return (
         <ViewportContext.Provider value={viewportContextValue}>
@@ -70,12 +73,25 @@ export function TwoUpInteractiveMode(props: TwoUpInteractiveModeProps): ReactNod
                             unifiedDimensions={unifiedDimensions}
                             containerClassName={styles.imageContainer}
                             overlayImage={props.diff}
-                            showOverlay={is2UpDiffVisible}
+                            showOverlay={props.is2UpDiffVisible}
                             defaultFitMode={defaultFitMode}
                         />
                     </div>
                 </div>
             </div>
         </ViewportContext.Provider>
+    );
+}
+
+export function TwoUpInteractiveMode(props: TwoUpInteractiveModeProps): ReactNode {
+    const is2UpDiffVisible = useSelector(state => state.ui.visualChecksPage.is2UpDiffVisible);
+    const globalTwoUpFitMode = useSelector(state => state.ui.visualChecksPage.twoUpFitMode);
+
+    return (
+        <TwoUpInteractiveModePure
+            {...props}
+            is2UpDiffVisible={is2UpDiffVisible}
+            globalTwoUpFitMode={globalTwoUpFitMode}
+        />
     );
 }
