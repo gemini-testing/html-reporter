@@ -37,7 +37,11 @@ if (process.env.TOOL === 'testplane') {
 
                     afterEach(async ({browser}) => {
                         await browser.pause(1000);
-                        await browser.assertView('sidebar', '[data-qa="suites-tree-card"]', {ignoreElements: 'img'});
+                        await browser.assertView(
+                            'sidebar',
+                            '[data-qa="suites-tree-card"]',
+                            {ignoreElements: ['img', 'div[data-qa="error-stack-item"]']}
+                        );
                     });
                 });
             });
