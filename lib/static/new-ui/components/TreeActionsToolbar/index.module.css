@@ -20,6 +20,7 @@
 }
 
 .selected-container {
+    --g-color-line-brand: white;
     --g-button-text-color: white;
     --g-button-text-color-hover: white;
     --g-button-background-color-hover: rgba(255, 255, 255, 0.1);
