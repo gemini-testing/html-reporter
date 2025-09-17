@@ -276,13 +276,46 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
     await app.initialize();
 
     const {port, hostname} = args.cli.options;
+    
+    let portAttempt = port;
+
     await BluebirdPromise.fromCallback((callback) => {
-        const httpServer = server.listen(port, hostname, callback as () => void);
-        httpServer.keepAliveTimeout = KEEP_ALIVE_TIMEOUT;
-        httpServer.headersTimeout = HEADERS_TIMEOUT;
+        let success = false;
+
+        while (!success) {
+            try {
+                const httpServer = server.listen(port, hostname, callback as () => void);
+                httpServer.keepAliveTimeout = KEEP_ALIVE_TIMEOUT;
+                httpServer.headersTimeout = HEADERS_TIMEOUT;
+
+                success = true;
+            } catch(e) {
+                portAttempt += 1;
+            }
+        }
     });
 
-    const data = {url: `http://${hostname}:${port}`};
+    const data = {url: `http://${hostname}:${portAttempt}`};
+    
+    let portAttempt = port;
+
+    await BluebirdPromise.fromCallback((callback) => {
+        let success = false;
+
+        while (!success) {
+            try {
+                const httpServer = server.listen(port, hostname, callback as () => void);
+                httpServer.keepAliveTimeout = KEEP_ALIVE_TIMEOUT;
+                httpServer.headersTimeout = HEADERS_TIMEOUT;
+
+                success = true;
+            } catch(e) {
+                portAttempt += 1;
+            }
+        }
+    });
+
+    const data = {url: `http://${hostname}:${portAttempt}`};
 
     await guiApi.serverReady(data);
 
