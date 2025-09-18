@@ -40,7 +40,7 @@ export const mergeReports = async (toolAdapter: ToolAdapter, srcPaths: string[],
     const parsedHeaders = {...headersFromCli, ...headersFromEnv};
 
     const resolvedUrls = await tryResolveUrls(srcPaths, parsedHeaders);
-    const resolvedDbFiles = resolvedUrls.filter(serverUtils.isDbFile);
+    const {true: resolvedDbFiles = [], false: resolvedJsonUrls = []} = _.groupBy(resolvedUrls, serverUtils.isDbFile);
 
     const {true: remoteDbUrls = [], false: localDbPaths = []} = _.groupBy(resolvedDbFiles, isUrl);
     const dbPaths: DbPath[] = localDbPaths.map((db: string, ind: number, arr: string[]) => {
@@ -48,7 +48,7 @@ export const mergeReports = async (toolAdapter: ToolAdapter, srcPaths: string[],
         return {src: path.resolve(process.cwd(), db), dest: path.resolve(destPath, dbName)};
     });
 
-    const allDbPaths = [...remoteDbUrls, ...dbPaths.map(({dest}) => path.parse(dest).base)];
+    const dbAndJsonUrls = [...resolvedJsonUrls, ...remoteDbUrls, ...dbPaths.map(({dest}) => path.parse(dest).base)];
     const copyFilePromises: Promise<void>[] = [];
 
     await fs.ensureDir(destPath);
@@ -66,7 +66,7 @@ export const mergeReports = async (toolAdapter: ToolAdapter, srcPaths: string[],
 
     await Promise.all([
         serverUtils.saveStaticFilesToReportDir(htmlReporter, reporterConfig, destPath),
-        serverUtils.writeDatabaseUrlsFile(destPath, allDbPaths),
+        serverUtils.writeDatabaseUrlsFile(destPath, dbAndJsonUrls),
         ...copyFilePromises
     ]);
 
