@@ -227,6 +227,7 @@ async function readPwtConfig(opts: ToolAdapterOptionsFromCli): Promise<{configPa
     const configPaths = opts.configPath ? [opts.configPath] : DEFAULT_CONFIG_PATHS;
     let originalConfig!: FullConfig;
     let resolvedConfigPath!: string;
+    const errors: Array<{path: string, error: Error}> = [];
 
     const revertTransformHook = setupTransformHook();
 
@@ -239,7 +240,11 @@ async function readPwtConfig(opts: ToolAdapterOptionsFromCli): Promise<{configPa
 
             break;
         } catch (err) {
+            const error = err as Error;
+            errors.push({path: resolvedConfigPath, error});
+
             if ((err as NodeJS.ErrnoException).code !== 'MODULE_NOT_FOUND') {
+                revertTransformHook();
                 throw err;
             }
         }
@@ -248,10 +253,41 @@ async function readPwtConfig(opts: ToolAdapterOptionsFromCli): Promise<{configPa
     revertTransformHook();
 
     if (!originalConfig) {
-        throw new Error(`Unable to read config from paths: ${configPaths.join(', ')}`);
+        const errorMessage = createConfigReadErrorMessage(configPaths, errors);
+        const error = new Error('');
+        error.stack = errorMessage;
+        throw error;
     }
 
     return {config: originalConfig, configPath: resolvedConfigPath};
+}
+
+function createConfigReadErrorMessage(searchedPaths: string[], errors: Array<{path: string, error: Error}>): string {
+    const lines: string[] = [];
+
+    lines.push('HTML Reporter failed to read Playwright configuration file.\n');
+    lines.push('What happened:');
+
+    if (searchedPaths.length === 0) {
+        lines.push(` • No config paths were supplied`);
+    }
+
+    errors.forEach(({path, error}) => {
+        if (new RegExp('^Cannot find module[ \'"]*' + path).test(error.message)) {
+            lines.push(` • Tried to read ${path}, but got an error: file does not exist`);
+        } else {
+            lines.push(` • Tried to read ${path}, but got an error: ${error.message.replaceAll('\n', '\n    ')}`);
+        }
+    });
+
+    lines.push('\nWhat you can do:');
+    lines.push(' • Ensure playwright config file exists in one of those locations');
+    lines.push(' • Specify correct path using --config option');
+    lines.push(' • Ensure playwright config file is valid');
+    lines.push(' • If you are using path alises like "@/tests" or "~/tests", ensure they can be resolved at runtime.');
+    lines.push('   You may need to install tsconfig-paths package. Read more: https://npm.im/tsconfig-paths');
+
+    return lines.join('\n');
 }
 
 async function registerTestResult(eventMsg: PwtEventMessage, reportBuilder: GuiReportBuilder): Promise<TestBranch> {

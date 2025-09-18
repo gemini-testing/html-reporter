@@ -96,10 +96,14 @@ describe('lib/adapters/tool/playwright/index', () => {
         });
 
         it('should throw error if config file is not found', async () => {
-            await assert.isRejected(
-                createPwtToolAdapter({toolName: ToolName.Playwright}),
-                `Unable to read config from paths: ${DEFAULT_CONFIG_PATHS.join(', ')}`
-            );
+            let error;
+            try {
+                await createPwtToolAdapter({toolName: ToolName.Playwright});
+            } catch (e) {
+                error = e;
+            }
+            assert.isDefined(error);
+            assert.include(error.stack, 'HTML Reporter failed to read Playwright configuration file.');
         });
 
         describe('parse options from "html-reporter/playwright" reporter', () => {
