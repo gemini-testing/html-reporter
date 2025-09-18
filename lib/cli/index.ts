@@ -16,16 +16,16 @@ process.on('uncaughtException', err => {
 });
 
 process.on('unhandledRejection', (reason, p) => {
-    const error = new Error([
+    const errorMessage = [
         `Unhandled Rejection in ${toolAdapter ? toolAdapter.toolName + ':' : ''}${process.pid}:`,
         `Promise: ${JSON.stringify(p)}`,
         `Reason: ${_.get(reason, 'stack', reason)}`
-    ].join('\n'));
+    ].join('\n');
 
     if (toolAdapter) {
-        toolAdapter.halt(error, 60000);
+        toolAdapter.halt(new Error(errorMessage), 60000);
     } else {
-        logger.error(error);
+        logger.error(errorMessage);
         process.exit(1);
     }
 });
