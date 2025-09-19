@@ -2,7 +2,7 @@ if (process.env.TOOL === 'testplane') {
     describe(process.env.TOOL || 'Default', () => {
         describe('New UI', () => {
             describe('Suites page', () => {
-                describe.only('Name filter', () => {
+                describe('Name filter', () => {
                     let searchInput;
                     let matchCaseButton;
                     let regexButton;
