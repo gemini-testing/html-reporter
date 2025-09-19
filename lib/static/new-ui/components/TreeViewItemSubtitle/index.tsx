@@ -87,7 +87,7 @@ export function TreeViewItemSubtitle(props: TreeViewItemSubtitleProps): ReactNod
 
     if (props.item.errorStack) {
         return (
-            <div className={classNames(styles['tree-view-item-subtitle__error-stack'], props.className)}>
+            <div data-qa="error-stack-item" className={classNames(styles['tree-view-item-subtitle__error-stack'], props.className)}>
                 {(props.item.errorTitle + '\n' + stripAnsi(props.item.errorStack)).trim()}
             </div>
         );

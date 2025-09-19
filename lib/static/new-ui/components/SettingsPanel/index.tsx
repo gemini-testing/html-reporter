@@ -56,7 +56,7 @@ export function SettingsPanel(): ReactNode {
 
     return <AsidePanel title={'Settings'}>
         <PanelSection title={'Base Host'} description={<>URLs in Meta and in test steps&apos; commands are affected by this.</>}>
-            <TextInput onChange={onBaseHostChange} value={baseHost}/>
+            <TextInput onChange={onBaseHostChange} value={baseHost} hasClear />
         </PanelSection>
         <Divider orientation={'horizontal'} className={styles.divider}/>
         <PanelSection title={'New UI'} description={'Minimalistic yet informative, the new UI offers a cleaner look and optimised screen space usage.'}>

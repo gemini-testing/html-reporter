@@ -14,7 +14,10 @@ interface TabsSelectOptionProps {
 
 const TabsSelectOption = ({count, icon, title}: TabsSelectOptionProps): ReactNode => (
     <div className={styles['test-status-filter-option']}>
-        {!icon ? <span>{title}</span> : icon}<span className={styles['test-status-filter-option__count']}>{count}</span>
+        {!icon ? <span>{title}</span> : icon}
+        <span data-qa={`${title.toLowerCase()}-count`} className={styles['test-status-filter-option__count']}>
+            {count}
+        </span>
     </div>
 );
 

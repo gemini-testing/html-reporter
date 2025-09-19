@@ -2,7 +2,7 @@ import React, {ChangeEvent, ReactNode, useCallback, useMemo, useState} from 'rea
 import {debounce} from 'lodash';
 import {useDispatch, useSelector} from 'react-redux';
 import {Icon, TextInput} from '@gravity-ui/uikit';
-import {FontCase} from '@gravity-ui/icons';
+import {FontCase, Xmark} from '@gravity-ui/icons';
 import * as actions from '@/static/modules/actions';
 import {getIsInitialized} from '@/static/new-ui/store/selectors';
 import {NameFilterButton} from './NameFilterButton';
@@ -30,6 +30,11 @@ export const NameFilter = (): ReactNode => {
         setNameFilter(event.target.value);
         updateNameFilter(event.target.value);
     }, [setNameFilter, updateNameFilter]);
+
+    const onClear = useCallback((): void => {
+        setNameFilter('');
+        search('', useMatchCaseFilter, useRegexFilter, page, false, dispatch);
+    }, [setNameFilter, useMatchCaseFilter, useRegexFilter, page]);
 
     const isInitialized = useSelector(getIsInitialized);
 
@@ -74,9 +79,19 @@ export const NameFilter = (): ReactNode => {
                 qa="name-filter"
             />
             <div className={styles['buttons-wrapper']}>
+                {testNameFilter && (
+                    <NameFilterButton
+                        selected={false}
+                        tooltip="Clear filter"
+                        onClick={onClear}
+                        qa="clear-name-filter"
+                    >
+                        <Icon data={Xmark}/>
+                    </NameFilterButton>
+                )}
                 <NameFilterButton
                     selected={useMatchCaseFilter}
-                    tooltip={'Match case'}
+                    tooltip="Match case"
                     onClick={onCaseSensitiveClick}
                     qa="match-case"
                 >
@@ -84,7 +99,7 @@ export const NameFilter = (): ReactNode => {
                 </NameFilterButton>
                 <NameFilterButton
                     selected={useRegexFilter}
-                    tooltip={'Regex'}
+                    tooltip="Regex"
                     onClick={onRegexClick}
                     className={styles['buttons-wrapper__regex']}
                     qa="regex"
