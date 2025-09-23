@@ -60,7 +60,7 @@ function composeComponents(PluginComponent, pluginProps, currentComponent, posit
     }
 }
 
-function getExtensionPointComponents(loadedPluginConfigs, pointName) {
+export function getExtensionPointComponents(loadedPluginConfigs, pointName) {
     return loadedPluginConfigs
         .map(config => {
             try {

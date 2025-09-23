@@ -3,7 +3,7 @@ import React, {ReactNode} from 'react';
 import styles from './index.module.css';
 
 interface PanelSectionProps {
-    title: string;
+    title: ReactNode;
     description?: ReactNode;
     children?: ReactNode;
 }
