@@ -10,7 +10,7 @@ import {getCurrentBrowser, getCurrentResultId, isTimeTravelPlayerAvailable} from
 import {RunTestButton} from '@/static/new-ui/components/RunTest';
 import {useAnalytics} from '../../../../hooks/useAnalytics';
 import {IconButton} from '../../../../components/IconButton';
-import {isFeatureAvailable} from '../../../../utils/features';
+import {useIsFeatureAvailable} from '../../../../utils/features';
 import {RunTestsFeature} from '@/constants';
 import {toggleTimeTravelPlayerVisibility} from '@/static/modules/actions/snapshots';
 
@@ -42,7 +42,7 @@ export function TestControlPanel(props: TestControlPanelProps): ReactNode {
         onAttemptChange?.(browserId, resultId, attemptIndex);
     };
 
-    const isRunTestsAvailable = isFeatureAvailable(RunTestsFeature);
+    const isRunTestsAvailable = useIsFeatureAvailable(RunTestsFeature);
     const isPlayerAvailable = useSelector(isTimeTravelPlayerAvailable);
     const isPlayerVisible = useSelector(state => state.ui.suitesPage.isSnapshotsPlayerVisible);
 

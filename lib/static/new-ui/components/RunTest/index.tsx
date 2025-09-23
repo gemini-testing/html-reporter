@@ -8,7 +8,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {RunTestsFeature} from '@/constants';
 import {useAnalytics} from '../../hooks/useAnalytics';
 import type {BrowserEntity} from '@/static/new-ui/types/store';
-import {isFeatureAvailable} from '../../utils/features';
+import {useIsFeatureAvailable} from '../../utils/features';
 
 interface RunTestProps {
     browser: BrowserEntity | null;
@@ -22,7 +22,7 @@ export const RunTestButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, R
 
         const analytics = useAnalytics();
         const dispatch = useDispatch();
-        const isRunTestsAvailable = isFeatureAvailable(RunTestsFeature);
+        const isRunTestsAvailable = useIsFeatureAvailable(RunTestsFeature);
 
         const onRetryTestHandler = (): void => {
             if (browser) {
