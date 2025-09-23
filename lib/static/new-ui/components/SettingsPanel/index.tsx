@@ -1,5 +1,5 @@
 import {ArrowUturnCcwLeft} from '@gravity-ui/icons';
-import {Button, Divider, Icon, Select, TextInput} from '@gravity-ui/uikit';
+import {Button, Icon, Select, TextInput} from '@gravity-ui/uikit';
 import classNames from 'classnames';
 import React, {ReactNode, useCallback} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
@@ -15,6 +15,10 @@ import {NamedSwitch} from '@/static/new-ui/components/NamedSwitch';
 import {isApiErrorResponse, updateTimeTravelSettings} from '../../utils/api';
 
 import styles from './index.module.css';
+import {getExtensionPointComponents} from '../../../components/extension-point';
+import * as plugins from '@/static/modules/plugins';
+import ErrorBoundary from '@/static/components/error-boundary';
+import {ExtensionPointName} from '../../constants/plugins';
 
 export function SettingsPanel(): ReactNode {
     const dispatch = useDispatch();
@@ -54,30 +58,59 @@ export function SettingsPanel(): ReactNode {
         }
     }, [analytics, setRecommendedTimeTravelSettingsEnabled]);
 
-    return <AsidePanel title={'Settings'}>
-        <PanelSection title={'Base Host'} description={<>URLs in Meta and in test steps&apos; commands are affected by this.</>}>
-            <TextInput onChange={onBaseHostChange} value={baseHost} hasClear />
+    const sections: ReactNode[] = [];
+
+    sections.push(
+        <PanelSection key="base-host" title={'Base Host'} description={<>URLs in Meta and in test steps&apos; commands are affected by this.</>}>
+            <TextInput onChange={onBaseHostChange} value={baseHost} hasClear/>
         </PanelSection>
-        <Divider orientation={'horizontal'} className={styles.divider}/>
-        <PanelSection title={'New UI'} description={'Minimalistic yet informative, the new UI offers a cleaner look and optimised screen space usage.'}>
+    );
+
+    sections.push(
+        <PanelSection key="new-ui" title={'New UI'} description={'Minimalistic yet informative, the new UI offers a cleaner look and optimised screen space usage.'}>
             <Button className={classNames(styles.settingControl, 'regular-button')} onClick={onOldUiButtonClick}>
                 <Icon data={ArrowUturnCcwLeft}/>Switch back to the old UI
             </Button>
         </PanelSection>
-        <Divider orientation={'horizontal'} className={styles.divider}/>
-        <PanelSection title={'Theme'} description={'Currently only light theme is available — stay tuned for night mode.'}>
+    );
+
+    sections.push(
+        <PanelSection key="theme" title={'Theme'} description={'Currently only light theme is available — stay tuned for night mode.'}>
             <Select className={classNames(styles.settingControl, 'regular-button')} value={['Light']} width={'max'} disabled={true}/>
         </PanelSection>
-        <Divider orientation={'horizontal'} className={styles.divider}/>
-        {isTimeTravelAvailable && <PanelSection title={'Time Travel'}>
-            <NamedSwitch
-                title={'Use recommended settings'}
-                description={isRecommendedTimeTravelSettingsEnabled ?
-                    'Settings for the best debugging experience will be applied on top of your config (recommended).' :
-                    'Using project config without changes. This may affect availability of time travel features.'}
-                checked={isRecommendedTimeTravelSettingsEnabled}
-                onUpdate={onTimeTravelRecommendedSettingsToggle}
-            />
-        </PanelSection>}
+    );
+
+    if (isTimeTravelAvailable) {
+        sections.push(
+            <PanelSection key="time-travel" title={'Time Travel'}>
+                <NamedSwitch
+                    title={'Use recommended settings'}
+                    description={isRecommendedTimeTravelSettingsEnabled ?
+                        'Settings for the best debugging experience will be applied on top of your config (recommended).' :
+                        'Using project config without changes. This may affect availability of time travel features.'}
+                    checked={isRecommendedTimeTravelSettingsEnabled}
+                    onUpdate={onTimeTravelRecommendedSettingsToggle}
+                />
+            </PanelSection>
+        );
+    }
+
+    const loadedPluginConfigs = plugins.getLoadedConfigs();
+    const pluginComponents = getExtensionPointComponents(loadedPluginConfigs, ExtensionPointName.SettingsPanel);
+
+    pluginComponents.forEach(({PluginComponent, position, config}: {PluginComponent: React.ComponentType; position: string; config: {name: string}}) => {
+        if (position === 'after') {
+            sections.push(
+                <ErrorBoundary key={`plugin-${config.name}`}>
+                    <PluginComponent />
+                </ErrorBoundary>
+            );
+        }
+    });
+
+    return <AsidePanel title={'Settings'}>
+        <div className={styles.sections}>
+            {sections}
+        </div>
     </AsidePanel>;
 }

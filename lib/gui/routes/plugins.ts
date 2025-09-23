@@ -9,6 +9,7 @@ import {
     logError
 } from '../../server-utils';
 import {ReporterConfig} from '../../types';
+import {getPluginMiddlewareRoute} from '../../static/modules/utils/pluginMiddlewareRoute';
 
 export const initPluginsRoutes = (router: Router, pluginConfig: ReporterConfig): Router => {
     if (!pluginConfig.pluginsEnabled) {
@@ -40,7 +41,7 @@ export const initPluginsRoutes = (router: Router, pluginConfig: ReporterConfig):
             const pluginRouter = Router();
             initPluginMiddleware(pluginRouter);
 
-            router.use(`/plugin-routes/${pluginName}`, pluginRouter);
+            router.use(getPluginMiddlewareRoute(pluginName), pluginRouter);
         } catch (err: unknown) {
             logError(err as Error);
         }
