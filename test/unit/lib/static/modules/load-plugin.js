@@ -5,6 +5,7 @@ const {loadPlugin} = require('lib/static/modules/load-plugin');
 const actionNames = require('lib/static/modules/action-names').default;
 const actions = require('lib/static/modules/actions');
 const selectors = require('lib/static/modules/selectors');
+const {getPluginMiddlewareRoute} = require('lib/static/modules/utils/pluginMiddlewareRoute');
 
 describe('static/modules/load-plugin', () => {
     const sandbox = sinon.sandbox.create();
@@ -33,7 +34,14 @@ describe('static/modules/load-plugin', () => {
             await loadPlugin('plugin-a');
 
             assert.deepStrictEqual(plugin.args, [
-                [{actions, actionNames, selectors, pluginName: 'plugin-a', pluginConfig: undefined}]
+                [{
+                    actions,
+                    actionNames,
+                    selectors,
+                    pluginName: 'plugin-a',
+                    pluginConfig: undefined,
+                    pluginServerEndpointPrefix: getPluginMiddlewareRoute('plugin-a')
+                }]
             ]);
         });
 
@@ -42,7 +50,14 @@ describe('static/modules/load-plugin', () => {
             await loadPlugin('plugin-b', config);
 
             assert.deepStrictEqual(plugin.args, [
-                [{actions, actionNames, selectors, pluginName: 'plugin-b', pluginConfig: config}]
+                [{
+                    actions,
+                    actionNames,
+                    selectors,
+                    pluginName: 'plugin-b',
+                    pluginConfig: config,
+                    pluginServerEndpointPrefix: getPluginMiddlewareRoute('plugin-b')
+                }]
             ]);
         });
 
@@ -51,7 +66,14 @@ describe('static/modules/load-plugin', () => {
             await loadPlugin('plugin-c');
 
             assert.deepStrictEqual(plugin.args, [
-                [axios, {actions, actionNames, selectors, pluginName: 'plugin-c', pluginConfig: undefined}]
+                [axios, {
+                    actions,
+                    actionNames,
+                    selectors,
+                    pluginName: 'plugin-c',
+                    pluginConfig: undefined,
+                    pluginServerEndpointPrefix: getPluginMiddlewareRoute('plugin-c')
+                }]
             ]);
         });
 
@@ -60,7 +82,14 @@ describe('static/modules/load-plugin', () => {
             await loadPlugin('plugin-d');
 
             assert.deepStrictEqual(plugin.args, [
-                [undefined, {actions, actionNames, selectors, pluginName: 'plugin-d', pluginConfig: undefined}]
+                [undefined, {
+                    actions,
+                    actionNames,
+                    selectors,
+                    pluginName: 'plugin-d',
+                    pluginConfig: undefined,
+                    pluginServerEndpointPrefix: getPluginMiddlewareRoute('plugin-d')
+                }]
             ]);
         });
     });

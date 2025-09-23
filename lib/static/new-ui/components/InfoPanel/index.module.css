@@ -2,14 +2,6 @@
     margin: 20px 0;
 }
 
-.info-panel a:link, .info-panel a:visited {
-    color: var(--color-link);
-}
-
-.info-panel a:hover {
-    color: var(--color-link-hover);
-}
-
 .extra-items-list {
     padding-left: 24px;
     list-style: none;

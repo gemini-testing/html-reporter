@@ -99,3 +99,15 @@ body {
     color: var(--g-color-private-black-400);
     font-weight: 500;
 }
+
+a, a:link, a:visited {
+    color: var(--color-link);
+}
+
+a:hover {
+    color: var(--color-link-hover);
+}
+
+b {
+    font-weight: 500;
+}
