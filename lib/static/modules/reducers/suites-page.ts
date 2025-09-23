@@ -6,7 +6,8 @@ import {getSuitesTreeViewData} from '@/static/new-ui/features/suites/components/
 import {findTreeNodeByBrowserId, findTreeNodeById, getGroupId} from '@/static/new-ui/features/suites/utils';
 import * as localStorageWrapper from '../local-storage-wrapper';
 import {MIN_SECTION_SIZE_PERCENT} from '@/static/new-ui/features/suites/constants';
-import {TIME_TRAVEL_PLAYER_VISIBILITY_KEY} from '@/constants/local-storage';
+import {TIME_TRAVEL_PLAYER_VISIBILITY_KEY, TWO_UP_DIFF_VISIBILITY_KEY, TWO_UP_FIT_MODE_KEY} from '@/constants/local-storage';
+import {TwoUpFitMode} from '@/constants';
 
 const SECTION_SIZES_LOCAL_STORAGE_KEY = 'suites-page-section-sizes';
 
@@ -59,6 +60,8 @@ export default (state: State, action: SomeAction): State => {
             ) as number[];
 
             const isSnapshotsPlayerVisible = Boolean(localStorageWrapper.getItem(TIME_TRAVEL_PLAYER_VISIBILITY_KEY, true));
+            const is2UpDiffVisible = Boolean(localStorageWrapper.getItem(TWO_UP_DIFF_VISIBILITY_KEY, true));
+            const twoUpFitMode = localStorageWrapper.getItem(TWO_UP_FIT_MODE_KEY, TwoUpFitMode.FitToView) as TwoUpFitMode;
 
             return applyStateUpdate(state, {
                 app: {
@@ -75,7 +78,9 @@ export default (state: State, action: SomeAction): State => {
                         isSnapshotsPlayerVisible
                     },
                     visualChecksPage: {
-                        sectionSizes: visualChecksSectionSizes
+                        sectionSizes: visualChecksSectionSizes,
+                        is2UpDiffVisible,
+                        twoUpFitMode
                     }
                 }
             });
