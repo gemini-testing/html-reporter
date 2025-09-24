@@ -226,6 +226,18 @@ describe('lib/merge-reports', () => {
         });
     });
 
+    it('should add json url to merged report even if request for it is failed', async () => {
+        const toolAdapter = stubToolAdapter({htmlReporter});
+        const paths = ['https://ci.ru'];
+        const destPath = 'dest-report/path';
+
+        axiosStub.get.withArgs('https://ci.ru/databaseUrls.json').rejects(new Error('o.O'));
+
+        await execMergeReports_({toolAdapter, paths, opts: {destPath, headers: []}});
+
+        assert.calledOnceWith(serverUtils.writeDatabaseUrlsFile, destPath, ['https://ci.ru/databaseUrls.json']);
+    });
+
     it('should merge reports with folder paths', async () => {
         const toolAdapter = stubToolAdapter({htmlReporter});
         const paths = ['https://ci.ru', 'src-report-1'];
