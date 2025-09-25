@@ -12,7 +12,7 @@ concurrency:
 jobs:
   clean:
     name: Remove old Testplane html reports
-    runs-on: self-hosted-arc
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
