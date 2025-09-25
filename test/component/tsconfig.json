@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES2021",
+    "module": "ESNext",
+    "lib": ["ES2021", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["../../lib/*"],
+      "lib/*": ["../../lib/*"]
+    },
+    "types": ["testplane"]
+  },
+  "include": ["tests/**/*", "../../lib/**/*"],
+  "exclude": ["node_modules"]
+}

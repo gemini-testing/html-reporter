@@ -1,0 +1,12 @@
+{
+  "name": "html-reporter-component-tests",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "test": "npx testplane",
+    "gui": "npx testplane gui"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.0.2"
+  }
+}

@@ -1,0 +1,20 @@
+/* Import external dependencies first */
+@import url('https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css');
+@import url('https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,100..900;1,100..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
+@import '@gravity-ui/uikit/styles/fonts.css';
+@import '@gravity-ui/uikit/styles/styles.css';   
+@import 'react-checkbox-tree/lib/react-checkbox-tree.css';
+@import 'rc-slider/assets/index.css';
+
+/* Import main project styles for component testing */
+@import '../../lib/static/variables.css';
+@import '../../lib/static/styles.css';
+@import '../../lib/static/new-ui.css';
+
+/* Import CSS module styles for DiffViewer */
+@import '../../lib/static/new-ui/components/DiffViewer/index.module.css';
+@import '../../lib/static/new-ui/components/DiffViewer/common.module.css';
+@import '../../lib/static/new-ui/components/DiffViewer/SideBySideMode.module.css';
+@import '../../lib/static/new-ui/components/DiffViewer/OnionSkinMode.module.css';
+@import '../../lib/static/new-ui/components/DiffViewer/SwipeMode.module.css';
+@import '../../lib/static/new-ui/components/DiffViewer/SwitchMode.module.css';

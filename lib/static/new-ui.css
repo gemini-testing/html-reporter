@@ -29,6 +29,7 @@
     --g-color-base-background: #eee;
     --g-color-text-danger-heavy: #e9043a;
     --g-color-text-brand-heavy: var(--g-color-private-color-550-solid);
+    font-family: var(--g-font-family-sans), sans-serif !important;
 }
 
 body {
@@ -38,7 +39,6 @@ body {
 .report {
     min-width: 100%;
     min-height: 100%;
-    font-family: var(--g-font-family-sans), sans-serif !important;
     margin-bottom: 0 !important;;
 }
 
