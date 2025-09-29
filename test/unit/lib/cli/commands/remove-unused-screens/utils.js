@@ -43,7 +43,7 @@ describe('lib/cli/commands/remove-unused-screens/utils', () => {
 
         toolAdapter.readTests.resolves(testCollection);
         toolAdapter.htmlReporter = htmlReporter || {
-            getTestsTreeFromDatabase: sandbox.stub().returns(mkTestsTreeFromDb_())
+            getTestsTreeFromDatabase: sandbox.stub().resolves(mkTestsTreeFromDb_())
         };
 
         return toolAdapter;
@@ -263,7 +263,7 @@ describe('lib/cli/commands/remove-unused-screens/utils', () => {
             return {[image.id]: image};
         };
 
-        it('should return unused screens for successful tests', () => {
+        it('should return unused screens for successful tests', async () => {
             const browsersById = mkBrowser({id: 'test1 bro1', resultIds: ['res-1', 'res-2']});
             const resultsById = {
                 ...mkResult({id: 'res-1', status: ERROR, imageIds: []}),
@@ -273,7 +273,7 @@ describe('lib/cli/commands/remove-unused-screens/utils', () => {
             const dbTree = mkTestsTreeFromDb_({browsersById, resultsById, imagesById});
 
             const toolAdapter = mkToolAdapter_();
-            toolAdapter.htmlReporter.getTestsTreeFromDatabase.withArgs('/report/sqlite.db').returns(dbTree);
+            toolAdapter.htmlReporter.getTestsTreeFromDatabase.withArgs('/report/sqlite.db').resolves(dbTree);
 
             const fsTestsTree = mkTestsTreeFromFs_({
                 byId: {
@@ -281,7 +281,7 @@ describe('lib/cli/commands/remove-unused-screens/utils', () => {
                 }
             });
 
-            const unusedScreens = utils.identifyUnusedScreens(
+            const unusedScreens = await utils.identifyUnusedScreens(
                 fsTestsTree,
                 {toolAdapter, mergedDbPath: '/report/sqlite.db'}
             );
@@ -289,14 +289,14 @@ describe('lib/cli/commands/remove-unused-screens/utils', () => {
             assert.deepEqual(unusedScreens, ['/test1/b.png']);
         });
 
-        it('should not return unused screens for not successful tests', () => {
+        it('should not return unused screens for not successful tests', async () => {
             const browsersById = mkBrowser({id: 'test1 bro1', resultIds: ['res-1']});
             const resultsById = mkResult({id: 'res-1', status: ERROR, imageIds: ['img-1']});
             const imagesById = mkImage({id: 'img-1', stateName: 'a'});
             const dbTree = mkTestsTreeFromDb_({browsersById, resultsById, imagesById});
 
             const toolAdapter = mkToolAdapter_();
-            toolAdapter.htmlReporter.getTestsTreeFromDatabase.withArgs('/report/sqlite.db').returns(dbTree);
+            toolAdapter.htmlReporter.getTestsTreeFromDatabase.withArgs('/report/sqlite.db').resolves(dbTree);
 
             const fsTestsTree = mkTestsTreeFromFs_({
                 byId: {
@@ -304,7 +304,7 @@ describe('lib/cli/commands/remove-unused-screens/utils', () => {
                 }
             });
 
-            const unusedScreens = utils.identifyUnusedScreens(
+            const unusedScreens = await utils.identifyUnusedScreens(
                 fsTestsTree,
                 {toolAdapter, mergedDbPath: '/report/sqlite.db'}
             );

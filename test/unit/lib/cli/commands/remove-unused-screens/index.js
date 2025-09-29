@@ -60,7 +60,7 @@ describe('lib/cli/commands/remove-unused-screens', () => {
         findScreens = sandbox.stub().resolves([]);
         askConfirm = sandbox.stub().resolves(true);
         identifyOutdatedScreens = sandbox.stub().returns([]);
-        identifyUnusedScreens = sandbox.stub().returns([]);
+        identifyUnusedScreens = sandbox.stub().resolves([]);
         removeScreens = sandbox.stub().resolves();
 
         filesizeMock = sandbox.stub().returns('12345');
@@ -439,7 +439,7 @@ describe('lib/cli/commands/remove-unused-screens', () => {
 
             it('should not throw if unused screen does not exist on fs', async () => {
                 findScreens.resolves(['/root/broId/testId/1.png', '/root/broId/unusedTestId/2.png']);
-                identifyUnusedScreens.returns(['/root/broId/unusedTestId/2.png']);
+                identifyUnusedScreens.resolves(['/root/broId/unusedTestId/2.png']);
 
                 const accessError = new Error('file does not exist');
                 accessError.code = 'ENOENT';
@@ -453,7 +453,7 @@ describe('lib/cli/commands/remove-unused-screens', () => {
 
             it('should inform user about the number of unused screens', async () => {
                 findScreens.resolves(['/root/usedTestId/img.png', '/root/unusedTestId/img.png']);
-                identifyUnusedScreens.returns(['/root/unusedTestId/img.png']);
+                identifyUnusedScreens.resolves(['/root/unusedTestId/img.png']);
 
                 await removeUnusedScreens_({toolAdapter, program});
 
@@ -462,7 +462,7 @@ describe('lib/cli/commands/remove-unused-screens', () => {
 
             describe('size calculation of unused images', () => {
                 beforeEach(() => {
-                    identifyUnusedScreens.returns(['/root/unusedTestId/1.png', '/root/unusedTestId/2.png']);
+                    identifyUnusedScreens.resolves(['/root/unusedTestId/1.png', '/root/unusedTestId/2.png']);
 
                     fs.stat.withArgs('/root/unusedTestId/1.png').resolves({size: 10});
                     fs.stat.withArgs('/root/unusedTestId/2.png').resolves({size: 20});
@@ -485,7 +485,7 @@ describe('lib/cli/commands/remove-unused-screens', () => {
 
             describe('show list of unused images', () => {
                 beforeEach(() => {
-                    identifyUnusedScreens.returns(['/root/unusedTestId/1.png', '/root/unusedTestId/2.png']);
+                    identifyUnusedScreens.resolves(['/root/unusedTestId/1.png', '/root/unusedTestId/2.png']);
                 });
 
                 it('should ask user about it', async () => {
@@ -519,7 +519,7 @@ describe('lib/cli/commands/remove-unused-screens', () => {
 
             describe('remove unused images', () => {
                 it('should ask user about it', async () => {
-                    identifyUnusedScreens.returns(['/root/unusedTestId/1.png', '/root/unusedTestId/2.png']);
+                    identifyUnusedScreens.resolves(['/root/unusedTestId/1.png', '/root/unusedTestId/2.png']);
 
                     await removeUnusedScreens_({program});
 
@@ -531,7 +531,7 @@ describe('lib/cli/commands/remove-unused-screens', () => {
 
                 it('should not remove if user say "no"', async () => {
                     askConfirm.withArgs(sinon.match({message: 'Remove unused reference images?'}), program.options).resolves(false);
-                    identifyUnusedScreens.returns(['/root/unusedTestId/1.png', '/root/unusedTestId/2.png']);
+                    identifyUnusedScreens.resolves(['/root/unusedTestId/1.png', '/root/unusedTestId/2.png']);
 
                     await removeUnusedScreens_({program});
 
@@ -540,7 +540,7 @@ describe('lib/cli/commands/remove-unused-screens', () => {
 
                 it('should remove if user say "yes"', async () => {
                     const unusedScreens = ['/root/unusedTestId/1.png', '/root/unusedTestId/2.png'];
-                    identifyUnusedScreens.returns(unusedScreens);
+                    identifyUnusedScreens.resolves(unusedScreens);
                     askConfirm.withArgs(sinon.match({message: 'Remove unused reference images?'}), program.options).resolves(true);
 
                     await removeUnusedScreens_({program});
