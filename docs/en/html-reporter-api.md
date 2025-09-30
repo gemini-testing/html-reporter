@@ -14,7 +14,7 @@ Html-reporter adds an `htmlReporter` object to the `testplane` object with its o
 | [addExtraItem](#addextraitem) | Method | Adds an additional item to the burger menu of the report. |
 | [downloadDatabases](#downloaddatabases) | Method | Downloads all databases from the given files of the type _databaseUrls.json_. |
 | [mergeDatabases](#mergedatabases) | Method | Merges all given databases and saves the final report on the specified path. |
-| [getTestsTreeFromDatabase](#getteststreefromdatabase) | Method | Returns the test tree from the passed database. |
+| [getTestsTreeFromDatabase](#getteststreefromdatabase) | Method | Resolves the test tree from the passed database. |
 
 ## events
 
@@ -192,12 +192,12 @@ await testplane.htmlReporter.mergeDatabases(srcDbPaths, path);
 
 ## getTestsTreeFromDatabase
 
-Returns the test tree from the passed database.
+Resolves the test tree from the passed database.
 
 ### Example of a call
 
 ```javascript
-const dbTree = testplane.htmlReporter.getTestsTreeFromDatabase(mergedDbPath);
+const dbTree = await testplane.htmlReporter.getTestsTreeFromDatabase(mergedDbPath);
 ```
 
 ### Call parameters
@@ -207,8 +207,8 @@ The function takes one argument&mdash;the path to the database with the result o
 ### Usage example
 
 ```javascript
-function getSuccessTestRunIds({ testplane, mergedDbPath }) {
-    const dbTree = testplane.htmlReporter.getTestsTreeFromDatabase(mergedDbPath);
+async function getSuccessTestRunIds({ testplane, mergedDbPath }) {
+    const dbTree = await testplane.htmlReporter.getTestsTreeFromDatabase(mergedDbPath);
 
     const successTestRunIds = [];
 

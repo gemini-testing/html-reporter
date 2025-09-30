@@ -197,7 +197,7 @@ await testplane.htmlReporter.mergeDatabases(srcDbPaths, path);
 ### Пример вызова
 
 ```javascript
-const dbTree = testplane.htmlReporter.getTestsTreeFromDatabase(mergedDbPath);
+const dbTree = await testplane.htmlReporter.getTestsTreeFromDatabase(mergedDbPath);
 ```
 
 ### Параметры вызова
@@ -207,8 +207,8 @@ const dbTree = testplane.htmlReporter.getTestsTreeFromDatabase(mergedDbPath);
 ### Пример использования
 
 ```javascript
-function getSuccessTestRunIds({ testplane, mergedDbPath }) {
-    const dbTree = testplane.htmlReporter.getTestsTreeFromDatabase(mergedDbPath);
+async function getSuccessTestRunIds({ testplane, mergedDbPath }) {
+    const dbTree = await testplane.htmlReporter.getTestsTreeFromDatabase(mergedDbPath);
 
     const successTestRunIds = [];
 

@@ -25,6 +25,7 @@ describe(process.env.TOOL || 'Default', () => {
                 `//section[contains(@class, 'error__item') and .${getElementWithTextSelector('span', 'stack')}/..]`;
 
             await browser.$(selector).waitForDisplayed();
+            await browser.waitUntil(() => browser.execute(() => document.fonts.status === 'loaded'));
             await browser.assertView('details summary', selector);
         });
     });

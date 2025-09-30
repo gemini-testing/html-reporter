@@ -71,7 +71,7 @@ describe('lib/gui/tool-runner/index', () => {
         sandbox.stub(GuiReportBuilder, 'create').returns(reportBuilder);
         reportBuilder.getResult.returns({});
 
-        getTestsTreeFromDatabase = sandbox.stub().returns({});
+        getTestsTreeFromDatabase = sandbox.stub().resolves({});
 
         getReferencePath = sandbox.stub().returns('');
 
@@ -599,7 +599,7 @@ describe('lib/gui/tool-runner/index', () => {
 
         it('should not reuse tree if it is empty', async () => {
             fs.pathExists.withArgs(dbPath).resolves(true);
-            getTestsTreeFromDatabase.returns({});
+            getTestsTreeFromDatabase.resolves({});
 
             await gui.initialize();
 
@@ -608,7 +608,7 @@ describe('lib/gui/tool-runner/index', () => {
 
         it('should reuse tests tree', async () => {
             fs.pathExists.withArgs(dbPath).resolves(true);
-            getTestsTreeFromDatabase.returns('tests-tree');
+            getTestsTreeFromDatabase.resolves('tests-tree');
 
             await gui.initialize();
 
