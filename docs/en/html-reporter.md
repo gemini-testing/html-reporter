@@ -6,3 +6,4 @@
 * [Customizing GUI](./html-reporter-custom-gui.md)
 * [API](./html-reporter-api.md)
 * [Events](./html-reporter-events.md)
+* [Accepting screenshots from reports in CI](./static-image-accepter.md)

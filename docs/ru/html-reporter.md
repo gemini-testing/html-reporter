@@ -6,3 +6,4 @@
 * [Кастомизация GUI](./html-reporter-custom-gui.md)
 * [API](./html-reporter-api.md)
 * [События](./html-reporter-events.md)
+* [Принятие скриншотов из отчётов в CI](./static-image-accepter.md)
