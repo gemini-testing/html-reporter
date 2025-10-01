@@ -1,5 +1,6 @@
 **/.*
 build
+build-ui
 node_modules
 hot
 /lib/static/*.min.js

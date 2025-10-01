@@ -3,19 +3,34 @@
   "version": "11.1.1",
   "description": "Html-reporter and GUI for viewing and managing results of a tests run. Currently supports Testplane and Hermione.",
   "files": [
-    "build"
+    "build",
+    "plugins-sdk/build",
+    "plugins-sdk/build-ui"
   ],
   "exports": {
     "./testplane": "./build/testplane.js",
     "./hermione": "./build/hermione.js",
     "./playwright": "./build/playwright.js",
-    "./jest": "./build/jest.js"
+    "./jest": "./build/jest.js",
+    "./plugins-sdk": {
+      "types": "./plugins-sdk/build/plugins-sdk/index.d.ts",
+      "default": "./plugins-sdk/build/plugins-sdk/index.js"
+    },
+    "./plugins-sdk/ui": {
+      "types": "./plugins-sdk/build-ui/lib/static/modules/plugins-sdk-ui.d.ts",
+      "default": "./plugins-sdk/build-ui/lib/static/modules/plugins-sdk-ui.js"
+    }
   },
   "scripts": {
-    "build": "rimraf build && npm run build:client && npm run build:server && npm run build-bundle -- --minify",
+    "build": "rimraf build && npm run build:client && npm run build:server && npm run build-bundle -- --minify && npm run build:sdk",
     "build:client": "cross-env NODE_ENV=production webpack build --config=webpack.prod.js --progress && npm run copy-static",
     "build:client:dev": "cross-env NODE_ENV=development webpack build --config=webpack.dev.js --progress && npm run copy-static",
     "build:server": "npx tsc",
+    "build:sdk": "npm run build:sdk:clean && npm run build:sdk:main && npm run build:sdk:ui-types && npm run build:sdk:ui-stub",
+    "build:sdk:clean": "rimraf plugins-sdk/build plugins-sdk/build-ui",
+    "build:sdk:main": "tsc --project plugins-sdk/tsconfig.json",
+    "build:sdk:ui-types": "tspc --project plugins-sdk/tsconfig.ui.json",
+    "build:sdk:ui-stub": "echo 'module.exports = {};' > plugins-sdk/build-ui/lib/static/modules/plugins-sdk-ui.js",
     "build-bundle": "esbuild ./lib/bundle/index.ts --outdir=./build/lib/bundle --bundle --format=cjs --platform=node --target=ES2021",
     "copy-static": "copyfiles 'lib/static/icons/*' .npmignore build",
     "coverage": "nyc npm run test-unit",
@@ -261,8 +276,10 @@
     "testplane": "^8.30.3",
     "tree-kill": "^1.2.2",
     "ts-node": "^10.9.1",
+    "ts-patch": "^3.3.0",
     "type-fest": "^3.13.1",
     "typescript": "^5.0.4",
+    "typescript-transform-paths": "^3.5.5",
     "web-vitals": "^1.1.2",
     "webpack": "^5.89.0",
     "webpack-cli": "^5.1.4",
