@@ -1,9 +1,7 @@
 import type {CommanderStatic} from '@gemini-testing/commander';
-import chalk from 'chalk';
 import opener from 'opener';
 
 import * as server from './server';
-import {logger} from '../common-utils';
 import * as utils from '../server-utils';
 
 import type {ToolAdapter} from '../adapters/tool';
@@ -29,7 +27,6 @@ export interface ServerArgs {
 export default (args: ServerArgs): void => {
     server.start(args)
         .then(({url}: { url: string }) => {
-            logger.log(`GUI is running at ${chalk.cyan(url)}`);
             args.cli.options.open && opener(url);
         })
         .catch((err: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any

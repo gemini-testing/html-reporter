@@ -1,13 +1,13 @@
 import path from 'path';
 import express from 'express';
 import {onExit} from 'signal-exit';
-import BluebirdPromise from 'bluebird';
 import bodyParser from 'body-parser';
 import {INTERNAL_SERVER_ERROR, OK} from 'http-codes';
 import type {Config} from 'testplane';
+import {listenWithFallback} from './listen-with-fallback';
 
 import {App} from './app';
-import {MAX_REQUEST_SIZE, KEEP_ALIVE_TIMEOUT, HEADERS_TIMEOUT} from './constants';
+import {MAX_REQUEST_SIZE} from './constants';
 import {logger} from '../common-utils';
 import {initPluginsRoutes} from './routes/plugins';
 import {BrowserFeature, Feature, ToolName} from '../constants';
@@ -19,6 +19,7 @@ import type {TestplaneToolAdapter} from '../adapters/tool/testplane';
 import type {ToolRunnerTree} from './tool-runner';
 import type {TestplaneConfigAdapter} from '../adapters/config/testplane';
 import type {UpdateTimeTravelSettingsRequest, UpdateTimeTravelSettingsResponse} from '../types';
+import chalk from 'chalk';
 
 interface CustomGuiError {
     response: {
@@ -275,14 +276,23 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
 
     await app.initialize();
 
-    const {port, hostname} = args.cli.options;
-    await BluebirdPromise.fromCallback((callback) => {
-        const httpServer = server.listen(port, hostname, callback as () => void);
-        httpServer.keepAliveTimeout = KEEP_ALIVE_TIMEOUT;
-        httpServer.headersTimeout = HEADERS_TIMEOUT;
+    const {port: requestedPort, hostname} = args.cli.options;
+
+    const {actualPort, hostnameForUrl} = await listenWithFallback({
+        server,
+        hostname,
+        requestedPort
     });
 
-    const data = {url: `http://${hostname}:${port}`};
+    const listeningMessage = `GUI is running at ${chalk.cyan(`http://${hostnameForUrl}:${actualPort}`)}`;
+
+    if (requestedPort !== undefined && actualPort !== requestedPort) {
+        logger.log(`${listeningMessage}. This port was chosen because ${hostnameForUrl}:${requestedPort} is busy.`);
+    } else {
+        logger.log(listeningMessage);
+    }
+
+    const data = {url: `http://${hostnameForUrl}:${actualPort}`};
 
     await guiApi.serverReady(data);
 
