@@ -36,17 +36,17 @@ plugins: {
 }
 ```
 
-* The accepter is ignored unless the `enabled` flag is set and the report is opened in static mode. `repositoryUrl`, `pullRequestUrl`, and `serviceUrl` are mandatory; missing values disable the feature inside the bundle.【F:lib/static/modules/static-image-accepter.ts†L36-L52】
-* Images collected for committing always reference the stored baseline path. The accepter throws if the underlying tool cannot provide a `refImg.relativePath`, because the service needs the final repository-relative destination for each file.【F:lib/static/modules/static-image-accepter.ts†L54-L82】
-* `axiosRequestOptions` (optional) are forwarded to the HTTP client used by the report UI so you can tweak timeouts, headers, or authentication parameters required by your service.【F:lib/static/modules/actions/static-accepter.ts†L58-L107】
+* The accepter is ignored unless the `enabled` flag is set and the report is opened in static mode. `repositoryUrl`, `pullRequestUrl`, and `serviceUrl` are mandatory; missing values disable the feature inside the bundle.
+* Images collected for committing always reference the stored baseline path. The accepter throws if the underlying tool cannot provide a `refImg.relativePath`, because the service needs the final repository-relative destination for each file.
+* `axiosRequestOptions` (optional) are forwarded to the HTTP client used by the report UI so you can tweak timeouts, headers, or authentication parameters required by your service.
 
 ## High-level workflow
 
 1. Reviewers browse the static report, stage the screenshots they want to promote, and open the **Commit** dialog.
-2. html-reporter gathers the staged entries, fetches the binary data for each actual image, and builds a `multipart/form-data` payload that includes repository metadata, the chosen commit message, and every image file.【F:lib/static/modules/actions/static-accepter.ts†L69-L107】
-3. The payload is sent as an HTTP `POST` request to the configured `serviceUrl`. Upload progress is exposed in the UI so reviewers can monitor large batches.【F:lib/static/modules/actions/static-accepter.ts†L108-L115】
+2. html-reporter gathers the staged entries, fetches the binary data for each actual image, and builds a `multipart/form-data` payload that includes repository metadata, the chosen commit message, and every image file.
+3. The payload is sent as an HTTP `POST` request to the configured `serviceUrl`. Upload progress is exposed in the UI so reviewers can monitor large batches.
 4. Your accepter service performs authentication, verifies the request, stores the uploaded screenshots, and updates the PR branch (for example by creating a commit or opening a follow-up PR). It runs persistently so it can be reused across reports and CI runs.
-5. On any HTTP status between 200 (inclusive) and 400 (exclusive) the UI treats the operation as successful, marks images as committed, stores their identifiers in local storage to avoid duplicate work, and shows a success notification. Non-2xx responses bubble up as errors in the UI.【F:lib/static/modules/actions/static-accepter.ts†L116-L148】
+5. On any HTTP status between 200 (inclusive) and 400 (exclusive) the UI treats the operation as successful, marks images as committed, stores their identifiers in local storage to avoid duplicate work, and shows a success notification. Non-2xx responses bubble up as errors in the UI.
 
 ## HTTP API contract
 
@@ -56,23 +56,23 @@ The html-reporter always sends a single HTTP `POST` request to `staticImageAccep
 
 | Field name | Type | Description |
 |------------|------|-------------|
-| `repositoryUrl` | text part | Full URL of the Git repository that contains the baselines (usually the PR target repository).【F:lib/static/modules/actions/static-accepter.ts†L75-L90】|
-| `pullRequestUrl` | text part | Full URL of the PR that should receive the commit. Use it to discover branch/owner information inside your service.【F:lib/static/modules/actions/static-accepter.ts†L75-L90】|
-| `message` | text part | Commit message chosen by the reviewer. Defaults to `chore: update <tool> screenshot references` if left unchanged.【F:lib/static/components/modals/static-accepter-confirm/index.tsx†L19-L56】|
-| `meta` | text part (optional) | Arbitrary JSON string produced from the configured `staticImageAccepter.meta` object. Use it to pass CI context (run IDs, actor, custom flags).【F:lib/static/modules/actions/static-accepter.ts†L83-L90】|
-| `image` | file part (repeated) | Each staged screenshot is uploaded as a binary file. The browser fetches the actual image blob and attaches it with the filename set to the repository-relative destination path (for example `test/screens/page/diff.png`).【F:lib/static/modules/actions/static-accepter.ts†L91-L107】【F:lib/types.ts†L216-L233】|
+| `repositoryUrl` | text part | Full URL of the Git repository that contains the baselines (usually the PR target repository).|
+| `pullRequestUrl` | text part | Full URL of the PR that should receive the commit. Use it to discover branch/owner information inside your service.|
+| `message` | text part | Commit message chosen by the reviewer. Defaults to `chore: update <tool> screenshot references` if left unchanged.|
+| `meta` | text part (optional) | Arbitrary JSON string produced from the configured `staticImageAccepter.meta` object. Use it to pass CI context (run IDs, actor, custom flags).|
+| `image` | file part (repeated) | Each staged screenshot is uploaded as a binary file. The browser fetches the actual image blob and attaches it with the filename set to the repository-relative destination path (for example `test/screens/page/diff.png`).|
 
 ### Request semantics
 
-* Multiple `image` parts are added in parallel (up to 256 concurrent downloads) before the request is dispatched. Order is not guaranteed, so the server should rely on `file.originalname` (or equivalent) rather than the upload order.【F:lib/static/modules/actions/static-accepter.ts†L91-L107】
+* Multiple `image` parts are added in parallel (up to 256 concurrent downloads) before the request is dispatched. Order is not guaranteed, so the server should rely on `file.originalname` (or equivalent) rather than the upload order.
 * Each image corresponds to an `actual` screenshot that is meant to replace the `ref` baseline located at the given relative path. Your server is responsible for writing the file content to that path within the repository checkout or storage backend.
 * The client does not send a structured list of images in the body — the file parts themselves are authoritative. Use the multipart metadata to reconstruct the commit.
-* Authentication, authorization, and CSRF protections are entirely up to your implementation. Supply any additional headers through `axiosRequestOptions` (for example, bearer tokens) if you want the report to authenticate against the service.【F:lib/static/modules/actions/static-accepter.ts†L58-L107】
+* Authentication, authorization, and CSRF protections are entirely up to your implementation. Supply any additional headers through `axiosRequestOptions` (for example, bearer tokens) if you want the report to authenticate against the service.
 
 ### Response expectations
 
 * Any HTTP status in the range `[200, 400)` is treated as success. You may return a body (for example JSON with links to created commits), but the UI does not require it.
-* Any other status or thrown error results in a failure notification for the reviewer. Include descriptive error messages in the response body to simplify troubleshooting.【F:lib/static/modules/actions/static-accepter.ts†L116-L147】
+* Any other status or thrown error results in a failure notification for the reviewer. Include descriptive error messages in the response body to simplify troubleshooting.
 
 ## Example: Express service backed by a GitHub App
 
