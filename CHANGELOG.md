@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="11.2.0"></a>
+# 11.2.0 (2025-10-01)
+
+
+### Features
+
+* add plugins SDK and improve plugins middleware ([#724](https://github.com/gemini-testing/html-reporter/issues/724)) ([b100027](https://github.com/gemini-testing/html-reporter/commit/b100027))
+
+
+
 <a name="11.1.1"></a>
 ## 11.1.1 (2025-09-30)
 
