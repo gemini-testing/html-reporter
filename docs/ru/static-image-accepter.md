@@ -74,22 +74,29 @@ html-reporter всегда отправляет один POST-запрос на 
 * Любой статус в диапазоне `[200, 400)` считается успешным. Можно вернуть тело (например, JSON с ссылками на коммиты), но интерфейсу оно не требуется.
 * Остальные статусы или исключения приводят к ошибке в UI. Возвращайте развёрнутые сообщения, чтобы упрощать отладку.
 
-## Пример: Express-сервис, который авторизует ревьюеров через GitHub App
+## Варианты реализации
 
-Чтобы коммиты подписывались именем человека, нажавшего **Commit**, сервис можно построить на GitHub App с двумя компонентами: установка приложения даёт доступ к репозиторию, а OAuth-поток приложения выдаёт токен конкретного пользователя. Ревьюер один раз входит на сервис, тот сохраняет сессию и при следующих загрузках запускает git-операции уже под этим пользователем. В итоге автором коммита в GitHub становится сам ревьюер, а не бот.
+Сервис принятия может обновлять PR либо от имени ревьюера, либо от имени бота. Ниже приведены два подхода — выберите тот, что лучше вписывается в ваши процессы, и адаптируйте примеры под свой стек, соблюдая HTTP-контракт.
 
-### Что нужно настроить в GitHub заранее
+### Вариант A: GitHub App + вход ревьюера (коммиты от людей)
 
-1. **Создайте GitHub App** (Settings → Developer settings → GitHub Apps) с правами `Contents: Read & Write` и `Pull requests: Read` на репозиторий. Включите **User authorization callback URL** и пункт **Request user authorization (OAuth)**. Запросите область `user:email`, чтобы сервис смог получить основной e-mail для подписи коммита. Вебхуки для этого сценария не нужны.
-2. **Сгенерируйте приватный ключ** и сохраните PEM-строку в защищённом хранилище. Также выпишите **Client ID** и **Client secret** — они понадобятся в OAuth-потоке.
-3. **Установите приложение** во все репозитории, где нужно принимать скриншоты. Сделать это могут только администраторы организации или репозитория.
+Чтобы коммиты подписывались именем человека, нажавшего **Commit**, можно объединить GitHub App (даёт доступ к репозиторию) и OAuth-поток этого приложения (выдаёт токен конкретного пользователя). Ревьюер один раз входит на сервис, тот сохраняет сессию и при следующих загрузках выполняет git-операции уже под этим пользователем. В GitHub коммит будет привязан к ревьюеру, а не к боту.
 
-После такой настройки сервис использует две независимые авторизации:
+#### Что настроить в GitHub заранее
 
-* На этапе логина ревьюера приложение обменивает OAuth-код на пользовательский токен и кладёт его в cookie-сессию.
-* При каждом accepter-запросе сервис находит установку приложения для целевого репозитория, клонирует ветку PR и выполняет push по HTTPS, подставляя пользовательский токен в URL. GitHub учитывает этот токен и записывает коммит на пользователя.
+1. **Создайте GitHub App** (Settings → Developer settings → GitHub Apps) с правами `Contents: Read & Write` и `Pull requests: Read`. Включите **User authorization callback URL** и пункт **Request user authorization (OAuth)**. Запросите область `user:email`, чтобы сервис мог получить e-mail для подписи коммитов. Вебхуки не требуются.
+2. **Сгенерируйте приватный ключ** и сохраните PEM-строку в защищённом хранилище. Также выпишите **Client ID** и **Client secret** — они нужны в OAuth-потоке.
+3. **Установите приложение** во все репозитории, где нужно принимать скриншоты. Это действие доступно только администраторам организации или репозитория.
 
-Ниже приведён минимальный Express-сервер, который работает постоянно (например, в Kubernetes или на отдельной ВМ). Он предоставляет страницу входа для ревьюеров, хранит токены в памяти (в production замените на устойчивое шифрованное хранилище), принимает `multipart`-payload от html-reporter и пушит новые эталоны от имени вошедшего пользователя.
+После настройки сервис выполняет две независимые авторизации:
+
+* Во время логина приложение обменивает OAuth-код на пользовательский токен и сохраняет его в cookie-сессии.
+* При каждом accepter-запросе сервис находит установку приложения, клонирует ветку PR и использует пользовательский токен в Git-URL. GitHub фиксирует коммит на того, кто нажал кнопку.
+
+Ниже — минимальный Express-сервер, который работает постоянно (например, в Kubernetes или на отдельной ВМ). Он предоставляет маршрут входа для ревьюеров, хранит токены в памяти (в production замените на устойчивое шифрованное хранилище), принимает `multipart`-payload от html-reporter и пушит эталоны от имени вошедшего пользователя.
+
+<details>
+<summary>TypeScript-пример: GitHub App + OAuth-логин</summary>
 
 ```ts
 // server.ts
@@ -147,7 +154,7 @@ app.get('/auth/callback', async (req, res) => {
     const userOctokit = new Octokit({auth: oauth.token});
     const {data: viewer} = await userOctokit.rest.users.getAuthenticated();
     const {data: emails} = await userOctokit.rest.users.listEmailsForAuthenticatedUser();
-    const primaryEmail = emails.find((item) => item.primary && item.verified)?.email;
+    const primaryEmail = emails.find((item) => item.primary и item.verified)?.email;
 
     const sessionId = randomUUID();
     sessions.set(sessionId, {
@@ -174,7 +181,7 @@ app.post('/static-accepter', upload.any(), async (req, res) => {
     const pullRequestUrl = req.body.pullRequestUrl as string;
     const message = (req.body.message as string) || 'chore: update baselines';
 
-    if (!repositoryUrl || !pullRequestUrl) {
+    if (!repositoryUrl или !pullRequestUrl) {
         res.status(400).send('Missing repositoryUrl or pullRequestUrl');
         return;
     }
@@ -257,15 +264,141 @@ app.listen(port, () => {
 });
 ```
 
+</details>
+
 **Переменные окружения**
 
 * `GITHUB_APP_ID` — числовой идентификатор приложения.
-* `GITHUB_APP_PRIVATE_KEY` — приватный ключ в формате PEM. Храните его в защищённом хранилище.
+* `GITHUB_APP_PRIVATE_KEY` — приватный ключ в PEM-формате. Храните его в защищённом виде (например, в секретном хранилище).
 * `GITHUB_APP_CLIENT_ID` и `GITHUB_APP_CLIENT_SECRET` — параметры OAuth-потока.
-* `SESSION_SECRET` — случайная строка для подписи cookie. В production замените in-memory `Map` на устойчивое зашифрованное хранилище.
-* `PUBLIC_URL` — внешний HTTPS-адрес сервиса (например, `https://accepter.example.com`).
-* Приложение должно быть установлено во всех репозиториях, где нужно принимать скриншоты. Требуются права `Contents: Read & Write` и `Pull requests: Read`.
+* `SESSION_SECRET` — случайная строка для подписи cookie. В production замените память на защищённое хранилище.
+* `PUBLIC_URL` — публичный HTTPS-адрес сервиса (например, `https://accepter.example.com`).
+* Установите приложение во все репозитории, где нужна эта функция. Требуются права `Contents: Read & Write` и `Pull requests: Read`.
 
+### Вариант B: GitHub App без логина (коммиты от бота)
+
+Если не хочется работать с пользовательскими сессиями, то же приложение GitHub может пушить напрямую, используя свой installation token. Сервис остаётся stateless, но все коммиты будут подписаны ботом. **Любой, кто доберётся до эндпоинта, сможет пушить в репозитории, где установлено приложение, поэтому ограничьте доступ к сервису (например, держите его внутри доверенной сети или добавьте собственный уровень авторизации).**
+
+Начальная настройка проще, чем в варианте A: создайте приложение с правами `Contents: Read & Write` и `Pull requests: Read`, сгенерируйте приватный ключ и установите приложение в нужные репозитории. OAuth и маршруты входа не требуются.
+
+<details>
+<summary>TypeScript-пример: используем только installation token</summary>
+
+```ts
+// server.ts
+import express from 'express';
+import multer from 'multer';
+import path from 'path';
+import os from 'os';
+import fs from 'fs/promises';
+import {randomUUID} from 'crypto';
+import simpleGit from 'simple-git';
+import {Octokit} from 'octokit';
+import {createAppAuth} from '@octokit/auth-app';
+
+const upload = multer({storage: multer.memoryStorage()});
+
+const appId = process.env.GITHUB_APP_ID!;
+const privateKey = process.env.GITHUB_APP_PRIVATE_KEY!; // PEM-строка
+
+const app = express();
+
+app.post('/static-accepter', upload.any(), async (req, res) => {
+    const repositoryUrl = req.body.repositoryUrl as string;
+    const pullRequestUrl = req.body.pullRequestUrl as string;
+    const message = (req.body.message as string) || 'chore: update baselines';
+
+    if (!repositoryUrl или !pullRequestUrl) {
+        res.status(400).send('Missing repositoryUrl or pullRequestUrl');
+        return;
+    }
+
+    if (!req.files?.length) {
+        res.status(400).send('No images provided');
+        return;
+    }
+
+    const {owner, repo} = parseRepository(repositoryUrl);
+
+    const appOctokit = new Octokit({
+        authStrategy: createAppAuth,
+        auth: {appId, privateKey}
+    });
+
+    const installation = await appOctokit.rest.apps.getRepoInstallation({owner, repo});
+    const installationOctokit = new Octokit({
+        authStrategy: createAppAuth,
+        auth: {
+            appId,
+            privateKey,
+            installationId: installation.data.id
+        }
+    });
+
+    const prNumber = extractPullNumber(pullRequestUrl);
+    const {data: pull} = await installationOctokit.rest.pulls.get({owner, repo, pull_number: prNumber});
+    const branch = pull.head.ref;
+
+    const tokenResponse = await installationOctokit.rest.apps.createInstallationAccessToken({
+        installation_id: installation.data.id
+    });
+    const remote = `https://x-access-token:${tokenResponse.data.token}@github.com/${owner}/${repo}.git`;
+
+    const worktree = await fs.mkdtemp(path.join(os.tmpdir(), `accepter-${randomUUID()}-`));
+    const git = simpleGit();
+
+    try {
+        await git.clone(remote, worktree, ['--single-branch', '--branch', branch]);
+        const branchGit = simpleGit(worktree);
+
+        for (const file of req.files as Express.Multer.File[]) {
+            const destination = path.join(worktree, file.originalname);
+            await fs.mkdir(path.dirname(destination), {recursive: true});
+            await fs.writeFile(destination, file.buffer);
+        }
+
+        await branchGit.add('.');
+        await branchGit.commit(message);
+        await branchGit.push('origin', branch);
+
+        res.status(204).end();
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Failed to update pull request');
+    } finally {
+        await fs.rm(worktree, {recursive: true, force: true});
+    }
+});
+
+function parseRepository(repositoryUrl: string) {
+    const match = repositoryUrl.match(/github\.com\/(.+?)\/(.+?)(\.git)?$/);
+    if (!match) {
+        throw new Error(`Unsupported repository URL: ${repositoryUrl}`);
+    }
+    return {owner: match[1], repo: match[2]};
+}
+
+function extractPullNumber(pullRequestUrl: string) {
+    const match = pullRequestUrl.match(/pull\/(\d+)/);
+    if (!match) {
+        throw new Error(`Unsupported pull request URL: ${pullRequestUrl}`);
+    }
+    return Number(match[1]);
+}
+
+const port = process.env.PORT ?? 3000;
+app.listen(port, () => {
+    console.log(`Static accepter listening on :${port}`);
+});
+```
+
+</details>
+
+**Переменные окружения**
+
+* `GITHUB_APP_ID` — числовой идентификатор приложения.
+* `GITHUB_APP_PRIVATE_KEY` — приватный ключ в PEM-формате.
+* Приложение должно быть установлено во все репозитории, которые будут получать новые эталоны. Коммиты будут подписаны ботом приложения.
 ## Пример интеграции с GitHub Actions
 
 Сам сервис живёт отдельно, а CI продолжает генерировать и публиковать статический отчёт. Ниже пример workflow:
