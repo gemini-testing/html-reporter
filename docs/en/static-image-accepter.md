@@ -74,24 +74,28 @@ The html-reporter always sends a single HTTP `POST` request to `staticImageAccep
 * Any HTTP status in the range `[200, 400)` is treated as success. You may return a body (for example JSON with links to created commits), but the UI does not require it.
 * Any other status or thrown error results in a failure notification for the reviewer. Include descriptive error messages in the response body to simplify troubleshooting.
 
-## Example: Express service backed by a GitHub App
+## Example: Express service that authenticates reviewers via a GitHub App
 
-One straightforward way to let a persistent service update pull requests is to authenticate it as a GitHub App installation. The App holds the minimal permissions needed (`contents: write`, `pull_requests: read`) and GitHub rotates short-lived installation tokens for you. The service can then clone the PR branch, drop in the uploaded baselines, and push a commit on behalf of the App.
+To keep the final commits authored by the reviewer who pressed **Commit**, the service can combine a GitHub App installation (for repository access) with the App’s OAuth flow (to obtain a user token). Reviewers sign in to the service once, the server stores a session linked to their GitHub user, and future accepter requests run git commands using their user-to-server token. The resulting commit is attributed to the human reviewer instead of a bot.
 
 ### GitHub setup required beforehand
 
-1. **Create a GitHub App** (Settings → Developer settings → GitHub Apps) with the following repository permissions: `Contents: Read & Write` and `Pull requests: Read`. The App does not require any webhooks for this flow.
-2. **Generate a private key** for the App and store the PEM string in your secret manager. The server will use it to request installation tokens.
-3. **Install the App** on every repository where you intend to accept screenshots. During installation GitHub asks which repositories to authorize; select the relevant ones. Only repository or organization admins can perform this step.
+1. **Create a GitHub App** (Settings → Developer settings → GitHub Apps) with the repository permissions `Contents: Read & Write` and `Pull requests: Read`. Enable **User authorization callback URL** and **Request user authorization (OAuth)**. Request the `user:email` scope so the service can look up the reviewer’s primary email for commit attribution. No webhooks are required.
+2. **Generate a private key** for the App and store the PEM string securely. Also note the App’s **Client ID** and **Client secret**—they are used during the OAuth handshake.
+3. **Install the App** on every repository that should accept screenshots. Only organization/repository admins can complete the installation step.
 
-Once the App is installed, the service authenticates by exchanging the App credentials for an installation token every time it handles a request. That token is injected into the Git remote URL so all Git operations happen under the App’s robot account identity.
+With this configuration in place, the service performs two authentication steps:
 
-Below is a minimal Express implementation that runs on your infrastructure (for example, in Kubernetes or on a small VM). It receives requests from html-reporter, authenticates as a GitHub App, clones the PR branch into a temporary directory, writes the uploaded files, commits them using the reviewer-provided message, and pushes the updated branch.
+* During login, it exchanges the OAuth `code` for a user token and stores it in a session cookie so later uploads run as that reviewer.
+* During each accepter request, it determines which installation covers the target repository, clones the PR branch, and uses the reviewer’s user token in the Git remote URL. GitHub attributes the resulting commit to the reviewer.
+
+Below is a minimal Express implementation that runs persistently on your infrastructure (for example, in Kubernetes or on a small VM). It exposes a login route for reviewers, persists user tokens in memory (for production, replace this with durable encrypted storage), receives the multipart payload from html-reporter, and pushes the new baselines as the signed-in user.
 
 ```ts
 // server.ts
 import express from 'express';
 import multer from 'multer';
+import cookieParser from 'cookie-parser';
 import path from 'path';
 import os from 'os';
 import fs from 'fs/promises';
@@ -104,12 +108,71 @@ const upload = multer({storage: multer.memoryStorage()});
 
 const appId = process.env.GITHUB_APP_ID!;
 const privateKey = process.env.GITHUB_APP_PRIVATE_KEY!; // PEM string
+const clientId = process.env.GITHUB_APP_CLIENT_ID!;
+const clientSecret = process.env.GITHUB_APP_CLIENT_SECRET!;
+const sessionSecret = process.env.SESSION_SECRET!;
+
+type Session = {token: string; login: string; name: string; email: string};
+const sessions = new Map<string, Session>();
+const pendingStates = new Set<string>();
+
+const app = express();
+app.use(cookieParser(sessionSecret));
+
+app.get('/auth/login', (_req, res) => {
+    const state = randomUUID();
+    pendingStates.add(state);
+    const authorizeUrl = new URL('https://github.com/login/oauth/authorize');
+    authorizeUrl.searchParams.set('client_id', clientId);
+    authorizeUrl.searchParams.set('redirect_uri', `${process.env.PUBLIC_URL}/auth/callback`);
+    authorizeUrl.searchParams.set('state', state);
+    authorizeUrl.searchParams.set('scope', 'repo user:email');
+    res.redirect(authorizeUrl.toString());
+});
+
+app.get('/auth/callback', async (req, res) => {
+    const {code, state} = req.query;
+    if (typeof code !== 'string' || typeof state !== 'string') {
+        res.status(400).send('Missing OAuth parameters');
+        return;
+    }
+
+    if (!pendingStates.has(state)) {
+        res.status(400).send('Unknown OAuth state');
+        return;
+    }
+
+    const auth = createAppAuth({appId, privateKey, clientId, clientSecret});
+    const oauth = await auth({type: 'oauth-user', code});
+    const userOctokit = new Octokit({auth: oauth.token});
+    const {data: viewer} = await userOctokit.rest.users.getAuthenticated();
+    const {data: emails} = await userOctokit.rest.users.listEmailsForAuthenticatedUser();
+    const primaryEmail = emails.find((item) => item.primary && item.verified)?.email;
+
+    const sessionId = randomUUID();
+    sessions.set(sessionId, {
+        token: oauth.token,
+        login: viewer.login,
+        name: viewer.name ?? viewer.login,
+        email: primaryEmail ?? `${viewer.id}+noreply@users.noreply.github.com`
+    });
+
+    res.cookie('accepter_session', sessionId, {httpOnly: true, sameSite: 'lax', secure: true});
+    pendingStates.delete(state);
+    res.send('Authenticated. You can return to the static report and retry the commit.');
+});
 
 app.post('/static-accepter', upload.any(), async (req, res) => {
+    const sessionId = req.cookies?.accepter_session;
+    const session = sessions.get(sessionId ?? '');
+    if (!session?.token) {
+        res.status(401).send('Please authenticate at /auth/login before committing screenshots.');
+        return;
+    }
+
     const repositoryUrl = req.body.repositoryUrl as string;
     const pullRequestUrl = req.body.pullRequestUrl as string;
     const message = (req.body.message as string) || 'chore: update baselines';
-    const meta = req.body.meta ? JSON.parse(req.body.meta) : {};
 
     if (!repositoryUrl || !pullRequestUrl) {
         res.status(400).send('Missing repositoryUrl or pullRequestUrl');
@@ -142,8 +205,7 @@ app.post('/static-accepter', upload.any(), async (req, res) => {
     const {data: pull} = await installationOctokit.rest.pulls.get({owner, repo, pull_number: prNumber});
     const branch = pull.head.ref;
 
-    const {token} = await installationOctokit.auth({type: 'installation'});
-    const remote = `https://x-access-token:${token}@github.com/${owner}/${repo}.git`;
+    const remote = `https://${session.login}:${session.token}@github.com/${owner}/${repo}.git`;
 
     const worktree = await fs.mkdtemp(path.join(os.tmpdir(), `accepter-${randomUUID()}-`));
     const git = simpleGit();
@@ -160,7 +222,7 @@ app.post('/static-accepter', upload.any(), async (req, res) => {
 
         await branchGit.add('.');
         await branchGit.commit(message, undefined, {
-            '--author': `${meta.actor ?? 'visual bot'} <${meta.actorEmail ?? 'bot@example.com'}>`
+            '--author': `${session.name} <${session.email}>`
         });
         await branchGit.push('origin', branch);
 
@@ -199,7 +261,10 @@ app.listen(port, () => {
 
 * `GITHUB_APP_ID` – the numeric App ID.
 * `GITHUB_APP_PRIVATE_KEY` – the PEM-encoded private key generated for the App. Store it securely (for example in your secrets manager).
-* The App must be installed in every repository that should accept screenshots. It needs `Contents: Read & Write` and `Pull requests: Read` permissions.
+* `GITHUB_APP_CLIENT_ID` and `GITHUB_APP_CLIENT_SECRET` – credentials used for the OAuth user flow.
+* `SESSION_SECRET` – random string for signing cookies. For production, back sessions with an encrypted database instead of the in-memory `Map` shown here.
+* `PUBLIC_URL` – HTTPS origin of the accepter service (for example `https://accepter.example.com`).
+* Install the App in every repository that should accept screenshots. It needs the `Contents: Read & Write` and `Pull requests: Read` permissions requested above.
 
 ## Example: Integrating with GitHub Actions
 
@@ -237,6 +302,6 @@ jobs:
           echo "Report: https://reports.example.com/testplane-reports/${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}/index.html" >> "$GITHUB_STEP_SUMMARY"
 ```
 
-Reviewers open the published report. When they approve new baselines, the static accepter UI POSTs the images to your persistent service. That service performs the GitHub App workflow described above and pushes the commit back to the PR branch.
+Reviewers open the published report. Before committing for the first time they sign in to your accepter service (for example by visiting `/auth/login`). When they approve new baselines, the static accepter UI POSTs the images to your persistent service. That service validates the reviewer session, exchanges their GitHub App OAuth grant for a user token, and pushes the commit back to the PR branch under that reviewer’s identity.
 
 By implementing this contract you can let reviewers approve new baselines directly from static html-reporter builds while keeping full control over how screenshots are promoted inside your CI/CD system.
