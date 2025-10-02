@@ -1,8 +1,8 @@
 # html-reporter
 
-* [Setup](./html-reporter-setup.md)
-* [Commands](./html-reporter-commands.md)
-* [Plugins](./html-reporter-plugins.md)
-* [Customizing GUI](./html-reporter-custom-gui.md)
-* [API](./html-reporter-api.md)
-* [Events](./html-reporter-events.md)
+* [Setup](https://testplane.io/docs/v8/html-reporter/html-reporter-setup/)
+* [Commands](https://testplane.io/docs/v8/html-reporter/html-reporter-commands/)
+* [Plugins](https://testplane.io/docs/v8/html-reporter/html-reporter-plugins/)
+* [Customizing GUI](https://testplane.io/docs/v8/html-reporter/html-reporter-custom-gui/)
+* [API](https://testplane.io/docs/v8/html-reporter/html-reporter-api/)
+* [Events](https://testplane.io/docs/v8/html-reporter/html-reporter-events/)
