@@ -142,8 +142,8 @@ One link is worth a thousand words, so [here it is](https://storage.yandexcloud.
 ## Docs
 
 See full documentation in various languages here:
-* [English](./docs/en/html-reporter.md)
-* [Русский](./docs/ru/html-reporter.md)
+* [English](https://testplane.io/docs/v8/html-reporter/overview/)
+* [Русский](https://testplane.io/ru/docs/v8/html-reporter/overview/)
 
 ## Contributing
 
