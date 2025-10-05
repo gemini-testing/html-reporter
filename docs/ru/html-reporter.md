@@ -1,8 +1,8 @@
 # html-reporter
 
-* [Подключение](./html-reporter-setup.md)
-* [Команды](./html-reporter-commands.md)
-* [Плагины](./html-reporter-plugins.md)
-* [Кастомизация GUI](./html-reporter-custom-gui.md)
-* [API](./html-reporter-api.md)
-* [События](./html-reporter-events.md)
+* [Подключение](https://testplane.io/ru/docs/v8/html-reporter/html-reporter-setup/)
+* [Команды](https://testplane.io/ru/docs/v8/html-reporter/html-reporter-commands/)
+* [Плагины](https://testplane.io/ru/docs/v8/html-reporter/html-reporter-plugins/)
+* [Кастомизация GUI](https://testplane.io/ru/docs/v8/html-reporter/html-reporter-custom-gui/)
+* [API](https://testplane.io/ru/docs/v8/html-reporter/html-reporter-api/)
+* [События](https://testplane.io/ru/docs/v8/html-reporter/html-reporter-events/)
