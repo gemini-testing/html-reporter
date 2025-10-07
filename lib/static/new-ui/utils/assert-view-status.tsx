@@ -1,12 +1,11 @@
 import {ImageEntity, ImageEntityError} from '@/static/new-ui/types/store';
 import {Icon} from '@gravity-ui/uikit';
 import {
-    ArrowRightArrowLeft,
-    CircleCheck,
     FileArrowUp, FileCheck,
     FileExclamation,
     FileLetterX,
     FilePlus,
+    FileXmark,
     SquareExclamation,
     SquareXmark
 } from '@gravity-ui/icons';
@@ -29,15 +28,15 @@ export const getAssertViewStatusIcon = (image: ImageEntity | null, color = false
 
     switch (image.status) {
         case TestStatus.SUCCESS:
-            return <Icon data={CircleCheck} width={16} className={color ? 'icon-success' : ''}/>;
+            return <Icon data={FileCheck} width={16} className={color ? 'icon-success' : ''}/>;
         case TestStatus.STAGED:
             return <Icon data={FilePlus} width={16} className={color ? 'icon-success' : ''}/>;
         case TestStatus.COMMITED:
             return <Icon data={FileArrowUp} width={16} className={color ? 'icon-committed' : ''}/>;
         case TestStatus.FAIL:
-            return <Icon data={ArrowRightArrowLeft} width={16} className={color ? 'icon-fail' : ''}/>;
+            return <Icon data={FileXmark} width={16} className={color ? 'icon-fail' : ''}/>;
         case TestStatus.UPDATED:
-            return <Icon data={FileCheck} width={16} className={color ? 'icon-updated' : ''}/>;
+            return <Icon data={FilePlus} width={16} className={color ? 'icon-updated' : ''}/>;
     }
 
     return <Icon data={SquareXmark} width={16}/>;

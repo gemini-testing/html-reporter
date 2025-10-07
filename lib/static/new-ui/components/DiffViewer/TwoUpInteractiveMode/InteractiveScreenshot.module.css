@@ -1,0 +1,40 @@
+.interactive-container {
+    overflow: hidden;
+    user-select: none;
+    touch-action: none;
+    display: flex;
+    justify-content: center;
+    align-items: start;
+}
+
+.unified-container {
+    transform-origin: top left;
+    position: relative;
+}
+
+.screenshot {
+    pointer-events: none;
+    max-height: 100%;
+    max-width: 100%;
+    outline: var(--color-neutral-300) solid 1px;
+}
+
+.screenshot-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+html, body {
+    /* This is needed to prevent back/forward swipes in Chrome and other browsers */
+    overscroll-behavior-x: none;
+}
+
+.toolbar {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.interactive-container:hover .toolbar {
+    opacity: 1;
+}

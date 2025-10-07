@@ -74,9 +74,9 @@ export function SuitesPage(): ReactNode {
             return;
         }
 
-        dispatch(setStrictMatchFilter(false));
-
         if (isInitialized && params.suiteId) {
+            dispatch(setStrictMatchFilter(false));
+
             const treeNode = findTreeNodeByBrowserId(treeData.tree, params.suiteId);
 
             if (!treeNode) {
