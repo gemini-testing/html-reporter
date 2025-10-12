@@ -202,7 +202,7 @@ export function InteractiveScreenshot(props: InteractiveScreenshotProps): ReactN
                 style={{
                     aspectRatio: `${props.unifiedDimensions.width} / ${props.unifiedDimensions.height}`,
                     width: fitMode === InteractiveFitMode.FitWidth ? `calc(min(100%, ${props.unifiedDimensions.width}px))` : undefined,
-                    maxHeight: fitMode === InteractiveFitMode.FitView ? '100%' : undefined,
+                    maxHeight: fitMode === InteractiveFitMode.FitView ? `calc(min(100%, ${props.unifiedDimensions.height}px))` : undefined,
                     height: fitMode === InteractiveFitMode.FitView ? '100%' : undefined,
                     transform
                 }}
