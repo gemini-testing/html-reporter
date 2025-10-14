@@ -30,7 +30,8 @@ module.exports = {
             files: ['test/**'],
             rules: {
                 // For convenient casting of test objects
-                '@typescript-eslint/no-explicit-any': 'off'
+                '@typescript-eslint/no-explicit-any': 'off',
+                '@typescript-eslint/no-restricted-imports': 'off'
             }
         }
     ]
