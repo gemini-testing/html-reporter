@@ -7,13 +7,25 @@ import {ThemeProvider} from '@gravity-ui/uikit';
 
 import '../../styles.css';
 
+async function waitForFonts(browser: WebdriverIO.Browser): Promise<void> {
+    await browser.waitUntil(
+        async () => {
+            return await browser.execute(() => {
+                return document.fonts.ready.then(() => true);
+            });
+        },
+        {
+            timeout: 5000,
+            timeoutMsg: 'Fonts did not load within 5 seconds'
+        }
+    );
+}
+
 import expectedStandard from './images/standard/expected.png';
 import actualStandard from './images/standard/actual.png';
-import diffStandard from './images/standard/diff.png';
 
 import expectedWide from './images/mismatched/expected-wide.png';
 import actualTall from './images/mismatched/actual-tall.png';
-import diffMismatched from './images/mismatched/diff-mismatched.png';
 
 describe('TwoUpInteractiveMode', () => {
     describe('Side-by-Side Display', () => {
@@ -33,6 +45,7 @@ describe('TwoUpInteractiveMode', () => {
             );
 
             const container = await browser.$('[data-testid="two-up-interactive-mode"]');
+            await waitForFonts(browser);
             await container.assertView('side-by-side-display');
         });
 
@@ -108,6 +121,7 @@ describe('TwoUpInteractiveMode', () => {
             await expect(images).toHaveLength(2);
 
             const container = await browser.$('[data-testid="two-up-interactive-mode"]');
+            await waitForFonts(browser);
             await container.assertView('different-dimensions');
         });
 
@@ -130,6 +144,7 @@ describe('TwoUpInteractiveMode', () => {
             await expect(images).toHaveLength(2);
 
             const container = await browser.$('[data-testid="two-up-interactive-mode"]');
+            await waitForFonts(browser);
             await container.assertView('same-dimensions');
         });
     });

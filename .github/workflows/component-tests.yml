@@ -1,8 +1,6 @@
-name: Testplane E2E
+name: Testplane Component Tests
 
 on:
-  push:
-    branches: [ master ]
   pull_request:
     branches: [ master ]
 
@@ -11,11 +9,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  testplane-e2e:
+  testplane-component:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write
+      contents: read
       pull-requests: write
 
     env:
@@ -36,19 +34,13 @@ jobs:
     - name: Build the package
       run: npm run build
 
-    - name: 'Prepare e2e tests: Install pwt-chromium'
-      run: npx playwright install chromium
-
-    - name: 'Prepare e2e tests: Build-packages'
-      run: npm run e2e:build-packages
-
-    - name: 'Prepare e2e tests: Cache browser docker image'
+    - name: 'Prepare component tests: Cache browser docker image'
       uses: actions/cache@v3
       with:
         path: ~/.docker/cache
         key: docker-browser-image-${{ hashFiles('test/func/docker/Dockerfile') }}
 
-    - name: 'Prepare e2e tests: Pull browser docker image'
+    - name: 'Prepare component tests: Pull browser docker image'
       run: |
         mkdir -p ~/.docker/cache
         if [ -f ~/.docker/cache/image.tar ]; then
@@ -58,51 +50,45 @@ jobs:
           docker save yinfra/html-reporter-browsers -o ~/.docker/cache/image.tar
         fi
 
-    - name: 'Prepare e2e tests: Run browser docker image'
+    - name: 'Prepare component tests: Run browser docker image'
       run: docker run -d --name ${{ env.DOCKER_IMAGE_NAME }} -it --rm --network=host $(which colima >/dev/null || echo --add-host=host.docker.internal:0.0.0.0) yinfra/html-reporter-browsers
 
-    - name: 'Prepare e2e tests: Generate fixtures'
-      run: npm run e2e:generate-fixtures || true
-
-    - name: 'Prepare e2e tests: Setup env'
+    - name: 'Prepare component tests: Setup env'
       run: |
         REPORT_PREFIX=testplane-reports
         REPORT_DATE=$(date '+%Y-%m-%d')
         echo "DEST_REPORTS_DIR=$REPORT_PREFIX/$REPORT_DATE/${{ github.run_id }}/${{ github.run_attempt }}" >> $GITHUB_ENV
 
-    - name: 'e2e: Run Testplane'
+    - name: 'component-tests: Run Testplane'
       id: 'testplane'
       continue-on-error: true
-      working-directory: 'test/func/tests'
-      run: npm run test
+      run: npm run component-tests
 
-    - name: 'e2e: Stop browser docker image'
+    - name: 'component-tests: Stop browser docker image'
       run: |
         docker kill ${{ env.DOCKER_IMAGE_NAME }} || true
         docker rm ${{ env.DOCKER_IMAGE_NAME }} || true
 
-    - name: Merge Testplane html-reporter reports
-      working-directory: 'test/func/tests'
-      run: |
-        mkdir -p ../../../${{ env.DEST_REPORTS_DIR }}
-        npx testplane merge-reports reports/*/sqlite.db -d ../../../${{ env.DEST_REPORTS_DIR }}
-
-    - name: Deploy Testplane html-reporter reports
-      uses: peaceiris/actions-gh-pages@v4
+    - name: Upload Testplane html-reporter reports to S3
+      uses: jakejarvis/s3-sync-action@v0.5.1
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ${{ env.DEST_REPORTS_DIR }}
-        destination_dir: ${{ env.DEST_REPORTS_DIR }}
-        keep_files: true
+        args: --acl public-read --follow-symlinks
+      env:
+        AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_S3_ENDPOINT: https://s3.yandexcloud.net/
+        SOURCE_DIR: "test/component/html-report"
+        DEST_DIR: "testplane-ci/component-tests-reports/${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}/"
 
     - name: Construct PR comment
       run: |
-        link="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/${{ env.DEST_REPORTS_DIR }}"
+        link="https://${{ secrets.AWS_S3_BUCKET }}.s3.yandexcloud.net/${{ env.DEST_REPORTS_DIR }}/component/index.html"
         if [ "${{ steps.testplane.outcome }}" != "success" ]; then
-          comment="### ❌ E2E tests failed<br><br>[Report](${link})"
+          comment="### ❌ Component tests failed<br><br>[Report](${link})"
           echo "PR_COMMENT=${comment}" >> $GITHUB_ENV
         else
-          comment="### ✅ E2E tests succeed<br><br>[Report](${link})"
+          comment="### ✅ Component tests succeed<br><br>[Report](${link})"
           echo "PR_COMMENT=${comment}" >> $GITHUB_ENV
         fi
 
@@ -111,7 +97,7 @@ jobs:
       uses: thollander/actions-comment-pull-request@v3
       with:
           message: ${{ env.PR_COMMENT }}
-          comment-tag: testplane_e2e_results
+          comment-tag: testplane_component_results
 
     - name: Fail the job if any Testplane job is failed
       if: ${{ steps.testplane.outcome != 'success' }}
