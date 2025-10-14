@@ -77,7 +77,7 @@ jobs:
 
     - name: Construct PR comment
       run: |
-        link="https://${{ secrets.AWS_S3_BUCKET }}.s3.yandexcloud.net/testplane-ci/component-tests-reports/${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}//index.html"
+        link="https://${{ secrets.AWS_S3_BUCKET }}.s3.yandexcloud.net/testplane-ci/component-tests-reports/${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}/index.html"
         if [ "${{ steps.testplane.outcome }}" != "success" ]; then
           comment="### ❌ Component tests failed<br><br>[Report](${link})"
           echo "PR_COMMENT=${comment}" >> $GITHUB_ENV
