@@ -1,13 +1,14 @@
 import path from 'path';
 import 'tsconfig-paths/register';
+import { setupBrowser } from "@testplane/testing-library";
+import type {ConfigInput} from 'testplane';
 
 export default {
-    // Don't set baseUrl here - let Testplane's ViteServer set it automatically
     // baseUrl: "http://host.docker.internal",
     gridUrl: "local",
     sessionsPerBrowser: 1,
     testsPerSession: 10,
-    windowSize: "1280x1024",
+    windowSize: {width: 1280, height: 1024},
     system: {
         workers: 1,
         testRunEnv: ["browser", {viteConfig: "./vite.config.ts"}],
@@ -36,10 +37,13 @@ export default {
         }
     },
     plugins: {
-        "html-reporter/testplane": {
+        "html-reporter-tester": {
             enabled: true,
             path: "html-report",
             defaultView: "all"
         }
-    }
-};
+    },
+    prepareBrowser(browser) {
+        setupBrowser(browser);
+    },
+} satisfies ConfigInput;

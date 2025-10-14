@@ -52,10 +52,10 @@ export function TwoUpInteractiveModePure(props: TwoUpInteractiveModePureProps): 
 
     return (
         <ViewportContext.Provider value={viewportContextValue}>
-            <div className={styles.twoUpInteractiveMode}>
+            <div className={styles.twoUpInteractiveMode} data-testid="two-up-interactive-mode">
                 <div className={styles.sideContainer}>
                     <ImageLabel title={'Expected'} subtitle={getImageDisplayedSize(props.expected)} />
-                    <div className={styles.imagePanel}>
+                    <div className={styles.imagePanel} data-testid="image-panel-expected">
                         <InteractiveScreenshot
                             image={props.expected}
                             unifiedDimensions={unifiedDimensions}
@@ -67,7 +67,7 @@ export function TwoUpInteractiveModePure(props: TwoUpInteractiveModePureProps): 
                 <div className={styles.divider} />
                 <div className={styles.sideContainer}>
                     <ImageLabel title={'Actual'} subtitle={getImageDisplayedSize(props.actual) + (props.differentPixels && props.diffRatio ? ` ⋅ ${getDisplayedDiffPixelsCountValue(props.differentPixels)} ${props.differentPixels > 1 ? 'are' : 'is'} different (${getDisplayedDiffPercentValue(props.diffRatio)}%)` : '')} />
-                    <div className={styles.imagePanel}>
+                    <div className={styles.imagePanel} data-testid="image-panel-actual">
                         <InteractiveScreenshot
                             image={props.actual}
                             unifiedDimensions={unifiedDimensions}

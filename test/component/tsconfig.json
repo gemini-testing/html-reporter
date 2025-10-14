@@ -15,8 +15,8 @@
       "@/*": ["../../lib/*"],
       "lib/*": ["../../lib/*"]
     },
-    "types": ["testplane"]
+    "types": ["testplane", "@testplane/testing-library"]
   },
-  "include": ["tests/**/*", "../../lib/**/*"],
+  "include": ["tests/**/*", "../../lib/**/*", "typings.d.ts"],
   "exclude": ["node_modules"]
 }

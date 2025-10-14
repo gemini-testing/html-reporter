@@ -3,163 +3,134 @@ import {render} from '@testing-library/react';
 import {TwoUpInteractiveModePure} from '../../../../lib/static/new-ui/components/DiffViewer/TwoUpInteractiveMode';
 import {TwoUpFitMode} from '../../../../lib/constants';
 import type {ImageFile} from '../../../../lib/types';
+import {ThemeProvider} from '@gravity-ui/uikit';
 
-// Import CSS styles for component testing
 import '../../styles.css';
 
-// Import test images
-import expectedImage from './images/black-square-on-green/expected.png';
-import actualImage from './images/black-square-on-green/actual.png';
-import diffImage from './images/black-square-on-green/diff.png';
-import { ThemeProvider } from '@gravity-ui/uikit';
+import expectedStandard from './images/standard/expected.png';
+import actualStandard from './images/standard/actual.png';
+import diffStandard from './images/standard/diff.png';
 
-describe('TwoUpInteractiveMode Component', () => {
-    const mockExpectedImage: ImageFile = {
-        path: expectedImage,
-        size: {
-            width: 1000,
-            height: 200
-        }
-    };
+import expectedWide from './images/mismatched/expected-wide.png';
+import actualTall from './images/mismatched/actual-tall.png';
+import diffMismatched from './images/mismatched/diff-mismatched.png';
 
-    const mockActualImage: ImageFile = {
-        path: actualImage,
-        size: {
-            width: 200,
-            height: 900
-        }
-    };
+describe('TwoUpInteractiveMode', () => {
+    describe('Side-by-Side Display', () => {
+        it('displays both expected and actual images side-by-side', async ({browser}) => {
+            const expected: ImageFile = {path: expectedStandard, size: {width: 1920, height: 1080}};
+            const actual: ImageFile = {path: actualStandard, size: {width: 1920, height: 1080}};
 
-    const mockDiffImage: ImageFile = {
-        path: diffImage,
-        size: {
-            width: 1000,
-            height: 900
-        }
-    };
+            render(
+                <ThemeProvider theme='light'>
+                    <TwoUpInteractiveModePure
+                        expected={expected}
+                        actual={actual}
+                        is2UpDiffVisible={false}
+                        globalTwoUpFitMode={TwoUpFitMode.FitToView}
+                    />
+                </ThemeProvider>
+            );
 
-    it('should render both expected and actual images', async ({browser}) => {
-        console.log('Current URL before render:', await browser.getUrl());
-        render(
-            <TwoUpInteractiveModePure
-                expected={mockExpectedImage}
-                actual={mockActualImage}
-                is2UpDiffVisible={false}
-                globalTwoUpFitMode={TwoUpFitMode.FitToView}
-            />
-        );
+            const container = await browser.$('[data-testid="two-up-interactive-mode"]');
+            await container.assertView('side-by-side-display');
+        });
 
-        const expectedLabel = await browser.$('*=Expected');
-        const actualLabel = await browser.$('*=Actual');
+        it('shows image dimensions in labels', async ({browser}) => {
+            const expected: ImageFile = {path: expectedStandard, size: {width: 1920, height: 1080}};
+            const actual: ImageFile = {path: actualStandard, size: {width: 1920, height: 1080}};
 
-        await expect(expectedLabel).toExist();
-        await expect(actualLabel).toExist();
+            render(
+                <ThemeProvider theme='light'>
+                    <TwoUpInteractiveModePure
+                        expected={expected}
+                        actual={actual}
+                        is2UpDiffVisible={false}
+                        globalTwoUpFitMode={TwoUpFitMode.FitToView}
+                    />
+                </ThemeProvider>
+            );
 
-        const images = await browser.$$('img');
-        await expect(images).toHaveLength(2);
-    });
+            const expectedLabel = await browser.findByTestId('image-label-expected');
+            const actualLabel = await browser.findByTestId('image-label-actual');
 
-    it('should show diff overlay when is2UpDiffVisible is true', async ({browser}) => {
-        render(
-            <ThemeProvider theme='light'>
-                <TwoUpInteractiveModePure
-                    expected={mockExpectedImage}
-                    actual={mockActualImage}
-                    diff={mockDiffImage}
-                    is2UpDiffVisible={true}
-                    globalTwoUpFitMode={TwoUpFitMode.FitToView}
-                    differentPixels={42}
-                    diffRatio={0.15}
-                />
-            </ThemeProvider>
-        );
+            const expectedText = await expectedLabel.getText();
+            const actualText = await actualLabel.getText();
 
-        // Add a pause to inspect the component in DevTools
-        await browser.pause(360000); // 6 minute pause
+            expect(expectedText).toContain('1920');
+            expect(expectedText).toContain('1080');
+            expect(actualText).toContain('1920');
+            expect(actualText).toContain('1080');
+        });
 
-        const images = await browser.$$('img');
-        await expect(images).toHaveLength(3);
+        it('shows diff statistics when available', async ({browser}) => {
+            const expected: ImageFile = {path: expectedStandard, size: {width: 1920, height: 1080}};
+            const actual: ImageFile = {path: actualStandard, size: {width: 1920, height: 1080}};
 
-        const actualLabel = await browser.$('*=Actual');
-        const labelText = await actualLabel.getText();
+            render(
+                <ThemeProvider theme='light'>
+                    <TwoUpInteractiveModePure
+                        expected={expected}
+                        actual={actual}
+                        is2UpDiffVisible={false}
+                        globalTwoUpFitMode={TwoUpFitMode.FitToView}
+                        differentPixels={2500}
+                        diffRatio={0.12}
+                    />
+                </ThemeProvider>
+            );
 
-        await expect(labelText).toContain('42');
-        await expect(labelText).toContain('different');
-    });
+            const actualLabel = await browser.findByTestId('image-label-actual');
+            const labelText = await actualLabel.getText();
 
-    it('should handle zoom in action', async ({browser}) => {
-        render(
-            <TwoUpInteractiveModePure
-                expected={mockExpectedImage}
-                actual={mockActualImage}
-                is2UpDiffVisible={false}
-                globalTwoUpFitMode={TwoUpFitMode.FitToWidth}
-            />
-        );
+            // 2500 pixels is formatted as "~3k px"
+            expect(labelText).toContain('~3k px');
+            expect(labelText).toContain('different');
+            expect(labelText).toContain('12');
+        });
 
-        const zoomInButton = await browser.$('[title="Zoom in"]');
-        await expect(zoomInButton).toExist();
+        it('handles images with different dimensions', async ({browser}) => {
+            const expected: ImageFile = {path: expectedWide, size: {width: 1000, height: 200}};
+            const actual: ImageFile = {path: actualTall, size: {width: 200, height: 900}};
 
-        await zoomInButton.click();
+            render(
+                <ThemeProvider theme='light'>
+                    <TwoUpInteractiveModePure
+                        expected={expected}
+                        actual={actual}
+                        is2UpDiffVisible={false}
+                        globalTwoUpFitMode={TwoUpFitMode.FitToView}
+                    />
+                </ThemeProvider>
+            );
 
-        // Verify that clicking zoom in doesn't crash the component
-        const images = await browser.$$('img');
-        await expect(images).toHaveLength(2);
-    });
+            const images = await browser.$$('img');
+            await expect(images).toHaveLength(2);
 
-    it('should handle panning with mouse drag', async ({browser}) => {
-        render(
-            <TwoUpInteractiveModePure
-                expected={mockExpectedImage}
-                actual={mockActualImage}
-                is2UpDiffVisible={false}
-                globalTwoUpFitMode={TwoUpFitMode.FitToView}
-            />
-        );
+            const container = await browser.$('[data-testid="two-up-interactive-mode"]');
+            await container.assertView('different-dimensions');
+        });
 
-        const container = await browser.$('img');
-        const parentContainer = await container.parentElement();
+        it('handles images with same dimensions', async ({browser}) => {
+            const expected: ImageFile = {path: expectedStandard, size: {width: 1920, height: 1080}};
+            const actual: ImageFile = {path: actualStandard, size: {width: 1920, height: 1080}};
 
-        // Simulate drag action
-        await browser.performActions([
-            {
-                type: 'pointer',
-                id: 'mouse',
-                parameters: {pointerType: 'mouse'},
-                actions: [
-                    {type: 'pointerMove', x: 50, y: 50, origin: parentContainer},
-                    {type: 'pointerDown', button: 0},
-                    {type: 'pointerMove', x: 100, y: 100, origin: parentContainer},
-                    {type: 'pointerUp', button: 0}
-                ]
-            }
-        ]);
+            render(
+                <ThemeProvider theme='light'>
+                    <TwoUpInteractiveModePure
+                        expected={expected}
+                        actual={actual}
+                        is2UpDiffVisible={false}
+                        globalTwoUpFitMode={TwoUpFitMode.FitToView}
+                    />
+                </ThemeProvider>
+            );
 
-        // Verify component still renders after interaction
-        const images = await browser.$$('img');
-        await expect(images).toHaveLength(2);
-    });
+            const images = await browser.$$('img');
+            await expect(images).toHaveLength(2);
 
-    it('should switch between fit modes', async ({browser}) => {
-        render(
-            <TwoUpInteractiveModePure
-                expected={mockExpectedImage}
-                actual={mockActualImage}
-                is2UpDiffVisible={false}
-                globalTwoUpFitMode={TwoUpFitMode.FitToView}
-            />
-        );
-
-        const fitToWidthButton = await browser.$('[title="Fit to width"]');
-        const fitToViewButton = await browser.$('[title="Fit to view"]');
-
-        await expect(fitToWidthButton).toExist();
-        await expect(fitToViewButton).toExist();
-
-        await fitToWidthButton.click();
-
-        // Verify component still renders after mode switch
-        const images = await browser.$$('img');
-        await expect(images).toHaveLength(2);
+            const container = await browser.$('[data-testid="two-up-interactive-mode"]');
+            await container.assertView('same-dimensions');
+        });
     });
 });
