@@ -22,10 +22,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Use Node.js 20
+    - name: Use Node.js 22
       uses: actions/setup-node@v4
       with:
-        node-version: 20
+        node-version: 22
         cache: 'npm'
 
     - name: Install dependencies
@@ -53,12 +53,6 @@ jobs:
     - name: 'Prepare component tests: Run browser docker image'
       run: docker run -d --name ${{ env.DOCKER_IMAGE_NAME }} -it --rm --network=host $(which colima >/dev/null || echo --add-host=host.docker.internal:0.0.0.0) yinfra/html-reporter-browsers
 
-    - name: 'Prepare component tests: Setup env'
-      run: |
-        REPORT_PREFIX=testplane-reports
-        REPORT_DATE=$(date '+%Y-%m-%d')
-        echo "DEST_REPORTS_DIR=$REPORT_PREFIX/$REPORT_DATE/${{ github.run_id }}/${{ github.run_attempt }}" >> $GITHUB_ENV
-
     - name: 'component-tests: Run Testplane'
       id: 'testplane'
       continue-on-error: true
@@ -83,7 +77,7 @@ jobs:
 
     - name: Construct PR comment
       run: |
-        link="https://${{ secrets.AWS_S3_BUCKET }}.s3.yandexcloud.net/${{ env.DEST_REPORTS_DIR }}/component/index.html"
+        link="https://${{ secrets.AWS_S3_BUCKET }}.s3.yandexcloud.net/testplane-ci/component-tests-reports/${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}//index.html"
         if [ "${{ steps.testplane.outcome }}" != "success" ]; then
           comment="### ❌ Component tests failed<br><br>[Report](${link})"
           echo "PR_COMMENT=${comment}" >> $GITHUB_ENV
