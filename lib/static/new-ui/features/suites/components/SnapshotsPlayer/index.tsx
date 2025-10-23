@@ -7,7 +7,7 @@ import React, {ReactNode, useCallback, useEffect, useRef, useState} from 'react'
 import {useDispatch, useSelector} from 'react-redux';
 
 import {TestStatus} from '@/constants';
-import {AttachmentType, ImageSize} from '@/types';
+import {AttachmentType, ImageSize, SnapshotAttachment} from '@/types';
 import {getCurrentResult} from '@/static/new-ui/features/suites/selectors';
 import {Timeline} from './Timeline';
 import {NumberedSnapshot} from './types';
@@ -327,7 +327,8 @@ export function SnapshotsPlayer(): ReactNode {
 
             playerRef.current.on('custom-event', handleCustomEvent);
         } else {
-            const snapshot = currentResult?.attachments?.find(attachment => attachment.type === AttachmentType.Snapshot);
+            const snapshot = currentResult?.attachments?.find(attachment => attachment.type === AttachmentType.Snapshot) as SnapshotAttachment;
+
             if (!snapshot) {
                 return;
             }

@@ -1,0 +1,38 @@
+.test-status-bar {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: start;
+    gap: 20px;
+    margin-top: 6px;
+}
+
+.test-status-bar__main {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: start;
+    gap: 5px;
+    margin: 2px 0;
+}
+
+.test-status-bar__status {
+    font-size: 15px;
+}
+
+.test-status-bar__duration {
+    font-size: 15px;
+    color: #7F7F7F;
+}
+
+.test-status-bar__badges {
+    display: flex;
+    gap: 10px;
+
+    button {
+        --g-button-border-radius: 8px;
+        color: var(--color-neutral-700);
+        padding: 0 10px;
+        gap: 8px;
+    }
+}

@@ -32,5 +32,6 @@ export const configDefaults: StoreReporterConfig = {
         serviceUrl: '',
         meta: {},
         axiosRequestOptions: {}
-    }
+    },
+    badgeFormatter: null
 };

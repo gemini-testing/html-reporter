@@ -9,6 +9,7 @@ const {ERROR} = require('lib/constants/test-statuses');
 const {LOCAL_DATABASE_NAME} = require('lib/constants/database');
 const {SqliteClient} = require('lib/sqlite-client');
 const {makeSqlDatabaseFromFile} = require('lib/db-utils/server');
+const {AttachmentType} = require('lib/types');
 
 const TEST_REPORT_PATH = 'test';
 const TEST_DB_PATH = `${TEST_REPORT_PATH}/${LOCAL_DATABASE_NAME}`;
@@ -148,6 +149,42 @@ describe('StaticReportBuilder', () => {
             await reportBuilder.addTestResult(testResult);
 
             assert.calledOnceWith(imagesInfoSaver.save, testResult, workers);
+        });
+    });
+
+    describe('add badge attachment', () => {
+        it('should add attachment with badge using callback from config', async () => {
+            const mockBadges = [
+                {
+                    title: 'test badge',
+                    icon: 'BranchesRight'
+                }
+            ];
+
+            const reportBuilder = await mkStaticReportBuilder_({
+                reporterConfig: {
+                    badgeFormatter: () => mockBadges
+                }
+            });
+
+            const testResult = stubTest_({attachments: [], stateName: 'plain'});
+
+            await reportBuilder.addTestResult(testResult);
+
+            dbClient.close();
+
+            const db = await makeSqlDatabaseFromFile(TEST_DB_PATH);
+
+            const stmt = db.prepare('SELECT * from suites');
+            const result = stmt.getAsObject([]);
+            stmt.free();
+            db.close();
+
+            const badgesAttachment = JSON.parse(result.attachments).find(({type}) => type === AttachmentType.Badges);
+
+            assert.exists(badgesAttachment);
+            assert.equal(badgesAttachment.type, AttachmentType.Badges);
+            assert.deepEqual(badgesAttachment.list, mockBadges);
         });
     });
 
