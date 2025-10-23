@@ -5,7 +5,7 @@ import chalk from 'chalk';
 import {logger} from '../common-utils';
 import {configDefaults, DiffModeId, DiffModes, SaveFormat, ViewMode} from '../constants';
 import {assertCustomGui} from './custom-gui-asserts';
-import {ErrorPattern, PluginDescription, ReporterConfig, ReporterOptions} from '../types';
+import {BadgeFormatter, ErrorPattern, PluginDescription, ReporterConfig, ReporterOptions} from '../types';
 import {UiMode} from '../constants/local-storage';
 
 const ENV_PREFIX = 'html_reporter_';
@@ -28,6 +28,7 @@ const assertType = <T>(name: string, validationFn: (value: unknown) => value is 
     };
 };
 const assertString = (name: string): AssertionFn<string> => assertType(name, _.isString, 'string');
+const assertFunction = (name: string): AssertionFn<string> => assertType(name, _.isFunction, 'function');
 const assertBoolean = (name: string): AssertionFn<boolean> => assertType(name, _.isBoolean, 'boolean');
 export const assertNumber = (name: string): AssertionFn<number> => assertType(name, _.isNumber, 'number');
 const assertPlainObject = (name: string): AssertionFn<Record<string, unknown>> => assertType(name, isPlainObject, 'plain object');
@@ -287,6 +288,10 @@ const getParser = (): ReturnType<typeof root<ReporterConfig>> => {
                 parseCli: JSON.parse,
                 validate: assertPlainObject('staticImageAccepter.axiosRequestOptions')
             })
+        }),
+        badgeFormatter: option<BadgeFormatter | null>({
+            defaultValue: configDefaults.badgeFormatter,
+            validate: (value) => _.isNull(value) || assertFunction('badgeFormatter')
         })
     }), {envPrefix: ENV_PREFIX, cliPrefix: CLI_PREFIX});
 };

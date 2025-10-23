@@ -29,7 +29,17 @@ module.exports.getFixturesConfig = (projectDir, projectName) => {
             },
             'html-reporter-tester': {
                 enabled: true,
-                path: fixturesPath
+                path: fixturesPath,
+                badgeFormatter: () => [
+                    {
+                        title: 'TASK-128',
+                        icon: 'LogoYandexTracker'
+                    },
+                    {
+                        title: 'master',
+                        icon: 'BranchesRight'
+                    }
+                ]
             }
         }
     });

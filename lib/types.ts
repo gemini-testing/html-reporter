@@ -5,6 +5,7 @@ import {BrowserFeature, DiffModeId, SaveFormat, SUITES_TABLE_COLUMNS, TestStatus
 import type {HtmlReporter} from './plugin-api';
 import {ImageDiffError, NoRefImageError} from './errors';
 import {UiMode} from './constants/local-storage';
+import {ReporterTestResult} from './adapters/test-result';
 
 declare module 'tmp' {
     export const tmpdir: string;
@@ -233,6 +234,14 @@ export interface StaticImageAccepterRequest extends Pick<StaticImageAccepterConf
     }>;
 }
 
+export interface Badge {
+    title: string;
+    url?: string;
+    icon?: string;
+}
+
+export type BadgeFormatter = (suite: ReporterTestResult) => Badge[];
+
 export interface ReporterConfig {
     baseHost: string;
     commandsWithShortHistory: string[];
@@ -252,6 +261,7 @@ export interface ReporterConfig {
     yandexMetrika: { enabled?: boolean; counterNumber: null | number };
     staticImageAccepter: StaticImageAccepterConfig;
     uiMode: UiMode | null;
+    badgeFormatter: BadgeFormatter | null;
 }
 
 export type ReporterOptions = Omit<ReporterConfig, 'errorPatterns'> & {errorPatterns: (string | ErrorPattern)[]};
@@ -314,7 +324,8 @@ export interface TestStepCompressed {
 }
 
 export enum AttachmentType {
-    Snapshot
+    Snapshot = 0,
+    Badges = 1
 }
 
 export interface SnapshotAttachment {
@@ -324,7 +335,12 @@ export interface SnapshotAttachment {
     maxHeight: number;
 }
 
-export type Attachment = SnapshotAttachment;
+export interface BadgesAttachment {
+    type: AttachmentType.Badges;
+    list: Badge[];
+}
+
+export type Attachment = SnapshotAttachment | BadgesAttachment;
 
 export interface ApiErrorResponse {
     error: {

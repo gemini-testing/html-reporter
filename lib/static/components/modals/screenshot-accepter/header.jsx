@@ -1,7 +1,7 @@
 import React, {Component, Fragment} from 'react';
 import {GlobalHotKeys} from 'react-hotkeys';
 import PropTypes from 'prop-types';
-import {uniqBy, pick} from 'lodash';
+import {uniqBy} from 'lodash';
 
 import ProgressBar from '../../progress-bar';
 import ControlButton from '../../controls/control-button';
