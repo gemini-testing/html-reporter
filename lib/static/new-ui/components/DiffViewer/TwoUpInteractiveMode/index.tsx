@@ -30,6 +30,11 @@ export function TwoUpInteractiveModePure(props: TwoUpInteractiveModePureProps): 
         ? InteractiveFitMode.FitView
         : InteractiveFitMode.FitWidth;
 
+    const diffInfo = props.differentPixels && props.diffRatio
+        ? ` ⋅ ${getDisplayedDiffPixelsCountValue(props.differentPixels)} ${props.differentPixels > 1 ? 'are' : 'is'} different (${getDisplayedDiffPercentValue(props.diffRatio)}%)`
+        : '';
+    const actualImageSubtitle = getImageDisplayedSize(props.actual) + diffInfo;
+
     const unifiedDimensions = useMemo(() => {
         return {
             width: Math.max(props.expected.size.width, props.actual.size.width),
@@ -66,7 +71,7 @@ export function TwoUpInteractiveModePure(props: TwoUpInteractiveModePureProps): 
                 </div>
                 <div className={styles.divider} />
                 <div className={styles.sideContainer}>
-                    <ImageLabel title={'Actual'} subtitle={getImageDisplayedSize(props.actual) + (props.differentPixels && props.diffRatio ? ` ⋅ ${getDisplayedDiffPixelsCountValue(props.differentPixels)} ${props.differentPixels > 1 ? 'are' : 'is'} different (${getDisplayedDiffPercentValue(props.diffRatio)}%)` : '')} />
+                    <ImageLabel title={'Actual'} subtitle={actualImageSubtitle} />
                     <div className={styles.imagePanel} data-testid="image-panel-actual">
                         <InteractiveScreenshot
                             image={props.actual}
