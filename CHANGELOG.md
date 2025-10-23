@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="11.3.0"></a>
+# 11.3.0 (2025-10-23)
+
+
+### Features
+
+* implement two up interactive diff viewer ([#707](https://github.com/gemini-testing/html-reporter/issues/707)) ([3e4c68f](https://github.com/gemini-testing/html-reporter/commit/3e4c68f))
+
+
+
 <a name="11.2.1"></a>
 ## 11.2.1 (2025-10-02)
 
