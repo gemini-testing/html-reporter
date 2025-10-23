@@ -49,7 +49,7 @@ export const TestStatusBar = (): ReactNode => {
                 </div>
             </div>
             {(badges && badges.list.length > 0) && (
-                <div className={styles['test-status-bar__badges']}>
+                <div className={styles['test-status-bar__badges']} data-qa="suite-badges">
                     {badges.list.map((badge: Badge) => (
                         <Button
                             key={badge.title}
