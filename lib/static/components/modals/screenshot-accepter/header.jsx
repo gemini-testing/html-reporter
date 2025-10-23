@@ -1,13 +1,13 @@
 import React, {Component, Fragment} from 'react';
 import {GlobalHotKeys} from 'react-hotkeys';
 import PropTypes from 'prop-types';
-import {uniqBy} from 'lodash';
+import {uniqBy, pick} from 'lodash';
 
 import ProgressBar from '../../progress-bar';
 import ControlButton from '../../controls/control-button';
 import ControlSelect from '../../controls/selects/control';
 import RetrySwitcher from '../../retry-switcher';
-import {DiffModes} from '../../../../constants/diff-modes';
+import {ClassicDiffModes} from '../../../../constants/diff-modes';
 import {ChevronsExpandUpRight, ArrowUturnCcwDown, ArrowUp, ArrowDown, Check} from '@gravity-ui/icons';
 import {staticImageAccepterPropType} from '../../../modules/static-image-accepter';
 
@@ -194,7 +194,7 @@ export default class ScreenshotAccepterHeader extends Component {
                             label="Diff mode"
                             value={view.diffMode}
                             handler={diffModeId => actions.setDiffMode({diffModeId})}
-                            options = {Object.values(DiffModes).map((dm) => {
+                            options = {Object.values(ClassicDiffModes).map((dm) => {
                                 return {value: dm.id, content: dm.title};
                             })}
                             extendClassNames="screenshot-accepter__diff-mode-select"

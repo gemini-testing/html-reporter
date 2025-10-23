@@ -1,3 +1,4 @@
+import {pick} from 'lodash';
 import type {ValueOf} from 'type-fest';
 
 export const DiffModes = {
@@ -42,6 +43,8 @@ export const DiffModes = {
         description: '2-up Interactive. Compare expected and actual images side by side with synchronized pan and zoom.'
     }
 } as const;
+
+export const ClassicDiffModes = pick(DiffModes, ['THREE_UP', 'THREE_UP_SCALED', 'THREE_UP_SCALED_TO_FIT', 'ONLY_DIFF', 'SWITCH', 'SWIPE', 'ONION_SKIN']);
 
 export type DiffModes = typeof DiffModes;
 

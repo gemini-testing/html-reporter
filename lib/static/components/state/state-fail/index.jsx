@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import React, {Fragment, useEffect, useState} from 'react';
 import {connect} from 'react-redux';
 
-import {DiffModes} from '@/constants';
+import {ClassicDiffModes as DiffModes} from '@/constants';
 import {SwitchMode} from '@/static/new-ui/components/DiffViewer/SwitchMode';
 import {SwipeMode} from '@/static/new-ui/components/DiffViewer/SwipeMode';
 import {OnionSkinMode} from '@/static/new-ui/components/DiffViewer/OnionSkinMode';
