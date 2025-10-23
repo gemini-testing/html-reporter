@@ -7,7 +7,7 @@ interface ImageLabelProps {
 }
 
 export function ImageLabel({title, subtitle}: ImageLabelProps): ReactNode {
-    return <div className={styles.imageLabel}>
+    return <div className={styles.imageLabel} data-testid={`image-label-${title.toLowerCase()}`}>
         <span>{title}</span>
         {subtitle && <span className={styles.imageLabelSubtitle}>{subtitle}</span>}
     </div>;

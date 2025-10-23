@@ -1,5 +1,4 @@
 import React, {ReactNode} from 'react';
-import {connect} from 'react-redux';
 
 import {ImageEntity} from '@/static/new-ui/types/store';
 import {DiffModeId, TestStatus} from '@/constants';
@@ -15,7 +14,7 @@ interface AssertViewResultProps {
     diffMode: DiffModeId;
 }
 
-function AssertViewResultInternal({result, diffMode, style}: AssertViewResultProps): ReactNode {
+export function AssertViewResult({result, diffMode, style}: AssertViewResultProps): ReactNode {
     if (result.status === TestStatus.FAIL) {
         return <DiffViewer diffMode={diffMode} {...result} />;
     }
@@ -50,7 +49,3 @@ function AssertViewResultInternal({result, diffMode, style}: AssertViewResultPro
 
     return null;
 }
-
-export const AssertViewResult = connect(state => ({
-    diffMode: state.view.diffMode
-}))(AssertViewResultInternal);

@@ -1,5 +1,5 @@
 import {CoordBounds} from 'looks-same';
-import {BrowserFeature, DiffModeId, Feature, TestStatus, ViewMode} from '@/constants';
+import {BrowserFeature, DiffModeId, Feature, TestStatus, ViewMode, TwoUpFitMode} from '@/constants';
 import {
     Attachment,
     BrowserItem,
@@ -285,6 +285,7 @@ export interface State {
             useMatchCaseFilter: boolean;
             viewMode: ViewMode;
             filteredBrowsers: BrowserItem[];
+            diffMode: DiffModeId;
         };
         loading: {
             /** @note Determines whether the loading bar is visible */
@@ -332,6 +333,8 @@ export interface State {
             sectionSizes: number[];
             // Used to restore the previous sections sizes after collapsing the tree with a button
             backupSectionSizes: number[];
+            is2UpDiffVisible: boolean;
+            twoUpFitMode: TwoUpFitMode;
         };
         staticImageAccepterToolbar: {
             offset: Point;

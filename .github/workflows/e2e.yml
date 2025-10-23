@@ -64,12 +64,6 @@ jobs:
     - name: 'Prepare e2e tests: Generate fixtures'
       run: npm run e2e:generate-fixtures || true
 
-    - name: 'Prepare e2e tests: Setup env'
-      run: |
-        REPORT_PREFIX=testplane-reports
-        REPORT_DATE=$(date '+%Y-%m-%d')
-        echo "DEST_REPORTS_DIR=$REPORT_PREFIX/$REPORT_DATE/${{ github.run_id }}/${{ github.run_attempt }}" >> $GITHUB_ENV
-
     - name: 'e2e: Run Testplane'
       id: 'testplane'
       continue-on-error: true
@@ -84,25 +78,29 @@ jobs:
     - name: Merge Testplane html-reporter reports
       working-directory: 'test/func/tests'
       run: |
-        mkdir -p ../../../${{ env.DEST_REPORTS_DIR }}
-        npx testplane merge-reports reports/*/sqlite.db -d ../../../${{ env.DEST_REPORTS_DIR }}
+        mkdir -p ../../../e2e-report
+        npx testplane merge-reports reports/*/sqlite.db -d ../../../e2e-report
 
-    - name: Deploy Testplane html-reporter reports
-      uses: peaceiris/actions-gh-pages@v4
+    - name: Upload Testplane html-reporter reports to S3
+      uses: jakejarvis/s3-sync-action@v0.5.1
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ${{ env.DEST_REPORTS_DIR }}
-        destination_dir: ${{ env.DEST_REPORTS_DIR }}
-        keep_files: true
+        args: --acl public-read --follow-symlinks
+      env:
+        AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_S3_ENDPOINT: https://s3.yandexcloud.net/
+        SOURCE_DIR: "e2e-report"
+        DEST_DIR: "testplane-ci/e2e-tests-reports/${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}/"
 
     - name: Construct PR comment
       run: |
-        link="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/${{ env.DEST_REPORTS_DIR }}"
+        link="https://${{ secrets.AWS_S3_BUCKET }}.s3.yandexcloud.net/testplane-ci/e2e-tests-reports/${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}/index.html"
         if [ "${{ steps.testplane.outcome }}" != "success" ]; then
-          comment="### ❌ Testplane run failed<br><br>[Report](${link})"
+          comment="### ❌ E2E tests failed<br><br>[Report](${link})"
           echo "PR_COMMENT=${comment}" >> $GITHUB_ENV
         else
-          comment="### ✅ Testplane run succeed<br><br>[Report](${link})"
+          comment="### ✅ E2E tests succeed<br><br>[Report](${link})"
           echo "PR_COMMENT=${comment}" >> $GITHUB_ENV
         fi
 
@@ -111,7 +109,7 @@ jobs:
       uses: thollander/actions-comment-pull-request@v3
       with:
           message: ${{ env.PR_COMMENT }}
-          comment-tag: testplane_results
+          comment-tag: testplane_e2e_results
 
     - name: Fail the job if any Testplane job is failed
       if: ${{ steps.testplane.outcome != 'success' }}

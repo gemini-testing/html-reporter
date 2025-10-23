@@ -1,5 +1,5 @@
-import {ArrowUturnCcwLeft, Check, ListCheck} from '@gravity-ui/icons';
-import {Button, Divider, Icon, Select, Flex} from '@gravity-ui/uikit';
+import {ArrowRightArrowLeft, ArrowUturnCcwLeft, Check, LayersVertical, ListCheck, SquareDashed, ChevronsExpandToLines} from '@gravity-ui/icons';
+import {Button, Divider, Icon, Select, Flex, Tooltip} from '@gravity-ui/uikit';
 import React, {ReactNode, useEffect, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -13,12 +13,15 @@ import {
 import {SuiteTitle} from '@/static/new-ui/components/SuiteTitle';
 import styles from './index.module.css';
 import {CompactAttemptPicker} from '@/static/new-ui/components/CompactAttemptPicker';
-import {DiffModeId, DiffModes, EditScreensFeature} from '@/constants';
+import {DiffModeId, EditScreensFeature, RunTestsFeature, TwoUpFitMode} from '@/constants';
+import {getAvailableDiffModes} from '@/static/new-ui/utils/diffModes';
 import {
-    setDiffMode,
     staticAccepterStageScreenshot,
-    staticAccepterUnstageScreenshot
+    staticAccepterUnstageScreenshot,
+    toggle2UpDiffVisibility,
+    set2UpFitMode
 } from '@/static/modules/actions';
+import {setVisualChecksDiffMode} from '@/static/modules/actions/visual-checks-page';
 import {isAcceptable, isScreenRevertable} from '@/static/modules/utils';
 import {AssertViewStatus} from '@/static/new-ui/components/AssertViewStatus';
 import {thunkAcceptImages, thunkRevertImages} from '@/static/modules/actions/screenshots';
@@ -26,7 +29,8 @@ import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
 
 import {preloadImageEntity} from '../../../../../modules/utils/imageEntity';
 import {useNavigate} from 'react-router-dom';
-import {RunTest} from '../../../../components/RunTest';
+import {RunTestButton} from '../../../../components/RunTest';
+import {IconButton} from '../../../../components/IconButton';
 
 interface VisualChecksStickyHeaderProps {
     currentNamedImage: NamedImageEntity | null;
@@ -72,9 +76,20 @@ export function VisualChecksStickyHeader({currentNamedImage, visibleNamedImageId
 
     usePreloadImages(currentNamedImageIndex, visibleNamedImageIds);
 
-    const diffMode = useSelector(state => state.view.diffMode);
+    const diffMode = useSelector(state => state.app.visualChecksPage.diffMode);
+    const is2UpDiffVisible = useSelector(state => state.ui.visualChecksPage.is2UpDiffVisible);
+    const twoUpFitMode = useSelector(state => state.ui.visualChecksPage.twoUpFitMode);
     const onChangeHandler = (diffModeId: DiffModeId): void => {
-        dispatch(setDiffMode({diffModeId}));
+        dispatch(setVisualChecksDiffMode(diffModeId));
+    };
+    const onToggle2UpDiffVisibility = (): void => {
+        analytics?.trackFeatureUsage({featureName: 'Toggle 2-up diff visibility'});
+        dispatch(toggle2UpDiffVisibility(!is2UpDiffVisible));
+    };
+    const onToggle2UpFitMode = (): void => {
+        const newFitMode = twoUpFitMode === TwoUpFitMode.FitToView ? TwoUpFitMode.FitToWidth : TwoUpFitMode.FitToView;
+        analytics?.trackFeatureUsage({featureName: 'Toggle 2-up fit mode'});
+        dispatch(set2UpFitMode(newFitMode));
     };
 
     const isStaticImageAccepterEnabled = useSelector(state => state.staticImageAccepter.enabled);
@@ -114,6 +129,9 @@ export function VisualChecksStickyHeader({currentNamedImage, visibleNamedImageId
     const isLastResult = Boolean(currentResultId && currentBrowser && currentResultId === currentBrowser.resultIds[currentBrowser.resultIds.length - 1]);
     const isUndoAvailable = isScreenRevertable({gui: isGui, image: currentImage ?? {}, isLastResult, isStaticImageAccepterEnabled});
 
+    const isRunTestsAvailable = Boolean(useSelector(state => state.app.availableFeatures)
+        .find(feature => feature.name === RunTestsFeature.name));
+
     const onSuites = (): void => {
         if (currentNamedImage) {
             navigate('/' + [
@@ -145,22 +163,44 @@ export function VisualChecksStickyHeader({currentNamedImage, visibleNamedImageId
                 <Divider orientation={'vertical'}/>
                 <AssertViewStatus image={currentImage}/>
                 <Divider orientation={'vertical'}/>
-                <Select className={styles.diffModeSelect} label='Diff Mode' value={[diffMode]} onUpdate={([diffMode]): void => onChangeHandler(diffMode as DiffModeId)} multiple={false}>
-                    {Object.values(DiffModes).map(diffMode =>
-                        <Select.Option value={diffMode.id} content={diffMode.title} title={diffMode.description} key={diffMode.id}/>
+                <Flex gap={2}>
+                    <Select className={styles.diffModeSelect} label={<Icon data={ArrowRightArrowLeft}/> as unknown as string} value={[diffMode]} onUpdate={([diffMode]): void => onChangeHandler(diffMode as DiffModeId)} multiple={false}>
+                        {getAvailableDiffModes('visual-checks').map(diffMode =>
+                            <Select.Option value={diffMode.id} content={diffMode.title} title={diffMode.description} key={diffMode.id}/>
+                        )}
+                    </Select>
+                    {diffMode === '2-up-interactive' && (
+                        <>
+                            <IconButton
+                                icon={<Icon data={LayersVertical}/>}
+                                view="outlined"
+                                onClick={onToggle2UpDiffVisibility}
+                                tooltip={is2UpDiffVisible ? 'Diff is visible. Click to hide' : 'Diff is hidden. Click to show'}
+                                selected={is2UpDiffVisible}
+                            />
+                            <IconButton
+                                icon={<Icon data={twoUpFitMode === TwoUpFitMode.FitToView ? SquareDashed : ChevronsExpandToLines}/>}
+                                view="outlined"
+                                onClick={onToggle2UpFitMode}
+                                tooltip={twoUpFitMode === TwoUpFitMode.FitToView ? 'Fit to view by default. Click to switch' : 'Fit to width by default. Click to switch'}
+                            />
+                        </>
                     )}
-                </Select>
+                </Flex>
 
                 <Flex className={styles.buttonsContainer} gap={2}>
-                    <Button
+                    <IconButton
+                        icon={<Icon data={ListCheck}/>}
                         view="outlined"
                         className={styles.acceptButton}
                         disabled={isRunning || isProcessing}
                         onClick={onSuites}
                         qa="go-suites-button"
-                    >
-                        <Icon data={ListCheck}/>Go to Suites
-                    </Button>
+                        tooltip="Go to test"
+                    />
+                    {isRunTestsAvailable && <Tooltip content={'Run test with this visual check'} placement={'top'} openDelay={0} disabled={isRunning} key={isRunning.toString()}>
+                        <RunTestButton browser={currentBrowser} buttonProps={{view: 'outlined'}} buttonText={null}/>
+                    </Tooltip>}
                     {isEditScreensAvailable && (
                         <>
                             {isUndoAvailable && (
@@ -174,18 +214,17 @@ export function VisualChecksStickyHeader({currentNamedImage, visibleNamedImageId
                                     <Icon data={ArrowUturnCcwLeft}/>Undo
                                 </Button>
                             )}
-                            {currentImage && isAcceptable(currentImage) && (
+                            {!isUndoAvailable && (
                                 <Button
                                     view={'action'}
                                     className={styles.acceptButton}
-                                    disabled={isRunning || isProcessing}
+                                    disabled={isRunning || isProcessing || !currentImage || !isAcceptable(currentImage)}
                                     onClick={onScreenshotAccept}
                                     qa="accept-button"
                                 >
                                     <Icon data={Check}/>Accept
                                 </Button>
                             )}
-                            <RunTest showPlayer={false} browser={currentBrowser} />
                         </>
                     )}
                 </Flex>

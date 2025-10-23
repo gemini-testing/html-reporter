@@ -1,0 +1,98 @@
+name: Testplane Component Tests
+
+on:
+  pull_request:
+    branches: [ master ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  testplane-component:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    env:
+      DOCKER_IMAGE_NAME: html-reporter-browsers
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Use Node.js 22
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build the package
+      run: npm run build
+
+    - name: 'Prepare component tests: Cache browser docker image'
+      uses: actions/cache@v3
+      with:
+        path: ~/.docker/cache
+        key: docker-browser-image-${{ hashFiles('test/func/docker/Dockerfile') }}
+
+    - name: 'Prepare component tests: Pull browser docker image'
+      run: |
+        mkdir -p ~/.docker/cache
+        if [ -f ~/.docker/cache/image.tar ]; then
+          docker load -i ~/.docker/cache/image.tar
+        else
+          docker pull yinfra/html-reporter-browsers
+          docker save yinfra/html-reporter-browsers -o ~/.docker/cache/image.tar
+        fi
+
+    - name: 'Prepare component tests: Run browser docker image'
+      run: docker run -d --name ${{ env.DOCKER_IMAGE_NAME }} -it --rm --network=host $(which colima >/dev/null || echo --add-host=host.docker.internal:0.0.0.0) yinfra/html-reporter-browsers
+
+    - name: 'component-tests: Run Testplane'
+      id: 'testplane'
+      continue-on-error: true
+      run: npm run component-tests
+
+    - name: 'component-tests: Stop browser docker image'
+      run: |
+        docker kill ${{ env.DOCKER_IMAGE_NAME }} || true
+        docker rm ${{ env.DOCKER_IMAGE_NAME }} || true
+
+    - name: Upload Testplane html-reporter reports to S3
+      uses: jakejarvis/s3-sync-action@v0.5.1
+      with:
+        args: --acl public-read --follow-symlinks
+      env:
+        AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_S3_ENDPOINT: https://s3.yandexcloud.net/
+        SOURCE_DIR: "test/component/html-report"
+        DEST_DIR: "testplane-ci/component-tests-reports/${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}/"
+
+    - name: Construct PR comment
+      run: |
+        link="https://${{ secrets.AWS_S3_BUCKET }}.s3.yandexcloud.net/testplane-ci/component-tests-reports/${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}/index.html"
+        if [ "${{ steps.testplane.outcome }}" != "success" ]; then
+          comment="### ❌ Component tests failed<br><br>[Report](${link})"
+          echo "PR_COMMENT=${comment}" >> $GITHUB_ENV
+        else
+          comment="### ✅ Component tests succeed<br><br>[Report](${link})"
+          echo "PR_COMMENT=${comment}" >> $GITHUB_ENV
+        fi
+
+    - name: Leave comment to PR with link to Testplane HTML reports
+      if: github.event.pull_request
+      uses: thollander/actions-comment-pull-request@v3
+      with:
+          message: ${{ env.PR_COMMENT }}
+          comment-tag: testplane_component_results
+
+    - name: Fail the job if any Testplane job is failed
+      if: ${{ steps.testplane.outcome != 'success' }}
+      run: exit 1

@@ -10,7 +10,7 @@ import BaseHostInput from './base-host-input';
 import MenuBar from './menu-bar';
 import ReportInfo from './report-info';
 import {ViewMode} from '../../../constants/view-modes';
-import {DiffModes} from '../../../constants/diff-modes';
+import {ClassicDiffModes} from '../../../constants/diff-modes';
 import {EXPAND_ALL, COLLAPSE_ALL, EXPAND_ERRORS, EXPAND_RETRIES} from '../../../constants/expand-modes';
 
 class ControlButtons extends Component {
@@ -77,7 +77,7 @@ class ControlButtons extends Component {
                     label="Diff mode"
                     value={view.diffMode}
                     handler={diffModeId => actions.setDiffMode({diffModeId})}
-                    options = {Object.values(DiffModes).map((dm) => {
+                    options = {Object.values(ClassicDiffModes).map((dm) => {
                         return {value: dm.id, content: dm.title};
                     })}
                     extendClassNames="diff-mode"

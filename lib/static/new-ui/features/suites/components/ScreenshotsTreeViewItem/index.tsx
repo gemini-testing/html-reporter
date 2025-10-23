@@ -1,11 +1,12 @@
-import {ArrowUturnCcwLeft, Check, Eye} from '@gravity-ui/icons';
+import {ArrowRightArrowLeft, ArrowUturnCcwLeft, Check, Eye} from '@gravity-ui/icons';
 import {Button, Icon, SegmentedRadioGroup as RadioButton, Select, Flex} from '@gravity-ui/uikit';
 import React, {ReactNode, createRef, useEffect, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {AssertViewResult} from '@/static/new-ui/components/AssertViewResult';
 import {ImageEntity} from '@/static/new-ui/types/store';
-import {DiffModeId, DiffModes, EditScreensFeature, TestStatus} from '@/constants';
+import {DiffModeId, EditScreensFeature, TestStatus} from '@/constants';
+import {getAvailableDiffModes} from '@/static/new-ui/utils/diffModes';
 import {
     setDiffMode,
     staticAccepterStageScreenshot,
@@ -109,17 +110,17 @@ export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): Re
                     {isDiffModeSwitcherVisible && (
                         <div className={styles.diffModeContainer}>
                             <RadioButton onUpdate={onDiffModeChangeHandler} value={diffMode} className={styles.diffModeSwitcher}>
-                                {Object.values(DiffModes).map(diffMode =>
+                                {getAvailableDiffModes('suites').map(diffMode =>
                                     <RadioButton.Option value={diffMode.id} content={diffMode.title} title={diffMode.description} key={diffMode.id}/>
                                 )}
                             </RadioButton>
                             <Select
                                 className={styles.diffModeSelect}
-                                label="Diff Mode" value={[diffMode]}
+                                label={<Icon data={ArrowRightArrowLeft}/> as unknown as string} value={[diffMode]}
                                 onUpdate={([diffMode]): void => onDiffModeChangeHandler(diffMode as DiffModeId)}
                                 multiple={false}
                             >
-                                {Object.values(DiffModes).map(diffMode =>
+                                {getAvailableDiffModes('suites').map(diffMode =>
                                     <Select.Option value={diffMode.id} content={diffMode.title} title={diffMode.description} key={diffMode.id}/>
                                 )}
                             </Select>
@@ -164,7 +165,7 @@ export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): Re
             )}
 
             <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackDataCorruption />}>
-                <AssertViewResult result={props.image} />
+                <AssertViewResult result={props.image} diffMode={diffMode} />
             </ErrorHandler.Boundary>
         </div>
     );

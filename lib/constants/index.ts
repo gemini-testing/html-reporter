@@ -11,4 +11,5 @@ export * from './plugin-events';
 export * from './save-formats';
 export * from './test-statuses';
 export * from './tool-names';
+export * from './two-up-modes';
 export * from './view-modes';

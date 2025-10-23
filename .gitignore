@@ -26,6 +26,7 @@ html-reporter-*.tgz
 
 **/playwright-report
 hermione-report
+html-report
 testplane-report
 test/func/**/report
 test/func/**/report-backup

@@ -19,3 +19,15 @@ export const getDisplayedDiffPercentValue = (diffRatio: number): string => {
 
     return String(percentRounded);
 };
+
+export const getDisplayedDiffPixelsCountValue = (diffPixels: number): string => {
+    if (diffPixels < 1000) {
+        return `${diffPixels} px`;
+    }
+
+    if (diffPixels < 1_000_000) {
+        return `~${(diffPixels / 1_000).toFixed(0)}k px`;
+    }
+
+    return `~${(diffPixels / 1_000_000).toFixed(0)}M px`;
+};

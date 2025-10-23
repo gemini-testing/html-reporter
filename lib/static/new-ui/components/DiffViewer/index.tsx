@@ -9,6 +9,7 @@ import {OnionSkinMode} from '@/static/new-ui/components/DiffViewer/OnionSkinMode
 import {SideBySideMode} from '@/static/new-ui/components/DiffViewer/SideBySideMode';
 import {SideBySideToFitMode} from '@/static/new-ui/components/DiffViewer/SideBySideToFitMode';
 import {ListMode} from '@/static/new-ui/components/DiffViewer/ListMode';
+import {TwoUpInteractiveMode} from './TwoUpInteractiveMode';
 import {getDisplayedDiffPercentValue} from '@/static/new-ui/components/DiffViewer/utils';
 
 import {ImageLabel} from '@/static/new-ui/components/ImageLabel';
@@ -68,6 +69,9 @@ export function DiffViewer(props: DiffViewerProps): ReactNode {
 
             return <SideBySideToFitMode desiredHeight={desiredHeight} expected={expectedImg} actual={actualImg} diff={diffImg} />;
         }
+        case DiffModes.TWO_UP_INTERACTIVE.id:
+            return <TwoUpInteractiveMode expected={expectedImg} actual={actualImg} diff={diffImg} differentPixels={props.differentPixels} diffRatio={props.diffRatio} />;
+
         case DiffModes.THREE_UP.id:
         default:
             return <ListMode expected={expectedImg} actual={actualImg} diff={diffImg} />;

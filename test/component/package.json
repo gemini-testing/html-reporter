@@ -1,0 +1,16 @@
+{
+  "name": "html-reporter-component-tests",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "test": "npm run test:docker",
+    "gui": "npm run gui:docker",
+    "test:docker": "npx testplane",
+    "gui:docker": "npx testplane gui",
+    "test:local": "BROWSER_ENV=local npx testplane",
+    "gui:local": "BROWSER_ENV=local npx testplane gui"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.0.2"
+  }
+}
