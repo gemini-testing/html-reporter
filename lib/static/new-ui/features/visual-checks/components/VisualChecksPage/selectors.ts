@@ -91,6 +91,8 @@ export const getVisualTreeViewData = createSelector(
                     status: item.status === TestStatus.RUNNING ? item.status : images[item.imageIds[item.imageIds.length - 1]].status,
                     tags: [],
                     title: [...item.suitePath, item.browserName],
+                    suiteId: item.browserId,
+                    stateName: item.stateName,
                     images: [
                         images[item.imageIds[item.imageIds.length - 1]] as ImageEntity
                     ]

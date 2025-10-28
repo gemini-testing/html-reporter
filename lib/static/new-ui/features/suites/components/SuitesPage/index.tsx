@@ -2,7 +2,6 @@ import classNames from 'classnames';
 import React, {ReactNode, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {useNavigate, useParams} from 'react-router-dom';
-
 import {UiCard} from '@/static/new-ui/components/Card/UiCard';
 import {getAttempt, getCurrentResult, getCurrentResultImages} from '@/static/new-ui/features/suites/selectors';
 import {SplitViewLayout} from '@/static/new-ui/components/SplitViewLayout';
@@ -11,6 +10,7 @@ import {SuiteTitle} from '@/static/new-ui/components/SuiteTitle';
 import * as actions from '@/static/modules/actions';
 import {getIsInitialized} from '@/static/new-ui/store/selectors';
 import {TestControlPanel} from '@/static/new-ui/features/suites/components/TestControlPanel';
+import {TestStatusBar} from '@/static/new-ui/features/suites/components/TestStatusBar';
 
 import styles from './index.module.css';
 import {TestInfoSkeleton} from '@/static/new-ui/features/suites/components/SuitesPage/TestInfoSkeleton';
@@ -31,7 +31,7 @@ import {getIconByStatus} from '@/static/new-ui/utils';
 import {Page} from '@/static/new-ui/types/store';
 import {usePage} from '@/static/new-ui/hooks/usePage';
 import {changeTestRetry, setCurrentTreeNode, setStrictMatchFilter} from '@/static/modules/actions';
-import {TestStatusBar} from '@/static/new-ui/features/suites/components/TestStatusBar';
+import {getUrl} from '@/static/new-ui/utils/getUrl';
 
 export function SuitesPage(): ReactNode {
     const page = usePage();
@@ -60,13 +60,13 @@ export function SuitesPage(): ReactNode {
     }, [page]);
 
     useEffect(() => {
-        if (currentResult?.parentId && attempt !== null && resultImages.length) {
-            navigate('/' + [
-                'suites',
-                currentResult.parentId as string,
-                params.stateName !== undefined ? params.stateName : resultImages[0].stateName as string,
-                attempt?.toString() as string
-            ].map(encodeURIComponent).join('/'));
+        if (currentResult?.parentId && attempt !== null) {
+            navigate(getUrl({
+                page: Page.suitesPage,
+                attempt,
+                suiteId: currentResult.parentId,
+                stateName: resultImages.length ? resultImages[0].stateName : undefined
+            }));
         }
     }, [currentResult, attempt]);
 
@@ -225,10 +225,10 @@ export function SuitesPage(): ReactNode {
                                     index={currentIndex}
                                     totalItems={visibleTreeNodeIds.length}
                                     onNext={(): void => onPrevNextSuiteHandler(1)}
-                                    onPrevious={(): void => onPrevNextSuiteHandler(-1)}
-                                />
+                                    onPrevious={(): void => onPrevNextSuiteHandler(-1)}/>
                                 <TestControlPanel onAttemptChange={onAttemptChangeHandler}/>
                             </div>
+
                             <TestStatusBar />
                             <TestInfo/>
                         </>}

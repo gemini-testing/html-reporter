@@ -4,7 +4,7 @@ import React, {ReactNode, createRef, useEffect, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {AssertViewResult} from '@/static/new-ui/components/AssertViewResult';
-import {ImageEntity} from '@/static/new-ui/types/store';
+import {ImageEntity, Page} from '@/static/new-ui/types/store';
 import {DiffModeId, EditScreensFeature, TestStatus} from '@/constants';
 import {getAvailableDiffModes} from '@/static/new-ui/utils/diffModes';
 import {
@@ -20,6 +20,7 @@ import {thunkAcceptImages, thunkRevertImages} from '@/static/modules/actions/scr
 import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
 import {ErrorHandler} from '../../../error-handling/components/ErrorHandling';
 import {useNavigate, useParams} from 'react-router-dom';
+import {getUrl} from '@/static/new-ui/utils/getUrl';
 
 interface ScreenshotsTreeViewItemProps {
     image: ImageEntity;
@@ -87,7 +88,12 @@ export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): Re
     const imageId = `${currentResult?.parentId} ${props.image.stateName}`;
 
     const onVisualChecks = (): void => {
-        navigate(`/visual-checks/${encodeURIComponent(imageId)}/${currentResult?.attempt}`);
+        navigate(getUrl({
+            page: Page.visualChecksPage,
+            suiteId: suiteId,
+            stateName: props.image.stateName,
+            attempt: currentResult?.attempt
+        }));
     };
 
     useEffect(() => {

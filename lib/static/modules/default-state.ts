@@ -113,7 +113,8 @@ export default Object.assign({config: configDefaults}, {
             filteredBrowsers: []
         },
         [Page.visualChecksPage]: {
-            currentNamedImageId: null,
+            suiteId: null,
+            stateName: null,
 
             viewMode: ViewMode.ALL,
             nameFilter: '',

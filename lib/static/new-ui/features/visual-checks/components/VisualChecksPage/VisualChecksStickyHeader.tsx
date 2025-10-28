@@ -31,11 +31,15 @@ import {preloadImageEntity} from '../../../../../modules/utils/imageEntity';
 import {useNavigate} from 'react-router-dom';
 import {RunTestButton} from '../../../../components/RunTest';
 import {IconButton} from '../../../../components/IconButton';
+import {getUrl} from '@/static/new-ui/utils/getUrl';
+import {Page} from '@/static/new-ui/types/store';
+import {TreeViewData} from '@/static/new-ui/components/TreeView';
+import {TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
 
 interface VisualChecksStickyHeaderProps {
     currentNamedImage: NamedImageEntity | null;
-    visibleNamedImageIds: string[];
-    onImageChange: (id: string) => void;
+    treeData: TreeViewData;
+    onImageChange: (item: TreeViewItemData) => void;
 }
 
 export const PRELOAD_IMAGES_COUNT = 3;
@@ -63,7 +67,8 @@ const usePreloadImages = (
     }, []);
 };
 
-export function VisualChecksStickyHeader({currentNamedImage, visibleNamedImageIds, onImageChange}: VisualChecksStickyHeaderProps): ReactNode {
+export function VisualChecksStickyHeader({currentNamedImage, treeData, onImageChange}: VisualChecksStickyHeaderProps): ReactNode {
+    const visibleNamedImageIds = treeData.allTreeNodeIds;
     const dispatch = useDispatch();
     const analytics = useAnalytics();
     const currentImage = useSelector(getCurrentImage);
@@ -71,8 +76,8 @@ export function VisualChecksStickyHeader({currentNamedImage, visibleNamedImageId
     const navigate = useNavigate();
 
     const currentNamedImageIndex = visibleNamedImageIds.indexOf(currentNamedImage?.id as string);
-    const onPreviousImageHandler = (): void => onImageChange(visibleNamedImageIds[currentNamedImageIndex - 1]);
-    const onNextImageHandler = (): void => onImageChange(visibleNamedImageIds[currentNamedImageIndex + 1]);
+    const onPreviousImageHandler = (): void => onImageChange(treeData.tree[currentNamedImageIndex - 1].data);
+    const onNextImageHandler = (): void => onImageChange(treeData.tree[currentNamedImageIndex + 1].data);
 
     usePreloadImages(currentNamedImageIndex, visibleNamedImageIds);
 
@@ -134,12 +139,12 @@ export function VisualChecksStickyHeader({currentNamedImage, visibleNamedImageId
 
     const onSuites = (): void => {
         if (currentNamedImage) {
-            navigate('/' + [
-                'suites',
-                currentNamedImage?.browserId as string,
-                currentNamedImage?.stateName as string,
-                attempt?.toString() as string
-            ].map(encodeURIComponent).join('/'));
+            navigate(getUrl({
+                page: Page.suitesPage,
+                suiteId: currentNamedImage?.browserId,
+                attempt,
+                stateName: currentNamedImage?.stateName
+            }));
         }
     };
 

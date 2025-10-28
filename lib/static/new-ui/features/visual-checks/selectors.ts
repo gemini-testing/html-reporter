@@ -88,7 +88,7 @@ export const getNamedImages = createSelector(
 );
 
 export const getCurrentNamedImage = (state: State): NamedImageEntity | null => {
-    const currentNamedImageId = state.app.visualChecksPage.currentNamedImageId;
+    const currentNamedImageId = [state.app.visualChecksPage.suiteId, state.app.visualChecksPage.stateName].join(' ');
     const namedImages = getNamedImages(state);
 
     if (!currentNamedImageId) {
@@ -167,7 +167,7 @@ export const getLastAttempt = (state: State): number => {
 };
 
 export const getCurrentBrowser = (state: State): BrowserEntity | null => {
-    const currentNamedImageId = state.app.visualChecksPage.currentNamedImageId;
+    const currentNamedImageId = getCurrentNamedImage(state)?.id;
     const namedImages = getNamedImages(state);
 
     if (currentNamedImageId) {
