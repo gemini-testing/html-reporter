@@ -31,6 +31,7 @@ import {getIconByStatus} from '@/static/new-ui/utils';
 import {Page} from '@/static/new-ui/types/store';
 import {usePage} from '@/static/new-ui/hooks/usePage';
 import {changeTestRetry, setCurrentTreeNode, setStrictMatchFilter} from '@/static/modules/actions';
+import {TestStatusBar} from '@/static/new-ui/features/suites/components/TestStatusBar';
 
 export function SuitesPage(): ReactNode {
     const page = usePage();
@@ -224,10 +225,11 @@ export function SuitesPage(): ReactNode {
                                     index={currentIndex}
                                     totalItems={visibleTreeNodeIds.length}
                                     onNext={(): void => onPrevNextSuiteHandler(1)}
-                                    onPrevious={(): void => onPrevNextSuiteHandler(-1)}/>
+                                    onPrevious={(): void => onPrevNextSuiteHandler(-1)}
+                                />
                                 <TestControlPanel onAttemptChange={onAttemptChangeHandler}/>
                             </div>
-
+                            <TestStatusBar />
                             <TestInfo/>
                         </>}
                         {!params.suiteId && !currentResult && <div className={styles.hintContainer}><span className={styles.hint}>Select a test to see details</span></div>}

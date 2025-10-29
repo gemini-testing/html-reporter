@@ -13,7 +13,7 @@ import {
 import type {DbTestResult, SqliteClient} from '../sqlite-client';
 import {ReporterTestResult} from '../adapters/test-result';
 import {saveErrorDetails, saveStaticFilesToReportDir, writeDatabaseUrlsFile} from '../server-utils';
-import {ReporterConfig} from '../types';
+import {AttachmentType, Badge, ReporterConfig} from '../types';
 import {HtmlReporter} from '../plugin-api';
 import {getTestFromDb} from '../db-utils/server';
 import {TestAttemptManager} from '../test-attempt-manager';
@@ -129,6 +129,13 @@ export class StaticReportBuilder {
         const isPreviouslySkippedTest = isImgSkipped && getTestFromDb<DbTestResult>(this._dbClient, formattedResult);
 
         if (!ignoredStatuses.includes(testResultWithImagePaths.status) && !isPreviouslySkippedTest) {
+            if (typeof this._reporterConfig.generateBadges === 'function' && testResultWithImagePaths.attachments) {
+                testResultWithImagePaths.attachments.push({
+                    type: AttachmentType.Badges,
+                    list: this._reporterConfig.generateBadges(testResultWithImagePaths)?.filter((badge) => badge && badge.title) as Badge[]
+                });
+            }
+
             this._dbClient.write(testResultWithImagePaths);
         }
 
