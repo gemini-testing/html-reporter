@@ -240,7 +240,7 @@ export interface Badge {
     icon?: string;
 }
 
-export type BadgeFormatter = (suite: ReporterTestResult) => Badge[];
+export type GenerateBadge = (suite: ReporterTestResult) => Array<Badge | undefined>;
 
 export interface ReporterConfig {
     baseHost: string;
@@ -261,7 +261,7 @@ export interface ReporterConfig {
     yandexMetrika: { enabled?: boolean; counterNumber: null | number };
     staticImageAccepter: StaticImageAccepterConfig;
     uiMode: UiMode | null;
-    badgeFormatter: BadgeFormatter | null;
+    generateBadge: GenerateBadge | null;
 }
 
 export type ReporterOptions = Omit<ReporterConfig, 'errorPatterns'> & {errorPatterns: (string | ErrorPattern)[]};

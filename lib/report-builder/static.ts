@@ -13,7 +13,7 @@ import {
 import type {DbTestResult, SqliteClient} from '../sqlite-client';
 import {ReporterTestResult} from '../adapters/test-result';
 import {saveErrorDetails, saveStaticFilesToReportDir, writeDatabaseUrlsFile} from '../server-utils';
-import {AttachmentType, ReporterConfig} from '../types';
+import {AttachmentType, Badge, ReporterConfig} from '../types';
 import {HtmlReporter} from '../plugin-api';
 import {getTestFromDb} from '../db-utils/server';
 import {TestAttemptManager} from '../test-attempt-manager';
@@ -129,21 +129,19 @@ export class StaticReportBuilder {
         const isPreviouslySkippedTest = isImgSkipped && getTestFromDb<DbTestResult>(this._dbClient, formattedResult);
 
         if (!ignoredStatuses.includes(testResultWithImagePaths.status) && !isPreviouslySkippedTest) {
-            if (this._reporterConfig.badgeFormatter && typeof this._reporterConfig.badgeFormatter === 'function') {
-                if (testResultWithImagePaths.attachments) {
-                    const exist = testResultWithImagePaths
-                        .attachments
-                        .find(({type}) => type === AttachmentType.Badges)
-                    ;
+            if (typeof this._reporterConfig.generateBadge === 'function' && testResultWithImagePaths.attachments) {
+                const existingBadgesAttachment = testResultWithImagePaths
+                    .attachments
+                    .find(({type}) => type === AttachmentType.Badges)
+                ;
 
-                    if (exist && exist.type === AttachmentType.Badges) {
-                        exist.list = this._reporterConfig.badgeFormatter(testResultWithImagePaths);
-                    } else {
-                        testResultWithImagePaths.attachments.push({
-                            type: AttachmentType.Badges,
-                            list: this._reporterConfig.badgeFormatter(testResultWithImagePaths)
-                        });
-                    }
+                if (existingBadgesAttachment && existingBadgesAttachment.type === AttachmentType.Badges) {
+                    existingBadgesAttachment.list = this._reporterConfig.generateBadge(testResultWithImagePaths)?.filter(Boolean) as Badge[];
+                } else {
+                    testResultWithImagePaths.attachments.push({
+                        type: AttachmentType.Badges,
+                        list: this._reporterConfig.generateBadge(testResultWithImagePaths)?.filter(Boolean) as Badge[]
+                    });
                 }
             }
 

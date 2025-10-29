@@ -161,9 +161,11 @@ describe('StaticReportBuilder', () => {
                 }
             ];
 
+            const generateBadge = sinon.spy(() => mockBadges);
+
             const reportBuilder = await mkStaticReportBuilder_({
                 reporterConfig: {
-                    badgeFormatter: () => mockBadges
+                    generateBadge
                 }
             });
 
@@ -185,6 +187,13 @@ describe('StaticReportBuilder', () => {
             assert.exists(badgesAttachment);
             assert.equal(badgesAttachment.type, AttachmentType.Badges);
             assert.deepEqual(badgesAttachment.list, mockBadges);
+            assert.calledOnceWith(generateBadge, {
+                attachments: [{list: mockBadges, type: 1}],
+                imageDir: '',
+                imagesInfo: [],
+                state: {name: 'name-default'},
+                stateName: 'plain'
+            });
         });
     });
 

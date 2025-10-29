@@ -10,6 +10,9 @@ import {getIconByStatus} from '@/static/new-ui/utils';
 import {Badge, AttachmentType, BadgesAttachment} from '@/types';
 
 import styles from './index.module.css';
+import {IconData} from '@gravity-ui/uikit';
+
+const allIcons = icons as unknown as Record<string, IconData>;
 
 const getSuiteDuration = (suite: ResultEntityCommon): string | undefined => {
     if (suite.duration !== undefined) {
@@ -50,7 +53,7 @@ export const TestStatusBar = (): ReactNode => {
             </div>
             {(badges && badges.list.length > 0) && (
                 <div className={styles['test-status-bar__badges']} data-qa="suite-badges">
-                    {badges.list.map((badge: Badge) => (
+                    {badges.list.filter((badge) => badge && badge.title).map((badge: Badge) => (
                         <Button
                             key={badge.title}
                             size="xs"
@@ -60,9 +63,7 @@ export const TestStatusBar = (): ReactNode => {
                                 }
                             }}
                         >
-                            {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-                            {/*@ts-ignore*/}
-                            {badge.icon && <Icon data={icons[badge.icon]} size={14} />}
+                            {badge.icon && allIcons[badge.icon] && <Icon data={allIcons[badge.icon]} size={14} />}
                             {badge.title}
                         </Button>
                     ))}
