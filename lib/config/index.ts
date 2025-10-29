@@ -5,7 +5,7 @@ import chalk from 'chalk';
 import {logger} from '../common-utils';
 import {configDefaults, DiffModeId, DiffModes, SaveFormat, ViewMode} from '../constants';
 import {assertCustomGui} from './custom-gui-asserts';
-import {GenerateBadge, ErrorPattern, PluginDescription, ReporterConfig, ReporterOptions} from '../types';
+import {GenerateBadges, ErrorPattern, PluginDescription, ReporterConfig, ReporterOptions} from '../types';
 import {UiMode} from '../constants/local-storage';
 
 const ENV_PREFIX = 'html_reporter_';
@@ -289,9 +289,9 @@ const getParser = (): ReturnType<typeof root<ReporterConfig>> => {
                 validate: assertPlainObject('staticImageAccepter.axiosRequestOptions')
             })
         }),
-        generateBadge: option<GenerateBadge | null>({
-            defaultValue: configDefaults.generateBadge,
-            validate: (value) => _.isNull(value) || assertFunction('generateBadge')
+        generateBadges: option<GenerateBadges | null>({
+            defaultValue: configDefaults.generateBadges,
+            validate: (value) => _.isNull(value) || assertFunction('generateBadges')
         })
     }), {envPrefix: ENV_PREFIX, cliPrefix: CLI_PREFIX});
 };

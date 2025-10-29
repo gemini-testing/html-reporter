@@ -30,13 +30,17 @@ module.exports.getFixturesConfig = (projectDir, projectName) => {
             'html-reporter-tester': {
                 enabled: true,
                 path: fixturesPath,
-                generateBadge: () => [
+                generateBadges: () => [
                     {
                         title: 'TASK-128',
                         icon: 'LogoYandexTracker'
                     },
                     {
                         title: 'master',
+                        icon: 'BranchesRight'
+                    },
+                    null,
+                    {
                         icon: 'BranchesRight'
                     }
                 ]

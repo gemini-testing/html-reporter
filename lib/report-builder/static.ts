@@ -129,20 +129,11 @@ export class StaticReportBuilder {
         const isPreviouslySkippedTest = isImgSkipped && getTestFromDb<DbTestResult>(this._dbClient, formattedResult);
 
         if (!ignoredStatuses.includes(testResultWithImagePaths.status) && !isPreviouslySkippedTest) {
-            if (typeof this._reporterConfig.generateBadge === 'function' && testResultWithImagePaths.attachments) {
-                const existingBadgesAttachment = testResultWithImagePaths
-                    .attachments
-                    .find(({type}) => type === AttachmentType.Badges)
-                ;
-
-                if (existingBadgesAttachment && existingBadgesAttachment.type === AttachmentType.Badges) {
-                    existingBadgesAttachment.list = this._reporterConfig.generateBadge(testResultWithImagePaths)?.filter(Boolean) as Badge[];
-                } else {
-                    testResultWithImagePaths.attachments.push({
-                        type: AttachmentType.Badges,
-                        list: this._reporterConfig.generateBadge(testResultWithImagePaths)?.filter(Boolean) as Badge[]
-                    });
-                }
+            if (typeof this._reporterConfig.generateBadges === 'function' && testResultWithImagePaths.attachments) {
+                testResultWithImagePaths.attachments.push({
+                    type: AttachmentType.Badges,
+                    list: this._reporterConfig.generateBadges(testResultWithImagePaths)?.filter((badge) => badge && badge.title) as Badge[]
+                });
             }
 
             this._dbClient.write(testResultWithImagePaths);

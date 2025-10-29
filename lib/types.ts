@@ -235,12 +235,12 @@ export interface StaticImageAccepterRequest extends Pick<StaticImageAccepterConf
 }
 
 export interface Badge {
-    title: string;
+    title?: string;
     url?: string;
     icon?: string;
 }
 
-export type GenerateBadge = (suite: ReporterTestResult) => Array<Badge | undefined>;
+export type GenerateBadges = (suite: ReporterTestResult) => Array<Badge | null>;
 
 export interface ReporterConfig {
     baseHost: string;
@@ -261,7 +261,7 @@ export interface ReporterConfig {
     yandexMetrika: { enabled?: boolean; counterNumber: null | number };
     staticImageAccepter: StaticImageAccepterConfig;
     uiMode: UiMode | null;
-    generateBadge: GenerateBadge | null;
+    generateBadges: GenerateBadges | null;
 }
 
 export type ReporterOptions = Omit<ReporterConfig, 'errorPatterns'> & {errorPatterns: (string | ErrorPattern)[]};

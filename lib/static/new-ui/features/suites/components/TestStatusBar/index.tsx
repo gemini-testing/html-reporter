@@ -4,8 +4,8 @@ import * as icons from '@gravity-ui/icons';
 import {Button, Icon} from '@gravity-ui/uikit';
 
 import {useSelector} from 'react-redux';
-import {getCurrentResultId} from '@/static/new-ui/features/suites/selectors';
 import {ResultEntityCommon} from '@/static/new-ui/types/store';
+import {getCurrentResult} from '@/static/new-ui/features/suites/selectors';
 import {getIconByStatus} from '@/static/new-ui/utils';
 import {Badge, AttachmentType, BadgesAttachment} from '@/types';
 
@@ -23,15 +23,7 @@ const getSuiteDuration = (suite: ResultEntityCommon): string | undefined => {
 };
 
 export const TestStatusBar = (): ReactNode => {
-    const suite = useSelector((state) => {
-        const resultId = getCurrentResultId(state);
-
-        if (resultId) {
-            return state.tree.results.byId[resultId];
-        }
-
-        return;
-    });
+    const suite = useSelector(getCurrentResult);
 
     if (!suite) {
         return null;
@@ -53,19 +45,20 @@ export const TestStatusBar = (): ReactNode => {
             </div>
             {(badges && badges.list.length > 0) && (
                 <div className={styles['test-status-bar__badges']} data-qa="suite-badges">
-                    {badges.list.filter((badge) => badge && badge.title).map((badge: Badge) => (
-                        <Button
+                    {badges.list.map((badge: Badge) => (
+                        <a
                             key={badge.title}
-                            size="xs"
-                            onClick={(): void => {
-                                if (badge.url) {
-                                    window.open(badge.url, '_blank');
-                                }
-                            }}
+                            href={badge.url}
+                            target="_blank"
+                            rel="noreferrer"
                         >
-                            {badge.icon && allIcons[badge.icon] && <Icon data={allIcons[badge.icon]} size={14} />}
-                            {badge.title}
-                        </Button>
+                            <Button
+                                size="xs"
+                            >
+                                {badge.icon && allIcons[badge.icon] && <Icon data={allIcons[badge.icon]} size={14} />}
+                                {badge.title}
+                            </Button>
+                        </a>
                     ))}
                 </div>
             )}

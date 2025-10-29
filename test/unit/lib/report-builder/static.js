@@ -152,20 +152,26 @@ describe('StaticReportBuilder', () => {
         });
     });
 
-    describe('add badge attachment', () => {
+    describe.only('add badge attachment', () => {
         it('should add attachment with badge using callback from config', async () => {
             const mockBadges = [
                 {
                     title: 'test badge',
                     icon: 'BranchesRight'
+                },
+                null,
+                {
+                    icon: 'BranchesRight'
                 }
             ];
 
-            const generateBadge = sinon.spy(() => mockBadges);
+            const filteredBadges = mockBadges.filter(badge => badge && badge.title);
+
+            const generateBadges = sinon.spy(() => mockBadges);
 
             const reportBuilder = await mkStaticReportBuilder_({
                 reporterConfig: {
-                    generateBadge
+                    generateBadges
                 }
             });
 
@@ -186,9 +192,9 @@ describe('StaticReportBuilder', () => {
 
             assert.exists(badgesAttachment);
             assert.equal(badgesAttachment.type, AttachmentType.Badges);
-            assert.deepEqual(badgesAttachment.list, mockBadges);
-            assert.calledOnceWith(generateBadge, {
-                attachments: [{list: mockBadges, type: 1}],
+            assert.deepEqual(badgesAttachment.list, filteredBadges);
+            assert.calledOnceWith(generateBadges, {
+                attachments: [{list: filteredBadges, type: 1}],
                 imageDir: '',
                 imagesInfo: [],
                 state: {name: 'name-default'},
