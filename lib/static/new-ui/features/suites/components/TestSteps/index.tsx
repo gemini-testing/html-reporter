@@ -28,7 +28,7 @@ import {goToTimeInSnapshotsPlayer, setCurrentPlayerHighlightTime} from '@/static
 import {setCurrentStep} from '@/static/modules/actions';
 import {useNavigate} from 'react-router-dom';
 import {getUrl} from '@/static/new-ui/utils/getUrl';
-import {Page} from '@/static/new-ui/types/store';
+import {Page} from '@/constants';
 
 type TestStepClickHandler = (item: {id: string}) => void
 

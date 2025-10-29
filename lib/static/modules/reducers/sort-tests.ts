@@ -1,4 +1,5 @@
-import {Page, SortDirection, State} from '@/static/new-ui/types/store';
+import {SortDirection, State} from '@/static/new-ui/types/store';
+import {Page} from '@/constants';
 import {SomeAction} from '@/static/modules/actions/types';
 import actionNames from '@/static/modules/action-names';
 import {applyStateUpdate} from '@/static/modules/utils';

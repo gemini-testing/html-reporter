@@ -19,27 +19,28 @@ import {AnalyticsProvider} from '@/static/new-ui/providers/analytics';
 import {MetrikaScript} from '@/static/new-ui/components/MetrikaScript';
 import {ErrorHandler} from '../features/error-handling/components/ErrorHandling';
 import FaviconChanger from '../../components/favicon-changer';
+import {PathNames} from '@/constants';
 
 const toaster = new Toaster();
 
-export function App(): ReactNode {
-    const pages = [
-        {
-            title: 'Suites',
-            url: '/suites',
-            icon: ListCheck,
-            element: <SuitesPage/>,
-            children: [<Route key={'suite'} path='/suites/:suiteId?/:attempt?/:stateName?' element={<SuitesPage/>} />]
-        },
-        {
-            title: 'Visual Checks',
-            url: '/visual-checks',
-            icon: Eye,
-            element: <VisualChecksPage/>,
-            children: [<Route key={'image'} path='/visual-checks/:suiteId?/:attempt?/:stateName?' element={<VisualChecksPage/>} />]
-        }
-    ];
+const pages = [
+    {
+        title: 'Suites',
+        url: PathNames.suites,
+        icon: ListCheck,
+        element: <SuitesPage/>,
+        children: [<Route key={'suite'} path='/suites/:suiteId?/:attempt?/:stateName?' element={<SuitesPage/>} />]
+    },
+    {
+        title: 'Visual Checks',
+        url: PathNames.visualChecks,
+        icon: Eye,
+        element: <VisualChecksPage/>,
+        children: [<Route key={'image'} path='/visual-checks/:suiteId?/:attempt?/:stateName?' element={<VisualChecksPage/>} />]
+    }
+];
 
+export function App(): ReactNode {
     const customScripts = (store.getState() as State).config.customScripts;
 
     return <StrictMode>
@@ -56,7 +57,7 @@ export function App(): ReactNode {
                                     <MainLayout pages={pages}>
                                         <LoadingBar/>
                                         <Routes>
-                                            <Route element={<Navigate to={'/suites'}/>} path={'/'}/>
+                                            <Route element={<Navigate to={PathNames.suites}/>} path={'/'}/>
                                             {pages.map(page => (
                                                 <Route element={
                                                     <ErrorHandler.Boundary watchFor={[page.url]} fallback={<ErrorHandler.FallbackAppCrash />}>

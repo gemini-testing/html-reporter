@@ -2,8 +2,7 @@ import actionNames from '@/static/modules/action-names';
 import type {Action} from '@/static/modules/actions/types';
 import {setFilteredBrowsers} from '@/static/modules/query-params';
 import {BrowserItem} from '@/types';
-import {ViewMode} from '@/constants';
-import {Page} from '@/static/new-ui/types/store';
+import {Page, ViewMode} from '@/constants';
 
 interface FilterPayload<T>{
     page: Page;

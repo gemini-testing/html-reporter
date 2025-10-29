@@ -28,7 +28,7 @@ import {MIN_SECTION_SIZE_PERCENT} from '../../constants';
 import {SideBar} from '@/static/new-ui/components/SideBar';
 import {getSuitesStatusCounts, getSuitesTreeViewData} from './selectors';
 import {getIconByStatus} from '@/static/new-ui/utils';
-import {Page} from '@/static/new-ui/types/store';
+import {Page} from '@/constants';
 import {usePage} from '@/static/new-ui/hooks/usePage';
 import {changeTestRetry, setCurrentTreeNode, setStrictMatchFilter} from '@/static/modules/actions';
 import {getUrl} from '@/static/new-ui/utils/getUrl';

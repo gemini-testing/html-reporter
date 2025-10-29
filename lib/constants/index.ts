@@ -13,3 +13,5 @@ export * from './test-statuses';
 export * from './tool-names';
 export * from './two-up-modes';
 export * from './view-modes';
+export * from './pages';
+export * from './expand-modes';

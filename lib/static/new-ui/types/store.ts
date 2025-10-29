@@ -1,5 +1,5 @@
 import {CoordBounds} from 'looks-same';
-import {BrowserFeature, DiffModeId, Feature, TestStatus, ViewMode, TwoUpFitMode} from '@/constants';
+import {Page, BrowserFeature, DiffModeId, Feature, TestStatus, ViewMode, TwoUpFitMode} from '@/constants';
 import {
     Attachment,
     BrowserItem,
@@ -248,11 +248,6 @@ export interface SnapshotsPlayerHighlightState {
     highlightStartTime: number;
     highlightEndTime: number;
     goToTime: number;
-}
-
-export enum Page {
-    suitesPage = 'suitesPage',
-    visualChecksPage = 'visualChecksPage',
 }
 
 export interface State {

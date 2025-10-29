@@ -32,7 +32,7 @@ import {useNavigate} from 'react-router-dom';
 import {RunTestButton} from '../../../../components/RunTest';
 import {IconButton} from '../../../../components/IconButton';
 import {getUrl} from '@/static/new-ui/utils/getUrl';
-import {Page} from '@/static/new-ui/types/store';
+import {Page} from '@/constants';
 import {TreeViewData} from '@/static/new-ui/components/TreeView';
 import {TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
 
@@ -170,7 +170,7 @@ export function VisualChecksStickyHeader({currentNamedImage, treeData, onImageCh
                 <Divider orientation={'vertical'}/>
                 <Flex gap={2}>
                     <Select className={styles.diffModeSelect} label={<Icon data={ArrowRightArrowLeft}/> as unknown as string} value={[diffMode]} onUpdate={([diffMode]): void => onChangeHandler(diffMode as DiffModeId)} multiple={false}>
-                        {getAvailableDiffModes('visual-checks').map(diffMode =>
+                        {getAvailableDiffModes(Page.visualChecksPage).map(diffMode =>
                             <Select.Option value={diffMode.id} content={diffMode.title} title={diffMode.description} key={diffMode.id}/>
                         )}
                     </Select>

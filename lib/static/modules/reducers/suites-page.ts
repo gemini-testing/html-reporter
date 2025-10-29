@@ -1,4 +1,4 @@
-import {Page, State} from '@/static/new-ui/types/store';
+import {State} from '@/static/new-ui/types/store';
 import actionNames from '@/static/modules/action-names';
 import {applyStateUpdate} from '@/static/modules/utils/state';
 import {SomeAction} from '@/static/modules/actions/types';
@@ -7,7 +7,7 @@ import {findTreeNodeByBrowserId, findTreeNodeById, getGroupId} from '@/static/ne
 import * as localStorageWrapper from '../local-storage-wrapper';
 import {MIN_SECTION_SIZE_PERCENT} from '@/static/new-ui/features/suites/constants';
 import {TIME_TRAVEL_PLAYER_VISIBILITY_KEY, TWO_UP_DIFF_VISIBILITY_KEY, TWO_UP_FIT_MODE_KEY} from '@/constants/local-storage';
-import {TwoUpFitMode} from '@/constants';
+import {Page, TwoUpFitMode} from '@/constants';
 
 const SECTION_SIZES_LOCAL_STORAGE_KEY = 'suites-page-section-sizes';
 

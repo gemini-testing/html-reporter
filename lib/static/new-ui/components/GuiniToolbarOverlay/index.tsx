@@ -14,7 +14,7 @@ import {
 } from '@/static/modules/actions';
 import {Point} from '@/static/new-ui/types';
 import {useLocation} from 'react-router-dom';
-import {TestStatus} from '@/constants';
+import {TestStatus, PathNames} from '@/constants';
 import {formatCommitPayload} from '@/static/modules/static-image-accepter';
 import {pick} from 'lodash';
 
@@ -43,7 +43,7 @@ export function GuiniToolbarOverlay(): ReactNode {
         const newIsVisible = stagedImages.length > 0 &&
             !isInProgress &&
             !isModalVisible &&
-            ['/suites', '/visual-checks'].some((path) => location.pathname.startsWith(path));
+            [PathNames.suites, PathNames.visualChecks].some((path) => location.pathname.startsWith(path));
         if (Boolean(newIsVisible) !== Boolean(isVisible)) {
             setIsVisible(newIsVisible);
         }

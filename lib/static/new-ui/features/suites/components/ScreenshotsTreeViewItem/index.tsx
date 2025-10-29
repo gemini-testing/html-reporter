@@ -4,8 +4,8 @@ import React, {ReactNode, createRef, useEffect, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {AssertViewResult} from '@/static/new-ui/components/AssertViewResult';
-import {ImageEntity, Page} from '@/static/new-ui/types/store';
-import {DiffModeId, EditScreensFeature, TestStatus} from '@/constants';
+import {ImageEntity} from '@/static/new-ui/types/store';
+import {DiffModeId, EditScreensFeature, TestStatus, Page} from '@/constants';
 import {getAvailableDiffModes} from '@/static/new-ui/utils/diffModes';
 import {
     setDiffMode,
@@ -116,7 +116,7 @@ export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): Re
                     {isDiffModeSwitcherVisible && (
                         <div className={styles.diffModeContainer}>
                             <RadioButton onUpdate={onDiffModeChangeHandler} value={diffMode} className={styles.diffModeSwitcher}>
-                                {getAvailableDiffModes('suites').map(diffMode =>
+                                {getAvailableDiffModes(Page.suitesPage).map(diffMode =>
                                     <RadioButton.Option value={diffMode.id} content={diffMode.title} title={diffMode.description} key={diffMode.id}/>
                                 )}
                             </RadioButton>
@@ -126,7 +126,7 @@ export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): Re
                                 onUpdate={([diffMode]): void => onDiffModeChangeHandler(diffMode as DiffModeId)}
                                 multiple={false}
                             >
-                                {getAvailableDiffModes('suites').map(diffMode =>
+                                {getAvailableDiffModes(Page.suitesPage).map(diffMode =>
                                     <Select.Option value={diffMode.id} content={diffMode.title} title={diffMode.description} key={diffMode.id}/>
                                 )}
                             </Select>

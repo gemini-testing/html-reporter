@@ -1,10 +1,10 @@
 import {createSelector} from 'reselect';
 import {getImages} from '@/static/new-ui/store/selectors';
 import {EntityType, TreeRoot} from '@/static/new-ui/features/suites/components/SuitesPage/types';
-import {ImageEntity, Page, State} from '@/static/new-ui/types/store';
+import {ImageEntity, State} from '@/static/new-ui/types/store';
 import {getNamedImages} from '@/static/new-ui/features/visual-checks/selectors';
 import {TreeViewData} from '@/static/new-ui/components/TreeView';
-import {TestStatus, ViewMode} from '@/constants';
+import {Page, TestStatus, ViewMode} from '@/constants';
 import {matchTestName} from '@/static/modules/utils';
 import {checkSearchResultExits} from '@/static/modules/search';
 

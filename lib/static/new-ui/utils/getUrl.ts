@@ -1,16 +1,5 @@
-import {Page} from '@/static/new-ui/types/store';
-
-const getPathnameByPage = (page: Page): string => {
-    if (page === Page.visualChecksPage) {
-        return 'visual-checks';
-    }
-
-    if (page === Page.suitesPage) {
-        return 'suites';
-    }
-
-    return 'suites';
-};
+import {Page} from '@/constants';
+import {getPathnameByPage} from '@/static/new-ui/utils/page';
 
 export type GetUrlParams = {
     page: Page
@@ -20,8 +9,7 @@ export type GetUrlParams = {
 };
 
 export const getUrl = (params: GetUrlParams): string => (
-    '/' + [
-        getPathnameByPage(params.page),
+    `${getPathnameByPage(params.page)}/` + [
         params.suiteId as string,
         params.attempt?.toString() as string,
         params.stateName as string
