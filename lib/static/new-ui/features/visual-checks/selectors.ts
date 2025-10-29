@@ -91,8 +91,11 @@ export const getCurrentNamedImage = (state: State): NamedImageEntity | null => {
     const currentNamedImageId = [state.app.visualChecksPage.suiteId, state.app.visualChecksPage.stateName].join(' ');
     const namedImages = getNamedImages(state);
 
-    if (!currentNamedImageId) {
-        return Object.values(namedImages)[0];
+    if (!currentNamedImageId || !namedImages[currentNamedImageId]) {
+        const list = Object.values(namedImages);
+        const firstFailed = list.find(({status}) => (status === TestStatus.FAIL || status === TestStatus.FAIL_ERROR));
+
+        return firstFailed || list[0];
     }
 
     return namedImages[currentNamedImageId];

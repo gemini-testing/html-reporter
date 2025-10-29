@@ -2,16 +2,18 @@ if (process.env.TOOL === 'testplane') {
     describe(process.env.TOOL || 'Default', () => {
         describe('New UI', () => {
             describe('Visual checks page', () => {
-                describe('Expand/collapse visual checks list button', () => {
+                describe('Common tests', () => {
                     beforeEach(async ({browser}) => {
                         const menuItem = await browser.$('[data-qa="visual-checks-page-menu-item"]');
                         await menuItem.click();
                     });
 
-                    it('page open', async ({browser}) => {
+                    it('page open first failed', async ({browser}) => {
                         const pageTitle = await browser.$('[data-qa="sidebar-title"]');
+                        const titleTestElement = await browser.$('h2');
 
                         await expect(pageTitle).toHaveText('Visual Checks');
+                        await expect(titleTestElement).toHaveText('test without screenshot');
                     });
 
                     it('move to suites and back', async ({browser}) => {

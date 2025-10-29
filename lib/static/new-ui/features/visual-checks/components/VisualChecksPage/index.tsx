@@ -87,7 +87,7 @@ export function VisualChecksPage(): ReactNode {
     }, [imageChanged, currentBrowser]);
 
     useEffect(() => {
-        if (currentTreeNodeId && attempt !== null) {
+        if (currentImageSuiteId && currentImageStateName && attempt !== null) {
             navigate(getUrl({
                 page: Page.visualChecksPage,
                 suiteId: currentImageSuiteId,
@@ -95,20 +95,27 @@ export function VisualChecksPage(): ReactNode {
                 stateName: currentImageStateName
             }));
         }
-    }, [currentTreeNodeId, attempt]);
+    }, [currentImageSuiteId, currentImageStateName, attempt]);
 
     useEffect(() => {
-        if (params && isInitialized && !inited.current) {
+        if (isInitialized && !inited.current) {
             inited.current = true;
 
-            if (params.suiteId && params.stateName) {
-                dispatch(visualChecksPageSetCurrentNamedImage({
-                    suiteId: params.suiteId,
-                    stateName: params.stateName
-                }));
+            if (params) {
+                if (params.suiteId && params.stateName) {
+                    dispatch(visualChecksPageSetCurrentNamedImage({
+                        suiteId: params.suiteId,
+                        stateName: params.stateName
+                    }));
+                } else if (currentNamedImage) {
+                    dispatch(visualChecksPageSetCurrentNamedImage({
+                        suiteId: currentNamedImage?.browserId,
+                        stateName: currentNamedImage?.stateName
+                    }));
+                }
             }
         }
-    }, [params, isInitialized]);
+    }, [params, isInitialized, currentNamedImage]);
 
     const statusValue = useSelector(getVisualChecksViewMode);
 
