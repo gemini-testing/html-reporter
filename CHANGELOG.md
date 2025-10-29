@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="11.4.0"></a>
+# 11.4.0 (2025-10-29)
+
+
+### Features
+
+* **new-ui:** add test badges ([3a84264](https://github.com/gemini-testing/html-reporter/commit/3a84264))
+
+
+
 <a name="11.3.0"></a>
 # 11.3.0 (2025-10-23)
 
