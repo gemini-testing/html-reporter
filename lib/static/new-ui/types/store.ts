@@ -1,5 +1,5 @@
 import {CoordBounds} from 'looks-same';
-import {BrowserFeature, DiffModeId, Feature, TestStatus, ViewMode, TwoUpFitMode} from '@/constants';
+import {Page, BrowserFeature, DiffModeId, Feature, TestStatus, ViewMode, TwoUpFitMode} from '@/constants';
 import {
     Attachment,
     BrowserItem,
@@ -250,11 +250,6 @@ export interface SnapshotsPlayerHighlightState {
     goToTime: number;
 }
 
-export enum Page {
-    suitesPage = 'suitesPage',
-    visualChecksPage = 'visualChecksPage',
-}
-
 export interface State {
     app: {
         isNewUi: boolean;
@@ -277,7 +272,8 @@ export interface State {
             filteredBrowsers: BrowserItem[];
         };
         [Page.visualChecksPage]: {
-            currentNamedImageId: string | null;
+            suiteId: string | null;
+            stateName: string | null;
 
             // Filters in top of sidebar
             nameFilter: string;

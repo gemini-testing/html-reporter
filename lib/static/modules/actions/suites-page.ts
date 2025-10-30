@@ -1,6 +1,7 @@
 import actionNames from '@/static/modules/action-names';
 import {Action} from '@/static/modules/actions/types';
-import {Page, TreeViewMode} from '@/static/new-ui/types/store';
+import {TreeViewMode} from '@/static/new-ui/types/store';
+import {Page} from '@/constants';
 
 export type SuitesPageSetCurrentTreeNodeAction = Action<typeof actionNames.SUITES_PAGE_SET_CURRENT_SUITE, Partial<{
     treeNodeId: string;

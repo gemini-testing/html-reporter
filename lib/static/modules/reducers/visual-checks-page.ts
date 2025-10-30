@@ -8,7 +8,7 @@ import {TWO_UP_DIFF_VISIBILITY_KEY, TWO_UP_FIT_MODE_KEY} from '@/constants/local
 export default (state: State, action: VisualChecksPageAction): State => {
     switch (action.type) {
         case actionNames.VISUAL_CHECKS_PAGE_SET_CURRENT_NAMED_IMAGE:
-            return applyStateUpdate(state, {app: {visualChecksPage: {currentNamedImageId: action.payload.namedImageId}}}) as State;
+            return applyStateUpdate(state, {app: {visualChecksPage: action.payload}}) as State;
         case actionNames.VISUAL_CHECKS_TOGGLE_2UP_DIFF_VISIBILITY:
             localStorageWrapper.setItem(TWO_UP_DIFF_VISIBILITY_KEY, action.payload.isVisible);
             return applyStateUpdate(state, {

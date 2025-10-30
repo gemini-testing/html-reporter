@@ -5,7 +5,7 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import {AssertViewResult} from '@/static/new-ui/components/AssertViewResult';
 import {ImageEntity} from '@/static/new-ui/types/store';
-import {DiffModeId, EditScreensFeature, TestStatus} from '@/constants';
+import {DiffModeId, EditScreensFeature, TestStatus, Page} from '@/constants';
 import {getAvailableDiffModes} from '@/static/new-ui/utils/diffModes';
 import {
     setDiffMode,
@@ -20,6 +20,7 @@ import {thunkAcceptImages, thunkRevertImages} from '@/static/modules/actions/scr
 import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
 import {ErrorHandler} from '../../../error-handling/components/ErrorHandling';
 import {useNavigate, useParams} from 'react-router-dom';
+import {getUrl} from '@/static/new-ui/utils/getUrl';
 
 interface ScreenshotsTreeViewItemProps {
     image: ImageEntity;
@@ -87,7 +88,12 @@ export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): Re
     const imageId = `${currentResult?.parentId} ${props.image.stateName}`;
 
     const onVisualChecks = (): void => {
-        navigate(`/visual-checks/${encodeURIComponent(imageId)}/${currentResult?.attempt}`);
+        navigate(getUrl({
+            page: Page.visualChecksPage,
+            suiteId: suiteId,
+            stateName: props.image.stateName,
+            attempt: currentResult?.attempt
+        }));
     };
 
     useEffect(() => {
@@ -110,7 +116,7 @@ export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): Re
                     {isDiffModeSwitcherVisible && (
                         <div className={styles.diffModeContainer}>
                             <RadioButton onUpdate={onDiffModeChangeHandler} value={diffMode} className={styles.diffModeSwitcher}>
-                                {getAvailableDiffModes('suites').map(diffMode =>
+                                {getAvailableDiffModes(Page.suitesPage).map(diffMode =>
                                     <RadioButton.Option value={diffMode.id} content={diffMode.title} title={diffMode.description} key={diffMode.id}/>
                                 )}
                             </RadioButton>
@@ -120,7 +126,7 @@ export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): Re
                                 onUpdate={([diffMode]): void => onDiffModeChangeHandler(diffMode as DiffModeId)}
                                 multiple={false}
                             >
-                                {getAvailableDiffModes('suites').map(diffMode =>
+                                {getAvailableDiffModes(Page.suitesPage).map(diffMode =>
                                     <Select.Option value={diffMode.id} content={diffMode.title} title={diffMode.description} key={diffMode.id}/>
                                 )}
                             </Select>
