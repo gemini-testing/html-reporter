@@ -29,6 +29,7 @@ import {setCurrentStep} from '@/static/modules/actions';
 import {useNavigate} from 'react-router-dom';
 import {getUrl} from '@/static/new-ui/utils/getUrl';
 import {Page} from '@/constants';
+import {getCurrentSuiteHash} from '@/static/new-ui/features/suites/components/SuitesPage/selectors';
 
 type TestStepClickHandler = (item: {id: string}) => void
 
@@ -142,6 +143,7 @@ function TestStepsInternal(props: TestStepsProps): ReactNode {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const currentResult = useSelector(getCurrentResult);
+    const hash = useSelector(getCurrentSuiteHash);
 
     const currentStepId = useSelector(state => state.app.suitesPage.currentStepId);
     const currentHighlightStepId = useSelector(state => state.app.suitesPage.currentHighlightedStepId);
@@ -176,7 +178,8 @@ function TestStepsInternal(props: TestStepsProps): ReactNode {
         if (step.type === StepType.Action && step.title === 'assertView') {
             navigate(getUrl({
                 page: Page.suitesPage,
-                suiteId: currentResult?.parentId,
+                hash,
+                browser: currentResult?.name,
                 attempt: currentResult?.attempt,
                 stateName: step.args[0]
             }));

@@ -30,6 +30,7 @@ export interface GroupEntity {
 
 export interface SuiteEntityNode {
     id: string;
+    hash: string;
     name: string;
     parentId: string | null;
     status: TestStatus;
@@ -39,6 +40,7 @@ export interface SuiteEntityNode {
 
 export interface SuiteEntityLeaf {
     id: string;
+    hash: string;
     name: string;
     parentId: string | null;
     status: TestStatus;
@@ -184,6 +186,7 @@ export interface TreeEntity {
     suites: {
         allRootIds: string[];
         byId: Record<string, SuiteEntity>;
+        byHash: Record<string, SuiteEntity>;
         stateById: Record<string, SuiteState>;
     };
     groups: {

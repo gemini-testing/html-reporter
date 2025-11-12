@@ -3,7 +3,12 @@ import React, {ReactNode, useCallback, useEffect, useLayoutEffect, useMemo, useR
 import {useDispatch, useSelector} from 'react-redux';
 import {useNavigate, useParams} from 'react-router-dom';
 import {UiCard} from '@/static/new-ui/components/Card/UiCard';
-import {getAttempt, getCurrentResult, getCurrentResultImages} from '@/static/new-ui/features/suites/selectors';
+import {
+    getAttempt,
+    getCurrentResult,
+    getCurrentResultImages,
+    getCurrentSuiteId
+} from '@/static/new-ui/features/suites/selectors';
 import {SplitViewLayout} from '@/static/new-ui/components/SplitViewLayout';
 import {TreeViewHandle} from '@/static/new-ui/components/TreeView';
 import {SuiteTitle} from '@/static/new-ui/components/SuiteTitle';
@@ -26,7 +31,7 @@ import {ErrorHandler} from '../../../error-handling/components/ErrorHandling';
 import {TestInfo} from '@/static/new-ui/features/suites/components/TestInfo';
 import {MIN_SECTION_SIZE_PERCENT} from '../../constants';
 import {SideBar} from '@/static/new-ui/components/SideBar';
-import {getSuitesStatusCounts, getSuitesTreeViewData} from './selectors';
+import {getCurrentSuiteHash, getSuitesStatusCounts, getSuitesTreeViewData} from './selectors';
 import {getIconByStatus} from '@/static/new-ui/utils';
 import {Page} from '@/constants';
 import {usePage} from '@/static/new-ui/hooks/usePage';
@@ -42,6 +47,8 @@ export function SuitesPage(): ReactNode {
     const params = useParams();
     const attempt = useSelector(getAttempt);
     const currentBrowser = useSelector(state => state.app[Page.suitesPage].currentBrowserId);
+    const hash = useSelector(getCurrentSuiteHash);
+    const urlSuiteId = useSelector(getCurrentSuiteId(params));
 
     const currentTreeNodeId = useSelector(state => state.app[Page.suitesPage].currentTreeNodeId);
     const currentIndex = visibleTreeNodeIds.indexOf(currentTreeNodeId as string);
@@ -64,30 +71,31 @@ export function SuitesPage(): ReactNode {
             navigate(getUrl({
                 page: Page.suitesPage,
                 attempt,
-                suiteId: currentResult.parentId,
+                hash,
+                browser: currentResult.name,
                 stateName: resultImages.length ? resultImages[0].stateName : undefined
             }));
         }
-    }, [currentResult, attempt]);
+    }, [currentResult, attempt, hash]);
 
     useEffect(() => {
-        if (currentBrowser === params.suiteId) {
+        if (currentBrowser === urlSuiteId) {
             return;
         }
 
-        if (isInitialized && params.suiteId) {
+        if (isInitialized && urlSuiteId) {
             dispatch(setStrictMatchFilter(false));
 
-            const treeNode = findTreeNodeByBrowserId(treeData.tree, params.suiteId);
+            const treeNode = findTreeNodeByBrowserId(treeData.tree, urlSuiteId);
 
             if (!treeNode) {
                 return;
             }
 
-            dispatch(setCurrentTreeNode({browserId: params.suiteId, treeNodeId: treeNode.id}));
+            dispatch(setCurrentTreeNode({browserId: urlSuiteId, treeNodeId: treeNode.id}));
 
             if (params.attempt !== undefined) {
-                dispatch(changeTestRetry({browserId: params.suiteId, retryIndex: Number(params.attempt)}));
+                dispatch(changeTestRetry({browserId: urlSuiteId, retryIndex: Number(params.attempt)}));
             }
         }
     }, [isInitialized, params]);
@@ -215,7 +223,7 @@ export function SuitesPage(): ReactNode {
                     onStatusChange={onStatusChange}
                 />
                 <UiCard key="test-view" className={classNames(styles.card, styles.testViewCard)} style={{'--sticky-header-height': stickyHeaderHeight + 'px'} as React.CSSProperties}>
-                    <ErrorHandler.Boundary watchFor={[currentResult, params.suiteId, isInitialized]} fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try to choose another item'}/>}>
+                    <ErrorHandler.Boundary watchFor={[currentResult, urlSuiteId, isInitialized]} fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try to choose another item'}/>}>
                         {currentResult && <>
                             <div className={styles.stickyHeader} ref={(ref): void => setStickyHeaderElement(ref)}>
                                 <SuiteTitle
@@ -232,8 +240,8 @@ export function SuitesPage(): ReactNode {
                             <TestStatusBar />
                             <TestInfo/>
                         </>}
-                        {!params.suiteId && !currentResult && <div className={styles.hintContainer}><span className={styles.hint}>Select a test to see details</span></div>}
-                        {params.suiteId && !isInitialized && <TestInfoSkeleton />}
+                        {!urlSuiteId && !currentResult && <div className={styles.hintContainer}><span className={styles.hint}>Select a test to see details</span></div>}
+                        {urlSuiteId && !isInitialized && <TestInfoSkeleton />}
                     </ErrorHandler.Boundary>
                 </UiCard>
             </SplitViewLayout>

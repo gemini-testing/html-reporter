@@ -16,6 +16,10 @@ interface VisualTreeViewData extends TreeViewData{
     stats: Stats;
 }
 
+export const getCurrentImageSuiteHash = (state: State): string | null => (
+    state.tree.suites.byId[state.tree.browsers.byId[state.app.visualChecksPage.suiteId || '']?.parentId || '']?.hash
+);
+
 export const getVisualTreeViewData = createSelector(
     [
         getImages,

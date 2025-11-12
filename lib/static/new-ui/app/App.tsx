@@ -29,14 +29,14 @@ const pages = [
         url: PathNames.suites,
         icon: ListCheck,
         element: <SuitesPage/>,
-        children: [<Route key={'suite'} path='/suites/:suiteId?/:attempt?/:stateName?' element={<SuitesPage/>} />]
+        children: [<Route key={'suite'} path='/suites/:hash?/:browser?/:attempt?/:stateName?' element={<SuitesPage/>} />]
     },
     {
         title: 'Visual Checks',
         url: PathNames.visualChecks,
         icon: Eye,
         element: <VisualChecksPage/>,
-        children: [<Route key={'image'} path='/visual-checks/:suiteId?/:attempt?/:stateName?' element={<VisualChecksPage/>} />]
+        children: [<Route key={'image'} path='/visual-checks/:hash?/:browser?/:attempt?/:stateName?' element={<VisualChecksPage/>} />]
     }
 ];
 

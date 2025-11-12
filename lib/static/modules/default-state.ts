@@ -29,6 +29,7 @@ export default Object.assign({config: configDefaults}, {
         },
         suites: {
             byId: {},
+            byHash: {},
             allIds: [],
             allRootIds: [],
             failedRootIds: [],

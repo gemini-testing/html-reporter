@@ -35,6 +35,7 @@ import {getUrl} from '@/static/new-ui/utils/getUrl';
 import {Page} from '@/constants';
 import {TreeViewData} from '@/static/new-ui/components/TreeView';
 import {TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
+import {getCurrentImageSuiteHash} from '@/static/new-ui/features/visual-checks/components/VisualChecksPage/selectors';
 
 interface VisualChecksStickyHeaderProps {
     currentNamedImage: NamedImageEntity | null;
@@ -74,6 +75,7 @@ export function VisualChecksStickyHeader({currentNamedImage, treeData, onImageCh
     const currentImage = useSelector(getCurrentImage);
     const attempt = useSelector(getAttempt);
     const navigate = useNavigate();
+    const hash = useSelector(getCurrentImageSuiteHash);
 
     const currentNamedImageIndex = visibleNamedImageIds.indexOf(currentNamedImage?.id as string);
     const onPreviousImageHandler = (): void => onImageChange(treeData.tree[currentNamedImageIndex - 1].data);
@@ -141,7 +143,8 @@ export function VisualChecksStickyHeader({currentNamedImage, treeData, onImageCh
         if (currentNamedImage) {
             navigate(getUrl({
                 page: Page.suitesPage,
-                suiteId: currentNamedImage?.browserId,
+                hash: hash,
+                browser: currentNamedImage.browserName,
                 attempt,
                 stateName: currentNamedImage?.stateName
             }));

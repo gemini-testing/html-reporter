@@ -20,7 +20,7 @@ import {ErrorHandler} from '../../../error-handling/components/ErrorHandling';
 import * as actions from '@/static/modules/actions';
 import {changeTestRetry, visualChecksPageSetCurrentNamedImage} from '@/static/modules/actions';
 import {SideBar} from '@/static/new-ui/components/SideBar';
-import {getVisualChecksViewMode, getVisualTreeViewData} from './selectors';
+import {getCurrentImageSuiteHash, getVisualChecksViewMode, getVisualTreeViewData} from './selectors';
 import {TreeViewHandle} from '@/static/new-ui/components/TreeView';
 import {TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
 import {Page, TestStatus, ViewMode} from '@/constants';
@@ -31,6 +31,7 @@ import {usePage} from '@/static/new-ui/hooks/usePage';
 import {useNavigate, useParams} from 'react-router-dom';
 import {RunTestLoading} from '@/static/new-ui/components/RunTestLoading';
 import {getUrl} from '@/static/new-ui/utils/getUrl';
+import {getCurrentSuiteId} from '@/static/new-ui/features/suites/selectors';
 
 export function VisualChecksPage(): ReactNode {
     const dispatch = useDispatch();
@@ -48,10 +49,11 @@ export function VisualChecksPage(): ReactNode {
     const params = useParams();
     const inited = useRef(false);
     const isRunning = currentNamedImage?.status === TestStatus.RUNNING;
-
+    const urlSuiteId = useSelector(getCurrentSuiteId(params));
     const currentImageSuiteId = useSelector((state) => (
         state.app.visualChecksPage.suiteId
     ));
+    const hash = useSelector(getCurrentImageSuiteHash);
 
     const currentImageStateName = useSelector((state) => (
         state.app.visualChecksPage.stateName
@@ -87,24 +89,25 @@ export function VisualChecksPage(): ReactNode {
     }, [imageChanged, currentBrowser]);
 
     useEffect(() => {
-        if (currentImageSuiteId && currentImageStateName && attempt !== null) {
+        if (hash && currentImageStateName && attempt !== null) {
             navigate(getUrl({
                 page: Page.visualChecksPage,
-                suiteId: currentImageSuiteId,
+                hash,
+                browser: currentBrowser?.name,
                 attempt: attempt,
                 stateName: currentImageStateName
             }));
         }
-    }, [currentImageSuiteId, currentImageStateName, attempt]);
+    }, [hash, currentBrowser, currentImageStateName, attempt]);
 
     useEffect(() => {
         if (isInitialized && !inited.current) {
             inited.current = true;
 
             if (params) {
-                if (params.suiteId && params.stateName) {
+                if (urlSuiteId && params.stateName) {
                     dispatch(visualChecksPageSetCurrentNamedImage({
-                        suiteId: params.suiteId,
+                        suiteId: urlSuiteId,
                         stateName: params.stateName
                     }));
                 } else if (currentNamedImage) {
@@ -115,7 +118,7 @@ export function VisualChecksPage(): ReactNode {
                 }
             }
         }
-    }, [params, isInitialized, currentNamedImage]);
+    }, [urlSuiteId, params, isInitialized, currentNamedImage]);
 
     const statusValue = useSelector(getVisualChecksViewMode);
 

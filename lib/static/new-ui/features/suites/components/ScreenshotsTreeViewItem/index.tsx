@@ -13,7 +13,7 @@ import {
     staticAccepterUnstageScreenshot
 } from '@/static/modules/actions';
 import {isAcceptable, isScreenRevertable} from '@/static/modules/utils';
-import {getCurrentBrowser, getCurrentResult} from '@/static/new-ui/features/suites/selectors';
+import {getCurrentBrowser, getCurrentResult, getCurrentSuiteId} from '@/static/new-ui/features/suites/selectors';
 import {AssertViewStatus} from '@/static/new-ui/components/AssertViewStatus';
 import styles from './index.module.css';
 import {thunkAcceptImages, thunkRevertImages} from '@/static/modules/actions/screenshots';
@@ -45,9 +45,10 @@ export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): Re
     const dispatch = useDispatch();
     const analytics = useAnalytics();
     const navigate = useNavigate();
-    const {suiteId, stateName} = useParams();
+    const {hash, browser, stateName} = useParams();
     const ref = createRef<HTMLDivElement>();
     const inited = useRef(false);
+    const suiteId = useSelector(getCurrentSuiteId({hash, browser}));
 
     const diffMode = useSelector(state => state.view.diffMode);
     const isEditScreensAvailable = useSelector(state => state.app.availableFeatures)
@@ -90,7 +91,8 @@ export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): Re
     const onVisualChecks = (): void => {
         navigate(getUrl({
             page: Page.visualChecksPage,
-            suiteId: suiteId,
+            hash,
+            browser,
             stateName: props.image.stateName,
             attempt: currentResult?.attempt
         }));
