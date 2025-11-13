@@ -143,7 +143,7 @@ export function VisualChecksStickyHeader({currentNamedImage, treeData, onImageCh
         if (currentNamedImage) {
             navigate(getUrl({
                 page: Page.suitesPage,
-                hash: hash,
+                hash,
                 browser: currentNamedImage.browserName,
                 attempt,
                 stateName: currentNamedImage?.stateName

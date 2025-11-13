@@ -67,13 +67,19 @@ export function SuitesPage(): ReactNode {
     }, [page]);
 
     useEffect(() => {
+        const stateName =
+            (params.stateName && resultImages.some((item) => item.stateName === params.stateName)) ?
+                params.stateName :
+                (resultImages.length ? resultImages[0].stateName : undefined)
+        ;
+
         if (currentResult?.parentId && attempt !== null) {
             navigate(getUrl({
                 page: Page.suitesPage,
                 attempt,
                 hash,
                 browser: currentResult.name,
-                stateName: resultImages.length ? resultImages[0].stateName : undefined
+                stateName
             }));
         }
     }, [currentResult, attempt, hash]);
