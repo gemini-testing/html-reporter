@@ -21,6 +21,7 @@ import {
 } from '@/static/new-ui/types/store';
 import {UNCHECKED} from '@/constants/checked-statuses';
 import {EntityType, TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
+import {getShortMD5} from '@/common-utils';
 
 export const mkState = ({initialState}: { initialState: Partial<State> }): State => {
     return _.defaultsDeep(initialState ?? {}, defaultState);
@@ -41,6 +42,7 @@ export const mkGroupEntity = (name: string, overrides?: Partial<GroupEntity>): G
 
 export const mkSuiteEntityLeaf = (name: string, overrides?: Partial<SuiteEntityLeaf>): SuiteEntityLeaf => (_.mergeWith({
     id: name,
+    hash: getShortMD5(name),
     name,
     parentId: null,
     status: TestStatus.SUCCESS,
