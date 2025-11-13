@@ -19,11 +19,11 @@ if (process.env.TOOL === 'testplane') {
                         const titleTestElement = await browser.$('h2');
 
                         await expect(titleTestElement).toHaveText('successfully passed test');
-                        await expect(await getHash(browser)).toBe('/suites/failed%20describe%20successfully%20passed%20test%20chrome/1');
+                        await expect(await getHash(browser)).toBe('/suites/eee7841/chrome/1');
                     });
 
                     it('open by url', async ({browser}) => {
-                        await browser.execute(changeHash, '/suites/failed%20describe%20successfully%20passed%20test%20chrome/1');
+                        await browser.execute(changeHash, '/suites/eee7841/chrome/1');
 
                         const titleTestElement = await browser.$('h2');
                         await expect(titleTestElement).toHaveText('successfully passed test');
@@ -36,12 +36,12 @@ if (process.env.TOOL === 'testplane') {
                         const goToVisualButtonElement = await browser.$('[data-qa="go-visual-button"]');
                         await goToVisualButtonElement.click();
 
-                        await expect(await getHash(browser)).toBe('/visual-checks/failed%20describe%20test%20with%20image%20comparison%20diff%20chrome/1/header');
+                        await expect(await getHash(browser)).toBe('/visual-checks/ba3c69a/chrome/1/header');
 
                         const goToSuitesButtonElement = await browser.$('[data-qa="go-suites-button"]');
                         await goToSuitesButtonElement.click();
 
-                        await expect(await getHash(browser)).toBe('/suites/failed%20describe%20test%20with%20image%20comparison%20diff%20chrome/1/header');
+                        await expect(await getHash(browser)).toBe('/suites/ba3c69a/chrome/1/header');
 
                         const titleTestElement = await browser.$('h2');
 
