@@ -88,7 +88,7 @@ export const getNamedImages = createSelector(
 );
 
 export const getCurrentNamedImage = (state: State): NamedImageEntity | null => {
-    const currentNamedImageId = [state.app.visualChecksPage.suiteId, state.app.visualChecksPage.stateName].join(' ');
+    const currentNamedImageId = [state.app.visualChecksPage.currentBrowserId, state.app.visualChecksPage.stateName].join(' ');
     const namedImages = getNamedImages(state);
 
     if (!currentNamedImageId || !namedImages[currentNamedImageId]) {

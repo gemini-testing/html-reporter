@@ -13,7 +13,7 @@ import {
     staticAccepterUnstageScreenshot
 } from '@/static/modules/actions';
 import {isAcceptable, isScreenRevertable} from '@/static/modules/utils';
-import {getCurrentBrowser, getCurrentResult, getCurrentSuiteId} from '@/static/new-ui/features/suites/selectors';
+import {getCurrentBrowser, getCurrentResult, getCurrentBrowserId} from '@/static/new-ui/features/suites/selectors';
 import {AssertViewStatus} from '@/static/new-ui/components/AssertViewStatus';
 import styles from './index.module.css';
 import {thunkAcceptImages, thunkRevertImages} from '@/static/modules/actions/screenshots';
@@ -48,7 +48,7 @@ export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): Re
     const {hash, browser, stateName} = useParams();
     const ref = createRef<HTMLDivElement>();
     const inited = useRef(false);
-    const suiteId = useSelector(getCurrentSuiteId({hash, browser}));
+    const suiteId = useSelector(getCurrentBrowserId({hash, browser}));
 
     const diffMode = useSelector(state => state.view.diffMode);
     const isEditScreensAvailable = useSelector(state => state.app.availableFeatures)

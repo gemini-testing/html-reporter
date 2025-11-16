@@ -7,7 +7,7 @@ import {
     getAttempt,
     getCurrentResult,
     getCurrentResultImages,
-    getCurrentSuiteId
+    getCurrentBrowserId
 } from '@/static/new-ui/features/suites/selectors';
 import {SplitViewLayout} from '@/static/new-ui/components/SplitViewLayout';
 import {TreeViewHandle} from '@/static/new-ui/components/TreeView';
@@ -48,7 +48,7 @@ export function SuitesPage(): ReactNode {
     const attempt = useSelector(getAttempt);
     const currentBrowser = useSelector(state => state.app[Page.suitesPage].currentBrowserId);
     const hash = useSelector(getCurrentSuiteHash);
-    const urlSuiteId = useSelector(getCurrentSuiteId(params));
+    const urlBrowserId = useSelector(getCurrentBrowserId(params));
 
     const currentTreeNodeId = useSelector(state => state.app[Page.suitesPage].currentTreeNodeId);
     const currentIndex = visibleTreeNodeIds.indexOf(currentTreeNodeId as string);
@@ -85,23 +85,23 @@ export function SuitesPage(): ReactNode {
     }, [currentResult, attempt, hash]);
 
     useEffect(() => {
-        if (currentBrowser === urlSuiteId) {
+        if (currentBrowser === urlBrowserId) {
             return;
         }
 
-        if (isInitialized && urlSuiteId) {
+        if (isInitialized && urlBrowserId) {
             dispatch(setStrictMatchFilter(false));
 
-            const treeNode = findTreeNodeByBrowserId(treeData.tree, urlSuiteId);
+            const treeNode = findTreeNodeByBrowserId(treeData.tree, urlBrowserId);
 
             if (!treeNode) {
                 return;
             }
 
-            dispatch(setCurrentTreeNode({browserId: urlSuiteId, treeNodeId: treeNode.id}));
+            dispatch(setCurrentTreeNode({browserId: urlBrowserId, treeNodeId: treeNode.id}));
 
             if (params.attempt !== undefined) {
-                dispatch(changeTestRetry({browserId: urlSuiteId, retryIndex: Number(params.attempt)}));
+                dispatch(changeTestRetry({browserId: urlBrowserId, retryIndex: Number(params.attempt)}));
             }
         }
     }, [isInitialized, params]);
@@ -229,7 +229,7 @@ export function SuitesPage(): ReactNode {
                     onStatusChange={onStatusChange}
                 />
                 <UiCard key="test-view" className={classNames(styles.card, styles.testViewCard)} style={{'--sticky-header-height': stickyHeaderHeight + 'px'} as React.CSSProperties}>
-                    <ErrorHandler.Boundary watchFor={[currentResult, urlSuiteId, isInitialized]} fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try to choose another item'}/>}>
+                    <ErrorHandler.Boundary watchFor={[currentResult, urlBrowserId, isInitialized]} fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try to choose another item'}/>}>
                         {currentResult && <>
                             <div className={styles.stickyHeader} ref={(ref): void => setStickyHeaderElement(ref)}>
                                 <SuiteTitle
@@ -246,8 +246,8 @@ export function SuitesPage(): ReactNode {
                             <TestStatusBar />
                             <TestInfo/>
                         </>}
-                        {!urlSuiteId && !currentResult && <div className={styles.hintContainer}><span className={styles.hint}>Select a test to see details</span></div>}
-                        {urlSuiteId && !isInitialized && <TestInfoSkeleton />}
+                        {!urlBrowserId && !currentResult && <div className={styles.hintContainer}><span className={styles.hint}>Select a test to see details</span></div>}
+                        {urlBrowserId && !isInitialized && <TestInfoSkeleton />}
                     </ErrorHandler.Boundary>
                 </UiCard>
             </SplitViewLayout>

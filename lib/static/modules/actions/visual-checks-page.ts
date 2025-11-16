@@ -3,7 +3,7 @@ import {Action} from '@/static/modules/actions/types';
 import {DiffModeId, TwoUpFitMode} from '@/constants';
 
 export type VisualChecksPageSetCurrentNamedImageData = {
-    suiteId?: string;
+    currentBrowserId?: string;
     stateName?: string;
 };
 

@@ -111,7 +111,7 @@ export default Object.assign({config: configDefaults}, {
             filteredBrowsers: []
         },
         [Page.visualChecksPage]: {
-            suiteId: null,
+            currentBrowserId: null,
             stateName: null,
 
             viewMode: ViewMode.ALL,

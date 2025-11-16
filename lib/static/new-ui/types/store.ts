@@ -275,7 +275,7 @@ export interface State {
             filteredBrowsers: BrowserItem[];
         };
         [Page.visualChecksPage]: {
-            suiteId: string | null;
+            currentBrowserId: string | null;
             stateName: string | null;
 
             // Filters in top of sidebar

@@ -16,9 +16,12 @@ interface VisualTreeViewData extends TreeViewData{
     stats: Stats;
 }
 
-export const getCurrentImageSuiteHash = (state: State): string | null => (
-    state.tree.suites.byId[state.tree.browsers.byId[state.app.visualChecksPage.suiteId || '']?.parentId || '']?.hash
-);
+export const getCurrentImageSuiteHash = (state: State): string | null => {
+    const browserId = state.app.visualChecksPage.currentBrowserId || '';
+    const suiteId = state.tree.browsers.byId[browserId]?.parentId || '';
+
+    return state.tree.suites.byId[suiteId]?.hash;
+};
 
 export const getVisualTreeViewData = createSelector(
     [
@@ -95,7 +98,7 @@ export const getVisualTreeViewData = createSelector(
                     status: item.status === TestStatus.RUNNING ? item.status : images[item.imageIds[item.imageIds.length - 1]].status,
                     tags: [],
                     title: [...item.suitePath, item.browserName],
-                    suiteId: item.browserId,
+                    browserId: item.browserId,
                     stateName: item.stateName,
                     images: [
                         images[item.imageIds[item.imageIds.length - 1]] as ImageEntity

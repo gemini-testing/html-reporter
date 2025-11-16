@@ -31,7 +31,7 @@ import {usePage} from '@/static/new-ui/hooks/usePage';
 import {useNavigate, useParams} from 'react-router-dom';
 import {RunTestLoading} from '@/static/new-ui/components/RunTestLoading';
 import {getUrl} from '@/static/new-ui/utils/getUrl';
-import {getCurrentSuiteId} from '@/static/new-ui/features/suites/selectors';
+import {getCurrentBrowserId} from '@/static/new-ui/features/suites/selectors';
 
 export function VisualChecksPage(): ReactNode {
     const dispatch = useDispatch();
@@ -49,9 +49,9 @@ export function VisualChecksPage(): ReactNode {
     const params = useParams();
     const inited = useRef(false);
     const isRunning = currentNamedImage?.status === TestStatus.RUNNING;
-    const urlSuiteId = useSelector(getCurrentSuiteId(params));
+    const urlBrowserId = useSelector(getCurrentBrowserId(params));
     const currentImageSuiteId = useSelector((state) => (
-        state.app.visualChecksPage.suiteId
+        state.app.visualChecksPage.currentBrowserId
     ));
     const hash = useSelector(getCurrentImageSuiteHash);
 
@@ -59,10 +59,7 @@ export function VisualChecksPage(): ReactNode {
         state.app.visualChecksPage.stateName
     ));
 
-    const currentTreeNodeId = useMemo(
-        () => [currentImageSuiteId, currentImageStateName].join(' '),
-        [currentImageSuiteId, currentImageStateName]
-    );
+    const currentTreeNodeId = `${currentImageSuiteId} ${currentImageStateName}`;
 
     const treeData = useSelector(getVisualTreeViewData);
     const suitesTreeViewRef = useRef<TreeViewHandle>(null);
@@ -75,7 +72,7 @@ export function VisualChecksPage(): ReactNode {
 
     const onImageChange = useCallback((item: TreeViewItemData) => {
         dispatch(visualChecksPageSetCurrentNamedImage({
-            suiteId: item.suiteId,
+            currentBrowserId: item.browserId,
             stateName: item.stateName
         }));
         setImageChanged(true);
@@ -105,20 +102,20 @@ export function VisualChecksPage(): ReactNode {
             inited.current = true;
 
             if (params) {
-                if (urlSuiteId && params.stateName) {
+                if (urlBrowserId && params.stateName) {
                     dispatch(visualChecksPageSetCurrentNamedImage({
-                        suiteId: urlSuiteId,
+                        currentBrowserId: urlBrowserId,
                         stateName: params.stateName
                     }));
                 } else if (currentNamedImage) {
                     dispatch(visualChecksPageSetCurrentNamedImage({
-                        suiteId: currentNamedImage?.browserId,
+                        currentBrowserId: currentNamedImage?.browserId,
                         stateName: currentNamedImage?.stateName
                     }));
                 }
             }
         }
-    }, [urlSuiteId, params, isInitialized, currentNamedImage]);
+    }, [urlBrowserId, params, isInitialized, currentNamedImage]);
 
     const statusValue = useSelector(getVisualChecksViewMode);
 

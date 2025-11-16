@@ -57,7 +57,7 @@ export const getCurrentResultImages = (state: State): ImageEntity[] => {
     return result?.imageIds.map(imageId => state.tree.images.byId[imageId]) ?? [];
 };
 
-export const getCurrentSuiteId = (params: Record<string, string | undefined>): ((state: State) => string | null) => {
+export const getCurrentBrowserId = (params: Record<string, string | undefined>): ((state: State) => string | null) => {
     return (state: State) => {
         if (params.hash && params.browser) {
             const currentSuite = state.tree.suites.byHash[params.hash];
@@ -65,8 +65,6 @@ export const getCurrentSuiteId = (params: Record<string, string | undefined>): (
             if (currentSuite) {
                 return currentSuite.id + ' ' + params.browser;
             }
-
-            return null;
         }
 
         return null;

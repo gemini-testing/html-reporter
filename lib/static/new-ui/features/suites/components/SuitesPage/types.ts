@@ -20,7 +20,7 @@ export interface TreeViewItemData {
     images?: ImageEntity[];
     parentData?: TreeViewItemData;
     skipReason?: string;
-    suiteId?: string;
+    browserId?: string;
     stateName?: string;
 }
 
