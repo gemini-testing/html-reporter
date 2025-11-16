@@ -5,7 +5,7 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import {AssertViewResult} from '@/static/new-ui/components/AssertViewResult';
 import {ImageEntity} from '@/static/new-ui/types/store';
-import {DiffModeId, EditScreensFeature, TestStatus} from '@/constants';
+import {DiffModeId, EditScreensFeature, TestStatus, Page} from '@/constants';
 import {getAvailableDiffModes} from '@/static/new-ui/utils/diffModes';
 import {
     setDiffMode,
@@ -13,13 +13,14 @@ import {
     staticAccepterUnstageScreenshot
 } from '@/static/modules/actions';
 import {isAcceptable, isScreenRevertable} from '@/static/modules/utils';
-import {getCurrentBrowser, getCurrentResult} from '@/static/new-ui/features/suites/selectors';
+import {getCurrentBrowser, getCurrentResult, getCurrentBrowserId} from '@/static/new-ui/features/suites/selectors';
 import {AssertViewStatus} from '@/static/new-ui/components/AssertViewStatus';
 import styles from './index.module.css';
 import {thunkAcceptImages, thunkRevertImages} from '@/static/modules/actions/screenshots';
 import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
 import {ErrorHandler} from '../../../error-handling/components/ErrorHandling';
 import {useNavigate, useParams} from 'react-router-dom';
+import {getUrl} from '@/static/new-ui/utils/getUrl';
 
 interface ScreenshotsTreeViewItemProps {
     image: ImageEntity;
@@ -44,9 +45,10 @@ export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): Re
     const dispatch = useDispatch();
     const analytics = useAnalytics();
     const navigate = useNavigate();
-    const {suiteId, stateName} = useParams();
+    const {hash, browser, stateName} = useParams();
     const ref = createRef<HTMLDivElement>();
     const inited = useRef(false);
+    const suiteId = useSelector(getCurrentBrowserId({hash, browser}));
 
     const diffMode = useSelector(state => state.view.diffMode);
     const isEditScreensAvailable = useSelector(state => state.app.availableFeatures)
@@ -87,7 +89,13 @@ export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): Re
     const imageId = `${currentResult?.parentId} ${props.image.stateName}`;
 
     const onVisualChecks = (): void => {
-        navigate(`/visual-checks/${encodeURIComponent(imageId)}/${currentResult?.attempt}`);
+        navigate(getUrl({
+            page: Page.visualChecksPage,
+            hash,
+            browser,
+            stateName: props.image.stateName,
+            attempt: currentResult?.attempt
+        }));
     };
 
     useEffect(() => {
@@ -110,7 +118,7 @@ export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): Re
                     {isDiffModeSwitcherVisible && (
                         <div className={styles.diffModeContainer}>
                             <RadioButton onUpdate={onDiffModeChangeHandler} value={diffMode} className={styles.diffModeSwitcher}>
-                                {getAvailableDiffModes('suites').map(diffMode =>
+                                {getAvailableDiffModes(Page.suitesPage).map(diffMode =>
                                     <RadioButton.Option value={diffMode.id} content={diffMode.title} title={diffMode.description} key={diffMode.id}/>
                                 )}
                             </RadioButton>
@@ -120,7 +128,7 @@ export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): Re
                                 onUpdate={([diffMode]): void => onDiffModeChangeHandler(diffMode as DiffModeId)}
                                 multiple={false}
                             >
-                                {getAvailableDiffModes('suites').map(diffMode =>
+                                {getAvailableDiffModes(Page.suitesPage).map(diffMode =>
                                     <Select.Option value={diffMode.id} content={diffMode.title} title={diffMode.description} key={diffMode.id}/>
                                 )}
                             </Select>

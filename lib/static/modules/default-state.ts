@@ -1,10 +1,7 @@
-import {configDefaults} from '../../constants/defaults';
-import {ViewMode} from '../../constants/view-modes';
-import {DiffModes} from '../../constants/diff-modes';
-import {EXPAND_ERRORS} from '../../constants/expand-modes';
-import {RESULT_KEYS} from '../../constants/group-tests';
-import {ToolName, TwoUpFitMode} from '../../constants';
-import {Page, SortDirection, State, TreeViewMode} from '@/static/new-ui/types/store';
+import {
+    Page, ToolName, TwoUpFitMode, RESULT_KEYS, EXPAND_ERRORS, DiffModes, ViewMode, configDefaults
+} from '@/constants';
+import {SortDirection, State, TreeViewMode} from '@/static/new-ui/types/store';
 import {MIN_SECTION_SIZE_PERCENT} from '../new-ui/features/suites/constants';
 
 export default Object.assign({config: configDefaults}, {
@@ -32,6 +29,7 @@ export default Object.assign({config: configDefaults}, {
         },
         suites: {
             byId: {},
+            byHash: {},
             allIds: [],
             allRootIds: [],
             failedRootIds: [],
@@ -113,7 +111,8 @@ export default Object.assign({config: configDefaults}, {
             filteredBrowsers: []
         },
         [Page.visualChecksPage]: {
-            currentNamedImageId: null,
+            currentBrowserId: null,
+            stateName: null,
 
             viewMode: ViewMode.ALL,
             nameFilter: '',

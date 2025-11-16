@@ -1,5 +1,5 @@
 import {setSearchLoading, updateNameFilter, setMatchCaseFilter} from '@/static/modules/actions';
-import {Page} from '@/static/new-ui/types/store';
+import {Page} from '@/constants';
 
 let worker: Worker;
 let searchResult: Set<string> = new Set([]);

@@ -88,11 +88,14 @@ export const getNamedImages = createSelector(
 );
 
 export const getCurrentNamedImage = (state: State): NamedImageEntity | null => {
-    const currentNamedImageId = state.app.visualChecksPage.currentNamedImageId;
+    const currentNamedImageId = [state.app.visualChecksPage.currentBrowserId, state.app.visualChecksPage.stateName].join(' ');
     const namedImages = getNamedImages(state);
 
-    if (!currentNamedImageId) {
-        return Object.values(namedImages)[0];
+    if (!currentNamedImageId || !namedImages[currentNamedImageId]) {
+        const list = Object.values(namedImages);
+        const firstFailed = list.find(({status}) => (status === TestStatus.FAIL || status === TestStatus.FAIL_ERROR));
+
+        return firstFailed || list[0];
     }
 
     return namedImages[currentNamedImageId];
@@ -167,7 +170,7 @@ export const getLastAttempt = (state: State): number => {
 };
 
 export const getCurrentBrowser = (state: State): BrowserEntity | null => {
-    const currentNamedImageId = state.app.visualChecksPage.currentNamedImageId;
+    const currentNamedImageId = getCurrentNamedImage(state)?.id;
     const namedImages = getNamedImages(state);
 
     if (currentNamedImageId) {

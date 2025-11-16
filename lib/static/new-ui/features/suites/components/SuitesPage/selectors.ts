@@ -13,6 +13,8 @@ import {
 import {buildTreeBottomUp, collectTreeLeafIds, formatEntityToTreeNodeData, sortTreeNodes} from './utils';
 import {TestStatus} from '@/constants';
 import {TreeViewData} from '@/static/new-ui/components/TreeView';
+import {getCurrentResult} from '@/static/new-ui/features/suites/selectors';
+import {State} from '@/static/new-ui/types/store';
 
 // Converts the existing store structure to the one that can be consumed by GravityUI
 export const getSuitesTreeViewData = createSelector(
@@ -73,6 +75,12 @@ export interface SuitesStatusCounts {
     retries: number;
     idle: number;
 }
+
+export const getCurrentSuiteHash = (state: State): string | null => {
+    const currentResult = getCurrentResult(state);
+
+    return state.tree.suites.byId[currentResult?.suitePath?.join(' ') || '']?.hash;
+};
 
 export const getSuitesStatusCounts = createSelector(
     [getResults, getBrowsersState],

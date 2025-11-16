@@ -2,16 +2,18 @@ if (process.env.TOOL === 'testplane') {
     describe(process.env.TOOL || 'Default', () => {
         describe('New UI', () => {
             describe('Visual checks page', () => {
-                describe('Expand/collapse visual checks list button', () => {
+                describe('Common tests', () => {
                     beforeEach(async ({browser}) => {
                         const menuItem = await browser.$('[data-qa="visual-checks-page-menu-item"]');
                         await menuItem.click();
                     });
 
-                    it('page open', async ({browser}) => {
+                    it('page open first failed', async ({browser}) => {
                         const pageTitle = await browser.$('[data-qa="sidebar-title"]');
+                        const titleTestElement = await browser.$('h2');
 
                         await expect(pageTitle).toHaveText('Visual Checks');
+                        await expect(titleTestElement).toHaveText('test without screenshot');
                     });
 
                     it('move to suites and back', async ({browser}) => {
@@ -43,11 +45,11 @@ if (process.env.TOOL === 'testplane') {
                         const currentUrl = await browser.getUrl();
                         const hash = currentUrl.split('#')[1];
 
-                        await expect(hash).toBe('/visual-checks/failed%20describe%20test%20with%20image%20comparison%20diff%20chrome%20header/1');
+                        await expect(hash).toBe('/visual-checks/ba3c69a/chrome/1/header');
                     });
 
                     it('open screenshot by url', async ({browser}) => {
-                        await browser.url('/fixtures/testplane/report/new-ui.html#/visual-checks/failed%20describe%20test%20with%20image%20comparison%20diff%20chrome%20header/1');
+                        await browser.url('/fixtures/testplane/report/new-ui.html#/visual-checks/ba3c69a/chrome/1/header');
                         await browser.execute(() => window.location.reload()); // need for catch data from changed hash
 
                         const rightSideTitle = await browser.$('h2.text-display-1');

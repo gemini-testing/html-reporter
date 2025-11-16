@@ -1,10 +1,10 @@
 import {createSelector} from 'reselect';
 import {getImages} from '@/static/new-ui/store/selectors';
 import {EntityType, TreeRoot} from '@/static/new-ui/features/suites/components/SuitesPage/types';
-import {ImageEntity, Page, State} from '@/static/new-ui/types/store';
+import {ImageEntity, State} from '@/static/new-ui/types/store';
 import {getNamedImages} from '@/static/new-ui/features/visual-checks/selectors';
 import {TreeViewData} from '@/static/new-ui/components/TreeView';
-import {TestStatus, ViewMode} from '@/constants';
+import {Page, TestStatus, ViewMode} from '@/constants';
 import {matchTestName} from '@/static/modules/utils';
 import {checkSearchResultExits} from '@/static/modules/search';
 
@@ -15,6 +15,13 @@ type Stats = Pick<Record<ViewMode, number>, ViewMode.ALL | ViewMode.PASSED | Vie
 interface VisualTreeViewData extends TreeViewData{
     stats: Stats;
 }
+
+export const getCurrentImageSuiteHash = (state: State): string | null => {
+    const browserId = state.app.visualChecksPage.currentBrowserId || '';
+    const suiteId = state.tree.browsers.byId[browserId]?.parentId || '';
+
+    return state.tree.suites.byId[suiteId]?.hash;
+};
 
 export const getVisualTreeViewData = createSelector(
     [
@@ -91,6 +98,8 @@ export const getVisualTreeViewData = createSelector(
                     status: item.status === TestStatus.RUNNING ? item.status : images[item.imageIds[item.imageIds.length - 1]].status,
                     tags: [],
                     title: [...item.suitePath, item.browserName],
+                    browserId: item.browserId,
+                    stateName: item.stateName,
                     images: [
                         images[item.imageIds[item.imageIds.length - 1]] as ImageEntity
                     ]

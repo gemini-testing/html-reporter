@@ -57,6 +57,20 @@ export const getCurrentResultImages = (state: State): ImageEntity[] => {
     return result?.imageIds.map(imageId => state.tree.images.byId[imageId]) ?? [];
 };
 
+export const getCurrentBrowserId = (params: Record<string, string | undefined>): ((state: State) => string | null) => {
+    return (state: State) => {
+        if (params.hash && params.browser) {
+            const currentSuite = state.tree.suites.byHash[params.hash];
+
+            if (currentSuite) {
+                return currentSuite.id + ' ' + params.browser;
+            }
+        }
+
+        return null;
+    };
+};
+
 export const isTimeTravelPlayerAvailable = (state: State): boolean => {
     const currentResult = getCurrentResult(state);
     if (!currentResult) {
