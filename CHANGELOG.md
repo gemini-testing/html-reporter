@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="11.5.0"></a>
+# 11.5.0 (2025-11-17)
+
+
+
 <a name="11.4.0"></a>
 # 11.4.0 (2025-10-29)
 
