@@ -4,7 +4,7 @@ const defaultState = require('lib/static/modules/default-state').default;
 const {appendQuery, encodeBrowsers} = require('lib/static/modules/query-params');
 const {ViewMode} = require('lib/constants/view-modes');
 const {mkStorage} = require('../../../../utils');
-const {Page} = require('@/static/new-ui/types/store');
+const {Page, PathNames} = require('@/constants');
 
 describe('lib/static/modules/reducers/view', () => {
     let baseUrl;
@@ -28,11 +28,11 @@ describe('lib/static/modules/reducers/view', () => {
     [
         {
             page: Page.suitesPage,
-            hash: '#/suites'
+            hash: `#${PathNames.suites}`
         },
         {
             page: Page.visualChecksPage,
-            hash: '#/visual-checks'
+            hash: `#${PathNames.visualChecks}`
         }
     ].forEach(({page, hash}) => {
         [actionNames.INIT_GUI_REPORT, actionNames.INIT_STATIC_REPORT].forEach((type) => {

@@ -1,9 +1,10 @@
 import {DiffMode, DiffModes} from '@/constants';
+import {Page} from '@/constants';
 
-export function getAvailableDiffModes(context: 'visual-checks' | 'suites'): DiffMode[] {
+export function getAvailableDiffModes(page: Page): DiffMode[] {
     const allModes = Object.values(DiffModes);
 
-    if (context === 'visual-checks') {
+    if (page === Page.visualChecksPage) {
         return allModes;
     }
 

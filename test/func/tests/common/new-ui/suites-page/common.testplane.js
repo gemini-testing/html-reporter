@@ -1,0 +1,54 @@
+if (process.env.TOOL === 'testplane') {
+    describe(process.env.TOOL || 'Default', () => {
+        describe('New UI', () => {
+            describe('Suites page', () => {
+                describe('Common tests', () => {
+                    const changeHash = (hash) => {
+                        window.location.hash = hash;
+                        window.location.reload();
+                    };
+
+                    const getHash = async (browser) => {
+                        const currentUrl = await browser.getUrl();
+                        return currentUrl.split('#')[1];
+                    };
+
+                    it('click to test', async ({browser}) => {
+                        const testElement = await browser.$('[data-list-item="failed describe/successfully passed test/chrome"]');
+                        await testElement.click();
+                        const titleTestElement = await browser.$('h2');
+
+                        await expect(titleTestElement).toHaveText('successfully passed test');
+                        await expect(await getHash(browser)).toBe('/suites/eee7841/chrome/1');
+                    });
+
+                    it('open by url', async ({browser}) => {
+                        await browser.execute(changeHash, '/suites/eee7841/chrome/1');
+
+                        const titleTestElement = await browser.$('h2');
+                        await expect(titleTestElement).toHaveText('successfully passed test');
+                    });
+
+                    it('open screenshot from test and go back', async ({browser}) => {
+                        const testElement = await browser.$('[data-list-item="failed describe/test with image comparison diff/chrome"]');
+                        await testElement.click();
+
+                        const goToVisualButtonElement = await browser.$('[data-qa="go-visual-button"]');
+                        await goToVisualButtonElement.click();
+
+                        await expect(await getHash(browser)).toBe('/visual-checks/ba3c69a/chrome/1/header');
+
+                        const goToSuitesButtonElement = await browser.$('[data-qa="go-suites-button"]');
+                        await goToSuitesButtonElement.click();
+
+                        await expect(await getHash(browser)).toBe('/suites/ba3c69a/chrome/1/header');
+
+                        const titleTestElement = await browser.$('h2');
+
+                        await expect(titleTestElement).toHaveText('test with image comparison diff');
+                    });
+                });
+            });
+        });
+    });
+}

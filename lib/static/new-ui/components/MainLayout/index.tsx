@@ -15,7 +15,7 @@ import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
 import {setSectionSizes} from '../../../modules/actions/suites-page';
 import {ArrowLeftToLine, ArrowRightFromLine} from '@gravity-ui/icons';
 import {isSectionHidden} from '../../features/suites/utils';
-import {Page} from '@/static/new-ui/types/store';
+import {Page, PathNames} from '@/constants';
 
 export enum PanelId {
     Settings = 'settings',
@@ -104,7 +104,7 @@ export function MainLayout(props: MainLayoutProps): ReactNode {
 
     return <AsideHeader
         className={classNames({'aside-header--initialized': isInitialized})}
-        logo={{text: 'Testplane UI', iconSrc: TestplaneIcon, iconSize: 32, onClick: () => navigate('/suites')}}
+        logo={{text: 'Testplane UI', iconSrc: TestplaneIcon, iconSize: 32, onClick: () => navigate(PathNames.suites)}}
         compact={true}
         headerDecoration={false}
         menuItems={menuItems}

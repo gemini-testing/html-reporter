@@ -1,4 +1,4 @@
-import {determineFinalStatus} from '../common-utils';
+import {determineFinalStatus, getShortMD5} from '../common-utils';
 import {BrowserVersions, DEFAULT_TITLE_DELIMITER, TestStatus} from '../constants';
 import {ReporterTestResult} from '../adapters/test-result';
 import {ErrorDetails, ImageInfoFull} from '../types';
@@ -28,6 +28,7 @@ interface TreeBrowser {
 export interface TreeSuite {
     status?: TestStatus;
     id: string;
+    hash: string;
     parentId: string | null;
     name: string;
     suitePath: string[];
@@ -44,6 +45,7 @@ export type TreeImage = {
 export interface Tree {
     suites: {
         byId: Record<string, TreeSuite>;
+        byHash: Record<string, TreeSuite>;
         allIds: string[];
         allRootIds: string[];
     },
@@ -98,7 +100,7 @@ export class BaseTestsTreeBuilder {
         this._transformer = new TreeTestResultTransformer(options);
 
         this._tree = {
-            suites: {byId: {}, allIds: [], allRootIds: []},
+            suites: {byId: {}, byHash: {}, allIds: [], allRootIds: []},
             browsers: {byId: {}, allIds: []},
             results: {byId: {}, allIds: []},
             images: {byId: {}, allIds: []}
@@ -156,7 +158,8 @@ export class BaseTestsTreeBuilder {
 
             if (!suites.byId[id]) {
                 const parentId = isRoot ? null : this._buildId(suitePath.slice(0, -1));
-                const suite: TreeSuite = {id, parentId, name, suitePath, root: isRoot};
+                const hash = getShortMD5(id);
+                const suite: TreeSuite = {id, hash, parentId, name, suitePath, root: isRoot};
 
                 this._addSuite(suite);
             }
@@ -194,6 +197,7 @@ export class BaseTestsTreeBuilder {
         const {suites} = this._tree;
 
         suites.byId[suite.id] = suite;
+        suites.byHash[suite.hash] = suite;
         suites.allIds.push(suite.id);
 
         if (suite.root) {

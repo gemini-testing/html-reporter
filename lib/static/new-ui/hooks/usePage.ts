@@ -1,17 +1,6 @@
 import {useLocation} from 'react-router-dom';
-import {Page} from '@/static/new-ui/types/store';
-
-function getPageByPathname(pathname: string): Page {
-    if (pathname.startsWith('/visual-checks')) {
-        return Page.visualChecksPage;
-    }
-
-    if (pathname.startsWith('/suites')) {
-        return Page.suitesPage;
-    }
-
-    return Page.suitesPage;
-}
+import {Page} from '@/constants';
+import {getPageByPathname} from '@/static/new-ui/utils/page';
 
 export const usePage = (): Page => {
     const location = useLocation();

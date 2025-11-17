@@ -1,4 +1,5 @@
-import {Page, State} from '@/static/new-ui/types/store';
+import {State} from '@/static/new-ui/types/store';
+import {Page, PathNames} from '@/constants';
 import actionNames from '@/static/modules/action-names';
 import {FiltersAction, InitGuiReportAction, InitStaticReportAction} from '@/static/modules/actions';
 import {DiffModeId, DiffModes, ViewMode} from '@/constants';
@@ -49,7 +50,7 @@ export default (state: State, action: FiltersAction | InitGuiReportAction | Init
                 }
             );
 
-            if (window.location.hash?.startsWith('#/visual-checks')) {
+            if (window.location.hash?.startsWith(`#${PathNames.visualChecks}`)) {
                 newState.app[Page.visualChecksPage].filteredBrowsers = viewQuery.filteredBrowsers as BrowserItem[];
                 newState.app[Page.visualChecksPage].viewMode = viewQuery.viewMode as ViewMode || visualChecksPageViewMode;
                 newState.app[Page.visualChecksPage].nameFilter = viewQuery.testNameFilter as string || '';

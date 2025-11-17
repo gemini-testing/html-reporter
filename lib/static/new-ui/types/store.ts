@@ -1,5 +1,5 @@
 import {CoordBounds} from 'looks-same';
-import {BrowserFeature, DiffModeId, Feature, TestStatus, ViewMode, TwoUpFitMode} from '@/constants';
+import {Page, BrowserFeature, DiffModeId, Feature, TestStatus, ViewMode, TwoUpFitMode} from '@/constants';
 import {
     Attachment,
     BrowserItem,
@@ -30,6 +30,7 @@ export interface GroupEntity {
 
 export interface SuiteEntityNode {
     id: string;
+    hash: string;
     name: string;
     parentId: string | null;
     status: TestStatus;
@@ -39,6 +40,7 @@ export interface SuiteEntityNode {
 
 export interface SuiteEntityLeaf {
     id: string;
+    hash: string;
     name: string;
     parentId: string | null;
     status: TestStatus;
@@ -184,6 +186,7 @@ export interface TreeEntity {
     suites: {
         allRootIds: string[];
         byId: Record<string, SuiteEntity>;
+        byHash: Record<string, SuiteEntity>;
         stateById: Record<string, SuiteState>;
     };
     groups: {
@@ -250,11 +253,6 @@ export interface SnapshotsPlayerHighlightState {
     goToTime: number;
 }
 
-export enum Page {
-    suitesPage = 'suitesPage',
-    visualChecksPage = 'visualChecksPage',
-}
-
 export interface State {
     app: {
         isNewUi: boolean;
@@ -277,7 +275,8 @@ export interface State {
             filteredBrowsers: BrowserItem[];
         };
         [Page.visualChecksPage]: {
-            currentNamedImageId: string | null;
+            currentBrowserId: string | null;
+            stateName: string | null;
 
             // Filters in top of sidebar
             nameFilter: string;

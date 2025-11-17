@@ -27,6 +27,9 @@ import {ErrorHandler} from '../../../error-handling/components/ErrorHandling';
 import {goToTimeInSnapshotsPlayer, setCurrentPlayerHighlightTime} from '@/static/modules/actions/snapshots';
 import {setCurrentStep} from '@/static/modules/actions';
 import {useNavigate} from 'react-router-dom';
+import {getUrl} from '@/static/new-ui/utils/getUrl';
+import {Page} from '@/constants';
+import {getCurrentSuiteHash} from '@/static/new-ui/features/suites/components/SuitesPage/selectors';
 
 type TestStepClickHandler = (item: {id: string}) => void
 
@@ -140,6 +143,7 @@ function TestStepsInternal(props: TestStepsProps): ReactNode {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const currentResult = useSelector(getCurrentResult);
+    const hash = useSelector(getCurrentSuiteHash);
 
     const currentStepId = useSelector(state => state.app.suitesPage.currentStepId);
     const currentHighlightStepId = useSelector(state => state.app.suitesPage.currentHighlightedStepId);
@@ -171,13 +175,14 @@ function TestStepsInternal(props: TestStepsProps): ReactNode {
             expandedById: Object.assign({}, props.stepsExpandedById, {[id]: !props.stepsExpandedById[id]})
         });
 
-        if (step.type === StepType.Action) {
-            navigate('/' + [
-                'suites',
-                currentResult?.parentId as string,
-                step.args[0] as string,
-                currentResult?.attempt?.toString() as string
-            ].map(encodeURIComponent).join('/'));
+        if (step.type === StepType.Action && step.title === 'assertView') {
+            navigate(getUrl({
+                page: Page.suitesPage,
+                hash,
+                browser: currentResult?.name,
+                attempt: currentResult?.attempt,
+                stateName: step.args[0]
+            }));
         }
     }, [items, props.actions, props.stepsExpandedById]);
 

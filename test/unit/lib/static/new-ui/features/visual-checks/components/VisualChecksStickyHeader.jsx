@@ -51,7 +51,7 @@ describe('<VisualChecksStickyHeader />', () => {
 
         renderWithStore((
             <BrowserRouter>
-                <VisualChecksStickyHeader visibleNamedImageIds={visibleNamedImageIds} />
+                <VisualChecksStickyHeader treeData={{allTreeNodeIds: visibleNamedImageIds}} />
             </BrowserRouter>
         ), store);
     });

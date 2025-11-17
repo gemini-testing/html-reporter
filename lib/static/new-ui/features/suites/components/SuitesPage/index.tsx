@@ -2,15 +2,20 @@ import classNames from 'classnames';
 import React, {ReactNode, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {useNavigate, useParams} from 'react-router-dom';
-
 import {UiCard} from '@/static/new-ui/components/Card/UiCard';
-import {getAttempt, getCurrentResult, getCurrentResultImages} from '@/static/new-ui/features/suites/selectors';
+import {
+    getAttempt,
+    getCurrentResult,
+    getCurrentResultImages,
+    getCurrentBrowserId
+} from '@/static/new-ui/features/suites/selectors';
 import {SplitViewLayout} from '@/static/new-ui/components/SplitViewLayout';
 import {TreeViewHandle} from '@/static/new-ui/components/TreeView';
 import {SuiteTitle} from '@/static/new-ui/components/SuiteTitle';
 import * as actions from '@/static/modules/actions';
 import {getIsInitialized} from '@/static/new-ui/store/selectors';
 import {TestControlPanel} from '@/static/new-ui/features/suites/components/TestControlPanel';
+import {TestStatusBar} from '@/static/new-ui/features/suites/components/TestStatusBar';
 
 import styles from './index.module.css';
 import {TestInfoSkeleton} from '@/static/new-ui/features/suites/components/SuitesPage/TestInfoSkeleton';
@@ -26,12 +31,12 @@ import {ErrorHandler} from '../../../error-handling/components/ErrorHandling';
 import {TestInfo} from '@/static/new-ui/features/suites/components/TestInfo';
 import {MIN_SECTION_SIZE_PERCENT} from '../../constants';
 import {SideBar} from '@/static/new-ui/components/SideBar';
-import {getSuitesStatusCounts, getSuitesTreeViewData} from './selectors';
+import {getCurrentSuiteHash, getSuitesStatusCounts, getSuitesTreeViewData} from './selectors';
 import {getIconByStatus} from '@/static/new-ui/utils';
-import {Page} from '@/static/new-ui/types/store';
+import {Page} from '@/constants';
 import {usePage} from '@/static/new-ui/hooks/usePage';
 import {changeTestRetry, setCurrentTreeNode, setStrictMatchFilter} from '@/static/modules/actions';
-import {TestStatusBar} from '@/static/new-ui/features/suites/components/TestStatusBar';
+import {getUrl} from '@/static/new-ui/utils/getUrl';
 
 export function SuitesPage(): ReactNode {
     const page = usePage();
@@ -42,6 +47,8 @@ export function SuitesPage(): ReactNode {
     const params = useParams();
     const attempt = useSelector(getAttempt);
     const currentBrowser = useSelector(state => state.app[Page.suitesPage].currentBrowserId);
+    const hash = useSelector(getCurrentSuiteHash);
+    const urlBrowserId = useSelector(getCurrentBrowserId(params));
 
     const currentTreeNodeId = useSelector(state => state.app[Page.suitesPage].currentTreeNodeId);
     const currentIndex = visibleTreeNodeIds.indexOf(currentTreeNodeId as string);
@@ -60,34 +67,41 @@ export function SuitesPage(): ReactNode {
     }, [page]);
 
     useEffect(() => {
-        if (currentResult?.parentId && attempt !== null && resultImages.length) {
-            navigate('/' + [
-                'suites',
-                currentResult.parentId as string,
-                params.stateName !== undefined ? params.stateName : resultImages[0].stateName as string,
-                attempt?.toString() as string
-            ].map(encodeURIComponent).join('/'));
+        const stateName =
+            (params.stateName && resultImages.some((item) => item.stateName === params.stateName)) ?
+                params.stateName :
+                (resultImages.length ? resultImages[0].stateName : undefined)
+        ;
+
+        if (currentResult?.parentId && attempt !== null) {
+            navigate(getUrl({
+                page: Page.suitesPage,
+                attempt,
+                hash,
+                browser: currentResult.name,
+                stateName
+            }));
         }
-    }, [currentResult, attempt]);
+    }, [currentResult, attempt, hash]);
 
     useEffect(() => {
-        if (currentBrowser === params.suiteId) {
+        if (currentBrowser === urlBrowserId) {
             return;
         }
 
-        if (isInitialized && params.suiteId) {
+        if (isInitialized && urlBrowserId) {
             dispatch(setStrictMatchFilter(false));
 
-            const treeNode = findTreeNodeByBrowserId(treeData.tree, params.suiteId);
+            const treeNode = findTreeNodeByBrowserId(treeData.tree, urlBrowserId);
 
             if (!treeNode) {
                 return;
             }
 
-            dispatch(setCurrentTreeNode({browserId: params.suiteId, treeNodeId: treeNode.id}));
+            dispatch(setCurrentTreeNode({browserId: urlBrowserId, treeNodeId: treeNode.id}));
 
             if (params.attempt !== undefined) {
-                dispatch(changeTestRetry({browserId: params.suiteId, retryIndex: Number(params.attempt)}));
+                dispatch(changeTestRetry({browserId: urlBrowserId, retryIndex: Number(params.attempt)}));
             }
         }
     }, [isInitialized, params]);
@@ -215,7 +229,7 @@ export function SuitesPage(): ReactNode {
                     onStatusChange={onStatusChange}
                 />
                 <UiCard key="test-view" className={classNames(styles.card, styles.testViewCard)} style={{'--sticky-header-height': stickyHeaderHeight + 'px'} as React.CSSProperties}>
-                    <ErrorHandler.Boundary watchFor={[currentResult, params.suiteId, isInitialized]} fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try to choose another item'}/>}>
+                    <ErrorHandler.Boundary watchFor={[currentResult, urlBrowserId, isInitialized]} fallback={<ErrorHandler.FallbackCardCrash recommendedAction={'Try to choose another item'}/>}>
                         {currentResult && <>
                             <div className={styles.stickyHeader} ref={(ref): void => setStickyHeaderElement(ref)}>
                                 <SuiteTitle
@@ -225,15 +239,15 @@ export function SuitesPage(): ReactNode {
                                     index={currentIndex}
                                     totalItems={visibleTreeNodeIds.length}
                                     onNext={(): void => onPrevNextSuiteHandler(1)}
-                                    onPrevious={(): void => onPrevNextSuiteHandler(-1)}
-                                />
+                                    onPrevious={(): void => onPrevNextSuiteHandler(-1)}/>
                                 <TestControlPanel onAttemptChange={onAttemptChangeHandler}/>
                             </div>
+
                             <TestStatusBar />
                             <TestInfo/>
                         </>}
-                        {!params.suiteId && !currentResult && <div className={styles.hintContainer}><span className={styles.hint}>Select a test to see details</span></div>}
-                        {params.suiteId && !isInitialized && <TestInfoSkeleton />}
+                        {!urlBrowserId && !currentResult && <div className={styles.hintContainer}><span className={styles.hint}>Select a test to see details</span></div>}
+                        {urlBrowserId && !isInitialized && <TestInfoSkeleton />}
                     </ErrorHandler.Boundary>
                 </UiCard>
             </SplitViewLayout>
