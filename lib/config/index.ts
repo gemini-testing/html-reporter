@@ -88,6 +88,10 @@ const assertArrayOf = <T>(itemsType: string, name: string, predicateFn: TypePred
 };
 
 const assertPluginDescription = (description: unknown): description is PluginDescription => {
+    if (Array.isArray(description)) {
+        return description.every(assertPluginDescription);
+    }
+
     const maybeDescription = description as PluginDescription;
 
     if (!_.isPlainObject(maybeDescription)) {
@@ -255,6 +259,7 @@ const getParser = (): ReturnType<typeof root<ReporterConfig>> => {
             defaultValue: configDefaults.plugins,
             parseEnv: JSON.parse,
             parseCli: JSON.parse,
+            map: (value: PluginDescription[] | PluginDescription[][]) => value.flat(),
             validate: assertArrayOf('plugin descriptions', 'plugins', assertPluginDescription)
         }),
         staticImageAccepter: section({
