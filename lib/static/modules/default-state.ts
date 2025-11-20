@@ -174,5 +174,6 @@ export default Object.assign({config: configDefaults}, {
         }
     },
     timestamp: 0,
-    browserFeatures: {}
+    browserFeatures: {},
+    plugins: {}
 }) satisfies State;

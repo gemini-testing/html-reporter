@@ -12,6 +12,8 @@ import {ErrorHandler} from '@/static/new-ui/features/error-handling/components/E
 import {RunTestLoading} from '@/static/new-ui/components/RunTestLoading';
 
 import styles from './index.module.css';
+import ExtensionPoint from '../../../../../components/extension-point';
+import {ExtensionPointName} from '../../../../constants/plugins';
 
 export function TestInfo(): ReactNode {
     const currentResult = useSelector(getCurrentResult);
@@ -23,7 +25,7 @@ export function TestInfo(): ReactNode {
 
     const shouldShowPlayer = isPlayerAvailable && isPlayerVisible;
 
-    return <>
+    return <ExtensionPoint name={ExtensionPointName.ResultMeta} result={currentResult} testName={currentResult?.name}>
         <CollapsibleSection id={'actions'} title={'Actions'}>
             <div className={styles.stepsContainer}>
                 {steps.length > 0 ? (
@@ -48,5 +50,5 @@ export function TestInfo(): ReactNode {
                 <MetaInfo resultId={currentResult.id}/>
             </div>}
         </CollapsibleSection>
-    </>;
+    </ExtensionPoint>;
 }

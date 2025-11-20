@@ -15,6 +15,8 @@ interface CollapsibleSectionProps {
     title: string;
     children?: ReactNode;
     className?: string;
+    defaultExpanded?: boolean;
+    onUpdate?: (expanded: boolean) => void;
 }
 
 interface CollapsibleSectionInternalProps extends CollapsibleSectionProps{
@@ -26,6 +28,7 @@ interface CollapsibleSectionInternalProps extends CollapsibleSectionProps{
 export function CollapsibleSectionInternal(props: CollapsibleSectionInternalProps): ReactNode {
     const onUpdateHandler = (): void => {
         props.actions.setSectionExpandedState({sectionId: props.sectionId, isExpanded: !props.expanded});
+        props.onUpdate?.(!props.expanded);
     };
 
     return <Disclosure expanded={props.expanded} size={'l'} arrowPosition={'end'} key={props.sectionId} className={props.className}>
@@ -52,6 +55,6 @@ export const CollapsibleSection = connect((state: State, props: CollapsibleSecti
 
     return {
         sectionId,
-        expanded: state.ui.suitesPage.expandedSectionsById[sectionId] ?? true
+        expanded: state.ui.suitesPage.expandedSectionsById[sectionId] ?? props.defaultExpanded ?? true
     };
 }, (dispatch) => ({actions: bindActionCreators(actions, dispatch)}))(CollapsibleSectionInternal);

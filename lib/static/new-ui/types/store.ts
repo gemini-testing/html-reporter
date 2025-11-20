@@ -16,6 +16,7 @@ import {CheckStatus} from '@/constants/checked-statuses';
 import {EntityType} from '@/static/new-ui/features/suites/components/SuitesPage/types';
 import {DbDetails} from '@/db-utils/common';
 import {Stats, PerBrowserStats} from '@/tests-tree-builder/static';
+import type {Database} from '@gemini-testing/sql.js';
 
 export interface GroupEntity {
     id: string;
@@ -366,6 +367,8 @@ export interface State {
     timestamp: number;
     fetchDbDetails: DbDetails[];
     stats: {all: Stats | Record<string, never>, perBrowser: PerBrowserStats | undefined} | null;
+    db?: Database;
+    plugins: Record<string, unknown>;
 }
 
 declare module 'react-redux' {
