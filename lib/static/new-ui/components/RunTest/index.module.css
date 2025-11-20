@@ -1,3 +1,26 @@
+.buttons-container {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
 .retry-button {
     composes: regular-button from global, action-button from global;
+}
+
+.run-options-button::before {
+    border-left: none;
+}
+
+.run-options-button-icon {
+    transition: transform 0.1s ease-in-out;
+}
+
+.run-options-button-icon-rotated {
+    transform: rotate(180deg);
+}
+
+.run-options-container {
+    width: 450px;
+    padding: 16px;
 }
