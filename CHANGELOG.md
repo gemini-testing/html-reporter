@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="11.6.0"></a>
+# 11.6.0 (2025-11-20)
+
+
+### Features
+
+* add result meta extension point to new ui and enhance plugins SDK ([#733](https://github.com/gemini-testing/html-reporter/issues/733)) ([5803016](https://github.com/gemini-testing/html-reporter/commit/5803016))
+
+
+
 <a name="11.5.0"></a>
 # 11.5.0 (2025-11-17)
 
