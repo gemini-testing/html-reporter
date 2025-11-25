@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="11.6.1"></a>
+## 11.6.1 (2025-11-25)
+
+
+### Features
+
+* implement test run options extension point ([#734](https://github.com/gemini-testing/html-reporter/issues/734)) ([885b220](https://github.com/gemini-testing/html-reporter/commit/885b220))
+
+
+
 <a name="11.6.0"></a>
 # 11.6.0 (2025-11-20)
 
