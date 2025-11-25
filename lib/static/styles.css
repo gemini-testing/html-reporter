@@ -874,6 +874,11 @@ a:active {
     height: 25px;
 }
 
+.g-root {
+    --g-color-text-danger-heavy: #e9043a;
+    --g-color-text-brand-heavy: var(--g-color-private-color-550-solid);
+}
+
 .g-root_theme_light {
     --g-color-base-brand: var(--g-color-private-color-550-solid);
     --g-color-base-brand-hover: var(--g-color-private-color-450-solid);
