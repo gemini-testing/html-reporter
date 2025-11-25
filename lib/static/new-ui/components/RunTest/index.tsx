@@ -1,14 +1,18 @@
-import React, {forwardRef} from 'react';
+import React, {forwardRef, useCallback, useState} from 'react';
 
 import styles from './index.module.css';
-import {Button, ButtonProps, Icon, Spin} from '@gravity-ui/uikit';
-import {ArrowRotateRight} from '@gravity-ui/icons';
+import {Button, ButtonProps, Icon, Popover, Spin} from '@gravity-ui/uikit';
+import {ArrowRotateRight, ChevronDown} from '@gravity-ui/icons';
 import {thunkRunTest} from '@/static/modules/actions';
 import {useDispatch, useSelector} from 'react-redux';
 import {RunTestsFeature} from '@/constants';
 import {useAnalytics} from '../../hooks/useAnalytics';
 import type {BrowserEntity} from '@/static/new-ui/types/store';
 import {isFeatureAvailable} from '../../utils/features';
+import classNames from 'classnames';
+import ExtensionPoint, {getExtensionPointComponents} from '../../../components/extension-point';
+import * as plugins from '../../../modules/plugins';
+import {ExtensionPointName} from '../../constants/plugins';
 
 interface RunTestProps {
     browser: BrowserEntity | null;
@@ -35,10 +39,45 @@ export const RunTestButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, R
             return null;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return <Button ref={ref as any} view={'action'} className={styles.retryButton} onClick={onRetryTestHandler} disabled={isRunning} style={{width: buttonText === null ? '28px' : undefined}} {...buttonProps}>
-            {isRunning ? <Spin size={'xs'} /> : <Icon data={ArrowRotateRight}/>}{buttonText === undefined ? 'Retry' : buttonText}
-        </Button>;
+        const loadedPluginConfigs = plugins.getLoadedConfigs();
+        const pluginComponents = getExtensionPointComponents(loadedPluginConfigs, ExtensionPointName.RunTestOptions);
+        const hasRunTestOptions = pluginComponents.length > 0;
+        const [isRunOptionsOpen, setIsRunOptionsOpen] = useState(false);
+        const onRunOptionsOpenChange = useCallback((open: boolean) => {
+            setIsRunOptionsOpen(open);
+        }, []);
+
+        return <div className={styles.buttonsContainer}>
+            <Button
+                ref={ref as any} // eslint-disable-line @typescript-eslint/no-explicit-any
+                view={'action'}
+                className={styles.retryButton}
+                onClick={onRetryTestHandler}
+                disabled={isRunning}
+                style={{width: buttonText === null ? '28px' : undefined}}
+                pin={hasRunTestOptions ? 'round-brick' : undefined}
+                {...buttonProps}
+            >
+                {isRunning ? <Spin size={'xs'} /> : <Icon data={ArrowRotateRight}/>}{buttonText === undefined ? 'Retry' : buttonText}
+            </Button>
+            {hasRunTestOptions && <Popover
+                onOpenChange={onRunOptionsOpenChange}
+                content={<div className={styles.runOptionsContainer}><ExtensionPoint name={ExtensionPointName.RunTestOptions}></ExtensionPoint></div>}
+                trigger='click'
+                placement='bottom-end'
+            >
+                <Button
+                    view='action'
+                    disabled={isRunning}
+                    className={classNames(styles.retryButton, styles.runOptionsButton)}
+                    style={{width: buttonText === null ? '28px' : undefined}}
+                    pin='brick-round'
+                    {...buttonProps}
+                >
+                    <Icon data={ChevronDown} className={classNames(styles.runOptionsButtonIcon, {[styles.runOptionsButtonIconRotated]: isRunOptionsOpen})}/>
+                </Button>
+            </Popover>}
+        </div>;
     }
 );
 

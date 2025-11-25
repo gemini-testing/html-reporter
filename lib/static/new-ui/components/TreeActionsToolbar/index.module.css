@@ -68,3 +68,8 @@
 .select-all-button {
     width: 34px !important;
 }
+
+.run-options-container {
+    width: 450px;
+    padding: 16px;
+}

@@ -1,4 +1,4 @@
-import {Icon, Spin} from '@gravity-ui/uikit';
+import {Icon, Popover, Spin} from '@gravity-ui/uikit';
 import classNames from 'classnames';
 import {
     ArrowUturnCcwLeft,
@@ -12,7 +12,8 @@ import {
     SquareDashed,
     SquareMinus,
     ListUl,
-    Hierarchy
+    Hierarchy,
+    GearPlay
 } from '@gravity-ui/icons';
 import React, {ReactNode, useMemo} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
@@ -48,6 +49,9 @@ import {GroupBySelect} from '@/static/new-ui/features/suites/components/GroupByS
 import {SortBySelect} from '@/static/new-ui/features/suites/components/SortBySelect';
 import {thunkAcceptImages, thunkRevertImages} from '@/static/modules/actions/screenshots';
 import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
+import ExtensionPoint, {getExtensionPointComponents} from '../../../components/extension-point';
+import {ExtensionPointName} from '../../constants/plugins';
+import * as plugins from '../../../modules/plugins';
 
 interface TreeActionsToolbarProps {
     onHighlightCurrentTest?: () => void;
@@ -180,6 +184,10 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
     const selectedOrVisible = isSelectedAtLeastOne ? 'selected' : 'visible';
     const areActionsDisabled = isRunning || !isInitialized;
 
+    const loadedPluginConfigs = plugins.getLoadedConfigs();
+    const pluginComponents = getExtensionPointComponents(loadedPluginConfigs, ExtensionPointName.RunTestOptions);
+    const hasRunTestOptions = pluginComponents.length > 0;
+
     const getViewButtons = (): ReactNode => (
         <>
             {isRunTestsAvailable && (
@@ -197,6 +205,18 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
                         />
                     )
             )}
+            {isRunTestsAvailable && hasRunTestOptions && <Popover
+                content={<div className={styles.runOptionsContainer}><ExtensionPoint name={ExtensionPointName.RunTestOptions}></ExtensionPoint></div>}
+                trigger='click'
+            >
+                <IconButton
+                    view='flat'
+                    disabled={isRunning || !isInitialized}
+                    className={classNames(styles.iconButton)}
+                    icon={<Icon data={GearPlay} height={14}/>}
+                    tooltip='View run options'
+                />
+            </Popover>}
             {isEditScreensAvailable && (
                 isUndoButtonVisible ?
                     <IconButton className={styles.iconButton} icon={<Icon data={ArrowUturnCcwLeft} />} tooltip={`Undo accepting ${selectedOrVisible} screenshots`} view={'flat'} onClick={handleUndo} disabled={areActionsDisabled}></IconButton> :
