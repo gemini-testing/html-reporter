@@ -46,3 +46,11 @@
 .test-view-card {
     padding-right: 20px;
 }
+
+.hotkey {
+    margin-left: 4px;
+}
+
+.accept-button {
+    padding-right: 4px;
+}

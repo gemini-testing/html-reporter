@@ -1,6 +1,6 @@
-import {Divider, Icon} from '@gravity-ui/uikit';
+import {Divider, Hotkey, Icon} from '@gravity-ui/uikit';
 import {CirclePlay} from '@gravity-ui/icons';
-import React, {ReactNode} from 'react';
+import React, {ReactNode, useCallback} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {AttemptPickerItem} from '@/static/new-ui/components/AttemptPickerItem';
@@ -9,10 +9,12 @@ import classNames from 'classnames';
 import {getCurrentBrowser, getCurrentResultId, isTimeTravelPlayerAvailable} from '@/static/new-ui/features/suites/selectors';
 import {RunTestButton} from '@/static/new-ui/components/RunTest';
 import {useAnalytics} from '../../../../hooks/useAnalytics';
+import {useHotkey} from '../../../../hooks/useHotkey';
 import {IconButton} from '../../../../components/IconButton';
 import {isFeatureAvailable} from '../../../../utils/features';
 import {RunTestsFeature} from '@/constants';
 import {toggleTimeTravelPlayerVisibility} from '@/static/modules/actions/snapshots';
+import {thunkRunTest} from '@/static/modules/actions';
 
 interface TestControlPanelProps {
     onAttemptChange?: (browserId: string, resultId: string, attemptIndex: number) => unknown;
@@ -45,13 +47,24 @@ export function TestControlPanel(props: TestControlPanelProps): ReactNode {
     const isRunTestsAvailable = isFeatureAvailable(RunTestsFeature);
     const isPlayerAvailable = useSelector(isTimeTravelPlayerAvailable);
     const isPlayerVisible = useSelector(state => state.ui.suitesPage.isSnapshotsPlayerVisible);
+    const isRunning = useSelector(state => state.running);
 
     const showDivider = isRunTestsAvailable && isPlayerAvailable;
 
-    const onTogglePlayerVisibility = (): void => {
+    const onTogglePlayerVisibility = useCallback((): void => {
         analytics?.trackFeatureUsage({featureName: 'Toggle time travel player visibility'});
         dispatch(toggleTimeTravelPlayerVisibility(!isPlayerVisible));
-    };
+    }, [analytics, dispatch, isPlayerVisible]);
+
+    const onRunTest = useCallback((): void => {
+        if (currentBrowser && !isRunning) {
+            analytics?.trackFeatureUsage({featureName: 'Run test via hotkey R'});
+            dispatch(thunkRunTest({test: {testName: currentBrowser.parentId, browserName: currentBrowser.name}}));
+        }
+    }, [currentBrowser, isRunning, analytics, dispatch]);
+
+    useHotkey('r', onRunTest, {enabled: isRunTestsAvailable && !isRunning});
+    useHotkey('p', onTogglePlayerVisibility, {enabled: isPlayerAvailable});
 
     return (
         <div className={styles.container}>
@@ -69,7 +82,7 @@ export function TestControlPanel(props: TestControlPanelProps): ReactNode {
             <div className={styles.buttonsContainer}>
                 {isPlayerAvailable && (
                     <IconButton
-                        tooltip={isPlayerVisible ? 'Hide Time Travel Player' : 'Show Time Travel Player'}
+                        tooltip={<>{isPlayerVisible ? 'Hide Time Travel Player' : 'Show Time Travel Player'} ⋅ <Hotkey value="p" view="light" /></>}
                         icon={<Icon data={CirclePlay}/>}
                         onClick={onTogglePlayerVisibility}
                         view='outlined'
@@ -77,7 +90,7 @@ export function TestControlPanel(props: TestControlPanelProps): ReactNode {
                     />
                 )}
                 {showDivider && <Divider orientation='vertical' className={styles.divider}/>}
-                <RunTestButton browser={currentBrowser}/>
+                <RunTestButton browser={currentBrowser} hotkey={<Hotkey className={styles.hotkey} view="dark" value="r" />}/>
             </div>
         </div>
     );

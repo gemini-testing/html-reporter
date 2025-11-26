@@ -1,6 +1,6 @@
 import {Gear, CircleInfo} from '@gravity-ui/icons';
 import {FooterItem, MenuItem as GravityMenuItem} from '@gravity-ui/navigation';
-import {Icon} from '@gravity-ui/uikit';
+import {Hotkey, Icon} from '@gravity-ui/uikit';
 import classNames from 'classnames';
 import React, {ReactNode, useEffect, useState} from 'react';
 import {useSelector} from 'react-redux';
@@ -53,6 +53,7 @@ export function Footer(props: FooterProps): ReactNode {
         <FooterItem compact={false} item={{
             id: PanelId.Info,
             title: 'Info',
+            tooltipText: <>Info <Hotkey value="i" view="dark" /></>,
             onItemClick: props.onFooterItemClick,
             current: isInfoCurrent,
             qa: 'footer-item-info',
@@ -68,6 +69,7 @@ export function Footer(props: FooterProps): ReactNode {
         <FooterItem compact={false} item={{
             id: PanelId.Settings,
             title: 'Settings',
+            tooltipText: <>Settings <Hotkey value="," view="dark" /></>,
             onItemClick: props.onFooterItemClick,
             current: isSettingsCurrent,
             itemWrapper: (params, makeItem) => makeItem({

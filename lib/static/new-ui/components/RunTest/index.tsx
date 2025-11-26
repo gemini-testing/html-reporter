@@ -1,4 +1,4 @@
-import React, {forwardRef, useCallback, useState} from 'react';
+import React, {forwardRef, ReactNode, useCallback, useState} from 'react';
 
 import styles from './index.module.css';
 import {Button, ButtonProps, Icon, Popover, Spin} from '@gravity-ui/uikit';
@@ -18,10 +18,11 @@ interface RunTestProps {
     browser: BrowserEntity | null;
     buttonText?: string | null;
     buttonProps?: ButtonProps;
+    hotkey?: ReactNode;
 }
 
 export const RunTestButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, RunTestProps>(
-    ({browser, buttonProps, buttonText}, ref) => {
+    ({browser, buttonProps, buttonText, hotkey}, ref) => {
         const isRunning = useSelector(state => state.running);
 
         const analytics = useAnalytics();
@@ -58,7 +59,7 @@ export const RunTestButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, R
                 pin={hasRunTestOptions ? 'round-brick' : undefined}
                 {...buttonProps}
             >
-                {isRunning ? <Spin size={'xs'} /> : <Icon data={ArrowRotateRight}/>}{buttonText === undefined ? 'Retry' : buttonText}
+                {isRunning ? <Spin size={'xs'} /> : <Icon data={ArrowRotateRight}/>}{buttonText === undefined ? 'Retry' : buttonText}{hotkey}
             </Button>
             {hasRunTestOptions && <Popover
                 onOpenChange={onRunOptionsOpenChange}

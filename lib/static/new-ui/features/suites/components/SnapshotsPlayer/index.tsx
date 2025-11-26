@@ -1,5 +1,5 @@
 import {Gear, PauseFill} from '@gravity-ui/icons';
-import {Button, HelpMark, Icon, Select, SelectRenderControlProps, SelectOptions} from '@gravity-ui/uikit';
+import {Button, HelpMark, Hotkey, Icon, Select, SelectRenderControlProps, SelectOptions, Tooltip} from '@gravity-ui/uikit';
 import {Replayer} from '@rrweb/replay';
 import type {customEvent, eventWithTime as RrwebEvent} from '@rrweb/types';
 import classNames from 'classnames';
@@ -17,6 +17,7 @@ import {setCurrentHighlightStep, setCurrentStep} from '@/static/modules/actions'
 import {Step, StepType} from '@/static/new-ui/features/suites/components/TestSteps/types';
 import {unstable_ListTreeItemType as ListTreeItemType} from '@gravity-ui/uikit/unstable';
 import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
+import {useHotkey} from '@/static/new-ui/hooks/useHotkey';
 import BrokenSnapshotIcon from '@/static/icons/broken-snapshot.svg';
 import {PlayIcon} from './PlayIcon';
 import {ChangedDot} from '../../../../components/ChangedDot';
@@ -382,7 +383,7 @@ export function SnapshotsPlayer(): ReactNode {
     }, []);
     const scaleFactor = useScaleToFit(playerElement);
 
-    const onPlayClick = (): void => {
+    const onPlayClick = useCallback((): void => {
         if (!isPlaying) {
             setIsPlaying(true);
             if (finishedPlayingRef.current) {
@@ -397,7 +398,9 @@ export function SnapshotsPlayer(): ReactNode {
             setIsPlaying(false);
             cancelTimeTicking();
         }
-    };
+    }, [isPlaying, currentPlayerTime, startTimeTicking, cancelTimeTicking]);
+
+    useHotkey('k', onPlayClick, {enabled: !isSnapshotMissing});
 
     const onScrubStart = useCallback(() => {
         if (isSnapshotMissing) {
@@ -574,20 +577,22 @@ export function SnapshotsPlayer(): ReactNode {
             </div>
         </div>
         <div className={styles.buttonsContainer}>
-            <Button
-                onClick={onPlayClick}
-                view={'flat'}
-                className={classNames(styles.playPauseButton, styles.controlButton)}
-                disabled={isSnapshotMissing}
-            >
-                <div
-                    className={classNames(styles.playPauseIcon, {[styles.playPauseIconVisible]: isPlaying})}>
-                    <Icon data={PauseFill} size={14}/></div>
-                <div
-                    className={classNames(styles.playPauseIcon, {[styles.playPauseIconVisible]: !isPlaying})}>
-                    <PlayIcon/>
-                </div>
-            </Button>
+            <Tooltip content={<>{isPlaying ? 'Pause' : 'Play'} ⋅ <Hotkey value="k" view="light" /></>} placement="top" openDelay={1000}>
+                <Button
+                    onClick={onPlayClick}
+                    view={'flat'}
+                    className={classNames(styles.playPauseButton, styles.controlButton)}
+                    disabled={isSnapshotMissing}
+                >
+                    <div
+                        className={classNames(styles.playPauseIcon, {[styles.playPauseIconVisible]: isPlaying})}>
+                        <Icon data={PauseFill} size={14}/></div>
+                    <div
+                        className={classNames(styles.playPauseIcon, {[styles.playPauseIconVisible]: !isPlaying})}>
+                        <PlayIcon/>
+                    </div>
+                </Button>
+            </Tooltip>
             <Timeline
                 currentTime={currentPlayerTime}
                 totalTime={totalTime}

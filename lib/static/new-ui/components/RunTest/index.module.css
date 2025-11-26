@@ -6,6 +6,7 @@
 
 .retry-button {
     composes: regular-button from global, action-button from global;
+    padding-right: 4px;
 }
 
 .run-options-button::before {
@@ -23,4 +24,8 @@
 .run-options-container {
     width: 450px;
     padding: 16px;
+}
+
+.hotkey {
+    margin-left: 4px;
 }

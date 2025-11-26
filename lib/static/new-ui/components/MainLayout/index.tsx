@@ -1,6 +1,6 @@
 import {AsideHeader, MenuItem as GravityMenuItem} from '@gravity-ui/navigation';
 import classNames from 'classnames';
-import React, {ReactNode, useState} from 'react';
+import React, {ReactNode, useCallback, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {matchPath, useLocation, useNavigate} from 'react-router-dom';
 
@@ -12,8 +12,10 @@ import {Footer} from './Footer';
 import {EmptyReportCard} from '@/static/new-ui/components/Card/EmptyReportCard';
 import {InfoPanel} from '@/static/new-ui/components/InfoPanel';
 import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
+import {useHotkey} from '@/static/new-ui/hooks/useHotkey';
 import {setSectionSizes} from '../../../modules/actions/suites-page';
 import {ArrowLeftToLine, ArrowRightFromLine} from '@gravity-ui/icons';
+import {Hotkey} from '@gravity-ui/uikit';
 import {isSectionHidden} from '../../features/suites/utils';
 import {Page, PathNames} from '@/constants';
 
@@ -39,9 +41,15 @@ export function MainLayout(props: MainLayoutProps): ReactNode {
     const location = useLocation();
     const analytics = useAnalytics();
 
+    const pageHotkeys: Record<string, string> = {
+        [PathNames.suites]: 's',
+        [PathNames.visualChecks]: 'v'
+    };
+
     const menuItems: GravityMenuItem[] = props.pages.map(item => ({
         id: item.url,
         title: item.title,
+        tooltipText: <>{item.title} <Hotkey value={pageHotkeys[item.url]} view="dark" /></>,
         icon: item.icon,
         current: Boolean(matchPath(`${item.url.replace(/\/$/, '')}/*`, location.pathname)),
         onItemClick: (): void => {
@@ -55,11 +63,13 @@ export function MainLayout(props: MainLayoutProps): ReactNode {
     const backupSuitesPageSectionSizes = useSelector(state => state.ui[Page.suitesPage].backupSectionSizes);
     if (/\/suites/.test(location.pathname)) {
         const shouldExpandTree = isSectionHidden(currentSuitesPageSectionSizes[0]);
+        const treeTitle = shouldExpandTree ? 'Expand tree' : 'Collapse tree';
         menuItems.push(
             {id: 'divider', type: 'divider', title: '-'},
             {
                 id: 'expand-collapse-tree',
-                title: shouldExpandTree ? 'Expand tree' : 'Collapse tree',
+                title: treeTitle,
+                tooltipText: <>{treeTitle} <Hotkey value="t" view="dark" /></>,
                 icon: shouldExpandTree ? ArrowRightFromLine : ArrowLeftToLine,
                 onItemClick: (): void => {
                     dispatch(setSectionSizes({sizes: shouldExpandTree ? backupSuitesPageSectionSizes : [0, 100], page: Page.suitesPage}));
@@ -73,11 +83,13 @@ export function MainLayout(props: MainLayoutProps): ReactNode {
     const backupVisualChecksPageSectionSizes = useSelector(state => state.ui[Page.visualChecksPage].backupSectionSizes);
     if (/\/visual-checks/.test(location.pathname)) {
         const shouldExpandTree = isSectionHidden(currentVisualChecksPageSectionSizes[0]);
+        const treeTitle = shouldExpandTree ? 'Expand tree' : 'Collapse tree';
         menuItems.push(
             {id: 'divider', type: 'divider', title: '-'},
             {
                 id: 'expand-collapse-tree',
-                title: shouldExpandTree ? 'Expand tree' : 'Collapse tree',
+                title: treeTitle,
+                tooltipText: <>{treeTitle} <Hotkey value="t" view="dark" /></>,
                 icon: shouldExpandTree ? ArrowRightFromLine : ArrowLeftToLine,
                 onItemClick: (): void => {
                     dispatch(setSectionSizes({sizes: shouldExpandTree ? backupVisualChecksPageSectionSizes : [0, 100], page: Page.visualChecksPage}));
@@ -101,6 +113,34 @@ export function MainLayout(props: MainLayoutProps): ReactNode {
             analytics?.trackFeatureUsage({featureName: `Open ${item.id} panel`});
         }
     };
+
+    const togglePanel = useCallback((panelId: PanelId): void => {
+        setVisiblePanel(prev => prev === panelId ? null : panelId);
+    }, []);
+
+    const toggleTreeSidebar = useCallback((): void => {
+        const isOnSuitesPage = /\/suites/.test(location.pathname);
+        const isOnVisualChecksPage = /\/visual-checks/.test(location.pathname);
+
+        if (isOnSuitesPage) {
+            const shouldExpand = isSectionHidden(currentSuitesPageSectionSizes[0]);
+            dispatch(setSectionSizes({sizes: shouldExpand ? backupSuitesPageSectionSizes : [0, 100], page: Page.suitesPage}));
+        } else if (isOnVisualChecksPage) {
+            const shouldExpand = isSectionHidden(currentVisualChecksPageSectionSizes[0]);
+            dispatch(setSectionSizes({sizes: shouldExpand ? backupVisualChecksPageSectionSizes : [0, 100], page: Page.visualChecksPage}));
+        }
+    }, [location.pathname, currentSuitesPageSectionSizes, backupSuitesPageSectionSizes, currentVisualChecksPageSectionSizes, backupVisualChecksPageSectionSizes, dispatch]);
+
+    const navigateToSuites = useCallback(() => navigate(PathNames.suites), [navigate]);
+    const navigateToVisualChecks = useCallback(() => navigate(PathNames.visualChecks), [navigate]);
+    const toggleInfoPanel = useCallback(() => togglePanel(PanelId.Info), [togglePanel]);
+    const toggleSettingsPanel = useCallback(() => togglePanel(PanelId.Settings), [togglePanel]);
+
+    useHotkey('s', navigateToSuites);
+    useHotkey('v', navigateToVisualChecks);
+    useHotkey('t', toggleTreeSidebar);
+    useHotkey('i', toggleInfoPanel);
+    useHotkey(',', toggleSettingsPanel);
 
     return <AsideHeader
         className={classNames({'aside-header--initialized': isInitialized})}
