@@ -6,6 +6,7 @@ import {matchPath, useLocation, useNavigate} from 'react-router-dom';
 
 import {getIsInitialized} from '@/static/new-ui/store/selectors';
 import {SettingsPanel} from '@/static/new-ui/components/SettingsPanel';
+import {HotkeysPanel} from '@/static/new-ui/components/HotkeysPanel';
 import TestplaneIcon from '../../../icons/testplane-mono.svg';
 import styles from './index.module.css';
 import {Footer} from './Footer';
@@ -20,6 +21,7 @@ import {isSectionHidden} from '../../features/suites/utils';
 import {Page, PathNames} from '@/constants';
 
 export enum PanelId {
+    Hotkeys = 'hotkeys',
     Settings = 'settings',
     Info = 'info',
 }
@@ -133,12 +135,14 @@ export function MainLayout(props: MainLayoutProps): ReactNode {
 
     const navigateToSuites = useCallback(() => navigate(PathNames.suites), [navigate]);
     const navigateToVisualChecks = useCallback(() => navigate(PathNames.visualChecks), [navigate]);
+    const toggleHotkeysPanel = useCallback(() => togglePanel(PanelId.Hotkeys), [togglePanel]);
     const toggleInfoPanel = useCallback(() => togglePanel(PanelId.Info), [togglePanel]);
     const toggleSettingsPanel = useCallback(() => togglePanel(PanelId.Settings), [togglePanel]);
 
     useHotkey('s', navigateToSuites);
     useHotkey('v', navigateToVisualChecks);
     useHotkey('t', toggleTreeSidebar);
+    useHotkey('mod+/', toggleHotkeysPanel);
     useHotkey('i', toggleInfoPanel);
     useHotkey(',', toggleSettingsPanel);
 
@@ -160,6 +164,10 @@ export function MainLayout(props: MainLayoutProps): ReactNode {
         hideCollapseButton={true}
         renderFooter={(): ReactNode => <Footer visiblePanel={visiblePanel} onFooterItemClick={onFooterItemClick}/>}
         panelItems={[{
+            id: PanelId.Hotkeys,
+            children: <HotkeysPanel />,
+            visible: visiblePanel === PanelId.Hotkeys
+        }, {
             id: PanelId.Info,
             children: <InfoPanel />,
             visible: visiblePanel === PanelId.Info

@@ -1,4 +1,4 @@
-import {Gear, CircleInfo} from '@gravity-ui/icons';
+import {Gear, CircleInfo, Keyboard} from '@gravity-ui/icons';
 import {FooterItem, MenuItem as GravityMenuItem} from '@gravity-ui/navigation';
 import {Hotkey, Icon} from '@gravity-ui/uikit';
 import classNames from 'classnames';
@@ -45,11 +45,28 @@ export function Footer(props: FooterProps): ReactNode {
         }
     }, [props.visiblePanel]);
 
+    const isHotkeysCurrent = props.visiblePanel === PanelId.Hotkeys;
     const isInfoCurrent = props.visiblePanel === PanelId.Info;
     const isSettingsCurrent = props.visiblePanel === PanelId.Settings;
 
     return <>
         <UiModeHintNotification isVisible={isHintVisible} onClose={(): void => setIsHintVisible(false)} />
+        <FooterItem compact={false} item={{
+            id: PanelId.Hotkeys,
+            title: 'Keyboard Shortcuts',
+            tooltipText: <>Keyboard Shortcuts <Hotkey value="mod+/" view="dark" /></>,
+            onItemClick: props.onFooterItemClick,
+            current: isHotkeysCurrent,
+            qa: 'footer-item-hotkeys',
+            itemWrapper: (params, makeItem) => makeItem({
+                ...params,
+                icon: <Icon className={classNames({
+                    [styles.footerItem]: !isHotkeysCurrent,
+                    [styles['footer-item--active']]: isHotkeysCurrent,
+                    disabled: !isInitialized
+                })} data={Keyboard} />
+            })
+        }} />
         <FooterItem compact={false} item={{
             id: PanelId.Info,
             title: 'Info',
