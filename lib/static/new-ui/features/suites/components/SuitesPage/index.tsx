@@ -17,6 +17,7 @@ import * as actions from '@/static/modules/actions';
 import {getIsInitialized} from '@/static/new-ui/store/selectors';
 import {TestControlPanel} from '@/static/new-ui/features/suites/components/TestControlPanel';
 import {TestStatusBar} from '@/static/new-ui/features/suites/components/TestStatusBar';
+import {TestTags} from '@/static/new-ui/features/suites/components/TestTags';
 
 import styles from './index.module.css';
 import {TestInfoSkeleton} from '@/static/new-ui/features/suites/components/SuitesPage/TestInfoSkeleton';
@@ -271,6 +272,7 @@ export function SuitesPage(): ReactNode {
                                     totalItems={visibleTreeNodeIds.length}
                                     onNext={(): void => onPrevNextSuiteHandler(1)}
                                     onPrevious={(): void => onPrevNextSuiteHandler(-1)}/>
+                                <TestTags/>
                                 <TestControlPanel onAttemptChange={onAttemptChangeHandler}/>
                             </div>
 

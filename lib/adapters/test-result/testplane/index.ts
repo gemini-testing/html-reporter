@@ -2,6 +2,8 @@ import _ from 'lodash';
 import {ERROR, FAIL, SUCCESS, TestStatus, UNKNOWN_SESSION_ID, UPDATED} from '../../../constants';
 import {ReporterTestResult} from '../index';
 import type Testplane from 'testplane';
+import type {TestTag} from 'testplane';
+import type {Suite, Test} from 'testplane';
 import type {Test as TestplaneTest, Config} from 'testplane';
 import type {
     Attachment,
@@ -19,6 +21,7 @@ import type {
     TestplaneTestResult,
     TestStepCompressed
 } from '../../../types';
+import {AttachmentType} from '../../../types';
 import {
     getError,
     hasUnrelatedToScreenshotsErrors,
@@ -251,7 +254,36 @@ export class TestplaneTestResultAdapter implements ReporterTestResult {
         return this._duration;
     }
 
+    get tags(): TestTag[] {
+        const list: TestTag[] = [];
+
+        let current: Test | Suite | TestplaneTestResult | null = this._testResult;
+
+        while (current) {
+            const tags = current?.getTag();
+
+            if (tags && tags.length > 0) {
+                list.unshift(...tags);
+            }
+
+            current = current.parent;
+        }
+
+        return list;
+    }
+
     get attachments(): Attachment[] {
+        const tagsList = this.tags;
+
+        if (tagsList.length > 0) {
+            return [
+                {
+                    type: AttachmentType.Tags,
+                    list: tagsList
+                }
+            ];
+        }
+
         return [];
     }
 }
