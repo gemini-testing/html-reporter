@@ -1,6 +1,6 @@
 import type axios from 'axios';
 import type {LooksSameOptions, CoordBounds} from 'looks-same';
-import type {default as Testplane, TestResult} from 'testplane';
+import type {default as Testplane, TestResult, TestTag} from 'testplane';
 import {BrowserFeature, DiffModeId, SaveFormat, SUITES_TABLE_COLUMNS, TestStatus, ViewMode} from './constants';
 import type {HtmlReporter} from './plugin-api';
 import {ImageDiffError, NoRefImageError} from './errors';
@@ -325,7 +325,8 @@ export interface TestStepCompressed {
 
 export enum AttachmentType {
     Snapshot = 0,
-    Badges = 1
+    Badges = 1,
+    Tags = 2
 }
 
 export interface SnapshotAttachment {
@@ -340,7 +341,12 @@ export interface BadgesAttachment {
     list: Badge[];
 }
 
-export type Attachment = SnapshotAttachment | BadgesAttachment;
+export interface TagsAttachment {
+    type: AttachmentType.Tags;
+    list: TestTag[];
+}
+
+export type Attachment = SnapshotAttachment | BadgesAttachment | TagsAttachment;
 
 export interface ApiErrorResponse {
     error: {
