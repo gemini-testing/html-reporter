@@ -85,39 +85,34 @@ function isInputFocused(): boolean {
         activeElement instanceof HTMLTextAreaElement ||
         activeElement?.getAttribute('contenteditable') === 'true';
 }
+
 function matchesModifiers(event: KeyboardEvent, parsed: ParsedKey): boolean {
     const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
     const modKey = isMac ? event.metaKey : event.ctrlKey;
 
     if (parsed.mod) {
-        if (!modKey) {
-            return false;
-        }
-        if (isMac && event.ctrlKey) {
-            return false;
-        }
-        if (!isMac && event.metaKey) {
+        if (
+            !modKey ||
+            (isMac && event.ctrlKey) ||
+            (!isMac && event.metaKey)
+        ) {
             return false;
         }
     } else {
-        if (!parsed.meta && event.metaKey) {
-            return false;
-        }
-        if (!parsed.ctrl && event.ctrlKey) {
+        if (
+            (!parsed.meta && event.metaKey) ||
+            (!parsed.ctrl && event.ctrlKey)
+        ) {
             return false;
         }
     }
 
-    if (parsed.shift !== event.shiftKey) {
-        return false;
-    }
-    if (parsed.alt !== event.altKey) {
-        return false;
-    }
-    if (parsed.meta && !event.metaKey) {
-        return false;
-    }
-    if (parsed.ctrl && !event.ctrlKey) {
+    if (
+        (parsed.shift !== event.shiftKey) ||
+        (parsed.alt !== event.altKey) ||
+        (parsed.meta && !event.metaKey) ||
+        (parsed.ctrl && !event.ctrlKey)
+    ) {
         return false;
     }
 
