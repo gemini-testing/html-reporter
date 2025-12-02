@@ -16,3 +16,4 @@ hot
 tmp
 **/playwright-report
 **/html-report/*
+examples/**

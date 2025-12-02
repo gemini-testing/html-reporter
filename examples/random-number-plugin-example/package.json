@@ -1,0 +1,39 @@
+{
+  "name": "random-number-plugin-example",
+  "version": "1.0.0",
+  "description": "Example html-reporter plugin demonstrating UI, server middleware, and config preset",
+  "license": "MIT",
+  "files": [
+    "ui/build",
+    "server/build",
+    "preset-for-config/build"
+  ],
+  "exports": {
+    ".": "./preset-for-config/build/index.js",
+    "./plugin.js": "./ui/build/plugin.js",
+    "./middleware.js": "./server/build/index.js"
+  },
+  "scripts": {
+    "build": "npm run build:preset && npm run build:ui && npm run build:server",
+    "build:preset": "tsc --project preset-for-config/tsconfig.json",
+    "build:ui": "vite build -c ui/vite.config.ts",
+    "build:server": "tsc --project server/tsconfig.json",
+    "watch:ui": "vite build -c ui/vite.config.ts --watch",
+    "watch:server": "tsc --project server/tsconfig.json --watch"
+  },
+  "devDependencies": {
+    "@gravity-ui/uikit": "^7.8.0",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.10.0",
+    "@types/react": "^18.3.0",
+    "@types/react-redux": "^7.1.16",
+    "@vitejs/plugin-react": "^4.2.0",
+    "html-reporter": "^11.0.0",
+    "immer": "^9.0.6",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "typescript": "^5.3.0",
+    "vite": "^5.0.0",
+    "vite-plugin-css-injected-by-js": "^3.3.0"
+  }
+}

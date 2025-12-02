@@ -1,0 +1,37 @@
+/* 
+ * CSS Modules in html-reporter plugins:
+ * - Use vite-plugin-css-injected-by-js to bundle CSS into the JS file
+ * - Use .module.css extension for scoped class names
+ * - Import as: import styles from "./Plugin.module.css"
+ */
+
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.result {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.number {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--g-color-text-brand);
+}
+
+.label {
+    color: var(--g-color-text-secondary);
+}
+
+.loading {
+    color: var(--g-color-text-secondary);
+    font-style: italic;
+}
+
+.error {
+    color: var(--g-color-text-danger);
+}
