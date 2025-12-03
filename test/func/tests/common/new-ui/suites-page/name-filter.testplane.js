@@ -15,6 +15,18 @@ if (process.env.TOOL === 'testplane') {
                         await searchInput.waitForClickable();
                     });
 
+                    it('tag', async () => {
+                        await searchInput.setValue('@ok-test');
+                    });
+
+                    it('click to tag', async ({browser}) => {
+                        const testElement = await browser.$('[data-list-item="failed describe/test with image comparison diff/chrome"]');
+                        await testElement.click();
+
+                        const tagElement = await browser.$('[data-qa="test-tag-error-test"]');
+                        await tagElement.click();
+                    });
+
                     it('usual search', async () => {
                         await searchInput.setValue('failed');
                     });
