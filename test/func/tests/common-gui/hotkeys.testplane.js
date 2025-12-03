@@ -95,7 +95,28 @@ describe('GUI mode', () => {
             });
         });
 
-        describe('Screenshot accept/undo hotkeys', () => {
+        describe('Screenshot accept/undo hotkeys on Suites page', () => {
+            beforeEach(async ({browser}) => {
+                await browser.keys('s');
+
+                const suitesTitle = await browser.$('[data-qa="sidebar-title"]');
+                await expect(suitesTitle).toHaveText('Suites');
+            });
+
+            it('should accept all visible with "shift+a" key', async ({browser}) => {
+                await browser.keys(['Shift', 'a']);
+
+                await waitForFsChanges(screensDir);
+
+                const failedTab = await browser.$('[title="Failed"]');
+                await failedTab.click();
+
+                const failedItems = await browser.$$('[data-qa="tree-view-item"]');
+                expect(failedItems.length).toBe(0);
+            });
+        });
+
+        describe('Screenshot accept/undo hotkeys on Visual Checks page', () => {
             beforeEach(async ({browser}) => {
                 await browser.keys('v');
 
@@ -104,9 +125,6 @@ describe('GUI mode', () => {
             });
 
             it('should accept screenshot with "a" key and auto-advance to next', async ({browser}) => {
-                const failedTab = await browser.$('[title="Failed"]');
-                await failedTab.click();
-
                 await browser.waitUntil(async () => {
                     const items = await browser.$$('[data-qa="tree-view-item"]');
                     return items.length > 0;
@@ -115,80 +133,31 @@ describe('GUI mode', () => {
                 const initialTitle = await browser.$('h2');
                 const initialText = await initialTitle.getText();
 
-                const acceptButton = await browser.$('[data-qa="accept-button"]');
-                const isAcceptAvailable = await acceptButton.isExisting();
+                await browser.keys('a');
 
-                if (isAcceptAvailable) {
-                    await browser.keys('a');
+                await browser.pause(5000);
 
-                    await waitForFsChanges(screensDir);
+                await waitForFsChanges(screensDir);
 
-                    await browser.waitUntil(async () => {
-                        const title = await browser.$('h2');
-                        const text = await title.getText();
-                        return text !== initialText;
-                    }, {timeout: 5000, timeoutMsg: 'Did not auto-advance to next screenshot'});
-                }
+                await browser.waitUntil(async () => {
+                    const title = await browser.$('h2');
+                    const text = await title.getText();
+                    return text !== initialText;
+                }, {timeout: 5000, timeoutMsg: 'Did not auto-advance to next screenshot'});
             });
 
             it('should undo accept with "u" key', async ({browser}) => {
-                const failedTab = await browser.$('[title="Failed"]');
-                await failedTab.click();
+                await browser.keys('a');
+                await waitForFsChanges(screensDir);
 
-                await browser.waitUntil(async () => {
-                    const items = await browser.$$('[data-qa="tree-view-item"]');
-                    return items.length > 0;
-                });
+                await browser.keys('ArrowUp');
 
-                const acceptButton = await browser.$('[data-qa="accept-button"]');
-                const isAcceptAvailable = await acceptButton.isExisting();
+                const undoButton = await browser.$('[data-qa="undo-button"]');
+                await browser.waitUntil(async () => await undoButton.isExisting());
 
-                if (isAcceptAvailable) {
-                    await acceptButton.click();
-                    await waitForFsChanges(screensDir);
+                await browser.keys('u');
 
-                    await browser.keys('ArrowUp');
-
-                    const undoButton = await browser.$('[data-qa="undo-button"]');
-                    await browser.waitUntil(async () => await undoButton.isExisting());
-
-                    await browser.keys('u');
-
-                    await waitForFsChanges(screensDir, (output) => output.length === 0);
-
-                    const acceptButtonAfterUndo = await browser.$('[data-qa="accept-button"]');
-                    await expect(acceptButtonAfterUndo).toBeDisplayed();
-                }
-            });
-
-            it('should accept all visible with "shift+a" key', async ({browser}) => {
-                const failedTab = await browser.$('[title="Failed"]');
-                await failedTab.click();
-
-                await browser.waitUntil(async () => {
-                    const items = await browser.$$('[data-qa="tree-view-item"]');
-                    return items.length > 0;
-                });
-
-                const failedItems = await browser.$$('[data-qa="tree-view-item"]');
-                const failedCount = failedItems.length;
-
-                if (failedCount > 0) {
-                    await browser.keys(['Shift', 'a']);
-
-                    await waitForFsChanges(screensDir);
-
-                    const passedTab = await browser.$('[title="Passed"]');
-                    await passedTab.click();
-
-                    await browser.waitUntil(async () => {
-                        const items = await browser.$$('[data-qa="tree-view-item"]');
-                        return items.length > 0;
-                    });
-
-                    const passedItems = await browser.$$('[data-qa="tree-view-item"]');
-                    expect(passedItems.length).toBeGreaterThan(0);
-                }
+                await waitForFsChanges(screensDir, (output) => output.length === 0);
             });
         });
 
