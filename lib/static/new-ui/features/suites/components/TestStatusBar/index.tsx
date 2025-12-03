@@ -36,7 +36,7 @@ export const TestStatusBar = (): ReactNode => {
             <div className={styles['test-status-bar__main']}>
                 {getIconByStatus(suite.status)}
 
-                <div className={styles['test-status-bar__status']}>
+                <div className={styles['test-status-bar__status']} data-qa="suite-status-bar-status">
                     {_.startCase(suite.status)}
                 </div>
                 <div className={styles['test-status-bar__duration']}>

@@ -12,7 +12,7 @@ interface AsidePanelProps {
 
 export function AsidePanel(props: AsidePanelProps): ReactNode {
     return <div className={classNames(styles.container, props.className)}>
-        <h2 className={classNames('text-display-1')}>{props.title}</h2>
+        <h2 className={classNames('text-display-1')} data-qa="aside-panel-title">{props.title}</h2>
         <Divider className={styles.divider} orientation={'horizontal'} />
         {props.children}
     </div>;

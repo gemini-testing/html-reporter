@@ -90,5 +90,5 @@ export const AttemptPickerItem = (props: AttemptPickerItemProps): ReactNode => {
         {[styles['attempt-picker-item--non-matched']]: isGroupingEnabled && !matchedSelectedGroup}
     );
 
-    return <Button {...buttonStyle} title={title} className={className} onClick={onClick} qa={'retry-switcher'}>{result.attempt + 1}</Button>;
+    return <Button {...buttonStyle} title={title} className={className} onClick={onClick} qa={'retry-switcher'} data-qa-active={isActive}>{result.attempt + 1}</Button>;
 };
