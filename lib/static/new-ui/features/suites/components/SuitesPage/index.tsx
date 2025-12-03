@@ -5,6 +5,7 @@ import {useNavigate, useParams} from 'react-router-dom';
 import {UiCard} from '@/static/new-ui/components/Card/UiCard';
 import {
     getAttempt,
+    getCurrentBrowser,
     getCurrentResult,
     getCurrentResultImages,
     getCurrentBrowserId
@@ -35,6 +36,7 @@ import {getCurrentSuiteHash, getSuitesStatusCounts, getSuitesTreeViewData} from 
 import {getIconByStatus} from '@/static/new-ui/utils';
 import {Page} from '@/constants';
 import {usePage} from '@/static/new-ui/hooks/usePage';
+import {useHotkey} from '@/static/new-ui/hooks/useHotkey';
 import {changeTestRetry, setCurrentTreeNode, setStrictMatchFilter} from '@/static/modules/actions';
 import {getUrl} from '@/static/new-ui/utils/getUrl';
 
@@ -52,6 +54,8 @@ export function SuitesPage(): ReactNode {
 
     const currentTreeNodeId = useSelector(state => state.app[Page.suitesPage].currentTreeNodeId);
     const currentIndex = visibleTreeNodeIds.indexOf(currentTreeNodeId as string);
+    const currentBrowserEntity = useSelector(getCurrentBrowser);
+    const totalAttempts = currentBrowserEntity?.resultIds.length ?? 0;
 
     const isInitialized = useSelector(getIsInitialized);
     const dispatch = useDispatch();
@@ -146,7 +150,7 @@ export function SuitesPage(): ReactNode {
         }
     ], [statusCounts]);
 
-    const onPrevNextSuiteHandler = (step: number): void => {
+    const onPrevNextSuiteHandler = useCallback((step: number): void => {
         const treeNodeId = visibleTreeNodeIds[currentIndex + step];
         const currentTreeNode = findTreeNodeById(tree, treeNodeId ?? '');
         if (!currentTreeNode) {
@@ -160,7 +164,34 @@ export function SuitesPage(): ReactNode {
         dispatch(actions.setCurrentTreeNode({treeNodeId, browserId: currentTreeNode.entityId, groupId}));
 
         suitesTreeViewRef?.current?.scrollToId(treeNodeId as string);
-    };
+    }, [visibleTreeNodeIds, currentIndex, tree, currentTreeNodeId, dispatch]);
+
+    const onPrevNextAttemptHandler = useCallback((step: number): void => {
+        if (!currentBrowser || attempt === null) {
+            return;
+        }
+
+        const newAttempt = attempt + step;
+        if (newAttempt < 0 || newAttempt >= totalAttempts) {
+            return;
+        }
+
+        dispatch(actions.changeTestRetry({
+            browserId: currentBrowser,
+            retryIndex: newAttempt,
+            [Page.suitesPage]: currentTreeNodeId ? {treeNodeId: currentTreeNodeId} : undefined
+        }));
+    }, [currentBrowser, attempt, totalAttempts, currentTreeNodeId, dispatch]);
+
+    const goToNextSuite = useCallback(() => onPrevNextSuiteHandler(1), [onPrevNextSuiteHandler]);
+    const goToPrevSuite = useCallback(() => onPrevNextSuiteHandler(-1), [onPrevNextSuiteHandler]);
+    const goToNextAttempt = useCallback(() => onPrevNextAttemptHandler(1), [onPrevNextAttemptHandler]);
+    const goToPrevAttempt = useCallback(() => onPrevNextAttemptHandler(-1), [onPrevNextAttemptHandler]);
+
+    useHotkey('ArrowDown', goToNextSuite);
+    useHotkey('ArrowUp', goToPrevSuite);
+    useHotkey('ArrowRight', goToNextAttempt);
+    useHotkey('ArrowLeft', goToPrevAttempt);
 
     const onHighlightCurrentTest = (): void => {
         if (suitesTreeViewRef.current && currentResult?.parentId) {

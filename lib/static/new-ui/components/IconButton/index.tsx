@@ -3,7 +3,7 @@ import React, {KeyboardEventHandler, MouseEventHandler, ReactNode} from 'react';
 
 interface IconButtonProps {
     icon: ReactNode;
-    tooltip: string;
+    tooltip: ReactNode;
     onClick?: MouseEventHandler;
     onKeyDown?: KeyboardEventHandler;
     view?: ButtonView;

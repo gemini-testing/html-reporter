@@ -4,6 +4,14 @@
 }
 
 .search-input :global(.g-text-input__control) {
+    padding-right: 100px;
+}
+
+.search-input--with-hotkey :global(.g-text-input__control) {
+    padding-right: 100px;
+}
+
+.search-input--without-hotkey :global(.g-text-input__control) {
     padding-right: 54px;
 }
 
@@ -17,6 +25,7 @@
     width: fit-content;
     flex-direction: row;
     padding: 2px 2px 2px 0;
+    align-items: center;
 }
 
 .buttons-wrapper :global(.g-button) {
@@ -38,4 +47,15 @@
 .buttons-wrapper__regex {
     width: var(--_--height);
     font-weight: 600;
+}
+
+.hotkey {
+    --g-color-base-light-simple-hover: var(--color-neutral-100);
+    --g-color-text-light-complementary: var(--color-neutral-600);
+    --g-color-text-light-hint: var(--color-neutral-400);
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    margin-right: 4px;
+    height: 20px;
 }

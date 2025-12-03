@@ -28,6 +28,7 @@ import {getIconByStatus} from '@/static/new-ui/utils';
 import {isSectionHidden} from '@/static/new-ui/features/suites/utils';
 import {MIN_SECTION_SIZE_PERCENT} from '@/static/new-ui/features/suites/constants';
 import {usePage} from '@/static/new-ui/hooks/usePage';
+import {useHotkey} from '@/static/new-ui/hooks/useHotkey';
 import {useNavigate, useParams} from 'react-router-dom';
 import {RunTestLoading} from '@/static/new-ui/components/RunTestLoading';
 import {getUrl} from '@/static/new-ui/utils/getUrl';
@@ -77,6 +78,46 @@ export function VisualChecksPage(): ReactNode {
         }));
         setImageChanged(true);
     }, [treeData]);
+
+    const visibleNamedImageIds = treeData.allTreeNodeIds;
+    const currentNamedImageIndex = visibleNamedImageIds.indexOf(currentTreeNodeId);
+
+    const onPrevNextImageHandler = useCallback((step: number): void => {
+        const nextIndex = currentNamedImageIndex + step;
+        if (nextIndex < 0 || nextIndex >= visibleNamedImageIds.length) {
+            return;
+        }
+
+        const nextItem = treeData.tree[nextIndex]?.data;
+        if (nextItem) {
+            onImageChange(nextItem);
+        }
+    }, [currentNamedImageIndex, visibleNamedImageIds, treeData.tree, onImageChange]);
+
+    const totalAttempts = currentBrowser?.resultIds.length ?? 0;
+
+    const onPrevNextAttemptHandler = useCallback((step: number): void => {
+        if (!currentBrowser || attempt === null) {
+            return;
+        }
+
+        const newAttempt = attempt + step;
+        if (newAttempt < 0 || newAttempt >= totalAttempts) {
+            return;
+        }
+
+        dispatch(changeTestRetry({browserId: currentBrowser.id, retryIndex: newAttempt}));
+    }, [currentBrowser, attempt, totalAttempts, dispatch]);
+
+    const goToNextImage = useCallback(() => onPrevNextImageHandler(1), [onPrevNextImageHandler]);
+    const goToPrevImage = useCallback(() => onPrevNextImageHandler(-1), [onPrevNextImageHandler]);
+    const goToNextAttempt = useCallback(() => onPrevNextAttemptHandler(1), [onPrevNextAttemptHandler]);
+    const goToPrevAttempt = useCallback(() => onPrevNextAttemptHandler(-1), [onPrevNextAttemptHandler]);
+
+    useHotkey('ArrowDown', goToNextImage);
+    useHotkey('ArrowUp', goToPrevImage);
+    useHotkey('ArrowRight', goToNextAttempt);
+    useHotkey('ArrowLeft', goToPrevAttempt);
 
     useEffect(() => {
         if (imageChanged && currentBrowser) {

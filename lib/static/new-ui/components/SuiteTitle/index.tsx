@@ -45,7 +45,7 @@ export function SuiteTitle(props: SuiteTitleProps): ReactNode {
             </div>
         </div>
         <div className={styles.paginationContainer}>
-            <span className={styles.counter}>{props.index === -1 ? '–' : props.index + 1}/{props.totalItems}</span>
+            <span className={styles.counter} data-qa="suite-title-counter">{props.index === -1 ? '–' : props.index + 1}/{props.totalItems}</span>
             <Button qa='suite-prev' view={'flat'} disabled={props.index <= 0} onClick={props.onPrevious}><Icon
                 data={ChevronUp}/></Button>
             <Button qa='suite-next' view={'flat'} disabled={props.index < 0 || props.index === props.totalItems - 1} onClick={props.onNext}><Icon

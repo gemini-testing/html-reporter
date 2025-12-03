@@ -1,4 +1,4 @@
-import {Icon, Popover, Spin} from '@gravity-ui/uikit';
+import {Hotkey, Icon, Popover, Spin} from '@gravity-ui/uikit';
 import classNames from 'classnames';
 import {
     ArrowUturnCcwLeft,
@@ -15,7 +15,7 @@ import {
     Hierarchy,
     GearPlay
 } from '@gravity-ui/icons';
-import React, {ReactNode, useMemo} from 'react';
+import React, {ReactNode, useCallback, useMemo} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import styles from './index.module.css';
@@ -49,6 +49,7 @@ import {GroupBySelect} from '@/static/new-ui/features/suites/components/GroupByS
 import {SortBySelect} from '@/static/new-ui/features/suites/components/SortBySelect';
 import {thunkAcceptImages, thunkRevertImages} from '@/static/modules/actions/screenshots';
 import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
+import {useHotkey} from '@/static/new-ui/hooks/useHotkey';
 import ExtensionPoint, {getExtensionPointComponents} from '../../../components/extension-point';
 import {ExtensionPointName} from '../../constants/plugins';
 import * as plugins from '../../../modules/plugins';
@@ -135,7 +136,10 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
         dispatch(setAllTreeNodesState({isExpanded: false}));
     };
 
-    const handleRun = (): void => {
+    const selectedOrVisible = isSelectedAtLeastOne ? 'selected' : 'visible';
+    const areActionsDisabled = isRunning || !isInitialized;
+
+    const handleRun = useCallback((): void => {
         analytics?.trackFeatureUsage({featureName: `${ANALYTICS_PREFIX} run tests`});
         if (isSelectedAtLeastOne) {
             dispatch(thunkRunTests({tests: selectedTests}));
@@ -146,7 +150,7 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
             }));
             dispatch(thunkRunTests({tests: visibleTests}));
         }
-    };
+    }, [analytics, isSelectedAtLeastOne, selectedTests, visibleBrowserIds, browsersById, dispatch]);
 
     const handleUndo = (): void => {
         const acceptableImageIds = activeImages
@@ -161,7 +165,7 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
         }
     };
 
-    const handleAccept = (): void => {
+    const handleAccept = useCallback((): void => {
         const acceptableImageIds = activeImages
             .filter(image => isAcceptable(image))
             .map(image => image.id);
@@ -173,7 +177,7 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
         } else {
             dispatch(thunkAcceptImages({imageIds: acceptableImageIds}));
         }
-    };
+    }, [activeImages, analytics, isStaticImageAccepterEnabled, dispatch]);
 
     const handleToggleTreeView = (): void => {
         const newTreeViewMode = treeViewMode === TreeViewMode.Tree ? TreeViewMode.List : TreeViewMode.Tree;
@@ -181,8 +185,8 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
         dispatch(setTreeViewMode({treeViewMode: newTreeViewMode}));
     };
 
-    const selectedOrVisible = isSelectedAtLeastOne ? 'selected' : 'visible';
-    const areActionsDisabled = isRunning || !isInitialized;
+    useHotkey('shift+r', handleRun, {enabled: Boolean(isRunTestsAvailable) && !isRunning && isInitialized});
+    useHotkey('shift+a', handleAccept, {enabled: Boolean(isEditScreensAvailable) && !areActionsDisabled && isAtLeastOneAcceptable && !isUndoButtonVisible});
 
     const loadedPluginConfigs = plugins.getLoadedConfigs();
     const pluginComponents = getExtensionPointComponents(loadedPluginConfigs, ExtensionPointName.RunTestOptions);
@@ -198,7 +202,7 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
                         <IconButton
                             className={styles.iconButton}
                             icon={<Icon data={Play} height={14}/>}
-                            tooltip={`Run ${selectedOrVisible}`}
+                            tooltip={<>Run {selectedOrVisible} ⋅ <Hotkey value="shift+r" view="light" /></>}
                             view={'flat'}
                             onClick={handleRun}
                             disabled={isRunning || !isInitialized}
@@ -220,7 +224,7 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
             {isEditScreensAvailable && (
                 isUndoButtonVisible ?
                     <IconButton className={styles.iconButton} icon={<Icon data={ArrowUturnCcwLeft} />} tooltip={`Undo accepting ${selectedOrVisible} screenshots`} view={'flat'} onClick={handleUndo} disabled={areActionsDisabled}></IconButton> :
-                    <IconButton className={styles.iconButton} icon={<Icon data={Check} />} tooltip={`Accept ${selectedOrVisible} screenshots`} view={'flat'} onClick={handleAccept} disabled={areActionsDisabled || !isAtLeastOneAcceptable}></IconButton>
+                    <IconButton className={styles.iconButton} icon={<Icon data={Check} />} tooltip={<>Accept {selectedOrVisible} screenshots ⋅ <Hotkey value="shift+a" view="light" /></>} view={'flat'} onClick={handleAccept} disabled={areActionsDisabled || !isAtLeastOneAcceptable}></IconButton>
             )}
             {(isRunTestsAvailable || isEditScreensAvailable) && <div className={styles.buttonsDivider}></div>}
             <IconButton

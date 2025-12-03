@@ -225,7 +225,14 @@ export const getStepsExpandedById = createSelector(
             }
 
             const stepId = step.id as string;
-            result[stepId] = expandedStepsById[stepId] ?? true;
+
+            const isUpdatedAssertView = step.data.type === StepType.Action &&
+                step.data.title === 'assertView' &&
+                step.data.status === TestStatus.UPDATED;
+
+            const defaultExpanded = !isUpdatedAssertView;
+
+            result[stepId] = expandedStepsById[stepId] ?? defaultExpanded;
         });
 
         return result;

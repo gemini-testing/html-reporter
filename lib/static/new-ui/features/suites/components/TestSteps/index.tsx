@@ -30,6 +30,7 @@ import {useNavigate} from 'react-router-dom';
 import {getUrl} from '@/static/new-ui/utils/getUrl';
 import {Page} from '@/constants';
 import {getCurrentSuiteHash} from '@/static/new-ui/features/suites/components/SuitesPage/selectors';
+import {FocusedImageProvider} from './FocusedImageContext';
 
 type TestStepClickHandler = (item: {id: string}) => void
 
@@ -210,24 +211,26 @@ function TestStepsInternal(props: TestStepsProps): ReactNode {
         }));
     }, [currentSnapshotsPlayerState]);
 
-    return <ListContainerView className={props.className} extraProps={{onMouseLeave: (): void => onStepMouseLeave()}}>
-        {items.structure.visibleFlattenIds.map((itemId, index) =>
-            (
-                <ErrorHandler.Boundary key={itemId} fallback={<ListItemCorrupted items={items} itemId={itemId}/>}>
-                    <TestStep
-                        className={classNames(styles.step, {[styles['step--dimmed']]: currentHighlightStepId && currentHighlightStepId !== itemId})}
-                        key={itemId}
-                        isActive={itemId === currentStepId}
-                        onItemClick={(): void => onItemClick(itemId, items.structure.itemsById[itemId])}
-                        items={items}
-                        itemId={itemId}
-                        index={index}
-                        onMouseMove={(): void => onStepMouseMove(items.structure.itemsById[itemId])}
-                    />
-                </ErrorHandler.Boundary>
-            )
-        )}
-    </ListContainerView>;
+    return <FocusedImageProvider>
+        <ListContainerView className={props.className} extraProps={{onMouseLeave: (): void => onStepMouseLeave()}}>
+            {items.structure.visibleFlattenIds.map((itemId, index) =>
+                (
+                    <ErrorHandler.Boundary key={itemId} fallback={<ListItemCorrupted items={items} itemId={itemId}/>}>
+                        <TestStep
+                            className={classNames(styles.step, {[styles['step--dimmed']]: currentHighlightStepId && currentHighlightStepId !== itemId})}
+                            key={itemId}
+                            isActive={itemId === currentStepId}
+                            onItemClick={(): void => onItemClick(itemId, items.structure.itemsById[itemId])}
+                            items={items}
+                            itemId={itemId}
+                            index={index}
+                            onMouseMove={(): void => onStepMouseMove(items.structure.itemsById[itemId])}
+                        />
+                    </ErrorHandler.Boundary>
+                )
+            )}
+        </ListContainerView>
+    </FocusedImageProvider>;
 }
 export const TestSteps = connect(state => ({
     resultId: getCurrentResultId(state) ?? '',

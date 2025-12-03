@@ -77,3 +77,15 @@
         display: block;
     }
 }
+
+.hotkey, .hotkey-hidden {
+    margin-left: 4px;
+}
+
+.hotkey-hidden {
+    opacity: 0;
+}
+
+.accept-button, .go-to-visual {
+    padding-right: 4px;
+}

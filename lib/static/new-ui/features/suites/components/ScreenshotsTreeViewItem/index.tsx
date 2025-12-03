@@ -1,6 +1,6 @@
 import {ArrowRightArrowLeft, ArrowUturnCcwLeft, Check, Eye} from '@gravity-ui/icons';
-import {Button, Icon, SegmentedRadioGroup as RadioButton, Select, Flex} from '@gravity-ui/uikit';
-import React, {ReactNode, createRef, useEffect, useRef} from 'react';
+import {Button, Hotkey, Icon, SegmentedRadioGroup as RadioButton, Select, Flex} from '@gravity-ui/uikit';
+import React, {ReactNode, createRef, useCallback, useEffect, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {AssertViewResult} from '@/static/new-ui/components/AssertViewResult';
@@ -18,9 +18,11 @@ import {AssertViewStatus} from '@/static/new-ui/components/AssertViewStatus';
 import styles from './index.module.css';
 import {thunkAcceptImages, thunkRevertImages} from '@/static/modules/actions/screenshots';
 import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
+import {useHotkey} from '@/static/new-ui/hooks/useHotkey';
 import {ErrorHandler} from '../../../error-handling/components/ErrorHandling';
 import {useNavigate, useParams} from 'react-router-dom';
 import {getUrl} from '@/static/new-ui/utils/getUrl';
+import {useFocusedImage} from '@/static/new-ui/features/suites/components/TestSteps/FocusedImageContext';
 
 interface ScreenshotsTreeViewItemProps {
     image: ImageEntity;
@@ -50,6 +52,9 @@ export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): Re
     const inited = useRef(false);
     const suiteId = useSelector(getCurrentBrowserId({hash, browser}));
 
+    const {focusedImageId, setFocusedImageId, registerImageId, unregisterImageId} = useFocusedImage();
+    const isFocused = focusedImageId === props.image.id;
+
     const diffMode = useSelector(state => state.view.diffMode);
     const isEditScreensAvailable = useSelector(state => state.app.availableFeatures)
         .find(feature => feature.name === EditScreensFeature.name);
@@ -64,12 +69,20 @@ export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): Re
     const currentResult = useSelector(getCurrentResult);
     const isLastResult = currentResult && currentBrowser && currentResult.id === currentBrowser.resultIds[currentBrowser.resultIds.length - 1];
     const isUndoAvailable = isScreenRevertable({gui: isGui, image: props.image, isLastResult, isStaticImageAccepterEnabled});
+    const isAcceptAvailable = isAcceptable(props.image);
+
+    useEffect(() => {
+        registerImageId(props.image.id);
+        return () => {
+            unregisterImageId(props.image.id);
+        };
+    }, [props.image.id, registerImageId, unregisterImageId]);
 
     const onDiffModeChangeHandler = (diffModeId: DiffModeId): void => {
         dispatch(setDiffMode({diffModeId}));
     };
 
-    const onScreenshotAccept = (): void => {
+    const onScreenshotAccept = useCallback((): void => {
         analytics?.trackScreenshotsAccept();
 
         if (isStaticImageAccepterEnabled) {
@@ -77,18 +90,17 @@ export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): Re
         } else {
             dispatch(thunkAcceptImages({imageIds: [props.image.id]}));
         }
-    };
-    const onScreenshotUndo = (): void => {
+    }, [analytics, isStaticImageAccepterEnabled, dispatch, props.image.id]);
+
+    const onScreenshotUndo = useCallback((): void => {
         if (isStaticImageAccepterEnabled) {
             dispatch(staticAccepterUnstageScreenshot([props.image.id]));
         } else {
             dispatch(thunkRevertImages({imageIds: [props.image.id]}));
         }
-    };
+    }, [isStaticImageAccepterEnabled, dispatch, props.image.id]);
 
-    const imageId = `${currentResult?.parentId} ${props.image.stateName}`;
-
-    const onVisualChecks = (): void => {
+    const onVisualChecks = useCallback((): void => {
         navigate(getUrl({
             page: Page.visualChecksPage,
             hash,
@@ -96,7 +108,21 @@ export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): Re
             stateName: props.image.stateName,
             attempt: currentResult?.attempt
         }));
-    };
+    }, [navigate, hash, browser, props.image.stateName, currentResult?.attempt]);
+
+    const imageId = `${currentResult?.parentId} ${props.image.stateName}`;
+
+    const onMouseEnter = useCallback((): void => {
+        setFocusedImageId(props.image.id);
+    }, [setFocusedImageId, props.image.id]);
+
+    const isAcceptEnabled = isFocused && Boolean(isEditScreensAvailable) && isAcceptAvailable && !isRunning && !isProcessing;
+    const isUndoEnabled = isFocused && Boolean(isEditScreensAvailable) && isUndoAvailable && !isRunning && !isProcessing;
+    const isGoEnabled = isFocused && !isRunning && !isProcessing;
+
+    useHotkey('a', onScreenshotAccept, {enabled: isAcceptEnabled});
+    useHotkey('u', onScreenshotUndo, {enabled: isUndoEnabled});
+    useHotkey('g', onVisualChecks, {enabled: isGoEnabled});
 
     useEffect(() => {
         if (ref && ref.current && `${suiteId} ${stateName}` === imageId && inited && inited.current === false) {
@@ -109,7 +135,7 @@ export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): Re
     }, []);
 
     return (
-        <div style={props.style} className={styles.container} ref={ref}>
+        <div style={props.style} className={styles.container} ref={ref} onMouseEnter={onMouseEnter}>
             {props.image.status !== TestStatus.SUCCESS && (
                 <div className={styles.toolbarContainer}>
                     {!isDiffModeSwitcherVisible && (
@@ -142,7 +168,7 @@ export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): Re
                             onClick={onVisualChecks}
                             qa="go-visual-button"
                         >
-                            <Icon data={Eye}/>Go to Visual Checks
+                            <Icon data={Eye}/>Go to Visual Checks<Hotkey className={isFocused ? styles.hotkey : styles.hotkeyHidden} view="light" value="g" />
                         </Button>
                         {isEditScreensAvailable && (
                             <>
@@ -153,17 +179,17 @@ export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): Re
                                         disabled={isRunning || isProcessing}
                                         onClick={onScreenshotUndo}
                                     >
-                                        <Icon data={ArrowUturnCcwLeft}/>Undo
+                                        <Icon data={ArrowUturnCcwLeft}/>Undo<Hotkey className={isFocused ? styles.hotkey : styles.hotkeyHidden} view="dark" value="u" />
                                     </Button>
                                 )}
-                                {isAcceptable(props.image) && (
+                                {isAcceptAvailable && (
                                     <Button
                                         view="action"
                                         className={styles.acceptButton}
                                         disabled={isRunning || isProcessing}
                                         onClick={onScreenshotAccept}
                                     >
-                                        <Icon data={Check}/>Accept
+                                        <Icon data={Check}/>Accept<Hotkey className={isFocused ? styles.hotkey : styles.hotkeyHidden} view="dark" value="a" />
                                     </Button>
                                 )}
                             </>

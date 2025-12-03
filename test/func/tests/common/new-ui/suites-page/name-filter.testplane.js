@@ -11,6 +11,8 @@ if (process.env.TOOL === 'testplane') {
                         searchInput = await browser.$('[data-qa="name-filter"] input');
                         matchCaseButton = await browser.$('[data-qa="match-case"]');
                         regexButton = await browser.$('[data-qa="regex"]');
+
+                        await searchInput.waitForClickable();
                     });
 
                     it('usual search', async () => {
