@@ -36,8 +36,12 @@ export const TestTags = (): ReactNode => {
         }
     };
 
+    if (!tags?.list || tags.list.length === 0) {
+        return null;
+    }
+
     return (
-        <div className={styles['test-tags']}>
+        <div className={styles['test-tags']} data-qa="test-tags">
             <span className={styles['test-tags__title']}>
                 Tags
             </span>
@@ -52,6 +56,7 @@ export const TestTags = (): ReactNode => {
                             theme={tag.dynamic ? 'warning' : 'normal'}
                             onClick={(): void => addTag(tag.title)}
                             icon={<Icon data={icons.Tag} size={14} />}
+                            qa={`test-tag-${tag.title}`}
                         >
                             {tag.title}
                         </Label>

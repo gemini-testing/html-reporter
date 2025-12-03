@@ -1,4 +1,5 @@
 import Fuse from 'fuse.js';
+import type {Expression} from 'fuse.js';
 
 import {keyboardLayoutConverter} from '@/static/modules/utils';
 
@@ -46,13 +47,14 @@ const search = (testNameFilter: string, matchCase = false): string[] => {
         return [];
     }
 
-    const text = testNameFilter.replace(/@\w+/g, '').trim();
-    const tags = testNameFilter.match(/@\w+/g) ?? [];
+    const tagsRegex = /@[a-zA-Z0-9_-]+/g;
+    const text = testNameFilter.replace(tagsRegex, '').trim();
+    const tags = testNameFilter.match(tagsRegex) ?? [];
 
     const query = {
         $and: tags.map((tag) =>({
             tags: tag
-        }))
+        }) as Expression)
     };
 
     if (text && text.length > 0) {

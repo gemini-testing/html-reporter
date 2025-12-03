@@ -120,8 +120,6 @@ export class StaticReportBuilder {
     async addTestResult(formattedResultOriginal: ReporterTestResult): Promise<ReporterTestResult> {
         const formattedResult = this.provideAttempt(formattedResultOriginal);
 
-        // console.log('formattedResult', formattedResult.attachments[0]);
-
         // Test result data has to be saved before writing to db, because user may save data to custom location
         const testResultWithImagePaths = await this._saveTestResultData(formattedResult);
 
