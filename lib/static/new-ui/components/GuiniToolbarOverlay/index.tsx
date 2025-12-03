@@ -93,8 +93,8 @@ export function GuiniToolbarOverlay(): ReactNode {
                 content: result.error.message + '. See console for details.',
                 isClosable: true,
                 autoHiding: 5000,
-                renderIcon: () => <TriangleExclamation className={styles.errorToasterIcon} width={20} height={20} />,
-                className: styles.errorToaster
+                renderIcon: () => <TriangleExclamation className='toaster__icon--error' width={20} height={20} />,
+                className: 'toaster'
             });
         }
     };
