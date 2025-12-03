@@ -87,7 +87,8 @@ describe('ResultsTreeBuilder', () => {
                         root: true,
                         suitePath: ['s1'],
                         status: SUCCESS,
-                        suiteIds: ['s1 s2']
+                        suiteIds: ['s1 s2'],
+                        hash: '8ddf878'
                     }
                 );
             });
@@ -104,7 +105,8 @@ describe('ResultsTreeBuilder', () => {
                         root: false,
                         suitePath: ['s1', 's2'],
                         status: SUCCESS,
-                        browserIds: ['s1 s2 b1']
+                        browserIds: ['s1 s2 b1'],
+                        hash: 'c8304d9'
                     }
                 );
             });

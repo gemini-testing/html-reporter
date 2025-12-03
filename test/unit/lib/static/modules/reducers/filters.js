@@ -58,27 +58,78 @@ describe('lib/static/modules/reducers/view', () => {
                             assert.deepStrictEqual(newState.app[page].filteredBrowsers, []);
                         });
 
-                        it('should set "filteredBrowsers" property to specified browsers', () => {
+                        it('should set "filteredBrowsers" property to specified browsers with expanded versions', () => {
                             global.window.location = new URL(`${baseUrl}?browser=firefox&browser=safari${hash}`);
+                            const state = {
+                                ...defaultState,
+                                browsers: [
+                                    {id: 'firefox', versions: ['v1', 'v2']},
+                                    {id: 'safari', versions: ['v3']}
+                                ]
+                            };
                             const action = {type, payload: _mkInitialState()};
 
-                            const newState = reducer(defaultState, action);
+                            const newState = reducer(state, action);
 
                             assert.deepStrictEqual(newState.app[page].filteredBrowsers, [
-                                {id: 'firefox', versions: []},
+                                {id: 'firefox', versions: ['v1', 'v2']},
+                                {id: 'safari', versions: ['v3']}
+                            ]);
+                        });
+
+                        it('should keep empty versions for browsers not found in available browsers', () => {
+                            global.window.location = new URL(`${baseUrl}?browser=firefox&browser=safari${hash}`);
+                            const state = {
+                                ...defaultState,
+                                browsers: [
+                                    {id: 'firefox', versions: ['v1', 'v2']}
+                                ]
+                            };
+                            const action = {type, payload: _mkInitialState()};
+
+                            const newState = reducer(state, action);
+
+                            assert.deepStrictEqual(newState.app[page].filteredBrowsers, [
+                                {id: 'firefox', versions: ['v1', 'v2']},
                                 {id: 'safari', versions: []}
                             ]);
                         });
 
-                        it('should set "filteredBrowsers" property to specified browsers and versions', () => {
+                        it('should set "filteredBrowsers" property to specified browsers and versions without expansion', () => {
                             global.window.location = new URL(`${baseUrl}?browser=firefox&browser=safari:23,11.2${hash}`);
+                            const state = {
+                                ...defaultState,
+                                browsers: [
+                                    {id: 'firefox', versions: ['v1', 'v2']},
+                                    {id: 'safari', versions: ['23', '11.2', '10.0']}
+                                ]
+                            };
                             const action = {type, payload: _mkInitialState()};
 
-                            const newState = reducer(defaultState, action);
+                            const newState = reducer(state, action);
 
                             assert.deepStrictEqual(newState.app[page].filteredBrowsers, [
-                                {id: 'firefox', versions: []},
+                                {id: 'firefox', versions: ['v1', 'v2']},
                                 {id: 'safari', versions: ['23', '11.2']}
+                            ]);
+                        });
+
+                        it('should expand versions only for browsers without explicit versions', () => {
+                            global.window.location = new URL(`${baseUrl}?browser=chrome-phone&browser=safari:23${hash}`);
+                            const state = {
+                                ...defaultState,
+                                browsers: [
+                                    {id: 'chrome-phone', versions: ['phone-124.0', 'phone-101.0']},
+                                    {id: 'safari', versions: ['23', '11.2']}
+                                ]
+                            };
+                            const action = {type, payload: _mkInitialState()};
+
+                            const newState = reducer(state, action);
+
+                            assert.deepStrictEqual(newState.app[page].filteredBrowsers, [
+                                {id: 'chrome-phone', versions: ['phone-124.0', 'phone-101.0']},
+                                {id: 'safari', versions: ['23']}
                             ]);
                         });
 

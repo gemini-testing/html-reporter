@@ -6,6 +6,7 @@ import {DiffModeId, DiffModes, ViewMode} from '@/constants';
 import {BrowserItem} from '@/types';
 import * as localStorageWrapper from '@/static/modules/local-storage-wrapper';
 import {getViewQuery} from '@/static/modules/custom-queries';
+import {expandBrowserVersions} from '@/static/modules/query-params';
 import {isEmpty} from 'lodash';
 import {applyStateUpdate} from '@/static/modules/utils/state';
 
@@ -33,6 +34,8 @@ export default (state: State, action: FiltersAction | InitGuiReportAction | Init
 
             if (isEmpty(viewQuery.filteredBrowsers)) {
                 viewQuery.filteredBrowsers = state.browsers;
+            } else {
+                viewQuery.filteredBrowsers = expandBrowserVersions(viewQuery.filteredBrowsers as BrowserItem[], state.browsers);
             }
 
             const newState = applyStateUpdate(
