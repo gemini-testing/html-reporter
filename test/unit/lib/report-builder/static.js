@@ -152,7 +152,7 @@ describe('StaticReportBuilder', () => {
         });
     });
 
-    describe.only('add badge attachment', () => {
+    describe('add badge attachment', () => {
         it('should add attachment with badge using callback from config', async () => {
             const mockBadges = [
                 {
