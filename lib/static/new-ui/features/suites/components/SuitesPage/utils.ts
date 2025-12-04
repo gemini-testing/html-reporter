@@ -21,6 +21,7 @@ import {
 import {EntityType, TreeNode, TreeRoot} from '@/static/new-ui/features/suites/components/SuitesPage/types';
 import {getEntityType, getGroupId} from '@/static/new-ui/features/suites/utils';
 import {isAcceptable} from '@/static/modules/utils';
+import {BrowserItem} from '@/types';
 
 export const getTitlePath = (suites: Record<string, SuiteEntity>, entity: SuiteEntity | BrowserEntity | undefined): string[] => {
     if (!entity) {
@@ -44,9 +45,10 @@ export interface EntitiesContext {
     treeViewMode: TreeViewMode;
     currentSortDirection: SortDirection;
     currentSortExpression: SortByExpression;
+    browsersList: BrowserItem[];
 }
 
-export const formatEntityToTreeNodeData = ({results, images, suites, treeViewMode}: EntitiesContext, entity: SuiteEntity | BrowserEntity | GroupEntity, id: string, parentData?: TreeNode['data']): TreeNode['data'] => {
+export const formatEntityToTreeNodeData = ({results, images, suites, treeViewMode, browsersList}: EntitiesContext, entity: SuiteEntity | BrowserEntity | GroupEntity, id: string, parentData?: TreeNode['data']): TreeNode['data'] => {
     if (isSuiteEntity(entity)) {
         return {
             id,
@@ -86,6 +88,16 @@ export const formatEntityToTreeNodeData = ({results, images, suites, treeViewMod
         errorStack = stackLines.slice(0, 3).join('\n');
     }
 
+    // Add version tag for browsers with multiple versions
+    const tags: string[] = [];
+    const browserItem = browsersList.find(b => b.id === entity.name);
+    if (browserItem && browserItem.versions.length > 1) {
+        const version = lastResult.metaInfo?.browserVersion;
+        if (version) {
+            tags.push(version);
+        }
+    }
+
     return {
         id,
         entityType: getEntityType(entity),
@@ -97,7 +109,7 @@ export const formatEntityToTreeNodeData = ({results, images, suites, treeViewMod
         errorStack,
         parentData,
         skipReason: lastResult.skipReason,
-        tags: []
+        tags
     };
 };
 

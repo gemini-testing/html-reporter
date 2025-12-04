@@ -8,6 +8,7 @@ import {
     BrowserState, GroupEntity, TreeViewMode
 } from '@/static/new-ui/types/store';
 import {EditScreensFeature, RunTestsFeature} from '@/constants';
+import {BrowserItem} from '@/types';
 
 export const getToolName = (state: State): string => state.apiValues.toolName;
 export const getAllRootSuiteIds = (state: State): string[] => state.tree.suites.allRootIds;
@@ -28,3 +29,4 @@ export const getTreeViewMode = (state: State): TreeViewMode => state.ui.suitesPa
 export const getSortTestsData = (state: State): State['app']['sortTestsData'] => state.app.sortTestsData;
 
 export const getAreCheckboxesNeeded = (state: State): boolean => state.app.availableFeatures.includes(RunTestsFeature) || state.app.availableFeatures.includes(EditScreensFeature);
+export const getBrowsersList = (state: State): BrowserItem[] => state.browsers;

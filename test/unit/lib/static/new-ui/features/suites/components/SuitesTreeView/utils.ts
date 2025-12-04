@@ -90,7 +90,8 @@ describe('formatEntityToTreeNodeData', () => {
         groups: {},
         treeViewMode: TreeViewMode.Tree,
         currentSortDirection: SortDirection.Asc,
-        currentSortExpression: SORT_BY_NAME
+        currentSortExpression: SORT_BY_NAME,
+        browsersList: []
     };
 
     describe('when formatting Suite entity', () => {
@@ -283,7 +284,8 @@ describe('buildTreeBottomUp', () => {
         groups: {},
         treeViewMode: TreeViewMode.Tree,
         currentSortDirection: SortDirection.Asc,
-        currentSortExpression: SORT_BY_NAME
+        currentSortExpression: SORT_BY_NAME,
+        browsersList: []
     };
 
     let entitiesTree: TreeEntity;
@@ -552,7 +554,8 @@ describe('sortTreeNodes', () => {
         groups: {},
         treeViewMode: TreeViewMode.Tree,
         currentSortDirection: SortDirection.Asc,
-        currentSortExpression: SORT_BY_NAME
+        currentSortExpression: SORT_BY_NAME,
+        browsersList: []
     };
 
     let entitiesTree: TreeEntity;

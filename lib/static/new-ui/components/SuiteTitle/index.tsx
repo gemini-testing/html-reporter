@@ -34,7 +34,7 @@ export function SuiteTitle(props: SuiteTitleProps): ReactNode {
                 ))}
             </div>}
             <div className={styles.titleContainer}>
-                <h2 className={classNames('text-display-1')}>
+                <h2 className={classNames('text-display-1')} data-qa="suite-title">
                     {suiteName ?? 'Unknown Suite'}
                 </h2>
                 <div className={styles.labelsContainer}>

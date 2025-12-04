@@ -1,6 +1,6 @@
 import {PlanetEarth} from '@gravity-ui/icons';
-import {Button, Flex, Icon, Select, SelectRenderControlProps, SelectRenderOption} from '@gravity-ui/uikit';
-import React, {ReactNode, Ref, useEffect, useState} from 'react';
+import {Button, Flex, Icon, Select, SelectRenderControlProps, SelectRenderOption, useSelectOptions} from '@gravity-ui/uikit';
+import React, {ReactNode, Ref, useEffect, useMemo, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {selectBrowsers} from '@/static/modules/actions';
@@ -75,48 +75,40 @@ export function BrowsersSelect(): ReactNode {
         setSelectedBrowsers(selectedItems);
     };
 
-    const renderOptions = (): React.JSX.Element | React.JSX.Element[] => {
+    const getOptionData = (browser: BrowserItem, version: string, content: string): {value: string; content: string; data: {id: string; version: string}} => ({
+        value: serializeBrowserData(browser.id, version),
+        content,
+        data: {id: browser.id, version}
+    });
+
+    const rawOptions = useMemo(() => {
         const browsersWithMultipleVersions = browsers.filter(browser => browser.versions.length > 1);
         const browsersWithSingleVersion = browsers.filter(browser => browser.versions.length === 1);
 
-        const getOptionProps = (browser: BrowserItem, version: string): {value: string; content: string; data: Record<string, unknown>} => ({
-            value: serializeBrowserData(browser.id, version),
-            content: browser.id,
-            data: {id: browser.id, version}
-        });
-
         if (browsersWithMultipleVersions.length === 0) {
-            // If there are no browsers with multiple versions, we want to render a simple plain list
-            return browsers.map(browser => <Select.Option
-                key={browser.id}
-                {...getOptionProps(browser, browser.versions[0])}
-            />);
+            // If there are no browsers with multiple versions, we want to render a simple flat list
+            return browsers.map(browser => getOptionData(browser, browser.versions[0], browser.id));
         } else {
-            // Otherwise render browser version groups and place all browsers with single version into "Other" group
-            return (
-                <>
-                    {browsersWithMultipleVersions.map(browser => (
-                        <Select.OptionGroup key={browser.id} label={browser.id}>
-                            {browser.versions.map(version => (
-                                <Select.Option
-                                    key={version}
-                                    {...getOptionProps(browser, version)}
-                                />
-                            ))}
-                        </Select.OptionGroup>
-                    ))}
-                    <Select.OptionGroup label="Other">
-                        {browsersWithSingleVersion.map(browser => (
-                            <Select.Option
-                                key={browser.id}
-                                {...getOptionProps(browser, browser.versions[0])}
-                            />
-                        ))}
-                    </Select.OptionGroup>
-                </>
-            );
+            // Otherwise render browser version groups and place all browsers with a single version in the "Other" group
+            const groups: {label: string; options: ReturnType<typeof getOptionData>[]}[] = [];
+
+            browsersWithMultipleVersions.forEach(browser => {
+                groups.push({
+                    label: browser.id,
+                    options: browser.versions.map(version => getOptionData(browser, version, version))
+                });
+            });
+
+            groups.push({
+                label: 'Other',
+                options: browsersWithSingleVersion.map(browser => getOptionData(browser, browser.versions[0], browser.id))
+            });
+
+            return groups;
         }
-    };
+    }, [browsers]);
+
+    const options = useSelectOptions({options: rawOptions});
 
     const isInitialized = useSelector(getIsInitialized);
 
@@ -171,6 +163,7 @@ export function BrowsersSelect(): ReactNode {
             <Select
                 disablePortal
                 value={selected}
+                options={options}
                 multiple={true}
                 hasCounter
                 filterable
@@ -182,9 +175,7 @@ export function BrowsersSelect(): ReactNode {
                 onUpdate={onUpdate}
                 onFocus={onFocus}
                 onClose={onClose}
-            >
-                {renderOptions()}
-            </Select>
+            />
         </>
     );
 }

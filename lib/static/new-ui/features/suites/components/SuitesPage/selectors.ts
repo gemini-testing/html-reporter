@@ -2,6 +2,7 @@ import {createSelector} from 'reselect';
 import {
     getAllRootGroupIds,
     getBrowsers,
+    getBrowsersList,
     getBrowsersState,
     getGroups,
     getImages,
@@ -18,14 +19,14 @@ import {State} from '@/static/new-ui/types/store';
 
 // Converts the existing store structure to the one that can be consumed by GravityUI
 export const getSuitesTreeViewData = createSelector(
-    [getGroups, getSuites, getAllRootGroupIds, getBrowsers, getBrowsersState, getResults, getImages, getTreeViewMode, getSortTestsData],
-    (groups, suites, rootGroupIds, browsers, browsersState, results, images, treeViewMode, sortTestsData): TreeViewData => {
+    [getGroups, getSuites, getAllRootGroupIds, getBrowsers, getBrowsersState, getResults, getImages, getTreeViewMode, getSortTestsData, getBrowsersList],
+    (groups, suites, rootGroupIds, browsers, browsersState, results, images, treeViewMode, sortTestsData, browsersList): TreeViewData => {
         const currentSortDirection = sortTestsData.currentDirection;
         const currentSortExpression = sortTestsData.availableExpressions
             .find(expr => expr.id === sortTestsData.currentExpressionIds[0])
             ?? sortTestsData.availableExpressions[0];
 
-        const entitiesContext = {results, images, suites, treeViewMode, browsersState, browsers, groups, currentSortDirection, currentSortExpression};
+        const entitiesContext = {results, images, suites, treeViewMode, browsersState, browsers, groups, currentSortDirection, currentSortExpression, browsersList};
 
         const isGroupingEnabled = rootGroupIds.length > 0;
         if (isGroupingEnabled) {

@@ -37,11 +37,15 @@ import {getIconByStatus} from '@/static/new-ui/utils';
 import {Page} from '@/constants';
 import {usePage} from '@/static/new-ui/hooks/usePage';
 import {useHotkey} from '@/static/new-ui/hooks/useHotkey';
+import {useLegacyUrlMigration} from '@/static/new-ui/hooks/useLegacyUrlMigration';
 import {changeTestRetry, setCurrentTreeNode, setStrictMatchFilter} from '@/static/modules/actions';
 import {getUrl} from '@/static/new-ui/utils/getUrl';
 
 export function SuitesPage(): ReactNode {
     const page = usePage();
+
+    useLegacyUrlMigration();
+
     const currentResult = useSelector(getCurrentResult);
     const treeData = useSelector(getSuitesTreeViewData);
     const resultImages = useSelector(getCurrentResultImages);
