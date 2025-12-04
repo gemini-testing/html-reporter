@@ -56,7 +56,9 @@ export function TreeViewItemTitle({item}: TreeViewItemTitleProps): React.JSX.Ele
         if (item.entityType === EntityType.Suite) {
             return getSuiteBrowsers(item.entityId, suites, browsers);
         } else if (item.entityType === EntityType.Browser) {
-            const browser = browsers[item.entityId];
+            // On visual checks page, browserId is stored separately from entityId
+            const browserId = item.browserId || item.entityId;
+            const browser = browsers[browserId];
             if (browser) {
                 return [{testName: browser.parentId, browserName: browser.name}];
             }
@@ -114,10 +116,14 @@ export function TreeViewItemTitle({item}: TreeViewItemTitleProps): React.JSX.Ele
                 return suite.suitePath.join(' ');
             }
         } else if (item.entityType === EntityType.Browser) {
-            const browser = browsers[item.entityId];
-            const suite = suites[browser.parentId];
-            if (suite?.suitePath) {
-                return suite.suitePath.join(' ');
+            // On visual checks page, browserId is stored separately from entityId
+            const browserId = item.browserId || item.entityId;
+            const browser = browsers[browserId];
+            if (browser) {
+                const suite = suites[browser.parentId];
+                if (suite?.suitePath) {
+                    return suite.suitePath.join(' ');
+                }
             }
         }
         return item.title.join(' ');

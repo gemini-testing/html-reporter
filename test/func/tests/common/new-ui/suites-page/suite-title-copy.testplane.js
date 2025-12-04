@@ -39,6 +39,31 @@ if (process.env.TOOL === 'testplane') {
                     });
                 });
             });
+
+            describe('Visual checks page', () => {
+                describe('Copy buttons', () => {
+                    it('should copy suite path without browser name from tree view item', async ({browser}) => {
+                        await interceptClipboard(browser);
+
+                        await browser.keys('v');
+
+                        const visualChecksTitle = await browser.$('[data-qa="sidebar-title"]');
+                        await expect(visualChecksTitle).toHaveText('Visual Checks');
+
+                        const treeItem = await browser.$('[data-list-item*="test with image comparison diff"]');
+                        await treeItem.moveTo();
+
+                        const copyButton = await treeItem.$('button[title="Copy title"]');
+                        await copyButton.waitForClickable();
+                        await copyButton.click();
+
+                        const clipboardText = await getClipboardValue(browser);
+
+                        expect(clipboardText).not.toContain('chrome');
+                        expect(clipboardText).toContain('test with image comparison diff');
+                    });
+                });
+            });
         });
     });
 }

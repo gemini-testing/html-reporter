@@ -1,5 +1,5 @@
 .container {
-    height: 26px;
+    min-height: 26px;
     align-items: center;
     display: flex;
     word-break: break-word;

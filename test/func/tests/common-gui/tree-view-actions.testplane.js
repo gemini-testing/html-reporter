@@ -78,6 +78,36 @@ describe('GUI mode', () => {
             attempts = await browser.$$('[data-qa="retry-switcher"]');
             expect(attempts.length).toBe(2);
         });
+
+        it('should run test on visual checks page via run button click', async ({browser}) => {
+            await browser.keys('v');
+
+            const visualChecksTitle = await browser.$('[data-qa="sidebar-title"]');
+            await expect(visualChecksTitle).toHaveText('Visual Checks');
+
+            const treeItem = await browser.$('[data-qa="tree-view-item"]');
+            await treeItem.moveTo();
+
+            const runButton = await treeItem.$('button[title="Run tests"]');
+            await runButton.waitForClickable();
+            await runButton.click();
+
+            await browser.waitUntil(async () => {
+                const spinners = await browser.$$('.g-spin');
+                return spinners.length > 0;
+            }, {timeout: 5000, timeoutMsg: 'Test did not start running'});
+
+            await browser.waitUntil(async () => {
+                const spinners = await browser.$$('.g-spin');
+                return spinners.length === 0;
+            }, {timeout: 30000, timeoutMsg: 'Test did not complete'});
+
+            await treeItem.click();
+            await browser.$('[data-qa="suite-title-counter"]').waitForDisplayed();
+
+            const attemptCount = await browser.$('[data-qa="compact-attempt-picker-count"]');
+            await expect(attemptCount).toHaveText('2');
+        });
     });
 });
 
