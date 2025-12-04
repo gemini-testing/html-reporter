@@ -96,10 +96,10 @@ export function CompactAttemptPicker(): ReactNode {
             >
                 <Select
                     renderControl={({triggerProps: {onClick, onKeyDown}, ref}): React.JSX.Element => (
-                        <Button className={styles.attemptSelect} onClick={onClick} onKeyDown={onKeyDown} ref={ref as Ref<HTMLButtonElement>} view={'flat'}>
+                        <Button className={styles.attemptSelect} onClick={onClick} onKeyDown={onKeyDown} ref={ref as Ref<HTMLButtonElement>} view={'flat'} qa="compact-attempt-picker">
                                 Attempt <span className={styles.attemptNumber}>
                                 {currentAttemptIndex !== null ? currentAttemptIndex + 1 : '–'}
-                            </span> of <span className={styles.attemptNumber}>{totalAttemptsCount ?? '–'}</span>
+                            </span> of <span className={styles.attemptNumber} data-qa="compact-attempt-picker-count">{totalAttemptsCount ?? '–'}</span>
                         </Button>
                     )}
                     renderOption={(option): React.JSX.Element => {

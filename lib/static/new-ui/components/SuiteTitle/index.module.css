@@ -64,3 +64,7 @@
     color: var(--g-color-private-black-400);
     font-size: 15px;
 }
+
+.clipboard-button {
+    translate: 3px -2px;
+}

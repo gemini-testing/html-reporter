@@ -14,6 +14,7 @@
     border: 1px solid #ff000024;
 
     background-color: var(--g-color-private-red-50);
+    z-index: 10;
 }
 
 .image-status {
