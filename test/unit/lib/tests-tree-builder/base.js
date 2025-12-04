@@ -82,6 +82,7 @@ describe('ResultsTreeBuilder', () => {
                     builder.tree.suites.byId['s1'],
                     {
                         id: 's1',
+                        hash: '8ddf878',
                         name: 's1',
                         parentId: null,
                         root: true,
@@ -99,6 +100,7 @@ describe('ResultsTreeBuilder', () => {
                     builder.tree.suites.byId['s1 s2'],
                     {
                         id: 's1 s2',
+                        hash: 'c8304d9',
                         name: 's2',
                         parentId: 's1',
                         root: false,
