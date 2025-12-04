@@ -12,7 +12,7 @@
 }
 
 .search-input--without-hotkey :global(.g-text-input__control) {
-    padding-right: 54px;
+    padding-right: 78px;
 }
 
 .buttons-wrapper {
