@@ -1,10 +1,12 @@
 .container {
     display: flex;
-    gap: 16px;
+    gap: 8px;
+    align-items: center;
 }
 
 .heading {
     line-height: 28px;
+    font-size: 15px;
 }
 
 .attempts-container {
@@ -26,4 +28,34 @@
 
 .hotkey {
     margin-left: 4px;
+}
+
+.browser-name {
+    font-size: 15px;
+}
+
+.browser-select-sizer {
+    display: grid;
+}
+
+.browser-select-sizer > * {
+    grid-area: 1 / 1;
+}
+
+.browser-select-sizer button {
+    width: 100%;
+}
+
+.browser-select-sizer button > span {
+    width: 100%;
+}
+
+.browser-select-content {
+    width: 100%;
+    justify-content: space-between;
+}
+
+.browser-select-hidden {
+    visibility: hidden;
+    pointer-events: none;
 }

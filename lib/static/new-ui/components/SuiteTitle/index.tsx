@@ -1,14 +1,14 @@
 import classNames from 'classnames';
 import React, {ReactNode} from 'react';
 import {Button, Icon, Label} from '@gravity-ui/uikit';
-import {Camera, ChevronRight, PlanetEarth, ChevronUp, ChevronDown} from '@gravity-ui/icons';
+import {Camera, ChevronRight, ChevronUp, ChevronDown} from '@gravity-ui/icons';
+import {TestTags} from '../../features/suites/components/TestTags';
 
 import styles from './index.module.css';
 
 interface SuiteTitleProps {
     className?: string;
     suitePath: string[];
-    browserName: string;
     stateName?: string;
     index: number;
     totalItems: number;
@@ -38,8 +38,7 @@ export function SuiteTitle(props: SuiteTitleProps): ReactNode {
                     {suiteName ?? 'Unknown Suite'}
                 </h2>
                 <div className={styles.labelsContainer}>
-                    <Label theme={'normal'} size={'xs'} className={styles.label}><PlanetEarth/>{props.browserName}
-                    </Label>
+                    <TestTags />
                     {props.stateName && <Label theme='utility' size={'xs'} className={classNames(styles.label)}><Camera/>{props.stateName}</Label>}
                 </div>
             </div>

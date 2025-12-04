@@ -1,0 +1,14 @@
+.badge {
+    --g-button-border-radius: 8px;
+    color: var(--color-neutral-700);
+    padding: 0 10px;
+    gap: 8px;
+    font-size: 15px;
+}
+
+.dynamic {
+    --g-button-background-color: var(--color-amber-100);
+    --g-button-background-color-hover: var(--color-amber-200);
+    color: var(--color-amber-700);
+    --g-button-text-color-hover: var(--color-amber-700);
+}
