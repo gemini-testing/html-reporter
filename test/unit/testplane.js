@@ -85,6 +85,7 @@ describe('lib/testplane', () => {
     function mkStubResult_(options = {}) {
         return _.defaultsDeep(options, {
             fullTitle: () => 'default-title',
+            getTags: () => [],
             file: 'some-file',
             id: () => 'some-id',
             root: true,

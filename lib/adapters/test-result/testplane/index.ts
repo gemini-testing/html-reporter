@@ -259,7 +259,7 @@ export class TestplaneTestResultAdapter implements ReporterTestResult {
 
         let current: Test | Suite | TestplaneTestResult | null = this._testResult;
 
-        while (current) {
+        while (current && typeof current.getTags === 'function') {
             const tags = current?.getTags();
 
             if (tags && tags.length > 0) {
