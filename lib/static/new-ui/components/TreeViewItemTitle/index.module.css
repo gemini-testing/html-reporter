@@ -19,7 +19,7 @@
     background: var(--background-color, rgb(242 242 242));
 }
 
-:global([data-qa="tree-view-item"]:hover) .actions-container {
+:global(.tree-view__item:hover) .actions-container {
     opacity: 1;
 }
 

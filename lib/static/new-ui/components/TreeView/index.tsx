@@ -197,6 +197,7 @@ export const TreeView = forwardRef<TreeViewHandle, TreeViewProps>(function TreeV
 
                             const classes = [
                                 styles['tree-view__item'],
+                                'tree-view__item',
                                 {
                                     'current-tree-node': isSelected,
                                     'error-tree-node': item.entityType === EntityType.Browser && (item.status === TestStatus.FAIL || item.status === TestStatus.ERROR),
