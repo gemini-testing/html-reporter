@@ -83,6 +83,26 @@ const waitForFsChanges = async (dirPath, condition = (output) => output.length >
     }
 };
 
+const interceptClipboard = async (browser) => {
+    await browser.execute(() => {
+        window.__copiedText = null;
+        const originalExecCommand = document.execCommand.bind(document);
+        document.execCommand = (command, ...args) => {
+            if (command === 'copy') {
+                const activeEl = document.activeElement;
+                if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
+                    window.__copiedText = activeEl.value;
+                }
+            }
+            return originalExecCommand(command, ...args);
+        };
+    });
+};
+
+const getClipboardValue = async (browser) => {
+    return browser.execute(() => window.__copiedText);
+};
+
 module.exports = {
     getTestSectionByNameSelector,
     getTestStateByNameSelector,
@@ -93,5 +113,7 @@ module.exports = {
     hideScreenshots,
     runGui,
     getFsDiffFromVcs,
-    waitForFsChanges
+    waitForFsChanges,
+    interceptClipboard,
+    getClipboardValue
 };

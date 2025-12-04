@@ -3,6 +3,7 @@ import React, {ReactNode} from 'react';
 import {Button, Icon, Label} from '@gravity-ui/uikit';
 import {Camera, ChevronRight, PlanetEarth, ChevronUp, ChevronDown} from '@gravity-ui/icons';
 
+import {ClipboardButton} from '../ClipboardButton';
 import styles from './index.module.css';
 
 interface SuiteTitleProps {
@@ -34,8 +35,12 @@ export function SuiteTitle(props: SuiteTitleProps): ReactNode {
                 ))}
             </div>}
             <div className={styles.titleContainer}>
-                <h2 className={classNames('text-display-1')} data-qa="suite-title">
+                <h2 className={classNames('text-display-1', styles.title)} data-qa="suite-title">
                     {suiteName ?? 'Unknown Suite'}
+                    <ClipboardButton
+                        className={styles.clipboardButton}
+                        text={props.suitePath.join(' ')}
+                    />
                 </h2>
                 <div className={styles.labelsContainer}>
                     <Label theme={'normal'} size={'xs'} className={styles.label}><PlanetEarth/>{props.browserName}

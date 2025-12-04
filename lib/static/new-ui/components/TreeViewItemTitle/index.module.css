@@ -1,19 +1,82 @@
 .container {
+    height: 26px;
     align-items: center;
     display: flex;
     word-break: break-word;
+    position: relative;
 }
 
+.actions-container {
+    opacity: 0;
+    display: flex;
+    position: absolute;
+    right: 30px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1;
+    border-radius: 6px;
+    box-shadow: 0 0 7px 10px var(--background-color, rgb(242 242 242));
+    background: var(--background-color, rgb(242 242 242));
+}
+
+:global([data-qa="tree-view-item"]:hover) .actions-container {
+    opacity: 1;
+}
+
+.actions-container--no-checkbox {
+    right: 0;
+}
+
+:global(.error-tree-node:hover) {
+    --background-color: var(--g-color-private-red-50-solid);
+}
+
+:global(.current-tree-node) {
+    --background-color: var(--g-color-base-brand);
+}
+
+:global(.current-tree-node:hover) {
+    --background-color: var(--g-color-base-brand-hover);
+}
+
+.action-button {
+    --g-button-text-color: var(--g-color-text-primary);
+    --g-button-text-color-hover: var(--g-color-text-primary);
+    --g-button-background-color-hover: rgba(0, 0, 0, 0.06);
+}
+
+.action-button--disabled {
+    opacity: 0.5;
+}
+
+:global(.error-tree-node) .action-button {
+    --g-button-text-color: var(--g-color-private-red-600-solid);
+    --g-button-text-color-hover: var(--g-color-private-red-600-solid);
+    --g-button-background-color-hover: var(--g-color-private-red-50);
+}
+
+:global(.current-tree-node) .action-button {
+    --g-button-text-color: white;
+    --g-button-text-color-hover: white;
+    --g-button-background-color-hover: rgba(0, 0, 0, 0.06);
+}
 .checkboxWrapper {
-    margin-left: auto;
     display: flex;
     padding: 6px;
     border-radius: 6px;
+    flex-shrink: 0;
+    margin-left: auto;
+    z-index: 50;
 }
 
-.checkboxWrapper:hover {
+:global(.error-tree-node) .checkboxWrapper:hover {
+    background-color: var(--g-color-private-red-50);
+}
+
+.checkboxWrapper:hover, :global(.current-tree-node) .checkboxWrapper:hover {
     background-color: rgba(0, 0, 0, 0.06);
 }
+
 
 .checkbox {
     pointer-events: none;

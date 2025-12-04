@@ -41,6 +41,8 @@
 
         user-select: none;
         border-radius: 8px;
+
+        overflow: hidden;
     }
 
         .tree-view__item > div {
