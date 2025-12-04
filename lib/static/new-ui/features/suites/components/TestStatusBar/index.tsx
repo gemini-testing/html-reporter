@@ -1,13 +1,13 @@
 import React, {ReactNode} from 'react';
 import _ from 'lodash';
 import * as icons from '@gravity-ui/icons';
-import {Button, Icon} from '@gravity-ui/uikit';
 
 import {useSelector} from 'react-redux';
 import {ResultEntityCommon} from '@/static/new-ui/types/store';
 import {getCurrentResult} from '@/static/new-ui/features/suites/selectors';
 import {getIconByStatus} from '@/static/new-ui/utils';
-import {Badge, AttachmentType, BadgesAttachment} from '@/types';
+import {Badge as BadgeType, AttachmentType, BadgesAttachment} from '@/types';
+import {Badge} from '@/static/new-ui/components/Badge';
 
 import styles from './index.module.css';
 import {IconData} from '@gravity-ui/uikit';
@@ -45,20 +45,13 @@ export const TestStatusBar = (): ReactNode => {
             </div>
             {(badges && badges.list.length > 0) && (
                 <div className={styles['test-status-bar__badges']} data-qa="suite-badges">
-                    {badges.list.map((badge: Badge) => (
-                        <a
+                    {badges.list.map((badge: BadgeType) => (
+                        <Badge
                             key={badge.title}
+                            title={badge.title}
+                            icon={badge.icon && allIcons[badge.icon] ? allIcons[badge.icon] : undefined}
                             href={badge.url}
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            <Button
-                                size="xs"
-                            >
-                                {badge.icon && allIcons[badge.icon] && <Icon data={allIcons[badge.icon]} size={14} />}
-                                {badge.title}
-                            </Button>
-                        </a>
+                        />
                     ))}
                 </div>
             )}

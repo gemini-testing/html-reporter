@@ -17,7 +17,6 @@ import * as actions from '@/static/modules/actions';
 import {getIsInitialized} from '@/static/new-ui/store/selectors';
 import {TestControlPanel} from '@/static/new-ui/features/suites/components/TestControlPanel';
 import {TestStatusBar} from '@/static/new-ui/features/suites/components/TestStatusBar';
-import {TestTags} from '@/static/new-ui/features/suites/components/TestTags';
 
 import styles from './index.module.css';
 import {TestInfoSkeleton} from '@/static/new-ui/features/suites/components/SuitesPage/TestInfoSkeleton';
@@ -222,6 +221,17 @@ export function SuitesPage(): ReactNode {
         );
     };
 
+    const onBrowserChangeHandler = useCallback((newBrowserId: string): void => {
+        const treeNode = findTreeNodeByBrowserId(tree, newBrowserId);
+        if (!treeNode) {
+            return;
+        }
+
+        const groupId = getGroupId(treeNode as TreeViewItemData);
+        dispatch(actions.setCurrentTreeNode({treeNodeId: treeNode.id, browserId: newBrowserId, groupId}));
+        suitesTreeViewRef?.current?.scrollToId(treeNode.id);
+    }, [tree, dispatch]);
+
     const onSectionSizesChange = (sizes: number[]): void => {
         dispatch(actions.setSectionSizes({sizes, page: Page.suitesPage}));
         if (isSectionHidden(sizes[0])) {
@@ -271,13 +281,11 @@ export function SuitesPage(): ReactNode {
                                 <SuiteTitle
                                     className={styles['card__title']}
                                     suitePath={currentResult.suitePath}
-                                    browserName={currentResult.name}
                                     index={currentIndex}
                                     totalItems={visibleTreeNodeIds.length}
                                     onNext={(): void => onPrevNextSuiteHandler(1)}
                                     onPrevious={(): void => onPrevNextSuiteHandler(-1)}/>
-                                <TestTags/>
-                                <TestControlPanel onAttemptChange={onAttemptChangeHandler}/>
+                                <TestControlPanel onAttemptChange={onAttemptChangeHandler} onBrowserChange={onBrowserChangeHandler}/>
                             </div>
 
                             <TestStatusBar />

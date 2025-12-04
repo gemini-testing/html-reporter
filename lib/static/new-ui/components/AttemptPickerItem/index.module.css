@@ -1,5 +1,6 @@
 .attempt-picker-item {
     width: 28px;
+    --g-button-border-color: var(--g-color-line-generic);
 }
 
 .attempt-picker-item--active {

@@ -1,6 +1,5 @@
 import React, {ReactNode} from 'react';
-import * as icons from '@gravity-ui/icons';
-import {Tooltip, Label, Icon} from '@gravity-ui/uikit';
+import {Tag} from '@gravity-ui/icons';
 import type {TestTag} from 'testplane';
 
 import {useDispatch, useSelector} from 'react-redux';
@@ -8,7 +7,7 @@ import {getCurrentResult} from '@/static/new-ui/features/suites/selectors';
 import {updateNameFilter} from '@/static/modules/actions';
 import {AttachmentType, TagsAttachment} from '@/types';
 
-import styles from './index.module.css';
+import {Badge, badgeStyles} from '@/static/new-ui/components/Badge';
 import {usePage} from '@/static/new-ui/hooks/usePage';
 
 export const TestTags = (): ReactNode => {
@@ -41,33 +40,23 @@ export const TestTags = (): ReactNode => {
     }
 
     return (
-        <div className={styles['test-tags']} data-qa="test-tags">
-            <span className={styles['test-tags__title']}>
-                Tags
-            </span>
-            {tags && tags.list.length > 0 && (
-                tags.list.map((tag: TestTag) => (
-                    <Tooltip
-                        key={tag.title}
-                        content={tag.dynamic && (
-                            <p className={styles['test-tags__hint']}>
-                                <span>Tag was added via <code>browser.addTag()</code> command.</span>
-                                <span>Such tags can&apos;t be used with <code>--tag</code> filtering in CLI.</span>
-                            </p>
-                        )}
-                    >
-                        <Label
-                            size="xs"
-                            theme={tag.dynamic ? 'warning' : 'normal'}
-                            onClick={(): void => addTag(tag.title)}
-                            icon={<Icon data={icons.Tag} size={14} />}
-                            qa={`test-tag-${tag.title}`}
-                        >
-                            {tag.title}
-                        </Label>
-                    </Tooltip>
-                ))
-            )}
-        </div>
+        <>
+            {tags.list.map((tag: TestTag) => (
+                <Badge
+                    key={tag.title}
+                    title={tag.title}
+                    icon={Tag}
+                    onClick={(): void => addTag(tag.title)}
+                    qa={`test-tag-${tag.title}`}
+                    className={tag.dynamic ? badgeStyles.dynamic : undefined}
+                    tooltip={tag.dynamic ? (
+                        <p className={badgeStyles.hint}>
+                            <span>Tag was added via <code>browser.addTag()</code> command.</span>
+                            <span>Such tags can&apos;t be used with <code>--tag</code> filtering in CLI.</span>
+                        </p>
+                    ) : undefined}
+                />
+            ))}
+        </>
     );
 };
