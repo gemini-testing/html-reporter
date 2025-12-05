@@ -1,5 +1,8 @@
 .attempt-picker-item {
     width: 28px;
+}
+
+.attempt-picker-item--idle {
     --g-button-border-color: var(--g-color-line-generic);
 }
 
