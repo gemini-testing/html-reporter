@@ -11,3 +11,19 @@
     line-height: 28px;
     font-weight: 450;
 }
+
+.test-tags__hint {
+    padding: 0;
+    margin: 0;
+    display: flex;
+    gap: 4px;
+    flex-direction: column;
+}
+
+.test-tags__hint code {
+    font-size: 12px;
+    background: var(--g-color-base-generic);
+    color: var(--g-color-private-black-400);
+    padding: 2px 2px;
+    border-radius: 4px;
+}

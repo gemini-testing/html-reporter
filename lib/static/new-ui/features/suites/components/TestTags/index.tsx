@@ -49,7 +49,12 @@ export const TestTags = (): ReactNode => {
                 tags.list.map((tag: TestTag) => (
                     <Tooltip
                         key={tag.title}
-                        content={tag.dynamic && 'Dynamic tag'}
+                        content={tag.dynamic && (
+                            <p className={styles['test-tags__hint']}>
+                                <span>Tag was added via <code>browser.addTag()</code> command.</span>
+                                <span>Such tags can&apos;t be used with <code>--tag</code> filtering in CLI.</span>
+                            </p>
+                        )}
                     >
                         <Label
                             size="xs"

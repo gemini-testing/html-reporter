@@ -49,6 +49,24 @@ export const getStatus = (eventName: ValueOf<Testplane['events']>, events: Testp
     return TestStatus.IDLE;
 };
 
+const extractTags = (testResult: TestplaneTest | TestplaneTestResult): TestTag[] => {
+    const list: TestTag[] = [];
+
+    let current: Test | Suite | TestplaneTestResult | null = testResult;
+
+    while (current && typeof current.getTags === 'function') {
+        const tags = current?.getTags();
+
+        if (tags && tags.length > 0) {
+            list.unshift(...tags);
+        }
+
+        current = current.parent;
+    }
+
+    return list;
+};
+
 export interface TestplaneTestResultAdapterOptions {
     attempt: number;
     status: TestStatus;
@@ -254,26 +272,8 @@ export class TestplaneTestResultAdapter implements ReporterTestResult {
         return this._duration;
     }
 
-    get tags(): TestTag[] {
-        const list: TestTag[] = [];
-
-        let current: Test | Suite | TestplaneTestResult | null = this._testResult;
-
-        while (current && typeof current.getTags === 'function') {
-            const tags = current?.getTags();
-
-            if (tags && tags.length > 0) {
-                list.unshift(...tags);
-            }
-
-            current = current.parent;
-        }
-
-        return list;
-    }
-
     get attachments(): Attachment[] {
-        const tagsList = this.tags;
+        const tagsList = extractTags(this._testResult);
 
         if (tagsList.length > 0) {
             return [
