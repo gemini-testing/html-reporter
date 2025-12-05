@@ -10,6 +10,7 @@ import {ERROR, FAIL, SUCCESS, UPDATED, TestStatus, DEFAULT_TITLE_DELIMITER} from
 import {ErrorName} from '../../errors';
 import {
     Attachment,
+    AttachmentType,
     DiffOptions,
     ErrorDetails,
     ImageFile,
@@ -372,6 +373,18 @@ export class PlaywrightTestResultAdapter implements ReporterTestResult {
     }
 
     get attachments(): Attachment[] {
+        if (this._testCase.tags.length > 0) {
+            return [
+                {
+                    type: AttachmentType.Tags,
+                    list: this._testCase.tags.map((tag) => ({
+                        title: tag.slice(1),
+                        dynamic: false
+                    }))
+                }
+            ];
+        }
+
         return [];
     }
 }
