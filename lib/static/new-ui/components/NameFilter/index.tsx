@@ -1,4 +1,4 @@
-import React, {ChangeEvent, ReactNode, useCallback, useMemo, useRef, useState} from 'react';
+import React, {ChangeEvent, ReactNode, useCallback, useMemo, useRef, useState, useEffect} from 'react';
 import {debounce} from 'lodash';
 import {useDispatch, useSelector} from 'react-redux';
 import {Hotkey, Icon, TextInput} from '@gravity-ui/uikit';
@@ -70,6 +70,11 @@ export const NameFilter = (): ReactNode => {
         );
         search(nameFilter, useMatchCaseFilter, !useRegexFilter, page, true, dispatch);
     };
+
+    useEffect(() => {
+        search(nameFilter, useMatchCaseFilter, useRegexFilter, page, true, dispatch);
+        setNameFilter(nameFilter);
+    }, [nameFilter]);
 
     const isRegexInvalid = useMemo(() => {
         if (!useRegexFilter) {

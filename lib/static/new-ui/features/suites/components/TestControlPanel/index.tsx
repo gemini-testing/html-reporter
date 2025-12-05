@@ -6,7 +6,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {AttemptPickerItem} from '@/static/new-ui/components/AttemptPickerItem';
 import styles from './index.module.css';
 import classNames from 'classnames';
-import {getCurrentBrowser, getCurrentResultId, isTimeTravelPlayerAvailable} from '@/static/new-ui/features/suites/selectors';
+import {getCurrentBrowser, getCurrentResult, getCurrentResultId, isTimeTravelPlayerAvailable} from '@/static/new-ui/features/suites/selectors';
 import {RunTestButton} from '@/static/new-ui/components/RunTest';
 import {useAnalytics} from '../../../../hooks/useAnalytics';
 import {useHotkey} from '../../../../hooks/useHotkey';
@@ -15,13 +15,16 @@ import {isFeatureAvailable} from '../../../../utils/features';
 import {RunTestsFeature} from '@/constants';
 import {toggleTimeTravelPlayerVisibility} from '@/static/modules/actions/snapshots';
 import {thunkRunTest} from '@/static/modules/actions';
+import {hasBrowsers} from '@/static/new-ui/types/store';
+import {BrowserSelect} from './BrowserSelect';
 
 interface TestControlPanelProps {
     onAttemptChange?: (browserId: string, resultId: string, attemptIndex: number) => unknown;
+    onBrowserChange?: (browserId: string) => unknown;
 }
 
 export function TestControlPanel(props: TestControlPanelProps): ReactNode {
-    const {onAttemptChange} = props;
+    const {onAttemptChange, onBrowserChange: onBrowserChangeProp} = props;
 
     const dispatch = useDispatch();
     const analytics = useAnalytics();
@@ -34,7 +37,23 @@ export function TestControlPanel(props: TestControlPanelProps): ReactNode {
         return [];
     });
     const currentBrowser = useSelector(getCurrentBrowser);
+    const currentResult = useSelector(getCurrentResult);
     const currentResultId = useSelector(getCurrentResultId) ?? '';
+
+    const availableBrowsers = useSelector(state => {
+        if (!currentResult?.suitePath) {
+            return [];
+        }
+        const suiteId = currentResult.suitePath.join(' ');
+        const suite = state.tree.suites.byId[suiteId];
+        if (!suite || !hasBrowsers(suite)) {
+            return [];
+        }
+        return suite.browserIds.map(id => {
+            const browser = state.tree.browsers.byId[id];
+            return browser ? {id: browser.id, name: browser.name} : null;
+        }).filter(Boolean) as {id: string; name: string}[];
+    });
 
     const onAttemptPickHandler = (resultId: string, attemptIndex: number): void => {
         if (!browserId || currentResultId === resultId) {
@@ -66,8 +85,20 @@ export function TestControlPanel(props: TestControlPanelProps): ReactNode {
     useHotkey('r', onRunTest, {enabled: isRunTestsAvailable && !isRunning});
     useHotkey('p', onTogglePlayerVisibility, {enabled: isPlayerAvailable});
 
+    const onBrowserChange = useCallback((newBrowserId: string): void => {
+        onBrowserChangeProp?.(newBrowserId);
+    }, [onBrowserChangeProp]);
+
     return (
         <div className={styles.container}>
+            {availableBrowsers.length > 0 && (<>
+                <BrowserSelect
+                    availableBrowsers={availableBrowsers}
+                    currentBrowserId={browserId}
+                    onBrowserChange={onBrowserChange}
+                />
+                <Divider orientation="vertical" className={styles.divider} />
+            </>)}
             <h3 className={classNames('text-header-1', styles.heading)}>Attempts</h3>
             <div className={styles.attemptsContainer}>
                 {resultIds.map((resultId, index) => (

@@ -214,7 +214,6 @@ export function VisualChecksStickyHeader({currentNamedImage, treeData, onImageCh
                 <SuiteTitle
                     className={styles['card__title']}
                     suitePath={currentNamedImage.suitePath}
-                    browserName={currentNamedImage.browserName}
                     index={currentNamedImageIndex}
                     totalItems={visibleNamedImageIds.length}
                     onPrevious={onPreviousImageHandler}

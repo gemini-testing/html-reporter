@@ -139,7 +139,7 @@ async function handleTestResults(testplane: TestplaneWithHtmlReporter, reportBui
                         testplane.config.saveHistoryMode
                     );
 
-                    const attachments: Attachment[] = [];
+                    const attachments: Attachment[] = formattedResult.attachments;
                     const attempt = reportBuilder.registerAttempt({fullName: formattedResult.fullName, browserId: formattedResult.browserId}, formattedResult.status);
                     const snapshotAttachments = await finalizeSnapshotsForTest({
                         testResult: formattedResult,

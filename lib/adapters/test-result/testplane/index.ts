@@ -2,6 +2,8 @@ import _ from 'lodash';
 import {ERROR, FAIL, SUCCESS, TestStatus, UNKNOWN_SESSION_ID, UPDATED} from '../../../constants';
 import {ReporterTestResult} from '../index';
 import type Testplane from 'testplane';
+import type {TestTag} from 'testplane';
+import type {Suite, Test} from 'testplane';
 import type {Test as TestplaneTest, Config} from 'testplane';
 import type {
     Attachment,
@@ -19,6 +21,7 @@ import type {
     TestplaneTestResult,
     TestStepCompressed
 } from '../../../types';
+import {AttachmentType} from '../../../types';
 import {
     getError,
     hasUnrelatedToScreenshotsErrors,
@@ -44,6 +47,24 @@ export const getStatus = (eventName: ValueOf<Testplane['events']>, events: Testp
         return TestStatus.RUNNING;
     }
     return TestStatus.IDLE;
+};
+
+const extractTags = (testResult: TestplaneTest | TestplaneTestResult): TestTag[] => {
+    const list: TestTag[] = [];
+
+    let current: Test | Suite | TestplaneTestResult | null = testResult;
+
+    while (current && typeof current.getTags === 'function') {
+        const tags = current?.getTags();
+
+        if (tags && tags.length > 0) {
+            list.unshift(...tags);
+        }
+
+        current = current.parent;
+    }
+
+    return list;
 };
 
 export interface TestplaneTestResultAdapterOptions {
@@ -252,6 +273,17 @@ export class TestplaneTestResultAdapter implements ReporterTestResult {
     }
 
     get attachments(): Attachment[] {
+        const tagsList = extractTags(this._testResult);
+
+        if (tagsList.length > 0) {
+            return [
+                {
+                    type: AttachmentType.Tags,
+                    list: tagsList
+                }
+            ];
+        }
+
         return [];
     }
 }
