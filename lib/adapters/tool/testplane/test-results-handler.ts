@@ -51,7 +51,8 @@ export const handleTestResults = (testplane: TestplaneWithHtmlReporter, reportBu
                     testplane.config.saveHistoryMode
                 );
 
-                const attachments: Attachment[] = [];
+                const attachments: Attachment[] = formattedResultWithoutAttempt.attachments;
+
                 if (eventName !== testplane.events.TEST_BEGIN) {
                     // By this time an attempt had already been created for "running" test result, so here we have current attempt number
                     const attempt = reportBuilder.getLatestAttempt({fullName: formattedResultWithoutAttempt.fullName, browserId: formattedResultWithoutAttempt.browserId});

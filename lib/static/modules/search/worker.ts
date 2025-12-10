@@ -1,4 +1,5 @@
 import Fuse from 'fuse.js';
+import type {Expression} from 'fuse.js';
 
 import {keyboardLayoutConverter} from '@/static/modules/utils';
 
@@ -7,11 +8,16 @@ type Element = {title: string};
 let fuse: Fuse<Element>;
 let fuseMatchCase: Fuse<Element>;
 
-const initSearch = (list: string[]): void => {
-    const preparedList = list.map((title) => ({title}));
+const initSearch = (idTagMap: Record<string, string[]>): void => {
+    const list = Object.keys(idTagMap);
+    const preparedList = list
+        .map((title) => ({
+            title,
+            tags: '@' + idTagMap[title].join(' @')
+        }));
 
     const options = {
-        keys: ['title'],
+        keys: ['title', 'tags'],
         threshold: 0.1,
         findAllMatches: true,
         ignoreLocation: true,
@@ -41,9 +47,24 @@ const search = (testNameFilter: string, matchCase = false): string[] => {
         return [];
     }
 
+    const tagsRegex = /@[a-zA-Z0-9_-]+/g;
+    const text = testNameFilter.replace(tagsRegex, '').trim();
+    const tags = testNameFilter.match(tagsRegex) ?? [];
+
     const query = {
-        $or: [{title: testNameFilter}, {title: keyboardLayoutConverter(testNameFilter)}]
+        $and: tags.map((tag) =>({
+            tags: tag
+        }) as Expression)
     };
+
+    if (text && text.length > 0) {
+        query.$and.push({
+            $or: [
+                {title: text},
+                {title: keyboardLayoutConverter(text)}
+            ]
+        });
+    }
 
     if (matchCase) {
         return fuseMatchCase.search(query).map((item) => item.item.title);
@@ -54,7 +75,7 @@ const search = (testNameFilter: string, matchCase = false): string[] => {
 
 type InitMessage = {
     type: 'init';
-    data: string[];
+    data: Record<string, string[]>;
 }
 
 type SearchMessage = {
