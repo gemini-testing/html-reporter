@@ -11,6 +11,7 @@ on:
         - minor
         - major
 permissions:
+  id-token: write
   contents: write
 jobs:
   publish:
@@ -30,6 +31,4 @@ jobs:
       - run: git config --global user.name "y-infra"
       - run: npm run release -- --release-as ${{ github.event.inputs.versionType }}
       - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - run: git push --follow-tags
