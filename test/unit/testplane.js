@@ -45,6 +45,11 @@ describe('lib/testplane', () => {
                 rootUrl: 'browser/root/url',
                 getAbsoluteUrl: _.noop
             }),
+            browsers: {
+                bro1: {
+                    timeTravel: 'off'
+                }
+            },
             getBrowserIds: () => ['bro1']
         }, events, {ImageDiffError, NoRefImageError});
     }
@@ -203,7 +208,7 @@ describe('lib/testplane', () => {
 
     it('should add skipped test to result', async () => {
         await initReporter_();
-        testplane.emit(events.TEST_PENDING, mkStubResult_({title: 'some-title'}));
+        testplane.emit(events.TEST_PENDING, mkStubResult_({title: 'some-title', browserId: 'bro1'}));
         await testplane.emitAsync(testplane.events.RUNNER_END);
 
         assert.deepEqual(StaticReportBuilder.prototype.addTestResult.args[0][0].state, {name: 'some-title'});
@@ -211,7 +216,7 @@ describe('lib/testplane', () => {
 
     it('should add passed test to result', async () => {
         await initReporter_();
-        testplane.emit(events.TEST_PASS, mkStubResult_({title: 'some-title'}));
+        testplane.emit(events.TEST_PASS, mkStubResult_({title: 'some-title', browserId: 'bro1'}));
         await testplane.emitAsync(testplane.events.RUNNER_END);
 
         assert.deepEqual(StaticReportBuilder.prototype.addTestResult.args[0][0].state, {name: 'some-title'});
@@ -220,7 +225,7 @@ describe('lib/testplane', () => {
     ['TEST_FAIL', 'RETRY'].forEach((event) => {
         describe('should add', () => {
             it(`errored test to result on ${event} event`, async () => {
-                const testResult = mkStubResult_({title: 'some-title', stateName: 'state-name'});
+                const testResult = mkStubResult_({title: 'some-title', browserId: 'bro1', stateName: 'state-name'});
                 await initReporter_();
 
                 testplane.emit(events[event], testResult);
@@ -234,7 +239,7 @@ describe('lib/testplane', () => {
                 const err = new Error();
                 err.stateName = 'state-name';
 
-                testplane.emit(events[event], mkStubResult_({title: 'some-title', assertViewResults: [err]}));
+                testplane.emit(events[event], mkStubResult_({title: 'some-title', browserId: 'bro1', assertViewResults: [err]}));
                 await testplane.emitAsync(testplane.events.RUNNER_END);
 
                 assert.deepEqual(StaticReportBuilder.prototype.addTestResult.args[0][0].state, {name: 'some-title'});
@@ -247,6 +252,7 @@ describe('lib/testplane', () => {
                 err.stateName = 'state-name';
                 const testResult = mkStubResult_({
                     title: 'some-title',
+                    browserId: 'bro1',
                     assertViewResults: [err]
                 });
 
@@ -262,7 +268,7 @@ describe('lib/testplane', () => {
                 const err = new ImageDiffError();
                 err.stateName = 'state-name';
 
-                testplane.emit(events[event], mkStubResult_({title: 'some-title', assertViewResults: [err]}));
+                testplane.emit(events[event], mkStubResult_({title: 'some-title', browserId: 'bro1', assertViewResults: [err]}));
                 await testplane.emitAsync(testplane.events.RUNNER_END);
 
                 assert.deepEqual(StaticReportBuilder.prototype.addTestResult.args[0][0].state, {name: 'some-title'});

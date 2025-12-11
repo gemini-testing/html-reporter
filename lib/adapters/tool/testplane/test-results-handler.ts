@@ -62,7 +62,7 @@ export const handleTestResults = (testplane: TestplaneWithHtmlReporter, reportBu
                         reportPath: testplane.htmlReporter.config.path,
                         events: testplane.events,
                         eventName,
-                        timeTravelConfig: testplane.config.timeTravel,
+                        timeTravelConfig: testplane.config.browsers[formattedResultWithoutAttempt.browserId].timeTravel,
                         snapshotsSaver: testplane.htmlReporter.snapshotsSaver
                     });
 

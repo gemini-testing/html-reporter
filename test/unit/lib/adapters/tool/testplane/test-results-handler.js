@@ -23,7 +23,11 @@ describe('lib/adapters/tool/testplane/test-results-handler', () => {
         AFTER_TESTS_READ: 'afterTestsRead'
     };
 
-    const mkTestplane_ = () => stubTool(stubConfig(), events);
+    const mkTestplane_ = () => stubTool(stubConfig({
+        browsers: {
+            'some-browser': {}
+        }
+    }), events);
 
     const mkTestplaneTestResult = (opts = {}) => _.defaults(opts, {
         fullTitle: () => 'some-title',
