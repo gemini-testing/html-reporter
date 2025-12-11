@@ -145,7 +145,7 @@ async function handleTestResults(testplane: TestplaneWithHtmlReporter, reportBui
                         testResult: formattedResult,
                         attempt,
                         reportPath: testplane.htmlReporter.config.path,
-                        timeTravelConfig: testplane.config.timeTravel,
+                        timeTravelConfig: testplane.config.browsers[formattedResult.browserId].timeTravel,
                         events: testplane.events,
                         eventName,
                         snapshotsSaver: testplane.htmlReporter.snapshotsSaver
