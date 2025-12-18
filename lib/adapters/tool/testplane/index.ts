@@ -132,20 +132,20 @@ export class TestplaneToolAdapter implements ToolAdapter {
 
     async readTests(paths: string[], cliTool: CommanderStatic): Promise<TestplaneTestCollectionAdapter> {
         const {TestplaneTestCollectionAdapter} = await import('../../test-collection/testplane');
-        const {grep, set: sets, browser: browsers} = cliTool;
+        const {grep, tag, set: sets, browser: browsers} = cliTool;
         const replMode = getReplModeOption(cliTool);
 
-        const testCollection = await this._tool.readTests(paths, {grep, sets, browsers, replMode});
+        const testCollection = await this._tool.readTests(paths, {grep, sets, tag, browsers, replMode});
 
         return TestplaneTestCollectionAdapter.create(testCollection, this._tool.config.saveHistoryMode);
     }
 
     async run(testCollectionAdapter: TestplaneTestCollectionAdapter, tests: TestSpec[] = [], cliTool: CommanderStatic): Promise<boolean> {
-        const {grep, set: sets, browser: browsers, devtools = false, local = false} = cliTool;
+        const {grep, tag, set: sets, browser: browsers, devtools = false, local = false} = cliTool;
         const replMode = getReplModeOption(cliTool);
         const runner = createTestRunner(testCollectionAdapter.original, tests);
 
-        return runner.run((collection) => this._tool.run(collection, {grep, sets, browsers, devtools, replMode, local}));
+        return runner.run((collection) => this._tool.run(collection, {grep, sets, tag, browsers, devtools, replMode, local}));
     }
 
     async runWithoutRetries(...args: RunTestArgs): Promise<boolean> {
