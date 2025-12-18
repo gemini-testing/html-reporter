@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="11.8.2"></a>
+## 11.8.2 (2025-12-18)
+
+
+### Bug Fixes
+
+* support tag in gui cli ([16620cd](https://github.com/gemini-testing/html-reporter/commit/16620cd))
+
+
+
 <a name="11.8.1"></a>
 ## 11.8.1 (2025-12-11)
 
