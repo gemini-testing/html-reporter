@@ -40,9 +40,16 @@ export function TestInfo(): ReactNode {
                     )
                 )
                 }
-                {isPlayerAvailable && <div className={classNames(styles.sticky, !shouldShowPlayer && styles.hidden)}>
-                    <SnapshotsPlayer/>
-                </div>}
+                {isPlayerAvailable && (
+                    <div className={classNames(styles.sticky, !shouldShowPlayer && styles.hidden)}>
+                        <ErrorHandler.Boundary
+                            watchFor={[currentResult]}
+                            fallback={<SnapshotsPlayer isSnapshotBroken />}
+                        >
+                            <SnapshotsPlayer/>
+                        </ErrorHandler.Boundary>
+                    </div>
+                )}
             </div>
         </CollapsibleSection>
         <CollapsibleSection id={'metadata'} title={'Metadata'}>

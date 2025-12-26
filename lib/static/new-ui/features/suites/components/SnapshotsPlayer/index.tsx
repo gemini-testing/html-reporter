@@ -80,7 +80,14 @@ const findActionByTime = (steps: ListTreeItemType<Step>[], startTime: number, ti
     return null;
 };
 
-export function SnapshotsPlayer(): ReactNode {
+const SnapshotsPlayerError = ({text}: {text: string}): ReactNode => (
+    <div className={styles.snapshotMissingContainer}>
+        <img src={BrokenSnapshotIcon} alt="icon" width={44} height={44} />
+        <span>{text}</span>
+    </div>
+);
+
+export function SnapshotsPlayer({isSnapshotBroken = false}: {isSnapshotBroken?: boolean}): ReactNode {
     const currentResult = useSelector(getCurrentResult);
 
     const [playerElement, setPlayerElement] = useState<HTMLDivElement | null>(null);
@@ -313,7 +320,7 @@ export function SnapshotsPlayer(): ReactNode {
     };
 
     useEffect(() => {
-        if (!currentResult || !playerElement) {
+        if (!currentResult || !playerElement || isSnapshotBroken) {
             return;
         }
 
@@ -375,7 +382,7 @@ export function SnapshotsPlayer(): ReactNode {
             abortControllerRef.current = null;
             destroyPlayer();
         };
-    }, [currentResult, playerElement, startStreaming, initializePlayer, destroyPlayer, handleCustomEvent]);
+    }, [currentResult, playerElement, startStreaming, initializePlayer, destroyPlayer, handleCustomEvent, isSnapshotBroken]);
     const playerElementRef = useCallback((node: HTMLDivElement | null) => {
         if (node !== null) {
             setPlayerElement(node);
@@ -563,10 +570,11 @@ export function SnapshotsPlayer(): ReactNode {
                     </div>
 
                     {isSnapshotMissing && (
-                        <div className={styles.snapshotMissingContainer}>
-                            <img src={BrokenSnapshotIcon} alt="icon" width={44} height={44} />
-                            <span>Snapshot file is missing</span>
-                        </div>
+                        <SnapshotsPlayerError text="Snapshot file is missing" />
+                    )}
+
+                    {isSnapshotBroken && (
+                        <SnapshotsPlayerError text="Snapshot file is broken" />
                     )}
 
                     {/* This container is for the player itself and matches size of the outer container */}
@@ -576,51 +584,53 @@ export function SnapshotsPlayer(): ReactNode {
                 </div>
             </div>
         </div>
-        <div className={styles.buttonsContainer}>
-            <Tooltip content={<>{isPlaying ? 'Pause' : 'Play'} ⋅ <Hotkey value="k" view="light" /></>} placement="top" openDelay={1000}>
-                <Button
-                    onClick={onPlayClick}
-                    view={'flat'}
-                    className={classNames(styles.playPauseButton, styles.controlButton)}
+        {!isSnapshotBroken && (
+            <div className={styles.buttonsContainer}>
+                <Tooltip content={<>{isPlaying ? 'Pause' : 'Play'} ⋅ <Hotkey value="k" view="light" /></>} placement="top" openDelay={1000}>
+                    <Button
+                        onClick={onPlayClick}
+                        view={'flat'}
+                        className={classNames(styles.playPauseButton, styles.controlButton)}
+                        disabled={isSnapshotMissing}
+                    >
+                        <div
+                            className={classNames(styles.playPauseIcon, {[styles.playPauseIconVisible]: isPlaying})}>
+                            <Icon data={PauseFill} size={14}/></div>
+                        <div
+                            className={classNames(styles.playPauseIcon, {[styles.playPauseIconVisible]: !isPlaying})}>
+                            <PlayIcon/>
+                        </div>
+                    </Button>
+                </Tooltip>
+                <Timeline
+                    currentTime={currentPlayerTime}
+                    totalTime={totalTime}
+                    onScrubStart={onScrubStart}
+                    onScrub={onScrub}
+                    onScrubEnd={onScrubEnd}
+                    onHover={onTimelineHover}
+                    onMouseLeave={onTimelineMouseLeave}
+                    isLive={isLive}
+                    isLoading={isSnapshotZipLoading}
+                    downloadProgress={snapshotZipDownloadProgress}
+                    isPlaying={isPlaying}
+                    playerStartTimestamp={playerStartTimestamp}
+                    highlightState={currentPlayerHighlightState}
+                    isSnapshotMissing={isSnapshotMissing}
+                />
+                <Select
+                    value={[playbackSpeed.toString()]}
                     disabled={isSnapshotMissing}
+                    renderControl={renderSettingsControl}
+                    renderOptionGroup={renderSettingsOptionGroup}
+                    popupPlacement="top-end"
+                    popupWidth={100}
+                    multiple={true}
+                    onUpdate={onSpeedChange}
+                    options={SETTINGS_OPTIONS}
                 >
-                    <div
-                        className={classNames(styles.playPauseIcon, {[styles.playPauseIconVisible]: isPlaying})}>
-                        <Icon data={PauseFill} size={14}/></div>
-                    <div
-                        className={classNames(styles.playPauseIcon, {[styles.playPauseIconVisible]: !isPlaying})}>
-                        <PlayIcon/>
-                    </div>
-                </Button>
-            </Tooltip>
-            <Timeline
-                currentTime={currentPlayerTime}
-                totalTime={totalTime}
-                onScrubStart={onScrubStart}
-                onScrub={onScrub}
-                onScrubEnd={onScrubEnd}
-                onHover={onTimelineHover}
-                onMouseLeave={onTimelineMouseLeave}
-                isLive={isLive}
-                isLoading={isSnapshotZipLoading}
-                downloadProgress={snapshotZipDownloadProgress}
-                isPlaying={isPlaying}
-                playerStartTimestamp={playerStartTimestamp}
-                highlightState={currentPlayerHighlightState}
-                isSnapshotMissing={isSnapshotMissing}
-            />
-            <Select
-                value={[playbackSpeed.toString()]}
-                disabled={isSnapshotMissing}
-                renderControl={renderSettingsControl}
-                renderOptionGroup={renderSettingsOptionGroup}
-                popupPlacement="top-end"
-                popupWidth={100}
-                multiple={true}
-                onUpdate={onSpeedChange}
-                options={SETTINGS_OPTIONS}
-            >
-            </Select>
-        </div>
+                </Select>
+            </div>
+        )}
     </div>;
 }
