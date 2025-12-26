@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="11.8.3"></a>
+## 11.8.3 (2025-12-26)
+
+
+### Bug Fixes
+
+* **new-ui:** fallback for broken player ([a6d7628](https://github.com/gemini-testing/html-reporter/commit/a6d7628))
+
+
+
 <a name="11.8.2"></a>
 ## 11.8.2 (2025-12-18)
 
