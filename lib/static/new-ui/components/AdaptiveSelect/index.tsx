@@ -7,6 +7,7 @@ import {ChangedDot} from '../ChangedDot';
 interface AdaptiveSelectProps {
     currentValue: string[];
     label: string;
+    qa?: string;
     // Determines whether select should show dot in its compact view
     showDot?: boolean;
     labelIcon: ReactNode;
@@ -36,6 +37,7 @@ export function AdaptiveSelect(props: AdaptiveSelectProps): ReactNode {
             {/* This wrapper is crucial for the tooltip to position correctly */}
             <div className={styles.tooltip}>
                 <Select
+                    qa={props.qa}
                     ref={selectRef}
                     renderSelectedOption={(option): ReactElement => option.title ? <span className={styles.selectedOption}>{option.title}</span> : <></>}
                     className={styles.select}

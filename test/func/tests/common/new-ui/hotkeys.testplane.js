@@ -222,6 +222,51 @@ if (process.env.TOOL === 'testplane') {
                         expect(isFocused).toBe(true);
                     });
                 });
+
+                describe('Hotkeys and select elements interaction', () => {
+                    it('should navigate with arrow keys after closing browser select by clicking outside', async ({browser}) => {
+                        await browser.keys('ArrowDown');
+                        await browser.$('[data-qa="suite-title"]').waitForDisplayed();
+                        const initialSuiteTitle = await browser.$('[data-qa="suite-title"]').getText();
+
+                        const browserSelect = await browser.$('[data-qa="browsers-select"]');
+                        await browserSelect.click();
+
+                        await browser.$('[data-floating-ui-status="open"]').waitForDisplayed();
+
+                        const heading = await browser.$('[data-qa="sidebar-title"]');
+                        await heading.click();
+
+                        await browser.$('[data-floating-ui-status="open"]').waitForDisplayed({reverse: true});
+
+                        await browser.keys('ArrowDown');
+
+                        await browser.waitUntil(async () => {
+                            const currentTreeItem = await browser.$('[data-qa="tree-view-item"].current-tree-node');
+                            const currentText = await currentTreeItem.getText();
+                            return currentText !== initialSuiteTitle;
+                        }, {timeout: 2000, timeoutMsg: 'Test did not change after arrow down'});
+
+                        await browser.$('[data-floating-ui-status="open"]').waitForDisplayed({reverse: true});
+                    });
+
+                    it('should navigate select options with arrow keys when select is focused', async ({browser}) => {
+                        await browser.keys('ArrowDown');
+                        await browser.$('[data-qa="suite-title"]').waitForDisplayed();
+                        const initialSuiteTitle = await browser.$('[data-qa="suite-title"]').getText();
+
+                        const sortBySelect = await browser.$('[data-qa="sort-by-select"]');
+                        await sortBySelect.click();
+
+                        await browser.keys('ArrowDown');
+                        await browser.keys('ArrowDown');
+
+                        expect(await browser.$('[data-floating-ui-status="open"]')).toBeDisplayed();
+
+                        const currentSuiteTitle = await browser.$('[data-qa="suite-title"]').getText();
+                        expect(currentSuiteTitle).toBe(initialSuiteTitle);
+                    });
+                });
             });
         });
     });

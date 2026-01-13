@@ -83,7 +83,8 @@ function isInputFocused(): boolean {
     const activeElement = document.activeElement;
     return activeElement instanceof HTMLInputElement ||
         activeElement instanceof HTMLTextAreaElement ||
-        activeElement?.getAttribute('contenteditable') === 'true';
+        activeElement?.getAttribute('contenteditable') === 'true'
+        || document.querySelector('[data-floating-ui-status="open"]') !== null;
 }
 
 function matchesModifiers(event: KeyboardEvent, parsed: ParsedKey): boolean {
@@ -153,13 +154,15 @@ export function useHotkey(
         }
 
         event.preventDefault();
+        event.stopPropagation();
+        (document.activeElement as HTMLElement)?.blur();
         callback();
     }, [keyString, callback, enabled, allowInInput]);
 
     useEffect(() => {
-        document.addEventListener('keydown', handleKeyDown);
+        document.addEventListener('keydown', handleKeyDown, true);
         return () => {
-            document.removeEventListener('keydown', handleKeyDown);
+            document.removeEventListener('keydown', handleKeyDown, true);
         };
     }, [handleKeyDown]);
 }
