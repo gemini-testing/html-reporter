@@ -1,8 +1,8 @@
 import type {CommanderStatic} from '@gemini-testing/commander';
-import opener from 'opener';
 
 import * as server from './server';
 import * as utils from '../server-utils';
+import {openBrowser} from './open-browser';
 
 import type {ToolAdapter} from '../adapters/tool';
 
@@ -26,8 +26,10 @@ export interface ServerArgs {
 
 export default (args: ServerArgs): void => {
     server.start(args)
-        .then(({url}: { url: string }) => {
-            args.cli.options.open && opener(url);
+        .then(async ({url}: { url: string }) => {
+            if (args.cli.options.open) {
+                await openBrowser(url);
+            }
         })
         .catch((err: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
             logError(err);
