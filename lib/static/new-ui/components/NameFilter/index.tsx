@@ -1,4 +1,4 @@
-import React, {ChangeEvent, ReactNode, useCallback, useMemo, useRef, useState, useEffect} from 'react';
+import React, {ChangeEvent, ReactNode, useCallback, useMemo, useRef, useState, useEffect, forwardRef, useImperativeHandle} from 'react';
 import {debounce} from 'lodash';
 import {useDispatch, useSelector} from 'react-redux';
 import {Hotkey, Icon, TextInput} from '@gravity-ui/uikit';
@@ -12,7 +12,16 @@ import {usePage} from '@/static/new-ui/hooks/usePage';
 import {useHotkey} from '@/static/new-ui/hooks/useHotkey';
 import {search} from '@/static/modules/search';
 
-export const NameFilter = (): ReactNode => {
+export interface NameFilterHandle {
+    focus: () => void;
+}
+
+export interface NameFilterProps {
+    /** Called when user navigates down out of the input (Enter or ArrowDown at end) */
+    onNavigateDown?: () => void;
+}
+
+export const NameFilter = forwardRef<NameFilterHandle, NameFilterProps>(function NameFilter(props, ref): ReactNode {
     const dispatch = useDispatch();
     const page = usePage();
     const nameFilter = useSelector((state) => state.app[page].nameFilter);
@@ -20,22 +29,54 @@ export const NameFilter = (): ReactNode => {
     const useMatchCaseFilter = useSelector((state) => state.app[page].useMatchCaseFilter);
     const [testNameFilter, setNameFilter] = useState(nameFilter);
     const [isFocused, setIsFocused] = useState(false);
+    const [isAllSelected, setIsAllSelected] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
 
-    const focusSearch = useCallback(() => inputRef.current?.focus(), []);
+    const focusSearch = useCallback(() => {
+        inputRef.current?.focus();
+        const length = inputRef.current?.value.length ?? 0;
+        inputRef.current?.setSelectionRange(length, length);
+    }, []);
+
+    useImperativeHandle(ref, () => ({
+        focus: focusSearch
+    }), [focusSearch]);
+
     useHotkey('mod+k', focusSearch, {allowInInput: true});
 
     const onKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>): void => {
+        const input = inputRef.current;
+
         if (event.key === 'Escape') {
             event.preventDefault();
-            if (testNameFilter) {
-                setNameFilter('');
-                search('', useMatchCaseFilter, useRegexFilter, page, false, dispatch);
+            if (isAllSelected || !testNameFilter) {
+                input?.blur();
+                setIsAllSelected(false);
             } else {
-                inputRef.current?.blur();
+                input?.select();
+                setIsAllSelected(true);
+            }
+            return;
+        }
+
+        setIsAllSelected(false);
+
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            input?.blur();
+            props.onNavigateDown?.();
+            return;
+        }
+
+        if (event.key === 'ArrowDown') {
+            const cursorAtEnd = input && input.selectionStart === input.value.length && input.selectionEnd === input.value.length;
+            if (cursorAtEnd) {
+                event.preventDefault();
+                input?.blur();
+                props.onNavigateDown?.();
             }
         }
-    }, [testNameFilter, useMatchCaseFilter, useRegexFilter, page, dispatch]);
+    }, [testNameFilter, isAllSelected, props.onNavigateDown]);
 
     const updateNameFilter = useCallback(debounce(
         (text) => {
@@ -153,4 +194,4 @@ export const NameFilter = (): ReactNode => {
             </div>
         </div>
     );
-};
+});

@@ -168,32 +168,79 @@ if (process.env.TOOL === 'testplane') {
                         expect(nowFocused).toBe(true);
                     });
 
-                    it('should clear search with Escape', async ({browser}) => {
+                    it('should select first result and blur on Enter', async ({browser}) => {
                         const searchInput = await browser.$('[data-qa="name-filter"] input');
+                        await searchInput.click();
 
-                        await searchInput.setValue('test');
+                        await browser.keys('Enter');
 
-                        const valueBeforeEscape = await searchInput.getValue();
-                        expect(valueBeforeEscape).toBe('test');
+                        await browser.waitUntil(async () => !(await searchInput.isFocused()));
 
-                        await browser.keys('Escape');
-
-                        await browser.waitUntil(async () => {
-                            return (await searchInput.getValue()) === '';
-                        });
+                        await expect(browser.$('[data-qa="suite-title"]')).toBeDisplayed();
                     });
 
-                    it('should blur search with Escape when empty', async ({browser}) => {
+                    it('should select first result and blur on ArrowDown at end of input', async ({browser}) => {
                         const searchInput = await browser.$('[data-qa="name-filter"] input');
+                        await searchInput.setValue('chrome');
 
-                        await browser.keys(['Control', 'k']);
-                        await expect(await searchInput.isFocused()).toBe(true);
+                        await browser.keys('ArrowDown');
+
+                        await browser.waitUntil(async () => !(await searchInput.isFocused()));
+
+                        await expect(browser.$('[data-qa="suite-title"]')).toBeDisplayed();
+                    });
+
+                    it('should not exit search on ArrowDown when cursor is not at end', async ({browser}) => {
+                        const searchInput = await browser.$('[data-qa="name-filter"] input');
+                        await searchInput.setValue('test');
+
+                        await browser.execute((el) => el.setSelectionRange(2, 2), searchInput);
+
+                        await browser.keys('ArrowDown');
+
+                        expect(await searchInput.isFocused()).toBe(true);
+                    });
+
+                    it('should focus search with cursor at end on ArrowUp from first tree item', async ({browser}) => {
+                        const firstTest = await browser.$('[data-qa="tree-view-item"]*=chrome');
+                        await firstTest.click();
+
+                        const counter = await browser.$('[data-qa="suite-title-counter"]');
+                        await expect(counter).toHaveText(/^1\//);
+
+                        await browser.keys('ArrowUp');
+
+                        const searchInput = await browser.$('[data-qa="name-filter"] input');
+                        expect(await searchInput.isFocused()).toBe(true);
+                    });
+
+                    it('should select all text on first Escape, blur on second Escape', async ({browser}) => {
+                        const searchInput = await browser.$('[data-qa="name-filter"] input');
+                        await searchInput.setValue('test');
 
                         await browser.keys('Escape');
 
-                        await browser.waitUntil(async () => {
-                            return !(await searchInput.isFocused());
-                        });
+                        expect(await searchInput.isFocused()).toBe(true);
+                        const selection = await browser.execute((el) => {
+                            return {start: el.selectionStart, end: el.selectionEnd, length: el.value.length};
+                        }, searchInput);
+                        expect(selection.start).toBe(0);
+                        expect(selection.end).toBe(selection.length);
+
+                        await browser.keys('Escape');
+
+                        await browser.waitUntil(async () => !(await searchInput.isFocused()));
+                    });
+
+                    it('should blur immediately on Escape when search is empty', async ({browser}) => {
+                        const searchInput = await browser.$('[data-qa="name-filter"] input');
+                        await searchInput.click();
+
+                        expect(await searchInput.isFocused()).toBe(true);
+
+                        await browser.keys('Escape');
+
+                        await browser.waitUntil(async () => !(await searchInput.isFocused()));
                     });
                 });
 
