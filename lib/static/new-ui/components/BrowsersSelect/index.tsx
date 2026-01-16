@@ -113,7 +113,16 @@ export function BrowsersSelect(): ReactNode {
     const isInitialized = useSelector(getIsInitialized);
 
     const renderControl = ({ref, triggerProps: {onClick, onKeyDown}}: SelectRenderControlProps<HTMLElement>): React.JSX.Element => {
-        return <IconButton ref={ref as Ref<HTMLButtonElement>} onClick={onClick} onKeyDown={onKeyDown} view={'outlined'} disabled={!isInitialized} icon={<Icon data={PlanetEarth}/>} tooltip={'Filter by browser'} />;
+        return <IconButton
+            ref={ref as Ref<HTMLButtonElement>}
+            onClick={onClick}
+            onKeyDown={onKeyDown}
+            view={'outlined'}
+            disabled={!isInitialized}
+            icon={<Icon data={PlanetEarth}/>}
+            tooltip={'Filter by browser'}
+            qa='browsers-select'
+        />;
     };
 
     const selected = selectedBrowsers.flatMap(browser => browser.versions.map(version => serializeBrowserData(browser.id, version)));

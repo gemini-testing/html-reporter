@@ -19,7 +19,7 @@ import {VisualChecksStickyHeader} from './VisualChecksStickyHeader';
 import {ErrorHandler} from '../../../error-handling/components/ErrorHandling';
 import * as actions from '@/static/modules/actions';
 import {changeTestRetry, visualChecksPageSetCurrentNamedImage} from '@/static/modules/actions';
-import {SideBar} from '@/static/new-ui/components/SideBar';
+import {SideBar, SideBarHandle} from '@/static/new-ui/components/SideBar';
 import {getCurrentImageSuiteHash, getVisualChecksViewMode, getVisualTreeViewData} from './selectors';
 import {TreeViewHandle} from '@/static/new-ui/components/TreeView';
 import {TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
@@ -64,6 +64,7 @@ export function VisualChecksPage(): ReactNode {
 
     const treeData = useSelector(getVisualTreeViewData);
     const suitesTreeViewRef = useRef<TreeViewHandle>(null);
+    const sideBarRef = useRef<SideBarHandle>(null);
 
     useEffect(() => {
         suitesTreeViewRef?.current?.scrollToId(currentTreeNodeId as string);
@@ -110,9 +111,24 @@ export function VisualChecksPage(): ReactNode {
     }, [currentBrowser, attempt, totalAttempts, dispatch]);
 
     const goToNextImage = useCallback(() => onPrevNextImageHandler(1), [onPrevNextImageHandler]);
-    const goToPrevImage = useCallback(() => onPrevNextImageHandler(-1), [onPrevNextImageHandler]);
+    const goToPrevImage = useCallback(() => {
+        if (currentNamedImageIndex === 0) {
+            sideBarRef.current?.focusSearch();
+            return;
+        }
+        onPrevNextImageHandler(-1);
+    }, [onPrevNextImageHandler, currentNamedImageIndex]);
     const goToNextAttempt = useCallback(() => onPrevNextAttemptHandler(1), [onPrevNextAttemptHandler]);
     const goToPrevAttempt = useCallback(() => onPrevNextAttemptHandler(-1), [onPrevNextAttemptHandler]);
+
+    const onSelectFirstResult = useCallback(() => {
+        if (treeData.tree.length > 0) {
+            const firstItem = treeData.tree[0]?.data;
+            if (firstItem) {
+                onImageChange(firstItem);
+            }
+        }
+    }, [treeData.tree, onImageChange]);
 
     useHotkey('ArrowDown', goToNextImage);
     useHotkey('ArrowUp', goToPrevImage);
@@ -208,9 +224,11 @@ export function VisualChecksPage(): ReactNode {
         <div className={styles.container}>
             <SplitViewLayout sizes={sectionSizes} onSizesChange={onSectionSizesChange}>
                 <SideBar
+                    ref={sideBarRef}
                     title="Visual Checks"
                     isInitialized={isInitialized}
                     treeViewRef={suitesTreeViewRef}
+                    onSelectFirstTreeItem={onSelectFirstResult}
                     treeData={treeData}
                     treeViewExpandedById={{}}
                     currentTreeNodeId={currentTreeNodeId}

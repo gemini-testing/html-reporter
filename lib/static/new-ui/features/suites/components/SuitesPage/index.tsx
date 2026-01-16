@@ -12,6 +12,7 @@ import {
 } from '@/static/new-ui/features/suites/selectors';
 import {SplitViewLayout} from '@/static/new-ui/components/SplitViewLayout';
 import {TreeViewHandle} from '@/static/new-ui/components/TreeView';
+import {SideBarHandle} from '@/static/new-ui/components/SideBar';
 import {SuiteTitle} from '@/static/new-ui/components/SuiteTitle';
 import * as actions from '@/static/modules/actions';
 import {getIsInitialized} from '@/static/new-ui/store/selectors';
@@ -115,6 +116,7 @@ export function SuitesPage(): ReactNode {
     }, [isInitialized, params]);
 
     const suitesTreeViewRef = useRef<TreeViewHandle>(null);
+    const sideBarRef = useRef<SideBarHandle>(null);
 
     useEffect(() => {
         suitesTreeViewRef?.current?.scrollToId(currentTreeNodeId as string);
@@ -188,9 +190,27 @@ export function SuitesPage(): ReactNode {
     }, [currentBrowser, attempt, totalAttempts, currentTreeNodeId, dispatch]);
 
     const goToNextSuite = useCallback(() => onPrevNextSuiteHandler(1), [onPrevNextSuiteHandler]);
-    const goToPrevSuite = useCallback(() => onPrevNextSuiteHandler(-1), [onPrevNextSuiteHandler]);
+    const goToPrevSuite = useCallback(() => {
+        if (currentIndex === 0) {
+            sideBarRef.current?.focusSearch();
+            return;
+        }
+        onPrevNextSuiteHandler(-1);
+    }, [onPrevNextSuiteHandler, currentIndex]);
     const goToNextAttempt = useCallback(() => onPrevNextAttemptHandler(1), [onPrevNextAttemptHandler]);
     const goToPrevAttempt = useCallback(() => onPrevNextAttemptHandler(-1), [onPrevNextAttemptHandler]);
+
+    const onSelectFirstResult = useCallback(() => {
+        if (visibleTreeNodeIds.length > 0) {
+            const firstTreeNodeId = visibleTreeNodeIds[0];
+            const firstTreeNode = findTreeNodeById(tree, firstTreeNodeId);
+            if (firstTreeNode) {
+                const groupId = getGroupId(firstTreeNode as TreeViewItemData);
+                dispatch(actions.setCurrentTreeNode({treeNodeId: firstTreeNodeId, browserId: firstTreeNode.entityId, groupId}));
+                suitesTreeViewRef?.current?.scrollToId(firstTreeNodeId);
+            }
+        }
+    }, [visibleTreeNodeIds, tree, dispatch]);
 
     useHotkey('ArrowDown', goToNextSuite);
     useHotkey('ArrowUp', goToPrevSuite);
@@ -262,10 +282,12 @@ export function SuitesPage(): ReactNode {
         <div className={styles.container}>
             <SplitViewLayout sizes={sectionSizes} onSizesChange={onSectionSizesChange}>
                 <SideBar
+                    ref={sideBarRef}
                     title="Suites"
                     onHighlightCurrentTest={onHighlightCurrentTest}
                     isInitialized={isInitialized}
                     treeViewRef={suitesTreeViewRef}
+                    onSelectFirstTreeItem={onSelectFirstResult}
                     treeData={treeData}
                     treeViewExpandedById={treeViewExpandedById}
                     currentTreeNodeId={currentTreeNodeId}

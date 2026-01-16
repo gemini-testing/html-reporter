@@ -26,10 +26,12 @@
     flex-direction: row;
     padding: 2px 2px 2px 0;
     align-items: center;
+    pointer-events: none;
 }
 
 .buttons-wrapper :global(.g-button) {
     color: rgb(113, 113, 122);
+    pointer-events: auto;
 }
 
 .buttons-wrapper :global(.g-button):hover {

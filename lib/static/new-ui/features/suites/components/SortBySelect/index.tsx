@@ -87,6 +87,7 @@ export function SortBySelect(): ReactNode {
 
     return <AdaptiveSelect
         label={'Sort by'}
+        qa='sort-by-select'
         labelIcon={<Icon data={currentDirection === SortDirection.Asc ? BarsAscendingAlignLeftArrowUp : BarsDescendingAlignLeftArrowDown} />}
         currentValue={[sortByExpressionId, currentDirection]}
         autoClose={false}
