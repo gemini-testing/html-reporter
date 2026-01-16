@@ -7,7 +7,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {getToggledCheckboxState, isCheckboxChecked, isCheckboxIndeterminate} from '@/common-utils';
 import {EntityType, TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
 import {toggleBrowserCheckbox, toggleGroupCheckbox, toggleSuiteCheckbox, thunkRunSuite} from '@/static/modules/actions';
-import {getAreCheckboxesNeeded, getBrowsers, getSuites} from '@/static/new-ui/store/selectors';
+import {getAreCheckboxesNeeded, getBrowsers, getBrowsersState, getSuites} from '@/static/new-ui/store/selectors';
 import {getItemCheckStatus} from '@/static/new-ui/components/TreeViewItemTitle/selectors';
 import {ClipboardButton} from '@/static/new-ui/components/ClipboardButton';
 import {RunTestsFeature} from '@/constants';
@@ -19,21 +19,28 @@ interface TreeViewItemTitleProps {
     item: TreeViewItemData;
 }
 
-const getSuiteBrowsers = (suiteId: string, suites: Record<string, {suiteIds?: string[]; browserIds?: string[]}>, browsers: Record<string, {parentId: string; name: string}>): TestSpec[] => {
+const getVisibleSuiteBrowsers = (
+    suiteId: string,
+    suites: Record<string, {suiteIds?: string[]; browserIds?: string[]}>,
+    browsers: Record<string, {parentId: string; name: string}>,
+    browsersState: Record<string, {shouldBeShown: boolean}>
+): TestSpec[] => {
     const suite = suites[suiteId];
     if (!suite) {
         return [];
     }
 
     if (suite.browserIds) {
-        return suite.browserIds.map(browserId => {
-            const browser = browsers[browserId];
-            return {testName: browser.parentId, browserName: browser.name};
-        });
+        return suite.browserIds
+            .filter(browserId => browsersState[browserId]?.shouldBeShown)
+            .map(browserId => {
+                const browser = browsers[browserId];
+                return {testName: browser.parentId, browserName: browser.name};
+            });
     }
 
     if (suite.suiteIds) {
-        return suite.suiteIds.flatMap(childSuiteId => getSuiteBrowsers(childSuiteId, suites, browsers));
+        return suite.suiteIds.flatMap(childSuiteId => getVisibleSuiteBrowsers(childSuiteId, suites, browsers, browsersState));
     }
 
     return [];
@@ -48,13 +55,14 @@ export function TreeViewItemTitle({item}: TreeViewItemTitleProps): React.JSX.Ele
 
     const suites = useSelector(getSuites);
     const browsers = useSelector(getBrowsers);
+    const browsersState = useSelector(getBrowsersState);
     const isRunning = useSelector(state => state.running);
     const isRunTestsAvailable = useSelector(state => state.app.availableFeatures)
         .find(feature => feature.name === RunTestsFeature.name);
 
     const getTestsToRun = (): TestSpec[] => {
         if (item.entityType === EntityType.Suite) {
-            return getSuiteBrowsers(item.entityId, suites, browsers);
+            return getVisibleSuiteBrowsers(item.entityId, suites, browsers, browsersState);
         } else if (item.entityType === EntityType.Browser) {
             // On visual checks page, browserId is stored separately from entityId
             const browserId = item.browserId || item.entityId;
@@ -65,10 +73,12 @@ export function TreeViewItemTitle({item}: TreeViewItemTitleProps): React.JSX.Ele
         } else if (item.entityType === EntityType.Group) {
             const group = groups[item.entityId];
             if (group) {
-                return group.browserIds.map(browserId => {
-                    const browser = browsers[browserId];
-                    return {testName: browser.parentId, browserName: browser.name};
-                });
+                return group.browserIds
+                    .filter(browserId => browsersState[browserId]?.shouldBeShown)
+                    .map(browserId => {
+                        const browser = browsers[browserId];
+                        return {testName: browser.parentId, browserName: browser.name};
+                    });
             }
         }
         return [];

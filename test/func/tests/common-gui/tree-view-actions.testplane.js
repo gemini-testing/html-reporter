@@ -79,6 +79,44 @@ describe('GUI mode', () => {
             expect(attempts.length).toBe(2);
         });
 
+        it('should run only visible tests in suite', async ({browser}) => {
+            const searchInput = await browser.$('[data-qa="name-filter"] input');
+            await searchInput.setValue('test with no reference image');
+            await browser.pause(500);
+
+            const suiteItem = await browser.$('[data-list-item="tests to run"]');
+            await suiteItem.moveTo();
+
+            const runButton = await suiteItem.$('button[title="Run tests"]');
+            await runButton.waitForClickable();
+            await runButton.click();
+
+            await browser.waitUntil(async () => {
+                const spinners = await browser.$$('.g-spin');
+                return spinners.length > 0;
+            }, {timeout: 5000, timeoutMsg: 'Tests did not start running'});
+
+            await browser.waitUntil(async () => {
+                const spinners = await browser.$$('.g-spin');
+                return spinners.length === 0;
+            }, {timeout: 30000, timeoutMsg: 'Tests did not complete'});
+
+            await browser.$('[data-qa="clear-name-filter"]').click();
+            await browser.pause(500);
+
+            const firstTest = await browser.$('[data-list-item*="test with image comparison diff"][data-list-item*="chrome"]');
+            await firstTest.click();
+            await browser.$('[data-qa="suite-title-counter"]').waitForDisplayed();
+            let attempts = await browser.$$('[data-qa="retry-switcher"]');
+            expect(attempts.length).toBe(1);
+
+            const secondTest = await browser.$('[data-list-item*="test with no reference image"][data-list-item*="chrome"]');
+            await secondTest.click();
+            await browser.$('[data-qa="suite-title-counter"]').waitForDisplayed();
+            attempts = await browser.$$('[data-qa="retry-switcher"]');
+            expect(attempts.length).toBe(2);
+        });
+
         it('should run test on visual checks page via run button click', async ({browser}) => {
             await browser.keys('v');
 
