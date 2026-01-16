@@ -16,6 +16,10 @@ process.on('uncaughtException', err => {
 });
 
 process.on('unhandledRejection', (reason, p) => {
+    // Avoid double processing of unhandled rejections, this global flag is set by Testplane
+    if ((global as Record<string, unknown>)['__TESTPLANE_INTERNAL_UNHANDLED_REJECTION_PROCESSED']) {
+        return;
+    }
     const errorMessage = [
         `Unhandled Rejection in ${toolAdapter ? toolAdapter.toolName + ':' : ''}${process.pid}:`,
         `Promise: ${JSON.stringify(p)}`,
