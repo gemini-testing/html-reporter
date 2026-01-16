@@ -32,9 +32,19 @@ const hideScreenshots = async (browser) => {
     });
 };
 
-const runGui = async (projectDir) => {
+const runGui = async (projectDir, {autoRun = false, grep = null} = {}) => {
     return new Promise((resolve, reject) => {
-        const child = childProcess.spawn('npm', ['run', 'gui', '--', '--no-open'], {cwd: projectDir});
+        const args = ['run', 'gui', '--', '--no-open'];
+
+        if (autoRun) {
+            args.push('--auto-run');
+        }
+
+        if (grep) {
+            args.push('--grep', grep);
+        }
+
+        const child = childProcess.spawn('npm', args, {cwd: projectDir});
 
         let processKillTimeoutId = setTimeout(() => {
             treeKill(child.pid).then(() => {

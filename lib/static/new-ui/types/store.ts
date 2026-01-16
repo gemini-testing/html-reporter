@@ -369,6 +369,7 @@ export interface State {
     stats: {all: Stats | Record<string, never>, perBrowser: PerBrowserStats | undefined} | null;
     db?: Database;
     plugins: Record<string, unknown>;
+    autoRun: boolean;
 }
 
 declare module 'react-redux' {
