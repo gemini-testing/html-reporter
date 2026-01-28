@@ -194,7 +194,7 @@ export class ToolRunner {
 
         return Promise.all(tests.map(async (test): Promise<TestBranch> => {
             const testAdapter = this._getTestAdapterById(test);
-            const assertViewResults = getAssertViewResults(test.imagesInfo, testAdapter, this._toolAdapter.config.getScreenshotPath);
+            const assertViewResults = getAssertViewResults(test.imagesInfo, testAdapter, this._toolAdapter.config.getScreenshotPath.bind(this._toolAdapter.config));
             const {sessionId, url} = test.metaInfo as {sessionId?: string; url?: string};
 
             const formattedResultWithoutAttempt = testAdapter.createTestResult({
@@ -219,7 +219,7 @@ export class ToolRunner {
 
         await Promise.all(tests.map(async (test) => {
             const testAdapter = this._getTestAdapterById(test);
-            const assertViewResults = getAssertViewResults(test.imagesInfo, testAdapter, this._toolAdapter.config.getScreenshotPath);
+            const assertViewResults = getAssertViewResults(test.imagesInfo, testAdapter, this._toolAdapter.config.getScreenshotPath.bind(this._toolAdapter.config));
             const {sessionId, url} = test.metaInfo as {sessionId?: string; url?: string};
 
             const formattedResultWithoutAttempt = testAdapter.createTestResult({

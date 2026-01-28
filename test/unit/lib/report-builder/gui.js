@@ -13,6 +13,7 @@ const {LOCAL_DATABASE_NAME} = require('lib/constants/database');
 const {ImagesInfoSaver} = require('lib/images-info-saver');
 const sinon = require('sinon');
 const {SKIPPED, SUCCESS, ERROR} = require('lib/constants');
+const {TestStatus} = require('../../../../build/lib/constants');
 
 const TEST_REPORT_PATH = 'test';
 const TEST_DB_PATH = `${TEST_REPORT_PATH}/${LOCAL_DATABASE_NAME}`;
@@ -243,6 +244,44 @@ describe('GuiReportBuilder', () => {
             const reportBuilder = await mkGuiReportBuilder_({reporterConfig: {baseHost: 'some-host'}});
 
             assert.equal(reportBuilder.getResult().config.baseHost, 'some-host');
+        });
+    });
+
+    describe('"updateReferenceImages"', () => {
+        it('should determine status based on the latest result', async () => {
+            const testRefUpdateData = {
+                id: 'some-id',
+                fullTitle: () => 'some-title',
+                clone: () => testRefUpdateData[0],
+                browserId: 'yabro',
+                suite: {path: ['suite1']},
+                state: {},
+                metaInfo: {},
+                imagesInfo: [{
+                    status: UPDATED,
+                    stateName: 'plain1',
+                    refImg: {
+                        path: 'ref-path1',
+                        size: {height: 100, width: 200}
+                    },
+                    expectedImg: {
+                        path: 'expected-path1',
+                        size: {height: 100, width: 200}
+                    },
+                    actualImg: {
+                        path: 'actual-path1',
+                        size: {height: 100, width: 200}
+                    }
+                }]
+            };
+
+            const reportBuilder = await mkGuiReportBuilder_();
+            sinon.stub(reportBuilder, 'getUpdatedReferenceTestStatus').returns(TestStatus.UPDATED);
+            sinon.stub(reportBuilder, 'addTestResult');
+
+            await reportBuilder.updateReferenceImages(testRefUpdateData, sinon.stub());
+
+            assert.calledOnceWith(reportBuilder.addTestResult, sinon.match.any, {status: TestStatus.UPDATED});
         });
     });
 
