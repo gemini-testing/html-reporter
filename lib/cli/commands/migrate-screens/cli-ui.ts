@@ -165,7 +165,7 @@ export const createCliUi = (
         if (!isInteractive) {
             const elapsedSec = (summary.elapsedMs / 1000).toFixed(1);
             const warningLine = summary.warningMessage ? `\n${summary.warningMessage}` : '';
-            stdout.write(`\nTestplane complete\nItems ${summary.processed} processed, ${summary.autoAccepted} auto-accepted\nTotal ${elapsedSec}s${warningLine}\n`);
+            stdout.write(`\nMigration finished\nItems: ${summary.processed} processed, ${summary.autoAccepted} auto-accepted\nTotal time: ${elapsedSec}s${warningLine}\n`);
             return;
         }
         if (spinnerTimer) {

@@ -49,6 +49,9 @@ const config = _.merge(commonConfig, {
         },
         'db-migrations': {
             files: 'db-migrations/**/*.testplane.js'
+        },
+        'migrate-screens': {
+            files: 'migrate-screens/**/*.testplane.js'
         }
     },
 

@@ -207,7 +207,6 @@ async function migrateScreens({toolAdapter, refPathMaps}: MigrateScreensOptions)
 
                 const normalizedImagesInfo = await downloadAndResolveImagePaths(imagesInfo, reportPath, timing, refPathMaps, process.cwd());
                 autoAccepted += 1;
-                return;
                 const updatedResult = copyAndUpdate(testResult, {imagesInfo: normalizedImagesInfo, status: TestStatus.UPDATED, attempt: UNKNOWN_ATTEMPT, timestamp: Date.now()});
                 await reportBuilder.updateReferenceImages(updatedResult, () => {});
             } catch (err) {
