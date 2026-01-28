@@ -204,8 +204,8 @@ export const createCliUi = (
         stdout.write(`  ───────────────────────────────────────────────────────────────────────\n\n`);
         stdout.write(`   Items            ${summary.processed} processed, ${summary.autoAccepted} auto-accepted\n`);
         stdout.write(`   Total            ${elapsedSec.toFixed(1)}s\n`);
-        stdout.write(`   ├─ Download      ${downloadSec.toFixed(1)}s  ${renderBar(downloadSec, elapsedSec, barWidth)}\n`);
-        stdout.write(`   └─ Processing    ${compareSec.toFixed(1)}s  ${renderBar(compareSec, elapsedSec, barWidth)}\n\n`);
+        stdout.write(`   ├─ Download      ${downloadSec.toFixed(1)}s\t${renderBar(downloadSec, elapsedSec, barWidth)}\n`);
+        stdout.write(`   └─ Processing    ${compareSec.toFixed(1)}s\t${renderBar(compareSec, elapsedSec, barWidth)}\n\n`);
         if (summary.warningMessage) {
             stdout.write(`   ${chalk.yellow(summary.warningMessage)}\n\n`);
         }
