@@ -11,6 +11,7 @@
     "gui:testplane-tinder": "TOOL=testplane PROJECT_UNDER_TEST=testplane-tinder SERVER_PORT=8076 npx testplane --set common-tinder gui",
     "gui:analytics": "TOOL=testplane PROJECT_UNDER_TEST=analytics SERVER_PORT=8085 npx testplane --set analytics gui",
     "gui:db-migrations": "TOOL=testplane PROJECT_UNDER_TEST=db-migrations SERVER_PORT=8086 npx testplane --set db-migrations gui",
+    "gui:migrate-screens": "TOOL=testplane PROJECT_UNDER_TEST=migrate-screens SERVER_PORT=8087 npx testplane --set migrate-screens gui",
     "testplane:testplane-common": "TOOL=testplane PROJECT_UNDER_TEST=testplane SERVER_PORT=8061 npx testplane --set common",
     "testplane:testplane-eye": "TOOL=testplane PROJECT_UNDER_TEST=testplane-eye SERVER_PORT=8062 npx testplane --set eye",
     "testplane:testplane-gui": "TOOL=testplane PROJECT_UNDER_TEST=testplane-gui SERVER_PORT=8063 npx testplane --no --set common-gui",
@@ -19,6 +20,7 @@
     "testplane:testplane-tinder": "TOOL=testplane PROJECT_UNDER_TEST=testplane-tinder SERVER_PORT=8086 npx testplane --set common-tinder",
     "testplane:analytics": "TOOL=testplane PROJECT_UNDER_TEST=analytics SERVER_PORT=8085 npx testplane --set analytics",
     "testplane:db-migrations": "TOOL=testplane PROJECT_UNDER_TEST=db-migrations SERVER_PORT=8086 npx testplane --set db-migrations",
+    "testplane:migrate-screens": "TOOL=testplane PROJECT_UNDER_TEST=migrate-screens SERVER_PORT=8087 npx testplane --set migrate-screens",
     "test": "run-s testplane:*"
   },
   "devDependencies": {

@@ -49,8 +49,8 @@ describe('lib/gui/tool-runner/utils', () => {
             backupAndResetStub = sinon.stub();
             consoleWarnStub = sinon.stub(console, 'warn');
 
-            utilsWithStubs = proxyquire('lib/gui/tool-runner/utils', {
-                '../../db-utils/migrations': {
+            utilsWithStubs = proxyquire('lib/gui/tool-runner/utils/db', {
+                '../../../db-utils/migrations': {
                     getDatabaseVersion,
                     migrateDatabase,
                     backupAndReset: backupAndResetStub
@@ -168,8 +168,8 @@ describe('lib/gui/tool-runner/utils', () => {
             db.close();
 
             const dbStub = {close: sinon.stub()};
-            const utilsWithErrorStub = proxyquire('lib/gui/tool-runner/utils', {
-                '../../db-utils/server': ({makeSqlDatabaseFromFile: () => Promise.resolve(dbStub)})
+            const utilsWithErrorStub = proxyquire('lib/gui/tool-runner/utils/db', {
+                '../../../db-utils/server': ({makeSqlDatabaseFromFile: () => Promise.resolve(dbStub)})
             });
 
             await utilsWithErrorStub.prepareLocalDatabase(reportPath);

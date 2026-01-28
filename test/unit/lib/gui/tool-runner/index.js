@@ -65,6 +65,7 @@ describe('lib/gui/tool-runner/index', () => {
         reportBuilder = sandbox.createStubInstance(GuiReportBuilder);
         reportBuilder.addTestResult.callsFake(_.identity);
         reportBuilder.provideAttempt.callsFake(_.identity);
+        reportBuilder.updateReferenceImages.callsFake(_.identity);
 
         looksSame = sandbox.stub().named('looksSame').resolves({equal: true});
 
@@ -252,10 +253,14 @@ describe('lib/gui/tool-runner/index', () => {
 
             await gui.updateReferenceImage(testRefUpdateData);
 
-            assert.calledOnceWith(toolAdapter.updateReference, {
-                refImg: {path: '/ref/path1', relativePath: '../path1', size: {height: 100, width: 200}},
-                state: 'plain1'
+            assert.calledOnce(reportBuilder.updateReferenceImages);
+            const [testResult] = reportBuilder.updateReferenceImages.firstCall.args;
+            assert.deepEqual(testResult.imagesInfo[0].refImg, {
+                path: '/ref/path1',
+                relativePath: '../path1',
+                size: {height: 100, width: 200}
             });
+            assert.equal(testResult.imagesInfo[0].stateName, 'plain1');
         });
 
         it('should update reference for each image', async () => {
@@ -301,54 +306,20 @@ describe('lib/gui/tool-runner/index', () => {
 
             await gui.updateReferenceImage(tests);
 
-            assert.calledTwice(toolAdapter.updateReference);
-            assert.calledWith(toolAdapter.updateReference.firstCall, {
-                refImg: {path: '/ref/path1', relativePath: '../path1', size: {height: 100, width: 200}},
-                state: 'plain1'
+            assert.calledOnce(reportBuilder.updateReferenceImages);
+            const [firstTestResult] = reportBuilder.updateReferenceImages.firstCall.args;
+            assert.deepEqual(firstTestResult.imagesInfo[0].refImg, {
+                path: '/ref/path1',
+                relativePath: '../path1',
+                size: {height: 100, width: 200}
             });
-            assert.calledWith(toolAdapter.updateReference.secondCall, {
-                refImg: {path: '/ref/path2', relativePath: '../path2', size: {height: 200, width: 300}},
-                state: 'plain2'
+            assert.equal(firstTestResult.imagesInfo[0].stateName, 'plain1');
+            assert.deepEqual(firstTestResult.imagesInfo[1].refImg, {
+                path: '/ref/path2',
+                relativePath: '../path2',
+                size: {height: 200, width: 300}
             });
-        });
-
-        it('should determine status based on the latest result', async () => {
-            const testRefUpdateData = [{
-                id: 'some-id',
-                fullTitle: () => 'some-title',
-                clone: () => testRefUpdateData[0],
-                browserId: 'yabro',
-                suite: {path: ['suite1']},
-                state: {},
-                metaInfo: {},
-                imagesInfo: [{
-                    status: UPDATED,
-                    stateName: 'plain1',
-                    actualImg: {
-                        size: {height: 100, width: 200}
-                    }
-                }]
-            }];
-
-            const getScreenshotPath = sandbox.stub().returns('/ref/path1');
-            const config = mkConfigAdapter_(stubConfig({
-                browsers: {yabro: {getScreenshotPath}}
-            }));
-
-            const testCollection = {tests: [mkTestAdapter_(testRefUpdateData[0])]};
-            const toolAdapter = stubToolAdapter({config, testCollection});
-
-            reportBuilder.getLatestAttempt.withArgs({fullName: 'some-title', browserId: 'yabro'}).returns(100500);
-            reportBuilder.getUpdatedReferenceTestStatus.withArgs(sinon.match({attempt: 100500})).returns(TestStatus.UPDATED);
-
-            const gui = initGuiReporter({toolAdapter});
-            await gui.initialize();
-
-            reportBuilder.addTestResult.reset();
-
-            await gui.updateReferenceImage(testRefUpdateData);
-
-            assert.calledOnceWith(reportBuilder.addTestResult, sinon.match.any, {status: TestStatus.UPDATED});
+            assert.equal(firstTestResult.imagesInfo[1].stateName, 'plain2');
         });
     });
 
