@@ -29,6 +29,10 @@ module.exports = {
         'db-migrations': {
             server: 8086,
             gui: 8076
+        },
+        'migrate-screens': {
+            server: 8087,
+            gui: 8077
         }
     }
 };
