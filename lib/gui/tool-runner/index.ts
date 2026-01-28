@@ -16,8 +16,8 @@ import {Cache} from '../../cache';
 import {ImagesInfoSaver} from '../../images-info-saver';
 import {SqliteImageStore} from '../../image-store';
 import * as reporterHelper from '../../reporter-helpers';
-import {logger, getShortMD5, isUpdatedStatus} from '../../common-utils';
-import {formatId, mkFullTitle, mergeDatabasesForReuse, filterByEqualDiffSizes, prepareLocalDatabase} from './utils';
+import {logger, getShortMD5} from '../../common-utils';
+import {formatId, mkFullTitle, mergeDatabasesForReuse, filterByEqualDiffSizes, prepareLocalDatabase, getAssertViewResults} from './utils';
 import {getExpectedCacheKey, getTimeTravelModeEnumSafe} from '../../server-utils';
 import {getTestsTreeFromDatabase} from '../../db-utils/server';
 import {
@@ -38,10 +38,8 @@ import type {ReporterTestResult} from '../../adapters/test-result';
 import type {Tree, TreeImage} from '../../tests-tree-builder/base';
 import type {TestSpec} from '../../adapters/tool/types';
 import type {
-    AssertViewResult,
-    ImageFile,
     ImageInfoDiff, ImageInfoUpdated, ImageInfoWithState,
-    ReporterConfig, TestSpecByPath, RefImageFile
+    ReporterConfig, TestSpecByPath
 } from '../../types';
 import type {TestAdapter} from '../../adapters/test/index';
 import type {TestCollectionAdapter} from '../../adapters/test-collection';
@@ -196,25 +194,8 @@ export class ToolRunner {
 
         return Promise.all(tests.map(async (test): Promise<TestBranch> => {
             const testAdapter = this._getTestAdapterById(test);
-            const assertViewResults = this._prepareAssertViewResults(test.imagesInfo, testAdapter);
+            const assertViewResults = getAssertViewResults(test.imagesInfo, testAdapter, this._toolAdapter.config.getScreenshotPath);
             const {sessionId, url} = test.metaInfo as {sessionId?: string; url?: string};
-
-            const latestAttempt = reportBuilder.getLatestAttempt({
-                fullName: testAdapter.fullName,
-                browserId: testAdapter.browserId
-            });
-
-            const latestResult = testAdapter.createTestResult({
-                assertViewResults,
-                status: UPDATED,
-                attempt: latestAttempt,
-                error: test.error,
-                sessionId,
-                meta: {url},
-                duration: 0
-            });
-
-            const estimatedStatus = reportBuilder.getUpdatedReferenceTestStatus(latestResult);
 
             const formattedResultWithoutAttempt = testAdapter.createTestResult({
                 assertViewResults,
@@ -226,10 +207,7 @@ export class ToolRunner {
                 duration: 0
             });
 
-            const formattedResult = reportBuilder.provideAttempt(formattedResultWithoutAttempt);
-            const formattedResultUpdated = await reporterHelper.updateReferenceImages(formattedResult, this._reportPath, this._handleReferenceUpdate.bind(this));
-
-            await reportBuilder.addTestResult(formattedResultUpdated, {status: estimatedStatus});
+            const formattedResultUpdated = await reportBuilder.updateReferenceImages(formattedResultWithoutAttempt, this._handleReferenceUpdate.bind(this));
 
             return reportBuilder.getTestBranch(formattedResultUpdated.id);
         }));
@@ -241,7 +219,7 @@ export class ToolRunner {
 
         await Promise.all(tests.map(async (test) => {
             const testAdapter = this._getTestAdapterById(test);
-            const assertViewResults = this._prepareAssertViewResults(test.imagesInfo, testAdapter);
+            const assertViewResults = getAssertViewResults(test.imagesInfo, testAdapter, this._toolAdapter.config.getScreenshotPath);
             const {sessionId, url} = test.metaInfo as {sessionId?: string; url?: string};
 
             const formattedResultWithoutAttempt = testAdapter.createTestResult({
@@ -379,23 +357,6 @@ export class ToolRunner {
             : formatId(fullTitle, updateData.browserId);
 
         return this._testAdapters[testId];
-    }
-
-    protected _prepareAssertViewResults(imagesInfo: TestRefUpdateData['imagesInfo'], testAdapter: TestAdapter): AssertViewResult[] {
-        const assertViewResults: AssertViewResult[] = [];
-
-        imagesInfo
-            .filter(({stateName, actualImg}) => Boolean(stateName) && Boolean(actualImg))
-            .forEach((imageInfo) => {
-                const {stateName, actualImg} = imageInfo as {stateName: string, actualImg: ImageFile};
-                const absoluteRefImgPath = this._toolAdapter.config.getScreenshotPath(testAdapter, stateName);
-                const relativeRefImgPath = absoluteRefImgPath && path.relative(process.cwd(), absoluteRefImgPath);
-                const refImg: RefImageFile = {path: absoluteRefImgPath, relativePath: relativeRefImgPath, size: actualImg.size};
-
-                assertViewResults.push({stateName, refImg, currImg: actualImg, isUpdated: isUpdatedStatus(imageInfo.status)});
-            });
-
-        return assertViewResults;
     }
 
     protected _handleReferenceUpdate(testResult: ReporterTestResult, imageInfo: ImageInfoUpdated, state: string): void {

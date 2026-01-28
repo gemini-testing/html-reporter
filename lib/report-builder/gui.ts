@@ -10,6 +10,7 @@ import {determineStatus, isUpdatedStatus} from '../common-utils';
 import {HtmlReporterValues} from '../plugin-api';
 import {SkipItem} from '../tests-tree-builder/static';
 import {copyAndUpdate} from '../adapters/test-result/utils';
+import * as reporterHelper from '../reporter-helpers';
 
 interface UndoAcceptImageResult {
     updatedImage: TreeImage | undefined;
@@ -46,8 +47,10 @@ export class GuiReportBuilder extends StaticReportBuilder {
         return this;
     }
 
-    reuseTestsTree(tree: Tree): void {
-        this._testsTree.reuseTestsTree(tree);
+    reuseTestsTree(tree: Tree, options: {force?: boolean} = {}): void {
+        const {force = false} = options;
+
+        this._testsTree.reuseTestsTree(tree, {force});
 
         // Fill test attempt manager with data from db
         for (const [, testResult] of Object.entries(tree.results.byId)) {
@@ -86,6 +89,23 @@ export class GuiReportBuilder extends StaticReportBuilder {
 
     getImageDataToFindEqualDiffs(imageIds: string[]): TestEqualDiffsData[] {
         return this._testsTree.getImageDataToFindEqualDiffs(imageIds);
+    }
+
+    /** Accepts all images that have status "updated" in imagesInfo and adds new test result with status "updated".
+     * To accept images one by one, imagesInfo should be filtered before calling this method to only contain images that should be updated. */
+    async updateReferenceImages(testResultWithoutAttempt: ReporterTestResult, onReferenceUpdate: reporterHelper.OnReferenceUpdateCb): Promise<ReporterTestResult> {
+        const latestAttempt = this.getLatestAttempt({
+            fullName: testResultWithoutAttempt.fullName,
+            browserId: testResultWithoutAttempt.browserId
+        });
+
+        const latestResult = copyAndUpdate(testResultWithoutAttempt, {attempt: latestAttempt});
+        const estimatedStatus = this.getUpdatedReferenceTestStatus(latestResult);
+
+        const formattedResult = this.provideAttempt(testResultWithoutAttempt);
+        const formattedResultUpdated = await reporterHelper.updateReferenceImages(formattedResult, this._reporterConfig.path, onReferenceUpdate);
+
+        return this.addTestResult(formattedResultUpdated, {status: estimatedStatus});
     }
 
     undoAcceptImage(testResultWithoutAttempt: ReporterTestResult, stateName: string): UndoAcceptImageResult | null {

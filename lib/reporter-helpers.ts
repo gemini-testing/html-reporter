@@ -10,7 +10,7 @@ import {UPDATED} from './constants';
 
 const mkReferenceHash = (testId: string, stateName: string): string => getShortMD5(`${testId}#${stateName}`);
 
-type OnReferenceUpdateCb = (testResult: ReporterTestResult, images: ImageInfoUpdated, state: string) => void;
+export type OnReferenceUpdateCb = (testResult: ReporterTestResult, images: ImageInfoUpdated, state: string) => void;
 
 export const updateReferenceImages = async (testResult: ReporterTestResult, reportPath: string, onReferenceUpdateCb: OnReferenceUpdateCb): Promise<ReporterTestResult> => {
     const {default: tmp} = await import('tmp');
