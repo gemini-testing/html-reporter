@@ -79,8 +79,9 @@ export interface TestError {
     snippet?: string;
     stack?: string;
     stateName?: string;
-    details?: ErrorDetails
-    screenshot?: ImageBase64 | ImageFile
+    details?: ErrorDetails;
+    screenshot?: ImageBase64 | ImageFile;
+    cause?: Error;
 }
 
 export interface ImageInfoDiff {

@@ -42,7 +42,7 @@ export const getStatus = (eventName: ValueOf<Testplane['events']>, events: Testp
     } else if (eventName === events.TEST_PENDING) {
         return TestStatus.SKIPPED;
     } else if (eventName === events.RETRY || eventName === events.TEST_FAIL) {
-        return hasUnrelatedToScreenshotsErrors(testResult.err as Error) ? TestStatus.ERROR : TestStatus.FAIL;
+        return hasUnrelatedToScreenshotsErrors(testResult.err as TestError) ? TestStatus.ERROR : TestStatus.FAIL;
     } else if (eventName === events.TEST_BEGIN) {
         return TestStatus.RUNNING;
     }
@@ -204,7 +204,7 @@ export class TestplaneTestResultAdapter implements ReporterTestResult {
     }
 
     get error(): undefined | TestError {
-        return (this._testResult as TestplaneTestResult).err;
+        return (this._testResult as TestplaneTestResult).err as TestError;
     }
 
     get imageDir(): string {

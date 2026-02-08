@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import {isEmpty, pick} from 'lodash';
+import {isEmpty, pick, clone} from 'lodash';
 import url from 'url';
 import type {AxiosRequestConfig} from 'axios';
 import {
@@ -153,7 +153,18 @@ export const getError = (error?: TestError): undefined | Pick<TestError, 'name' 
         return undefined;
     }
 
-    return pick(error, ['name', 'message', 'stack', 'stateName', 'snippet']);
+    const resultError = clone(error);
+
+    let current = resultError.cause;
+
+    while (current) {
+        resultError.stack += '\n';
+        resultError.stack += `Caused by: ${current.stack}`;
+
+        current = current.cause as Error;
+    }
+
+    return pick(resultError, ['name', 'message', 'stack', 'stateName', 'snippet']);
 };
 
 export const hasDiff = (assertViewResults: {name?: string}[]): boolean => {
