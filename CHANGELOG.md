@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="11.8.4"></a>
+## 11.8.4 (2026-02-12)
+
+
+### Bug Fixes
+
+* do not process unhandled rejections twice ([#751](https://github.com/gemini-testing/html-reporter/issues/751)) ([d4a3ae5](https://github.com/gemini-testing/html-reporter/commit/d4a3ae5))
+
+
+
 <a name="11.8.3"></a>
 ## 11.8.3 (2025-12-26)
 
