@@ -373,7 +373,7 @@ export class PlaywrightTestResultAdapter implements ReporterTestResult {
     }
 
     get attachments(): Attachment[] {
-        if (this._testCase.tags.length > 0) {
+        if (this._testCase.tags && this._testCase.tags.length > 0) {
             return [
                 {
                     type: AttachmentType.Tags,
