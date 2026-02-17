@@ -330,4 +330,15 @@ describe('PlaywrightTestResultAdapter', () => {
             assert.deepEqual(adapter.testPath, ['describe', 'test']);
         });
     });
+
+    describe('attachments', () => {
+        it('should not fall if test case has no tags', () => {
+            const testCase = mkTestCase();
+            delete (testCase as {tags?: string[]}).tags;
+
+            const adapter = new PlaywrightTestResultAdapter(testCase);
+
+            assert.deepEqual(adapter.attachments, []);
+        });
+    });
 });
