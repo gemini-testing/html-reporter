@@ -345,6 +345,18 @@ describe('lib/adapters/tool/testplane/index', () => {
                 }));
             });
         });
+
+        it('should pass "requireModules" option', async () => {
+            const testplane = stubTool();
+            const tests = [] as TestSpec[];
+            const cliTool = {require: ['some-module', 'another-module']} as unknown as CommanderStatic;
+
+            await run_(testplane, TestplaneTestCollectionAdapter.create(collection), tests, cliTool);
+
+            assert.calledOnceWith(testplane.run, collection, sinon.match({
+                requireModules: ['some-module', 'another-module']
+            }));
+        });
     });
 
     describe('runWithoutRetries', () => {
