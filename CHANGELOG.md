@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="11.8.7"></a>
+## 11.8.7 (2026-02-26)
+
+
+### Bug Fixes
+
+* show loader immediately after press run in tree action bar ([ec7de41](https://github.com/gemini-testing/html-reporter/commit/ec7de41))
+
+
+
 <a name="11.8.6"></a>
 ## 11.8.6 (2026-02-25)
 
