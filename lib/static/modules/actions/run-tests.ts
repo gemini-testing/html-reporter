@@ -9,8 +9,12 @@ import {createNotificationError} from '@/static/modules/actions/notifications';
 import {TestBranch} from '@/tests-tree-builder/gui';
 import {TestStatus} from '@/constants';
 
+export type RunTestAction = Action<typeof actionNames.RETRY_TEST>;
+export const runTest = (): RunTestAction => ({type: actionNames.RETRY_TEST});
+
 export const thunkRunTests = ({tests = []}: {tests?: TestSpec[]} = {}): AppThunk => {
-    return async () => {
+    return async (dispatch) => {
+        dispatch(runTest());
         try {
             await axios.post('/run', tests);
         } catch (e) {
@@ -49,9 +53,6 @@ export const thunkRunSuite = ({tests}: {tests: TestSpec[]}): AppThunk => {
         await dispatch(thunkRunTests({tests}));
     };
 };
-
-export type RunTestAction = Action<typeof actionNames.RETRY_TEST>;
-export const runTest = (): RunTestAction => ({type: actionNames.RETRY_TEST});
 
 export const thunkRunTest = ({test}: {test: TestSpec}): AppThunk => {
     return async (dispatch) => {

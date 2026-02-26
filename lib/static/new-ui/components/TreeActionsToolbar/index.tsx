@@ -29,7 +29,7 @@ import {
 import {ImageEntity, TreeViewMode} from '@/static/new-ui/types/store';
 import {CHECKED, INDETERMINATE} from '@/constants/checked-statuses';
 import {IconButton} from '@/static/new-ui/components/IconButton';
-import {TestStatus} from '@/constants';
+
 import {
     getCheckedTests,
     getSelectedImages,
@@ -75,9 +75,7 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
 
     const isRunTestsAvailable = useSelector(state => state.app.availableFeatures)
         .find(feature => feature.name === RunTestsFeature.name);
-    const isRunning = useSelector(state => (
-        state.tree.suites.allRootIds.some((id) => state.tree.suites.byId[id].status === TestStatus.RUNNING)
-    ));
+    const isRunning = useSelector(state => (state.running));
 
     const isEditScreensAvailable = useSelector(state => state.app.availableFeatures)
         .find(feature => feature.name === EditScreensFeature.name);
