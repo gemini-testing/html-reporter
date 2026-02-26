@@ -34,7 +34,12 @@ describe('lib/static/modules/actions/run-tests', () => {
 
     describe('thunkRunTest', () => {
         it('should retry passed test', async () => {
-            dispatch.callsFake((fn) => typeof fn === 'function' ? fn() : fn);
+            dispatch.callsFake((action) => {
+                if (typeof action === 'function') {
+                    return action(dispatch, sinon.stub(), null);
+                }
+                return action;
+            });
             const test = {testName: 'test-name', browserName: 'yabro'};
 
             await actions.thunkRunTest({test})(dispatch, sinon.stub(), null);
@@ -46,7 +51,12 @@ describe('lib/static/modules/actions/run-tests', () => {
 
     describe('thunkRunFailedTests', () => {
         it('should run all failed tests', async () => {
-            dispatch.callsFake((fn) => typeof fn === 'function' ? fn() : fn);
+            dispatch.callsFake((action) => {
+                if (typeof action === 'function') {
+                    return action(dispatch, sinon.stub(), null);
+                }
+                return action;
+            });
             const failedTests = [
                 {testName: 'test-name-1', browserName: 'yabro'},
                 {testName: 'test-name-2', browserName: 'yabro'}
