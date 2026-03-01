@@ -15,3 +15,4 @@ export * from './two-up-modes';
 export * from './view-modes';
 export * from './pages';
 export * from './expand-modes';
+export * from './local-storage';

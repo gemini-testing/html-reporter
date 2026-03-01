@@ -4,7 +4,7 @@ import classNames from 'classnames';
 import React, {ReactNode, useCallback} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {TimeTravelFeature} from '@/constants';
+import {TimeTravelFeature, HIDE_TREE_VIEW_SCREENSHOTS} from '@/constants';
 import {LocalStorageKey, UiMode} from '@/constants/local-storage';
 import * as actions from '@/static/modules/actions';
 import useLocalStorage from '@/static/hooks/useLocalStorage';
@@ -23,6 +23,7 @@ import {ExtensionPointName} from '../../constants/plugins';
 export function SettingsPanel(): ReactNode {
     const dispatch = useDispatch();
     const analytics = useAnalytics();
+    const [isHideScreenshots, setHideTreeViewScreenshots] = useLocalStorage(HIDE_TREE_VIEW_SCREENSHOTS, false);
 
     const baseHost = useSelector(state => state.view.baseHost);
 
@@ -77,6 +78,18 @@ export function SettingsPanel(): ReactNode {
     sections.push(
         <PanelSection key="theme" title={'Theme'} description={'Currently only light theme is available — stay tuned for night mode.'}>
             <Select className={classNames(styles.settingControl, 'regular-button')} value={['Light']} width={'max'} disabled={true}/>
+        </PanelSection>
+    );
+
+    sections.push(
+        <PanelSection key="hide-screenshots" title={'Tests tree'}>
+            <NamedSwitch
+                title={'Hide screenshots'}
+                qa="hide-screenshots"
+                description={'Hide screenshots in left tree'}
+                checked={isHideScreenshots}
+                onUpdate={(): void => setHideTreeViewScreenshots(!isHideScreenshots)}
+            />
         </PanelSection>
     );
 
