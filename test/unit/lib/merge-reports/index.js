@@ -357,6 +357,24 @@ describe('lib/merge-reports', () => {
 
                 assert.calledWith(fs.copy, srcArtifactPath, destArtifactPath, {recursive: true, overwrite: false});
             });
+
+            it('should copy artifacts for local report paths with remote db urls', async () => {
+                const toolAdapter = stubToolAdapter({htmlReporter});
+                const paths = ['src-report-1', 'src-report-2'];
+                const destPath = 'dest-report/path';
+
+                fs.readJSON.withArgs('src-report-1/databaseUrls.json').resolves({jsonUrls: [], dbUrls: ['https://ci.ru/sqlite-1.db']});
+                fs.readJSON.withArgs('src-report-2/databaseUrls.json').resolves({jsonUrls: [], dbUrls: ['https://ci.ru/sqlite-2.db']});
+
+                const srcArtifactPath1 = path.resolve(process.cwd(), 'src-report-1', folderName);
+                const srcArtifactPath2 = path.resolve(process.cwd(), 'src-report-2', folderName);
+                const destArtifactPath = path.resolve(process.cwd(), destPath, folderName);
+
+                await execMergeReports_({toolAdapter, paths, opts: {destPath, headers: []}});
+
+                assert.calledWith(fs.copy, srcArtifactPath1, destArtifactPath, {recursive: true, overwrite: false});
+                assert.calledWith(fs.copy, srcArtifactPath2, destArtifactPath, {recursive: true, overwrite: false});
+            });
         });
     });
 
