@@ -8,6 +8,7 @@ interface NamedSwitchProps {
     description?: string;
     checked: boolean;
     onUpdate?: (value: boolean) => void;
+    qa?: string;
 }
 
 export function NamedSwitch(props: NamedSwitchProps): ReactNode {
@@ -16,6 +17,6 @@ export function NamedSwitch(props: NamedSwitchProps): ReactNode {
             <div className={styles.title}>{props.title}</div>
             {props.description && <div className={styles.description}>{props.description}</div>}
         </div>
-        <Switch checked={props.checked} onUpdate={props.onUpdate} />
+        <Switch checked={props.checked} onUpdate={props.onUpdate} qa={props.qa} />
     </div>;
 }

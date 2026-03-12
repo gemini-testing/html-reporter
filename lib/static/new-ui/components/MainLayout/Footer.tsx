@@ -86,6 +86,7 @@ export function Footer(props: FooterProps): ReactNode {
         <FooterItem compact={false} item={{
             id: PanelId.Settings,
             title: 'Settings',
+            qa: 'footer-item-settings',
             tooltipText: <>Settings <Hotkey value="," view="dark" /></>,
             onItemClick: props.onFooterItemClick,
             current: isSettingsCurrent,

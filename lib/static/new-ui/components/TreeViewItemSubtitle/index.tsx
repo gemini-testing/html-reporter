@@ -7,7 +7,9 @@ import {ImageWithMagnifier} from '@/static/new-ui/components/ImageWithMagnifier'
 import styles from './index.module.css';
 import {getAssertViewStatusMessage} from '@/static/new-ui/utils/assert-view-status';
 import {makeLinksClickable} from '@/static/new-ui/utils';
-import {TestStatus} from '@/constants';
+import {HIDE_TREE_VIEW_SCREENSHOTS, Page, TestStatus} from '@/constants';
+import useLocalStorage from '@/static/hooks/useLocalStorage';
+import {usePage} from '@/static/new-ui/hooks/usePage';
 
 interface TreeViewItemSubtitleProps {
     item: TreeViewItemData;
@@ -17,6 +19,9 @@ interface TreeViewItemSubtitleProps {
 }
 
 export function TreeViewItemSubtitle(props: TreeViewItemSubtitleProps): ReactNode {
+    const page = usePage();
+    const isVisualChecksPage = page === Page.visualChecksPage;
+
     if (props.item.status === TestStatus.SKIPPED && props.item.skipReason) {
         return (
             <div className={styles.skipReasonContainer}>
@@ -24,6 +29,8 @@ export function TreeViewItemSubtitle(props: TreeViewItemSubtitleProps): ReactNod
             </div>
         );
     }
+
+    const [isHideScreenshots] = useLocalStorage(HIDE_TREE_VIEW_SCREENSHOTS, false);
 
     if (props.item.images?.length) {
         return (
@@ -62,22 +69,24 @@ export function TreeViewItemSubtitle(props: TreeViewItemSubtitleProps): ReactNod
                     return (
                         <div key={imageEntity.id}>
                             <span className={styles.imageStatus}>{imageEntity.stateName} ⋅ {getAssertViewStatusMessage(imageEntity)}</span>
-                            <div className={styles.imageDiff}>
-                                {images.filter(({image}) => Boolean(image)).map((item) => (
-                                    <div
-                                        className={
-                                            classNames(styles.imageDiffItem, images.length === 3 && item.title !== 'Diff' && styles.canHide)
-                                        }
-                                        key={item.title}
-                                    >
-                                        <p>{item.title}</p>
-                                        <ImageWithMagnifier
-                                            image={item.image}
-                                            scrollContainerRef={props.scrollContainerRef}
-                                        />
-                                    </div>
-                                ))}
-                            </div>
+                            {(!isHideScreenshots || isVisualChecksPage) && (
+                                <div className={styles.imageDiff}>
+                                    {images.filter(({image}) => Boolean(image)).map((item) => (
+                                        <div
+                                            className={
+                                                classNames(styles.imageDiffItem, images.length === 3 && item.title !== 'Diff' && styles.canHide)
+                                            }
+                                            key={item.title}
+                                        >
+                                            <p>{item.title}</p>
+                                            <ImageWithMagnifier
+                                                image={item.image}
+                                                scrollContainerRef={props.scrollContainerRef}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     );
                 })}
