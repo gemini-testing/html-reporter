@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="11.9.0"></a>
+# 11.9.0 (2026-03-12)
+
+
+### Features
+
+* add switch to hide screenshots in settings ([f28a4a4](https://github.com/gemini-testing/html-reporter/commit/f28a4a4))
+
+
+
 <a name="11.8.7"></a>
 ## 11.8.7 (2026-02-26)
 
