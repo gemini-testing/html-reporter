@@ -84,9 +84,9 @@ export function SettingsPanel(): ReactNode {
     sections.push(
         <PanelSection key="hide-screenshots" title={'Tests tree'}>
             <NamedSwitch
-                title={'Hide screenshots'}
+                title="Hide screenshots"
                 qa="hide-screenshots"
-                description={'Hide screenshots in left tree'}
+                description="Hide screenshot previews in the tests tree on the Suites page"
                 checked={isHideScreenshots}
                 onUpdate={(): void => setHideTreeViewScreenshots(!isHideScreenshots)}
             />
