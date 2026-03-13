@@ -53,14 +53,19 @@ export const mergeReports = async (toolAdapter: ToolAdapter, srcPaths: string[],
 
     await fs.ensureDir(destPath);
 
-    if (!_.isEmpty(localDbPaths)) {
-        const srcReportPaths = _.uniq(localDbPaths.map(db => path.resolve(process.cwd(), path.parse(db).dir)));
+    // Adding these to resolvedUrls, because they are not returned by tryResolveUrls, it returns only nested json urls
+    const topLevelLocalJsonPaths = srcPaths.filter(url => !isUrl(url)).map(u => path.join(u, DATABASE_URLS_JSON_NAME));
+    const localSrcReportPaths = _.uniq([...resolvedUrls, ...topLevelLocalJsonPaths]
+        .filter(url => !isUrl(url))
+        .map(localPathOfDbOrJson => path.resolve(process.cwd(), path.parse(localPathOfDbOrJson).dir))
+    );
 
+    if (!_.isEmpty(localSrcReportPaths)) {
         copyFilePromises.push(...[
             copyDbFiles(dbPaths),
-            copyArtifacts({srcPaths: srcReportPaths, destPath, folderName: IMAGES_PATH}),
-            copyArtifacts({srcPaths: srcReportPaths, destPath, folderName: SNAPSHOTS_PATH}),
-            copyArtifacts({srcPaths: srcReportPaths, destPath, folderName: ERROR_DETAILS_PATH})
+            copyArtifacts({srcPaths: localSrcReportPaths, destPath, folderName: IMAGES_PATH}),
+            copyArtifacts({srcPaths: localSrcReportPaths, destPath, folderName: SNAPSHOTS_PATH}),
+            copyArtifacts({srcPaths: localSrcReportPaths, destPath, folderName: ERROR_DETAILS_PATH})
         ]);
     }
 
