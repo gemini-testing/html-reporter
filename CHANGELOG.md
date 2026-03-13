@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="11.9.1"></a>
+## 11.9.1 (2026-03-13)
+
+
+### Bug Fixes
+
+* copy local artifacts even when remote db urls are stored in databaseUrls.json ([#758](https://github.com/gemini-testing/html-reporter/issues/758)) ([c18a8f6](https://github.com/gemini-testing/html-reporter/commit/c18a8f6))
+
+
+
 <a name="11.9.0"></a>
 # 11.9.0 (2026-03-12)
 
