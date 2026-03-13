@@ -53,11 +53,9 @@ export const mergeReports = async (toolAdapter: ToolAdapter, srcPaths: string[],
 
     await fs.ensureDir(destPath);
 
-    // Adding these to resolvedUrls, because they are not returned by tryResolveUrls, it returns only nested json urls
-    const topLevelLocalJsonPaths = srcPaths.filter(url => !isUrl(url)).map(u => path.join(u, DATABASE_URLS_JSON_NAME));
-    const localSrcReportPaths = _.uniq([...resolvedUrls, ...topLevelLocalJsonPaths]
-        .filter(url => !isUrl(url))
-        .map(localPathOfDbOrJson => path.resolve(process.cwd(), path.parse(localPathOfDbOrJson).dir))
+    const localSrcReportPaths = _.uniq([...resolvedUrls, ...srcPaths]
+        .filter(srcPath => !isUrl(srcPath))
+        .map(localPath => path.resolve(process.cwd(), path.extname(localPath) ? path.dirname(localPath) : localPath))
     );
 
     if (!_.isEmpty(localSrcReportPaths)) {
