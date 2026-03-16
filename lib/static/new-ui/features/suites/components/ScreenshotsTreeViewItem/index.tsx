@@ -142,7 +142,7 @@ export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): Re
                         <AssertViewStatus image={props.image}/>
                     )}
                     {isDiffModeSwitcherVisible && (
-                        <div className={styles.diffModeContainer}>
+                        <div className={styles.diffModeContainer} data-qa="suites-diff-mode-container">
                             <RadioButton onUpdate={onDiffModeChangeHandler} value={diffMode} className={styles.diffModeSwitcher}>
                                 {getAvailableDiffModes(Page.suitesPage).map(diffMode =>
                                     <RadioButton.Option value={diffMode.id} content={diffMode.title} title={diffMode.description} key={diffMode.id}/>
@@ -150,6 +150,7 @@ export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): Re
                             </RadioButton>
                             <Select
                                 className={styles.diffModeSelect}
+                                qa="suites-diff-mode-select"
                                 label={<Icon data={ArrowRightArrowLeft}/> as unknown as string} value={[diffMode]}
                                 onUpdate={([diffMode]): void => onDiffModeChangeHandler(diffMode as DiffModeId)}
                                 multiple={false}

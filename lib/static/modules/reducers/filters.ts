@@ -1,5 +1,5 @@
 import {State} from '@/static/new-ui/types/store';
-import {Page, PathNames} from '@/constants';
+import {Page, PathNames, VISUAL_CHECKS_PAGE_DIFF_MODE_KEY} from '@/constants';
 import actionNames from '@/static/modules/action-names';
 import {FiltersAction, InitGuiReportAction, InitStaticReportAction} from '@/static/modules/actions';
 import {DiffModeId, DiffModes, ViewMode} from '@/constants';
@@ -28,7 +28,7 @@ export default (state: State, action: FiltersAction | InitGuiReportAction | Init
         case actionNames.INIT_STATIC_REPORT: {
             const suitesPageViewMode = localStorageWrapper.getItem('app.suitesPage.viewMode', ViewMode.ALL) as ViewMode;
             const visualChecksPageViewMode = localStorageWrapper.getItem('app.visualChecksPage.viewMode', ViewMode.ALL) as ViewMode;
-            const visualChecksPageDiffMode = localStorageWrapper.getItem('app.visualChecksPage.diffMode', DiffModes.TWO_UP_INTERACTIVE.id) as DiffModeId;
+            const visualChecksPageDiffMode = localStorageWrapper.getItem(VISUAL_CHECKS_PAGE_DIFF_MODE_KEY, DiffModes.TWO_UP_INTERACTIVE.id) as DiffModeId;
 
             const viewQuery = getViewQuery(window.location.search);
 

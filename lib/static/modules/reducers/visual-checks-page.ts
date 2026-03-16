@@ -3,7 +3,10 @@ import actionNames from '@/static/modules/action-names';
 import {applyStateUpdate} from '@/static/modules/utils/state';
 import {VisualChecksPageAction} from '@/static/modules/actions';
 import * as localStorageWrapper from '../local-storage-wrapper';
-import {TWO_UP_DIFF_VISIBILITY_KEY, TWO_UP_FIT_MODE_KEY} from '@/constants/local-storage';
+import {
+    TWO_UP_DIFF_VISIBILITY_KEY,
+    TWO_UP_FIT_MODE_KEY
+} from '@/constants/local-storage';
 
 export default (state: State, action: VisualChecksPageAction): State => {
     switch (action.type) {
