@@ -2,7 +2,6 @@ const proxyquire = require('proxyquire');
 const actionNames = require('lib/static/modules/action-names').default;
 const defaultState = require('lib/static/modules/default-state').default;
 const {ViewMode} = require('lib/constants/view-modes');
-const {DiffModes} = require('lib/constants/diff-modes');
 const {EXPAND_ERRORS} = require('lib/constants/expand-modes');
 const {mkStatePageFilters} = require('../../state-utils');
 
@@ -64,7 +63,6 @@ describe('lib/static/modules/middlewares/local-storage', () => {
 
                 assert.calledWith(localStorageWrapper.setItem, 'view', {
                     expand: EXPAND_ERRORS,
-                    diffMode: DiffModes.THREE_UP.id,
                     strictMatchFilter: false
                 });
 
