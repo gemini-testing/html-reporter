@@ -4,6 +4,7 @@ const {GRID_URL, CHROME_BINARY_PATH} = require('./utils/constants');
 
 module.exports.getCommonConfig = (projectDir) => ({
     gridUrl: GRID_URL,
+    testsPerSession: 1,
 
     screenshotsDir: path.resolve(projectDir, 'screens'),
 

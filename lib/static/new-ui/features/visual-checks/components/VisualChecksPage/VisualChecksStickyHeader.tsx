@@ -228,7 +228,7 @@ export function VisualChecksStickyHeader({currentNamedImage, treeData, onImageCh
                 <AssertViewStatus image={currentImage}/>
                 <Divider orientation={'vertical'}/>
                 <Flex gap={2}>
-                    <Select className={styles.diffModeSelect} label={<Icon data={ArrowRightArrowLeft}/> as unknown as string} value={[diffMode]} onUpdate={([diffMode]): void => onChangeHandler(diffMode as DiffModeId)} multiple={false}>
+                    <Select className={styles.diffModeSelect} qa="visual-checks-diff-mode-select" label={<Icon data={ArrowRightArrowLeft}/> as unknown as string} value={[diffMode]} onUpdate={([diffMode]): void => onChangeHandler(diffMode as DiffModeId)} multiple={false}>
                         {getAvailableDiffModes(Page.visualChecksPage).map(diffMode =>
                             <Select.Option value={diffMode.id} content={diffMode.title} title={diffMode.description} key={diffMode.id}/>
                         )}

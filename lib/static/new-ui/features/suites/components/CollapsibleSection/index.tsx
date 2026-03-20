@@ -35,7 +35,7 @@ export function CollapsibleSectionInternal(props: CollapsibleSectionInternalProp
         <Disclosure.Summary>
             {(): ReactElement => {
                 return <Flex gap={2} alignItems={'center'} onClick={onUpdateHandler} className={styles.summary}>
-                    <h3 className="text-header-1">{props.title}</h3>
+                    <h3 className="text-header-1" data-section-state={props.expanded ? 'opened' : 'closed'}>{props.title}</h3>
                     <ChevronUp className={classNames(styles.expandArrow, {[styles['expand-arrow--expanded']]: props.expanded})}/>
                 </Flex>;
             }}

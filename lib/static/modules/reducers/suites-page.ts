@@ -6,7 +6,12 @@ import {getSuitesTreeViewData} from '@/static/new-ui/features/suites/components/
 import {findTreeNodeByBrowserId, findTreeNodeById, getGroupId} from '@/static/new-ui/features/suites/utils';
 import * as localStorageWrapper from '../local-storage-wrapper';
 import {MIN_SECTION_SIZE_PERCENT} from '@/static/new-ui/features/suites/constants';
-import {TIME_TRAVEL_PLAYER_VISIBILITY_KEY, TWO_UP_DIFF_VISIBILITY_KEY, TWO_UP_FIT_MODE_KEY} from '@/constants/local-storage';
+import {
+    SUITES_PAGE_EXPANDED_SECTIONS_KEY,
+    TIME_TRAVEL_PLAYER_VISIBILITY_KEY,
+    TWO_UP_DIFF_VISIBILITY_KEY,
+    TWO_UP_FIT_MODE_KEY
+} from '@/constants/local-storage';
 import {Page, TwoUpFitMode} from '@/constants';
 
 const SECTION_SIZES_LOCAL_STORAGE_KEY = 'suites-page-section-sizes';
@@ -62,6 +67,7 @@ export default (state: State, action: SomeAction): State => {
             const isSnapshotsPlayerVisible = Boolean(localStorageWrapper.getItem(TIME_TRAVEL_PLAYER_VISIBILITY_KEY, true));
             const is2UpDiffVisible = Boolean(localStorageWrapper.getItem(TWO_UP_DIFF_VISIBILITY_KEY, true));
             const twoUpFitMode = localStorageWrapper.getItem(TWO_UP_FIT_MODE_KEY, TwoUpFitMode.FitToView) as TwoUpFitMode;
+            const expandedSectionsById = localStorageWrapper.getItem(SUITES_PAGE_EXPANDED_SECTIONS_KEY, {}) as Record<string, boolean>;
 
             return applyStateUpdate(state, {
                 app: {
@@ -73,6 +79,7 @@ export default (state: State, action: SomeAction): State => {
                 ui: {
                     suitesPage: {
                         expandedTreeNodesById,
+                        expandedSectionsById,
                         treeViewMode,
                         sectionSizes: suitesSectionSizes,
                         isSnapshotsPlayerVisible
@@ -131,12 +138,16 @@ export default (state: State, action: SomeAction): State => {
             }) as State;
         }
         case actionNames.SUITES_PAGE_SET_SECTION_EXPANDED: {
+            const expandedSectionsById = {
+                ...state.ui.suitesPage.expandedSectionsById,
+                [action.payload.sectionId]: action.payload.isExpanded
+            };
+            localStorageWrapper.setItem(SUITES_PAGE_EXPANDED_SECTIONS_KEY, expandedSectionsById);
+
             return applyStateUpdate(state, {
                 ui: {
                     suitesPage: {
-                        expandedSectionsById: {
-                            [action.payload.sectionId]: action.payload.isExpanded
-                        }
+                        expandedSectionsById
                     }
                 }
             }) as State;
