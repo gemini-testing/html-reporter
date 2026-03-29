@@ -1,6 +1,8 @@
 import path from 'path';
+import fs from 'fs-extra';
+import {pipeline} from 'stream/promises';
 import _ from 'lodash';
-import {getShortMD5, isImageInfoWithState} from './common-utils';
+import {fetchFile, getShortMD5, isImageInfoWithState, isUrl} from './common-utils';
 import * as utils from './server-utils';
 import {ReporterTestResult} from './adapters/test-result';
 import {getImagesInfoByStateName} from './server-utils';
@@ -11,6 +13,21 @@ import {UPDATED} from './constants';
 const mkReferenceHash = (testId: string, stateName: string): string => getShortMD5(`${testId}#${stateName}`);
 
 type OnReferenceUpdateCb = (testResult: ReporterTestResult, images: ImageInfoUpdated, state: string) => void;
+
+const resolveSourcePath = (actualImgPath: string, reportPath: string): string => {
+    return isUrl(actualImgPath) ? actualImgPath : path.resolve(reportPath, actualImgPath);
+};
+
+const copyImageFromUrl = async (imageUrl: string, destinationPath: string): Promise<void> => {
+    const {data, status} = await fetchFile<NodeJS.ReadableStream>(imageUrl, {responseType: 'stream'});
+
+    if (!data) {
+        throw new Error(`Failed to fetch image by URL "${imageUrl}". Request status: ${status}`);
+    }
+
+    await utils.makeDirFor(destinationPath);
+    await pipeline(data, fs.createWriteStream(destinationPath));
+};
 
 export const updateReferenceImages = async (testResult: ReporterTestResult, reportPath: string, onReferenceUpdateCb: OnReferenceUpdateCb): Promise<ReporterTestResult> => {
     const {default: tmp} = await import('tmp');
@@ -26,7 +43,7 @@ export const updateReferenceImages = async (testResult: ReporterTestResult, repo
 
         const {actualImg} = newImageInfo;
         const src = actualImg?.path
-            ? path.resolve(reportPath, actualImg.path)
+            ? resolveSourcePath(actualImg.path, reportPath)
             : utils.getCurrentAbsolutePath(testResult, reportPath, stateName);
 
         const referencePath = newImageInfo.refImg.path;
@@ -38,11 +55,17 @@ export const updateReferenceImages = async (testResult: ReporterTestResult, repo
         }
 
         const reportReferencePath = utils.getReferencePath(testResult, stateName);
+        const resolvedReportReferencePath = path.resolve(reportPath, reportReferencePath);
 
-        await Promise.all([
-            utils.copyFileAsync(src, referencePath),
-            utils.copyFileAsync(src, path.resolve(reportPath, reportReferencePath))
-        ]);
+        if (isUrl(src)) {
+            await copyImageFromUrl(src, referencePath);
+            await utils.copyFileAsync(referencePath, resolvedReportReferencePath);
+        } else {
+            await Promise.all([
+                utils.copyFileAsync(src, referencePath),
+                utils.copyFileAsync(src, resolvedReportReferencePath)
+            ]);
+        }
 
         const {expectedImg} = newImageInfo;
         expectedImg.path = reportReferencePath;
