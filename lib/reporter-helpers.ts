@@ -1,5 +1,6 @@
 import path from 'path';
 import fs from 'fs-extra';
+import {pipeline} from 'stream/promises';
 import _ from 'lodash';
 import {fetchFile, getShortMD5, isImageInfoWithState, isUrl} from './common-utils';
 import * as utils from './server-utils';
@@ -17,19 +18,15 @@ const resolveSourcePath = (actualImgPath: string, reportPath: string): string =>
     return isUrl(actualImgPath) ? actualImgPath : path.resolve(reportPath, actualImgPath);
 };
 
-const copyImageFromUrl = async (imageUrl: string, destinationPaths: string[]): Promise<void> => {
-    const {data, status} = await fetchFile<ArrayBuffer | Buffer>(imageUrl, {responseType: 'arraybuffer'});
+const copyImageFromUrl = async (imageUrl: string, destinationPath: string): Promise<void> => {
+    const {data, status} = await fetchFile<NodeJS.ReadableStream>(imageUrl, {responseType: 'stream'});
 
     if (!data) {
         throw new Error(`Failed to fetch image by URL "${imageUrl}". Request status: ${status}`);
     }
 
-    const imageBuffer = Buffer.isBuffer(data) ? data : Buffer.from(data);
-
-    await Promise.all(destinationPaths.map(async (destinationPath) => {
-        await utils.makeDirFor(destinationPath);
-        await fs.writeFile(destinationPath, imageBuffer);
-    }));
+    await utils.makeDirFor(destinationPath);
+    await pipeline(data, fs.createWriteStream(destinationPath));
 };
 
 export const updateReferenceImages = async (testResult: ReporterTestResult, reportPath: string, onReferenceUpdateCb: OnReferenceUpdateCb): Promise<ReporterTestResult> => {
@@ -61,7 +58,8 @@ export const updateReferenceImages = async (testResult: ReporterTestResult, repo
         const resolvedReportReferencePath = path.resolve(reportPath, reportReferencePath);
 
         if (isUrl(src)) {
-            await copyImageFromUrl(src, [referencePath, resolvedReportReferencePath]);
+            await copyImageFromUrl(src, referencePath);
+            await utils.copyFileAsync(referencePath, resolvedReportReferencePath);
         } else {
             await Promise.all([
                 utils.copyFileAsync(src, referencePath),

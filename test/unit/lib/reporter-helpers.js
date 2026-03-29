@@ -11,6 +11,8 @@ describe('lib/reporter-helpers', () => {
     let utils;
     let commonUtils;
     let fs;
+    let streamPipeline;
+    let imageStream;
 
     const mkImageInfo_ = (actualImgPath) => ({
         status: UPDATED,
@@ -27,9 +29,13 @@ describe('lib/reporter-helpers', () => {
 
     beforeEach(() => {
         commonUtils = _.clone(commonUtilsOriginal);
-        sandbox.stub(commonUtils, 'fetchFile').resolves({data: Buffer.from('img-data'), status: 200});
+        imageStream = {};
+        sandbox.stub(commonUtils, 'fetchFile').resolves({data: imageStream, status: 200});
+        streamPipeline = sandbox.stub().resolves();
 
-        fs = {writeFile: sandbox.stub().resolves()};
+        fs = {
+            createWriteStream: sandbox.stub().returns({})
+        };
 
         utils = {
             getCurrentAbsolutePath: sandbox.stub(),
@@ -45,7 +51,8 @@ describe('lib/reporter-helpers', () => {
             './adapters/test-result/utils': {
                 copyAndUpdate: sandbox.stub().callsFake((source, data) => _.assign(source, data))
             },
-            'fs-extra': fs
+            'fs-extra': fs,
+            'stream/promises': {pipeline: streamPipeline}
         });
     });
 
@@ -67,8 +74,9 @@ describe('lib/reporter-helpers', () => {
 
         await reporterHelpers.updateReferenceImages(testResult, '/report', onReferenceUpdateCb);
 
-        assert.calledOnceWith(commonUtils.fetchFile, 'https://domain.com/images/current.png', {responseType: 'arraybuffer'});
-        assert.calledWith(fs.writeFile.firstCall, '/ref/path/plain.png', sinon.match.instanceOf(Buffer));
-        assert.calledWith(fs.writeFile.secondCall, '/report/images/plain/reference.png', sinon.match.instanceOf(Buffer));
+        assert.calledOnceWith(commonUtils.fetchFile, 'https://domain.com/images/current.png', {responseType: 'stream'});
+        assert.calledOnceWith(fs.createWriteStream, '/ref/path/plain.png');
+        assert.calledOnceWith(streamPipeline, imageStream, fs.createWriteStream.firstCall.returnValue);
+        assert.calledWith(utils.copyFileAsync, '/ref/path/plain.png', '/report/images/plain/reference.png');
     });
 });
