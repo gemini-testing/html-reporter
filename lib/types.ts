@@ -338,7 +338,7 @@ export interface SnapshotAttachment {
 
 export interface BadgesAttachment {
     type: AttachmentType.Badges;
-    list: Badge[];
+    list?: Badge[];
 }
 
 export interface TagsAttachment {

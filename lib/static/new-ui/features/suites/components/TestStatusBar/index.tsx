@@ -43,7 +43,7 @@ export const TestStatusBar = (): ReactNode => {
                     {getSuiteDuration(suite)}
                 </div>
             </div>
-            {(badges && badges.list.length > 0) && (
+            {(badges?.list && badges.list.length > 0) && (
                 <div className={styles['test-status-bar__badges']} data-qa="suite-badges">
                     {badges.list.map((badge: BadgeType) => (
                         <Badge

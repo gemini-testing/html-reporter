@@ -132,7 +132,7 @@ export class StaticReportBuilder {
             if (typeof this._reporterConfig.generateBadges === 'function' && testResultWithImagePaths.attachments) {
                 testResultWithImagePaths.attachments.push({
                     type: AttachmentType.Badges,
-                    list: this._reporterConfig.generateBadges(testResultWithImagePaths)?.filter((badge) => badge && badge.title) as Badge[]
+                    list: this._reporterConfig.generateBadges(testResultWithImagePaths)?.filter((badge): badge is Badge => Boolean(badge && badge.title))
                 });
             }
 
