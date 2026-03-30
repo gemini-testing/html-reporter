@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="11.9.3"></a>
+## 11.9.3 (2026-03-30)
+
+
+### Features
+
+* add --inspect and --inspect-brk options to gui command ([#763](https://github.com/gemini-testing/html-reporter/issues/763)) ([773edf1](https://github.com/gemini-testing/html-reporter/commit/773edf1))
+
+
+
 <a name="11.9.2"></a>
 ## 11.9.2 (2026-03-13)
 
