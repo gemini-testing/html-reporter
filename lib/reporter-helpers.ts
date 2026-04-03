@@ -12,7 +12,7 @@ import {UPDATED} from './constants';
 
 const mkReferenceHash = (testId: string, stateName: string): string => getShortMD5(`${testId}#${stateName}`);
 
-type OnReferenceUpdateCb = (testResult: ReporterTestResult, images: ImageInfoUpdated, state: string) => void;
+export type OnReferenceUpdateCb = (testResult: ReporterTestResult, images: ImageInfoUpdated, state: string) => void;
 
 const resolveSourcePath = (actualImgPath: string, reportPath: string): string => {
     return isUrl(actualImgPath) ? actualImgPath : path.resolve(reportPath, actualImgPath);

@@ -196,7 +196,7 @@ export const isUrl = (str: string): boolean => {
     return !!parsedUrl.host && !!parsedUrl.protocol;
 };
 
-export const fetchFile = async <T = unknown>(url: string, options?: AxiosRequestConfig) : Promise<{data: T | null, status: number}> => {
+export const fetchFile = async <T = unknown>(url: string, options?: AxiosRequestConfig, silent = false) : Promise<{data: T | null, status: number}> => {
     const {default: axios} = await import('axios');
 
     try {
@@ -204,8 +204,9 @@ export const fetchFile = async <T = unknown>(url: string, options?: AxiosRequest
 
         return {data, status};
     } catch (e: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-        logger.warn(`Error while fetching ${url}`, e);
-
+        if (!silent) {
+            logger.warn(`Error while fetching ${url}`, e);
+        }
         // 'unknown' for request blocked by CORS policy
         const status = e.response ? e.response.status : 'unknown';
 

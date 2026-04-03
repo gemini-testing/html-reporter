@@ -150,7 +150,16 @@ export class GuiTestsTreeBuilder extends BaseTestsTreeBuilder {
         };
     }
 
-    reuseTestsTree(testsTree: Tree): void {
+    /** Loads tests from given tree, but only for those tests that already exist in the current tree.
+     * If force is true, the current tree is replaced with the given tree without any checks. */
+    reuseTestsTree(testsTree: Tree, options: {force?: boolean} = {}): void {
+        const {force = false} = options;
+
+        if (force) {
+            this._tree = testsTree;
+            return;
+        }
+
         this._tree.browsers.allIds.forEach((browserId) => this._reuseBrowser(testsTree, browserId));
     }
 

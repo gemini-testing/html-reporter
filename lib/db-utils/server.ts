@@ -89,29 +89,35 @@ export async function mergeDatabases(srcDbPaths: string[], reportPath: string): 
     }
 }
 
+export async function getTestRowsFromDatabase(dbPath: string): Promise<RawSuitesRow[]> {
+    await fs.ensureFile(dbPath);
+
+    const db = await makeSqlDatabaseFromFile(dbPath);
+
+    const suitesQueryStatement = db.prepare(commonSqliteUtils.selectAllSuitesQuery());
+    const suitesRows: RawSuitesRow[] = [];
+
+    while (suitesQueryStatement.step()) {
+        const row = suitesQueryStatement.get();
+        if (Array.isArray(row)) {
+            suitesRows.push(row as RawSuitesRow);
+        }
+    }
+    suitesQueryStatement.free();
+
+    db.close();
+
+    return suitesRows;
+}
+
 export async function getTestsTreeFromDatabase(dbPath: string, baseHost: string): Promise<Tree> {
     try {
-        await fs.ensureFile(dbPath);
-
-        const db = await makeSqlDatabaseFromFile(dbPath);
+        const suitesRows = await getTestRowsFromDatabase(dbPath);
 
         const testsTreeBuilder = StaticTestsTreeBuilder.create({baseHost});
 
-        const suitesQueryStatement = db.prepare(commonSqliteUtils.selectAllSuitesQuery());
-        const suitesRows: RawSuitesRow[] = [];
-
-        while (suitesQueryStatement.step()) {
-            const row = suitesQueryStatement.get();
-            if (Array.isArray(row)) {
-                suitesRows.push(row as RawSuitesRow);
-            }
-        }
-        suitesQueryStatement.free();
-
         const sortedRows = suitesRows.sort(commonSqliteUtils.compareDatabaseRowsByTimestamp);
         const {tree} = testsTreeBuilder.build(sortedRows);
-
-        db.close();
 
         return tree;
     } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
