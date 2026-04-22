@@ -11,12 +11,15 @@ import {TestStatus} from '@/constants';
 
 export type RunTestAction = Action<typeof actionNames.RETRY_TEST>;
 export const runTest = (): RunTestAction => ({type: actionNames.RETRY_TEST});
+export const setRepeatCount = (repeatCount: number): Action<typeof actionNames.SET_REPEAT_COUNT, {repeatCount: number}> => ({type: actionNames.SET_REPEAT_COUNT, payload: {repeatCount}});
 
 export const thunkRunTests = ({tests = []}: {tests?: TestSpec[]} = {}): AppThunk => {
-    return async (dispatch) => {
+    return async (dispatch, getState) => {
+        const {repeatCount} = getState();
+
         dispatch(runTest());
         try {
-            await axios.post('/run', tests);
+            await axios.post('/run', {tests, repeatCount});
         } catch (e) {
             // TODO: report error via notifications
             console.error('Error while running tests:', e);

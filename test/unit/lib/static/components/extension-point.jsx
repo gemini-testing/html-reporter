@@ -59,6 +59,6 @@ describe('<ExtensionPoint />', () => {
             </ExtensionPoint>
         );
 
-        assert.strictEqual(component.container.innerHTML, '<div>Before<div>child</div>After</div>');
+        assert.strictEqual(component.container.innerHTML, '<div><div>Before<div>child</div>After</div></div>');
     });
 });

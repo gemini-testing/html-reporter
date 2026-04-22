@@ -3,6 +3,9 @@ import PropTypes from 'prop-types';
 import ErrorBoundary from './error-boundary';
 import * as plugins from '../modules/plugins';
 
+import {TestRepeaterComponent} from './test-repeater';
+import {ExtensionPointName} from '@/static/new-ui/constants/plugins';
+
 export default class ExtensionPoint extends Component {
     static propTypes = {
         name: PropTypes.string.isRequired,
@@ -12,10 +15,19 @@ export default class ExtensionPoint extends Component {
     render() {
         const loadedPluginConfigs = plugins.getLoadedConfigs();
 
-        if (loadedPluginConfigs.length) {
-            const {name: pointName, children: reportComponent, ...componentProps} = this.props;
-            const pluginComponents = getExtensionPointComponents(loadedPluginConfigs, pointName);
-            return getComponentsComposition(pluginComponents, reportComponent, componentProps);
+        const {name: pointName, children: reportComponent, ...componentProps} = this.props;
+        const pluginComponents = getExtensionPointComponents(loadedPluginConfigs, pointName);
+
+        const style = pointName === ExtensionPointName.RunTestOptions ?
+            {display: 'flex', gap: '12px', flexDirection: 'column'} : {}
+        ;
+
+        if (pluginComponents.length) {
+            return (
+                <div style={style}>
+                    {getComponentsComposition(pluginComponents, reportComponent, componentProps)}
+                </div>
+            );
         }
 
         return this.props.children;
@@ -60,26 +72,30 @@ function composeComponents(PluginComponent, pluginProps, currentComponent, posit
     }
 }
 
+const defaultComponents = [
+    TestRepeaterComponent
+];
+
 export function getExtensionPointComponents(loadedPluginConfigs, pointName) {
-    return loadedPluginConfigs
-        .map(config => {
-            try {
-                const PluginComponent = plugins.get(config.name, config.component);
-                return {
-                    PluginComponent,
-                    name,
-                    point: getComponentPoint(PluginComponent, config),
-                    position: getComponentPosition(PluginComponent, config),
-                    config
-                };
-            } catch (err) {
-                console.error(err);
-                return {};
-            }
-        })
-        .filter(({point, position}) => {
-            return point && position && point === pointName;
-        });
+    return [
+        ...defaultComponents,
+        ...loadedPluginConfigs
+            .map(config => {
+                try {
+                    const PluginComponent = plugins.get(config.name, config.component);
+                    return {
+                        PluginComponent,
+                        name,
+                        point: getComponentPoint(PluginComponent, config),
+                        position: getComponentPosition(PluginComponent, config),
+                        config
+                    };
+                } catch (err) {
+                    console.error(err);
+                    return {};
+                }
+            })
+    ].filter(({point, position}) => (point && position && point === pointName));
 }
 
 function getComponentPoint(component, config) {

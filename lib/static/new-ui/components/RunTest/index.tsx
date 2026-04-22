@@ -2,7 +2,7 @@ import React, {forwardRef, ReactNode, useCallback, useState} from 'react';
 
 import styles from './index.module.css';
 import {Button, ButtonProps, Icon, Popover, Spin} from '@gravity-ui/uikit';
-import {ArrowRotateRight, ChevronDown} from '@gravity-ui/icons';
+import {ArrowRotateRight, ChevronDown, Xmark} from '@gravity-ui/icons';
 import {thunkRunTest} from '@/static/modules/actions';
 import {useDispatch, useSelector} from 'react-redux';
 import {RunTestsFeature} from '@/constants';
@@ -24,6 +24,7 @@ interface RunTestProps {
 export const RunTestButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, RunTestProps>(
     ({browser, buttonProps, buttonText, hotkey}, ref) => {
         const isRunning = useSelector(state => state.running);
+        const repeatCount = useSelector(state => state.repeatCount);
 
         const analytics = useAnalytics();
         const dispatch = useDispatch();
@@ -57,9 +58,12 @@ export const RunTestButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, R
                 disabled={isRunning}
                 style={{width: buttonText === null ? '28px' : undefined}}
                 pin={hasRunTestOptions ? 'round-brick' : undefined}
+                qa='run-test'
                 {...buttonProps}
             >
-                {isRunning ? <Spin size={'xs'} /> : <Icon data={ArrowRotateRight}/>}{buttonText === undefined ? 'Retry' : buttonText}{hotkey}
+                {isRunning ? <Spin size={'xs'} /> : <Icon data={ArrowRotateRight}/>}{buttonText === undefined ? 'Retry' : buttonText}
+                {(!isRunning && repeatCount > 1) && <span className={styles.repeatCount}><Icon data={Xmark} size={12}/>{repeatCount}</span>}
+                {hotkey}
             </Button>
             {hasRunTestOptions && <Popover
                 onOpenChange={onRunOptionsOpenChange}
@@ -73,6 +77,7 @@ export const RunTestButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, R
                     className={classNames(styles.retryButton, styles.runOptionsButton)}
                     style={{width: buttonText === null ? '28px' : undefined}}
                     pin='brick-round'
+                    qa='run-test-options'
                     {...buttonProps}
                 >
                     <Icon data={ChevronDown} className={classNames(styles.runOptionsButtonIcon, {[styles.runOptionsButtonIconRotated]: isRunOptionsOpen})}/>

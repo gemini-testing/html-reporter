@@ -65,6 +65,7 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
     const dispatch = useDispatch();
     const analytics = useAnalytics();
 
+    const repeatCount = useSelector(state => state.repeatCount);
     const rootSuiteIds = useSelector(state => state.tree.suites.allRootIds);
     const suitesStateById = useSelector(state => state.tree.suites.stateById);
     const browsersStateById = useSelector(state => state.tree.browsers.stateById);
@@ -212,11 +213,13 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
                 trigger='click'
             >
                 <IconButton
+                    selected={repeatCount > 1}
                     view='flat'
                     disabled={isRunning || !isInitialized}
                     className={classNames(styles.iconButton)}
                     icon={<Icon data={GearPlay} height={14}/>}
                     tooltip='View run options'
+                    qa="tree-run-test-options"
                 />
             </Popover>}
             {isEditScreensAvailable && (

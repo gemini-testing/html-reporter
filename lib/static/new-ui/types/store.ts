@@ -350,6 +350,7 @@ export interface State {
         baseHost: string;
     };
     running: boolean;
+    repeatCount: number;
     processing: boolean;
     gui: boolean;
     apiValues: HtmlReporterValues;

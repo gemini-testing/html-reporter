@@ -7,6 +7,7 @@ import {MIN_SECTION_SIZE_PERCENT} from '../new-ui/features/suites/constants';
 export default Object.assign({config: configDefaults}, {
     gui: true,
     running: false,
+    repeatCount: 1,
     processing: false,
     stopping: false,
     autoRun: false,

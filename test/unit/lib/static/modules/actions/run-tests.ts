@@ -36,7 +36,7 @@ describe('lib/static/modules/actions/run-tests', () => {
         it('should retry passed test', async () => {
             dispatch.callsFake((action) => {
                 if (typeof action === 'function') {
-                    return action(dispatch, sinon.stub(), null);
+                    return action(dispatch, () => ({repeatCount: 1}), null);
                 }
                 return action;
             });
@@ -44,7 +44,7 @@ describe('lib/static/modules/actions/run-tests', () => {
 
             await actions.thunkRunTest({test})(dispatch, sinon.stub(), null);
 
-            assert.calledOnceWith(axios.post, '/run', [test]);
+            assert.calledOnceWith(axios.post, '/run', {tests: [test], repeatCount: 1});
             assert.calledWith(dispatch, {type: actionNames.RETRY_TEST});
         });
     });
@@ -53,7 +53,7 @@ describe('lib/static/modules/actions/run-tests', () => {
         it('should run all failed tests', async () => {
             dispatch.callsFake((action) => {
                 if (typeof action === 'function') {
-                    return action(dispatch, sinon.stub(), null);
+                    return action(dispatch, () => ({repeatCount: 1}), null);
                 }
                 return action;
             });
@@ -64,7 +64,7 @@ describe('lib/static/modules/actions/run-tests', () => {
 
             await actions.thunkRunFailedTests({tests: failedTests})(dispatch, sinon.stub(), null);
 
-            assert.calledOnceWith(axios.post, '/run', failedTests);
+            assert.calledOnceWith(axios.post, '/run', {tests: failedTests, repeatCount: 1});
             assert.calledWith(dispatch, {type: actionNames.RUN_FAILED_TESTS});
         });
     });

@@ -160,10 +160,14 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
         }
     });
 
-    server.post('/run', (req, res) => {
+    server.post('/run', async (req, res) => {
         try {
+            const {tests, repeatCount} = req.body;
             // do not wait for completion so that response does not hang and browser does not restart it by timeout
-            app.run(req.body);
+            for (let i = 0; i < repeatCount; i++) {
+                await app.run(tests, {retry: repeatCount === 1});
+            }
+
             res.sendStatus(OK);
         } catch (e) {
             res.status(INTERNAL_SERVER_ERROR).send(`Error while trying to run tests: ${(e as Error).message}`);
