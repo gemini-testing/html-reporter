@@ -64,6 +64,11 @@ export default (testplane: Testplane, opts: Partial<ReporterOptions>): void => {
         });
     });
 
+    const saveReport = async (): Promise<void> => {
+        await staticReportBuilder.finalize();
+        await htmlReporter.emitAsync(htmlReporter.events.REPORT_SAVED, {reportPath: config.path});
+    };
+
     testplane.on(testplane.events.INIT, withMiddleware(async () => {
         const [{SqliteClient}, {SqliteImageStore}, {ImagesInfoSaver}] = await Promise.all([
             import('./lib/sqlite-client'),
@@ -91,11 +96,7 @@ export default (testplane: Testplane, opts: Partial<ReporterOptions>): void => {
         handlingTestResults = Promise.all([
             staticReportBuilder.saveStaticFiles(),
             handleTestResults(testplane as TestplaneWithHtmlReporter, staticReportBuilder)
-        ]).then(async () => {
-            await staticReportBuilder.finalize();
-        }).then(async () => {
-            await htmlReporter.emitAsync(htmlReporter.events.REPORT_SAVED, {reportPath: config.path});
-        });
+        ]).then(saveReport);
 
         htmlReporter.emit(htmlReporter.events.DATABASE_CREATED, dbClient.getRawConnection());
     }));
@@ -103,6 +104,14 @@ export default (testplane: Testplane, opts: Partial<ReporterOptions>): void => {
     testplane.on(testplane.events.RUNNER_START, withMiddleware((runner) => {
         staticReportBuilder.registerWorkers(createWorkers(runner as unknown as CreateWorkersRunner));
     }));
+
+    testplane.once(testplane.events.EXIT, async () => {
+        process.on('exit', async () => {
+            try {
+                await saveReport();
+            } catch (e) { /* empty */ }
+        });
+    });
 
     testplane.on(testplane.events.RUNNER_END, withMiddleware(async () => {
         try {
