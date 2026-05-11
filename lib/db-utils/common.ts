@@ -31,7 +31,8 @@ export interface DbDetails {
 }
 
 export interface HandleDatabasesOptions {
-    pluginConfig: ReporterConfig;
+    pluginConfig: Pick<ReporterConfig, 'path'>;
+    strict?: boolean;
     loadDbJsonUrl: (dbJsonUrl: string) => Promise<{data: DbUrlsJsonData | null; status?: string}>;
     formatData?: (dbJsonUrl: string, status?: string) => DbLoadResult;
     prepareUrls: (dbUrls: string[], baseUrls: string) => string[];
@@ -46,6 +47,10 @@ export const handleDatabases = async (dbJsonUrls: string[], opts: HandleDatabase
                     const currentJsonResponse = await opts.loadDbJsonUrl(dbJsonUrl);
 
                     if (!currentJsonResponse.data) {
+                        if (opts.strict) {
+                            throw new Error(`Cannot get data from ${dbJsonUrl}`);
+                        }
+
                         logger.warn(`Cannot get data from ${dbJsonUrl}`);
 
                         return opts.formatData ? opts.formatData(dbJsonUrl, currentJsonResponse.status) : [];
@@ -60,6 +65,10 @@ export const handleDatabases = async (dbJsonUrls: string[], opts: HandleDatabase
                         ...preparedDbUrls.map((dbUrl: string) => opts.loadDbUrl(dbUrl, opts))
                     ]);
                 } catch (e) {
+                    if (opts.strict) {
+                        throw e;
+                    }
+
                     logger.warn(`Error while downloading databases from ${dbJsonUrl}`, e);
 
                     return opts.formatData ? opts.formatData(dbJsonUrl) : [];
