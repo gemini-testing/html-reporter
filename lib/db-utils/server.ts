@@ -1,6 +1,7 @@
 import path from 'path';
 import crypto from 'crypto';
 import fs from 'fs-extra';
+import {pipeline} from 'stream/promises';
 import type {Database} from '@gemini-testing/sql.js';
 import chalk from 'chalk';
 import NestedError from 'nested-error-stacks';
@@ -164,20 +165,17 @@ export async function downloadSingleDatabase(dbUrl: string, {pluginConfig}: {plu
 
     logger.log(chalk.green(`Download ${dbUrl} to ${pluginConfig.path}`));
 
-    const {default: axios} = await import('axios');
-    const response = await axios({
-        url: dbUrl,
-        responseType: 'stream'
-    });
+    try {
+        const {default: axios} = await import('axios');
+        const response = await axios({
+            url: dbUrl,
+            responseType: 'stream'
+        });
 
-    const writer = fs.createWriteStream(dest);
-
-    response.data.pipe(writer);
-
-    await new Promise((resolve, reject) => {
-        writer.on('finish', resolve);
-        writer.on('error', reject);
-    });
+        await pipeline(response.data, fs.createWriteStream(dest));
+    } catch (err) {
+        throw new Error(commonSqliteUtils.makeFileDownloadErrorMessage(dbUrl, err));
+    }
 
     return dest;
 }
