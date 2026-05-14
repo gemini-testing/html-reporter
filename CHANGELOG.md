@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="11.9.4"></a>
+## 11.9.4 (2026-05-14)
+
+
+### Features
+
+* implement API for downloading and reading reports ([#765](https://github.com/gemini-testing/html-reporter/issues/765)) ([f3e6c5c](https://github.com/gemini-testing/html-reporter/commit/f3e6c5c))
+
+
+
 <a name="11.9.3"></a>
 ## 11.9.3 (2026-03-30)
 
