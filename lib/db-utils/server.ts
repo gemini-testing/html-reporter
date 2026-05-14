@@ -1,6 +1,7 @@
 import path from 'path';
 import crypto from 'crypto';
 import fs from 'fs-extra';
+import {pipeline} from 'stream/promises';
 import type {Database} from '@gemini-testing/sql.js';
 import chalk from 'chalk';
 import NestedError from 'nested-error-stacks';
@@ -9,7 +10,7 @@ import {StaticTestsTreeBuilder} from '../tests-tree-builder/static';
 import * as commonSqliteUtils from './common';
 import {isUrl, fetchFile, normalizeUrls, logger} from '../common-utils';
 import {DATABASE_URLS_JSON_NAME, DB_COLUMNS, LOCAL_DATABASE_NAME, TestStatus} from '../constants';
-import {DbLoadResult, HandleDatabasesOptions} from './common';
+import {DbLoadResult} from './common';
 import {DbUrlsJsonData, RawSuitesRow, ReporterConfig} from '../types';
 import {Tree} from '../tests-tree-builder/base';
 import {ReporterTestResult} from '../adapters/test-result';
@@ -41,7 +42,43 @@ export const prepareUrls = (urls: string[], baseUrl: string): string[] => {
         : urls.map(u => isUrl(u) ? u : path.join(path.parse(baseUrl).dir, u));
 };
 
-export async function downloadDatabases(dbJsonUrls: string[], opts: HandleDatabasesOptions): Promise<(string | DbLoadResult)[]> {
+export interface DownloadDatabasesOptions {
+    pluginConfig: Pick<ReporterConfig, 'path'>;
+    strict?: boolean;
+}
+
+export const resolveDatabaseUrlsJsonPath = async (reportPathOrUrl: string): Promise<string> => {
+    if (isUrl(reportPathOrUrl)) {
+        const reportUrl = new URL(reportPathOrUrl);
+
+        if (path.basename(reportUrl.pathname) === DATABASE_URLS_JSON_NAME) {
+            return reportUrl.href;
+        }
+
+        if (!path.extname(reportUrl.pathname) && !reportUrl.pathname.endsWith('/')) {
+            reportUrl.pathname += '/';
+        }
+
+        reportUrl.search = '';
+        reportUrl.hash = '';
+
+        return new URL(DATABASE_URLS_JSON_NAME, reportUrl).href;
+    }
+
+    const resolvedReportPath = path.resolve(reportPathOrUrl);
+
+    if (path.basename(resolvedReportPath) === DATABASE_URLS_JSON_NAME) {
+        return resolvedReportPath;
+    }
+
+    const stat = await fs.stat(resolvedReportPath);
+
+    return stat.isDirectory()
+        ? path.join(resolvedReportPath, DATABASE_URLS_JSON_NAME)
+        : path.join(path.dirname(resolvedReportPath), DATABASE_URLS_JSON_NAME);
+};
+
+export async function downloadDatabases(dbJsonUrls: string[], opts: DownloadDatabasesOptions): Promise<(string | DbLoadResult)[]> {
     const loadDbJsonUrl = async (dbJsonUrl: string): Promise<{data: DbUrlsJsonData | null}> => {
         if (isUrl(dbJsonUrl)) {
             return fetchFile(dbJsonUrl);
@@ -51,7 +88,7 @@ export async function downloadDatabases(dbJsonUrls: string[], opts: HandleDataba
         return {data};
     };
 
-    const loadDbUrl = (dbUrl: string, opts: HandleDatabasesOptions): Promise<string> => downloadSingleDatabase(dbUrl, opts);
+    const loadDbUrl = (dbUrl: string, opts: DownloadDatabasesOptions): Promise<string> => downloadSingleDatabase(dbUrl, opts);
 
     return commonSqliteUtils.handleDatabases(dbJsonUrls, {...opts, loadDbJsonUrl, prepareUrls, loadDbUrl});
 }
@@ -119,7 +156,7 @@ export async function getTestsTreeFromDatabase(dbPath: string, baseHost: string)
     }
 }
 
-async function downloadSingleDatabase(dbUrl: string, {pluginConfig}: {pluginConfig: ReporterConfig}): Promise<string> {
+export async function downloadSingleDatabase(dbUrl: string, {pluginConfig}: {pluginConfig: Pick<ReporterConfig, 'path'>}): Promise<string> {
     if (!isUrl(dbUrl)) {
         return path.resolve(pluginConfig.path, dbUrl);
     }
@@ -128,20 +165,17 @@ async function downloadSingleDatabase(dbUrl: string, {pluginConfig}: {pluginConf
 
     logger.log(chalk.green(`Download ${dbUrl} to ${pluginConfig.path}`));
 
-    const {default: axios} = await import('axios');
-    const response = await axios({
-        url: dbUrl,
-        responseType: 'stream'
-    });
+    try {
+        const {default: axios} = await import('axios');
+        const response = await axios({
+            url: dbUrl,
+            responseType: 'stream'
+        });
 
-    const writer = fs.createWriteStream(dest);
-
-    response.data.pipe(writer);
-
-    await new Promise((resolve, reject) => {
-        writer.on('finish', resolve);
-        writer.on('error', reject);
-    });
+        await pipeline(response.data, fs.createWriteStream(dest));
+    } catch (err) {
+        throw new Error(commonSqliteUtils.makeFileDownloadErrorMessage(dbUrl, err));
+    }
 
     return dest;
 }

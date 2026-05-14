@@ -8,6 +8,10 @@
     "plugins-sdk/build-ui"
   ],
   "exports": {
+    "./experimental/sdk": {
+      "types": "./build/lib/sdk.d.ts",
+      "default": "./build/lib/sdk.js"
+    },
     "./testplane": "./build/testplane.js",
     "./hermione": "./build/hermione.js",
     "./playwright": "./build/playwright.js",

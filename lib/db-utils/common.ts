@@ -30,13 +30,35 @@ export interface DbDetails {
     success: boolean;
 }
 
+type DbJsonLoadResult = {data: DbUrlsJsonData | null; status?: string; error?: unknown};
+
 export interface HandleDatabasesOptions {
-    pluginConfig: ReporterConfig;
-    loadDbJsonUrl: (dbJsonUrl: string) => Promise<{data: DbUrlsJsonData | null; status?: string}>;
+    pluginConfig: Pick<ReporterConfig, 'path'>;
+    strict?: boolean;
+    loadDbJsonUrl: (dbJsonUrl: string) => Promise<DbJsonLoadResult>;
     formatData?: (dbJsonUrl: string, status?: string) => DbLoadResult;
     prepareUrls: (dbUrls: string[], baseUrls: string) => string[];
     loadDbUrl: (dbUrl: string, opts: HandleDatabasesOptions) => Promise<DbLoadResult | string>;
 }
+
+export const makeFileDownloadErrorMessage = (fileUrl: string, error: unknown, requestStatus?: string): string => {
+    const REMOTE_REPORT_DOWNLOAD_HINT = 'Check that the URL is correct and can be accessed without authentication (authentication during download is not available yet). Alternatively, you can download the report manually first before working with it.';
+
+    let reason: string;
+    if (error instanceof Error && error.message) {
+        reason = error.message;
+    } else if (error && typeof error !== 'object') {
+        reason = String(error);
+    } else {
+        reason = requestStatus ? `request failed with status ${requestStatus}` : 'unknown error';
+    }
+
+    return [
+        `Cannot download file from "${fileUrl}".`,
+        `Reason: ${reason}.`,
+        REMOTE_REPORT_DOWNLOAD_HINT
+    ].join('\n');
+};
 
 export const handleDatabases = async (dbJsonUrls: string[], opts: HandleDatabasesOptions): Promise<(string | DbLoadResult)[]> => {
     return _.flattenDeep(
@@ -46,7 +68,13 @@ export const handleDatabases = async (dbJsonUrls: string[], opts: HandleDatabase
                     const currentJsonResponse = await opts.loadDbJsonUrl(dbJsonUrl);
 
                     if (!currentJsonResponse.data) {
-                        logger.warn(`Cannot get data from ${dbJsonUrl}`);
+                        const message = makeFileDownloadErrorMessage(dbJsonUrl, currentJsonResponse.error, currentJsonResponse.status);
+
+                        if (opts.strict) {
+                            throw new Error(message);
+                        }
+
+                        logger.warn(message);
 
                         return opts.formatData ? opts.formatData(dbJsonUrl, currentJsonResponse.status) : [];
                     }
@@ -60,6 +88,10 @@ export const handleDatabases = async (dbJsonUrls: string[], opts: HandleDatabase
                         ...preparedDbUrls.map((dbUrl: string) => opts.loadDbUrl(dbUrl, opts))
                     ]);
                 } catch (e) {
+                    if (opts.strict) {
+                        throw e;
+                    }
+
                     logger.warn(`Error while downloading databases from ${dbJsonUrl}`, e);
 
                     return opts.formatData ? opts.formatData(dbJsonUrl) : [];

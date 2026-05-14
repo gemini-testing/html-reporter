@@ -196,7 +196,7 @@ export const isUrl = (str: string): boolean => {
     return !!parsedUrl.host && !!parsedUrl.protocol;
 };
 
-export const fetchFile = async <T = unknown>(url: string, options?: AxiosRequestConfig) : Promise<{data: T | null, status: number}> => {
+export const fetchFile = async <T = unknown>(url: string, options?: AxiosRequestConfig) : Promise<{data: T | null, status: number | string, error?: unknown}> => {
     const {default: axios} = await import('axios');
 
     try {
@@ -209,7 +209,7 @@ export const fetchFile = async <T = unknown>(url: string, options?: AxiosRequest
         // 'unknown' for request blocked by CORS policy
         const status = e.response ? e.response.status : 'unknown';
 
-        return {data: null, status};
+        return {data: null, status, error: e};
     }
 };
 
