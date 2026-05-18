@@ -78,4 +78,32 @@ describe('<Details />', () => {
         const expectedHtml = '<div class="details__content">' + props.content + '</div>';
         assert.equal(component.container.querySelector('.details__content').parentNode.innerHTML, expectedHtml);
     });
+
+    it('should stringify plain object content', async () => {
+        const user = userEvent.setup();
+        const content = {foo: 'bar'};
+        content.self = content;
+        const props = {
+            title: 'some-title',
+            content: () => content
+        };
+
+        const component = render(<Details {...props} />);
+        await user.click(component.container.querySelector('.details__summary'));
+
+        assert.equal(component.container.querySelector('.details__content').textContent, '{"foo":"bar","self":"[Circular ~]"}');
+    });
+
+    it('should render react node content as is', async () => {
+        const user = userEvent.setup();
+        const props = {
+            title: 'some-title',
+            content: () => <span className="some-content">some content</span>
+        };
+
+        const component = render(<Details {...props} />);
+        await user.click(component.container.querySelector('.details__summary'));
+
+        assert.equal(component.container.querySelector('.some-content').textContent, 'some content');
+    });
 });
