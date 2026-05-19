@@ -3,7 +3,8 @@
 import React, {useContext, useLayoutEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import {isEmpty, isFunction} from 'lodash';
+import stringify from 'json-stringify-safe';
+import {isEmpty, isFunction, isPlainObject} from 'lodash';
 import {Disclosure} from '@gravity-ui/uikit';
 import {MeasurementContext} from './measurement-context';
 
@@ -28,8 +29,10 @@ export default function Details(props) {
             return null;
         }
 
-        const children = props.asHtml ? null : getContent();
-        const extraProps = props.asHtml ? {dangerouslySetInnerHTML: {__html: getContent()}} : {};
+        const content = getContent();
+        const isObjectContent = isPlainObject(content) && !React.isValidElement(content);
+        const children = props.asHtml ? null : isObjectContent ? stringify(content) : content;
+        const extraProps = props.asHtml ? {dangerouslySetInnerHTML: {__html: content}} : {};
 
         return <div className='details__content' {...extraProps}>
             {children}
