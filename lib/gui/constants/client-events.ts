@@ -11,6 +11,8 @@ export const ClientEvents = {
 
     END: 'end',
 
+    REPEAT_LEFT: 'repeatsLeft',
+
     CONNECTED: 'connected',
 
     DOM_SNAPSHOTS: 'DOM_SNAPSHOTS'

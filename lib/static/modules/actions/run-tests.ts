@@ -12,6 +12,7 @@ import {TestStatus} from '@/constants';
 export type RunTestAction = Action<typeof actionNames.RETRY_TEST>;
 export const runTest = (): RunTestAction => ({type: actionNames.RETRY_TEST});
 export const setRepeatCount = (repeatCount: number): Action<typeof actionNames.SET_REPEAT_COUNT, {repeatCount: number}> => ({type: actionNames.SET_REPEAT_COUNT, payload: {repeatCount}});
+export const setRepeatLeft = (repeatLeft: number): Action<typeof actionNames.SET_REPEAT_LEFT, {repeatLeft: number}> => ({type: actionNames.SET_REPEAT_LEFT, payload: {repeatLeft}});
 
 export const thunkRunTests = ({tests = []}: {tests?: TestSpec[]} = {}): AppThunk => {
     return async (dispatch, getState) => {

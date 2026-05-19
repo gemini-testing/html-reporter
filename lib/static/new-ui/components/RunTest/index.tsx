@@ -13,6 +13,7 @@ import classNames from 'classnames';
 import ExtensionPoint, {getExtensionPointComponents} from '../../../components/extension-point';
 import * as plugins from '../../../modules/plugins';
 import {ExtensionPointName} from '../../constants/plugins';
+import {useIsRunning} from '@/static/new-ui/hooks/useIsRunning';
 
 interface RunTestProps {
     browser: BrowserEntity | null;
@@ -23,7 +24,7 @@ interface RunTestProps {
 
 export const RunTestButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, RunTestProps>(
     ({browser, buttonProps, buttonText, hotkey}, ref) => {
-        const isRunning = useSelector(state => state.running);
+        const isRunning = useIsRunning();
         const repeatCount = useSelector(state => state.repeatCount);
 
         const analytics = useAnalytics();
@@ -62,7 +63,7 @@ export const RunTestButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, R
                 {...buttonProps}
             >
                 {isRunning ? <Spin size={'xs'} /> : <Icon data={ArrowRotateRight}/>}{buttonText === undefined ? 'Retry' : buttonText}
-                {(!isRunning && repeatCount > 1) && <span className={styles.repeatCount}><Icon data={Xmark} size={12}/>{repeatCount}</span>}
+                {(repeatCount > 1) && <span className={styles.repeatCount}><Icon data={Xmark} size={12}/>{repeatCount}</span>}
                 {hotkey}
             </Button>
             {hasRunTestOptions && <Popover

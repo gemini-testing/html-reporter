@@ -13,6 +13,7 @@ import {ClipboardButton} from '@/static/new-ui/components/ClipboardButton';
 import {RunTestsFeature} from '@/constants';
 import {TestSpec} from '@/adapters/tool/types';
 import styles from './index.module.css';
+import {useIsRunning} from '@/static/new-ui/hooks/useIsRunning';
 
 interface TreeViewItemTitleProps {
     className?: string;
@@ -56,7 +57,7 @@ export function TreeViewItemTitle({item}: TreeViewItemTitleProps): React.JSX.Ele
     const suites = useSelector(getSuites);
     const browsers = useSelector(getBrowsers);
     const browsersState = useSelector(getBrowsersState);
-    const isRunning = useSelector(state => state.running);
+    const isRunning = useIsRunning();
     const isRunTestsAvailable = useSelector(state => state.app.availableFeatures)
         .find(feature => feature.name === RunTestsFeature.name);
 

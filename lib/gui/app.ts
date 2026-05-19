@@ -56,4 +56,8 @@ export class App {
     addClient(connection: Response): void {
         this._toolRunner.addClient(connection);
     }
+
+    sendClientEvent(event: string, data: unknown): void {
+        this._toolRunner.sendClientEvent(event, data);
+    }
 }

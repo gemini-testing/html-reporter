@@ -10,7 +10,7 @@ import {
     suiteBegin,
     testBegin,
     testResult,
-    thunkTestsEnd
+    thunkTestsEnd, setRepeatLeft
 } from '../../modules/actions';
 import {setGuiServerConnectionStatus} from '@/static/modules/actions/gui-server-connection';
 import actionNames from '@/static/modules/action-names';
@@ -60,6 +60,11 @@ function Gui(): ReactNode {
 
         eventSource.addEventListener(ClientEvents.END, () => {
             store.dispatch(thunkTestsEnd());
+        });
+
+        eventSource.addEventListener(ClientEvents.REPEAT_LEFT, (e) => {
+            const data = JSON.parse(e.data);
+            store.dispatch(setRepeatLeft(data.repeatLeft));
         });
     };
 

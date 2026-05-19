@@ -53,6 +53,7 @@ import {useHotkey} from '@/static/new-ui/hooks/useHotkey';
 import ExtensionPoint, {getExtensionPointComponents} from '../../../components/extension-point';
 import {ExtensionPointName} from '../../constants/plugins';
 import * as plugins from '../../../modules/plugins';
+import {useIsRunning} from '@/static/new-ui/hooks/useIsRunning';
 
 interface TreeActionsToolbarProps {
     onHighlightCurrentTest?: () => void;
@@ -76,7 +77,7 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
 
     const isRunTestsAvailable = useSelector(state => state.app.availableFeatures)
         .find(feature => feature.name === RunTestsFeature.name);
-    const isRunning = useSelector(state => (state.running));
+    const isRunning = useIsRunning();
 
     const isEditScreensAvailable = useSelector(state => state.app.availableFeatures)
         .find(feature => feature.name === EditScreensFeature.name);

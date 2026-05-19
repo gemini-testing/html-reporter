@@ -351,6 +351,7 @@ export interface State {
     };
     running: boolean;
     repeatCount: number;
+    repeatLeft: number;
     processing: boolean;
     gui: boolean;
     apiValues: HtmlReporterValues;

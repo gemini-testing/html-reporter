@@ -23,6 +23,7 @@ import {ErrorHandler} from '../../../error-handling/components/ErrorHandling';
 import {useNavigate, useParams} from 'react-router-dom';
 import {getUrl} from '@/static/new-ui/utils/getUrl';
 import {useFocusedImage} from '@/static/new-ui/features/suites/components/TestSteps/FocusedImageContext';
+import {useIsRunning} from '@/static/new-ui/hooks/useIsRunning';
 
 interface ScreenshotsTreeViewItemProps {
     image: ImageEntity;
@@ -59,7 +60,7 @@ export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): Re
     const isEditScreensAvailable = useSelector(state => state.app.availableFeatures)
         .find(feature => feature.name === EditScreensFeature.name);
     const isStaticImageAccepterEnabled = useSelector(state => state.staticImageAccepter.enabled);
-    const isRunning = useSelector(state => state.running);
+    const isRunning = useIsRunning();
     const isProcessing = useSelector(state => state.processing);
     const isGui = useSelector(state => state.gui);
 

@@ -8,6 +8,7 @@ export default Object.assign({config: configDefaults}, {
     gui: true,
     running: false,
     repeatCount: 1,
+    repeatLeft: 0,
     processing: false,
     stopping: false,
     autoRun: false,
