@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="11.9.5"></a>
+## 11.9.5 (2026-05-19)
+
+
+### Bug Fixes
+
+* handle a case when error has exotic shape and name is an object ([#767](https://github.com/gemini-testing/html-reporter/issues/767)) ([dec7b25](https://github.com/gemini-testing/html-reporter/commit/dec7b25))
+
+
+
 <a name="11.9.4"></a>
 ## 11.9.4 (2026-05-14)
 
