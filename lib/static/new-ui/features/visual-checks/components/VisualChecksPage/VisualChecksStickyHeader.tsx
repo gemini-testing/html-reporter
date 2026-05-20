@@ -39,6 +39,7 @@ import {Page} from '@/constants';
 import {TreeViewData} from '@/static/new-ui/components/TreeView';
 import {TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
 import {getCurrentImageSuiteHash} from '@/static/new-ui/features/visual-checks/components/VisualChecksPage/selectors';
+import {useIsRunning} from '@/static/new-ui/hooks/useIsRunning';
 
 interface VisualChecksStickyHeaderProps {
     currentNamedImage: NamedImageEntity | null;
@@ -137,7 +138,7 @@ export function VisualChecksStickyHeader({currentNamedImage, treeData, onImageCh
     const isStaticImageAccepterEnabled = useSelector(state => state.staticImageAccepter.enabled);
     const isEditScreensAvailable = useSelector(state => state.app.availableFeatures)
         .find(feature => feature.name === EditScreensFeature.name);
-    const isRunning = useSelector(state => state.running);
+    const isRunning = useIsRunning();
     const isProcessing = useSelector(state => state.processing);
     const isGui = useSelector(state => state.gui);
 

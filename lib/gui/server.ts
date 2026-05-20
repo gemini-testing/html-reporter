@@ -7,7 +7,7 @@ import type {Config} from 'testplane';
 import {listenWithFallback} from './listen-with-fallback';
 
 import {App} from './app';
-import {MAX_REQUEST_SIZE} from './constants';
+import {ClientEvents, MAX_REQUEST_SIZE} from './constants';
 import {logger} from '../common-utils';
 import {initPluginsRoutes} from './routes/plugins';
 import {BrowserFeature, Feature, ToolName} from '../constants';
@@ -160,10 +160,20 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
         }
     });
 
-    server.post('/run', (req, res) => {
+    server.post('/run', async (req, res) => {
         try {
             // do not wait for completion so that response does not hang and browser does not restart it by timeout
-            app.run(req.body);
+            // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+            (async () => {
+                const {tests, repeatCount} = req.body;
+
+                for (let i = 0; i < repeatCount; i++) {
+                    await app.run(tests, {retry: repeatCount === 1});
+
+                    app.sendClientEvent(ClientEvents.REPEAT_LEFT, {repeatLeft: repeatCount - i - 1});
+                }
+            })();
+
             res.sendStatus(OK);
         } catch (e) {
             res.status(INTERNAL_SERVER_ERROR).send(`Error while trying to run tests: ${(e as Error).message}`);

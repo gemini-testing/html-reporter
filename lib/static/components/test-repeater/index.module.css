@@ -1,0 +1,11 @@
+.test-repeater-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.test-repeater-input {
+    display: flex;
+    flex-direction: row;
+}

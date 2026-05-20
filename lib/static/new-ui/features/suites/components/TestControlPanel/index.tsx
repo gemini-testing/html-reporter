@@ -17,6 +17,7 @@ import {toggleTimeTravelPlayerVisibility} from '@/static/modules/actions/snapsho
 import {thunkRunTest} from '@/static/modules/actions';
 import {hasBrowsers} from '@/static/new-ui/types/store';
 import {BrowserSelect} from './BrowserSelect';
+import {useIsRunning} from '@/static/new-ui/hooks/useIsRunning';
 
 interface TestControlPanelProps {
     onAttemptChange?: (browserId: string, resultId: string, attemptIndex: number) => unknown;
@@ -66,7 +67,7 @@ export function TestControlPanel(props: TestControlPanelProps): ReactNode {
     const isRunTestsAvailable = isFeatureAvailable(RunTestsFeature);
     const isPlayerAvailable = useSelector(isTimeTravelPlayerAvailable);
     const isPlayerVisible = useSelector(state => state.ui.suitesPage.isSnapshotsPlayerVisible);
-    const isRunning = useSelector(state => state.running);
+    const isRunning = useIsRunning();
 
     const showDivider = isRunTestsAvailable && isPlayerAvailable;
 

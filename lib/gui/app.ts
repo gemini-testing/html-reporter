@@ -1,6 +1,6 @@
 import type {Response} from 'express';
 
-import {ToolRunner, ToolRunnerTree, UndoAcceptImagesResult} from './tool-runner';
+import {RunParams, ToolRunner, ToolRunnerTree, UndoAcceptImagesResult} from './tool-runner';
 import {TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../tests-tree-builder/gui';
 
 import type {ServerArgs} from './index';
@@ -29,8 +29,8 @@ export class App {
         return this._toolRunner.finalize();
     }
 
-    async run(tests: TestSpec[]): Promise<boolean> {
-        return this._toolRunner.run(tests);
+    async run(tests: TestSpec[], params: RunParams): Promise<boolean> {
+        return this._toolRunner.run(tests, params);
     }
 
     getTestsDataToUpdateRefs(imageIds: string[] = []): TestRefUpdateData[] {
@@ -55,5 +55,9 @@ export class App {
 
     addClient(connection: Response): void {
         this._toolRunner.addClient(connection);
+    }
+
+    sendClientEvent(event: string, data: unknown): void {
+        this._toolRunner.sendClientEvent(event, data);
     }
 }

@@ -14,12 +14,13 @@ import {RunTestLoading} from '@/static/new-ui/components/RunTestLoading';
 import styles from './index.module.css';
 import ExtensionPoint from '../../../../../components/extension-point';
 import {ExtensionPointName} from '../../../../constants/plugins';
+import {useIsRunning} from '@/static/new-ui/hooks/useIsRunning';
 
 export function TestInfo(): ReactNode {
     const currentResult = useSelector(getCurrentResult);
 
     const steps = useSelector(getTestSteps);
-    const isRunning = useSelector(state => state.running);
+    const isRunning = useIsRunning();
     const isPlayerAvailable = useSelector(isTimeTravelPlayerAvailable);
     const isPlayerVisible = useSelector(state => state.ui.suitesPage.isSnapshotsPlayerVisible);
 

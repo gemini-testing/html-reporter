@@ -9,6 +9,12 @@
     padding-right: 4px;
 }
 
+.repeat-count {
+    display: flex;
+    align-items: center;
+    opacity: 0.5;
+}
+
 .run-options-button::before {
     border-left: none;
 }

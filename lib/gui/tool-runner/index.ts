@@ -57,6 +57,10 @@ export interface UndoAcceptImagesResult {
     removedResults: string[];
 }
 
+export interface RunParams {
+    retry?: boolean;
+}
+
 export class ToolRunner {
     private _testFiles: string[];
     private _toolAdapter: ToolAdapter;
@@ -337,13 +341,13 @@ export class ToolRunner {
         return comparisons.filter(Boolean).map(image => (image as TestEqualDiffsData).id);
     }
 
-    async run(tests: TestSpec[] = []): Promise<boolean> {
+    async run(tests: TestSpec[] = [], runParams: RunParams = {retry: true}): Promise<boolean> {
         const testCollection = this._ensureTestCollection();
         const shouldRunAllTests = _.isEmpty(tests);
 
         // if tests are not passed, then run all tests with all available retries
         // if tests are specified, then retry only passed tests without retries
-        return shouldRunAllTests
+        return (shouldRunAllTests && runParams.retry)
             ? this._toolAdapter.run(testCollection, tests, this._globalOpts)
             : this._toolAdapter.runWithoutRetries(testCollection, tests, this._globalOpts);
     }
