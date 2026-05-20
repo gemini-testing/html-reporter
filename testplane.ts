@@ -106,7 +106,7 @@ export default (testplane: Testplane, opts: Partial<ReporterOptions>): void => {
     }));
 
     // wait EXIT event from testplane (it happens when testplane catch process exit)
-    testplane.once(testplane.events.EXIT, async () => {
+    testplane.once(testplane.events.EXIT, () => {
         // then we catch testplane exit(1) call, and now we exactly can save report with all tests
         process.on('exit', async () => {
             try {

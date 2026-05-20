@@ -1,6 +1,6 @@
 'use strict';
 
-const {handleDatabases, makeDbFileDownloadErrorMessage} = require('lib/db-utils/common');
+const {handleDatabases} = require('lib/db-utils/common');
 
 describe('lib/db-utils/common', () => {
     const sandbox = sinon.sandbox.create();
