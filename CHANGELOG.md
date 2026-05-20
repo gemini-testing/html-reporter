@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="11.10.0"></a>
+# 11.10.0 (2026-05-20)
+
+
+### Features
+
+* test retry ui ([b293726](https://github.com/gemini-testing/html-reporter/commit/b293726))
+
+
+
 <a name="11.9.5"></a>
 ## 11.9.5 (2026-05-19)
 
