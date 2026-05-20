@@ -64,10 +64,10 @@ export default (testplane: Testplane, opts: Partial<ReporterOptions>): void => {
         });
     });
 
-    const saveReport = async (): Promise<void> => {
+    const saveReport = _.once(async (): Promise<void> => {
         await staticReportBuilder.finalize();
         await htmlReporter.emitAsync(htmlReporter.events.REPORT_SAVED, {reportPath: config.path});
-    };
+    });
 
     testplane.on(testplane.events.INIT, withMiddleware(async () => {
         const [{SqliteClient}, {SqliteImageStore}, {ImagesInfoSaver}] = await Promise.all([
@@ -105,7 +105,9 @@ export default (testplane: Testplane, opts: Partial<ReporterOptions>): void => {
         staticReportBuilder.registerWorkers(createWorkers(runner as unknown as CreateWorkersRunner));
     }));
 
+    // wait EXIT event from testplane (it happens when testplane catch process exit)
     testplane.once(testplane.events.EXIT, async () => {
+        // then we catch testplane exit(1) call, and now we exactly can save report with all tests
         process.on('exit', async () => {
             try {
                 await saveReport();
