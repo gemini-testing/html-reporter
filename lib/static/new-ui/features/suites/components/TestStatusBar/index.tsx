@@ -1,8 +1,9 @@
-import React, {ReactNode} from 'react';
+import React, {ReactNode, useMemo} from 'react';
 import _ from 'lodash';
 import * as icons from '@gravity-ui/icons';
 
 import {useSelector} from 'react-redux';
+import {getUrlWithBase} from '@/common-utils';
 import {ResultEntityCommon} from '@/static/new-ui/types/store';
 import {getCurrentResult} from '@/static/new-ui/features/suites/selectors';
 import {getIconByStatus} from '@/static/new-ui/utils';
@@ -24,12 +25,25 @@ const getSuiteDuration = (suite: ResultEntityCommon): string | undefined => {
 
 export const TestStatusBar = (): ReactNode => {
     const suite = useSelector(getCurrentResult);
+    const baseHost = useSelector(state => state.view.baseHost);
 
     if (!suite) {
         return null;
     }
 
-    const badges = suite.attachments?.find(({type}) => type === AttachmentType.Badges) as BadgesAttachment;
+    const badges = useMemo(() => {
+        const list = [...(suite.attachments?.find(({type}) => type === AttachmentType.Badges) as BadgesAttachment)?.list || []];
+
+        if (suite?.suiteUrl) {
+            list.unshift({
+                title: 'View in browser',
+                icon: 'Eye',
+                url: getUrlWithBase(suite.metaInfo?.url ?? suite.suiteUrl, baseHost)
+            });
+        }
+
+        return list;
+    }, [suite.metaInfo?.url, suite?.suiteUrl, baseHost]);
 
     return (
         <div className={styles['test-status-bar']}>
@@ -43,9 +57,9 @@ export const TestStatusBar = (): ReactNode => {
                     {getSuiteDuration(suite)}
                 </div>
             </div>
-            {(badges?.list && badges.list.length > 0) && (
+            {(badges && badges.length > 0) && (
                 <div className={styles['test-status-bar__badges']} data-qa="suite-badges">
-                    {badges.list.map((badge: BadgeType) => (
+                    {badges.map((badge: BadgeType) => (
                         <Badge
                             key={badge.title}
                             title={badge.title}

@@ -30,6 +30,7 @@ module.exports.getFixturesConfig = (projectDir, projectName) => {
             'html-reporter-tester': {
                 enabled: true,
                 path: fixturesPath,
+                baseHost: 'https://example.com:123',
                 generateBadges: () => [
                     {
                         title: 'TASK-128',

@@ -1,4 +1,4 @@
-import {Eye, ListCheck} from '@gravity-ui/icons';
+import {Picture, ListCheck} from '@gravity-ui/icons';
 import {ThemeProvider, Toaster, ToasterComponent, ToasterProvider} from '@gravity-ui/uikit';
 import '@gravity-ui/uikit/styles/fonts.css';
 import '@gravity-ui/uikit/styles/styles.css';
@@ -35,7 +35,7 @@ const pages = [
     {
         title: 'Visual Checks',
         url: PathNames.visualChecks,
-        icon: Eye,
+        icon: Picture,
         element: <VisualChecksPage/>,
         children: [<Route key={'image'} path='/visual-checks/:hash?/:browser?/:attempt?/:stateName?' element={<VisualChecksPage/>} />]
     }

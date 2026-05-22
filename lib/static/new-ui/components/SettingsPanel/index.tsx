@@ -63,7 +63,7 @@ export function SettingsPanel(): ReactNode {
 
     sections.push(
         <PanelSection key="base-host" title={'Base Host'} description={<>URLs in Meta and in test steps&apos; commands are affected by this.</>}>
-            <TextInput onChange={onBaseHostChange} value={baseHost} hasClear/>
+            <TextInput onChange={onBaseHostChange} value={baseHost} hasClear qa="base-host" />
         </PanelSection>
     );
 

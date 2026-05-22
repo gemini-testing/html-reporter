@@ -1,4 +1,4 @@
-import {ArrowRightArrowLeft, ArrowUturnCcwLeft, Check, Eye} from '@gravity-ui/icons';
+import {ArrowRightArrowLeft, ArrowUturnCcwLeft, Check, Picture} from '@gravity-ui/icons';
 import {Button, Hotkey, Icon, SegmentedRadioGroup as RadioButton, Select, Flex} from '@gravity-ui/uikit';
 import React, {ReactNode, createRef, useCallback, useEffect, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
@@ -170,7 +170,7 @@ export function ScreenshotsTreeViewItem(props: ScreenshotsTreeViewItemProps): Re
                             onClick={onVisualChecks}
                             qa="go-visual-button"
                         >
-                            <Icon data={Eye}/>Go to Visual Checks<Hotkey className={isFocused ? styles.hotkey : styles.hotkeyHidden} view="light" value="g" />
+                            <Icon data={Picture}/>Go to Visual Checks<Hotkey className={isFocused ? styles.hotkey : styles.hotkeyHidden} view="light" value="g" />
                         </Button>
                         {isEditScreensAvailable && (
                             <>
