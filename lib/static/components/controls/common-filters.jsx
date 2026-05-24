@@ -73,7 +73,7 @@ CommonFilters.propTypes = {
 
 export default connect(
     ({app, browsers, gui, staticImageAccepter}) => ({
-        filteredBrowsers: app.suitesPage.filteredBrowsers,
+        filteredBrowsers: app.filteredBrowsers,
         browsers,
         gui,
         staticImageAccepter

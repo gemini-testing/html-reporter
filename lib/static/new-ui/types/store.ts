@@ -260,6 +260,14 @@ export interface State {
         isInitialized: boolean;
         availableFeatures: Feature[],
         isSearchLoading?: boolean;
+
+        // Filters in top of sidebar
+        nameFilter: string;
+        useRegexFilter: boolean;
+        useMatchCaseFilter: boolean;
+        viewMode: ViewMode;
+        filteredBrowsers: BrowserItem[];
+
         [Page.suitesPage]: {
             currentTreeNodeId: string | null;
             currentBrowserId: string | null;
@@ -267,13 +275,6 @@ export interface State {
             currentStepId: string | null;
             // Is used when hovering over a timeline of a snapshots player to highlight corresponding step
             currentHighlightedStepId: string | null;
-
-            // Filters in top of sidebar
-            nameFilter: string;
-            useRegexFilter: boolean;
-            useMatchCaseFilter: boolean;
-            viewMode: ViewMode;
-            filteredBrowsers: BrowserItem[];
         };
         [Page.visualChecksPage]: {
             currentBrowserId: string | null;

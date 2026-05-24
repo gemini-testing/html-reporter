@@ -28,7 +28,7 @@ describe('stats selectors', () => {
         };
 
         it('should return correct statistics when it is not filtered', () => {
-            const app = {suitesPage: {filteredBrowsers: []}};
+            const app = {filteredBrowsers: []};
 
             const filteredStats = getStatsFilteredByBrowsers({stats, app});
 
@@ -42,7 +42,7 @@ describe('stats selectors', () => {
         });
 
         it('should return correct statistics for one filtered browser', () => {
-            const app = {suitesPage: {filteredBrowsers: [{id: 'bro1'}]}};
+            const app = {filteredBrowsers: [{id: 'bro1'}]};
 
             const filteredStats = getStatsFilteredByBrowsers({stats, app});
 
@@ -53,7 +53,7 @@ describe('stats selectors', () => {
         });
 
         it('should return correct statistics for several filtered browsers', () => {
-            const app = {suitesPage: {filteredBrowsers: [{id: 'bro1'}, {id: 'bro2'}]}};
+            const app = {filteredBrowsers: [{id: 'bro1'}, {id: 'bro2'}]};
 
             const filteredStats = getStatsFilteredByBrowsers({stats, app});
 
@@ -65,12 +65,10 @@ describe('stats selectors', () => {
 
         it('should return correct statistics corresponding to versions', () => {
             const app = {
-                suitesPage: {
-                    filteredBrowsers: [
-                        {id: 'bro1', versions: ['ver1', 'ver2']},
-                        {id: 'bro2', versions: ['ver1']}
-                    ]
-                }
+                filteredBrowsers: [
+                    {id: 'bro1', versions: ['ver1', 'ver2']},
+                    {id: 'bro2', versions: ['ver1']}
+                ]
             };
 
             const filteredStats = getStatsFilteredByBrowsers({stats, app});

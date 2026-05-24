@@ -1,5 +1,4 @@
 import {setMatchCaseFilter, setSearchLoading, updateNameFilter} from '@/static/modules/actions';
-import {Page} from '@/constants';
 import {Tree} from '@/tests-tree-builder/base';
 import {AttachmentType, TagsAttachment} from '@/types';
 
@@ -38,7 +37,6 @@ export const search = (
     text: string,
     matchCase = false,
     useRegexFilter = false,
-    page: Page,
     updateMatchCase: boolean,
     dispatch: (action: unknown) => void
 ): void => {
@@ -75,14 +73,12 @@ export const search = (
 
         if (updateMatchCase) {
             dispatch(setMatchCaseFilter({
-                data: matchCase,
-                page
+                data: matchCase
             }));
         } else {
             dispatch(
                 updateNameFilter({
-                    data: text,
-                    page
+                    data: text
                 })
             );
         }

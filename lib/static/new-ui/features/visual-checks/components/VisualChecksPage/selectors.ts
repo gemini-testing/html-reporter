@@ -4,12 +4,12 @@ import {EntityType, TreeRoot} from '@/static/new-ui/features/suites/components/S
 import {ImageEntity, State} from '@/static/new-ui/types/store';
 import {getNamedImages} from '@/static/new-ui/features/visual-checks/selectors';
 import {TreeViewData} from '@/static/new-ui/components/TreeView';
-import {Page, TestStatus, ViewMode} from '@/constants';
+import {TestStatus, ViewMode} from '@/constants';
 import {matchTestName} from '@/static/modules/utils';
 import {checkSearchResultExits} from '@/static/modules/search';
 
 export const getVisualChecksViewMode = (state: State): ViewMode => {
-    const realStatus = state.app[Page.suitesPage].viewMode;
+    const realStatus = state.app.viewMode;
 
     if ([ViewMode.ALL, ViewMode.FAILED, ViewMode.PASSED].includes(realStatus)) {
         return realStatus;
@@ -36,9 +36,9 @@ export const getVisualTreeViewData = createSelector(
         getImages,
         getNamedImages,
         getVisualChecksViewMode,
-        (state: State): string => state.app[Page.suitesPage].nameFilter,
-        (state: State): boolean => state.app[Page.suitesPage].useRegexFilter,
-        (state: State): boolean => state.app[Page.suitesPage].useMatchCaseFilter
+        (state: State): string => state.app.nameFilter,
+        (state: State): boolean => state.app.useRegexFilter,
+        (state: State): boolean => state.app.useMatchCaseFilter
     ],
     (
         images,
@@ -82,11 +82,11 @@ export const getVisualTreeViewData = createSelector(
 
                 switch (status) {
                     case TestStatus.SUCCESS:
+                    case TestStatus.UPDATED:
                         stats[ViewMode.PASSED]++;
                         return visualChecksViewMode === ViewMode.PASSED || visualChecksViewMode === ViewMode.ALL;
                     case TestStatus.FAIL:
                     case TestStatus.ERROR:
-                    case TestStatus.UPDATED:
                         stats[ViewMode.FAILED]++;
                         return visualChecksViewMode === ViewMode.FAILED || visualChecksViewMode === ViewMode.ALL;
                     default:

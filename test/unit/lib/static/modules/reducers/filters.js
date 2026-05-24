@@ -55,7 +55,7 @@ describe('lib/static/modules/reducers/view', () => {
 
                             const newState = reducer(defaultState, action);
 
-                            assert.deepStrictEqual(newState.app[page].filteredBrowsers, []);
+                            assert.deepStrictEqual(newState.app.filteredBrowsers, []);
                         });
 
                         it('should set "filteredBrowsers" property to specified browsers with expanded versions', () => {
@@ -71,7 +71,7 @@ describe('lib/static/modules/reducers/view', () => {
 
                             const newState = reducer(state, action);
 
-                            assert.deepStrictEqual(newState.app[page].filteredBrowsers, [
+                            assert.deepStrictEqual(newState.app.filteredBrowsers, [
                                 {id: 'firefox', versions: ['v1', 'v2']},
                                 {id: 'safari', versions: ['v3']}
                             ]);
@@ -89,7 +89,7 @@ describe('lib/static/modules/reducers/view', () => {
 
                             const newState = reducer(state, action);
 
-                            assert.deepStrictEqual(newState.app[page].filteredBrowsers, [
+                            assert.deepStrictEqual(newState.app.filteredBrowsers, [
                                 {id: 'firefox', versions: ['v1', 'v2']},
                                 {id: 'safari', versions: []}
                             ]);
@@ -108,7 +108,7 @@ describe('lib/static/modules/reducers/view', () => {
 
                             const newState = reducer(state, action);
 
-                            assert.deepStrictEqual(newState.app[page].filteredBrowsers, [
+                            assert.deepStrictEqual(newState.app.filteredBrowsers, [
                                 {id: 'firefox', versions: ['v1', 'v2']},
                                 {id: 'safari', versions: ['23', '11.2']}
                             ]);
@@ -127,7 +127,7 @@ describe('lib/static/modules/reducers/view', () => {
 
                             const newState = reducer(state, action);
 
-                            assert.deepStrictEqual(newState.app[page].filteredBrowsers, [
+                            assert.deepStrictEqual(newState.app.filteredBrowsers, [
                                 {id: 'chrome-phone', versions: ['phone-124.0', 'phone-101.0']},
                                 {id: 'safari', versions: ['23']}
                             ]);
@@ -143,7 +143,7 @@ describe('lib/static/modules/reducers/view', () => {
                             const action = {type, payload: _mkInitialState()};
                             const newState = reducer(defaultState, action);
 
-                            assert.deepStrictEqual(newState.app[page].filteredBrowsers, [{
+                            assert.deepStrictEqual(newState.app.filteredBrowsers, [{
                                 id: 'safari:some',
                                 versions: ['v:1', 'v,2']
                             }]);
@@ -156,7 +156,7 @@ describe('lib/static/modules/reducers/view', () => {
 
                             const newState = reducer(defaultState, action);
 
-                            assert.deepStrictEqual(newState.app[page].nameFilter, '');
+                            assert.deepStrictEqual(newState.app.nameFilter, '');
                         });
 
                         it('should set "testNameFilter" property to specified value', () => {
@@ -166,7 +166,7 @@ describe('lib/static/modules/reducers/view', () => {
 
                             const newState = reducer(defaultState, action);
 
-                            assert.deepStrictEqual(newState.app[page].nameFilter, 'sometest');
+                            assert.deepStrictEqual(newState.app.nameFilter, 'sometest');
                         });
                     });
 
@@ -176,7 +176,7 @@ describe('lib/static/modules/reducers/view', () => {
 
                             const newState = reducer(defaultState, action);
 
-                            assert.deepStrictEqual(newState.app[page].viewMode, ViewMode.ALL);
+                            assert.deepStrictEqual(newState.app.viewMode, ViewMode.ALL);
                         });
 
                         it('should set "viewMode" property to "passed" value', () => {
@@ -186,7 +186,7 @@ describe('lib/static/modules/reducers/view', () => {
 
                             const newState = reducer(defaultState, action);
 
-                            assert.deepStrictEqual(newState.app[page].viewMode, ViewMode.PASSED);
+                            assert.deepStrictEqual(newState.app.viewMode, ViewMode.PASSED);
                         });
 
                         it('should set "viewMode" property to "failed" value', () => {
@@ -196,7 +196,7 @@ describe('lib/static/modules/reducers/view', () => {
 
                             const newState = reducer(defaultState, action);
 
-                            assert.deepStrictEqual(newState.app[page].viewMode, ViewMode.FAILED);
+                            assert.deepStrictEqual(newState.app.viewMode, ViewMode.FAILED);
                         });
 
                         it('should set "viewMode" property to "retried" value', () => {
@@ -206,7 +206,7 @@ describe('lib/static/modules/reducers/view', () => {
 
                             const newState = reducer(defaultState, action);
 
-                            assert.deepStrictEqual(newState.app[page].viewMode, ViewMode.RETRIED);
+                            assert.deepStrictEqual(newState.app.viewMode, ViewMode.RETRIED);
                         });
 
                         it('should set "viewMode" property to "skipped" value', () => {
@@ -217,7 +217,7 @@ describe('lib/static/modules/reducers/view', () => {
 
                             const newState = reducer(defaultState, action);
 
-                            assert.deepStrictEqual(newState.app[page].viewMode, ViewMode.SKIPPED);
+                            assert.deepStrictEqual(newState.app.viewMode, ViewMode.SKIPPED);
                         });
                     });
                 });
@@ -237,7 +237,7 @@ describe('lib/static/modules/reducers/view', () => {
 
                     const newState = reducer(defaultState, action);
 
-                    assert.equal(newState.app[page].viewMode, ViewMode[viewModeKey]);
+                    assert.equal(newState.app.viewMode, ViewMode[viewModeKey]);
                 });
             }));
         });

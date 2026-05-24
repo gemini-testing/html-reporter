@@ -51,10 +51,7 @@ describe('lib/static/modules/middlewares/local-storage', () => {
             it('should store view state in local storage for "VIEW" prefix and init report actions', () => {
                 const store = mkStore_({
                     view: defaultState.view,
-                    app: {
-                        suitesPage: mkStatePageFilters({}),
-                        visualChecksPage: mkStatePageFilters({})
-                    }
+                    app: mkStatePageFilters({})
                 });
                 const action = {type, payload: {page: 'suitesPage'}};
                 const localStorageMw = mkMiddleware_();
@@ -66,8 +63,7 @@ describe('lib/static/modules/middlewares/local-storage', () => {
                     strictMatchFilter: false
                 });
 
-                assert.calledWith(localStorageWrapper.setItem, 'app.suitesPage.viewMode', ViewMode.ALL);
-                assert.calledWith(localStorageWrapper.setItem, 'app.visualChecksPage.viewMode', ViewMode.ALL);
+                assert.calledWith(localStorageWrapper.setItem, 'app.viewMode', ViewMode.ALL);
             });
         });
     });

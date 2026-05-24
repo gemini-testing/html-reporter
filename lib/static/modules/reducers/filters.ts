@@ -18,15 +18,15 @@ interface FilterData {
     filteredBrowsers?: BrowserItem[];
 }
 
-const updateAppState = (state: State, page: Page, data: FilterData): State => (
-    applyStateUpdate(state, {app: {[page]: data}})
+const updateAppState = (state: State, data: FilterData): State => (
+    applyStateUpdate(state, {app: data})
 );
 
 export default (state: State, action: FiltersAction | InitGuiReportAction | InitStaticReportAction): State => {
     switch (action.type) {
         case actionNames.INIT_GUI_REPORT:
         case actionNames.INIT_STATIC_REPORT: {
-            const suitesPageViewMode = localStorageWrapper.getItem('app.suitesPage.viewMode', ViewMode.ALL) as ViewMode;
+            const suitesPageViewMode = localStorageWrapper.getItem('app.viewMode', ViewMode.ALL) as ViewMode;
             const visualChecksPageDiffMode = localStorageWrapper.getItem(VISUAL_CHECKS_PAGE_DIFF_MODE_KEY, DiffModes.TWO_UP_INTERACTIVE.id) as DiffModeId;
 
             const viewQuery = getViewQuery(window.location.search);
@@ -41,9 +41,7 @@ export default (state: State, action: FiltersAction | InitGuiReportAction | Init
                 state,
                 {
                     app: {
-                        [Page.suitesPage]: {
-                            viewMode: suitesPageViewMode
-                        },
+                        viewMode: suitesPageViewMode,
                         [Page.visualChecksPage]: {
                             diffMode: visualChecksPageDiffMode
                         }
@@ -51,16 +49,15 @@ export default (state: State, action: FiltersAction | InitGuiReportAction | Init
                 }
             );
 
-            newState.app[Page.suitesPage].filteredBrowsers = viewQuery.filteredBrowsers as BrowserItem[];
-            newState.app[Page.suitesPage].viewMode = viewQuery.viewMode as ViewMode || suitesPageViewMode;
-            newState.app[Page.suitesPage].nameFilter = viewQuery.testNameFilter as string || '';
+            newState.app.filteredBrowsers = viewQuery.filteredBrowsers as BrowserItem[];
+            newState.app.viewMode = viewQuery.viewMode as ViewMode || suitesPageViewMode;
+            newState.app.nameFilter = viewQuery.testNameFilter as string || '';
 
             return newState;
         }
         case actionNames.CHANGE_VIEW_MODE:
             return updateAppState(
                 state,
-                action.payload.page,
                 {
                     viewMode: action.payload.data
                 }
@@ -69,7 +66,6 @@ export default (state: State, action: FiltersAction | InitGuiReportAction | Init
         case actionNames.VIEW_UPDATE_FILTER_BY_NAME:
             return updateAppState(
                 state,
-                action.payload.page,
                 {
                     nameFilter: action.payload.data
                 }
@@ -78,7 +74,6 @@ export default (state: State, action: FiltersAction | InitGuiReportAction | Init
         case actionNames.VIEW_SET_FILTER_MATCH_CASE: {
             return updateAppState(
                 state,
-                action.payload.page,
                 {
                     useMatchCaseFilter: action.payload.data
                 }
@@ -88,7 +83,6 @@ export default (state: State, action: FiltersAction | InitGuiReportAction | Init
         case actionNames.VIEW_SET_FILTER_USE_REGEX:
             return updateAppState(
                 state,
-                action.payload.page,
                 {
                     useRegexFilter: action.payload.data
                 }
@@ -97,7 +91,6 @@ export default (state: State, action: FiltersAction | InitGuiReportAction | Init
         case actionNames.BROWSERS_SELECTED:
             return updateAppState(
                 state,
-                action.payload.page,
                 {
                     filteredBrowsers: action.payload.data
                 }
