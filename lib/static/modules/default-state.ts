@@ -99,18 +99,19 @@ export default Object.assign({config: configDefaults}, {
         isNewUi: false,
         isInitialized: false,
         availableFeatures: [],
+
+        viewMode: ViewMode.ALL,
+        nameFilter: '',
+        useRegexFilter: false,
+        useMatchCaseFilter: false,
+        filteredBrowsers: [],
+
         [Page.suitesPage]: {
             currentBrowserId: null,
             currentTreeNodeId: null,
             currentGroupId: null,
             currentStepId: null,
-            currentHighlightedStepId: null,
-
-            viewMode: ViewMode.ALL,
-            nameFilter: '',
-            useRegexFilter: false,
-            useMatchCaseFilter: false,
-            filteredBrowsers: []
+            currentHighlightedStepId: null
         },
         [Page.visualChecksPage]: {
             currentBrowserId: null,

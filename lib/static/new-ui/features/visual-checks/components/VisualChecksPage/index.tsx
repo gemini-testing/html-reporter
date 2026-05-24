@@ -216,8 +216,7 @@ export function VisualChecksPage(): ReactNode {
 
     const onStatusChange = useCallback((value: string) => {
         dispatch(actions.changeViewMode({
-            data: value as ViewMode,
-            page: Page.suitesPage
+            data: value as ViewMode
         }));
     }, [page]);
 

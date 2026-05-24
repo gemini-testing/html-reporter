@@ -21,9 +21,7 @@ describe('lib/static/modules/reducers/tree', () => {
 
                 const filteredBrowsers = [{id: 'yabro', versions: []}];
                 const state = {
-                    app: {
-                        suitesPage: mkStatePageFilters({filteredBrowsers})
-                    },
+                    app: mkStatePageFilters({filteredBrowsers}),
                     view: mkStateView({})
                 };
 
@@ -53,9 +51,7 @@ describe('lib/static/modules/reducers/tree', () => {
 
                 const filteredBrowsers = [{id: 'yabro-1', versions: []}];
                 const state = {
-                    app: {
-                        suitesPage: mkStatePageFilters({filteredBrowsers})
-                    },
+                    app: mkStatePageFilters({filteredBrowsers}),
                     view: mkStateView({})
                 };
 
@@ -92,9 +88,7 @@ describe('lib/static/modules/reducers/tree', () => {
 
                             const tree = mkStateTree({suitesById, browsersById, resultsById});
                             const state = {
-                                app: {
-                                    suitesPage: mkStatePageFilters({viewMode: ViewMode.FAILED})
-                                },
+                                app: mkStatePageFilters({viewMode: ViewMode.FAILED}),
                                 view: mkStateView({})
                             };
 
@@ -115,9 +109,7 @@ describe('lib/static/modules/reducers/tree', () => {
 
                             const tree = mkStateTree({suitesById, browsersById, resultsById});
                             const state = {
-                                app: {
-                                    suitesPage: mkStatePageFilters({nameFilter: 's2'})
-                                },
+                                app: mkStatePageFilters({nameFilter: 's2'}),
                                 view: mkStateView({})
                             };
 
@@ -146,9 +138,7 @@ describe('lib/static/modules/reducers/tree', () => {
 
                             const tree = mkStateTree({suitesById, browsersById, resultsById});
                             const state = {
-                                app: {
-                                    suitesPage: mkStatePageFilters({viewMode: ViewMode.FAILED})
-                                },
+                                app: mkStatePageFilters({viewMode: ViewMode.FAILED}),
                                 view: mkStateView({})
                             };
 
@@ -171,9 +161,7 @@ describe('lib/static/modules/reducers/tree', () => {
 
                             const tree = mkStateTree({suitesById, browsersById, resultsById});
                             const state = {
-                                app: {
-                                    suitesPage: mkStatePageFilters({viewMode: ViewMode.FAILED})
-                                },
+                                app: mkStatePageFilters({viewMode: ViewMode.FAILED}),
                                 view: mkStateView({})
                             };
 
@@ -195,7 +183,7 @@ describe('lib/static/modules/reducers/tree', () => {
                             const tree = mkStateTree({suitesById, browsersById, resultsById});
                             const state = {
                                 view: mkStateView({keyToGroupTestsBy: 'foo.bar'}),
-                                app: {suitesPage: mkStatePageFilters({})}
+                                app: mkStatePageFilters({})
                             };
 
                             const newState = reducer(state, {
@@ -215,9 +203,7 @@ describe('lib/static/modules/reducers/tree', () => {
 
                             const tree = mkStateTree({suitesById, browsersById, resultsById});
                             const state = {
-                                app: {
-                                    suitesPage: mkStatePageFilters({nameFilter: 'some-name'})
-                                },
+                                app: mkStatePageFilters({nameFilter: 'some-name'}),
                                 view: mkStateView({})
                             };
 
@@ -238,7 +224,7 @@ describe('lib/static/modules/reducers/tree', () => {
                             it(`"errors" expanded and suite has ${status} status`, () => {
                                 const suitesById = {...mkSuite({id: 's1', status})};
                                 const tree = mkStateTree({suitesById});
-                                const app = {suitesPage: mkStatePageFilters()};
+                                const app = mkStatePageFilters();
 
                                 const newState = reducer({app, view: mkStateView({expand: EXPAND_ERRORS})}, {
                                     type: actionName,
@@ -265,7 +251,7 @@ describe('lib/static/modules/reducers/tree', () => {
                                         ...mkResult({id: 'r3', status: SUCCESS})
                                     };
                                     const tree = mkStateTree({suitesById, browsersById, resultsById});
-                                    const app = {suitesPage: mkStatePageFilters()};
+                                    const app = mkStatePageFilters();
 
                                     const newState = reducer({app, view: mkStateView({expand: EXPAND_RETRIES})}, {
                                         type: actionName,
@@ -292,7 +278,7 @@ describe('lib/static/modules/reducers/tree', () => {
                                         ...mkResult({id: 'r3', status: SUCCESS})
                                     };
                                     const tree = mkStateTree({suitesById, browsersById, resultsById});
-                                    const app = {suitesPage: mkStatePageFilters()};
+                                    const app = mkStatePageFilters();
 
                                     const newState = reducer({app, view: mkStateView({expand: EXPAND_RETRIES})}, {
                                         type: actionName,
@@ -308,7 +294,7 @@ describe('lib/static/modules/reducers/tree', () => {
                         it(`"all" expanded and suite has ${SUCCESS} status`, () => {
                             const suitesById = {...mkSuite({id: 's1', status: SUCCESS})};
                             const tree = mkStateTree({suitesById});
-                            const app = {suitesPage: mkStatePageFilters()};
+                            const app = mkStatePageFilters();
 
                             const newState = reducer({app, view: mkStateView({expand: EXPAND_ALL})}, {
                                 type: actionName,
@@ -323,7 +309,7 @@ describe('lib/static/modules/reducers/tree', () => {
                         it(`"errors" expanded and suite has ${SUCCESS} status`, () => {
                             const suitesById = {...mkSuite({id: 's1', status: SUCCESS})};
                             const tree = mkStateTree({suitesById});
-                            const app = {suitesPage: mkStatePageFilters()};
+                            const app = mkStatePageFilters();
 
                             const newState = reducer({app, view: mkStateView({expand: EXPAND_ERRORS})}, {
                                 type: actionName,
@@ -338,7 +324,7 @@ describe('lib/static/modules/reducers/tree', () => {
                             const browsersById = {...mkBrowser({id: 'b1', parentId: 's1', resultIds: ['r1']})};
                             const resultsById = {...mkResult({id: 'r1', status: SUCCESS})};
                             const tree = mkStateTree({suitesById, browsersById, resultsById});
-                            const app = {suitesPage: mkStatePageFilters()};
+                            const app = mkStatePageFilters();
 
                             const newState = reducer({app, view: mkStateView({expand: EXPAND_RETRIES})}, {
                                 type: actionName,
@@ -366,7 +352,7 @@ describe('lib/static/modules/reducers/tree', () => {
                         };
                         const tree = mkStateTree({suitesById, browsersById, resultsById});
                         const view = mkStateView();
-                        const app = {suitesPage: mkStatePageFilters()};
+                        const app = mkStatePageFilters();
 
                         const newState = reducer({view, app}, {
                             type: actionName,
@@ -396,7 +382,7 @@ describe('lib/static/modules/reducers/tree', () => {
 
                         const newState = reducer({
                             view: mkStateView({}),
-                            app: {suitesPage: mkStatePageFilters()}
+                            app: mkStatePageFilters()
                         }, {
                             type: actionName,
                             payload: {tree}
@@ -416,9 +402,7 @@ describe('lib/static/modules/reducers/tree', () => {
 
                             const tree = mkStateTree({suitesById, browsersById, resultsById});
                             const state = {
-                                app: {
-                                    suitesPage: mkStatePageFilters({viewMode: ViewMode.FAILED})
-                                },
+                                app: mkStatePageFilters({viewMode: ViewMode.FAILED}),
                                 view: mkStateView({})
                             };
 
@@ -437,9 +421,7 @@ describe('lib/static/modules/reducers/tree', () => {
 
                             const tree = mkStateTree({suitesById, browsersById, resultsById});
                             const state = {
-                                app: {
-                                    suitesPage: mkStatePageFilters({nameFilter: 's1'})
-                                },
+                                app: mkStatePageFilters({nameFilter: 's1'}),
                                 view: mkStateView({})
                             };
 
@@ -459,9 +441,7 @@ describe('lib/static/modules/reducers/tree', () => {
                             const tree = mkStateTree({suitesById, browsersById, resultsById});
                             const filteredBrowsers = [{id: 'yabro', versions: []}];
                             const state = {
-                                app: {
-                                    suitesPage: mkStatePageFilters({filteredBrowsers})
-                                },
+                                app: mkStatePageFilters({filteredBrowsers}),
                                 view: mkStateView({})
                             };
 
@@ -482,9 +462,7 @@ describe('lib/static/modules/reducers/tree', () => {
 
                             const tree = mkStateTree({suitesById, browsersById, resultsById});
                             const state = {
-                                app: {
-                                    suitesPage: mkStatePageFilters({viewMode: ViewMode.FAILED})
-                                },
+                                app: mkStatePageFilters({viewMode: ViewMode.FAILED}),
                                 view: mkStateView({})
                             };
 
@@ -503,9 +481,7 @@ describe('lib/static/modules/reducers/tree', () => {
 
                             const tree = mkStateTree({suitesById, browsersById, resultsById});
                             const state = {
-                                app: {
-                                    suitesPage: mkStatePageFilters({nameFilter: 'some-name'})
-                                },
+                                app: mkStatePageFilters({nameFilter: 'some-name'}),
                                 view: mkStateView({})
                             };
 
@@ -525,9 +501,7 @@ describe('lib/static/modules/reducers/tree', () => {
                             const tree = mkStateTree({suitesById, browsersById, resultsById});
                             const filteredBrowsers = [{id: 'chrome', versions: []}];
                             const state = {
-                                app: {
-                                    suitesPage: mkStatePageFilters({filteredBrowsers})
-                                },
+                                app: mkStatePageFilters({filteredBrowsers}),
                                 view: mkStateView({})
                             };
 
@@ -546,9 +520,7 @@ describe('lib/static/modules/reducers/tree', () => {
 
                             const tree = mkStateTree({suitesById, browsersById, resultsById});
                             const state = {
-                                app: {
-                                    suitesPage: mkStatePageFilters({})
-                                },
+                                app: mkStatePageFilters({}),
                                 view: mkStateView({keyToGroupTestsBy: 'foo.bar'})
                             };
 
@@ -574,7 +546,7 @@ describe('lib/static/modules/reducers/tree', () => {
                                 };
                                 const tree = mkStateTree({suitesById, browsersById, resultsById});
 
-                                const app = {suitesPage: mkStatePageFilters({})};
+                                const app = mkStatePageFilters({});
                                 const newState = reducer({app, view: mkStateView({expand: EXPAND_ERRORS})}, {
                                     type: actionName,
                                     payload: {tree}
@@ -593,7 +565,7 @@ describe('lib/static/modules/reducers/tree', () => {
                                     ...mkResult({id: 'r2', status: SUCCESS})
                                 };
                                 const tree = mkStateTree({suitesById, browsersById, resultsById});
-                                const app = {suitesPage: mkStatePageFilters({})};
+                                const app = mkStatePageFilters({});
 
                                 const newState = reducer({app, view: mkStateView({expand: EXPAND_RETRIES})}, {
                                     type: actionName,
@@ -609,7 +581,7 @@ describe('lib/static/modules/reducers/tree', () => {
                             const browsersById = {...mkBrowser({id: 'b1', parentId: 's1', resultIds: ['r1']})};
                             const resultsById = {...mkResult({id: 'r1', status: SUCCESS})};
                             const tree = mkStateTree({suitesById, browsersById, resultsById});
-                            const app = {suitesPage: mkStatePageFilters({})};
+                            const app = mkStatePageFilters({});
 
                             const newState = reducer({view: mkStateView({expand: EXPAND_ALL}), app}, {
                                 type: actionName,
@@ -626,7 +598,7 @@ describe('lib/static/modules/reducers/tree', () => {
                             const browsersById = {...mkBrowser({id: 'b1', parentId: 's1', resultIds: ['r1']})};
                             const resultsById = {...mkResult({id: 'r1', status: SUCCESS})};
                             const tree = mkStateTree({suitesById, browsersById, resultsById});
-                            const app = {suitesPage: mkStatePageFilters({})};
+                            const app = mkStatePageFilters({});
 
                             const newState = reducer({view: mkStateView({expand: EXPAND_ERRORS}), app}, {
                                 type: actionName,
@@ -642,7 +614,7 @@ describe('lib/static/modules/reducers/tree', () => {
                                 const browsersById = {...mkBrowser({id: 'b1', parentId: 's1', resultIds: ['r1']})};
                                 const resultsById = {...mkResult({id: 'r1', status: SUCCESS})};
                                 const tree = mkStateTree({suitesById, browsersById, resultsById});
-                                const app = {suitesPage: mkStatePageFilters({})};
+                                const app = mkStatePageFilters({});
 
                                 const newState = reducer({view: mkStateView({expand: EXPAND_RETRIES}), app}, {
                                     type: actionName,
@@ -660,7 +632,7 @@ describe('lib/static/modules/reducers/tree', () => {
                                     ...mkResult({id: 'r2', status: SUCCESS})
                                 };
                                 const tree = mkStateTree({suitesById, browsersById, resultsById});
-                                const app = {suitesPage: mkStatePageFilters({})};
+                                const app = mkStatePageFilters({});
 
                                 const newState = reducer({view: mkStateView({expand: EXPAND_RETRIES}), app}, {
                                     type: actionName,
@@ -689,7 +661,7 @@ describe('lib/static/modules/reducers/tree', () => {
                         };
                         const tree = mkStateTree({suitesById, browsersById, resultsById});
                         const view = mkStateView();
-                        const app = {suitesPage: mkStatePageFilters({})};
+                        const app = mkStatePageFilters({});
 
                         const newState = reducer({view, app}, {
                             type: actionName,
@@ -709,7 +681,7 @@ describe('lib/static/modules/reducers/tree', () => {
                             const imagesById = {...mkImage({id: 'i1', status: FAIL})};
                             const tree = mkStateTree({imagesById});
 
-                            const app = {suitesPage: mkStatePageFilters({})};
+                            const app = mkStatePageFilters({});
                             const newState = reducer({view: mkStateView({expand}), app}, {
                                 type: actionName,
                                 payload: {tree}
@@ -722,7 +694,7 @@ describe('lib/static/modules/reducers/tree', () => {
                             const imagesById = {...mkImage({id: 'i1', status: ERROR})};
                             const tree = mkStateTree({imagesById});
 
-                            const app = {suitesPage: mkStatePageFilters({})};
+                            const app = mkStatePageFilters({});
                             const newState = reducer({view: mkStateView({expand}), app}, {
                                 type: actionName,
                                 payload: {tree}
@@ -735,7 +707,7 @@ describe('lib/static/modules/reducers/tree', () => {
                     it('"all" expanded and test success', () => {
                         const imagesById = {...mkImage({id: 'i1', status: SUCCESS})};
                         const tree = mkStateTree({imagesById});
-                        const app = {suitesPage: mkStatePageFilters({})};
+                        const app = mkStatePageFilters({});
 
                         const newState = reducer({view: mkStateView({expand: EXPAND_ALL}), app}, {
                             type: actionName,
@@ -752,7 +724,7 @@ describe('lib/static/modules/reducers/tree', () => {
                             const imagesById = {...mkImage({id: 'i1', status: SUCCESS})};
                             const tree = mkStateTree({imagesById});
 
-                            const app = {suitesPage: mkStatePageFilters({})};
+                            const app = mkStatePageFilters({});
                             const newState = reducer({view: mkStateView({expand}), app}, {
                                 type: actionName,
                                 payload: {tree}
@@ -765,7 +737,7 @@ describe('lib/static/modules/reducers/tree', () => {
                             const imagesById = {...mkImage({id: 'i1', status: UPDATED})};
                             const tree = mkStateTree({imagesById});
 
-                            const app = {suitesPage: mkStatePageFilters({})};
+                            const app = mkStatePageFilters({});
                             const newState = reducer({view: mkStateView({expand}), app}, {
                                 type: actionName,
                                 payload: {tree}
@@ -781,7 +753,7 @@ describe('lib/static/modules/reducers/tree', () => {
                 it('should be "false" by default', () => {
                     const resultsById = {...mkResult({id: 'r1'})};
                     const tree = mkStateTree({resultsById});
-                    const app = {suitesPage: mkStatePageFilters({})};
+                    const app = mkStatePageFilters({});
 
                     const newState = reducer({view: mkStateView(), app}, {
                         type: actionName,
@@ -802,7 +774,7 @@ describe('lib/static/modules/reducers/tree', () => {
                 const browsersStateById = {b1: {retryIndex: 0}};
                 const resultsById = {...mkResult({id: 'r1', parentId: 'b1'})};
                 const tree = mkStateTree({suitesById, browsersById, browsersStateById, resultsById});
-                const app = {suitesPage: mkStatePageFilters({filteredBrowsers: []})};
+                const app = mkStatePageFilters({filteredBrowsers: []});
                 const view = mkStateView({});
 
                 const newState = reducer({tree, app, view}, {
@@ -1045,7 +1017,7 @@ describe('lib/static/modules/reducers/tree', () => {
             const tree = mkStateTree({suitesById, browsersById, resultsById, browsersStateById});
 
             const filteredBrowsers = [{id: 'yabro', versions: []}];
-            const app = {suitesPage: mkStatePageFilters({filteredBrowsers})};
+            const app = mkStatePageFilters({filteredBrowsers});
             const view = mkStateView({});
 
             const newState = reducer({tree, app, view}, {
@@ -1074,7 +1046,7 @@ describe('lib/static/modules/reducers/tree', () => {
             const tree = mkStateTree({suitesById, browsersById, resultsById, browsersStateById});
 
             const filteredBrowsers = [{id: 'yabro-1', versions: []}];
-            const app = {suitesPage: mkStatePageFilters({filteredBrowsers})};
+            const app = mkStatePageFilters({filteredBrowsers});
             const view = mkStateView({});
 
             const newState = reducer({view, tree, app}, {
@@ -1092,7 +1064,7 @@ describe('lib/static/modules/reducers/tree', () => {
             const resultsById = mkResult({id: 'r1', parentId: 'b1', status: FAIL});
             const browsersStateById = {'b1': {checkStatus: UNCHECKED}};
             const tree = mkStateTree({suitesById, browsersById, resultsById, browsersStateById});
-            const app = {suitesPage: mkStatePageFilters({filteredBrowsers: [{id: 'yabro-1', versions: []}]})};
+            const app = mkStatePageFilters({filteredBrowsers: [{id: 'yabro-1', versions: []}]});
             const view = mkStateView({});
 
             const newState = reducer({view, tree, app}, {
@@ -1109,7 +1081,7 @@ describe('lib/static/modules/reducers/tree', () => {
             const browsersById = {...mkBrowser({id: 'b1'})};
             const browsersStateById = {b1: {retryIndex: 1}};
             const tree = mkStateTree({browsersById, browsersStateById});
-            const app = {suitesPage: mkStatePageFilters({viewMode: ViewMode.FAILED})};
+            const app = mkStatePageFilters({viewMode: ViewMode.FAILED});
 
             const newState = reducer({app, tree, view: mkStateView()}, {
                 type: actionNames.CHANGE_TEST_RETRY,
@@ -1124,7 +1096,7 @@ describe('lib/static/modules/reducers/tree', () => {
             const browsersStateById = {b1: {retryIndex: 1, lastMatchedRetryIndex: 0}};
             const tree = mkStateTree({browsersById, browsersStateById});
             const view = mkStateView({keyToGroupTestsBy: 'some-key'});
-            const app = {suitesPage: mkStatePageFilters({viewMode: ViewMode.FAILED})};
+            const app = mkStatePageFilters({viewMode: ViewMode.FAILED});
 
             const newState = reducer({app, tree, view}, {
                 type: actionNames.CHANGE_TEST_RETRY,
@@ -1141,7 +1113,7 @@ describe('lib/static/modules/reducers/tree', () => {
                 const browsersById = {...mkBrowser({id: 'b1'}), ...mkBrowser({id: 'b2'})};
                 const browsersStateById = {b1: {shouldBeShown: true}, b2: {shouldBeShown: true}};
                 const tree = mkStateTree({browsersById, browsersStateById});
-                const app = {suitesPage: mkStatePageFilters({viewMode: ViewMode.FAILED})};
+                const app = mkStatePageFilters({viewMode: ViewMode.FAILED});
 
                 const newState = reducer({app, tree, view: mkStateView()}, {
                     type: actionNames.TOGGLE_TESTS_GROUP,
@@ -1156,7 +1128,7 @@ describe('lib/static/modules/reducers/tree', () => {
                 const browsersById = {...mkBrowser({id: 'b1'}), ...mkBrowser({id: 'b2'})};
                 const browsersStateById = {b1: {lastMatchedRetryIndex: 1}, b2: {lastMatchedRetryIndex: 2}};
                 const tree = mkStateTree({browsersById, browsersStateById});
-                const app = {suitesPage: mkStatePageFilters({viewMode: ViewMode.FAILED})};
+                const app = mkStatePageFilters({viewMode: ViewMode.FAILED});
 
                 const newState = reducer({app, tree, view: mkStateView()}, {
                     type: actionNames.TOGGLE_TESTS_GROUP,
@@ -1171,7 +1143,7 @@ describe('lib/static/modules/reducers/tree', () => {
                 const suitesById = {...mkSuite({id: 's1'}), ...mkSuite({id: 's2'})};
                 const suitesStateById = {s1: {shouldBeShown: true}, s2: {shouldBeShown: true}};
                 const tree = mkStateTree({suitesById, suitesStateById});
-                const app = {suitesPage: mkStatePageFilters({viewMode: ViewMode.FAILED})};
+                const app = mkStatePageFilters({viewMode: ViewMode.FAILED});
 
                 const newState = reducer({app, tree, view: mkStateView()}, {
                     type: actionNames.TOGGLE_TESTS_GROUP,
@@ -1186,7 +1158,7 @@ describe('lib/static/modules/reducers/tree', () => {
                 const resultsById = {...mkResult({id: 'r1'}), ...mkResult({id: 'r2'})};
                 const resultsStateById = {r1: {matchedSelectedGroup: true}, r2: {matchedSelectedGroup: true}};
                 const tree = mkStateTree({resultsById, resultsStateById});
-                const app = {suitesPage: mkStatePageFilters({viewMode: ViewMode.FAILED})};
+                const app = mkStatePageFilters({viewMode: ViewMode.FAILED});
 
                 const newState = reducer({app, tree, view: mkStateView()}, {
                     type: actionNames.TOGGLE_TESTS_GROUP,
@@ -1204,7 +1176,7 @@ describe('lib/static/modules/reducers/tree', () => {
                 const resultsById = {...mkResult({id: 'r1', status: SUCCESS}), ...mkResult({id: 'r2', status: SUCCESS})};
                 const resultsStateById = {r1: {}, r2: {}};
                 const tree = mkStateTree({browsersById, resultsById, resultsStateById});
-                const app = {suitesPage: mkStatePageFilters({viewMode: ViewMode.FAILED})};
+                const app = mkStatePageFilters({viewMode: ViewMode.FAILED});
                 const view = mkStateView({});
 
                 const newState = reducer({tree, view, app}, {
@@ -1222,7 +1194,7 @@ describe('lib/static/modules/reducers/tree', () => {
                 const resultsById = {...mkResult({id: 'r1', status: SUCCESS}), ...mkResult({id: 'r2', status: SUCCESS})};
                 const resultsStateById = {r1: {}, r2: {}};
                 const tree = mkStateTree({browsersById, browsersStateById, resultsById, resultsStateById});
-                const app = {suitesPage: mkStatePageFilters({})};
+                const app = mkStatePageFilters({});
 
                 const newState = reducer({app, tree, view: mkStateView()}, {
                     type: actionNames.TOGGLE_TESTS_GROUP,
@@ -1240,7 +1212,7 @@ describe('lib/static/modules/reducers/tree', () => {
                     const resultsStateById = {r1: {}, r2: {}};
                     const browsersStateById = {'b1': {checkStatus: UNCHECKED}};
                     const tree = mkStateTree({browsersById, resultsById, resultsStateById, browsersStateById});
-                    const app = {suitesPage: mkStatePageFilters({})};
+                    const app = mkStatePageFilters({});
 
                     const newState = reducer({app, tree, view: mkStateView()}, {
                         type: actionNames.TOGGLE_TESTS_GROUP,
@@ -1258,7 +1230,7 @@ describe('lib/static/modules/reducers/tree', () => {
                     const resultsStateById = {r1: {}, r2: {}};
                     const browsersStateById = {'b1': {checkStatus: UNCHECKED}};
                     const tree = mkStateTree({browsersById, resultsById, resultsStateById, browsersStateById});
-                    const app = {suitesPage: mkStatePageFilters({})};
+                    const app = mkStatePageFilters({});
 
                     const newState = reducer({app, tree, view: mkStateView()}, {
                         type: actionNames.TOGGLE_TESTS_GROUP,
@@ -1279,7 +1251,7 @@ describe('lib/static/modules/reducers/tree', () => {
                 };
                 const browsersStateById = {'b1': {checkStatus: UNCHECKED}};
                 const tree = mkStateTree({browsersById, resultsById, browsersStateById});
-                const app = {suitesPage: mkStatePageFilters({})};
+                const app = mkStatePageFilters({});
 
                 const newState = reducer({app, tree, view: mkStateView()}, {
                     type: actionNames.TOGGLE_TESTS_GROUP,
@@ -1307,7 +1279,7 @@ describe('lib/static/modules/reducers/tree', () => {
                     const resultsById = {...mkResult({id: 'r1'}), ...mkResult({id: 'r2'})};
                     const resultsStateById = {r1: {matchedSelectedGroup: true}, r2: {matchedSelectedGroup: true}};
                     const tree = mkStateTree({resultsById, resultsStateById});
-                    const app = {suitesPage: mkStatePageFilters({})};
+                    const app = mkStatePageFilters({});
 
                     const newState = reducer({app, tree, view}, {type: actionNames.GROUP_TESTS_BY_KEY});
 
@@ -1336,7 +1308,7 @@ describe('lib/static/modules/reducers/tree', () => {
                 const resultsById = {...mkResult({id: 'r1', status: SUCCESS}), ...mkResult({id: 'r2', status: SUCCESS})};
                 const tree = mkStateTree({browsersById, browsersStateById, resultsById});
                 const view = mkStateView({keyToGroupTestsBy: ''});
-                const app = {suitesPage: mkStatePageFilters({})};
+                const app = mkStatePageFilters({});
 
                 const newState = reducer({tree, view, app}, {type: actionNames.GROUP_TESTS_BY_KEY});
 
@@ -1352,7 +1324,7 @@ describe('lib/static/modules/reducers/tree', () => {
                 const resultsById = {...mkResult({id: 'r1', status: SUCCESS}), ...mkResult({id: 'r2', status: SUCCESS})};
                 const tree = mkStateTree({suitesById, suitesStateById, browsersById, browsersStateById, resultsById});
                 const view = mkStateView({keyToGroupTestsBy: ''});
-                const app = {suitesPage: mkStatePageFilters({})};
+                const app = mkStatePageFilters({});
 
                 const newState = reducer({tree, view, app}, {type: actionNames.GROUP_TESTS_BY_KEY});
 
@@ -1748,11 +1720,9 @@ describe('lib/static/modules/reducers/tree', () => {
                 });
 
                 const app = {
-                    suitesPage: mkStatePageFilters({
-                        viewMode: ViewMode.FAILED,
-                        nameFilter: 'suite-2',
-                        filteredBrowsers: [{id: 'c1', versions: []}]
-                    })
+                    viewMode: ViewMode.FAILED,
+                    nameFilter: 'suite-2',
+                    filteredBrowsers: [{id: 'c1', versions: []}]
                 };
 
                 const newState = reducer({tree, view, app}, {type: actionName});
@@ -1773,11 +1743,9 @@ describe('lib/static/modules/reducers/tree', () => {
                     strictMatchFilter: true
                 });
                 const app = {
-                    suitesPage: mkStatePageFilters({
-                        viewMode: ViewMode.FAILED,
-                        nameFilter: 's1',
-                        filteredBrowsers: [{id: 'b1', versions: []}]
-                    })
+                    viewMode: ViewMode.FAILED,
+                    nameFilter: 's1',
+                    filteredBrowsers: [{id: 'b1', versions: []}]
                 };
 
                 const newState = reducer({tree, view, app}, {type: actionName});
@@ -1814,11 +1782,9 @@ describe('lib/static/modules/reducers/tree', () => {
                     strictMatchFilter: true
                 });
                 const app = {
-                    suitesPage: mkStatePageFilters({
-                        viewMode: ViewMode.FAILED,
-                        nameFilter: 'brow1',
-                        filteredBrowsers: [{id: 'b1', versions: []}]
-                    })
+                    viewMode: ViewMode.FAILED,
+                    nameFilter: 'brow1',
+                    filteredBrowsers: [{id: 'b1', versions: []}]
                 };
 
                 const newState = reducer({tree, view, app}, {type: actionName});
@@ -1868,11 +1834,9 @@ describe('lib/static/modules/reducers/tree', () => {
                 strictMatchFilter: false
             });
             const app = {
-                suitesPage: mkStatePageFilters({
-                    viewMode: ViewMode.FAILED,
-                    nameFilter: '',
-                    filteredBrowsers: [{id: 'b1', versions: []}, {id: 'd1', versions: []}]
-                })
+                viewMode: ViewMode.FAILED,
+                nameFilter: '',
+                filteredBrowsers: [{id: 'b1', versions: []}, {id: 'd1', versions: []}]
             };
             const staticImageAccepter = {acceptableImages: {
                 'i0': {id: 'i0', originalStatus: FAIL, stateNameImageId: 's0 s1 b1 foo'},

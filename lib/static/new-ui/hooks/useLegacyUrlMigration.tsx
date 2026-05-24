@@ -81,7 +81,7 @@ export const useLegacyUrlMigration = (): void => {
     const browsers = useSelector((state: State) => state.tree.browsers.byId);
     const suites = useSelector((state: State) => state.tree.suites.byId);
     const allBrowsersList = useSelector(getBrowsersList);
-    const currentViewMode = useSelector((state: State) => state.app[Page.suitesPage].viewMode);
+    const currentViewMode = useSelector((state: State) => state.app.viewMode);
 
     const migrationAttemptedRef = useRef(false);
 
@@ -117,15 +117,15 @@ export const useLegacyUrlMigration = (): void => {
                     className: 'toaster'
                 });
 
-                dispatch(selectBrowsers({page: Page.suitesPage, data: allBrowsersList}));
-                dispatch(updateNameFilter({page: Page.suitesPage, data: ''}));
+                dispatch(selectBrowsers({data: allBrowsersList}));
+                dispatch(updateNameFilter({data: ''}));
                 dispatch(setStrictMatchFilter(false));
-                dispatch(changeViewMode({page: Page.suitesPage, data: currentViewMode}));
+                dispatch(changeViewMode({data: currentViewMode}));
             }
         }
 
         if (matchedBrowserId) {
-            dispatch(selectBrowsers({page: Page.suitesPage, data: allBrowsersList}));
+            dispatch(selectBrowsers({data: allBrowsersList}));
             const browser = browsers[matchedBrowserId];
             const suite = suites[browser.parentId];
 
@@ -158,10 +158,10 @@ export const useLegacyUrlMigration = (): void => {
 
                     navigate(newUrl, {replace: true});
 
-                    dispatch(updateNameFilter({page: Page.suitesPage, data: ''}));
+                    dispatch(updateNameFilter({data: ''}));
                     dispatch(setStrictMatchFilter(false));
                     // This one's for ensuring "expanded" states of tree nodes are inited
-                    dispatch(changeViewMode({page: Page.suitesPage, data: currentViewMode}));
+                    dispatch(changeViewMode({data: currentViewMode}));
                 }
             }
         }

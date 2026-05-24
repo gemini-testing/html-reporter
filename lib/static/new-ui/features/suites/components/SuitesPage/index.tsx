@@ -36,15 +36,12 @@ import {SideBar} from '@/static/new-ui/components/SideBar';
 import {getCurrentSuiteHash, getSuitesStatusCounts, getSuitesTreeViewData} from './selectors';
 import {getIconByStatus} from '@/static/new-ui/utils';
 import {Page} from '@/constants';
-import {usePage} from '@/static/new-ui/hooks/usePage';
 import {useHotkey} from '@/static/new-ui/hooks/useHotkey';
 import {useLegacyUrlMigration} from '@/static/new-ui/hooks/useLegacyUrlMigration';
 import {changeTestRetry, setCurrentTreeNode, setStrictMatchFilter} from '@/static/modules/actions';
 import {getUrl} from '@/static/new-ui/utils/getUrl';
 
 export function SuitesPage(): ReactNode {
-    const page = usePage();
-
     useLegacyUrlMigration();
 
     const currentResult = useSelector(getCurrentResult);
@@ -66,14 +63,13 @@ export function SuitesPage(): ReactNode {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    const statusValue = useSelector((state) => state.app[Page.suitesPage].viewMode);
+    const statusValue = useSelector((state) => state.app.viewMode);
     const statusCounts = useSelector((state) => getSuitesStatusCounts(state));
     const onStatusChange = useCallback((value: string) => {
         dispatch(actions.changeViewMode({
-            data: value as ViewMode,
-            page
+            data: value as ViewMode
         }));
-    }, [page]);
+    }, []);
 
     useEffect(() => {
         const stateName =

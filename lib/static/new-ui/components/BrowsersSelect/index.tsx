@@ -39,7 +39,7 @@ export function BrowsersSelect(): ReactNode {
     const [selectedBrowsers, setSelectedBrowsers] = useState<BrowserItem[]>([]);
     const page = Page.suitesPage;
     const browsers = useSelector((state) => state.browsers);
-    const filteredBrowsers = useSelector((state) => state.app[page].filteredBrowsers);
+    const filteredBrowsers = useSelector((state) => state.app.filteredBrowsers);
     const dispatch = useDispatch();
 
     useEffect(() => {
@@ -130,8 +130,7 @@ export function BrowsersSelect(): ReactNode {
     const onClose = (): void => {
         dispatch(
             selectBrowsers({
-                data: selectedBrowsers.filter(browser => browser.versions.length > 0, page),
-                page
+                data: selectedBrowsers.filter(browser => browser.versions.length > 0, page)
             })
         );
     };
