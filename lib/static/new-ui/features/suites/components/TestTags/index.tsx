@@ -6,6 +6,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {getCurrentResult} from '@/static/new-ui/features/suites/selectors';
 import {updateNameFilter} from '@/static/modules/actions';
 import {AttachmentType, TagsAttachment} from '@/types';
+import {Page} from '@/constants';
 
 import {Badge, badgeStyles} from '@/static/new-ui/components/Badge';
 import {usePage} from '@/static/new-ui/hooks/usePage';
@@ -14,7 +15,7 @@ export const TestTags = (): ReactNode => {
     const suite = useSelector(getCurrentResult);
     const dispatch = useDispatch();
     const page = usePage();
-    const nameFilter = useSelector((state) => state.app[page].nameFilter);
+    const nameFilter = useSelector((state) => state.app[Page.suitesPage].nameFilter);
 
     if (!suite) {
         return null;

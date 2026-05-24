@@ -279,12 +279,6 @@ export interface State {
             currentBrowserId: string | null;
             stateName: string | null;
 
-            // Filters in top of sidebar
-            nameFilter: string;
-            useRegexFilter: boolean;
-            useMatchCaseFilter: boolean;
-            viewMode: ViewMode;
-            filteredBrowsers: BrowserItem[];
             diffMode: DiffModeId;
         };
         loading: {

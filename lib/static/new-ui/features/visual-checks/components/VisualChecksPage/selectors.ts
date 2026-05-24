@@ -8,7 +8,15 @@ import {Page, TestStatus, ViewMode} from '@/constants';
 import {matchTestName} from '@/static/modules/utils';
 import {checkSearchResultExits} from '@/static/modules/search';
 
-export const getVisualChecksViewMode = (state: State): ViewMode => state.app[Page.visualChecksPage].viewMode;
+export const getVisualChecksViewMode = (state: State): ViewMode => {
+    const realStatus = state.app[Page.suitesPage].viewMode;
+
+    if ([ViewMode.ALL, ViewMode.FAILED, ViewMode.PASSED].includes(realStatus)) {
+        return realStatus;
+    }
+
+    return ViewMode.ALL;
+};
 
 type Stats = Pick<Record<ViewMode, number>, ViewMode.ALL | ViewMode.PASSED | ViewMode.FAILED>;
 
@@ -28,9 +36,9 @@ export const getVisualTreeViewData = createSelector(
         getImages,
         getNamedImages,
         getVisualChecksViewMode,
-        (state: State): string => state.app[Page.visualChecksPage].nameFilter,
-        (state: State): boolean => state.app[Page.visualChecksPage].useRegexFilter,
-        (state: State): boolean => state.app[Page.visualChecksPage].useMatchCaseFilter
+        (state: State): string => state.app[Page.suitesPage].nameFilter,
+        (state: State): boolean => state.app[Page.suitesPage].useRegexFilter,
+        (state: State): boolean => state.app[Page.suitesPage].useMatchCaseFilter
     ],
     (
         images,

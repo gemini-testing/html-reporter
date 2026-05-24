@@ -66,7 +66,7 @@ export function SuitesPage(): ReactNode {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    const statusValue = useSelector((state) => state.app[page].viewMode);
+    const statusValue = useSelector((state) => state.app[Page.suitesPage].viewMode);
     const statusCounts = useSelector((state) => getSuitesStatusCounts(state));
     const onStatusChange = useCallback((value: string) => {
         dispatch(actions.changeViewMode({

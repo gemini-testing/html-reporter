@@ -6,9 +6,10 @@ import {SplitViewLayout} from '@/static/new-ui/components/SplitViewLayout';
 import {UiCard} from '@/static/new-ui/components/Card/UiCard';
 import {
     getAttempt,
-    getLastAttempt,
+    getCurrentBrowser,
+    getCurrentImage,
     getCurrentNamedImage,
-    getCurrentBrowser, getCurrentImage
+    getLastAttempt
 } from '@/static/new-ui/features/visual-checks/selectors';
 import {AssertViewResult} from '@/static/new-ui/components/AssertViewResult';
 import styles from './index.module.css';
@@ -216,7 +217,7 @@ export function VisualChecksPage(): ReactNode {
     const onStatusChange = useCallback((value: string) => {
         dispatch(actions.changeViewMode({
             data: value as ViewMode,
-            page
+            page: Page.suitesPage
         }));
     }, [page]);
 

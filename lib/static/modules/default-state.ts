@@ -116,11 +116,6 @@ export default Object.assign({config: configDefaults}, {
             currentBrowserId: null,
             stateName: null,
 
-            viewMode: ViewMode.ALL,
-            nameFilter: '',
-            useRegexFilter: false,
-            useMatchCaseFilter: false,
-            filteredBrowsers: [],
             diffMode: DiffModes.TWO_UP_INTERACTIVE.id
         },
         loading: {
