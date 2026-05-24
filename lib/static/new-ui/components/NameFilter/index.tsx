@@ -8,9 +8,9 @@ import * as actions from '@/static/modules/actions';
 import {getIsInitialized} from '@/static/new-ui/store/selectors';
 import {NameFilterButton} from './NameFilterButton';
 import styles from './index.module.css';
-import {usePage} from '@/static/new-ui/hooks/usePage';
 import {useHotkey} from '@/static/new-ui/hooks/useHotkey';
 import {search} from '@/static/modules/search';
+import {Page} from '@/constants';
 
 export interface NameFilterHandle {
     focus: () => void;
@@ -23,7 +23,7 @@ export interface NameFilterProps {
 
 export const NameFilter = forwardRef<NameFilterHandle, NameFilterProps>(function NameFilter(props, ref): ReactNode {
     const dispatch = useDispatch();
-    const page = usePage();
+    const page = Page.suitesPage;
     const nameFilter = useSelector((state) => state.app[page].nameFilter);
     const useRegexFilter = useSelector((state) => state.app[page].useRegexFilter);
     const useMatchCaseFilter = useSelector((state) => state.app[page].useMatchCaseFilter);

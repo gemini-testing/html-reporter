@@ -1,5 +1,5 @@
 import {State} from '@/static/new-ui/types/store';
-import {Page, PathNames, VISUAL_CHECKS_PAGE_DIFF_MODE_KEY} from '@/constants';
+import {Page, VISUAL_CHECKS_PAGE_DIFF_MODE_KEY} from '@/constants';
 import actionNames from '@/static/modules/action-names';
 import {FiltersAction, InitGuiReportAction, InitStaticReportAction} from '@/static/modules/actions';
 import {DiffModeId, DiffModes, ViewMode} from '@/constants';
@@ -27,7 +27,6 @@ export default (state: State, action: FiltersAction | InitGuiReportAction | Init
         case actionNames.INIT_GUI_REPORT:
         case actionNames.INIT_STATIC_REPORT: {
             const suitesPageViewMode = localStorageWrapper.getItem('app.suitesPage.viewMode', ViewMode.ALL) as ViewMode;
-            const visualChecksPageViewMode = localStorageWrapper.getItem('app.visualChecksPage.viewMode', ViewMode.ALL) as ViewMode;
             const visualChecksPageDiffMode = localStorageWrapper.getItem(VISUAL_CHECKS_PAGE_DIFF_MODE_KEY, DiffModes.TWO_UP_INTERACTIVE.id) as DiffModeId;
 
             const viewQuery = getViewQuery(window.location.search);
@@ -46,22 +45,15 @@ export default (state: State, action: FiltersAction | InitGuiReportAction | Init
                             viewMode: suitesPageViewMode
                         },
                         [Page.visualChecksPage]: {
-                            viewMode: visualChecksPageViewMode,
                             diffMode: visualChecksPageDiffMode
                         }
                     }
                 }
             );
 
-            if (window.location.hash?.startsWith(`#${PathNames.visualChecks}`)) {
-                newState.app[Page.visualChecksPage].filteredBrowsers = viewQuery.filteredBrowsers as BrowserItem[];
-                newState.app[Page.visualChecksPage].viewMode = viewQuery.viewMode as ViewMode || visualChecksPageViewMode;
-                newState.app[Page.visualChecksPage].nameFilter = viewQuery.testNameFilter as string || '';
-            } else { // Need for backward compatibility with old ui where are suites page only
-                newState.app[Page.suitesPage].filteredBrowsers = viewQuery.filteredBrowsers as BrowserItem[];
-                newState.app[Page.suitesPage].viewMode = viewQuery.viewMode as ViewMode || suitesPageViewMode;
-                newState.app[Page.suitesPage].nameFilter = viewQuery.testNameFilter as string || '';
-            }
+            newState.app[Page.suitesPage].filteredBrowsers = viewQuery.filteredBrowsers as BrowserItem[];
+            newState.app[Page.suitesPage].viewMode = viewQuery.viewMode as ViewMode || suitesPageViewMode;
+            newState.app[Page.suitesPage].nameFilter = viewQuery.testNameFilter as string || '';
 
             return newState;
         }

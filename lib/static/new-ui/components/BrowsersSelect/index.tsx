@@ -9,7 +9,7 @@ import {getIsInitialized} from '@/static/new-ui/store/selectors';
 import {BrowserItem} from '@/types';
 import styles from './index.module.css';
 import {IconButton} from '../IconButton';
-import {usePage} from '@/static/new-ui/hooks/usePage';
+import {Page} from '@/constants';
 
 // In the onUpdate callback we only have access to array of selected strings. That's why we need to serialize
 // id/version in string. Encoding to avoid errors if id/version contains delimiter.
@@ -37,7 +37,7 @@ const IconsPreloader = (): React.JSX.Element => {
 
 export function BrowsersSelect(): ReactNode {
     const [selectedBrowsers, setSelectedBrowsers] = useState<BrowserItem[]>([]);
-    const page = usePage();
+    const page = Page.suitesPage;
     const browsers = useSelector((state) => state.browsers);
     const filteredBrowsers = useSelector((state) => state.app[page].filteredBrowsers);
     const dispatch = useDispatch();
