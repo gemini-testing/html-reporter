@@ -520,14 +520,16 @@ export function SnapshotsPlayer({isSnapshotBroken = false}: {isSnapshotBroken?: 
         colorScheme: iframeColorScheme
     };
 
+    const isPlayerWidthConstrained = playerWidth / playerHeight >= maxPlayerSize.width / maxPlayerSize.height;
+
     const playerStyle: React.CSSProperties = {
         aspectRatio: `${playerWidth} / ${playerHeight}`,
         maxWidth: `min(${playerWidth}px, 100%)`,
         maxHeight: '100%',
         transition: 'opacity .5s ease',
         position: 'absolute',
-        height: playerHeight > playerWidth ? '100%' : 'auto',
-        width: playerHeight > playerWidth ? 'auto' : '100%'
+        height: isPlayerWidthConstrained ? 'auto' : '100%',
+        width: isPlayerWidthConstrained ? '100%' : 'auto'
     };
 
     const replayerContainerStyle: React.CSSProperties = {
