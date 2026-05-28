@@ -488,18 +488,31 @@ export function SnapshotsPlayer({isSnapshotBroken = false}: {isSnapshotBroken?: 
     }, [dispatch, isSnapshotMissing]);
 
     const currentPlayerHighlightState = useSelector(state => state.app.snapshotsPlayer);
+    const getPlayerTimeInBounds = (time: number): number => {
+        let maxPlayerTime = MIN_PLAYER_TIME;
+        try {
+            maxPlayerTime = Math.max(playerRef.current?.getMetaData().totalTime ?? MIN_PLAYER_TIME, MIN_PLAYER_TIME);
+        } catch { /* */ }
+
+        if (!Number.isFinite(time)) {
+            return MIN_PLAYER_TIME;
+        }
+
+        return Math.min(Math.max(time, MIN_PLAYER_TIME), maxPlayerTime);
+    };
 
     useEffect(() => {
         if (isSnapshotMissing) {
             return;
         }
 
-        if (currentPlayerHighlightState.isActive) {
-            playerRef.current?.pause(currentPlayerHighlightState.highlightEndTime - playerRef.current?.getMetaData().startTime);
+        if (currentPlayerHighlightState.isActive && playerRef.current) {
+            const playerStartTime = playerRef.current.getMetaData().startTime;
+            playerRef.current.pause(getPlayerTimeInBounds(currentPlayerHighlightState.highlightEndTime - playerStartTime));
             setIsPlaying(false);
             cancelTimeTicking();
         } else if (!isPlaying) {
-            playerRef.current?.pause(currentPlayerTime > 0 ? currentPlayerTime : MIN_PLAYER_TIME);
+            playerRef.current?.pause(getPlayerTimeInBounds(currentPlayerTime > 0 ? currentPlayerTime : MIN_PLAYER_TIME));
         }
     }, [currentPlayerHighlightState, isSnapshotMissing]);
 
@@ -508,7 +521,7 @@ export function SnapshotsPlayer({isSnapshotBroken = false}: {isSnapshotBroken?: 
             return;
         }
 
-        const newPlayerTime = Math.max(currentPlayerHighlightState.goToTime - playerRef.current.getMetaData().startTime, MIN_PLAYER_TIME);
+        const newPlayerTime = getPlayerTimeInBounds(currentPlayerHighlightState.goToTime - playerRef.current.getMetaData().startTime);
         setCurrentPlayerTime(newPlayerTime);
         playerRef.current.pause(newPlayerTime);
     }, [currentPlayerHighlightState.goToTime, isSnapshotMissing]);

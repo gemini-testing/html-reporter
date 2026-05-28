@@ -48,23 +48,37 @@ export function Timeline({
 
     const progressRef = useRef<HTMLDivElement | null>(null);
 
+    const safeTotalTime = Number.isFinite(totalTime) && totalTime > 0 ? totalTime : 0;
+    const getBoundedTime = (time: number): number => {
+        if (!Number.isFinite(time) || safeTotalTime === 0) {
+            return 0;
+        }
+
+        return clamp(time, 0, safeTotalTime);
+    };
+    const getProgressPercent = (time: number): number => safeTotalTime === 0 ? 0 : getBoundedTime(time) / safeTotalTime * 100;
+
     const getTimeFromMouseEvent = (e: MouseEvent | React.MouseEvent): number => {
-        if (!progressRef.current || totalTime === 0) {
+        if (!progressRef.current || safeTotalTime === 0) {
             return 0;
         }
 
         const rect = progressRef.current.getBoundingClientRect();
+        if (rect.width <= 0) {
+            return 0;
+        }
+
         const offsetX = e.clientX - rect.left;
         const ratio = Math.max(0, Math.min(1, offsetX / rect.width));
 
-        return ratio * totalTime;
+        return ratio * safeTotalTime;
     };
 
     useEffect(() => {
         if (!isScrubbing && !isHovering) {
-            setDisplayTime(currentTime);
+            setDisplayTime(getBoundedTime(currentTime));
         }
-    }, [currentTime, isScrubbing, isHovering]);
+    }, [currentTime, isScrubbing, isHovering, safeTotalTime]);
 
     // Disable text selection while scrubbing
     useEffect(() => {
@@ -118,7 +132,7 @@ export function Timeline({
             document.removeEventListener('mousemove', handleMouseMove);
             document.removeEventListener('mouseup', handleMouseUp);
         };
-    }, [isScrubbing, totalTime]);
+    }, [isScrubbing, safeTotalTime]);
 
     const onTimelineMouseDown = (e: React.MouseEvent): void => {
         const clickedTime = getTimeFromMouseEvent(e);
@@ -147,17 +161,23 @@ export function Timeline({
         setIsHovering(false);
         // If not scrubbing, revert the knob to real player time
         if (!isScrubbing) {
-            setDisplayTime(currentTime);
+            setDisplayTime(getBoundedTime(currentTime));
         }
         onMouseLeave?.();
     };
 
-    const highlightStartTime = highlightState.highlightStartTime - playerStartTimestamp;
-    const highlightEndTime = highlightState.highlightEndTime - playerStartTimestamp;
-    const progressPercent = clamp(((isHovering && !isScrubbing ? currentTime : displayTime) / totalTime) * 100, 0, 100) * Number(!isSnapshotMissing);
-    const highlightRegionWidth = highlightState.isActive ? clamp((highlightEndTime - highlightStartTime) / totalTime * 100, 0, 100) * Number(!isSnapshotMissing) : 0;
-    const leftKnobPosition = clamp(((highlightState.isActive ? highlightStartTime : displayTime) / totalTime) * 100, 0, 100) * Number(!isSnapshotMissing);
-    const rightKnobPosition = clamp(((highlightState.isActive ? highlightEndTime : displayTime) / totalTime) * 100, 0, 100) * Number(!isSnapshotMissing);
+    const rawHighlightStartTime = highlightState.highlightStartTime - playerStartTimestamp;
+    const rawHighlightEndTime = highlightState.highlightEndTime - playerStartTimestamp;
+    const highlightStartTime = getBoundedTime(Math.min(rawHighlightStartTime, rawHighlightEndTime));
+    const highlightEndTime = getBoundedTime(Math.max(rawHighlightStartTime, rawHighlightEndTime));
+    const visibleTimelineMultiplier = Number(!isSnapshotMissing);
+    const progressPercent = getProgressPercent(isHovering && !isScrubbing ? currentTime : displayTime) * visibleTimelineMultiplier;
+    const highlightStartPercent = getProgressPercent(highlightStartTime);
+    const highlightEndPercent = getProgressPercent(highlightEndTime);
+    const highlightRegionWidth = highlightState.isActive ? Math.max(highlightEndPercent - highlightStartPercent, 0) * visibleTimelineMultiplier : 0;
+    const leftKnobPosition = (highlightState.isActive ? highlightStartPercent : getProgressPercent(displayTime)) * visibleTimelineMultiplier;
+    const rightKnobPosition = (highlightState.isActive ? highlightEndPercent : getProgressPercent(displayTime)) * visibleTimelineMultiplier;
+    const loadingProgressPercent = (Number.isFinite(downloadProgress) ? clamp(downloadProgress, 0, 100) : 0) * visibleTimelineMultiplier;
 
     const containerClasses = classNames(
         styles.container,
@@ -175,7 +195,7 @@ export function Timeline({
     return (
         <div className={containerClasses}>
             <div className={styles.playerTime}>
-                {isSnapshotMissing ? '––:––' : formatTime(displayTime)}
+                {isSnapshotMissing ? '––:––' : formatTime(getBoundedTime(displayTime))}
             </div>
 
             <div
@@ -197,7 +217,7 @@ export function Timeline({
                         <div
                             className={styles.playerProgress}
                             style={{
-                                width: `${(isLoading ? downloadProgress : progressPercent).toFixed(2)}%`
+                                width: `${(isLoading ? loadingProgressPercent : progressPercent).toFixed(2)}%`
                             }}
                         >
                             <div className={styles.progressPulse} />
@@ -237,7 +257,7 @@ export function Timeline({
             </div>
 
             <div className={styles.playerTime}>
-                {isSnapshotMissing ? '––:––' : formatTime(totalTime)}
+                {isSnapshotMissing ? '––:––' : formatTime(safeTotalTime)}
             </div>
         </div>
     );
