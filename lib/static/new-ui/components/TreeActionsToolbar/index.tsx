@@ -13,7 +13,8 @@ import {
     SquareMinus,
     ListUl,
     Hierarchy,
-    GearPlay
+    GearPlay,
+    ArrowsRotateRight
 } from '@gravity-ui/icons';
 import React, {ReactNode, useCallback, useMemo} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
@@ -24,7 +25,7 @@ import {
     selectAll,
     setAllTreeNodesState, setTreeViewMode,
     staticAccepterStageScreenshot,
-    staticAccepterUnstageScreenshot, thunkRunTests
+    staticAccepterUnstageScreenshot, thunkInitGuiReport, thunkRunTests
 } from '@/static/modules/actions';
 import {ImageEntity, TreeViewMode} from '@/static/new-ui/types/store';
 import {CHECKED, INDETERMINATE} from '@/constants/checked-statuses';
@@ -74,6 +75,7 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
     const selectedTests = useSelector(getCheckedTests);
     const visibleBrowserIds: string[] = useSelector(getVisibleBrowserIds);
     const isInitialized = useSelector(getIsInitialized);
+    const [isRefreshLoading, setRefreshLoading] = React.useState(false);
 
     const isRunTestsAvailable = useSelector(state => state.app.availableFeatures)
         .find(feature => feature.name === RunTestsFeature.name);
@@ -139,6 +141,13 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
     const selectedOrVisible = isSelectedAtLeastOne ? 'selected' : 'visible';
     const areActionsDisabled = isRunning || !isInitialized;
 
+    const handleRefresh = useCallback(async () => {
+        setRefreshLoading(true);
+        await fetch('/refresh', {method: 'POST'});
+        dispatch(thunkInitGuiReport({isNewUi: true}));
+        setRefreshLoading(false);
+    }, []);
+
     const handleRun = useCallback((): void => {
         analytics?.trackFeatureUsage({featureName: `${ANALYTICS_PREFIX} run tests`});
         if (isSelectedAtLeastOne) {
@@ -194,6 +203,16 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
 
     const getViewButtons = (): ReactNode => (
         <>
+            {isRunTestsAvailable && (
+                <IconButton
+                    className={styles.iconButton}
+                    icon={<Icon data={ArrowsRotateRight} height={14}/>}
+                    tooltip="Refresh tests tree"
+                    view="flat"
+                    onClick={handleRefresh}
+                    disabled={isRunning || !isInitialized || isRefreshLoading}
+                />
+            )}
             {isRunTestsAvailable && (
                 isRunning
                     ? (

@@ -12,27 +12,31 @@ export const getCurrentBrowser = (state: State): BrowserEntity | null => {
 };
 
 export const getCurrentResultId = (state: State): string | null => {
-    const browserId = state.app.suitesPage.currentBrowserId;
-    const treeNodeId = state.app.suitesPage.currentTreeNodeId;
-    if (!browserId || !treeNodeId) {
+    try {
+        const browserId = state.app.suitesPage.currentBrowserId;
+        const treeNodeId = state.app.suitesPage.currentTreeNodeId;
+        if (!browserId || !treeNodeId) {
+            return null;
+        }
+
+        const resultIds = state.tree.browsers.byId[browserId].resultIds;
+
+        const groupId = state.app.suitesPage.currentGroupId;
+
+        const treeNodeRetryResultId = resultIds[state.ui.suitesPage.retryIndexByTreeNodeId[treeNodeId] ?? -1];
+
+        let lastMatchedGroupResultId: string | undefined;
+        if (groupId) {
+            const group = state.tree.groups.byId[groupId];
+            lastMatchedGroupResultId = resultIds.findLast(resultId => group.resultIds.includes(resultId));
+        }
+
+        const browserIdRetryResultId = resultIds[state.tree.browsers.stateById[browserId].retryIndex];
+
+        return treeNodeRetryResultId ?? lastMatchedGroupResultId ?? browserIdRetryResultId;
+    } catch (error) {
         return null;
     }
-
-    const resultIds = state.tree.browsers.byId[browserId].resultIds;
-
-    const groupId = state.app.suitesPage.currentGroupId;
-
-    const treeNodeRetryResultId = resultIds[state.ui.suitesPage.retryIndexByTreeNodeId[treeNodeId] ?? -1];
-
-    let lastMatchedGroupResultId: string | undefined;
-    if (groupId) {
-        const group = state.tree.groups.byId[groupId];
-        lastMatchedGroupResultId = resultIds.findLast(resultId => group.resultIds.includes(resultId));
-    }
-
-    const browserIdRetryResultId = resultIds[state.tree.browsers.stateById[browserId].retryIndex];
-
-    return treeNodeRetryResultId ?? lastMatchedGroupResultId ?? browserIdRetryResultId;
 };
 
 export const getCurrentResult = (state: State): ResultEntity | null => {
@@ -89,7 +93,7 @@ export const isTimeTravelPlayerAvailable = (state: State): boolean => {
 export const getAttempt = (state: State): number | null => {
     const browserId = state.app.suitesPage.currentBrowserId;
 
-    if (browserId) {
+    if (browserId && state.tree.browsers.stateById[browserId]) {
         return state.tree.browsers.stateById[browserId].retryIndex;
     }
 

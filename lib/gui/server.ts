@@ -180,6 +180,16 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
         }
     });
 
+    server.post('/refresh', async (_, res) => {
+        try {
+            await app.initialize();
+
+            res.sendStatus(OK);
+        } catch (e) {
+            res.status(INTERNAL_SERVER_ERROR).send(`Error while trying to refresh tests: ${(e as Error).message}`);
+        }
+    });
+
     server.post('/run-custom-gui-action', async ({body: payload}, res) => {
         try {
             if (toolAdapter.toolName === ToolName.Testplane) {
