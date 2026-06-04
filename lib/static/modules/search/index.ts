@@ -4,6 +4,7 @@ import {AttachmentType, TagsAttachment} from '@/types';
 
 let worker: Worker;
 let searchResult: Set<string> = new Set([]);
+let searchResultPosition: Map<string, number> = new Map<string, number>([]);
 
 export const initSearch = (tree: Tree): void => {
     const list = tree.results.allIds;
@@ -32,6 +33,7 @@ export const initSearch = (tree: Tree): void => {
 };
 
 export const checkSearchResultExits = (browserId: string): boolean => searchResult.has(browserId);
+export const getSearchPosition = (item: string): number => searchResultPosition.get(item) || -1;
 
 export const search = (
     text: string,
@@ -70,6 +72,14 @@ export const search = (
         }
     }).then((result: string[]) => {
         searchResult = new Set(result);
+        searchResultPosition = new Map<string, number>();
+
+        result.forEach((item, index) => {
+            searchResultPosition.set(
+                item,
+                result.length - index
+            );
+        });
 
         if (updateMatchCase) {
             dispatch(setMatchCaseFilter({
