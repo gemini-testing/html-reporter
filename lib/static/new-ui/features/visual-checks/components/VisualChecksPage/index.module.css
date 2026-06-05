@@ -23,6 +23,7 @@
 
 .accept-button {
     composes: regular-button from global, action-button from global;
+    --_--text-color: var(--g-color-private-white-950);
 }
 
 .buttons-container {
@@ -31,7 +32,7 @@
 
 .hint {
     align-items: center;
-    color: var(--g-color-private-black-400);
+    color: var(--g-color-text-secondary);
     display: flex;
     flex-grow: 1;
     font-weight: 500;

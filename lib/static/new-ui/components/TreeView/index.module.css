@@ -63,20 +63,20 @@
 
         .tree-view__item--current {
             background: var(--g-color-base-brand) !important;
-            color: #fff !important;
+            color: var(--g-color-text-light-primary) !important;
             /* Sets spinner color */
-            --g-color-line-brand: #fff;
-            --color-link: #fff;
+            --g-color-line-brand: var(--g-color-text-light-primary);
+            --color-link: var(--g-color-text-light-primary);
             --color-link-hover: rgba(255, 255, 255, 0.6);
         }
 
         .tree-view__item__title--current {
-            color: #fff !important;
+            color: var(--g-color-text-light-primary) !important;
         }
 
         .tree-view__item__error--current {
             background-color: var(--g-color-private-black-150);;
-            border: 1px solid #00000024;
+            border: 1px solid var(--g-color-line-generic);
         }
 
         .tree-view__item.tree-view__item--current:hover {
@@ -84,7 +84,7 @@
         }
 
         .tree-view__item--current svg {
-            color: #fff !important;
+            color: var(--g-color-text-light-primary) !important;
         }
 
         .tree-view__item--browser {

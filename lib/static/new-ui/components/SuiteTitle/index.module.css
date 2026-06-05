@@ -12,7 +12,7 @@
 
 .breadcrumbs {
     font-weight: 500;
-    color: var(--g-color-private-black-400);
+    color: var(--g-color-text-secondary);
     font-size: 15px;
     display: flex;
     flex-wrap: wrap;
@@ -61,7 +61,7 @@
 
 .counter {
     font-weight: 500;
-    color: var(--g-color-private-black-400);
+    color: var(--g-color-text-secondary);
     font-size: 15px;
 }
 

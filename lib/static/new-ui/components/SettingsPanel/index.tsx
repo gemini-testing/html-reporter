@@ -1,11 +1,10 @@
 import {ArrowUturnCcwLeft} from '@gravity-ui/icons';
-import {Button, Icon, Select, TextInput} from '@gravity-ui/uikit';
-import classNames from 'classnames';
+import {Button, Icon, SegmentedRadioGroup, TextInput} from '@gravity-ui/uikit';
 import React, {ReactNode, useCallback} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {TimeTravelFeature, HIDE_TREE_VIEW_SCREENSHOTS} from '@/constants';
-import {LocalStorageKey, UiMode} from '@/constants/local-storage';
+import {LocalStorageKey, Theme, UiMode} from '@/constants/local-storage';
 import * as actions from '@/static/modules/actions';
 import useLocalStorage from '@/static/hooks/useLocalStorage';
 import {AsidePanel} from '@/static/new-ui/components/AsidePanel';
@@ -24,6 +23,7 @@ export function SettingsPanel(): ReactNode {
     const dispatch = useDispatch();
     const analytics = useAnalytics();
     const [isHideScreenshots, setHideTreeViewScreenshots] = useLocalStorage(HIDE_TREE_VIEW_SCREENSHOTS, false);
+    const [theme, setTheme] = useLocalStorage(LocalStorageKey.Theme, Theme.System);
 
     const baseHost = useSelector(state => state.view.baseHost);
 
@@ -69,15 +69,26 @@ export function SettingsPanel(): ReactNode {
 
     sections.push(
         <PanelSection key="new-ui" title={'New UI'} description={'Minimalistic yet informative, the new UI offers a cleaner look and optimised screen space usage.'}>
-            <Button className={classNames(styles.settingControl, 'regular-button')} onClick={onOldUiButtonClick}>
+            <Button className="regular-button" onClick={onOldUiButtonClick}>
                 <Icon data={ArrowUturnCcwLeft}/>Switch back to the old UI
             </Button>
         </PanelSection>
     );
 
     sections.push(
-        <PanelSection key="theme" title={'Theme'} description={'Currently only light theme is available — stay tuned for night mode.'}>
-            <Select className={classNames(styles.settingControl, 'regular-button')} value={['Light']} width={'max'} disabled={true}/>
+        <PanelSection key="theme" title={'Theme'}>
+            <SegmentedRadioGroup
+                className={styles.settingControl}
+                value={theme}
+                onUpdate={(value: Theme): void => setTheme(value)}
+                width={'max'}
+                qa="theme-selector"
+                options={[
+                    {value: Theme.System, content: 'System'},
+                    {value: Theme.Light, content: 'Light'},
+                    {value: Theme.Dark, content: 'Dark'}
+                ]}
+            />
         </PanelSection>
     );
 

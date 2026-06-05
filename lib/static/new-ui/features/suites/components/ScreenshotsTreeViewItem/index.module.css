@@ -61,7 +61,7 @@
 }
 
 .diff-mode-switcher {
-    --g-color-base-background: #fff;
+    --g-color-base-background: var(--g-color-base-float);
 }
 
 .diff-mode-select {

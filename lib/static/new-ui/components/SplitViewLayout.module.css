@@ -3,10 +3,11 @@
     display: flex;
     flex-direction: row;
     padding: 0 10px;
+    background-color: var(--g-color-base-generic);
 }
 
     .split :global(.gutter) {
-        background-color: #eee;
+        background-color: var(--g-color-base-generic);
         background-repeat: no-repeat;
         background-position: 50%;
     }
@@ -30,7 +31,7 @@
 }
 
 .gutter-handle {
-    background: var(--g-color-private-black-200);
+    background: var(--g-color-line-generic-solid);
     height: 40px;
     border-radius: 10px;
     width: 8px;
@@ -39,7 +40,7 @@
 @keyframes gutter-activate {
     100% {
         transform: scale(1.1);
-        background: var(--g-color-private-black-400);
+        background: var(--g-color-line-generic-accent);
     }
 }
 
@@ -50,14 +51,14 @@
 @keyframes gutter-deactivate {
     0% {
         transform: scale(1.1);
-        background: var(--g-color-private-black-400);
+        background: var(--g-color-line-generic-accent);
     }
 
     50% { transform: scale(0.9); }
 
     100% {
         transform: scale(1);
-        background: var(--g-color-private-black-200);
+        background: var(--g-color-line-generic-solid);
     }
 }
 

@@ -3,9 +3,9 @@
 }
 
 .magnifier {
-    background-color: white;
+    background-color: var(--g-color-base-background);
     background-repeat: no-repeat;
-    border: 1px solid lightgrey;
+    border: 1px solid var(--g-color-line-generic-solid);
     border-radius: 5px;
     opacity: 1;
     pointer-events: none;
