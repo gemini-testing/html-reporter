@@ -1,5 +1,5 @@
 .select-popup {
-    --g-color-text-info: #000;
+    --g-color-text-info: var(--g-color-text-primary);
 
     font-size: var(--g-text-body-1-font-size);
 }

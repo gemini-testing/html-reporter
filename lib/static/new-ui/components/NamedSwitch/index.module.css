@@ -15,7 +15,7 @@
 
 .description {
     margin-top: 6px;
-    color: var(--g-color-private-black-400);
+    color: var(--g-color-text-secondary);
     line-height: 1.3;
     font-size: 14px;
 }

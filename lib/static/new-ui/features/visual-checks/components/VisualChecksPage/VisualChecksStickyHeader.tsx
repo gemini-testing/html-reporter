@@ -286,7 +286,7 @@ export function VisualChecksStickyHeader({currentNamedImage, treeData, onImageCh
                             {isUndoAvailable && (
                                 <Button
                                     view="action"
-                                    className={styles.actionButton}
+                                    className={styles.acceptButton}
                                     disabled={isRunning || isProcessing}
                                     onClick={onScreenshotUndo}
                                     qa="undo-button"
@@ -301,7 +301,7 @@ export function VisualChecksStickyHeader({currentNamedImage, treeData, onImageCh
                                 >
                                     <Button
                                         view={'action'}
-                                        className={styles.actionButton}
+                                        className={styles.acceptButton}
                                         disabled={isRunning || isProcessing || !currentImage || !isAcceptable(currentImage)}
                                         onClick={onScreenshotAccept}
                                         qa="accept-button"

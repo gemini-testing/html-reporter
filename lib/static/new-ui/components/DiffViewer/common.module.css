@@ -1,6 +1,6 @@
 .images-container {
     aspect-ratio: var(--max-natural-width) / var(--max-natural-height);
-    box-shadow: 0 0 0 1px #ccc;
+    box-shadow: 0 0 0 1px var(--g-color-line-generic-solid);
     display: flex;
     max-width: calc(var(--max-natural-width) * 1px);
     overflow: hidden;

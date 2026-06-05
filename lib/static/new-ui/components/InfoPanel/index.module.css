@@ -17,7 +17,7 @@
     height: 4px;
     width: 4px;
     border-radius: 100vh;
-    background-color: #000;
+    background-color: var(--g-color-text-primary);
     position: absolute;
     top: 50%;
     transform: translateY(-50%);

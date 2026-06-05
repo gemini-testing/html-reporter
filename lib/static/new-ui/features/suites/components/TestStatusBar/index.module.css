@@ -22,7 +22,7 @@
 
 .test-status-bar__duration {
     font-size: 15px;
-    color: #7F7F7F;
+    color: var(--g-color-text-secondary);
 }
 
 .test-status-bar__badges {

@@ -76,7 +76,7 @@
     left: 50%;
     translate: -50% 0;
     height: 1px;
-    background-color: #e9e9e9;
+    background-color: var(--g-color-line-generic-solid);
     mask-image: linear-gradient(270deg, #0000, #fff 4rem, #fff calc(100% - 4rem), #0000);
 }
 
@@ -94,7 +94,7 @@
     top: 50%;
     translate: 0 -50%;
     width: 1px;
-    background-color: #e9e9e9;
+    background-color: var(--g-color-line-generic-solid);
     mask-image: linear-gradient(0deg, #0000, #fff 2rem, #fff calc(100% - 2rem), #0000);
 }
 
@@ -164,7 +164,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(255, 255, 255, 0.9);
+    background-color: color-mix(in srgb, var(--g-color-base-background) 90%, transparent);
     z-index: 5;
     font-size: 16px;
     font-weight: 450;

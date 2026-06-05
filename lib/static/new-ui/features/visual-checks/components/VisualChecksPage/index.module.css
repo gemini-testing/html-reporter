@@ -32,8 +32,12 @@
     }
 }
 
-.action-button {
+.accept-button {
     composes: regular-button from global, action-button from global;
+}
+
+.action-button {
+    composes: regular-button from global;
 }
 
 .buttons-container {
@@ -42,7 +46,7 @@
 
 .hint {
     align-items: center;
-    color: var(--g-color-private-black-400);
+    color: var(--g-color-text-secondary);
     display: flex;
     flex-grow: 1;
     font-weight: 500;

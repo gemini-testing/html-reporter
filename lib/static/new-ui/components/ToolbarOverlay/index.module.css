@@ -1,11 +1,11 @@
 .container {
     position: fixed;
     z-index: 999;
-    background: #6c47ff;
+    background: var(--g-color-base-brand);
     padding: 12px 12px 12px 6px;
     border-radius: 10px;
-    color: rgba(255, 255, 255, .9);
-    fill: rgba(255, 255, 255, .9);
+    color: var(--g-color-text-light-primary);
+    fill: var(--g-color-text-light-primary);
     width: 700px;
     display: flex;
     box-shadow: 0 0 16px 0 #00000036;

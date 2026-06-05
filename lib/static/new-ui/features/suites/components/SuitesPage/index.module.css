@@ -38,12 +38,12 @@
 }
 
 .sticky-header {
-    background-color: white;
+    background-color: var(--g-color-base-background);
     position: sticky;
     top: 0;
     z-index: 10;
     padding-bottom: 8px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--g-color-line-generic);
 }
 
 .hint-container {
@@ -55,6 +55,6 @@
 }
 
 .hint {
-    color: var(--g-color-private-black-400);
+    color: var(--g-color-text-secondary);
     font-weight: 500;
 }
