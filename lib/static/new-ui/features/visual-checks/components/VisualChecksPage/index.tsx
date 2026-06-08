@@ -8,7 +8,7 @@ import {
     getAttempt,
     getCurrentBrowser,
     getCurrentImage,
-    getCurrentNamedImage,
+    getCurrentNamedImage, getCurrentState,
     getLastAttempt
 } from '@/static/new-ui/features/visual-checks/selectors';
 import {AssertViewResult} from '@/static/new-ui/components/AssertViewResult';
@@ -52,23 +52,20 @@ export function VisualChecksPage(): ReactNode {
     const inited = useRef(false);
     const isRunning = currentNamedImage?.status === TestStatus.RUNNING;
     const urlBrowserId = useSelector(getCurrentBrowserId(params));
-    const currentImageSuiteId = useSelector((state) => (
-        state.app.visualChecksPage.currentBrowserId
-    ));
     const hash = useSelector(getCurrentImageSuiteHash);
 
-    const currentImageStateName = useSelector((state) => (
-        state.app.visualChecksPage.stateName
-    ));
+    const currentImageStateName = useSelector(getCurrentState);
 
-    const currentTreeNodeId = `${currentImageSuiteId} ${currentImageStateName}`;
+    const currentTreeNodeId = currentNamedImage?.id || '';
 
     const treeData = useSelector(getVisualTreeViewData);
     const suitesTreeViewRef = useRef<TreeViewHandle>(null);
     const sideBarRef = useRef<SideBarHandle>(null);
 
     useEffect(() => {
-        suitesTreeViewRef?.current?.scrollToId(currentTreeNodeId as string);
+        setTimeout(() => {
+            suitesTreeViewRef?.current?.scrollToId(currentTreeNodeId as string);
+        }, 100);
     }, [suitesTreeViewRef, currentTreeNodeId]);
 
     const isInitialized = useSelector(state => state.app.isInitialized);

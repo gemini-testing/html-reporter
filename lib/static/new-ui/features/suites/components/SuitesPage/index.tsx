@@ -6,15 +6,16 @@ import {UiCard} from '@/static/new-ui/components/Card/UiCard';
 import {
     getAttempt,
     getCurrentBrowser,
+    getCurrentBrowserId,
     getCurrentResult,
-    getCurrentResultImages,
-    getCurrentBrowserId
+    getCurrentResultImages
 } from '@/static/new-ui/features/suites/selectors';
 import {SplitViewLayout} from '@/static/new-ui/components/SplitViewLayout';
 import {TreeViewHandle} from '@/static/new-ui/components/TreeView';
-import {SideBarHandle} from '@/static/new-ui/components/SideBar';
+import {SideBar, SideBarHandle} from '@/static/new-ui/components/SideBar';
 import {SuiteTitle} from '@/static/new-ui/components/SuiteTitle';
 import * as actions from '@/static/modules/actions';
+import {changeTestRetry, setCurrentTreeNode, setStrictMatchFilter} from '@/static/modules/actions';
 import {getIsInitialized} from '@/static/new-ui/store/selectors';
 import {TestControlPanel} from '@/static/new-ui/features/suites/components/TestControlPanel';
 import {TestStatusBar} from '@/static/new-ui/features/suites/components/TestStatusBar';
@@ -28,18 +29,16 @@ import {
     isSectionHidden
 } from '@/static/new-ui/features/suites/utils';
 import {EntityType, TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
-import {NEW_ISSUE_LINK, TestStatus, ViewMode} from '@/constants';
+import {NEW_ISSUE_LINK, Page, TestStatus, ViewMode} from '@/constants';
 import {ErrorHandler} from '../../../error-handling/components/ErrorHandling';
 import {TestInfo} from '@/static/new-ui/features/suites/components/TestInfo';
 import {MIN_SECTION_SIZE_PERCENT} from '../../constants';
-import {SideBar} from '@/static/new-ui/components/SideBar';
 import {getCurrentSuiteHash, getSuitesStatusCounts, getSuitesTreeViewData} from './selectors';
 import {getIconByStatus} from '@/static/new-ui/utils';
-import {Page} from '@/constants';
 import {useHotkey} from '@/static/new-ui/hooks/useHotkey';
 import {useLegacyUrlMigration} from '@/static/new-ui/hooks/useLegacyUrlMigration';
-import {changeTestRetry, setCurrentTreeNode, setStrictMatchFilter} from '@/static/modules/actions';
 import {getUrl} from '@/static/new-ui/utils/getUrl';
+import {State} from '@/static/new-ui/types/store';
 
 export function SuitesPage(): ReactNode {
     useLegacyUrlMigration();
@@ -70,13 +69,22 @@ export function SuitesPage(): ReactNode {
             data: value as ViewMode
         }));
     }, []);
+    const visualChecksState = useSelector((state: State) => state.app[Page.visualChecksPage].stateName);
 
     useEffect(() => {
-        const stateName =
-            (params.stateName && resultImages.some((item) => item.stateName === params.stateName)) ?
-                params.stateName :
-                (resultImages.length ? resultImages[0].stateName : undefined)
-        ;
+        const getStateName = (): string | undefined => {
+            if (params.stateName && resultImages.some((item) => item.stateName === params.stateName)) {
+                return params.stateName;
+            }
+
+            if (visualChecksState && resultImages.some((item) => item.stateName === visualChecksState)) {
+                return visualChecksState;
+            }
+
+            return (resultImages.length ? resultImages[0].stateName : undefined);
+        };
+
+        const stateName = getStateName();
 
         if (currentResult?.parentId && attempt !== null) {
             navigate(getUrl({
@@ -87,7 +95,7 @@ export function SuitesPage(): ReactNode {
                 stateName
             }));
         }
-    }, [currentResult, attempt, hash]);
+    }, [currentResult, attempt, hash, visualChecksState]);
 
     useEffect(() => {
         if (currentBrowser === urlBrowserId) {
@@ -115,7 +123,9 @@ export function SuitesPage(): ReactNode {
     const sideBarRef = useRef<SideBarHandle>(null);
 
     useEffect(() => {
-        suitesTreeViewRef?.current?.scrollToId(currentTreeNodeId as string);
+        setTimeout(() => {
+            suitesTreeViewRef?.current?.scrollToId(currentTreeNodeId as string);
+        }, 100);
     }, [suitesTreeViewRef, currentTreeNodeId]);
 
     const treeViewExpandedById = useSelector((state) => state.ui[Page.suitesPage].expandedTreeNodesById);

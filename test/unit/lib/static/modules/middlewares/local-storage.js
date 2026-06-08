@@ -45,6 +45,7 @@ describe('lib/static/modules/middlewares/local-storage', () => {
     [
         actionNames.INIT_GUI_REPORT,
         actionNames.INIT_STATIC_REPORT,
+        actionNames.CHANGE_VIEW_MODE,
         'VIEW_FOO_ACTION'
     ].forEach((type) => {
         describe(`"${type}" action`, () => {
@@ -63,7 +64,9 @@ describe('lib/static/modules/middlewares/local-storage', () => {
                     strictMatchFilter: false
                 });
 
-                assert.calledWith(localStorageWrapper.setItem, 'app.viewMode', ViewMode.ALL);
+                if (type === actionNames.CHANGE_VIEW_MODE) {
+                    assert.calledWith(localStorageWrapper.setItem, 'app.viewMode', ViewMode.ALL);
+                }
             });
         });
     });

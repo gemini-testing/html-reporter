@@ -114,7 +114,6 @@ export default Object.assign({config: configDefaults}, {
             currentHighlightedStepId: null
         },
         [Page.visualChecksPage]: {
-            currentBrowserId: null,
             stateName: null,
 
             diffMode: DiffModes.TWO_UP_INTERACTIVE.id

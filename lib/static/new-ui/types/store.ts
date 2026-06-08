@@ -277,7 +277,6 @@ export interface State {
             currentHighlightedStepId: string | null;
         };
         [Page.visualChecksPage]: {
-            currentBrowserId: string | null;
             stateName: string | null;
 
             diffMode: DiffModeId;

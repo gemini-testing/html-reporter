@@ -4,7 +4,7 @@ import {EntityType, TreeRoot} from '@/static/new-ui/features/suites/components/S
 import {ImageEntity, State} from '@/static/new-ui/types/store';
 import {getNamedImages} from '@/static/new-ui/features/visual-checks/selectors';
 import {TreeViewData} from '@/static/new-ui/components/TreeView';
-import {TestStatus, ViewMode} from '@/constants';
+import {Page, TestStatus, ViewMode} from '@/constants';
 import {matchTestName} from '@/static/modules/utils';
 import {checkSearchResultExits} from '@/static/modules/search';
 
@@ -25,7 +25,7 @@ interface VisualTreeViewData extends TreeViewData{
 }
 
 export const getCurrentImageSuiteHash = (state: State): string | null => {
-    const browserId = state.app.visualChecksPage.currentBrowserId || '';
+    const browserId = state.app[Page.suitesPage].currentBrowserId || '';
     const suiteId = state.tree.browsers.byId[browserId]?.parentId || '';
 
     return state.tree.suites.byId[suiteId]?.hash;
