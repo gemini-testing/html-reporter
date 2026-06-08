@@ -26,7 +26,7 @@ export default (state: State, action: FiltersAction | InitGuiReportAction | Init
     switch (action.type) {
         case actionNames.INIT_GUI_REPORT:
         case actionNames.INIT_STATIC_REPORT: {
-            const suitesPageViewMode = localStorageWrapper.getItem('app.viewMode', ViewMode.ALL) as ViewMode;
+            const viewMode = localStorageWrapper.getItem('app.viewMode', ViewMode.ALL) as ViewMode;
             const visualChecksPageDiffMode = localStorageWrapper.getItem(VISUAL_CHECKS_PAGE_DIFF_MODE_KEY, DiffModes.TWO_UP_INTERACTIVE.id) as DiffModeId;
 
             const viewQuery = getViewQuery(window.location.search);
@@ -41,7 +41,7 @@ export default (state: State, action: FiltersAction | InitGuiReportAction | Init
                 state,
                 {
                     app: {
-                        viewMode: suitesPageViewMode,
+                        viewMode,
                         [Page.visualChecksPage]: {
                             diffMode: visualChecksPageDiffMode
                         }
@@ -50,7 +50,7 @@ export default (state: State, action: FiltersAction | InitGuiReportAction | Init
             );
 
             newState.app.filteredBrowsers = viewQuery.filteredBrowsers as BrowserItem[];
-            newState.app.viewMode = viewQuery.viewMode as ViewMode || suitesPageViewMode;
+            newState.app.viewMode = viewQuery.viewMode as ViewMode || viewMode;
             newState.app.nameFilter = viewQuery.testNameFilter as string || '';
 
             return newState;
