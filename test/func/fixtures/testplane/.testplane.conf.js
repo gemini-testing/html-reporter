@@ -12,6 +12,7 @@ module.exports = _.merge(getFixturesConfig(__dirname, 'testplane'), {
         },
         'html-reporter-tester': {
                 enabled: true,
+                baseHost: 'https://example.com:123',
                 path: 'report',
                 diffMode: '3-up-scaled-to-fit',
                 generateBadges: () => [

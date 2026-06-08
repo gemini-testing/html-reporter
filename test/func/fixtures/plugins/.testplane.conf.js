@@ -7,6 +7,7 @@ const {getFixturesConfig} = require('../fixtures.testplane.conf');
 module.exports = _.merge(getFixturesConfig(__dirname, 'plugins'), {
     plugins: {
         'html-reporter-tester': {
+            baseHost: 'https://example.com:123',
             pluginsEnabled: true,
             plugins: [
                 {

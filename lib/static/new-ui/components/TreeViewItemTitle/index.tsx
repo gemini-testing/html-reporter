@@ -1,10 +1,11 @@
-import {ArrowRotateLeft, ChevronRight} from '@gravity-ui/icons';
+import _ from 'lodash';
+import {ArrowRotateLeft, ChevronRight, Eye} from '@gravity-ui/icons';
 import {Button, Checkbox, Icon} from '@gravity-ui/uikit';
 import classNames from 'classnames';
 import React from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {getToggledCheckboxState, isCheckboxChecked, isCheckboxIndeterminate} from '@/common-utils';
+import {getToggledCheckboxState, getUrlWithBase, isCheckboxChecked, isCheckboxIndeterminate} from '@/common-utils';
 import {EntityType, TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
 import {toggleBrowserCheckbox, toggleGroupCheckbox, toggleSuiteCheckbox, thunkRunSuite} from '@/static/modules/actions';
 import {getAreCheckboxesNeeded, getBrowsers, getBrowsersState, getSuites} from '@/static/new-ui/store/selectors';
@@ -14,6 +15,7 @@ import {RunTestsFeature} from '@/constants';
 import {TestSpec} from '@/adapters/tool/types';
 import styles from './index.module.css';
 import {useIsRunning} from '@/static/new-ui/hooks/useIsRunning';
+import {State} from '@/static/new-ui/types/store';
 
 interface TreeViewItemTitleProps {
     className?: string;
@@ -50,7 +52,25 @@ const getVisibleSuiteBrowsers = (
 export function TreeViewItemTitle({item}: TreeViewItemTitleProps): React.JSX.Element {
     const dispatch = useDispatch();
     const areCheckboxesNeeded = useSelector(getAreCheckboxesNeeded);
+
+    const suiteUrl = useSelector<State, string | undefined>((state): string | undefined => {
+        if (!state.tree.browsers.byId[item.entityId]) {
+            return;
+        }
+
+        const lastResult = _.last(state.tree.browsers.byId[item.entityId].resultIds);
+
+        if (lastResult) {
+            const result = state.tree.results.byId[lastResult];
+
+            return result.metaInfo?.url ?? result.suiteUrl;
+        }
+
+        return;
+    });
+
     const groups = useSelector(state => state.tree.groups.byId);
+    const baseHost = useSelector(state => state.view.baseHost);
     const checkStatus = useSelector(state => getItemCheckStatus(state, item));
     const isVisualChecksPage = /\/visual-checks/.test(location.hash); // @todo: remove after implement search on visual checks page
 
@@ -169,6 +189,20 @@ export function TreeViewItemTitle({item}: TreeViewItemTitleProps): React.JSX.Ele
         <div className={classNames(styles.actionsContainer, {
             [styles['actions-container--no-checkbox']]: !areCheckboxesNeeded || isVisualChecksPage
         })}>
+            {item.entityType === EntityType.Browser && suiteUrl && (
+                <Button
+                    view='flat'
+                    title="View in browser"
+                    href={getUrlWithBase(suiteUrl, baseHost)}
+                    target="_blank"
+                    className={styles.actionButton}
+                    qa="view-in-browser-tree"
+                >
+                    <Button.Icon>
+                        <Icon data={Eye}/>
+                    </Button.Icon>
+                </Button>
+            )}
             <ClipboardButton
                 className={styles.actionButton}
                 size='m'

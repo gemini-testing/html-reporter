@@ -59,6 +59,7 @@ const config = _.merge(commonConfig, {
         },
         'html-reporter-tester': {
             enabled: true,
+            baseHost: 'https://example.com:123',
             path: `reports/${projectUnderTest}`,
             diffMode: '3-up',
             yandexMetrika: {
