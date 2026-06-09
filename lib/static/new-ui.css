@@ -2,16 +2,41 @@
     box-sizing: border-box;
 }
 
-:root {
-    --color-bg-dark: #101827;
-    --color-bg-gray: #eee;
-}
-
 .g-root {
     --g-font-family-sans: 'Jost', sans-serif;
     --g-color-text-danger-heavy: #e9043a;
     --g-color-text-brand-heavy: var(--g-color-private-color-550-solid);
     font-family: var(--g-font-family-sans), sans-serif !important;
+
+    --color-neutral-50: oklch(0.985 0 0);
+    --color-neutral-100: oklch(0.97 0 0);
+    --color-neutral-200: oklch(0.922 0 0);
+    --color-neutral-300: oklch(0.87 0 0);
+    --color-neutral-400: oklch(0.708 0 0);
+    --color-neutral-500: oklch(0.556 0 0);
+    --color-neutral-600: oklch(0.439 0 0);
+    --color-neutral-700: oklch(0.371 0 0);
+    --color-neutral-800: oklch(0.269 0 0);
+    --color-neutral-900: oklch(0.205 0 0);
+    --color-neutral-950: oklch(0.145 0 0);
+
+    --color-amber-50: oklch(98.7% 0.022 95.277);
+    --color-amber-100: oklch(96.2% 0.059 95.617);
+    --color-amber-200: oklch(92.4% 0.12 95.746);
+    --color-amber-300: oklch(87.9% 0.169 91.605);
+    --color-amber-400: oklch(82.8% 0.189 84.429);
+    --color-amber-500: oklch(76.9% 0.188 70.08);
+    --color-amber-600: oklch(66.6% 0.179 58.318);
+    --color-amber-700: oklch(55.5% 0.163 48.998);
+    --color-amber-800: oklch(47.3% 0.137 46.201);
+    --color-amber-900: oklch(41.4% 0.112 45.904);
+    --color-amber-950: oklch(27.9% 0.077 45.635);
+
+    --color-pink-100: #fce0ff;
+    --color-pink-600: #be00ffbf;
+
+    --color-bg-dark: var(--color-neutral-900);
+    --color-bg-gray: #eee;
 }
 
 .g-root_theme_light {
@@ -27,22 +52,8 @@
 
     --g-color-base-generic: #eee;
     --g-color-base-background: #fff;
-
-    --color-neutral-50: oklch(0.985 0 0);
-    --color-neutral-100: oklch(0.97 0 0);
-    --color-neutral-200: oklch(0.922 0 0);
-    --color-neutral-300: oklch(0.87 0 0);
-    --color-neutral-400: oklch(0.708 0 0);
-    --color-neutral-500: oklch(0.556 0 0);
-    --color-neutral-600: oklch(0.439 0 0);
-    --color-neutral-700: oklch(0.371 0 0);
-
-    --color-pink-100: #fce0ff;
-    --color-pink-600: #be00ffbf;
-
-    --color-amber-100: oklch(96.2% 0.059 95.617);
-    --color-amber-200: oklch(92.4% 0.12 95.746);
-    --color-amber-700: oklch(55.5% 0.163 48.998);
+    --sidebar-vertical-divider-line-color: var(--color-neutral-500);
+    --card-border-shadow: rgb(255, 255, 255) 0 0 0 0, rgba(9, 9, 11, 0.05) 0 0 0 1px, rgba(0, 0, 0, 0.05) 0 1px 2px 0;
 }
 
 .g-root_theme_dark {
@@ -53,21 +64,14 @@
     --color-filter-button-selected: var(--g-color-text-primary);
     --color-text-hint: var(--g-color-text-secondary);
 
-    --color-neutral-50: oklch(0.18 0 0);
-    --color-neutral-100: oklch(0.24 0 0);
-    --color-neutral-200: oklch(0.30 0 0);
-    --color-neutral-300: oklch(0.40 0 0);
-    --color-neutral-400: oklch(0.60 0 0);
-    --color-neutral-500: oklch(0.72 0 0);
-    --color-neutral-600: oklch(0.83 0 0);
-    --color-neutral-700: oklch(0.90 0 0);
-
-    --color-pink-100: #3a0044;
-    --color-pink-600: #de77ff;
-
-    --color-amber-100: oklch(27.9% 0.077 45.635);
-    --color-amber-200: oklch(41.4% 0.112 45.904);
-    --color-amber-700: oklch(82.8% 0.189 84.429);
+    /*--g-color-base-generic: #0a0a0a;*/
+    --g-color-base-generic: var(--color-neutral-800);
+    --g-color-base-background: var(--color-neutral-900); /* он же для сайдбара */
+    /* #222222 - для бордеров */
+    /* oklch(26.9% 0 0) neutral 800 для тегов/бейджей/аргументов/хоткеев команд */
+    /* oklch(14.5% 0 0) neutral 950 для фона кода */
+    --sidebar-vertical-divider-line-color: var(--color-neutral-700);
+    --card-border-shadow: var(--color-neutral-700) 0 0 0 0, var(--color-neutral-700) 0 0 0 1px, var(--color-neutral-700) 0 1px 2px 0;
 }
 
 body {
@@ -93,6 +97,10 @@ body {
     --gn-aside-header-item-background-color-hover: #1f2937;
     --gn-aside-header-item-current-icon-color: #fff;
     --gn-aside-header-item-icon-color: #9ca3af;
+}
+
+.gn-aside-header {
+    --_--vertical-divider-line-color: var(--sidebar-vertical-divider-line-color) !important;
 }
 
 .gn-aside-header__header:after {
