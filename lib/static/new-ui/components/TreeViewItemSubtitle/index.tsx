@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, {ReactNode} from 'react';
+import React, {ReactNode, useCallback} from 'react';
 import stripAnsi from 'strip-ansi';
 
 import {TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
@@ -10,6 +10,10 @@ import {makeLinksClickable} from '@/static/new-ui/utils';
 import {HIDE_TREE_VIEW_SCREENSHOTS, Page, TestStatus} from '@/constants';
 import useLocalStorage from '@/static/hooks/useLocalStorage';
 import {usePage} from '@/static/new-ui/hooks/usePage';
+import {useDispatch, useSelector} from 'react-redux';
+import {staticAccepterStageScreenshot, thunkAcceptImages} from '@/static/modules/actions';
+import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
+import {Button} from '@gravity-ui/uikit';
 
 interface TreeViewItemSubtitleProps {
     item: TreeViewItemData;
@@ -20,7 +24,20 @@ interface TreeViewItemSubtitleProps {
 
 export function TreeViewItemSubtitle(props: TreeViewItemSubtitleProps): ReactNode {
     const page = usePage();
+    const analytics = useAnalytics();
+    const dispatch = useDispatch();
+    const isStaticImageAccepterEnabled = useSelector(state => state.staticImageAccepter.enabled);
     const isVisualChecksPage = page === Page.visualChecksPage;
+
+    const onScreenshotAccept = useCallback((imageId: string): void => {
+        analytics?.trackScreenshotsAccept();
+
+        if (isStaticImageAccepterEnabled) {
+            dispatch(staticAccepterStageScreenshot([imageId]));
+        } else {
+            dispatch(thunkAcceptImages({imageIds: [imageId]}));
+        }
+    }, [analytics, isStaticImageAccepterEnabled, dispatch]);
 
     if (props.item.status === TestStatus.SKIPPED && props.item.skipReason) {
         return (
@@ -68,7 +85,18 @@ export function TreeViewItemSubtitle(props: TreeViewItemSubtitleProps): ReactNod
 
                     return (
                         <div key={imageEntity.id}>
-                            <span className={styles.imageStatus}>{imageEntity.stateName} ⋅ {getAssertViewStatusMessage(imageEntity)}</span>
+                            <span className={styles.imageStatus}>
+                                {imageEntity.stateName}
+                                {' ⋅ '}
+                                {getAssertViewStatusMessage(imageEntity)}
+                                {' ⋅ '}
+                                <Button
+                                    className={classNames(styles.acceptButton)}
+                                    view="action"
+                                    size="xs"
+                                    onClick={(): void => onScreenshotAccept(imageEntity.id)}
+                                >Accept</Button>
+                            </span>
                             {(!isHideScreenshots || isVisualChecksPage) && (
                                 <div className={styles.imageDiff}>
                                     {images.filter(({image}) => Boolean(image)).map((item) => (

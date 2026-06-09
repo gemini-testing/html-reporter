@@ -17,6 +17,17 @@
     z-index: 10;
 }
 
+.accept-button {
+    composes: regular-button from global, action-button from global;
+    z-index: 1;
+}
+
+:global(.current-tree-node) .accept-button {
+    --_--background-color: #fff;
+    --_--background-color-hover: #efefef;
+    color: var(--g-color-base-brand);
+}
+
 .image-status {
     font-size: 15px;
     word-break: break-word;
