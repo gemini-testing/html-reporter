@@ -7,6 +7,7 @@ import {TreeViewData} from '@/static/new-ui/components/TreeView';
 import {Page, TestStatus, ViewMode} from '@/constants';
 import {matchTestName} from '@/static/modules/utils';
 import {checkSearchResultExits} from '@/static/modules/search';
+import {BrowserItem} from '@/types';
 
 export const getVisualChecksViewMode = (state: State): ViewMode => {
     const realStatus = state.app.viewMode;
@@ -38,7 +39,8 @@ export const getVisualTreeViewData = createSelector(
         getVisualChecksViewMode,
         (state: State): string => state.app.nameFilter,
         (state: State): boolean => state.app.useRegexFilter,
-        (state: State): boolean => state.app.useMatchCaseFilter
+        (state: State): boolean => state.app.useMatchCaseFilter,
+        (state: State): BrowserItem[] => state.app.filteredBrowsers
     ],
     (
         images,
@@ -46,12 +48,15 @@ export const getVisualTreeViewData = createSelector(
         visualChecksViewMode,
         nameFilter,
         useRegexFilter,
-        useMatchCaseFilter
+        useMatchCaseFilter,
+        filteredBrowsers
     ): VisualTreeViewData => {
         const parentNode: TreeRoot = {
             isRoot: true,
             data: undefined
         };
+
+        const existBrowsers = new Set<string>(filteredBrowsers.map(({id}) => id));
 
         const stats: Stats = {
             [ViewMode.ALL]: 0,
@@ -62,6 +67,10 @@ export const getVisualTreeViewData = createSelector(
         const tree = Object
             .values(namedImages)
             .filter(({browserId, browserName, imageIds}) => {
+                if (!existBrowsers.has(browserName)) {
+                    return false;
+                }
+
                 if (
                     !(
                         matchTestName(
