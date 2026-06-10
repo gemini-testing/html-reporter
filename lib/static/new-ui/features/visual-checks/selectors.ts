@@ -1,7 +1,7 @@
 import {createSelector} from 'reselect';
 
 import {getBrowsers, getImages, getResults} from '@/static/new-ui/store/selectors';
-import {TestStatus} from '@/constants';
+import {Page, TestStatus} from '@/constants';
 import {BrowserEntity, ImageEntity, State} from '@/static/new-ui/types/store';
 
 /** @note NamedImageEntity describes visual assertion, not bound to specific attempt */
@@ -87,8 +87,36 @@ export const getNamedImages = createSelector(
     }
 );
 
+export const getCurrentState = (state: State): string | null => {
+    const currentBrowserId = state.app[Page.suitesPage].currentBrowserId;
+    const stateName = state.app[Page.visualChecksPage].stateName;
+
+    if (currentBrowserId) {
+        if (stateName) {
+            return state.app[Page.visualChecksPage].stateName;
+        }
+
+        const currentBrowserItem = state.tree.browsers.byId[currentBrowserId];
+
+        if (currentBrowserItem && currentBrowserItem.resultIds) {
+            const lastResultId = state.tree.browsers.byId[currentBrowserId].resultIds.slice(-1)[0];
+            const lastResult = state.tree.results.byId[lastResultId];
+
+            if (lastResult && lastResult.imageIds.length) {
+                if (lastResult.imageIds.includes(`${lastResultId} ${stateName}`)) {
+                    return stateName;
+                }
+
+                return lastResult.imageIds[0].split(' ').slice(-1)[0];
+            }
+        }
+    }
+
+    return null;
+};
+
 export const getCurrentNamedImage = (state: State): NamedImageEntity | null => {
-    const currentNamedImageId = [state.app.visualChecksPage.currentBrowserId, state.app.visualChecksPage.stateName].join(' ');
+    const currentNamedImageId = [state.app[Page.suitesPage].currentBrowserId, getCurrentState(state)].join(' ');
     const namedImages = getNamedImages(state);
 
     if (!currentNamedImageId || !namedImages[currentNamedImageId]) {

@@ -43,6 +43,6 @@ TestNameFilterInput.propTypes = {
 };
 
 export default connect(
-    (state) => ({testNameFilter: state.app.suitesPage.nameFilter}),
+    (state) => ({testNameFilter: state.app.nameFilter}),
     (dispatch) => ({actions: bindActionCreators(actions, dispatch)})
 )(TestNameFilterInput);

@@ -7,8 +7,17 @@ import {TreeViewData} from '@/static/new-ui/components/TreeView';
 import {Page, TestStatus, ViewMode} from '@/constants';
 import {matchTestName} from '@/static/modules/utils';
 import {checkSearchResultExits} from '@/static/modules/search';
+import {BrowserItem} from '@/types';
 
-export const getVisualChecksViewMode = (state: State): ViewMode => state.app[Page.visualChecksPage].viewMode;
+export const getVisualChecksViewMode = (state: State): ViewMode => {
+    const realStatus = state.app.viewMode;
+
+    if ([ViewMode.ALL, ViewMode.FAILED, ViewMode.PASSED].includes(realStatus)) {
+        return realStatus;
+    }
+
+    return ViewMode.ALL;
+};
 
 type Stats = Pick<Record<ViewMode, number>, ViewMode.ALL | ViewMode.PASSED | ViewMode.FAILED>;
 
@@ -17,7 +26,7 @@ interface VisualTreeViewData extends TreeViewData{
 }
 
 export const getCurrentImageSuiteHash = (state: State): string | null => {
-    const browserId = state.app.visualChecksPage.currentBrowserId || '';
+    const browserId = state.app[Page.suitesPage].currentBrowserId || '';
     const suiteId = state.tree.browsers.byId[browserId]?.parentId || '';
 
     return state.tree.suites.byId[suiteId]?.hash;
@@ -28,9 +37,10 @@ export const getVisualTreeViewData = createSelector(
         getImages,
         getNamedImages,
         getVisualChecksViewMode,
-        (state: State): string => state.app[Page.visualChecksPage].nameFilter,
-        (state: State): boolean => state.app[Page.visualChecksPage].useRegexFilter,
-        (state: State): boolean => state.app[Page.visualChecksPage].useMatchCaseFilter
+        (state: State): string => state.app.nameFilter,
+        (state: State): boolean => state.app.useRegexFilter,
+        (state: State): boolean => state.app.useMatchCaseFilter,
+        (state: State): BrowserItem[] => state.app.filteredBrowsers
     ],
     (
         images,
@@ -38,12 +48,15 @@ export const getVisualTreeViewData = createSelector(
         visualChecksViewMode,
         nameFilter,
         useRegexFilter,
-        useMatchCaseFilter
+        useMatchCaseFilter,
+        filteredBrowsers
     ): VisualTreeViewData => {
         const parentNode: TreeRoot = {
             isRoot: true,
             data: undefined
         };
+
+        const existBrowsers = new Set<string>(filteredBrowsers.map(({id}) => id));
 
         const stats: Stats = {
             [ViewMode.ALL]: 0,
@@ -54,6 +67,10 @@ export const getVisualTreeViewData = createSelector(
         const tree = Object
             .values(namedImages)
             .filter(({browserId, browserName, imageIds}) => {
+                if (!existBrowsers.has(browserName)) {
+                    return false;
+                }
+
                 if (
                     !(
                         matchTestName(
@@ -74,11 +91,11 @@ export const getVisualTreeViewData = createSelector(
 
                 switch (status) {
                     case TestStatus.SUCCESS:
+                    case TestStatus.UPDATED:
                         stats[ViewMode.PASSED]++;
                         return visualChecksViewMode === ViewMode.PASSED || visualChecksViewMode === ViewMode.ALL;
                     case TestStatus.FAIL:
                     case TestStatus.ERROR:
-                    case TestStatus.UPDATED:
                         stats[ViewMode.FAILED]++;
                         return visualChecksViewMode === ViewMode.FAILED || visualChecksViewMode === ViewMode.ALL;
                     default:

@@ -2,10 +2,9 @@ import actionNames from '@/static/modules/action-names';
 import type {Action} from '@/static/modules/actions/types';
 import {setFilteredBrowsers} from '@/static/modules/query-params';
 import {BrowserItem} from '@/types';
-import {Page, ViewMode} from '@/constants';
+import {ViewMode} from '@/constants';
 
 interface FilterPayload<T>{
-    page: Page;
     data: T;
 }
 

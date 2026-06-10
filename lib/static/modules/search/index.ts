@@ -1,10 +1,10 @@
 import {setMatchCaseFilter, setSearchLoading, updateNameFilter} from '@/static/modules/actions';
-import {Page} from '@/constants';
 import {Tree} from '@/tests-tree-builder/base';
 import {AttachmentType, TagsAttachment} from '@/types';
 
 let worker: Worker;
 let searchResult: Set<string> = new Set([]);
+let searchResultPosition: Map<string, number> = new Map<string, number>([]);
 
 export const initSearch = (tree: Tree): void => {
     const list = tree.results.allIds;
@@ -33,12 +33,12 @@ export const initSearch = (tree: Tree): void => {
 };
 
 export const checkSearchResultExits = (browserId: string): boolean => searchResult.has(browserId);
+export const getSearchPosition = (item: string): number => searchResultPosition.get(item) || -1;
 
 export const search = (
     text: string,
     matchCase = false,
     useRegexFilter = false,
-    page: Page,
     updateMatchCase: boolean,
     dispatch: (action: unknown) => void
 ): void => {
@@ -72,17 +72,23 @@ export const search = (
         }
     }).then((result: string[]) => {
         searchResult = new Set(result);
+        searchResultPosition = new Map<string, number>();
+
+        result.forEach((item, index) => {
+            searchResultPosition.set(
+                item,
+                result.length - index
+            );
+        });
 
         if (updateMatchCase) {
             dispatch(setMatchCaseFilter({
-                data: matchCase,
-                page
+                data: matchCase
             }));
         } else {
             dispatch(
                 updateNameFilter({
-                    data: text,
-                    page
+                    data: text
                 })
             );
         }

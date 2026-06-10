@@ -8,7 +8,6 @@ import * as actions from '@/static/modules/actions';
 import {getIsInitialized} from '@/static/new-ui/store/selectors';
 import {NameFilterButton} from './NameFilterButton';
 import styles from './index.module.css';
-import {usePage} from '@/static/new-ui/hooks/usePage';
 import {useHotkey} from '@/static/new-ui/hooks/useHotkey';
 import {search} from '@/static/modules/search';
 
@@ -23,10 +22,9 @@ export interface NameFilterProps {
 
 export const NameFilter = forwardRef<NameFilterHandle, NameFilterProps>(function NameFilter(props, ref): ReactNode {
     const dispatch = useDispatch();
-    const page = usePage();
-    const nameFilter = useSelector((state) => state.app[page].nameFilter);
-    const useRegexFilter = useSelector((state) => state.app[page].useRegexFilter);
-    const useMatchCaseFilter = useSelector((state) => state.app[page].useMatchCaseFilter);
+    const nameFilter = useSelector((state) => state.app.nameFilter);
+    const useRegexFilter = useSelector((state) => state.app.useRegexFilter);
+    const useMatchCaseFilter = useSelector((state) => state.app.useMatchCaseFilter);
     const [testNameFilter, setNameFilter] = useState(nameFilter);
     const [isFocused, setIsFocused] = useState(false);
     const [isAllSelected, setIsAllSelected] = useState(false);
@@ -80,11 +78,11 @@ export const NameFilter = forwardRef<NameFilterHandle, NameFilterProps>(function
 
     const updateNameFilter = useCallback(debounce(
         (text) => {
-            search(text, useMatchCaseFilter, useRegexFilter, page, false, dispatch);
+            search(text, useMatchCaseFilter, useRegexFilter, false, dispatch);
         },
         500,
         {maxWait: 3000}
-    ), [useMatchCaseFilter, useRegexFilter, page]);
+    ), [useMatchCaseFilter, useRegexFilter]);
 
     const onChange = useCallback((event: ChangeEvent<HTMLInputElement>): void => {
         setNameFilter(event.target.value);
@@ -93,27 +91,26 @@ export const NameFilter = forwardRef<NameFilterHandle, NameFilterProps>(function
 
     const onClear = useCallback((): void => {
         setNameFilter('');
-        search('', useMatchCaseFilter, useRegexFilter, page, false, dispatch);
-    }, [setNameFilter, useMatchCaseFilter, useRegexFilter, page]);
+        search('', useMatchCaseFilter, useRegexFilter, false, dispatch);
+    }, [setNameFilter, useMatchCaseFilter, useRegexFilter]);
 
     const isInitialized = useSelector(getIsInitialized);
 
     const onCaseSensitiveClick = (): void => {
-        search(nameFilter, !useMatchCaseFilter, useRegexFilter, page, true, dispatch);
+        search(nameFilter, !useMatchCaseFilter, useRegexFilter, true, dispatch);
     };
 
     const onRegexClick = (): void => {
         dispatch(
             actions.setUseRegexFilter({
-                data: !useRegexFilter,
-                page
+                data: !useRegexFilter
             })
         );
-        search(nameFilter, useMatchCaseFilter, !useRegexFilter, page, true, dispatch);
+        search(nameFilter, useMatchCaseFilter, !useRegexFilter, true, dispatch);
     };
 
     useEffect(() => {
-        search(nameFilter, useMatchCaseFilter, useRegexFilter, page, true, dispatch);
+        search(nameFilter, useMatchCaseFilter, useRegexFilter, true, dispatch);
         setNameFilter(nameFilter);
     }, [nameFilter]);
 
