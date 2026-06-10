@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="11.11.0"></a>
+# 11.11.0 (2026-06-10)
+
+
+### Features
+
+* sync filters between Suite and Visual Checks pages ([362c197](https://github.com/gemini-testing/html-reporter/commit/362c197))
+
+
+
 <a name="11.10.1"></a>
 ## 11.10.1 (2026-05-29)
 
