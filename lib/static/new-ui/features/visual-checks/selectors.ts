@@ -172,7 +172,7 @@ export const getAttempt = (state: State): number | null => {
     const namedImage = getCurrentNamedImage(state);
 
     if (namedImage) {
-        return state.tree.browsers.stateById[namedImage?.browserId].retryIndex;
+        return state.tree.browsers.stateById[namedImage?.browserId]?.retryIndex;
     }
 
     return null;

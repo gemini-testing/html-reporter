@@ -274,6 +274,15 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
         logger.log('server shutting down');
     });
 
+    server.get('/refresh-tests', async (_req, res) => {
+        try {
+            const tree = await app.refreshTests();
+            res.json(tree satisfies GetInitResponse);
+        } catch (e: unknown) {
+            res.status(INTERNAL_SERVER_ERROR).send(`Error while refreshing tests: ${(e as Error).message}`);
+        }
+    });
+
     server.post('/stop', (_req, res) => {
         try {
             // pass 0 to prevent terminating testplane process

@@ -13,7 +13,8 @@ import {
     SquareMinus,
     ListUl,
     Hierarchy,
-    GearPlay
+    GearPlay,
+    ArrowsRotateRight
 } from '@gravity-ui/icons';
 import React, {ReactNode, useCallback, useMemo} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
@@ -24,7 +25,9 @@ import {
     selectAll,
     setAllTreeNodesState, setTreeViewMode,
     staticAccepterStageScreenshot,
-    staticAccepterUnstageScreenshot, thunkRunTests
+    staticAccepterUnstageScreenshot,
+    thunkRunTests,
+    thunkRefreshGuiReport
 } from '@/static/modules/actions';
 import {ImageEntity, TreeViewMode} from '@/static/new-ui/types/store';
 import {CHECKED, INDETERMINATE} from '@/constants/checked-statuses';
@@ -74,6 +77,7 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
     const selectedTests = useSelector(getCheckedTests);
     const visibleBrowserIds: string[] = useSelector(getVisibleBrowserIds);
     const isInitialized = useSelector(getIsInitialized);
+    const isRefreshLoading = useSelector((state) => state.app.isRefreshLoading);
 
     const isRunTestsAvailable = useSelector(state => state.app.availableFeatures)
         .find(feature => feature.name === RunTestsFeature.name);
@@ -192,8 +196,22 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
     const pluginComponents = getExtensionPointComponents(loadedPluginConfigs, ExtensionPointName.RunTestOptions);
     const hasRunTestOptions = pluginComponents.length > 0;
 
+    const handleRefresh = useCallback(() => {
+        dispatch(thunkRefreshGuiReport());
+    }, [dispatch]);
+
     const getViewButtons = (): ReactNode => (
         <>
+            {isRunTestsAvailable && (
+                <IconButton
+                    className={styles.iconButton}
+                    icon={<Icon className={classNames({[styles.isRefreshLoading]: isRefreshLoading})} data={ArrowsRotateRight} height={14}/>}
+                    tooltip="Refresh tests tree"
+                    view="flat"
+                    onClick={handleRefresh}
+                    disabled={isRunning || !isInitialized || isRefreshLoading}
+                />
+            )}
             {isRunTestsAvailable && (
                 isRunning
                     ? (

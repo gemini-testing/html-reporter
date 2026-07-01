@@ -53,6 +53,11 @@ export class App {
         return this._toolRunner.findEqualDiffs(data);
     }
 
+    async refreshTests(): Promise<ToolRunnerTree | null> {
+        await this._toolRunner.refreshTests();
+        return this._toolRunner.tree;
+    }
+
     addClient(connection: Response): void {
         this._toolRunner.addClient(connection);
     }

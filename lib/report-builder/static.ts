@@ -76,6 +76,10 @@ export class StaticReportBuilder {
         this._workers = workers;
     }
 
+    saveDb(): void {
+        this._dbClient.save();
+    }
+
     registerAttempt(testInfo: {fullName: string, browserId: string}, status: TestStatus): number {
         return this._testAttemptManager.registerAttempt(testInfo, status);
     }

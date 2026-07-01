@@ -120,6 +120,10 @@ export class SqliteClient {
         return this._db;
     }
 
+    save(): void {
+        fs.writeFileSync(this._dbPath, this._db.export());
+    }
+
     close(): void {
         fs.writeFileSync(this._dbPath, this._db.run('VACUUM').export());
 
