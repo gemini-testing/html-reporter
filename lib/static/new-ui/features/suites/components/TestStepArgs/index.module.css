@@ -4,7 +4,19 @@
     overflow: hidden;
 }
 
+.copy {
+    opacity: 1;
+    pointer-events: auto;
+    background: none;
+    margin-left: 2px;
+
+    position: absolute;
+    top: 0;
+    right: 2px;
+}
+
 .item {
+    position: relative;
     white-space: nowrap;
     min-width: 0;
     overflow: hidden;
@@ -17,9 +29,39 @@
     background-color: var(--color-tag-bg, var(--g-color-base-generic));
     margin-left: 8px;
     padding: 0 4px;
+
+    .copy {
+        opacity: 0;
+        position: absolute;
+        top: 2px;
+        right: 2px;
+
+        color: var(--color-tag-title, var(--g-color-private-black-400));
+    }
+
+    &:hover {
+        background-color: var(--color-tag-bg, var(--g-color-private-black-150-solid));
+
+        .copy {
+            opacity: 1;
+            background-color: var(--color-tag-bg, var(--g-color-private-black-150-solid));
+        }
+    }
 }
 
 .item--failed {
     background: var(--g-color-private-red-50);
     color: var(--g-color-private-red-500-solid);
+
+    .copy {
+        color: var(--g-color-private-red-500-solid);
+    }
+
+    &:hover {
+        background-color: var(--g-color-private-red-150-solid);
+
+        .copy {
+            background-color: var(--g-color-private-red-150-solid);
+        }
+    }
 }
