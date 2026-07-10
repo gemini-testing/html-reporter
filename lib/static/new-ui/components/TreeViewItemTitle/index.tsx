@@ -168,8 +168,10 @@ export function TreeViewItemTitle({item}: TreeViewItemTitleProps): React.JSX.Ele
         [styles['title-container--inline']]: item.entityType !== EntityType.Group
     });
 
-    return <div className={styles.container}>
-        <div>
+    return <div className={classNames(styles.container, {
+        [styles['container--no-checkbox']]: !areCheckboxesNeeded || isVisualChecksPage
+    })}>
+        <div className={styles.title}>
             <div className={titleContainerClassName}>
                 {item.prefix && <span className={styles.titlePrefix}>{item.prefix}</span>}
                 <span className={styles.title}>
@@ -186,44 +188,44 @@ export function TreeViewItemTitle({item}: TreeViewItemTitleProps): React.JSX.Ele
                 </div>
             }
         </div>
-        <div className={classNames(styles.actionsContainer, {
-            [styles['actions-container--no-checkbox']]: !areCheckboxesNeeded || isVisualChecksPage
-        })}>
-            {item.entityType === EntityType.Browser && suiteUrl && (
-                <Button
-                    view='flat'
-                    title="View in browser"
-                    href={getUrlWithBase(suiteUrl, baseHost)}
-                    target="_blank"
+        <div className={styles.actionsContainer}>
+            <div className={styles.actionsContainerInner}>
+                {item.entityType === EntityType.Browser && suiteUrl && (
+                    <Button
+                        view='flat'
+                        title="View in browser"
+                        href={getUrlWithBase(suiteUrl, baseHost)}
+                        target="_blank"
+                        className={styles.actionButton}
+                        qa="view-in-browser-tree"
+                    >
+                        <Button.Icon>
+                            <Icon data={Eye}/>
+                        </Button.Icon>
+                    </Button>
+                )}
+                <ClipboardButton
                     className={styles.actionButton}
-                    qa="view-in-browser-tree"
+                    size='m'
+                    text={getFullSuitePath()}
+                    title="Copy title"
+                    onClick={handleCopyClick}
+                />
+                {isRunTestsAvailable && <Button
+                    view='flat'
+                    title="Run tests"
+                    onClick={handleRunClick}
+                    disabled={isRunning}
+                    className={classNames(styles.actionButton, {
+                        [styles['action-button--disabled']]: isRunning
+                    })}
                 >
                     <Button.Icon>
-                        <Icon data={Eye}/>
+                        <Icon data={ArrowRotateLeft}/>
                     </Button.Icon>
                 </Button>
-            )}
-            <ClipboardButton
-                className={styles.actionButton}
-                size='m'
-                text={getFullSuitePath()}
-                title="Copy title"
-                onClick={handleCopyClick}
-            />
-            {isRunTestsAvailable && <Button
-                view='flat'
-                title="Run tests"
-                onClick={handleRunClick}
-                disabled={isRunning}
-                className={classNames(styles.actionButton, {
-                    [styles['action-button--disabled']]: isRunning
-                })}
-            >
-                <Button.Icon>
-                    <Icon data={ArrowRotateLeft}/>
-                </Button.Icon>
-            </Button>
-            }
+                }
+            </div>
         </div>
         {(areCheckboxesNeeded && !isVisualChecksPage) &&
             <div className={styles.checkboxWrapper} onClick={handleCheckboxClick} data-qa="tree-item-checkbox">
