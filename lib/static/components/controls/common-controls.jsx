@@ -52,7 +52,7 @@ class ControlButtons extends Component {
                 <ControlSelect
                     size='s'
                     label="Show tests"
-                    value={app.suitesPage.viewMode}
+                    value={app.viewMode}
                     handler={(data) => actions.changeViewMode({data})}
                     options = {this._getShowTestsOptions()}
                 />
