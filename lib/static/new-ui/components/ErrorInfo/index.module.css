@@ -5,7 +5,7 @@
     font-size: 14px;
     overflow-x: scroll;
     overflow-y: hidden;
-    background: #101827;
+    background: var(--color-neutral-950);
     border-radius: 10px;
     padding: 12px;
 }

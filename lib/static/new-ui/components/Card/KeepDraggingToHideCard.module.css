@@ -47,7 +47,7 @@
 
 .hint {
     font-size: 18px;
-    color: white;
+    color: var(--g-color-text-light-primary);
     font-weight: 500;
     opacity: 1;
     white-space: nowrap;

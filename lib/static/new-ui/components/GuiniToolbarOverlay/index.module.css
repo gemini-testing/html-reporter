@@ -21,15 +21,15 @@
 }
 
 .primary-button {
-    --g-button-text-color: hsl(252 100% 38% / 1);
-    --g-button-text-color-hover: hsl(252 100% 38% / 1);
+    --g-button-text-color: var(--g-color-base-brand);
+    --g-button-text-color-hover: var(--g-color-base-brand);
 }
 
 .modal-container {
     --g-modal-border-radius: 10px;
     padding: 20px;
     width: 512px;
-    --g-color-base-modal: white;
+    --g-color-base-modal: var(--g-color-base-float);
 }
 
 .modal-container a, .modal-container a:visited {
@@ -41,7 +41,7 @@
 }
 
 .modal-description {
-    color: var(--g-color-private-black-400);
+    color: var(--g-color-text-secondary);
     margin-top: 12px;
     line-height: 1.4;
 }

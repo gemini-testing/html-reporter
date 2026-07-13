@@ -18,6 +18,7 @@
 
 .accept-button, .go-to-visual {
     composes: regular-button from global, action-button from global;
+    --_--text-color: var(--g-color-private-white-950);
 }
 
 .buttons-container {
@@ -61,7 +62,7 @@
 }
 
 .diff-mode-switcher {
-    --g-color-base-background: #fff;
+    --g-color-base-background: var(--g-color-base-float);
 }
 
 .diff-mode-select {

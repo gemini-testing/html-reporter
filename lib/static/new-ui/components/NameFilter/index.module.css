@@ -30,12 +30,12 @@
 }
 
 .buttons-wrapper :global(.g-button) {
-    color: rgb(113, 113, 122);
+    color: var(--color-filter-button);
     pointer-events: auto;
 }
 
 .buttons-wrapper :global(.g-button):hover {
-    color: rgb(9, 9, 11);
+    color: var(--color-filter-button-selected);
 }
 
 .buttons-wrapper :global(.g-button_selected):before {
@@ -43,7 +43,7 @@
 }
 
 .buttons-wrapper :global(.g-button_selected) {
-    color: rgb(9, 9, 11);
+    color: var(--color-filter-button-selected);
 }
 
 .buttons-wrapper__regex {

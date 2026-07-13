@@ -28,10 +28,10 @@
 }
 
 .attempt-picker-item--skipped {
-    background-color: var(--g-color-private-black-50);
-    color: var(--g-color-private-black-600);
-    --box-shadow-color: var(--g-color-private-black-250);
-    --g-button-text-color-hover: var(--g-color-private-black-700);
+    background-color: var(--g-color-base-generic);
+    color: var(--g-color-text-secondary);
+    --box-shadow-color: var(--g-color-line-generic-solid);
+    --g-button-text-color-hover: var(--g-color-text-primary);
 }
 
 .attempt-picker-item--success {

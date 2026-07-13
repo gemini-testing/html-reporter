@@ -17,19 +17,19 @@
 }
 
 .animated-appear-card {
-    background-color: #eee;
+    background-color: var(--g-color-base-generic);
     position: absolute;
     width: 100%;
     height: 100%;
     z-index: 10;
-    box-shadow: 0 0 0 2px #eee;
+    box-shadow: 0 0 0 2px var(--g-color-base-generic);
     animation: border-pulse 5s ease forwards;
     background-image: conic-gradient(from var(--gradient-angle) at -10% 100%, var(--from-color) 0%, var(--to-color) 100%);
     padding: 1px;
 }
 
 .background-overlay {
-    background-color: #eee;
+    background-color: var(--g-color-base-generic);
     width: 100%;
     height: 100%;
     border-radius: 10px;

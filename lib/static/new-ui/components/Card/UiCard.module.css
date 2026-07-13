@@ -1,5 +1,5 @@
 .card {
-    background-color: #fff;
+    background-color: var(--g-color-base-background);
     display: flex;
     flex-direction: column;
     padding: 0 0 20px 20px;

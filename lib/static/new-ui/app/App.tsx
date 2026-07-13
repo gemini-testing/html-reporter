@@ -3,6 +3,8 @@ import {ThemeProvider, Toaster, ToasterComponent, ToasterProvider} from '@gravit
 import '@gravity-ui/uikit/styles/fonts.css';
 import '@gravity-ui/uikit/styles/styles.css';
 import React, {ReactNode, StrictMode} from 'react';
+import useLocalStorage from '@/static/hooks/useLocalStorage';
+import {LocalStorageKey, Theme} from '@/constants/local-storage';
 import {Provider} from 'react-redux';
 import {HashRouter, Navigate, Route, Routes} from 'react-router-dom';
 
@@ -43,11 +45,12 @@ const pages = [
 
 export function App(): ReactNode {
     const customScripts = (store.getState() as State).config.customScripts;
+    const [theme] = useLocalStorage(LocalStorageKey.Theme, Theme.System);
 
     return <StrictMode>
         <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackAppCrash />}>
             <CustomScripts scripts={customScripts} />
-            <ThemeProvider theme='light'>
+            <ThemeProvider theme={theme} rootClassName="app">
                 <ToasterProvider toaster={toaster}>
                     <Provider store={store}>
                         <MetrikaScript/>

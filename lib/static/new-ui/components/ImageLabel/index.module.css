@@ -4,7 +4,7 @@
 }
 
 .image-label-subtitle {
-    color: var(--g-color-private-black-400);
+    color: var(--g-color-text-secondary);
     margin-left: 4px;
     display: block;
     overflow: hidden;

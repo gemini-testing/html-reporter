@@ -14,7 +14,7 @@
 }
 
 .card-title {
-    color: #000;
+    color: var(--g-color-text-primary);
     margin-top: 16px;
 }
 

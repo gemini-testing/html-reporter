@@ -13,7 +13,7 @@
 
 .data-source-icon {
     flex-shrink: 0;
-    color: var(--g-color-private-black-450-solid);
+    color: var(--g-color-text-hint);
 }
 
 .data-source-status {
