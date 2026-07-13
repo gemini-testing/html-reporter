@@ -43,10 +43,6 @@
     opacity: 1;
 }
 
-:global(.error-tree-node:hover) {
-    --background-color: var(--g-color-private-red-50-solid);
-}
-
 :global(.current-tree-node) {
     --background-color: var(--g-color-base-brand);
 }
