@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="11.12.0"></a>
+# 11.12.0 (2026-07-14)
+
+
+### Bug Fixes
+
+* publish workflow ([8cf5b12](https://github.com/gemini-testing/html-reporter/commit/8cf5b12))
+
+
+
 <a name="11.11.0"></a>
 # 11.11.0 (2026-06-10)
 
