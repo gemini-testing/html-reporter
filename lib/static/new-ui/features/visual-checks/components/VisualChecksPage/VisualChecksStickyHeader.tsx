@@ -204,6 +204,7 @@ export function VisualChecksStickyHeader({currentNamedImage, treeData, onImageCh
     }, [currentNamedImage, navigate, hash, attempt]);
 
     useHotkey('a', onScreenshotAccept, {enabled: isAcceptEnabled});
+    useHotkey('enter', onScreenshotAccept, {enabled: isAcceptEnabled});
     useHotkey(' ', onScreenshotAccept, {enabled: isAcceptEnabled});
     useHotkey('u', onScreenshotUndo, {enabled: isUndoEnabled});
     useHotkey('r', onRunTest, {enabled: isRunTestsAvailable && !isRunning});
