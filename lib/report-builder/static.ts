@@ -76,10 +76,6 @@ export class StaticReportBuilder {
         this._workers = workers;
     }
 
-    async saveDb(): Promise<void> {
-        await this._dbClient.save();
-    }
-
     registerAttempt(testInfo: {fullName: string, browserId: string}, status: TestStatus): number {
         return this._testAttemptManager.registerAttempt(testInfo, status);
     }

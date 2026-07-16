@@ -120,12 +120,6 @@ export class SqliteClient {
         return this._db;
     }
 
-    async save(): Promise<void> {
-        await fs.writeFile(this._dbPath, this._db.export());
-
-        this._db.close();
-    }
-
     close(): void {
         fs.writeFileSync(this._dbPath, this._db.run('VACUUM').export());
 

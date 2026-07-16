@@ -13,8 +13,6 @@ import {TestplaneWithHtmlReporter} from '../../tool/testplane/index';
 import {copyAndUpdate} from '../../test-result/utils';
 
 export const handleTestResults = (testplane: TestplaneWithHtmlReporter, reportBuilder: GuiReportBuilder, client: EventSource): void => {
-    testplane.removeAllListeners();
-
     const queue = new PQueue({concurrency: os.cpus().length});
 
     testplane.on(testplane.events.RUNNER_START, (runner) => {
@@ -77,9 +75,7 @@ export const handleTestResults = (testplane: TestplaneWithHtmlReporter, reportBu
                 const testBranch = reportBuilder.getTestBranch(formattedResult.id);
 
                 return client.emit(clientEventName, testBranch);
-            }).catch(() => {
-                logError(new Error('ololo'));
-            });
+            }).catch(logError);
         });
     });
 
