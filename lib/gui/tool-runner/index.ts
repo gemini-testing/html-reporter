@@ -155,7 +155,7 @@ export class ToolRunner {
     }
 
     async refreshTests(): Promise<void> {
-        this._ensureReportBuilder().saveDb();
+        await this._ensureReportBuilder().saveDb();
         await this.initialize();
     }
 
