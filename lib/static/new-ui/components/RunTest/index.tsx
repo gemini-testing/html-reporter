@@ -20,10 +20,11 @@ interface RunTestProps {
     buttonText?: string | null;
     buttonProps?: ButtonProps;
     hotkey?: ReactNode;
+    className?: ReactNode;
 }
 
 export const RunTestButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, RunTestProps>(
-    ({browser, buttonProps, buttonText, hotkey}, ref) => {
+    ({browser, buttonProps, buttonText, hotkey, className}, ref) => {
         const isRunning = useIsRunning();
         const repeatCount = useSelector(state => state.repeatCount);
 
@@ -54,7 +55,7 @@ export const RunTestButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, R
             <Button
                 ref={ref as any} // eslint-disable-line @typescript-eslint/no-explicit-any
                 view={'action'}
-                className={styles.retryButton}
+                className={classNames(styles.retryButton, className)}
                 onClick={onRetryTestHandler}
                 disabled={isRunning}
                 style={{width: buttonText === null ? '28px' : undefined}}

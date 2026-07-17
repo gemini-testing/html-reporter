@@ -1,20 +1,20 @@
 import {Hotkey, Icon, Popover, Spin} from '@gravity-ui/uikit';
 import classNames from 'classnames';
 import {
+    ArrowsRotateRight,
     ArrowUturnCcwLeft,
     Check,
     ChevronsCollapseVertical,
     ChevronsExpandVertical,
     CircleInfo,
+    GearPlay,
+    Hierarchy,
+    ListUl,
     Play,
     Square,
     SquareCheck,
     SquareDashed,
-    SquareMinus,
-    ListUl,
-    Hierarchy,
-    GearPlay,
-    ArrowsRotateRight
+    SquareMinus
 } from '@gravity-ui/icons';
 import React, {ReactNode, useCallback, useMemo} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
@@ -23,11 +23,12 @@ import styles from './index.module.css';
 import {
     deselectAll,
     selectAll,
-    setAllTreeNodesState, setTreeViewMode,
+    setAllTreeNodesState,
+    setTreeViewMode,
     staticAccepterStageScreenshot,
     staticAccepterUnstageScreenshot,
-    thunkRunTests,
-    thunkRefreshGuiReport
+    thunkRefreshGuiReport,
+    thunkRunTests
 } from '@/static/modules/actions';
 import {ImageEntity, TreeViewMode} from '@/static/new-ui/types/store';
 import {CHECKED, INDETERMINATE} from '@/constants/checked-statuses';
@@ -46,7 +47,7 @@ import {
     getIsStaticImageAccepterEnabled
 } from '@/static/new-ui/store/selectors';
 import {isAcceptable, isScreenRevertable} from '@/static/modules/utils';
-import {EditScreensFeature, RunTestsFeature} from '@/constants';
+import {EditScreensFeature, Page, RunTestsFeature} from '@/constants';
 import {getSuitesTreeViewData} from '@/static/new-ui/features/suites/components/SuitesPage/selectors';
 import {GroupBySelect} from '@/static/new-ui/features/suites/components/GroupBySelect';
 import {SortBySelect} from '@/static/new-ui/features/suites/components/SortBySelect';
@@ -90,6 +91,10 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
         const visibleRootSuiteIds = rootSuiteIds.filter(suiteId => suitesStateById[suiteId].shouldBeShown);
         return visibleRootSuiteIds.length > 0 && visibleRootSuiteIds.every(suiteId => suitesStateById[suiteId].checkStatus === CHECKED);
     }, [suitesStateById, rootSuiteIds]);
+
+    const isExpand = useSelector((state) => (
+        Object.values(state.ui[Page.suitesPage].expandedTreeNodesById).some((value) => !value)
+    ));
 
     const isSelectedAtLeastOne = useMemo(() => {
         return rootSuiteIds.some(suiteId => {
@@ -208,6 +213,7 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
                     icon={<Icon className={classNames({[styles.isRefreshTestsLoading]: isRefreshTestsLoading})} data={ArrowsRotateRight} height={14}/>}
                     tooltip="Refresh tests tree"
                     view="flat"
+                    text="Refresh"
                     onClick={handleRefresh}
                     disabled={isRunning || !isInitialized || isRefreshTestsLoading}
                 />
@@ -221,6 +227,7 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
                             className={styles.iconButton}
                             icon={<Icon data={Play} height={14}/>}
                             tooltip={<>Run {selectedOrVisible} ⋅ <Hotkey value="shift+r" view="light" /></>}
+                            text="Run"
                             view={'flat'}
                             onClick={handleRun}
                             disabled={isRunning || !isInitialized}
@@ -232,30 +239,36 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
                 trigger='click'
             >
                 <IconButton
+                    className={styles.iconButton}
                     selected={repeatCount > 1}
                     view='flat'
                     disabled={isRunning || !isInitialized}
-                    className={classNames(styles.iconButton)}
                     icon={<Icon data={GearPlay} height={14}/>}
+                    text="Options"
                     tooltip='View run options'
                     qa="tree-run-test-options"
                 />
             </Popover>}
             {isEditScreensAvailable && (
                 isUndoButtonVisible ?
-                    <IconButton className={styles.iconButton} icon={<Icon data={ArrowUturnCcwLeft} />} tooltip={`Undo accepting ${selectedOrVisible} screenshots`} view={'flat'} onClick={handleUndo} disabled={areActionsDisabled}></IconButton> :
-                    <IconButton className={styles.iconButton} icon={<Icon data={Check} />} tooltip={<>Accept {selectedOrVisible} screenshots ⋅ <Hotkey value="shift+a" view="light" /></>} view={'flat'} onClick={handleAccept} disabled={areActionsDisabled || !isAtLeastOneAcceptable}></IconButton>
+                    <IconButton className={styles.iconButton} icon={<Icon data={ArrowUturnCcwLeft} />} text="Undo" tooltip={`Undo accepting ${selectedOrVisible} screenshots`} view={'flat'} onClick={handleUndo} disabled={areActionsDisabled}></IconButton> :
+                    <IconButton className={styles.iconButton} icon={<Icon data={Check} />} text="Accept" tooltip={<>Accept {selectedOrVisible} screenshots ⋅ <Hotkey value="shift+a" view="light" /></>} view={'flat'} onClick={handleAccept} disabled={areActionsDisabled || !isAtLeastOneAcceptable}></IconButton>
             )}
             {(isRunTestsAvailable || isEditScreensAvailable) && <div className={styles.buttonsDivider}></div>}
             <IconButton
+                className={styles.iconButton}
                 icon={<Icon data={treeViewMode === TreeViewMode.Tree ? ListUl : Hierarchy} height={14}/>}
                 tooltip={treeViewMode === TreeViewMode.Tree ? 'Switch to list view' : 'Switch to tree view'}
+                text={treeViewMode === TreeViewMode.Tree ? 'List' : 'Tree'}
                 view={'flat'}
                 onClick={handleToggleTreeView}
                 disabled={!isInitialized} />
-            <IconButton icon={<Icon data={SquareDashed} height={14}/>} tooltip={'Focus on active test'} view={'flat'} onClick={onHighlightCurrentTest} disabled={!isFocusAvailable}/>
-            <IconButton icon={<Icon data={ChevronsExpandVertical} height={14}/>} tooltip={'Expand all'} view={'flat'} onClick={handleExpandAll} disabled={!isInitialized}/>
-            <IconButton icon={<Icon data={ChevronsCollapseVertical} height={14}/>} tooltip={'Collapse all'} view={'flat'} onClick={handleCollapseAll} disabled={!isInitialized}/>
+            <IconButton className={styles.iconButton} icon={<Icon data={SquareDashed} height={14}/>} tooltip={'Focus on active test'} text={'Focus'} view={'flat'} onClick={onHighlightCurrentTest} disabled={!isFocusAvailable}/>
+            {isExpand ? (
+                <IconButton className={styles.iconButton} icon={<Icon data={ChevronsExpandVertical} height={14}/>} tooltip={'Expand all'} text={'Expand'} view={'flat'} onClick={handleExpandAll} disabled={!isInitialized}/>
+            ) : (
+                <IconButton className={styles.iconButton} icon={<Icon data={ChevronsCollapseVertical} height={14}/>} tooltip={'Collapse all'} text={'Collapse'} view={'flat'} onClick={handleCollapseAll} disabled={!isInitialized}/>
+            )}
             {areCheckboxesNeeded && <IconButton
                 icon={<Icon data={isIndeterminate ? SquareMinus : (isSelectedAll ? SquareCheck : Square)}/>}
                 tooltip={isSelectedAtLeastOne ? 'Deselect all' : 'Select all'}

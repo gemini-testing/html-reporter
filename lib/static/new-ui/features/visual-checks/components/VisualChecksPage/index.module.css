@@ -19,9 +19,20 @@
     display: flex;
     gap: 16px;
     margin-bottom: 8px;
+    align-items: center;
+
+    @container (width < 790px) {
+        .action-button {
+            padding: 0 6px;
+
+            :global(.g-button__text), :global(.g-select-control__option-text) {
+                display: none;
+            }
+        }
+    }
 }
 
-.accept-button {
+.action-button {
     composes: regular-button from global, action-button from global;
 }
 
@@ -51,6 +62,6 @@
     margin-left: 4px;
 }
 
-.accept-button {
+.action-button {
     padding-right: 4px;
 }
