@@ -7,9 +7,10 @@ import {ImageWithMagnifier} from '@/static/new-ui/components/ImageWithMagnifier'
 import styles from './index.module.css';
 import {getAssertViewStatusMessage} from '@/static/new-ui/utils/assert-view-status';
 import {makeLinksClickable} from '@/static/new-ui/utils';
-import {HIDE_TREE_VIEW_SCREENSHOTS, Page, TestStatus} from '@/constants';
+import {DISABLE_TREE_SCREENSHOTS_MAGNIFIER, HIDE_TREE_VIEW_SCREENSHOTS, Page, TestStatus} from '@/constants';
 import useLocalStorage from '@/static/hooks/useLocalStorage';
 import {usePage} from '@/static/new-ui/hooks/usePage';
+import {Screenshot} from '@/static/new-ui/components/Screenshot';
 
 interface TreeViewItemSubtitleProps {
     item: TreeViewItemData;
@@ -31,6 +32,7 @@ export function TreeViewItemSubtitle(props: TreeViewItemSubtitleProps): ReactNod
     }
 
     const [isHideScreenshots] = useLocalStorage(HIDE_TREE_VIEW_SCREENSHOTS, false);
+    const [isTreeMagnifierDisabled] = useLocalStorage(DISABLE_TREE_SCREENSHOTS_MAGNIFIER, false);
 
     if (props.item.images?.length) {
         return (
@@ -79,10 +81,18 @@ export function TreeViewItemSubtitle(props: TreeViewItemSubtitleProps): ReactNod
                                             key={item.title}
                                         >
                                             <p>{item.title}</p>
-                                            <ImageWithMagnifier
-                                                image={item.image}
-                                                scrollContainerRef={props.scrollContainerRef}
-                                            />
+                                            {isTreeMagnifierDisabled ? (
+                                                <div style={{display: 'flex'}}>
+                                                    <Screenshot
+                                                        image={item.image}
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <ImageWithMagnifier
+                                                    image={item.image}
+                                                    scrollContainerRef={props.scrollContainerRef}
+                                                />
+                                            )}
                                         </div>
                                     ))}
                                 </div>
