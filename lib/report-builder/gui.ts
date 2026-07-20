@@ -8,7 +8,9 @@ import {Tree, TreeImage} from '../tests-tree-builder/base';
 import {ImageInfoFull, ImageInfoWithState, ReporterConfig} from '../types';
 import {determineStatus, isUpdatedStatus} from '../common-utils';
 import {HtmlReporterValues} from '../plugin-api';
-import {SkipItem} from '../tests-tree-builder/static';
+import {StaticTestsTreeBuilder, SkipItem} from '../tests-tree-builder/static';
+import * as commonSqliteUtils from '../db-utils/common';
+import {RawSuitesRow} from '../types';
 import {copyAndUpdate} from '../adapters/test-result/utils';
 
 interface UndoAcceptImageResult {
@@ -80,6 +82,27 @@ export class GuiReportBuilder extends StaticReportBuilder {
         this._testsTree = GuiTestsTreeBuilder.create({baseHost: this._reporterConfig.baseHost});
         this._skips = [];
         this.resetAttemps();
+    }
+
+    buildTreeFromCurrentDb(): Tree {
+        const db = this._dbClient.getRawConnection();
+        const testsTreeBuilder = StaticTestsTreeBuilder.create({baseHost: this._reporterConfig.baseHost});
+
+        const suitesQueryStatement = db.prepare(commonSqliteUtils.selectAllSuitesQuery());
+        const suitesRows: RawSuitesRow[] = [];
+
+        while (suitesQueryStatement.step()) {
+            const row = suitesQueryStatement.get();
+            if (Array.isArray(row)) {
+                suitesRows.push(row as RawSuitesRow);
+            }
+        }
+        suitesQueryStatement.free();
+
+        const sortedRows = suitesRows.sort(commonSqliteUtils.compareDatabaseRowsByTimestamp);
+        const {tree} = testsTreeBuilder.build(sortedRows);
+
+        return tree;
     }
 
     getTestBranch(id: string): TestBranch {

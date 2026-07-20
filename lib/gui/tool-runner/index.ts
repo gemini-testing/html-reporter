@@ -157,10 +157,15 @@ export class ToolRunner {
     async refreshTests(): Promise<void> {
         this._collection = await this._readTests();
 
-        this._ensureReportBuilder().resetTree();
+        const reportBuilder = this._ensureReportBuilder();
+        reportBuilder.resetTree();
         this._testAdapters = {};
 
         await this._handleRunnableCollection();
+
+        reportBuilder.reuseTestsTree(reportBuilder.buildTreeFromCurrentDb());
+        const {autoRun} = this._guiOpts;
+        this._tree = {...reportBuilder.getResult(), autoRun, browserFeatures: {}, features: []};
     }
 
     protected _ensureReportBuilder(): GuiReportBuilder {
