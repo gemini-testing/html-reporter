@@ -4,7 +4,7 @@ import classNames from 'classnames';
 import React, {ReactNode, useCallback} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {TimeTravelFeature, HIDE_TREE_VIEW_SCREENSHOTS} from '@/constants';
+import {TimeTravelFeature, HIDE_TREE_VIEW_SCREENSHOTS, DISABLE_TREE_SCREENSHOTS_MAGNIFIER} from '@/constants';
 import {LocalStorageKey, UiMode} from '@/constants/local-storage';
 import * as actions from '@/static/modules/actions';
 import useLocalStorage from '@/static/hooks/useLocalStorage';
@@ -24,6 +24,7 @@ export function SettingsPanel(): ReactNode {
     const dispatch = useDispatch();
     const analytics = useAnalytics();
     const [isHideScreenshots, setHideTreeViewScreenshots] = useLocalStorage(HIDE_TREE_VIEW_SCREENSHOTS, false);
+    const [isTreeMagnifierDisabled, setTreeMagnifierDisabled] = useLocalStorage(DISABLE_TREE_SCREENSHOTS_MAGNIFIER, false);
 
     const baseHost = useSelector(state => state.view.baseHost);
 
@@ -89,6 +90,13 @@ export function SettingsPanel(): ReactNode {
                 description="Hide screenshot previews in the tests tree on the Suites page"
                 checked={isHideScreenshots}
                 onUpdate={(): void => setHideTreeViewScreenshots(!isHideScreenshots)}
+            />
+            <NamedSwitch
+                title="Disable magnifier"
+                qa="disable-magnifier"
+                description="Disable magnifier for screenshots in tree"
+                checked={isTreeMagnifierDisabled}
+                onUpdate={(): void => setTreeMagnifierDisabled(!isTreeMagnifierDisabled)}
             />
         </PanelSection>
     );
