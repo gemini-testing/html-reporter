@@ -10,4 +10,5 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    opacity: var(--image-label-subtitle-opacity, 1);
 }
