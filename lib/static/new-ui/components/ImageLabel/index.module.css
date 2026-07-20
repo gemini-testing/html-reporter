@@ -4,10 +4,11 @@
 }
 
 .image-label-subtitle {
-    color: var(--g-color-private-black-400);
+    color: var(--image-label-subtitle-color, var(--g-color-private-black-400));
     margin-left: 4px;
     display: block;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    opacity: var(--image-label-subtitle-opacity, 1);
 }

@@ -47,6 +47,14 @@
     }
 }
 
+.image-label {
+    font-size: 15px;
+    margin: 0 0 4px 0;
+    --image-label-subtitle-color: currentColor;
+    --image-label-subtitle-opacity: 0.5;
+}
+
+
 .skip-reason-container {
     font-size: 15px;
     overflow: hidden;

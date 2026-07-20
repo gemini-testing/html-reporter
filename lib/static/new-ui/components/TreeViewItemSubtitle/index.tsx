@@ -6,11 +6,16 @@ import {TreeViewItemData} from '@/static/new-ui/features/suites/components/Suite
 import {ImageWithMagnifier} from '@/static/new-ui/components/ImageWithMagnifier';
 import styles from './index.module.css';
 import {getAssertViewStatusMessage} from '@/static/new-ui/utils/assert-view-status';
-import {makeLinksClickable} from '@/static/new-ui/utils';
+import {getImageDisplayedSize, makeLinksClickable} from '@/static/new-ui/utils';
 import {DISABLE_TREE_SCREENSHOTS_MAGNIFIER, HIDE_TREE_VIEW_SCREENSHOTS, Page, TestStatus} from '@/constants';
 import useLocalStorage from '@/static/hooks/useLocalStorage';
 import {usePage} from '@/static/new-ui/hooks/usePage';
 import {Screenshot} from '@/static/new-ui/components/Screenshot';
+import {ImageLabel} from '@/static/new-ui/components/ImageLabel';
+import {
+    getDisplayedDiffPercentValue,
+    getDisplayedDiffPixelsCountValue
+} from '@/static/new-ui/components/DiffViewer/utils';
 
 interface TreeViewItemSubtitleProps {
     item: TreeViewItemData;
@@ -47,6 +52,7 @@ export function TreeViewItemSubtitle(props: TreeViewItemSubtitleProps): ReactNod
                     ) {
                         images.push({
                             title: 'Expected',
+                            subTitle: getImageDisplayedSize(imageEntity.expectedImg),
                             image: imageEntity.expectedImg
                         });
                     }
@@ -57,13 +63,19 @@ export function TreeViewItemSubtitle(props: TreeViewItemSubtitleProps): ReactNod
                     ) {
                         images.push({
                             title: 'Actual',
+                            subTitle: getImageDisplayedSize(imageEntity.actualImg),
                             image: imageEntity.actualImg
                         });
                     }
 
                     if (imageEntity.status === TestStatus.FAIL) {
+                        let subTitle = '';
+                        if (imageEntity.differentPixels && imageEntity.diffRatio) {
+                            subTitle = `${getDisplayedDiffPixelsCountValue(imageEntity.differentPixels)} ⋅ ${getDisplayedDiffPercentValue(imageEntity.diffRatio)}%`;
+                        }
                         images.push({
                             title: 'Diff',
+                            subTitle,
                             image: imageEntity.diffImg,
                             diffClusters: imageEntity.diffClusters
                         });
@@ -81,7 +93,11 @@ export function TreeViewItemSubtitle(props: TreeViewItemSubtitleProps): ReactNod
                                             }
                                             key={item.title}
                                         >
-                                            <p>{item.title}</p>
+                                            <ImageLabel
+                                                className={styles.imageLabel}
+                                                title={item.title}
+                                                subtitle={item.subTitle}
+                                            />
                                             {isTreeMagnifierDisabled ? (
                                                 <div style={{display: 'flex'}}>
                                                     <Screenshot
