@@ -43,8 +43,10 @@
         background-color: var(--color-tag-bg, var(--g-color-private-black-150-solid));
 
         .copy {
+            --background-color: var(--color-tag-bg, var(--g-color-private-black-150-solid));
             opacity: 1;
-            background-color: var(--color-tag-bg, var(--g-color-private-black-150-solid));
+            background-color: var(--background-color);
+            box-shadow: 0 0 8px 5px var(--background-color);
         }
     }
 }
@@ -61,7 +63,8 @@
         background-color: var(--g-color-private-red-150-solid);
 
         .copy {
-            background-color: var(--g-color-private-red-150-solid);
+            --background-color: var(--g-color-private-red-150-solid);
+            background-color: var(--background-color);
         }
     }
 }
