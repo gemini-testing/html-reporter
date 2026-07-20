@@ -8,7 +8,7 @@ import {Tree, TreeImage} from '../tests-tree-builder/base';
 import {ImageInfoFull, ImageInfoWithState, ReporterConfig} from '../types';
 import {determineStatus, isUpdatedStatus} from '../common-utils';
 import {HtmlReporterValues} from '../plugin-api';
-import {SkipItem} from '../tests-tree-builder/static';
+import {StaticTestsTreeBuilder, SkipItem} from '../tests-tree-builder/static';
 import {copyAndUpdate} from '../adapters/test-result/utils';
 
 interface UndoAcceptImageResult {
@@ -80,6 +80,13 @@ export class GuiReportBuilder extends StaticReportBuilder {
         this._testsTree = GuiTestsTreeBuilder.create({baseHost: this._reporterConfig.baseHost});
         this._skips = [];
         this.resetAttemps();
+    }
+
+    buildTreeFromCurrentDb(): Tree {
+        const testsTreeBuilder = StaticTestsTreeBuilder.create({baseHost: this._reporterConfig.baseHost});
+        const {tree} = testsTreeBuilder.build(this._dbClient.getAllSuites());
+
+        return tree;
     }
 
     getTestBranch(id: string): TestBranch {
