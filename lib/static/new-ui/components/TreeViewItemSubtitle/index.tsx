@@ -64,7 +64,8 @@ export function TreeViewItemSubtitle(props: TreeViewItemSubtitleProps): ReactNod
                     if (imageEntity.status === TestStatus.FAIL) {
                         images.push({
                             title: 'Diff',
-                            image: imageEntity.diffImg
+                            image: imageEntity.diffImg,
+                            diffClusters: imageEntity.diffClusters
                         });
                     }
 
@@ -85,6 +86,7 @@ export function TreeViewItemSubtitle(props: TreeViewItemSubtitleProps): ReactNod
                                                 <div style={{display: 'flex'}}>
                                                     <Screenshot
                                                         image={item.image}
+                                                        diffClusters={item?.diffClusters}
                                                     />
                                                 </div>
                                             ) : (
