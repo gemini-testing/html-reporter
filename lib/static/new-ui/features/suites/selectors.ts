@@ -18,7 +18,11 @@ export const getCurrentResultId = (state: State): string | null => {
         return null;
     }
 
-    const resultIds = state.tree.browsers.byId[browserId].resultIds;
+    const browser = state.tree.browsers.byId[browserId];
+    if (!browser) {
+        return null;
+    }
+    const resultIds = browser.resultIds;
 
     const groupId = state.app.suitesPage.currentGroupId;
 
@@ -90,7 +94,7 @@ export const getAttempt = (state: State): number | null => {
     const browserId = state.app.suitesPage.currentBrowserId;
 
     if (browserId) {
-        return state.tree.browsers.stateById[browserId].retryIndex;
+        return state.tree.browsers.stateById[browserId]?.retryIndex;
     }
 
     return null;

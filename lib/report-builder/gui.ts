@@ -76,6 +76,12 @@ export class GuiReportBuilder extends StaticReportBuilder {
         };
     }
 
+    resetTree(): void {
+        this._testsTree = GuiTestsTreeBuilder.create({baseHost: this._reporterConfig.baseHost});
+        this._skips = [];
+        this.resetAttemps();
+    }
+
     getTestBranch(id: string): TestBranch {
         return this._testsTree.getTestBranch(id);
     }

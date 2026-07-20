@@ -18,6 +18,7 @@ import {GetInitResponse} from '@/gui/server';
 import {Tree} from '@/tests-tree-builder/base';
 import {BrowserItem} from '@/types';
 import {createNotificationError} from '@/static/modules/actions/notifications';
+import {setRefreshLoading} from '@/static/modules/actions/filters';
 import {LocalStorageKey} from '@/constants/local-storage';
 import * as localStorageWrapper from '@/static/modules/local-storage-wrapper';
 import {updateTimeTravelSettings} from '../../new-ui/utils/api';
@@ -136,6 +137,25 @@ export const thunkInitStaticReport = ({isNewUi}: InitStaticReportData = {}): App
         const {tree, stats, skips, browsers} = testsTreeBuilder.build(suitesRows);
 
         dispatch(initStaticReport({...dataFromStaticFile, db, fetchDbDetails, tree, stats, skips, browsers, isNewUi}));
+    };
+};
+
+export const thunkRefreshGuiReport = (): AppThunk => {
+    return async (dispatch, getState) => {
+        dispatch(setRefreshLoading(true));
+        try {
+            const {db} = getState();
+            const response = await axios.get<GetInitResponse>('/refresh-tests');
+
+            if (!response.data || !db) {
+                throw new Error(`Could not refresh tests data: ${!response.data ? `empty response from /refresh-tests (status ${response.status})` : 'db is not initialized'}.`);
+            }
+
+            dispatch(initGuiReport({...response.data, db}));
+        } catch (e: unknown) {
+            dispatch(createNotificationError('thunkRefreshGuiReport', e as Error));
+            dispatch(setRefreshLoading(false));
+        }
     };
 };
 

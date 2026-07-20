@@ -75,13 +75,13 @@ export const AttemptPickerItem = (props: AttemptPickerItemProps): ReactNode => {
 
     const isGroupingEnabled = useSelector(({view: {keyToGroupTestsBy}, app: {isNewUi, suitesPage: {currentGroupId}}}: State) => isNewUi ? Boolean(currentGroupId) : Boolean(keyToGroupTestsBy));
 
-    const status = isFailStatus(result.status) && hasUnrelatedToScreenshotsErrors((result as ResultEntityError).error) ? TestStatus.FAIL_ERROR : result.status;
-
-    const buttonStyle = getButtonStyleByStatus(status);
-
     if (!result) {
         return null;
     }
+
+    const status = isFailStatus(result.status) && hasUnrelatedToScreenshotsErrors((result as ResultEntityError).error) ? TestStatus.FAIL_ERROR : result.status;
+
+    const buttonStyle = getButtonStyleByStatus(status);
 
     const className = classNames(
         styles.attemptPickerItem,

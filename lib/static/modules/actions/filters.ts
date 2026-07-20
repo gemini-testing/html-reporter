@@ -38,10 +38,16 @@ export const setSearchLoading = (payload: boolean): SetSearchLoading => {
 export type ChangeViewModeAction = Action<typeof actionNames.CHANGE_VIEW_MODE, FilterPayload<ViewMode>>;
 export const changeViewMode = (payload: ChangeViewModeAction['payload']): ChangeViewModeAction => ({type: actionNames.CHANGE_VIEW_MODE, payload});
 
+export type SetRefreshLoading = Action<typeof actionNames.SET_REFRESH_LOADING, boolean>;
+export const setRefreshLoading = (payload: boolean): SetRefreshLoading => {
+    return {type: actionNames.SET_REFRESH_LOADING, payload};
+};
+
 export type FiltersAction =
     | UpdateNameFilterAction
     | SetMatchCaseFilterAction
     | SetUseRegexFilterAction
     | SelectBrowsersAction
     | ChangeViewModeAction
+    | SetRefreshLoading
     | SetSearchLoading;

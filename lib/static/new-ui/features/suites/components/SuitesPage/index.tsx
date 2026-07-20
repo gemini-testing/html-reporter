@@ -218,6 +218,12 @@ export function SuitesPage(): ReactNode {
         }
     }, [visibleTreeNodeIds, tree, dispatch]);
 
+    useEffect(() => {
+        if (currentBrowser && !currentBrowserEntity && isInitialized && visibleTreeNodeIds.length > 0) {
+            onSelectFirstResult();
+        }
+    }, [currentBrowser, currentBrowserEntity, isInitialized, visibleTreeNodeIds.length]);
+
     useHotkey('ArrowDown', goToNextSuite);
     useHotkey('ArrowUp', goToPrevSuite);
     useHotkey('ArrowRight', goToNextAttempt);

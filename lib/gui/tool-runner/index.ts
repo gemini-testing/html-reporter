@@ -154,6 +154,15 @@ export class ToolRunner {
         return this._toolAdapter.readTests(this._testFiles, this._globalOpts);
     }
 
+    async refreshTests(): Promise<void> {
+        this._collection = await this._readTests();
+
+        this._ensureReportBuilder().resetTree();
+        this._testAdapters = {};
+
+        await this._handleRunnableCollection();
+    }
+
     protected _ensureReportBuilder(): GuiReportBuilder {
         if (!this._reportBuilder) {
             throw new Error('ToolRunner has to be initialized before usage');
