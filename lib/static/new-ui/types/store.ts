@@ -144,6 +144,8 @@ export interface ImageEntityFail extends ImageEntityCommon {
     actualImg: ImageFile;
     expectedImg: ImageFile;
     refImg: RefImageFile;
+    differentPixels: number;
+    diffRatio: number;
 }
 
 export type ImageEntity = ImageEntityError | ImageEntityFail | ImageEntitySuccess | ImageEntityUpdated | ImageEntityStaged | ImageEntityCommitted;

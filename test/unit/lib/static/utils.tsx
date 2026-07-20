@@ -91,7 +91,9 @@ export const mkImageEntityFail = (name: string, overrides?: Partial<ImageEntityF
     expectedImg: {path: `${name}-expected`, size: {width: 0, height: 0}},
     refImg: {path: `${name}-ref`, size: {width: 0, height: 0}},
     diffImg: {path: `${name}-diff`, size: {width: 0, height: 0}},
-    actualImg: {path: `${name}-actual`, size: {width: 0, height: 0}}
+    actualImg: {path: `${name}-actual`, size: {width: 0, height: 0}},
+    differentPixels: 0,
+    diffRatio: 0
 } satisfies ImageEntityFail, overrides));
 
 export const mkTreeNodeData = (name: string, overrides?: Partial<TreeViewItemData>): TreeViewItemData => _.merge({
