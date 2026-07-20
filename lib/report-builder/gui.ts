@@ -9,8 +9,6 @@ import {ImageInfoFull, ImageInfoWithState, ReporterConfig} from '../types';
 import {determineStatus, isUpdatedStatus} from '../common-utils';
 import {HtmlReporterValues} from '../plugin-api';
 import {StaticTestsTreeBuilder, SkipItem} from '../tests-tree-builder/static';
-import * as commonSqliteUtils from '../db-utils/common';
-import {RawSuitesRow} from '../types';
 import {copyAndUpdate} from '../adapters/test-result/utils';
 
 interface UndoAcceptImageResult {
@@ -85,22 +83,8 @@ export class GuiReportBuilder extends StaticReportBuilder {
     }
 
     buildTreeFromCurrentDb(): Tree {
-        const db = this._dbClient.getRawConnection();
         const testsTreeBuilder = StaticTestsTreeBuilder.create({baseHost: this._reporterConfig.baseHost});
-
-        const suitesQueryStatement = db.prepare(commonSqliteUtils.selectAllSuitesQuery());
-        const suitesRows: RawSuitesRow[] = [];
-
-        while (suitesQueryStatement.step()) {
-            const row = suitesQueryStatement.get();
-            if (Array.isArray(row)) {
-                suitesRows.push(row as RawSuitesRow);
-            }
-        }
-        suitesQueryStatement.free();
-
-        const sortedRows = suitesRows.sort(commonSqliteUtils.compareDatabaseRowsByTimestamp);
-        const {tree} = testsTreeBuilder.build(sortedRows);
+        const {tree} = testsTreeBuilder.build(this._dbClient.getAllSuites());
 
         return tree;
     }

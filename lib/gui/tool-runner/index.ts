@@ -162,10 +162,7 @@ export class ToolRunner {
         this._testAdapters = {};
 
         await this._handleRunnableCollection();
-
-        reportBuilder.reuseTestsTree(reportBuilder.buildTreeFromCurrentDb());
-        const {autoRun} = this._guiOpts;
-        this._tree = {...reportBuilder.getResult(), autoRun, browserFeatures: {}, features: []};
+        await this._fillTestsTree(reportBuilder.buildTreeFromCurrentDb());
     }
 
     protected _ensureReportBuilder(): GuiReportBuilder {
@@ -422,11 +419,11 @@ export class ToolRunner {
         this._toolAdapter.updateReference({refImg: imageInfo.refImg, state});
     }
 
-    async _fillTestsTree(): Promise<void> {
+    async _fillTestsTree(tree?: Tree): Promise<void> {
         const reportBuilder = this._ensureReportBuilder();
 
         const {autoRun} = this._guiOpts;
-        const testsTree = await this._loadDataFromDatabase();
+        const testsTree = tree ?? await this._loadDataFromDatabase();
 
         if (testsTree && !_.isEmpty(testsTree)) {
             reportBuilder.reuseTestsTree(testsTree);
