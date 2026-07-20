@@ -148,7 +148,7 @@ export const thunkRefreshGuiReport = (): AppThunk => {
             const response = await axios.get<GetInitResponse>('/refresh-tests');
 
             if (!response.data || !db) {
-                throw new Error('Could not refresh tests data.');
+                throw new Error(`Could not refresh tests data: ${!response.data ? `empty response from /refresh-tests (status ${response.status})` : 'db is not initialized'}.`);
             }
 
             dispatch(initGuiReport({...response.data, db}));

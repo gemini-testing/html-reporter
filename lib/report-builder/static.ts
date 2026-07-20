@@ -62,6 +62,10 @@ export class StaticReportBuilder {
         this._htmlReporter.listenTo(this._imagesInfoSaver as unknown as GeneralEventEmitter, [PluginEvents.TEST_SCREENSHOTS_SAVED]);
     }
 
+    resetAttemps(): void {
+        this._testAttemptManager = new TestAttemptManager();
+    }
+
     async saveStaticFiles(): Promise<void> {
         const destPath = this._reporterConfig.path;
 

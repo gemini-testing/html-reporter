@@ -157,8 +157,7 @@ export class ToolRunner {
     async refreshTests(): Promise<void> {
         this._collection = await this._readTests();
 
-        const reportBuilder = this._ensureReportBuilder();
-        reportBuilder.resetTree();
+        this._ensureReportBuilder().resetTree();
         this._testAdapters = {};
 
         await this._handleRunnableCollection();

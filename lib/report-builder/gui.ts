@@ -1,6 +1,5 @@
 import _ from 'lodash';
 import {StaticReportBuilder, StaticReportBuilderOptions} from './static';
-import {TestAttemptManager} from '../test-attempt-manager';
 import {GuiTestsTreeBuilder, TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../tests-tree-builder/gui';
 import {UPDATED, DB_COLUMNS, TestStatus, DEFAULT_TITLE_DELIMITER, SKIPPED, SUCCESS} from '../constants';
 import {ConfigForStaticFile, getConfigForStaticFile} from '../server-utils';
@@ -79,8 +78,8 @@ export class GuiReportBuilder extends StaticReportBuilder {
 
     resetTree(): void {
         this._testsTree = GuiTestsTreeBuilder.create({baseHost: this._reporterConfig.baseHost});
-        this._testAttemptManager = new TestAttemptManager();
         this._skips = [];
+        this.resetAttemps();
     }
 
     getTestBranch(id: string): TestBranch {

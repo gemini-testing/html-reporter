@@ -260,7 +260,7 @@ export interface State {
         isInitialized: boolean;
         availableFeatures: Feature[],
         isSearchLoading?: boolean;
-        isRefreshLoading?: boolean;
+        isRefreshTestsLoading?: boolean;
 
         // Filters in top of sidebar
         nameFilter: string;

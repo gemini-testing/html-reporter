@@ -77,7 +77,7 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
     const selectedTests = useSelector(getCheckedTests);
     const visibleBrowserIds: string[] = useSelector(getVisibleBrowserIds);
     const isInitialized = useSelector(getIsInitialized);
-    const isRefreshLoading = useSelector((state) => state.app.isRefreshLoading);
+    const isRefreshTestsLoading = useSelector((state) => state.app.isRefreshTestsLoading);
 
     const isRunTestsAvailable = useSelector(state => state.app.availableFeatures)
         .find(feature => feature.name === RunTestsFeature.name);
@@ -205,11 +205,11 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
             {isRunTestsAvailable && (
                 <IconButton
                     className={styles.iconButton}
-                    icon={<Icon className={classNames({[styles.isRefreshLoading]: isRefreshLoading})} data={ArrowsRotateRight} height={14}/>}
+                    icon={<Icon className={classNames({[styles.isRefreshTestsLoading]: isRefreshTestsLoading})} data={ArrowsRotateRight} height={14}/>}
                     tooltip="Refresh tests tree"
                     view="flat"
                     onClick={handleRefresh}
-                    disabled={isRunning || !isInitialized || isRefreshLoading}
+                    disabled={isRunning || !isInitialized || isRefreshTestsLoading}
                 />
             )}
             {isRunTestsAvailable && (

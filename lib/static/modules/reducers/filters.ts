@@ -41,7 +41,7 @@ export default (state: State, action: FiltersAction | InitGuiReportAction | Init
                 state,
                 {
                     app: {
-                        isRefreshLoading: false,
+                        isRefreshTestsLoading: false,
                         viewMode,
                         [Page.visualChecksPage]: {
                             diffMode: visualChecksPageDiffMode
@@ -101,7 +101,7 @@ export default (state: State, action: FiltersAction | InitGuiReportAction | Init
             return applyStateUpdate(state, {app: {isSearchLoading: action.payload}});
 
         case actionNames.SET_REFRESH_LOADING:
-            return applyStateUpdate(state, {app: {isRefreshLoading: action.payload}});
+            return applyStateUpdate(state, {app: {isRefreshTestsLoading: action.payload}});
 
         default:
             return state;
