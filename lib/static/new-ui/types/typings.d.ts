@@ -12,6 +12,10 @@ declare module 'ansi-html-community' {
     interface AnsiHtmlCommunity {
         (value: string): string;
         setColors: (colors: Record<string, unknown>) => void;
+        tags: {
+            open: Record<string, string>;
+            close: Record<string, string>;
+        };
     }
     const f: AnsiHtmlCommunity;
 

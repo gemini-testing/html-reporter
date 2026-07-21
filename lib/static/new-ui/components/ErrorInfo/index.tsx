@@ -22,6 +22,11 @@ export function ErrorInfo(props: ErrorInfoProps): ReactNode {
         reset: ['eee', '00000000']
     });
 
+    // ANSI "inverse" (code 7) is used to highlight the differing characters in a diff. Its default
+    // rendering (transparent text on a light background) is unreadable on the dark report background,
+    // so we make the differing part inherit the surrounding color and just render it bold instead.
+    ansiHtml.tags.open['7'] = 'font-weight:bold';
+
     let errorName = props.name;
 
     if (typeof errorName !== 'string') {
