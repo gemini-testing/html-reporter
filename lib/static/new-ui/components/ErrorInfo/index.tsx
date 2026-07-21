@@ -1,12 +1,14 @@
 import ansiHtml from 'ansi-html-community';
 import classNames from 'classnames';
 import escapeHtml from 'escape-html';
-import React, {ReactNode, useMemo, useState} from 'react';
+import React, {ReactNode, useMemo} from 'react';
 import {ClipboardButton, Button} from '@gravity-ui/uikit';
 
 import styles from './index.module.css';
 import stringify from 'json-stringify-safe';
 import WordWrapIcon from '@/static/icons/word-wrap-icon.svg';
+import useLocalStorage from '@/static/hooks/useLocalStorage';
+import {ERROR_BREAK_LINES} from '@/constants';
 
 interface ErrorInfoProps {
     name: unknown;
@@ -16,7 +18,7 @@ interface ErrorInfoProps {
 }
 
 export function ErrorInfo(props: ErrorInfoProps): ReactNode {
-    const [breakLines, setBreakLines] = useState(false);
+    const [breakLines, setBreakLines] = useLocalStorage(ERROR_BREAK_LINES, false);
 
     ansiHtml.setColors({
         reset: ['eee', '00000000']
@@ -51,7 +53,7 @@ export function ErrorInfo(props: ErrorInfoProps): ReactNode {
                     onClick={(): void => setBreakLines(!breakLines)}
                 >
                     <Button.Icon>
-                        <img src={WordWrapIcon} width={16} height={16} alt=""/>
+                        <img src={WordWrapIcon} width={18} height={18} alt=""/>
                     </Button.Icon>
                 </Button>
             </div>
