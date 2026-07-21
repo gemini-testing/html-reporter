@@ -30,6 +30,7 @@ export const configDefaults: StoreReporterConfig = {
         repositoryUrl: '',
         pullRequestUrl: '',
         serviceUrl: '',
+        moduleUrl: '',
         meta: {},
         axiosRequestOptions: {}
     },

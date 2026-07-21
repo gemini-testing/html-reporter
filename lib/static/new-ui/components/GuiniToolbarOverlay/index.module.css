@@ -55,11 +55,30 @@
     margin-top: 12px;
 }
 
+.modal-status {
+    color: var(--g-color-text-secondary);
+    margin-top: 12px;
+}
+
+.modal-error {
+    color: var(--g-color-text-danger);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+}
+
 .modal-buttons-container {
     margin-top: 20px;
     display: flex;
+    align-items: center;
     justify-content: end;
     gap: 8px;
+}
+
+.modal-footer-status {
+    color: var(--g-color-text-secondary);
+    margin-right: auto;
 }
 
 .modal-button-primary {

@@ -496,6 +496,26 @@ describe('config', () => {
         });
     });
 
+    describe('"staticImageAccepter.moduleUrl" option', () => {
+        it('should be empty by default to preserve static accepter v1', () => {
+            assert.equal(parseConfig({}).staticImageAccepter.moduleUrl, '');
+        });
+
+        it('should set from configuration file', () => {
+            const moduleUrl = 'https://static-accepter.my-company.com/v2/script.js';
+            const config = parseConfig({staticImageAccepter: {moduleUrl}});
+
+            assert.equal(config.staticImageAccepter.moduleUrl, moduleUrl);
+        });
+
+        it('should validate for string type', () => {
+            assert.throws(
+                () => parseConfig({staticImageAccepter: {moduleUrl: 100500}}),
+                /"staticImageAccepter.moduleUrl" option must be string/
+            );
+        });
+    });
+
     describe('plugins', () => {
         it('should have default value', () => {
             assert.deepEqual(parseConfig({}).plugins, configDefaults.plugins);

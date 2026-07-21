@@ -214,7 +214,10 @@ export interface StaticImageAccepterConfig {
     enabled: boolean;
     repositoryUrl: string;
     pullRequestUrl: string;
-    serviceUrl: string;
+    /** Static Accepter v1 service URL. Required when moduleUrl is absent. */
+    serviceUrl?: string;
+    /** Runtime ESM module URL that enables Static Accepter v2. */
+    moduleUrl?: string;
     axiosRequestOptions?: AxiosRequestOptions;
     meta: Record<string, unknown>;
 }

@@ -281,6 +281,10 @@ const getParser = (): ReturnType<typeof root<ReporterConfig>> => {
                 defaultValue: configDefaults.staticImageAccepter.serviceUrl,
                 validate: assertString('staticImageAccepter.serviceUrl')
             }),
+            moduleUrl: option({
+                defaultValue: configDefaults.staticImageAccepter.moduleUrl,
+                validate: assertString('staticImageAccepter.moduleUrl')
+            }),
             meta: option({
                 defaultValue: configDefaults.staticImageAccepter.meta,
                 parseEnv: JSON.parse,

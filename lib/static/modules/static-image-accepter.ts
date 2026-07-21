@@ -42,7 +42,11 @@ export const checkIsEnabled = (config: ReporterConfig['staticImageAccepter'], is
         return isEnabled = false;
     }
 
-    const requiredConfigFields: Array<keyof ReporterConfig['staticImageAccepter']> = ['repositoryUrl', 'pullRequestUrl', 'serviceUrl'];
+    const requiredConfigFields: Array<keyof ReporterConfig['staticImageAccepter']> = ['repositoryUrl', 'pullRequestUrl'];
+
+    if (!config.moduleUrl) {
+        requiredConfigFields.push('serviceUrl');
+    }
     const missingFields = (requiredConfigFields).filter(key => !config[key]);
 
     if (missingFields.length) {
