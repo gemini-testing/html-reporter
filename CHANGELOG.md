@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="11.14.2"></a>
+## 11.14.2 (2026-07-28)
+
+
+### Bug Fixes
+
+* fix unclosed string errors by updating rrweb package ([#790](https://github.com/gemini-testing/html-reporter/issues/790)) ([c3f6425](https://github.com/gemini-testing/html-reporter/commit/c3f6425))
+
+
+
 <a name="11.14.1"></a>
 ## 11.14.1 (2026-07-21)
 
