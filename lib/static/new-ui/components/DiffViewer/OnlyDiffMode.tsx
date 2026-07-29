@@ -5,8 +5,9 @@ import {CoordBounds} from 'looks-same';
 
 interface OnlyDiffModeProps {
     diff: ImageFile & {diffClusters?: CoordBounds[]};
+    magnifier?: React.RefObject<HTMLElement>;
 }
 
 export function OnlyDiffMode(props: OnlyDiffModeProps): ReactNode {
-    return <Screenshot image={props.diff} diffClusters={props.diff.diffClusters} />;
+    return <Screenshot containerClassName="image-outline" image={props.diff} diffClusters={props.diff.diffClusters} magnifier={props.magnifier} />;
 }

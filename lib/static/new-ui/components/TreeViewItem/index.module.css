@@ -28,6 +28,12 @@
     align-items: baseline !important;
 }
 
+.tree-view-item--error {
+    --g-color-base-simple-hover: var(--g-color-private-red-50);
+    background: var(--g-color-private-red-100);
+    color: var(--g-color-private-red-600-solid);
+}
+
 .tree-view-item--active {
     background: var(--g-color-base-brand);
     --g-color-base-simple-hover: var(--g-color-base-brand);
@@ -35,12 +41,6 @@
     --color-icon: var(--g-color-text-light-primary);
     --color-tag-title: rgba(255, 255, 255, .7);
     --color-tag-bg: rgba(255, 255, 255, .15);
-}
-
-.tree-view-item--error {
-    --g-color-base-simple-hover: var(--g-color-private-red-50);
-    background: var(--g-color-private-red-100);
-    color: var(--g-color-private-red-600-solid);
 }
 
 .tree-view-item--corrupted {

@@ -30,27 +30,31 @@ interface DiffViewerProps {
      * Images will try to fit the `desiredHeight`, but will only shrink no more than 2 times.
      * */
     desiredHeight?: string;
+    labelClassName?: string;
+    magnifier?: React.RefObject<HTMLElement>;
 }
 
 export function DiffViewer(props: DiffViewerProps): ReactNode {
     const expectedImg = Object.assign({}, props.expectedImg, {
-        label: <ImageLabel title={'Expected'} subtitle={getImageDisplayedSize(props.expectedImg)} />
+        label: <ImageLabel className={props.labelClassName} title={'Expected'} subtitle={getImageDisplayedSize(props.expectedImg)} />
     });
     const actualImg = Object.assign({}, props.actualImg, {
-        label: <ImageLabel title={'Actual'} subtitle={getImageDisplayedSize(props.actualImg)} />
+        label: <ImageLabel className={props.labelClassName} title={'Actual'} subtitle={getImageDisplayedSize(props.actualImg)} />
     });
     let diffSubtitle: string | undefined;
     if (props.differentPixels !== undefined && props.diffRatio !== undefined) {
         diffSubtitle = `${props.differentPixels}px ⋅ ${getDisplayedDiffPercentValue(props.diffRatio)}%`;
     }
     const diffImg = Object.assign({}, props.diffImg, {
-        label: <ImageLabel title={'Diff'} subtitle={diffSubtitle} />,
+        label: <ImageLabel className={props.labelClassName} title={'Diff'} subtitle={diffSubtitle} />,
         diffClusters: props.diffClusters
     });
 
+    const {magnifier} = props;
+
     switch (props.diffMode) {
         case DiffModes.ONLY_DIFF.id:
-            return <OnlyDiffMode diff={diffImg} />;
+            return <OnlyDiffMode diff={diffImg} magnifier={magnifier} />;
 
         case DiffModes.SWITCH.id:
             return <SwitchMode expected={expectedImg} actual={actualImg} />;
@@ -62,18 +66,18 @@ export function DiffViewer(props: DiffViewerProps): ReactNode {
             return <OnionSkinMode expected={expectedImg} actual={actualImg} />;
 
         case DiffModes.THREE_UP_SCALED.id:
-            return <SideBySideMode expected={expectedImg} actual={actualImg} diff={diffImg} />;
+            return <SideBySideMode expected={expectedImg} actual={actualImg} diff={diffImg} magnifier={magnifier} />;
 
         case DiffModes.THREE_UP_SCALED_TO_FIT.id: {
             const desiredHeight = props.desiredHeight ?? 'calc(100vh - 180px)';
 
-            return <SideBySideToFitMode desiredHeight={desiredHeight} expected={expectedImg} actual={actualImg} diff={diffImg} />;
+            return <SideBySideToFitMode desiredHeight={desiredHeight} expected={expectedImg} actual={actualImg} diff={diffImg} magnifier={magnifier} />;
         }
         case DiffModes.TWO_UP_INTERACTIVE.id:
-            return <TwoUpInteractiveMode expected={expectedImg} actual={actualImg} diff={diffImg} differentPixels={props.differentPixels} diffRatio={props.diffRatio} />;
+            return <TwoUpInteractiveMode labelClassName={props.labelClassName} expected={expectedImg} actual={actualImg} diff={diffImg} differentPixels={props.differentPixels} diffRatio={props.diffRatio} />;
 
         case DiffModes.THREE_UP.id:
         default:
-            return <ListMode expected={expectedImg} actual={actualImg} diff={diffImg} />;
+            return <ListMode expected={expectedImg} actual={actualImg} diff={diffImg} magnifier={magnifier} />;
     }
 }

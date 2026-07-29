@@ -54,9 +54,13 @@ export function SwipeMode(props: SwitchModeProps): ReactNode {
         updateDividerPosition(e);
     };
 
+    const onClick: MouseEventHandler = (e): void => {
+        e.stopPropagation();
+    };
+
     const wrapperStyle = {'--max-natural-width': maxNaturalWidth, '--max-natural-height': maxNaturalHeight} as React.CSSProperties;
 
-    return <div className={classNames(commonStyles.imagesContainer, {[styles.isDragging]: isDragging})} style={wrapperStyle} ref={swipeContainer} onMouseDown={handleMouseDown}>
+    return <div className={classNames(commonStyles.imagesContainer, 'image-outline', {[styles.isDragging]: isDragging})} style={wrapperStyle} ref={swipeContainer} onMouseDown={handleMouseDown} onClick={onClick}>
         <div className={styles.leftSection} style={{width: dividerPosition}}>
             <Screenshot containerClassName={commonStyles.screenshotContainer} imageClassName={styles.image} image={expected} />
         </div>

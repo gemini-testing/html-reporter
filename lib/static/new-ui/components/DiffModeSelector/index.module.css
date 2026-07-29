@@ -1,0 +1,39 @@
+.diff-mode-container {
+    flex-grow: 1;
+    display: flex;
+    min-width: 100px;
+
+    &:not(.only-select) {
+        container-type: inline-size;
+    }
+}
+
+.diff-mode-switcher {
+    --g-color-base-background: #fff;
+}
+
+.diff-mode-select {
+    display: none;
+}
+
+@container (max-width: 500px) {
+    .diff-mode-switcher {
+        display: none !important;
+    }
+
+    .diff-mode-select {
+        display: block;
+    }
+}
+
+.only-select {
+    min-width: auto;
+
+    .diff-mode-switcher {
+        display: none !important;
+    }
+
+    .diff-mode-select {
+        display: block !important;
+    }
+}

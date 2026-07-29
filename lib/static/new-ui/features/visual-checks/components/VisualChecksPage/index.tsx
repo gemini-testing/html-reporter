@@ -178,7 +178,7 @@ export function VisualChecksPage(): ReactNode {
 
     const onSectionSizesChange = (sizes: number[]): void => {
         dispatch(actions.setSectionSizes({sizes, page: Page.visualChecksPage}));
-        if (isSectionHidden(sizes[0])) {
+        if (isSectionHidden(sizes[0]) || isSectionHidden(sizes[1])) {
             dispatch(
                 actions.setBackupSectionSizes({sizes: [MIN_SECTION_SIZE_PERCENT, 100 - MIN_SECTION_SIZE_PERCENT], page: Page.visualChecksPage})
             );

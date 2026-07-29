@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, {ReactNode, useState} from 'react';
+import React, {MouseEventHandler, ReactNode, useState} from 'react';
 
 import {Screenshot} from '@/static/new-ui/components/Screenshot';
 import {ImageFile} from '@/types';
@@ -25,14 +25,24 @@ export function OnionSkinMode(props: OnionSkinModeProps): ReactNode {
 
     const wrapperStyle = {'--max-natural-width': maxNaturalWidth, '--max-natural-height': maxNaturalHeight} as React.CSSProperties;
     const actualImageStyle: React.CSSProperties = {opacity: rightImageOpacity};
+    const onClick: MouseEventHandler = (e) => {
+        e.stopPropagation();
+    };
 
     return <div style={wrapperStyle}>
-        <div className={classNames(commonStyles.imagesContainer, styles.onionSkin)}>
+        <div className={classNames(commonStyles.imagesContainer, styles.onionSkin, 'image-outline')}>
             <Screenshot containerClassName={commonStyles.screenshotContainer} imageClassName={styles.image} image={expected} />
             <Screenshot containerClassName={classNames(commonStyles.screenshotContainer, styles['image-wrapper--actual'])} imageClassName={styles.image} image={actual} style={actualImageStyle} />
         </div>
-        <div className={styles.sliderContainer}>
-            <Slider className={styles.slider} min={0} max={1} step={0.01} value={rightImageOpacity} onUpdate={onUpdateHandler} />
+        <div className={styles.sliderContainer} onClick={onClick}>
+            <Slider
+                className={styles.slider}
+                min={0}
+                max={1}
+                step={0.01}
+                value={rightImageOpacity}
+                onUpdate={onUpdateHandler}
+            />
         </div>
     </div>;
 }

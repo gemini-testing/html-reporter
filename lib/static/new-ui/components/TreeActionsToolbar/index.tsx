@@ -33,6 +33,7 @@ import {
 import {ImageEntity, TreeViewMode} from '@/static/new-ui/types/store';
 import {CHECKED, INDETERMINATE} from '@/constants/checked-statuses';
 import {IconButton} from '@/static/new-ui/components/IconButton';
+import {DiffModeSelector} from '@/static/new-ui/components/DiffModeSelector';
 
 import {
     getCheckedTests,
@@ -288,6 +289,7 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
         <div className={styles.innerContainer}>
             <GroupBySelect />
             <SortBySelect />
+            <DiffModeSelector className={styles.diffModeSelector} onlySelect/>
             <div className={styles.buttonsContainer}>
                 {getViewButtons()}
             </div>

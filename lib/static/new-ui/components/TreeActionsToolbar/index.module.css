@@ -93,3 +93,9 @@
     width: 450px;
     padding: 16px;
 }
+
+.diff-mode-selector {
+    :global(.g-select-control__button::before) {
+        border: none;
+    }
+}

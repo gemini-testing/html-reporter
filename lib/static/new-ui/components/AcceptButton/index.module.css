@@ -1,0 +1,17 @@
+.accept-button {
+    composes: regular-button from global;
+    padding-right: 4px;
+
+    --g-text-body-1-font-size: 13px;
+    --g-text-body-1-line-height: 18px;
+    background: var(--g-color-base-background);
+}
+
+.hotkey-hidden {
+    opacity: 0;
+}
+
+:global(.g-button_view_action).accept-button {
+    --g-color-line-brand: var(--g-color-text-hint);
+    --_--text-color: var(--g-color-private-white-950);
+}
