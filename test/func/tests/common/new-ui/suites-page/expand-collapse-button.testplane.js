@@ -4,24 +4,18 @@ if (process.env.TOOL === 'testplane') {
             describe('Suites page', () => {
                 describe('Expand/collapse suites tree button', () => {
                     it('should offer to collapse by default', async ({browser}) => {
-                        const expandCollapseButton = await browser.$('[data-qa="expand-collapse-suites-tree"]');
-                        await expandCollapseButton.moveTo();
+                        const menuButton = await browser.$('[data-qa="tree-show"]');
 
-                        await expandCollapseButton.assertView('button');
-
-                        const tooltip = await browser.$('.gn-composite-bar-item__icon-tooltip');
-                        await expect(tooltip).toHaveText(/Collapse tree/);
+                        const classNames = (await menuButton.getAttribute('class')).split(' ');
+                        await expect(classNames).toContain('gn-composite-bar-item_current');
                     });
 
                     it('should offer to expand when collapsed using button', async ({browser}) => {
-                        const expandCollapseButton = await browser.$('[data-qa="expand-collapse-suites-tree"]');
-                        await expandCollapseButton.click();
-                        await expandCollapseButton.moveTo();
+                        const menuButton = await browser.$('[data-qa="tree-collapse"]');
+                        await menuButton.click();
 
-                        await expandCollapseButton.assertView('button');
-
-                        const tooltip = await browser.$('.gn-composite-bar-item__icon-tooltip');
-                        await expect(tooltip).toHaveText(/Expand tree/);
+                        const classNames = (await menuButton.getAttribute('class')).split(' ');
+                        await expect(classNames).toContain('gn-composite-bar-item_current');
                     });
 
                     it('should offer to expand when collapsed manually', async ({browser}) => {
@@ -36,13 +30,9 @@ if (process.env.TOOL === 'testplane') {
 
                         await browser.pause(500);
 
-                        const expandCollapseButton = await browser.$('[data-qa="expand-collapse-suites-tree"]');
-                        await expandCollapseButton.moveTo();
-
-                        await expandCollapseButton.assertView('button');
-
-                        const tooltip = await browser.$('.gn-composite-bar-item__icon-tooltip');
-                        await expect(tooltip).toHaveText(/Expand tree/);
+                        const menuButton = await browser.$('[data-qa="tree-collapse"]');
+                        const classNames = (await menuButton.getAttribute('class')).split(' ');
+                        await expect(classNames).toContain('gn-composite-bar-item_current');
                     });
                 });
 

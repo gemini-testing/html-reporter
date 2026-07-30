@@ -41,6 +41,13 @@ if (process.env.TOOL === 'testplane') {
 
                         await browser.waitUntil(async () => {
                             const size = await suitesTreeCard.getSize();
+                            return size.width > 700;
+                        });
+
+                        await browser.keys('t');
+
+                        await browser.waitUntil(async () => {
+                            const size = await suitesTreeCard.getSize();
                             return size.width === initialSize.width;
                         });
                     });

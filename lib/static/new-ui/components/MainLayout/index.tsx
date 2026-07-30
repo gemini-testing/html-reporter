@@ -8,6 +8,9 @@ import {getIsInitialized} from '@/static/new-ui/store/selectors';
 import {SettingsPanel} from '@/static/new-ui/components/SettingsPanel';
 import {HotkeysPanel} from '@/static/new-ui/components/HotkeysPanel';
 import TestplaneIcon from '../../../icons/testplane-mono.svg';
+import TreeFull from '@/static/icons/TreeFull';
+import TreeHide from '@/static/icons/TreeHide';
+import TreeShow from '@/static/icons/TreeShow';
 import styles from './index.module.css';
 import {Footer} from './Footer';
 import {EmptyReportCard} from '@/static/new-ui/components/Card/EmptyReportCard';
@@ -15,9 +18,8 @@ import {InfoPanel} from '@/static/new-ui/components/InfoPanel';
 import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
 import {useHotkey} from '@/static/new-ui/hooks/useHotkey';
 import {setSectionSizes} from '../../../modules/actions/suites-page';
-import {ArrowLeftToLine, ArrowRightFromLine} from '@gravity-ui/icons';
 import {Hotkey} from '@gravity-ui/uikit';
-import {isSectionHidden} from '../../features/suites/utils';
+
 import {Page, PathNames} from '@/constants';
 
 export enum PanelId {
@@ -42,7 +44,6 @@ export function MainLayout(props: MainLayoutProps): ReactNode {
     const navigate = useNavigate();
     const location = useLocation();
     const analytics = useAnalytics();
-
     const pageHotkeys: Record<string, string> = {
         [PathNames.suites]: 's',
         [PathNames.visualChecks]: 'v'
@@ -63,43 +64,57 @@ export function MainLayout(props: MainLayoutProps): ReactNode {
 
     const currentSuitesPageSectionSizes = useSelector(state => state.ui[Page.suitesPage].sectionSizes);
     const backupSuitesPageSectionSizes = useSelector(state => state.ui[Page.suitesPage].backupSectionSizes);
-    if (/\/suites/.test(location.pathname)) {
-        const shouldExpandTree = isSectionHidden(currentSuitesPageSectionSizes[0]);
-        const treeTitle = shouldExpandTree ? 'Expand tree' : 'Collapse tree';
-        menuItems.push(
-            {id: 'divider', type: 'divider', title: '-'},
-            {
-                id: 'expand-collapse-tree',
-                title: treeTitle,
-                tooltipText: <>{treeTitle} <Hotkey value="t" view="dark" /></>,
-                icon: shouldExpandTree ? ArrowRightFromLine : ArrowLeftToLine,
-                onItemClick: (): void => {
-                    dispatch(setSectionSizes({sizes: shouldExpandTree ? backupSuitesPageSectionSizes : [0, 100], page: Page.suitesPage}));
-                },
-                qa: 'expand-collapse-suites-tree'
-            }
-        );
-    }
 
     const currentVisualChecksPageSectionSizes = useSelector(state => state.ui[Page.visualChecksPage].sectionSizes);
     const backupVisualChecksPageSectionSizes = useSelector(state => state.ui[Page.visualChecksPage].backupSectionSizes);
-    if (/\/visual-checks/.test(location.pathname)) {
-        const shouldExpandTree = isSectionHidden(currentVisualChecksPageSectionSizes[0]);
-        const treeTitle = shouldExpandTree ? 'Expand tree' : 'Collapse tree';
-        menuItems.push(
-            {id: 'divider', type: 'divider', title: '-'},
-            {
-                id: 'expand-collapse-tree',
-                title: treeTitle,
-                tooltipText: <>{treeTitle} <Hotkey value="t" view="dark" /></>,
-                icon: shouldExpandTree ? ArrowRightFromLine : ArrowLeftToLine,
-                onItemClick: (): void => {
-                    dispatch(setSectionSizes({sizes: shouldExpandTree ? backupVisualChecksPageSectionSizes : [0, 100], page: Page.visualChecksPage}));
-                },
-                qa: 'expand-collapse-visual-checks'
-            }
-        );
-    }
+
+    const isOnSuitesPage = /\/suites/.test(location.pathname);
+    const isOnVisualChecksPage = /\/visual-checks/.test(location.pathname);
+
+    const activePage = isOnSuitesPage ? Page.suitesPage : Page.visualChecksPage;
+    const activeSectionSizes = isOnSuitesPage ? currentSuitesPageSectionSizes : currentVisualChecksPageSectionSizes;
+    const activeBackupSectionSizes = isOnSuitesPage ? backupSuitesPageSectionSizes : backupVisualChecksPageSectionSizes;
+
+    const treeControls = [
+        {id: 'divider', type: 'divider', title: '-'} as GravityMenuItem,
+        {
+            id: 'tree-full',
+            title: 'Tree Only',
+            tooltipText: <>Tree Only <Hotkey value="t" view="dark" /></>,
+            icon: TreeFull,
+            onItemClick: (): void => {
+                dispatch(setSectionSizes({sizes: [100, 0], page: activePage}));
+            },
+            current: activeSectionSizes[0] > 99,
+            qa: 'tree-full'
+        },
+        {
+            id: 'tree-show',
+            title: 'Tree and Details',
+            tooltipText: <>Tree and Details <Hotkey value="t" view="dark" /></>,
+            icon: TreeShow,
+            onItemClick: (): void => {
+                dispatch(setSectionSizes({sizes: activeBackupSectionSizes, page: activePage}));
+            },
+            current: activeSectionSizes[0] < 99 && activeSectionSizes[0] > 1,
+            qa: 'tree-show'
+        },
+        {
+            id: 'tree-collapse',
+            title: 'Details Only',
+            tooltipText: <>Details Only <Hotkey value="t" view="dark" /></>,
+            icon: TreeHide,
+            onItemClick: (): void => {
+                dispatch(setSectionSizes({sizes: [0, 100], page: activePage}));
+            },
+            current: activeSectionSizes[0] < 1,
+            qa: 'tree-collapse'
+        }
+    ];
+
+    menuItems.push(...treeControls);
+
+    console.log('DEBUG ', activeSectionSizes);
 
     const isInitialized = useSelector(getIsInitialized);
 
@@ -121,17 +136,19 @@ export function MainLayout(props: MainLayoutProps): ReactNode {
     }, []);
 
     const toggleTreeSidebar = useCallback((): void => {
-        const isOnSuitesPage = /\/suites/.test(location.pathname);
-        const isOnVisualChecksPage = /\/visual-checks/.test(location.pathname);
-
-        if (isOnSuitesPage) {
-            const shouldExpand = isSectionHidden(currentSuitesPageSectionSizes[0]);
-            dispatch(setSectionSizes({sizes: shouldExpand ? backupSuitesPageSectionSizes : [0, 100], page: Page.suitesPage}));
-        } else if (isOnVisualChecksPage) {
-            const shouldExpand = isSectionHidden(currentVisualChecksPageSectionSizes[0]);
-            dispatch(setSectionSizes({sizes: shouldExpand ? backupVisualChecksPageSectionSizes : [0, 100], page: Page.visualChecksPage}));
+        if (!isOnSuitesPage && !isOnVisualChecksPage) {
+            return;
         }
-    }, [location.pathname, currentSuitesPageSectionSizes, backupSuitesPageSectionSizes, currentVisualChecksPageSectionSizes, backupVisualChecksPageSectionSizes, dispatch]);
+        let sizes: number[];
+        if (activeSectionSizes[0] === 100) {
+            sizes = activeBackupSectionSizes;
+        } else if (activeSectionSizes[0] === 0) {
+            sizes = [100, 0];
+        } else {
+            sizes = [0, 100];
+        }
+        dispatch(setSectionSizes({sizes, page: activePage}));
+    }, [isOnSuitesPage, isOnVisualChecksPage, activePage, activeSectionSizes, activeBackupSectionSizes, dispatch]);
 
     const navigateToSuites = useCallback(() => navigate(PathNames.suites), [navigate]);
     const navigateToVisualChecks = useCallback(() => navigate(PathNames.visualChecks), [navigate]);
