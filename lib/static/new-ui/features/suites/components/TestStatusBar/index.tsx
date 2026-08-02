@@ -12,6 +12,7 @@ import {Badge} from '@/static/new-ui/components/Badge';
 
 import styles from './index.module.css';
 import {IconData} from '@gravity-ui/uikit';
+import {TestStatus} from '@/constants';
 
 const allIcons = icons as unknown as Record<string, IconData>;
 
@@ -44,6 +45,10 @@ export const TestStatusBar = (): ReactNode => {
 
         return list;
     }, [suite.metaInfo?.url, suite?.suiteUrl, baseHost]);
+
+    if (suite.status === TestStatus.RUNNING) {
+        return null;
+    }
 
     return (
         <div className={styles['test-status-bar']}>
