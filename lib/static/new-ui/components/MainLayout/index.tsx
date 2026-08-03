@@ -114,8 +114,6 @@ export function MainLayout(props: MainLayoutProps): ReactNode {
 
     menuItems.push(...treeControls);
 
-    console.log('DEBUG ', activeSectionSizes);
-
     const isInitialized = useSelector(getIsInitialized);
 
     const browsersById = useSelector(state => state.tree.browsers.byId);
