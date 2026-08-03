@@ -11,6 +11,7 @@ interface IconButtonProps {
     className?: string;
     selected?: boolean;
     qa?: string;
+    text?: string;
 }
 
 export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(function IconButtonInternal(props, ref) {
@@ -26,6 +27,7 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(f
             qa={props.qa}
         >
             {props.icon}
+            {props.text}
         </Button>
     </Tooltip>;
 });

@@ -255,24 +255,38 @@ export function VisualChecksStickyHeader({currentNamedImage, treeData, onImageCh
                 </Flex>
 
                 <Flex className={styles.buttonsContainer} gap={2}>
-                    <IconButton
-                        icon={<Icon data={ListCheck}/>}
-                        view="outlined"
-                        className={styles.acceptButton}
-                        disabled={isRunning || isProcessing}
-                        onClick={onSuites}
-                        qa="go-suites-button"
-                        tooltip={<>Go to test ⋅ <Hotkey value="g" view="light" /></>}
-                    />
-                    {isRunTestsAvailable && <Tooltip content={<>Run test with this visual check ⋅ <Hotkey value="r" view="light" /></>} placement={'top'} openDelay={0} disabled={isRunning} key={isRunning.toString()}>
-                        <RunTestButton browser={currentBrowser} buttonProps={{view: 'outlined'}} buttonText={null}/>
-                    </Tooltip>}
+                    <Tooltip
+                        content={<>Go to test ⋅ <Hotkey value="g" view="light" /></>}
+                        placement={'top'} openDelay={0} disabled={isRunning} key={isRunning.toString()}
+                    >
+                        <Button
+                            view="outlined"
+                            className={styles.actionButton}
+                            disabled={isRunning || isProcessing}
+                            onClick={onSuites}
+                            qa="go-suites-button"
+                        >
+                            <Icon data={ListCheck}/>Go to Test<Hotkey className={styles.hotkey} view="light" value="g" />
+                        </Button>
+                    </Tooltip>
+                    {isRunTestsAvailable && (
+                        <Tooltip
+                            content={<>Run test with this visual check ⋅ <Hotkey value="r" view="light" /></>} placement={'top'} openDelay={0} disabled={isRunning} key={isRunning.toString()}
+                        >
+                            <RunTestButton
+                                className={styles.actionButton}
+                                browser={currentBrowser}
+                                buttonProps={{view: 'outlined'}}
+                                hotkey={<Hotkey className={styles.hotkey} view="light" value="r" />}
+                            />
+                        </Tooltip>
+                    )}
                     {isEditScreensAvailable && (
                         <>
                             {isUndoAvailable && (
                                 <Button
                                     view="action"
-                                    className={styles.acceptButton}
+                                    className={styles.actionButton}
                                     disabled={isRunning || isProcessing}
                                     onClick={onScreenshotUndo}
                                     qa="undo-button"
@@ -281,15 +295,20 @@ export function VisualChecksStickyHeader({currentNamedImage, treeData, onImageCh
                                 </Button>
                             )}
                             {!isUndoAvailable && (
-                                <Button
-                                    view={'action'}
-                                    className={styles.acceptButton}
-                                    disabled={isRunning || isProcessing || !currentImage || !isAcceptable(currentImage)}
-                                    onClick={onScreenshotAccept}
-                                    qa="accept-button"
+                                <Tooltip
+                                    content={<>Accept ⋅ <Hotkey value="a" view="light" /></>}
+                                    placement={'top'} openDelay={0} disabled={isRunning} key={isRunning.toString()}
                                 >
-                                    <Icon data={Check}/>Accept<Hotkey className={styles.hotkey} view="dark" value="a" />
-                                </Button>
+                                    <Button
+                                        view={'action'}
+                                        className={styles.actionButton}
+                                        disabled={isRunning || isProcessing || !currentImage || !isAcceptable(currentImage)}
+                                        onClick={onScreenshotAccept}
+                                        qa="accept-button"
+                                    >
+                                        <Icon data={Check}/>Accept<Hotkey className={styles.hotkey} view="dark" value="a" />
+                                    </Button>
+                                </Tooltip>
                             )}
                         </>
                     )}

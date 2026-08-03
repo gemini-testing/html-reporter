@@ -11,6 +11,12 @@
     container-type: inline-size;
     /* This makes toolbar select popups stay on top of tree view */
     z-index: 1;
+
+    @container (width < 750px) {
+        :global(.g-button__text), :global(.g-select-control__option-text) {
+            display: none;
+        }
+    }
 }
 
 @keyframes spin {
@@ -70,8 +76,13 @@
     margin: 0 4px;
 }
 
-.icon-button[disabled] {
-    opacity: 0.5;
+.icon-button {
+    --_--padding: 8px !important;
+    --_--icon-space: 12px !important;
+
+    &[disabled] {
+        opacity: 0.5;
+    }
 }
 
 .select-all-button {
