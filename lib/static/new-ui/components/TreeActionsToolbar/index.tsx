@@ -1,4 +1,4 @@
-import {Hotkey, Icon, Popover, Spin} from '@gravity-ui/uikit';
+import {Hotkey, Icon, Popover} from '@gravity-ui/uikit';
 import classNames from 'classnames';
 import {
     ArrowsRotateRight,
@@ -219,20 +219,15 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
                 />
             )}
             {isRunTestsAvailable && (
-                isRunning
-                    ? (
-                        <Spin size={'xs'} style={{marginRight: '6px'}}/>
-                    ) : (
-                        <IconButton
-                            className={styles.iconButton}
-                            icon={<Icon data={Play} height={14}/>}
-                            tooltip={<>Run {selectedOrVisible} ⋅ <Hotkey value="shift+r" view="light" /></>}
-                            text="Run"
-                            view={'flat'}
-                            onClick={handleRun}
-                            disabled={isRunning || !isInitialized}
-                        />
-                    )
+                <IconButton
+                    className={styles.iconButton}
+                    icon={<Icon data={Play} height={14}/>}
+                    tooltip={<>Run {selectedOrVisible} ⋅ <Hotkey value="shift+r" view="light" /></>}
+                    text="Run"
+                    view={'flat'}
+                    onClick={handleRun}
+                    disabled={isRunning || !isInitialized}
+                />
             )}
             {isRunTestsAvailable && hasRunTestOptions && <Popover
                 content={<div className={styles.runOptionsContainer}><ExtensionPoint name={ExtensionPointName.RunTestOptions}></ExtensionPoint></div>}
