@@ -1,7 +1,7 @@
 import React, {forwardRef, ReactNode, useCallback, useState} from 'react';
 
 import styles from './index.module.css';
-import {Button, ButtonProps, Icon, Popover, Spin} from '@gravity-ui/uikit';
+import {Button, ButtonProps, Icon, Popover} from '@gravity-ui/uikit';
 import {ArrowRotateRight, ChevronDown, Xmark} from '@gravity-ui/icons';
 import {thunkRunTest} from '@/static/modules/actions';
 import {useDispatch, useSelector} from 'react-redux';
@@ -63,7 +63,8 @@ export const RunTestButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, R
                 qa='run-test'
                 {...buttonProps}
             >
-                {isRunning ? <Spin size={'xs'} /> : <Icon data={ArrowRotateRight}/>}{buttonText === undefined ? 'Retry' : buttonText}
+                {isRunning ? 'Running' : <Icon data={ArrowRotateRight}/>}
+                {!isRunning && (buttonText === undefined ? 'Retry' : buttonText)}
                 {(repeatCount > 1) && <span className={styles.repeatCount}><Icon data={Xmark} size={12}/>{repeatCount}</span>}
                 {hotkey}
             </Button>
