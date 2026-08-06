@@ -158,6 +158,8 @@ export interface SuiteState {
     checkStatus: CheckStatus;
 }
 
+export type RunOptions = Record<string, string | null>;
+
 export interface BrowserState {
     shouldBeShown: boolean;
     retryIndex: number;
@@ -347,6 +349,7 @@ export interface State {
         baseHost: string;
     };
     running: boolean;
+    runOptions: RunOptions;
     repeatCount: number;
     repeatLeft: number;
     processing: boolean;

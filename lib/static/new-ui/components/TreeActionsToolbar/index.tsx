@@ -58,6 +58,7 @@ import ExtensionPoint, {getExtensionPointComponents} from '../../../components/e
 import {ExtensionPointName} from '../../constants/plugins';
 import * as plugins from '../../../modules/plugins';
 import {useIsRunning} from '@/static/new-ui/hooks/useIsRunning';
+import {useRunOptionsString} from '@/static/new-ui/hooks/useRunOptionsString';
 
 interface TreeActionsToolbarProps {
     onHighlightCurrentTest?: () => void;
@@ -70,7 +71,6 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
     const dispatch = useDispatch();
     const analytics = useAnalytics();
 
-    const repeatCount = useSelector(state => state.repeatCount);
     const rootSuiteIds = useSelector(state => state.tree.suites.allRootIds);
     const suitesStateById = useSelector(state => state.tree.suites.stateById);
     const browsersStateById = useSelector(state => state.tree.browsers.stateById);
@@ -79,6 +79,7 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
     const visibleBrowserIds: string[] = useSelector(getVisibleBrowserIds);
     const isInitialized = useSelector(getIsInitialized);
     const isRefreshTestsLoading = useSelector((state) => state.app.isRefreshTestsLoading);
+    const runOptionsString = useRunOptionsString();
 
     const isRunTestsAvailable = useSelector(state => state.app.availableFeatures)
         .find(feature => feature.name === RunTestsFeature.name);
@@ -235,11 +236,11 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
             >
                 <IconButton
                     className={styles.iconButton}
-                    selected={repeatCount > 1}
+                    selected={runOptionsString.length > 0}
                     view='flat'
                     disabled={isRunning || !isInitialized}
                     icon={<Icon data={GearPlay} height={14}/>}
-                    text="Options"
+                    text={(runOptionsString.length > 0) ? runOptionsString : 'Options'}
                     tooltip='View run options'
                     qa="tree-run-test-options"
                 />
