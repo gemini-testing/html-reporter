@@ -58,6 +58,7 @@ export interface TestResultWithGuiStatus extends Omit<PlaywrightTestResult, 'sta
 }
 
 const ANY_IMAGE_ENDING_REGEXP = new RegExp(Object.values(ImageTitleEnding).map(ending => `${ending}$`).join('|'));
+const SCREENSHOT_COMPARISON_ERROR_REGEXP = /Screenshot comparison failed|expect\(.*\)\.toHaveScreenshot\(expected\) failed$/;
 
 export const DEFAULT_DIFF_OPTIONS = {
     diffColor: '#ff00ff'
@@ -212,7 +213,7 @@ export class PlaywrightTestResultAdapter implements ReporterTestResult {
 
             if (/snapshot .*doesn't exist/.test(message) && message.includes('.png')) {
                 result.name = ErrorName.NO_REF_IMAGE;
-            } else if (message.includes('Screenshot comparison failed')) {
+            } else if (SCREENSHOT_COMPARISON_ERROR_REGEXP.test(message)) {
                 result.name = ErrorName.IMAGE_DIFF;
             }
 

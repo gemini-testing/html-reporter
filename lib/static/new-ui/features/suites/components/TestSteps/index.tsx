@@ -6,7 +6,7 @@ import {
 import {CircleExclamation, Paperclip, Cubes3Overlap} from '@gravity-ui/icons';
 import classNames from 'classnames';
 import React, {ReactNode, useCallback, useEffect} from 'react';
-import {connect, useDispatch, useSelector} from 'react-redux';
+import {connect, useDispatch, useSelector} from '@/static/new-ui/modules/react-redux';
 import {bindActionCreators} from 'redux';
 
 import {TreeViewItemIcon} from '@/static/new-ui/components/TreeViewItemIcon';
@@ -26,11 +26,12 @@ import {ScreenshotsTreeViewItem} from '@/static/new-ui/features/suites/component
 import {ErrorHandler} from '../../../error-handling/components/ErrorHandling';
 import {goToTimeInSnapshotsPlayer, setCurrentPlayerHighlightTime} from '@/static/modules/actions/snapshots';
 import {setCurrentStep} from '@/static/modules/actions';
-import {useNavigate} from 'react-router-dom';
+import {useNavigate} from 'react-router';
 import {getUrl} from '@/static/new-ui/utils/getUrl';
 import {Page} from '@/constants';
 import {getCurrentSuiteHash} from '@/static/new-ui/features/suites/components/SuitesPage/selectors';
 import {FocusedImageProvider} from './FocusedImageContext';
+import type {State} from '@/static/new-ui/types/store';
 
 type TestStepClickHandler = (item: {id: string}) => void
 
@@ -232,7 +233,7 @@ function TestStepsInternal(props: TestStepsProps): ReactNode {
         </ListContainerView>
     </FocusedImageProvider>;
 }
-export const TestSteps = connect(state => ({
+export const TestSteps = connect((state: State) => ({
     resultId: getCurrentResultId(state) ?? '',
     testSteps: getTestSteps(state),
     stepsExpandedById: getStepsExpandedById(state)

@@ -148,7 +148,6 @@ export class TestplaneToolAdapter implements ToolAdapter {
             browser: browsers,
             inspect,
             inspectBrk,
-            devtools = false,
             local = false,
             require: requireModules = []
         } = cliTool;
@@ -157,7 +156,7 @@ export class TestplaneToolAdapter implements ToolAdapter {
         const inspectMode = (inspect || inspectBrk) && {inspect, inspectBrk};
 
         return runner.run((collection) =>
-            this._tool.run(collection, {grep, sets, tag, browsers, inspectMode, devtools, replMode, local, requireModules})
+            this._tool.run(collection, {grep, sets, tag, browsers, inspectMode, replMode, local, requireModules})
         );
     }
 

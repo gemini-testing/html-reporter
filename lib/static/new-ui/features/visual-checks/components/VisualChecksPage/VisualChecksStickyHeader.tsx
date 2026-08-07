@@ -1,7 +1,7 @@
 import {LayersVertical, ListCheck, SquareDashed, ChevronsExpandToLines} from '@gravity-ui/icons';
 import {Button, Divider, Hotkey, Icon, Flex, Tooltip} from '@gravity-ui/uikit';
 import React, {ReactNode, useCallback, useEffect, useRef} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch, useSelector} from '@/static/new-ui/modules/react-redux';
 
 import {
     getAttempt,
@@ -27,7 +27,7 @@ import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
 import {useHotkey} from '@/static/new-ui/hooks/useHotkey';
 
 import {preloadImageEntity} from '../../../../../modules/utils/imageEntity';
-import {useNavigate} from 'react-router-dom';
+import {useNavigate} from 'react-router';
 import {RunTestButton} from '../../../../components/RunTest';
 import {IconButton} from '../../../../components/IconButton';
 import {getUrl} from '@/static/new-ui/utils/getUrl';

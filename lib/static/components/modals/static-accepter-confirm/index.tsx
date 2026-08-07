@@ -1,5 +1,5 @@
 import React, {KeyboardEvent, useEffect, useMemo, useRef, useState} from 'react';
-import {connect} from 'react-redux';
+import {connect} from '@/static/new-ui/modules/react-redux';
 import {bindActionCreators} from 'redux';
 import {pick} from 'lodash';
 import {Button, Card, Link, Text, TextArea} from '@gravity-ui/uikit';

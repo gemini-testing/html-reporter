@@ -1,6 +1,6 @@
 import React, {ChangeEvent, ReactNode, useCallback, useMemo, useRef, useState, useEffect, forwardRef, useImperativeHandle} from 'react';
 import {debounce} from 'lodash';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch, useSelector} from '@/static/new-ui/modules/react-redux';
 import {Hotkey, Icon, TextInput} from '@gravity-ui/uikit';
 import {FontCase, Xmark} from '@gravity-ui/icons';
 import classNames from 'classnames';

@@ -4,7 +4,7 @@ import classNames from 'classnames';
 import {ChevronUp} from '@gravity-ui/icons';
 
 import styles from './index.module.css';
-import {connect} from 'react-redux';
+import {connect} from '@/static/new-ui/modules/react-redux';
 import {State} from '@/static/new-ui/types/store';
 import {getSectionId} from '@/static/new-ui/features/suites/components/CollapsibleSection/utils';
 import {bindActionCreators} from 'redux';

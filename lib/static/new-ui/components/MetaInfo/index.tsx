@@ -3,7 +3,7 @@ import path from 'path';
 import {DefinitionList} from '@gravity-ui/uikit';
 import {isEmpty, isObject, mapValues, omitBy} from 'lodash';
 import React, {ReactNode} from 'react';
-import {connect} from 'react-redux';
+import {connect} from '@/static/new-ui/modules/react-redux';
 
 import {getRelativeUrl, getUrlWithBase, isUrl} from '@/common-utils';
 import {ResultEntity, State} from '@/static/new-ui/types/store';

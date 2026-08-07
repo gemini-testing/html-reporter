@@ -1,6 +1,5 @@
-import crypto from 'crypto';
+import SparkMD5 from 'spark-md5';
 import {isEmpty, pick} from 'lodash';
-import url from 'url';
 import type {AxiosRequestConfig} from 'axios';
 import {
     ERROR,
@@ -30,7 +29,13 @@ import type {
 import type {ReporterTestResult} from './adapters/test-result';
 
 export const getShortMD5 = (str: string): string => {
-    return crypto.createHash('md5').update(str, 'ascii').digest('hex').substr(0, 7);
+    let asciiString = '';
+
+    for (let index = 0; index < str.length; index++) {
+        asciiString += String.fromCharCode(str.charCodeAt(index) % 256);
+    }
+
+    return SparkMD5.hashBinary(asciiString).substring(0, 7);
 };
 
 const statusPriority: TestStatus[] = [
@@ -191,9 +196,13 @@ export const isUrl = (str: string): boolean => {
         return false;
     }
 
-    const parsedUrl = url.parse(str);
+    try {
+        const parsedUrl = new URL(str);
 
-    return !!parsedUrl.host && !!parsedUrl.protocol;
+        return Boolean(parsedUrl.host && parsedUrl.protocol);
+    } catch {
+        return false;
+    }
 };
 
 export const fetchFile = async <T = unknown>(url: string, options?: AxiosRequestConfig) : Promise<{data: T | null, status: number | string, error?: unknown}> => {

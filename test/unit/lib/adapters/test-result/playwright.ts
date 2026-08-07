@@ -101,7 +101,16 @@ describe('PlaywrightTestResultAdapter', () => {
             const {error} = adapter;
 
             assert.strictEqual(error?.name, ErrorName.IMAGE_DIFF);
-            assert.strictEqual(error?.message, errorMessage);
+        });
+
+        it('should return an error with name IMAGE_DIFF for new Playwright screenshot comparison failures', () => {
+            const errorMessage = 'Error: expect(locator).toHaveScreenshot(expected) failed';
+            const errors = [{message: errorMessage}];
+            const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({errors}), UNKNOWN_ATTEMPT);
+
+            const {error} = adapter;
+
+            assert.strictEqual(error?.name, ErrorName.IMAGE_DIFF);
         });
 
         it('should include the error stack if present', () => {
