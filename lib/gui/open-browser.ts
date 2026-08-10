@@ -20,6 +20,7 @@ const supportedChromiumBrowsers = [
     'Google Chrome',
     'Microsoft Edge',
     'Brave Browser',
+    'Arc',
     'Vivaldi',
     'Chromium',
     'Yandex'
