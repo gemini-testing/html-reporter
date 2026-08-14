@@ -3,22 +3,21 @@ import classNames from 'classnames';
 import React, {ReactNode, useCallback, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {matchPath, useLocation, useNavigate} from 'react-router-dom';
+import {Hotkey} from '@gravity-ui/uikit';
 
 import {getIsInitialized} from '@/static/new-ui/store/selectors';
 import {SettingsPanel} from '@/static/new-ui/components/SettingsPanel';
 import {HotkeysPanel} from '@/static/new-ui/components/HotkeysPanel';
 import TestplaneIcon from '../../../icons/testplane-mono.svg';
-import TreeFull from '@/static/icons/TreeFull';
-import TreeHide from '@/static/icons/TreeHide';
-import TreeShow from '@/static/icons/TreeShow';
+import {TreeFull, TreeHide, TreeShow} from './tree-icons';
 import styles from './index.module.css';
 import {Footer} from './Footer';
 import {EmptyReportCard} from '@/static/new-ui/components/Card/EmptyReportCard';
 import {InfoPanel} from '@/static/new-ui/components/InfoPanel';
 import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
 import {useHotkey} from '@/static/new-ui/hooks/useHotkey';
-import {setSectionSizes} from '../../../modules/actions/suites-page';
-import {Hotkey} from '@gravity-ui/uikit';
+import {isSectionHidden} from '@/static/new-ui/features/suites/utils';
+import {setSectionSizes} from '@/static/modules/actions';
 
 import {Page, PathNames} from '@/constants';
 
@@ -85,7 +84,7 @@ export function MainLayout(props: MainLayoutProps): ReactNode {
             onItemClick: (): void => {
                 dispatch(setSectionSizes({sizes: [100, 0], page: activePage}));
             },
-            current: activeSectionSizes[0] > 99,
+            current: isSectionHidden(activeSectionSizes[1]),
             qa: 'tree-full'
         },
         {
@@ -96,7 +95,7 @@ export function MainLayout(props: MainLayoutProps): ReactNode {
             onItemClick: (): void => {
                 dispatch(setSectionSizes({sizes: activeBackupSectionSizes, page: activePage}));
             },
-            current: activeSectionSizes[0] < 99 && activeSectionSizes[0] > 1,
+            current: !isSectionHidden(activeSectionSizes[0]) && !isSectionHidden(activeSectionSizes[1]),
             qa: 'tree-show'
         },
         {
@@ -107,7 +106,7 @@ export function MainLayout(props: MainLayoutProps): ReactNode {
             onItemClick: (): void => {
                 dispatch(setSectionSizes({sizes: [0, 100], page: activePage}));
             },
-            current: activeSectionSizes[0] < 1,
+            current: isSectionHidden(activeSectionSizes[0]),
             qa: 'tree-collapse'
         }
     ];
@@ -139,6 +138,7 @@ export function MainLayout(props: MainLayoutProps): ReactNode {
         }
         let sizes: number[];
         if (activeSectionSizes[0] === 100) {
+            console.log('DEBUG activeBackupSectionSizes', activeBackupSectionSizes);
             sizes = activeBackupSectionSizes;
         } else if (activeSectionSizes[0] === 0) {
             sizes = [100, 0];
