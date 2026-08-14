@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="11.15.0"></a>
+# 11.15.0 (2026-08-14)
+
+
+### Bug Fixes
+
+* tree switch ([a6f95b7](https://github.com/gemini-testing/html-reporter/commit/a6f95b7))
+
+
+
 <a name="11.14.3"></a>
 ## 11.14.3 (2026-08-10)
 
