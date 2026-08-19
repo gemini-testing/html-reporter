@@ -143,7 +143,7 @@ export const buildTreeBottomUp = (entitiesContext: EntitiesContext, entities: (S
         }
 
         const nodePartialId = treeViewMode === TreeViewMode.Tree
-            ? (isBrowserEntity(entity) ? entity.name : entity.suitePath[entity.suitePath.length - 1])
+            ? ((isBrowserEntity(entity) || !entity.suitePath) ? entity.name : entity.suitePath[entity.suitePath.length - 1])
             : entity.id;
         const currentId = parentNode.data ? `${parentNode.data.id}/${nodePartialId}` : nodePartialId;
         if (cache[currentId]) {
