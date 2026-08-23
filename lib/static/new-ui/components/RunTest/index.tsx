@@ -2,9 +2,9 @@ import React, {forwardRef, ReactNode, useCallback, useState} from 'react';
 
 import styles from './index.module.css';
 import {Button, ButtonProps, Icon, Popover} from '@gravity-ui/uikit';
-import {ArrowRotateRight, ChevronDown, Xmark} from '@gravity-ui/icons';
+import {ArrowRotateRight, ChevronDown} from '@gravity-ui/icons';
 import {thunkRunTest} from '@/static/modules/actions';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch} from 'react-redux';
 import {RunTestsFeature} from '@/constants';
 import {useAnalytics} from '../../hooks/useAnalytics';
 import type {BrowserEntity} from '@/static/new-ui/types/store';
@@ -14,6 +14,7 @@ import ExtensionPoint, {getExtensionPointComponents} from '../../../components/e
 import * as plugins from '../../../modules/plugins';
 import {ExtensionPointName} from '../../constants/plugins';
 import {useIsRunning} from '@/static/new-ui/hooks/useIsRunning';
+import {useRunOptionsString} from '@/static/new-ui/hooks/useRunOptionsString';
 
 interface RunTestProps {
     browser: BrowserEntity | null;
@@ -26,7 +27,7 @@ interface RunTestProps {
 export const RunTestButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, RunTestProps>(
     ({browser, buttonProps, buttonText, hotkey, className}, ref) => {
         const isRunning = useIsRunning();
-        const repeatCount = useSelector(state => state.repeatCount);
+        const runOptionsString = useRunOptionsString();
 
         const analytics = useAnalytics();
         const dispatch = useDispatch();
@@ -65,7 +66,7 @@ export const RunTestButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, R
             >
                 {isRunning ? 'Running' : <Icon data={ArrowRotateRight}/>}
                 {!isRunning && (buttonText === undefined ? 'Retry' : buttonText)}
-                {(repeatCount > 1) && <span className={styles.repeatCount}><Icon data={Xmark} size={12}/>{repeatCount}</span>}
+                {(runOptionsString.length > 0) && <span className={styles.runOptions}>{runOptionsString}</span>}
                 {hotkey}
             </Button>
             {hasRunTestOptions && <Popover

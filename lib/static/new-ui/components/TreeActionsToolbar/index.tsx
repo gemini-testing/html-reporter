@@ -16,7 +16,7 @@ import {
     SquareDashed,
     SquareMinus
 } from '@gravity-ui/icons';
-import React, {ReactNode, useCallback, useMemo} from 'react';
+import React, {ReactNode, useCallback, useMemo, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import styles from './index.module.css';
@@ -58,6 +58,7 @@ import ExtensionPoint, {getExtensionPointComponents} from '../../../components/e
 import {ExtensionPointName} from '../../constants/plugins';
 import * as plugins from '../../../modules/plugins';
 import {useIsRunning} from '@/static/new-ui/hooks/useIsRunning';
+import {useRunOptionsString} from '@/static/new-ui/hooks/useRunOptionsString';
 
 interface TreeActionsToolbarProps {
     onHighlightCurrentTest?: () => void;
@@ -69,8 +70,8 @@ const ANALYTICS_PREFIX = 'Tree actions toolbar:';
 export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActionsToolbarProps): ReactNode {
     const dispatch = useDispatch();
     const analytics = useAnalytics();
+    const extensionsRef = useRef<HTMLDivElement>(null);
 
-    const repeatCount = useSelector(state => state.repeatCount);
     const rootSuiteIds = useSelector(state => state.tree.suites.allRootIds);
     const suitesStateById = useSelector(state => state.tree.suites.stateById);
     const browsersStateById = useSelector(state => state.tree.browsers.stateById);
@@ -79,6 +80,7 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
     const visibleBrowserIds: string[] = useSelector(getVisibleBrowserIds);
     const isInitialized = useSelector(getIsInitialized);
     const isRefreshTestsLoading = useSelector((state) => state.app.isRefreshTestsLoading);
+    const runOptionsString = useRunOptionsString();
 
     const isRunTestsAvailable = useSelector(state => state.app.availableFeatures)
         .find(feature => feature.name === RunTestsFeature.name);
@@ -207,6 +209,11 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
 
     const getViewButtons = (): ReactNode => (
         <>
+            {!extensionsRef?.current && (
+                <div style={{display: 'none'}} ref={extensionsRef}>
+                    <ExtensionPoint name={ExtensionPointName.RunTestOptions}></ExtensionPoint>
+                </div>
+            )}
             {isRunTestsAvailable && (
                 <IconButton
                     className={styles.iconButton}
@@ -235,11 +242,11 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
             >
                 <IconButton
                     className={styles.iconButton}
-                    selected={repeatCount > 1}
+                    selected={runOptionsString.length > 0}
                     view='flat'
                     disabled={isRunning || !isInitialized}
                     icon={<Icon data={GearPlay} height={14}/>}
-                    text="Options"
+                    text={(runOptionsString.length > 0) ? runOptionsString : 'Options'}
                     tooltip='View run options'
                     qa="tree-run-test-options"
                 />

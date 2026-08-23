@@ -9,10 +9,10 @@
     padding-right: 4px;
 }
 
-.repeat-count {
+.run-options {
     display: flex;
     align-items: center;
-    opacity: 0.5;
+    opacity: 0.7;
 }
 
 .run-options-button::before {
