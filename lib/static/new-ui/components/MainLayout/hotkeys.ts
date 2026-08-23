@@ -28,6 +28,7 @@ export const HOTKEYS_GROUPS: HotkeysGroup[] = [
             {title: 'Next attempt', value: '→'},
             {title: 'Run current test', value: 'r'},
             {title: 'Run all/selected tests', value: 'shift+r'},
+            {title: 'Stop all tests', value: 's'},
             {title: 'Accept screenshot', value: 'a'},
             {title: 'Undo accept', value: 'u'},
             {title: 'Accept all/selected', value: 'shift+a'},
