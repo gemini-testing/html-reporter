@@ -4,7 +4,7 @@ export const useRunOptionsString = (): string => useSelector((state) => {
     const opts: string[] = [];
 
     if (state.repeatCount > 1) {
-        opts.push(`x${state.repeatCount}`);
+        opts.push(`×${state.repeatCount}`);
     }
 
     Object.values(state.runOptions).forEach((value) => {
