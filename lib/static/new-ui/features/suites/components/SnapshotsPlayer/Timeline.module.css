@@ -1,5 +1,5 @@
 .player-time {
-    color: rgba(0, 0, 0, 0.5);
+    color: var(--g-color-text-hint);
     font-size: 12px;
     text-align: center;
     width: 34px;
@@ -92,7 +92,7 @@
     left: 50%;
     top: 50%;
     translate: -50% -50%;
-    background: linear-gradient(90deg, transparent, white 45%, white 55%, transparent);
+    background: linear-gradient(90deg, transparent, var(--g-color-base-background) 45%, var(--g-color-base-background) 55%, transparent);
     width: 290px;
     display: flex;
     justify-content: center;
@@ -130,7 +130,7 @@
      position: absolute;
      right: 0;
      height: 100%;
-     background-color: #3c00b4;
+     background-color: var(--g-color-base-brand);
      animation: progress-pulse 2s ease infinite;
  }
 

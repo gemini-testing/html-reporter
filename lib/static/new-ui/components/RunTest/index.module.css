@@ -5,8 +5,13 @@
 }
 
 .retry-button {
-    composes: regular-button from global, action-button from global;
+    composes: regular-button from global;
     padding-right: 4px;
+}
+
+.buttons-container :global(.g-button_view_action) {
+    --g-color-line-brand: var(--g-color-text-hint);
+    --_--text-color: var(--g-color-private-white-950);
 }
 
 .run-options {

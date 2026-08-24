@@ -31,7 +31,7 @@
 
 .message-container {
     position: relative;
-    color: white;
+    color: var(--g-color-text-light-primary);
     font-weight: 450;
     flex-grow: 1;
     display: flex;
@@ -75,7 +75,7 @@
     position: absolute;
     right: 0;
     height: 100%;
-    background-color: #5500ff;
+    background-color: var(--g-color-base-brand);
     animation: progress-pulse 2s ease infinite;
 }
 

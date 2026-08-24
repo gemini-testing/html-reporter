@@ -24,7 +24,7 @@
 .hint code {
     font-size: 12px;
     background: var(--g-color-base-generic);
-    color: var(--g-color-private-black-400);
+    color: var(--g-color-text-secondary);
     padding: 2px 2px;
     border-radius: 4px;
 }

@@ -1,11 +1,11 @@
 import {ArrowUturnCcwLeft} from '@gravity-ui/icons';
-import {Button, Icon, Select, TextInput} from '@gravity-ui/uikit';
+import {Button, Icon, SegmentedRadioGroup, TextInput} from '@gravity-ui/uikit';
 import classNames from 'classnames';
 import React, {ReactNode, useCallback} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {TimeTravelFeature, HIDE_TREE_VIEW_SCREENSHOTS, DISABLE_TREE_SCREENSHOTS_MAGNIFIER} from '@/constants';
-import {LocalStorageKey, UiMode} from '@/constants/local-storage';
+import {LocalStorageKey, UiMode, Theme} from '@/constants/local-storage';
 import * as actions from '@/static/modules/actions';
 import useLocalStorage from '@/static/hooks/useLocalStorage';
 import {AsidePanel} from '@/static/new-ui/components/AsidePanel';
@@ -25,6 +25,7 @@ export function SettingsPanel(): ReactNode {
     const analytics = useAnalytics();
     const [isHideScreenshots, setHideTreeViewScreenshots] = useLocalStorage(HIDE_TREE_VIEW_SCREENSHOTS, false);
     const [isTreeMagnifierDisabled, setTreeMagnifierDisabled] = useLocalStorage(DISABLE_TREE_SCREENSHOTS_MAGNIFIER, false);
+    const [theme, setTheme] = useLocalStorage(LocalStorageKey.Theme, Theme.Light);
 
     const baseHost = useSelector(state => state.view.baseHost);
 
@@ -77,8 +78,24 @@ export function SettingsPanel(): ReactNode {
     );
 
     sections.push(
-        <PanelSection key="theme" title={'Theme'} description={'Currently only light theme is available — stay tuned for night mode.'}>
-            <Select className={classNames(styles.settingControl, 'regular-button')} value={['Light']} width={'max'} disabled={true}/>
+        <PanelSection
+            key="theme"
+            title="Theme"
+            description="Currently only light theme is available — stay tuned for night mode."
+        >
+            <SegmentedRadioGroup
+                disabled
+                className={styles.settingControl}
+                value={theme}
+                onUpdate={(value: Theme): void => setTheme(value)}
+                width={'max'}
+                qa="theme-selector"
+                options={[
+                    {value: Theme.System, content: 'System'},
+                    {value: Theme.Light, content: 'Light'},
+                    {value: Theme.Dark, content: 'Dark'}
+                ]}
+            />
         </PanelSection>
     );
 

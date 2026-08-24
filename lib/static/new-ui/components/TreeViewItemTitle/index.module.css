@@ -27,8 +27,6 @@
     margin: -2px 0;
     z-index: 1;
     border-radius: 6px;
-    box-shadow: 0 0 7px 10px var(--background-color, rgb(242 242 242));
-    background: var(--background-color, rgb(242 242 242));
 }
 
 .actions-container {
@@ -59,7 +57,7 @@
     --color-link: var(--g-color-text-primary) !important;
     --g-button-text-color: var(--g-color-text-primary);
     --g-button-text-color-hover: var(--g-color-text-primary);
-    --g-button-background-color-hover: rgba(0, 0, 0, 0.06);
+    --g-button-background-color-hover: var(--g-color-base-simple-hover);
 }
 
 .action-button--disabled {
@@ -73,8 +71,8 @@
 }
 
 :global(.current-tree-node) .action-button {
-    --g-button-text-color: white;
-    --g-button-text-color-hover: white;
+    --g-button-text-color: var(--g-color-text-light-primary);
+    --g-button-text-color-hover: var(--g-color-text-light-primary);
     --g-button-background-color-hover: rgba(0, 0, 0, 0.06);
 }
 .checkboxWrapper {
@@ -90,7 +88,11 @@
     background-color: var(--g-color-private-red-50);
 }
 
-.checkboxWrapper:hover, :global(.current-tree-node) .checkboxWrapper:hover {
+.checkboxWrapper:hover {
+    background-color: var(--g-color-base-simple-hover);
+}
+
+:global(.current-tree-node) .checkboxWrapper:hover {
     background-color: rgba(0, 0, 0, 0.06);
 }
 
@@ -100,7 +102,7 @@
 }
 
 .checkbox svg {
-    color: white !important;
+    color: var(--g-color-text-light-primary) !important;
 }
 
 .tree-view-item__error-title {
@@ -137,7 +139,7 @@
     margin-right: 8px;
     white-space: nowrap;
     border-radius: 4px;
-    color: var(--g-color-private-black-400);
+    color: var(--g-color-text-secondary);
     background-color: var(--g-color-base-generic);
     padding: 0 4px;
 }

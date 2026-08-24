@@ -11,7 +11,7 @@
     padding: 8px;
     font-family: monospace;
     font-size: 13px;
-    border: 1px solid #ff000024;
+    border: 1px solid color-mix(in srgb, var(--g-color-private-red-500-solid) 15%, transparent);
 
     background-color: var(--g-color-private-red-50);
     z-index: 10;

@@ -877,9 +877,7 @@ a:active {
 .g-root {
     --g-color-text-danger-heavy: #e9043a;
     --g-color-text-brand-heavy: var(--g-color-private-color-550-solid);
-}
 
-.g-root_theme_light {
     --g-color-base-brand: var(--g-color-private-color-550-solid);
     --g-color-base-brand-hover: var(--g-color-private-color-450-solid);
     --g-color-base-selection: var(--g-color-private-color-100);
@@ -889,7 +887,6 @@ a:active {
     --g-color-text-link: var(--g-color-private-color-300);
     --g-color-text-link-hover: var(--g-color-private-color-500);
     --gn-aside-header-decoration-collapsed-background-color: var(--g-color-private-color-150);
-    --g-color-text-brand-contrast: var(--g-color-private-color-50-solid);
 
     --g-color-private-color-50: rgba(108,71,255,0.1);
     --g-color-private-color-100: rgba(108,71,255,0.15);
@@ -922,8 +919,6 @@ a:active {
     --g-color-private-color-900-solid: rgb(64,52,112);
     --g-color-private-color-950-solid: rgb(58,49,92);
     --g-color-private-color-1000-solid: rgb(54,48,82);
-
-    --g-divider-color: rgb(242 242 242);
 }
 
 .split {

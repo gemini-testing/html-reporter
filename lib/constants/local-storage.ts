@@ -1,6 +1,13 @@
 export enum LocalStorageKey {
     UIMode = 'ui-mode',
-    TimeTravelUseRecommendedSettings = 'time-travel-use-recommended-settings'
+    TimeTravelUseRecommendedSettings = 'time-travel-use-recommended-settings',
+    Theme = 'app.theme',
+}
+
+export enum Theme {
+    System = 'system',
+    Light = 'light',
+    Dark = 'dark',
 }
 
 export const TIME_TRAVEL_PLAYER_VISIBILITY_KEY = 'time-travel-player-visibility';
