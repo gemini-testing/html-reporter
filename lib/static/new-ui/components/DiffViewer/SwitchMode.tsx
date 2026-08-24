@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, {ReactNode, useState} from 'react';
+import React, {MouseEventHandler, ReactNode, useState} from 'react';
 
 import {Screenshot} from '@/static/new-ui/components/Screenshot';
 import {ImageFile} from '@/types';
@@ -18,14 +18,15 @@ export function SwitchMode(props: SwitchModeProps): ReactNode {
 
     const [isExpectedHidden, setIsExpectedHidden] = useState(true);
 
-    const onClickHandler = (): void=> {
+    const onClickHandler: MouseEventHandler = (e): void=> {
         setIsExpectedHidden(!isExpectedHidden);
+        e.stopPropagation();
     };
 
     const wrapperStyle = {'--max-natural-width': maxNaturalWidth, '--max-natural-height': maxNaturalHeight} as React.CSSProperties;
 
-    return <div className={classNames(commonStyles.imagesContainer, styles.switchMode)} onClick={onClickHandler} style={wrapperStyle}>
-        <Screenshot containerClassName={classNames(commonStyles.screenshotContainer, {[styles['image--hidden']]: isExpectedHidden})} imageClassName={styles.image} image={expected} />
-        <Screenshot containerClassName={classNames(commonStyles.screenshotContainer, styles.screenshotContainer, {[styles['image--hidden']]: !isExpectedHidden})} imageClassName={styles.image} image={actual} />
+    return <div className={classNames(commonStyles.imagesContainer, styles.switchMode, 'image-outline')} onClick={onClickHandler} style={wrapperStyle}>
+        <Screenshot stopClickPropagation={false} containerClassName={classNames(commonStyles.screenshotContainer, {[styles['image--hidden']]: isExpectedHidden})} imageClassName={styles.image} image={expected} />
+        <Screenshot stopClickPropagation={false} containerClassName={classNames(commonStyles.screenshotContainer, styles.screenshotContainer, {[styles['image--hidden']]: !isExpectedHidden})} imageClassName={styles.image} image={actual} />
     </div>;
 }

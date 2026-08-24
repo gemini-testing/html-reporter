@@ -1,5 +1,6 @@
 .screenshot {
     padding-right: 1px;
+    width: fit-content;
 }
 
 .screenshot-container {

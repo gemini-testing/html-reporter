@@ -1,4 +1,4 @@
-import React, {createContext, useContext, useState, useCallback, ReactNode, useEffect} from 'react';
+import React, {createContext, useContext, useState, useCallback, ReactNode} from 'react';
 
 interface FocusedImageContextValue {
     focusedImageId: string | null;
@@ -30,12 +30,6 @@ export function FocusedImageProvider({children}: FocusedImageProviderProps): Rea
     const unregisterImageId = useCallback((id: string) => {
         setImageIds(prev => prev.filter(imageId => imageId !== id));
     }, []);
-
-    useEffect(() => {
-        if (imageIds.length > 0 && (focusedImageId === null || !imageIds.includes(focusedImageId))) {
-            setFocusedImageId(imageIds[0]);
-        }
-    }, [imageIds, focusedImageId]);
 
     return (
         <FocusedImageContext.Provider value={{

@@ -1,5 +1,5 @@
-import {ArrowRightArrowLeft, ArrowUturnCcwLeft, Check, LayersVertical, ListCheck, SquareDashed, ChevronsExpandToLines} from '@gravity-ui/icons';
-import {Button, Divider, Hotkey, Icon, Select, Flex, Tooltip} from '@gravity-ui/uikit';
+import {LayersVertical, ListCheck, SquareDashed, ChevronsExpandToLines} from '@gravity-ui/icons';
+import {Button, Divider, Hotkey, Icon, Flex, Tooltip} from '@gravity-ui/uikit';
 import React, {ReactNode, useCallback, useEffect, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -14,19 +14,15 @@ import {
 import {SuiteTitle} from '@/static/new-ui/components/SuiteTitle';
 import styles from './index.module.css';
 import {CompactAttemptPicker} from '@/static/new-ui/components/CompactAttemptPicker';
-import {DiffModeId, EditScreensFeature, RunTestsFeature, TwoUpFitMode} from '@/constants';
-import {getAvailableDiffModes} from '@/static/new-ui/utils/diffModes';
+import {RunTestsFeature, TwoUpFitMode} from '@/constants';
+import {DiffModeSelector} from '@/static/new-ui/components/DiffModeSelector';
 import {
-    staticAccepterStageScreenshot,
-    staticAccepterUnstageScreenshot,
     toggle2UpDiffVisibility,
     set2UpFitMode,
     thunkRunTest
 } from '@/static/modules/actions';
-import {setVisualChecksDiffMode} from '@/static/modules/actions/visual-checks-page';
-import {isAcceptable, isScreenRevertable} from '@/static/modules/utils';
+import {isAcceptable} from '@/static/modules/utils';
 import {AssertViewStatus} from '@/static/new-ui/components/AssertViewStatus';
-import {thunkAcceptImages, thunkRevertImages} from '@/static/modules/actions/screenshots';
 import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
 import {useHotkey} from '@/static/new-ui/hooks/useHotkey';
 
@@ -40,6 +36,7 @@ import {TreeViewData} from '@/static/new-ui/components/TreeView';
 import {TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
 import {getCurrentImageSuiteHash} from '@/static/new-ui/features/visual-checks/components/VisualChecksPage/selectors';
 import {useIsRunning} from '@/static/new-ui/hooks/useIsRunning';
+import {AcceptButton} from '@/static/new-ui/components/AcceptButton';
 
 interface VisualChecksStickyHeaderProps {
     currentNamedImage: NamedImageEntity | null;
@@ -122,9 +119,6 @@ export function VisualChecksStickyHeader({currentNamedImage, treeData, onImageCh
     const diffMode = useSelector(state => state.app.visualChecksPage.diffMode);
     const is2UpDiffVisible = useSelector(state => state.ui.visualChecksPage.is2UpDiffVisible);
     const twoUpFitMode = useSelector(state => state.ui.visualChecksPage.twoUpFitMode);
-    const onChangeHandler = (diffModeId: DiffModeId): void => {
-        dispatch(setVisualChecksDiffMode(diffModeId));
-    };
     const onToggle2UpDiffVisibility = (): void => {
         analytics?.trackFeatureUsage({featureName: 'Toggle 2-up diff visibility'});
         dispatch(toggle2UpDiffVisibility(!is2UpDiffVisible));
@@ -135,51 +129,12 @@ export function VisualChecksStickyHeader({currentNamedImage, treeData, onImageCh
         dispatch(set2UpFitMode(newFitMode));
     };
 
-    const isStaticImageAccepterEnabled = useSelector(state => state.staticImageAccepter.enabled);
-    const isEditScreensAvailable = useSelector(state => state.app.availableFeatures)
-        .find(feature => feature.name === EditScreensFeature.name);
     const isRunning = useIsRunning();
     const isProcessing = useSelector(state => state.processing);
-    const isGui = useSelector(state => state.gui);
-
-    const onScreenshotAccept = useCallback((): void => {
-        if (!currentImage || !isAcceptable(currentImage)) {
-            return;
-        }
-        analytics?.trackScreenshotsAccept();
-
-        if (isStaticImageAccepterEnabled) {
-            dispatch(staticAccepterStageScreenshot([currentImage.id]));
-        } else {
-            dispatch(thunkAcceptImages({imageIds: [currentImage.id]}));
-        }
-
-        const nextAcceptable = findNextAcceptableImage(currentNamedImageIndex + 1);
-        if (nextAcceptable) {
-            onImageChange(nextAcceptable);
-        }
-    }, [currentImage, isStaticImageAccepterEnabled, analytics, dispatch, findNextAcceptableImage, currentNamedImageIndex, onImageChange]);
-
-    const onScreenshotUndo = useCallback((): void => {
-        if (!currentImage) {
-            return;
-        }
-
-        if (isStaticImageAccepterEnabled) {
-            dispatch(staticAccepterUnstageScreenshot([currentImage.id]));
-        } else {
-            dispatch(thunkRevertImages({imageIds: [currentImage.id]}));
-        }
-    }, [currentImage, isStaticImageAccepterEnabled, dispatch]);
 
     const currentBrowser = useSelector(getCurrentBrowser);
-
     const currentResultId = currentImage?.parentId;
     const isLastResult = Boolean(currentResultId && currentBrowser && currentResultId === currentBrowser.resultIds[currentBrowser.resultIds.length - 1]);
-    const isUndoAvailable = isScreenRevertable({gui: isGui, image: currentImage ?? {}, isLastResult, isStaticImageAccepterEnabled});
-    const isAcceptDisabled = isRunning || isProcessing || !currentImage || !isAcceptable(currentImage);
-    const isAcceptEnabled = Boolean(isEditScreensAvailable) && !isAcceptDisabled && !isUndoAvailable;
-    const isUndoEnabled = Boolean(isEditScreensAvailable) && isUndoAvailable && !isRunning && !isProcessing;
 
     const isRunTestsAvailable = Boolean(useSelector(state => state.app.availableFeatures)
         .find(feature => feature.name === RunTestsFeature.name));
@@ -203,10 +158,14 @@ export function VisualChecksStickyHeader({currentNamedImage, treeData, onImageCh
         }
     }, [currentNamedImage, navigate, hash, attempt]);
 
-    useHotkey('a', onScreenshotAccept, {enabled: isAcceptEnabled});
-    useHotkey('enter', onScreenshotAccept, {enabled: isAcceptEnabled});
-    useHotkey(' ', onScreenshotAccept, {enabled: isAcceptEnabled});
-    useHotkey('u', onScreenshotUndo, {enabled: isUndoEnabled});
+    const onAccept = useCallback((): void => {
+        const nextAcceptable = findNextAcceptableImage(currentNamedImageIndex + 1);
+
+        if (nextAcceptable) {
+            onImageChange(nextAcceptable);
+        }
+    }, [currentNamedImageIndex, onImageChange]);
+
     useHotkey('r', onRunTest, {enabled: isRunTestsAvailable && !isRunning});
     useHotkey('g', onSuites, {enabled: Boolean(currentNamedImage) && !isRunning && !isProcessing});
 
@@ -230,11 +189,7 @@ export function VisualChecksStickyHeader({currentNamedImage, treeData, onImageCh
                 <AssertViewStatus image={currentImage}/>
                 <Divider orientation={'vertical'}/>
                 <Flex gap={2}>
-                    <Select className={styles.diffModeSelect} qa="visual-checks-diff-mode-select" label={<Icon data={ArrowRightArrowLeft}/> as unknown as string} value={[diffMode]} onUpdate={([diffMode]): void => onChangeHandler(diffMode as DiffModeId)} multiple={false}>
-                        {getAvailableDiffModes(Page.visualChecksPage).map(diffMode =>
-                            <Select.Option value={diffMode.id} content={diffMode.title} title={diffMode.description} key={diffMode.id}/>
-                        )}
-                    </Select>
+                    <DiffModeSelector className={styles.diffModeSelect} qa="diff-mode-select" />
                     {diffMode === '2-up-interactive' && (
                         <>
                             <IconButton
@@ -281,36 +236,14 @@ export function VisualChecksStickyHeader({currentNamedImage, treeData, onImageCh
                             />
                         </Tooltip>
                     )}
-                    {isEditScreensAvailable && (
-                        <>
-                            {isUndoAvailable && (
-                                <Button
-                                    view="action"
-                                    className={styles.acceptButton}
-                                    disabled={isRunning || isProcessing}
-                                    onClick={onScreenshotUndo}
-                                    qa="undo-button"
-                                >
-                                    <Icon data={ArrowUturnCcwLeft}/>Undo<Hotkey className={styles.hotkey} view="dark" value="u" />
-                                </Button>
-                            )}
-                            {!isUndoAvailable && (
-                                <Tooltip
-                                    content={<>Accept ⋅ <Hotkey value="a" view="light" /></>}
-                                    placement={'top'} openDelay={0} disabled={isRunning} key={isRunning.toString()}
-                                >
-                                    <Button
-                                        view={'action'}
-                                        className={styles.acceptButton}
-                                        disabled={isRunning || isProcessing || !currentImage || !isAcceptable(currentImage)}
-                                        onClick={onScreenshotAccept}
-                                        qa="accept-button"
-                                    >
-                                        <Icon data={Check}/>Accept<Hotkey className={styles.hotkey} view="dark" value="a" />
-                                    </Button>
-                                </Tooltip>
-                            )}
-                        </>
+                    {currentImage && (
+                        <AcceptButton
+                            className={styles.actionButton}
+                            imageId={currentImage.id}
+                            isFocused
+                            onAccept={onAccept}
+                            isLastResult={isLastResult}
+                        />
                     )}
                 </Flex>
             </div>

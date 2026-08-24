@@ -16,6 +16,7 @@ interface TwoUpInteractiveModeProps {
     diff?: ImageFile;
     differentPixels?: number;
     diffRatio?: number;
+    labelClassName?: string;
 }
 
 interface TwoUpInteractiveModePureProps extends TwoUpInteractiveModeProps {
@@ -59,7 +60,7 @@ export function TwoUpInteractiveModePure(props: TwoUpInteractiveModePureProps): 
         <ViewportContext.Provider value={viewportContextValue}>
             <div className={styles.twoUpInteractiveMode} data-testid="two-up-interactive-mode">
                 <div className={styles.sideContainer}>
-                    <ImageLabel title={'Expected'} subtitle={getImageDisplayedSize(props.expected)} />
+                    <ImageLabel className={props.labelClassName} title={'Expected'} subtitle={getImageDisplayedSize(props.expected)} />
                     <div className={styles.imagePanel} data-testid="image-panel-expected">
                         <InteractiveScreenshot
                             image={props.expected}
@@ -71,7 +72,7 @@ export function TwoUpInteractiveModePure(props: TwoUpInteractiveModePureProps): 
                 </div>
                 <div className={styles.divider} />
                 <div className={styles.sideContainer}>
-                    <ImageLabel title={'Actual'} subtitle={actualImageSubtitle} />
+                    <ImageLabel className={props.labelClassName} title={'Actual'} subtitle={actualImageSubtitle} />
                     <div className={styles.imagePanel} data-testid="image-panel-actual">
                         <InteractiveScreenshot
                             image={props.actual}

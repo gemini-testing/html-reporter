@@ -20,10 +20,6 @@
     composes: regular-button from global;
 }
 
-.accept-button {
-    composes: regular-button from global, action-button from global;
-}
-
 .buttons-container {
     display: flex;
     overflow: hidden;
@@ -57,31 +53,6 @@
     }
 }
 
-.diff-mode-container {
-    container-type: inline-size;
-    flex-grow: 1;
-    display: flex;
-    min-width: 100px;
-}
-
-.diff-mode-switcher {
-    --g-color-base-background: var(--g-color-base-float);
-}
-
-.diff-mode-select {
-    display: none;
-}
-
-@container (max-width: 500px) {
-    .diff-mode-switcher {
-        display: none !important;
-    }
-
-    .diff-mode-select {
-        display: block;
-    }
-}
-
 .hotkey, .hotkey-hidden {
     margin-left: 4px;
 }
@@ -90,6 +61,6 @@
     opacity: 0;
 }
 
-.accept-button, .go-to-visual {
+.go-to-visual {
     padding-right: 4px;
 }

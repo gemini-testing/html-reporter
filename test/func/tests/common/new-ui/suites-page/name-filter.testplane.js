@@ -15,8 +15,9 @@ if (process.env.TOOL === 'testplane') {
                         await searchInput.waitForClickable();
                     });
 
-                    it('tag', async () => {
+                    it('tag', async ({browser}) => {
                         await searchInput.setValue('@ok-test');
+                        await browser.$('[data-list-item="failed describe/successfully passed test"]').waitForDisplayed();
                     });
 
                     it('click to tag', async ({browser}) => {
@@ -27,35 +28,35 @@ if (process.env.TOOL === 'testplane') {
                         await tagElement.click();
                     });
 
-                    it('usual search', async () => {
-                        await searchInput.setValue('failed');
+                    it('usual search', async ({browser}) => {
+                        await searchInput.setValue('failed describe test without screenshot');
+                        await browser.$('[data-list-item="failed describe/test without screenshot"]').waitForDisplayed();
                     });
 
-                    it('empty text', async () => {
+                    it('empty text', async ({browser}) => {
                         await searchInput.setValue('');
+                        const allCcountElement = await browser.$('[data-qa="all-count"]');
+                        await expect(allCcountElement).toHaveText('9');
                     });
 
-                    it('empty result', async () => {
+                    it('empty result', async ({browser}) => {
                         await searchInput.setValue('not found');
+                        await browser.$('[data-qa="empty-results"]').waitForDisplayed();
+                        await browser.$('[data-qa="all-count"]').waitForDisplayed();
                     });
 
-                    it('match case', async () => {
+                    it('match case', async ({browser}) => {
                         await matchCaseButton.click();
                         await searchInput.setValue('FAILED');
+                        await browser.$('[data-qa="empty-results"]').waitForDisplayed();
                     });
 
-                    it('regex', async () => {
+                    it('regex', async ({browser}) => {
                         await searchInput.setValue('failed *');
                         await regexButton.click();
-                    });
-
-                    afterEach(async ({browser}) => {
-                        await browser.pause(1000);
-                        await browser.assertView(
-                            'sidebar',
-                            '[data-qa="suites-tree-card"]',
-                            {ignoreElements: ['img', 'div[data-qa="error-stack-item"]']}
-                        );
+                        await browser.$('[data-list-item="failed describe"]').waitForDisplayed();
+                        await browser.$('[data-list-item="failed describe/test without screenshot"]').waitForDisplayed();
+                        await browser.$('[data-list-item="failed describe/test with long error message"]').waitForDisplayed();
                     });
                 });
             });

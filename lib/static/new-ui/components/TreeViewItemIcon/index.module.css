@@ -7,3 +7,7 @@
     flex-shrink: 0;
     translate: 0 2px;
 }
+
+:global(.current-tree-node) .wrapper svg {
+    color: #fff;
+}

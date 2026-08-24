@@ -1,11 +1,12 @@
 import classNames from 'classnames';
 import {CoordBounds} from 'looks-same';
-import React, {forwardRef, ReactNode, useCallback, useRef} from 'react';
+import React, {forwardRef, MouseEventHandler, ReactNode, useCallback, useRef} from 'react';
 import {createPortal} from 'react-dom';
 
 import {addTimestamp, encodePathSegments} from '@/static/new-ui/components/Screenshot/utils';
 import {DiffCircle, DiffCircleHandle} from '@/static/new-ui/components/Screenshot/DiffCircle';
-import {ImageSize} from '@/types';
+import {ImageWithMagnifier} from '@/static/new-ui/components/ImageWithMagnifier';
+import {ImageFile, ImageSize} from '@/types';
 import styles from './index.module.css';
 
 interface ScreenshotProps {
@@ -24,6 +25,8 @@ interface ScreenshotProps {
     onMouseEnter?: (e: React.MouseEvent<HTMLImageElement>) => void;
     onMouseLeave?: (e: React.MouseEvent<HTMLImageElement>) => void;
     onMouseMove?: (e: React.MouseEvent<HTMLImageElement>) => void;
+    magnifier?: React.RefObject<HTMLElement>
+    stopClickPropagation?: boolean
 }
 
 export const Screenshot = forwardRef<HTMLImageElement, ScreenshotProps>(function Screenshot(props, imageRef): ReactNode {
@@ -40,7 +43,11 @@ export const Screenshot = forwardRef<HTMLImageElement, ScreenshotProps>(function
         }
     };
 
-    const handleDiffClick = useCallback(() => {
+    const handleDiffClick: MouseEventHandler = useCallback((e) => {
+        if (props.stopClickPropagation !== false) {
+            e.stopPropagation();
+        }
+
         if (!circlesRef.current) {
             return;
         }
@@ -48,7 +55,7 @@ export const Screenshot = forwardRef<HTMLImageElement, ScreenshotProps>(function
         for (const circle of circlesRef.current) {
             circle.pulse();
         }
-    }, [circlesRef]);
+    }, [circlesRef, props.stopClickPropagation]);
 
     const {image} = props;
 
@@ -84,6 +91,15 @@ export const Screenshot = forwardRef<HTMLImageElement, ScreenshotProps>(function
             }}
             key={id}
         />, document.body));
+    }
+
+    if (props.magnifier) {
+        return (
+            <ImageWithMagnifier
+                image={props.image as ImageFile}
+                scrollContainerRef={props.magnifier}
+            />
+        );
     }
 
     return <div className={containerClassName} onClick={handleDiffClick} style={containerStyle}>

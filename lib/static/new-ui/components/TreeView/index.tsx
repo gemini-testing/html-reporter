@@ -173,13 +173,13 @@ export const TreeView = forwardRef<TreeViewHandle, TreeViewProps>(function TreeV
     }));
 
     if (list.structure.visibleFlattenIds.length === 0) {
-        return <div className={styles.emptyHintContainer}>
+        return <div className={styles.emptyHintContainer} data-qa="empty-results">
             There are no tests that match selected filters
         </div>;
     }
 
     return (
-        <ListContainerView className={styles.treeView}>
+        <ListContainerView className={styles.treeView} fixedHeight={true}>
             <div ref={parentRef} className={classNames(styles['tree-view__container'], containerClassName, loading && styles.loader)}>
                 <div
                     className={styles['tree-view__total-size-wrapper']}
@@ -227,7 +227,7 @@ export const TreeView = forwardRef<TreeViewHandle, TreeViewProps>(function TreeV
                                             return {
                                                 startSlot: <TreeViewItemIcon>{x.status ? getIconByStatus(x.status) : <Cubes3Overlap/>}</TreeViewItemIcon>,
                                                 title: <TreeViewItemTitle item={x} className={isSelected ? styles['tree-view__item__title--current'] : ''} />,
-                                                subtitle: <TreeViewItemSubtitle item={x} className={isSelected ? styles['tree-view__item__error--current'] : ''} scrollContainerRef={parentRef}/>
+                                                subtitle: <TreeViewItemSubtitle item={x} isSelected={isSelected} className={isSelected ? styles['tree-view__item__error--current'] : ''} scrollContainerRef={parentRef}/>
                                             };
                                         }
                                     }).props}/>
