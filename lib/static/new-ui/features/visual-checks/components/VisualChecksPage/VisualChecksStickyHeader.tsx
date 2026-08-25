@@ -216,7 +216,7 @@ export function VisualChecksStickyHeader({currentNamedImage, treeData, onImageCh
                     >
                         <Button
                             view="outlined"
-                            className={styles.actionButton}
+                            className={styles.goToTest}
                             disabled={isRunning || isProcessing}
                             onClick={onSuites}
                             qa="go-suites-button"

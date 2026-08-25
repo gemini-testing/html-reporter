@@ -5,7 +5,14 @@
 }
 
 .retry-button {
+    padding-right: 4px;
+}
+
+.stop-button, .retry-button {
     composes: regular-button from global;
+}
+
+.stop-button {
     padding-right: 4px;
 }
 

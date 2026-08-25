@@ -163,6 +163,7 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
 
     server.post('/run', async (req, res) => {
         try {
+            stopAll = false;
             // do not wait for completion so that response does not hang and browser does not restart it by timeout
             // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
             (async () => {
