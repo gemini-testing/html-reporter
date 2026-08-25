@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="11.16.0"></a>
+# 11.16.0 (2026-08-25)
+
+
+### Features
+
+* accept image from tree ([3c6c1d3](https://github.com/gemini-testing/html-reporter/commit/3c6c1d3))
+
+
+
 <a name="11.15.0"></a>
 # 11.15.0 (2026-08-14)
 
