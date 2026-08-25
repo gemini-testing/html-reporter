@@ -203,7 +203,7 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
     };
 
     useHotkey('shift+r', handleRun, {enabled: Boolean(isRunTestsAvailable) && !isRunning && isInitialized});
-    useHotkey('s', handleStop, {enabled: Boolean(isRunTestsAvailable) && isRunning && isInitialized});
+    useHotkey('shift+s', handleStop, {enabled: Boolean(isRunTestsAvailable) && isRunning && isInitialized});
     useHotkey('shift+a', handleAccept, {enabled: Boolean(isEditScreensAvailable) && !areActionsDisabled && isAtLeastOneAcceptable && !isUndoButtonVisible});
 
     const loadedPluginConfigs = plugins.getLoadedConfigs();
@@ -236,7 +236,7 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
                     <IconButton
                         className={styles.iconButton}
                         icon={<Icon data={Stop} height={14}/>}
-                        tooltip={<>Stop all ⋅ <Hotkey value="s" view="light" /></>}
+                        tooltip={<>Stop all ⋅ <Hotkey value="shift+s" view="light" /></>}
                         text="Stop"
                         view={'flat'}
                         onClick={handleStop}
