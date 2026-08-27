@@ -159,7 +159,7 @@ export const NameFilter = forwardRef<NameFilterHandle, NameFilterProps>(function
             />
             <div className={styles['buttons-wrapper']}>
                 {showHotkeyHint && (
-                    <Hotkey className={styles.hotkey} view="dark" value="mod+k" />
+                    <Hotkey className={styles.hotkey} view="light" value="mod+k" />
                 )}
                 {testNameFilter && (
                     <NameFilterButton
