@@ -16,7 +16,7 @@ import {
     SquareDashed,
     SquareMinus
 } from '@gravity-ui/icons';
-import React, {ReactNode, useCallback, useMemo, useRef} from 'react';
+import React, {ReactNode, useCallback, useMemo} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import styles from './index.module.css';
@@ -71,7 +71,6 @@ const ANALYTICS_PREFIX = 'Tree actions toolbar:';
 export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActionsToolbarProps): ReactNode {
     const dispatch = useDispatch();
     const analytics = useAnalytics();
-    const extensionsRef = useRef<HTMLDivElement>(null);
 
     const rootSuiteIds = useSelector(state => state.tree.suites.allRootIds);
     const suitesStateById = useSelector(state => state.tree.suites.stateById);
@@ -210,11 +209,10 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
 
     const getViewButtons = (): ReactNode => (
         <>
-            {!extensionsRef?.current && (
-                <div style={{display: 'none'}} ref={extensionsRef}>
-                    <ExtensionPoint name={ExtensionPointName.RunTestOptions}></ExtensionPoint>
-                </div>
-            )}
+            {/*On the first run, the extensions need to run to set the run options.*/}
+            <div style={{display: 'none'}}>
+                <ExtensionPoint name={ExtensionPointName.RunTestOptions}></ExtensionPoint>
+            </div>
             {isRunTestsAvailable && (
                 <IconButton
                     className={styles.iconButton}
