@@ -57,6 +57,16 @@
     --g-button-border-color: var(--color-pink-600);
 }
 
+:global(.g-root_theme_dark) {
+    .attempt-picker-item--fail {
+        --g-button-background-color: var(--color-pink-400);
+    }
+
+    .attempt-picker-item--fail_error {
+        --g-button-background-color: var(--color-pink-400);
+    }
+}
+
 .attempt-picker-item--non-matched {
     opacity: 0.5;
 }

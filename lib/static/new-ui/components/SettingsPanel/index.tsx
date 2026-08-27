@@ -84,7 +84,6 @@ export function SettingsPanel(): ReactNode {
             description="Currently only light theme is available — stay tuned for night mode."
         >
             <SegmentedRadioGroup
-                disabled
                 className={styles.settingControl}
                 value={theme}
                 onUpdate={(value: Theme): void => setTheme(value)}

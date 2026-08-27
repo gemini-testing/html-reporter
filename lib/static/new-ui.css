@@ -33,6 +33,7 @@
     --color-amber-950: oklch(27.9% 0.077 45.635);
 
     --color-pink-100: #fce0ff;
+    --color-pink-400: #ce93d5;
     --color-pink-600: #be00ffbf;
 
     --color-bg-dark: var(--color-neutral-900);
@@ -47,6 +48,7 @@
     --color-filter-button: rgb(113, 113, 122);
     --color-filter-button-selected: rgb(9, 9, 11);
     --color-suite-breadcrumbs: var(--g-color-private-black-400);
+    --tree-actions-hover-background: #f2f2f2;
 
     --g-color-text-brand-contrast: var(--g-color-private-color-50-solid);
     --g-divider-color: rgb(242 242 242);
@@ -67,6 +69,7 @@
     --color-filter-button-selected: var(--g-color-text-primary);
     --color-text-hint: var(--g-color-text-secondary);
     --color-suite-breadcrumbs: var(--g-color-text-secondary);
+    --tree-actions-hover-background: #353535;
 
     --g-color-base-generic: var(--color-neutral-800);
     --g-color-base-background: var(--color-neutral-900); /* он же для сайдбара */
