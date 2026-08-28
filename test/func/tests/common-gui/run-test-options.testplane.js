@@ -60,7 +60,7 @@ describe('GUI mode', () => {
 
                 await runTestOptionsButton.click();
 
-                const repeatCountInput = await browser.$('[data-qa="repeat-count"] input');
+                const repeatCountInput = await browser.$('[data-floating-ui-portal] [data-qa="repeat-count"] input');
                 await repeatCountInput.waitForDisplayed();
                 await repeatCountInput.setValue(REPEAT_COUNT);
 
