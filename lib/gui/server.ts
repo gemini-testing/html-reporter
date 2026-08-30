@@ -44,6 +44,7 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
 
     const app = App.create(args);
     const server = express();
+    let stopAll = false;
 
     server.use(bodyParser.json({limit: MAX_REQUEST_SIZE}));
 
@@ -162,12 +163,19 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
 
     server.post('/run', async (req, res) => {
         try {
+            stopAll = false;
             // do not wait for completion so that response does not hang and browser does not restart it by timeout
             // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
             (async () => {
                 const {tests, repeatCount} = req.body;
 
                 for (let i = 0; i < repeatCount; i++) {
+                    if (stopAll) {
+                        stopAll = false;
+                        app.sendClientEvent(ClientEvents.REPEAT_LEFT, {repeatLeft: 0});
+                        break;
+                    }
+
                     await app.run(tests, {retry: repeatCount === 1});
 
                     app.sendClientEvent(ClientEvents.REPEAT_LEFT, {repeatLeft: repeatCount - i - 1});
@@ -285,6 +293,7 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
 
     server.post('/stop', (_req, res) => {
         try {
+            stopAll = true;
             // pass 0 to prevent terminating testplane process
             toolAdapter.halt(new Error('Tests were stopped by the user'), 0);
             res.sendStatus(OK);
