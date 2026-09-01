@@ -1,6 +1,6 @@
 .divider {
     cursor: col-resize;
-    background-color: var(--g-color-line-solid);
+    background-color: var(--g-color-text-complementary);
     height: 100%;
     position: relative;
     width: 1px;
@@ -32,7 +32,7 @@
 }
 
 .left-section {
-    background-color: var(--g-color-base-background);
+    background-color: var(--g-color-text-complementary);
     max-width: fit-content;
     overflow: hidden;
     z-index: 1;
