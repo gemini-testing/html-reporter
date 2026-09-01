@@ -10,7 +10,7 @@
     position: relative;
     overflow: hidden;
     background: var(--color-neutral-100);
-    border: 1px solid var(--color-neutral-200);
+    border: 1px solid var(--g-color-line-generic);
     border-radius: 5px;
 }
 

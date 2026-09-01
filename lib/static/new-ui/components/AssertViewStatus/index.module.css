@@ -3,7 +3,7 @@
     gap: 4px;
     align-items: center;
 
-    color: var(--g-color-private-cool-grey-700-solid);
+    color: var(--g-color-text-complementary);
     font-size: 15px;
     font-weight: 450;
 }
