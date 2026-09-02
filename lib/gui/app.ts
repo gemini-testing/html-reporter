@@ -58,6 +58,10 @@ export class App {
         return this._toolRunner.tree;
     }
 
+    async refreshTestsIfChanged(onChanged: () => void): Promise<boolean> {
+        return this._toolRunner.refreshTestsIfChanged(onChanged);
+    }
+
     addClient(connection: Response): void {
         this._toolRunner.addClient(connection);
     }

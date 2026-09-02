@@ -20,6 +20,7 @@ import type {ToolRunnerTree} from './tool-runner';
 import type {TestplaneConfigAdapter} from '../adapters/config/testplane';
 import type {UpdateTimeTravelSettingsRequest, UpdateTimeTravelSettingsResponse} from '../types';
 import chalk from 'chalk';
+import chokidar from 'chokidar';
 
 interface CustomGuiError {
     response: {
@@ -269,7 +270,10 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
         }
     });
 
+    let testsWatcher: chokidar.FSWatcher | undefined;
+
     onExit(() => {
+        testsWatcher?.close();
         app.finalize();
         logger.log('server shutting down');
     });
@@ -294,6 +298,60 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
     });
 
     await app.initialize();
+
+    if (args.cli.options.watch && toolAdapter.toolName === ToolName.Testplane) {
+        const config = toolAdapter.config as TestplaneConfigAdapter;
+        const watchPaths = [...new Set([...config.getTestFilePatterns(), ...args.paths])];
+        let refreshInProgress = false;
+        let refreshPending = false;
+        let refreshTimer: NodeJS.Timeout | undefined;
+
+        const refresh = async (): Promise<void> => {
+            if (refreshInProgress) {
+                refreshPending = true;
+                return;
+            }
+
+            refreshInProgress = true;
+            try {
+                const changed = await app.refreshTestsIfChanged(() => {
+                    app.sendClientEvent(ClientEvents.TESTS_REFRESH_STARTED, undefined);
+                });
+
+                if (changed) {
+                    app.sendClientEvent(ClientEvents.TESTS_REFRESHED, undefined);
+                }
+            } catch (error) {
+                logger.error(`Error while refreshing tests after file change: ${(error as Error).message}`);
+            } finally {
+                refreshInProgress = false;
+                if (refreshPending) {
+                    refreshPending = false;
+                    await refresh();
+                }
+            }
+        };
+
+        testsWatcher = chokidar.watch(watchPaths, {
+            cwd: process.cwd(),
+            ignoreInitial: true,
+            ignored: [
+                /(^|[/\\])\../,
+                /(^|[/\\])node_modules([/\\]|$)/,
+                path.resolve(process.cwd(), reporterConfig.path)
+            ],
+            awaitWriteFinish: {stabilityThreshold: 200, pollInterval: 100}
+        });
+        testsWatcher.on('all', () => {
+            if (refreshTimer) {
+                clearTimeout(refreshTimer);
+            }
+            refreshTimer = setTimeout(() => {
+                refreshTimer = undefined;
+                void refresh();
+            }, 100);
+        });
+    }
 
     const {port: requestedPort, hostname} = args.cli.options;
 

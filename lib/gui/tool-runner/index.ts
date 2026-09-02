@@ -165,6 +165,28 @@ export class ToolRunner {
         await this._fillTestsTree(reportBuilder.buildTreeFromCurrentDb());
     }
 
+    async refreshTestsIfChanged(onChanged: () => void): Promise<boolean> {
+        const collection = await this._readTests();
+        const signature = (test: TestAdapter): string => JSON.stringify([test.browserId, test.file, test.titlePath]);
+        const current = this._ensureTestCollection().tests.map(signature).sort();
+        const next = collection.tests.map(signature).sort();
+
+        if (_.isEqual(current, next)) {
+            return false;
+        }
+
+        onChanged();
+
+        this._collection = collection;
+        const reportBuilder = this._ensureReportBuilder();
+        reportBuilder.resetTree();
+        this._testAdapters = {};
+        await this._handleRunnableCollection();
+        await this._fillTestsTree(reportBuilder.buildTreeFromCurrentDb());
+
+        return true;
+    }
+
     protected _ensureReportBuilder(): GuiReportBuilder {
         if (!this._reportBuilder) {
             throw new Error('ToolRunner has to be initialized before usage');
