@@ -14,8 +14,8 @@
 }
 
 .toolbar-container {
-    --g-color-text-primary: var(--g-color-private-cool-grey-700-solid);
-    color: var(--g-color-private-cool-grey-700-solid);
+    --g-color-text-primary: var(--g-color-text-complementary);
+    color: var(--g-color-text-complementary);
     display: flex;
     gap: 16px;
     margin-bottom: 8px;

@@ -7,13 +7,13 @@
 @property --from-color {
     syntax: "<color>";
     inherits: false;
-    initial-value: #eee;
+    initial-value: var(--g-color-base-generic);
 }
 
 @property --to-color {
     syntax: "<color>";
     inherits: false;
-    initial-value: #eee;
+    initial-value: var(--g-color-base-generic);
 }
 
 .animated-appear-card {
@@ -37,8 +37,8 @@
 
 @keyframes border-pulse {
     0% {
-        --from-color: #eee;
-        --to-color: #eee;
+        --from-color: var(--g-color-base-generic);
+        --to-color: var(--g-color-base-generic);
         --gradient-angle: 0turn;
         visibility: visible;
     }
