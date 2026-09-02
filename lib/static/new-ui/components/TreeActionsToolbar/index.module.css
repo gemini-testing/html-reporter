@@ -24,7 +24,7 @@
     to { transform: rotate(360deg); }
 }
 
-.is-refresh-loading {
+.is-refresh-tests-loading {
     animation: spin 0.8s linear infinite;
 }
 

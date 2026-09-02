@@ -10,6 +10,7 @@ const {logError} = utils;
 
 export interface GuiCliOptions {
     autoRun: boolean;
+    watch?: boolean;
     open: unknown;
     port: number;
     hostname: string;
