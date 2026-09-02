@@ -15,7 +15,11 @@ export const ClientEvents = {
 
     CONNECTED: 'connected',
 
-    DOM_SNAPSHOTS: 'DOM_SNAPSHOTS'
+    DOM_SNAPSHOTS: 'DOM_SNAPSHOTS',
+
+    TESTS_REFRESH_STARTED: 'testsRefreshStarted',
+    TESTS_REFRESHED: 'testsRefreshed',
+    TESTS_REFRESH_FAILED: 'testsRefreshFailed'
 } as const;
 
 export type ClientEvents = typeof ClientEvents;
