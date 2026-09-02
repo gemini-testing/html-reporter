@@ -10,11 +10,12 @@ import {
     suiteBegin,
     testBegin,
     testResult,
-    thunkTestsEnd, setRepeatLeft
+    thunkTestsEnd, setRepeatLeft, setRefreshLoading
 } from '../../modules/actions';
 import {setGuiServerConnectionStatus} from '@/static/modules/actions/gui-server-connection';
 import actionNames from '@/static/modules/action-names';
 import {EventSourceProvider, useEventSource} from '@/static/new-ui/providers/event-source';
+import {thunkRefreshGuiReport} from '@/static/modules/actions/lifecycle';
 
 const rootEl = document.getElementById('app') as HTMLDivElement;
 const root = createRoot(rootEl);
@@ -65,6 +66,18 @@ function Gui(): ReactNode {
         eventSource.addEventListener(ClientEvents.REPEAT_LEFT, (e) => {
             const data = JSON.parse(e.data);
             store.dispatch(setRepeatLeft(data.repeatLeft));
+        });
+
+        eventSource.addEventListener(ClientEvents.TESTS_REFRESH_STARTED, () => {
+            store.dispatch(setRefreshLoading(true));
+        });
+
+        eventSource.addEventListener(ClientEvents.TESTS_REFRESHED, () => {
+            store.dispatch(thunkRefreshGuiReport());
+        });
+
+        eventSource.addEventListener(ClientEvents.TESTS_REFRESH_FAILED, () => {
+            store.dispatch(setRefreshLoading(false));
         });
     };
 

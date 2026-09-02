@@ -29,6 +29,10 @@ export class TestplaneConfigAdapter implements ConfigAdapter {
         return this._config.forBrowser(browserId);
     }
 
+    getTestFilePatterns(): string[] {
+        return Object.values(this._config.sets).flatMap(({files}) => files);
+    }
+
     getScreenshotPath(test: TestplaneTestAdapter, stateName: string): string {
         const {browserId} = test;
 
