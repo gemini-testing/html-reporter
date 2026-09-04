@@ -1,4 +1,5 @@
 import path from 'path';
+import os from 'node:os';
 import fs from 'fs-extra';
 import {pipeline} from 'stream/promises';
 import _ from 'lodash';
@@ -30,8 +31,6 @@ const copyImageFromUrl = async (imageUrl: string, destinationPath: string): Prom
 };
 
 export const updateReferenceImages = async (testResult: ReporterTestResult, reportPath: string, onReferenceUpdateCb: OnReferenceUpdateCb): Promise<ReporterTestResult> => {
-    const {default: tmp} = await import('tmp');
-
     const newImagesInfo: ImageInfoFull[] = await Promise.all(testResult.imagesInfo.map(async (imageInfo) => {
         const newImageInfo = _.clone(imageInfo);
 
@@ -50,7 +49,7 @@ export const updateReferenceImages = async (testResult: ReporterTestResult, repo
 
         if (utils.fileExists(referencePath)) {
             const referenceId = mkReferenceHash(testResult.id, stateName);
-            const oldReferencePath = path.resolve(tmp.tmpdir, referenceId);
+            const oldReferencePath = path.resolve(os.tmpdir(), referenceId);
             await utils.copyFileAsync(referencePath, oldReferencePath);
         }
 
@@ -79,11 +78,9 @@ export const updateReferenceImages = async (testResult: ReporterTestResult, repo
 };
 
 export const revertReferenceImage = async (removedResult: ReporterTestResult, newResult: ReporterTestResult, stateName: string): Promise<void> => {
-    const {default: tmp} = await import('tmp');
-
     const referenceId = removedResult.id;
     const referenceHash = mkReferenceHash(referenceId, stateName);
-    const oldReferencePath = path.resolve(tmp.tmpdir, referenceHash);
+    const oldReferencePath = path.resolve(os.tmpdir(), referenceHash);
     const referencePath = getImagesInfoByStateName(newResult.imagesInfo, stateName)?.refImg?.path;
 
     if (!referencePath) {

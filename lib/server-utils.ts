@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import os from 'node:os';
 import path from 'path';
 import url from 'url';
 
@@ -67,9 +68,7 @@ export function createPath({attempt: attemptInput, imageDir: imageDirInput, time
 }
 
 export const getTempPath = async (destPath: string): Promise<string> => {
-    const {default: tmp} = await import('tmp');
-
-    return path.resolve(tmp.tmpdir, destPath);
+    return path.resolve(os.tmpdir(), destPath);
 };
 
 export function createHash(buffer: Buffer): string {

@@ -12,9 +12,12 @@ describe('server-utils', () => {
 
     const fsOriginal = require('fs-extra');
     const fs = _.clone(fsOriginal);
+    const osOriginal = require('node:os');
+    const os = _.clone(osOriginal);
 
     const utils = proxyquire('lib/server-utils', {
-        'fs-extra': fs
+        'fs-extra': fs,
+        'node:os': os
     });
 
     afterEach(() => sandbox.restore());
@@ -92,6 +95,16 @@ describe('server-utils', () => {
 
                 assert.equal(resultPath, path.join('/root', 'reportPath', IMAGES_PATH, 'some', 'dir', 'plain', `bro~${testData.prefix}_${test.timestamp}_0.png`));
             });
+        });
+    });
+
+    describe('getTempPath', () => {
+        it('should resolve destination inside the OS temporary directory', async () => {
+            sandbox.stub(os, 'tmpdir').returns('/temp-dir');
+
+            const result = await utils.getTempPath('image.png');
+
+            assert.equal(result, path.resolve('/temp-dir', 'image.png'));
         });
     });
 
