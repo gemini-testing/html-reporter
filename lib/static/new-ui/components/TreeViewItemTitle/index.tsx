@@ -3,7 +3,7 @@ import {ArrowRotateLeft, ChevronRight, Eye} from '@gravity-ui/icons';
 import {Button, Checkbox, Icon} from '@gravity-ui/uikit';
 import classNames from 'classnames';
 import React from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch, useSelector} from '@/static/new-ui/modules/react-redux';
 
 import {getToggledCheckboxState, getUrlWithBase, isCheckboxChecked, isCheckboxIndeterminate} from '@/common-utils';
 import {EntityType, TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';

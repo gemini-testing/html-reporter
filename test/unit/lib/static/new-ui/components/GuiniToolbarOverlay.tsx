@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import proxyquire from 'proxyquire';
 import React from 'react';
 import {Provider} from 'react-redux';
-import {MemoryRouter} from 'react-router-dom';
+import {MemoryRouter} from 'react-router';
 import sinon, {SinonStub} from 'sinon';
 
 import {PathNames, TestStatus} from '@/constants';

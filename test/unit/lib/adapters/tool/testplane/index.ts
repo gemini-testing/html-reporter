@@ -275,8 +275,7 @@ describe('lib/adapters/tool/testplane/index', () => {
             assert.calledOnceWith(testplane.run, collection, sinon.match({
                 grep: cliTool.grep,
                 sets: cliTool.set,
-                browsers: cliTool.browser,
-                devtools: cliTool.devtools
+                browsers: cliTool.browser
             }));
         });
 

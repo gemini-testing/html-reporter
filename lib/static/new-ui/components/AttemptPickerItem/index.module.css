@@ -1,5 +1,6 @@
 .attempt-picker-item {
     width: 28px;
+    border-radius: var(--g-button-border-radius, var(--g-border-radius-m));
 }
 
 .attempt-picker-item--idle {

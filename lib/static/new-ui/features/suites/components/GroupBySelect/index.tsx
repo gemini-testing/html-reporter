@@ -1,7 +1,7 @@
 import {Cubes3Overlap} from '@gravity-ui/icons';
 import {Icon, Select} from '@gravity-ui/uikit';
 import React, {ReactNode, useState} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch, useSelector} from '@/static/new-ui/modules/react-redux';
 
 import {GroupByType} from '@/static/new-ui/types/store';
 import {setCurrentGroupByExpression} from '@/static/modules/actions';

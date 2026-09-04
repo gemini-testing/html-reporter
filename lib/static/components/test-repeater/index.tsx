@@ -1,5 +1,5 @@
 import React from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch, useSelector} from '@/static/new-ui/modules/react-redux';
 import {NumberInput, Button, Icon} from '@gravity-ui/uikit';
 import {Plus, Minus} from '@gravity-ui/icons';
 import styles from './index.module.css';

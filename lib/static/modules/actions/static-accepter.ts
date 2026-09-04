@@ -6,8 +6,7 @@ import {getBlobWithRetires} from '../utils';
 import {storeCommitInLocalStorage} from '../static-image-accepter';
 import actionNames from '../action-names';
 import defaultState from '../default-state';
-import type {Action, Dispatch, Store} from './types';
-import {ThunkAction} from 'redux-thunk';
+import type {Action, Dispatch} from './types';
 import {Point} from '@/static/new-ui/types';
 import {closeModal, openModal} from '@/static/modules/actions/modals';
 import {createNotification, createNotificationError} from '@/static/modules/actions/notifications';
@@ -106,7 +105,7 @@ export const staticAccepterCommitScreenshot = (
         axiosRequestOptions = {},
         meta
     }: StaticAccepterCommitScreenshotOptions
-): ThunkAction<Promise<CommitResult>, Store, void, StaticAccepterCommitScreenshotAction> => {
+) => {
     return (dispatch: Dispatch): Promise<CommitResult> => {
         // #region static accepter v2 path
         if (moduleUrl) {

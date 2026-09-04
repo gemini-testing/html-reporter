@@ -1,5 +1,5 @@
 import React, {ReactNode, useMemo, useEffect} from 'react';
-import {useSelector} from 'react-redux';
+import {useSelector} from '@/static/new-ui/modules/react-redux';
 import {ViewportContext, useSyncedViewport} from '../hooks/useSyncedViewport';
 import {InteractiveScreenshot} from './InteractiveScreenshot';
 import {InteractiveFitMode} from './constants';

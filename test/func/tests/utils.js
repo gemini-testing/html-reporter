@@ -32,6 +32,16 @@ const hideScreenshots = async (browser) => {
     });
 };
 
+const hideBottomProgressBar = async (browser) => {
+    await browser.execute(() => {
+        const progressBar = document.querySelector('.bottom-progress-bar');
+
+        if (progressBar) {
+            progressBar.style.display = 'none';
+        }
+    });
+};
+
 const runGui = async (projectDir, {autoRun = false, grep = null} = {}) => {
     return new Promise((resolve, reject) => {
         const args = ['run', 'gui', '--', '--no-open'];
@@ -121,6 +131,7 @@ module.exports = {
     getSpoilerByNameSelector,
     hideHeader,
     hideScreenshots,
+    hideBottomProgressBar,
     runGui,
     getFsDiffFromVcs,
     waitForFsChanges,

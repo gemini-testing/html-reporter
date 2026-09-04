@@ -14,7 +14,7 @@ interface ImageWithMagnifierProps {
     magnifierWidth?: number;
     zoomLevel?: number;
     // Used to detect parent container scrolling and update the magnifier state
-    scrollContainerRef?: React.RefObject<HTMLElement>;
+    scrollContainerRef?: React.RefObject<HTMLElement | null>;
 }
 
 export function ImageWithMagnifier({
