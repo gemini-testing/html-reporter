@@ -5,7 +5,7 @@ import '@gravity-ui/uikit/styles/styles.css';
 import React, {ReactNode, StrictMode} from 'react';
 import useLocalStorage from '@/static/hooks/useLocalStorage';
 import {LocalStorageKey, Theme} from '@/constants/local-storage';
-import {Provider} from '@/static/new-ui/modules/react-redux';
+import {Provider} from 'react-redux';
 import {HashRouter, Navigate, Route, Routes} from 'react-router';
 
 import {LoadingBar} from '@/static/new-ui/components/LoadingBar';

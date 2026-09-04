@@ -6,7 +6,8 @@ import {
 import {CircleExclamation, Paperclip, Cubes3Overlap} from '@gravity-ui/icons';
 import classNames from 'classnames';
 import React, {ReactNode, useCallback, useEffect} from 'react';
-import {connect, useDispatch, useSelector} from '@/static/new-ui/modules/react-redux';
+import {connect} from 'react-redux';
+import {useDispatch, useSelector} from '@/static/new-ui/modules/react-redux';
 import {bindActionCreators} from 'redux';
 
 import {TreeViewItemIcon} from '@/static/new-ui/components/TreeViewItemIcon';
