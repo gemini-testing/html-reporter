@@ -53,6 +53,33 @@ export default (state: State, action: SomeAction): State => {
             });
         }
 
+        case actionNames.PATCH_TESTS_TREE: {
+            const startedAt = performance.now();
+            const performanceId = action.payload.performance?.id ?? '?';
+            const expressionIds = state.app.groupTestsData.currentExpressionIds;
+
+            if (!expressionIds.length) {
+                console.info(`[watch-perf][client][#${performanceId}][grouping reducer] skipped: ${(performance.now() - startedAt).toFixed(1)}ms`);
+                return state;
+            }
+
+            const expressions = expressionIds
+                .map(id => state.app.groupTestsData.availableExpressions.find(expr => expr.id === id) as GroupByExpression);
+            const groupsById = groupTests(expressions, state.tree.results.byId, state.tree.images.byId, state.config.errorPatterns);
+            console.info(`[watch-perf][client][#${performanceId}][grouping reducer] rebuild groups: ${(performance.now() - startedAt).toFixed(1)}ms`, {
+                groups: Object.keys(groupsById).length
+            });
+
+            return Object.assign({}, state, {
+                tree: Object.assign({}, state.tree, {
+                    groups: {
+                        byId: groupsById,
+                        allRootIds: Object.keys(groupsById)
+                    }
+                })
+            });
+        }
+
         case actionNames.GROUP_TESTS_SET_CURRENT_EXPRESSION: {
             const newExpressionIds = action.payload.expressionIds;
 

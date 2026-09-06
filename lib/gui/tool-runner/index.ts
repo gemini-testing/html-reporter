@@ -1,5 +1,6 @@
 import path from 'node:path';
 import os from 'node:os';
+import {performance} from 'node:perf_hooks';
 
 import {CommanderStatic} from '@gemini-testing/commander';
 import chalk from 'chalk';
@@ -27,6 +28,7 @@ import {
     ToolName,
     DATABASE_URLS_JSON_NAME,
     LOCAL_DATABASE_NAME,
+    DEFAULT_TITLE_DELIMITER,
     PluginEvents,
     UNKNOWN_ATTEMPT, BrowserFeature, Feature, TimeTravelFeature
 } from '../../constants';
@@ -36,6 +38,7 @@ import type {GuiCliOptions, ServerArgs} from '../index';
 import type {TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../../tests-tree-builder/gui';
 import type {ReporterTestResult} from '../../adapters/test-result';
 import type {Tree, TreeImage} from '../../tests-tree-builder/base';
+import {createTreePatch, snapshotTree, TreePatch, TreePatchScope} from '../../tests-tree-builder/tree-patch';
 import type {TestSpec} from '../../adapters/tool/types';
 import type {
     AssertViewResult,
@@ -61,6 +64,16 @@ export interface RunParams {
     retry?: boolean;
 }
 
+const logWatchPerformance = (id: number, operation: string, startedAt: number, details?: Record<string, unknown>): void => {
+    const duration = (performance.now() - startedAt).toFixed(1);
+    const detailsText = details ? ` ${JSON.stringify(details)}` : '';
+
+    logger.log(`[watch-perf][server][#${id}] ${operation}: ${duration}ms${detailsText}`);
+};
+
+const isNoTestsFoundError = (error: unknown): boolean =>
+    error instanceof Error && error.message.startsWith('There are no tests found');
+
 export class ToolRunner {
     private _testFiles: string[];
     private _toolAdapter: ToolAdapter;
@@ -73,6 +86,10 @@ export class ToolRunner {
     private _eventSource: EventSource;
     protected _reportBuilder: GuiReportBuilder | null;
     private _testAdapters: Record<string, TestAdapter>;
+    private _testsByFile: Map<string, TestAdapter[]>;
+    private _testFileBySpec: Map<string, string>;
+    private _testAdapterIdsByFile: Map<string, Set<string>>;
+    private _collectionNeedsFullRead: boolean;
     private _expectedImagesCache: Cache<[TestSpecByPath, string | undefined], string>;
 
     static create<T extends ToolRunner>(this: new (args: ServerArgs) => T, args: ServerArgs): T {
@@ -95,6 +112,10 @@ export class ToolRunner {
         this._reportBuilder = null;
 
         this._testAdapters = {};
+        this._testsByFile = new Map();
+        this._testFileBySpec = new Map();
+        this._testAdapterIdsByFile = new Map();
+        this._collectionNeedsFullRead = false;
 
         this._expectedImagesCache = new Cache(getExpectedCacheKey);
     }
@@ -141,7 +162,7 @@ export class ToolRunner {
         });
         this._toolAdapter.handleTestResults(this._reportBuilder, this._eventSource);
 
-        this._collection = await this._readTests();
+        this._setCollection(await this._readTests());
 
         this._toolAdapter.htmlReporter.emit(PluginEvents.DATABASE_CREATED, dbClient.getRawConnection());
         await this._reportBuilder.saveStaticFiles();
@@ -155,36 +176,248 @@ export class ToolRunner {
     }
 
     async refreshTests(): Promise<void> {
-        this._collection = await this._readTests();
+        this._setCollection(await this._readTests());
 
         const reportBuilder = this._ensureReportBuilder();
         reportBuilder.resetTree();
         this._testAdapters = {};
+        this._testAdapterIdsByFile.clear();
 
         await this._handleRunnableCollection();
         await this._fillTestsTree(reportBuilder.buildTreeFromCurrentDb());
     }
 
-    async refreshTestsIfChanged(onChanged: () => void): Promise<boolean> {
-        const collection = await this._readTests();
-        const signature = (test: TestAdapter): string => JSON.stringify([test.browserId, test.file, test.titlePath]);
-        const current = this._ensureTestCollection().tests.map(signature).sort();
-        const next = collection.tests.map(signature).sort();
+    async refreshTestsIfChanged(
+        changedFiles: string[],
+        removedDirectories: string[],
+        onChanged: (changed: boolean) => void,
+        onUpdated: (patch: TreePatch) => void,
+        performanceId: number
+    ): Promise<void> {
+        const totalStartedAt = performance.now();
+        let stageStartedAt = performance.now();
+        const normalizedFiles = new Set(changedFiles.map(file => path.resolve(file)));
+        const normalizedDirectories = removedDirectories.map(directory => path.resolve(directory));
+        const isInsideRemovedDirectory = (file: string): boolean => normalizedDirectories.some(directory => {
+            const relativePath = path.relative(directory, file);
+            return relativePath !== '' && !relativePath.startsWith(`..${path.sep}`) && relativePath !== '..' && !path.isAbsolute(relativePath);
+        });
+        const affectedFiles = new Set(normalizedFiles);
+        for (const testFile of this._testsByFile.keys()) {
+            if (isInsideRemovedDirectory(testFile)) {
+                affectedFiles.add(testFile);
+            }
+        }
+        const isChangedFile = (test: TestAdapter): boolean => affectedFiles.has(path.resolve(test.file));
+        const signature = (test: TestAdapter): string => JSON.stringify([test.browserId, path.resolve(test.file), test.titlePath]);
+        const currentTests = [...affectedFiles].flatMap(file => this._testsByFile.get(file) ?? []);
+        const current = currentTests.map(signature).sort();
+        logWatchPerformance(performanceId, 'prepare affected files and current signatures', stageStartedAt, {
+            changedFiles: changedFiles.length,
+            removedDirectories: removedDirectories.length,
+            affectedFiles: affectedFiles.size,
+            currentTests: current.length
+        });
 
-        if (_.isEqual(current, next)) {
-            return false;
+        stageStartedAt = performance.now();
+        const existingFiles = await Promise.all(changedFiles.map(async file => await fs.pathExists(file) ? file : null));
+        const filesToRead = existingFiles.filter((file): file is string => Boolean(file));
+        logWatchPerformance(performanceId, 'check changed files existence', stageStartedAt, {filesToRead: filesToRead.length});
+        let next: string[] = [];
+        let changedCollection: TestCollectionAdapter = {tests: []};
+
+        if (filesToRead.length) {
+            try {
+                stageStartedAt = performance.now();
+                changedCollection = await this._toolAdapter.readTests(filesToRead, this._globalOpts);
+                logWatchPerformance(performanceId, 'read changed files', stageStartedAt, {tests: changedCollection.tests.length});
+
+                stageStartedAt = performance.now();
+                next = changedCollection.tests.filter(isChangedFile).map(signature).sort();
+                logWatchPerformance(performanceId, 'build changed files signatures', stageStartedAt, {tests: next.length});
+            } catch (error) {
+                if (isNoTestsFoundError(error)) {
+                    // Testplane throws instead of returning an empty collection
+                    // when the changed file no longer contains any tests.
+                    logWatchPerformance(performanceId, 'read changed files (no tests found)', stageStartedAt, {tests: 0});
+                } else {
+                    // If a partial read fails for another reason, use the full
+                    // collection to determine whether the tree has changed.
+                    stageStartedAt = performance.now();
+                    const collection = await this._readTests();
+                    logWatchPerformance(performanceId, 'fallback: read all tests', stageStartedAt, {tests: collection.tests.length});
+
+                    stageStartedAt = performance.now();
+                    const allCurrent = this._ensureTestCollection().tests.map(test =>
+                        JSON.stringify([test.browserId, path.resolve(test.file), test.titlePath])
+                    ).sort();
+                    const allNext = collection.tests.map(test =>
+                        JSON.stringify([test.browserId, path.resolve(test.file), test.titlePath])
+                    ).sort();
+                    logWatchPerformance(performanceId, 'fallback: compare all signatures', stageStartedAt, {current: allCurrent.length, next: allNext.length});
+
+                    if (_.isEqual(allCurrent, allNext)) {
+                        this._collectionNeedsFullRead = true;
+                        onChanged(false);
+                        logWatchPerformance(performanceId, 'total (no structural changes)', totalStartedAt);
+                        return;
+                    }
+
+                    onChanged(true);
+                    this._setCollection(collection);
+                    const testsToAdd = collection.tests.filter(isChangedFile);
+                    onUpdated(await this._applyChangedFiles(affectedFiles, currentTests, testsToAdd, performanceId));
+                    logWatchPerformance(performanceId, 'total', totalStartedAt);
+
+                    return;
+                }
+            }
         }
 
-        onChanged();
+        if (!removedDirectories.length && _.isEqual(current, next)) {
+            this._collectionNeedsFullRead = true;
+            onChanged(false);
+            logWatchPerformance(performanceId, 'total (no structural changes)', totalStartedAt);
+            return;
+        }
 
-        this._collection = collection;
+        onChanged(true);
+        stageStartedAt = performance.now();
+        const testsToAdd = changedCollection.tests.filter(isChangedFile);
+        this._replaceTestsInCollection(affectedFiles, testsToAdd);
+        logWatchPerformance(performanceId, 'merge changed tests into collection', stageStartedAt, {
+            changedTests: testsToAdd.length,
+            totalTests: this._ensureTestCollection().tests.length
+        });
+        onUpdated(await this._applyChangedFiles(affectedFiles, currentTests, testsToAdd, performanceId));
+        logWatchPerformance(performanceId, 'total', totalStartedAt);
+    }
+
+    private async _applyChangedFiles(
+        changedFiles: Set<string>,
+        previousTests: TestAdapter[],
+        testsToAdd: TestAdapter[],
+        performanceId: number
+    ): Promise<TreePatch> {
+        let stageStartedAt = performance.now();
         const reportBuilder = this._ensureReportBuilder();
-        reportBuilder.resetTree();
-        this._testAdapters = {};
-        await this._handleRunnableCollection();
-        await this._fillTestsTree(reportBuilder.buildTreeFromCurrentDb());
+        const patchScope = this._createTreePatchScope([...previousTests, ...testsToAdd], reportBuilder.testsTree);
+        const previousTree = snapshotTree(reportBuilder.testsTree, patchScope);
+        logWatchPerformance(performanceId, 'snapshot previous server tree', stageStartedAt);
 
-        return true;
+        stageStartedAt = performance.now();
+        reportBuilder.removeTestsByFiles([...changedFiles]);
+        logWatchPerformance(performanceId, 'remove affected tests from server tree', stageStartedAt, {files: changedFiles.size});
+
+        stageStartedAt = performance.now();
+        for (const changedFile of changedFiles) {
+            for (const testId of this._testAdapterIdsByFile.get(changedFile) ?? []) {
+                delete this._testAdapters[testId];
+            }
+            this._testAdapterIdsByFile.delete(changedFile);
+        }
+        logWatchPerformance(performanceId, 'remove affected test adapters', stageStartedAt, {testsToAdd: testsToAdd.length});
+
+        stageStartedAt = performance.now();
+        await this._addTestsToTree(testsToAdd);
+        logWatchPerformance(performanceId, 'add affected tests to server tree', stageStartedAt);
+
+        stageStartedAt = performance.now();
+        reportBuilder.restoreTestHistory(testsToAdd.map(test => ({
+            suitePath: test.titlePath,
+            browserId: test.browserId
+        })));
+        logWatchPerformance(performanceId, 'restore affected tests history', stageStartedAt);
+
+        stageStartedAt = performance.now();
+        this._extendTreePatchScope(patchScope, testsToAdd, reportBuilder.testsTree);
+        const patch = createTreePatch(previousTree, reportBuilder.testsTree, patchScope);
+        logWatchPerformance(performanceId, 'create tree patch', stageStartedAt, {
+            suites: Object.keys(patch.suites.byId).length,
+            browsers: Object.keys(patch.browsers.byId).length,
+            results: Object.keys(patch.results.byId).length,
+            images: Object.keys(patch.images.byId).length
+        });
+
+        return patch;
+    }
+
+    private _createTreePatchScope(tests: TestAdapter[], tree: Tree): TreePatchScope {
+        const scope: TreePatchScope = {
+            suites: new Set(),
+            browsers: new Set(),
+            results: new Set(),
+            images: new Set()
+        };
+
+        this._extendTreePatchScope(scope, tests, tree);
+
+        return scope;
+    }
+
+    private _extendTreePatchScope(scope: TreePatchScope, tests: TestAdapter[], tree: Tree): void {
+        for (const test of tests) {
+            for (let depth = 1; depth <= test.titlePath.length; depth++) {
+                scope.suites.add(test.titlePath.slice(0, depth).join(DEFAULT_TITLE_DELIMITER));
+            }
+
+            const suiteId = test.titlePath.join(DEFAULT_TITLE_DELIMITER);
+            const browserId = [suiteId, test.browserId].join(DEFAULT_TITLE_DELIMITER);
+            const browser = tree.browsers.byId[browserId];
+            scope.browsers.add(browserId);
+
+            for (const resultId of browser?.resultIds ?? []) {
+                scope.results.add(resultId);
+                tree.results.byId[resultId]?.imageIds.forEach(imageId => scope.images.add(imageId));
+            }
+        }
+    }
+
+    private _setCollection(collection: TestCollectionAdapter): void {
+        this._collection = collection;
+        this._collectionNeedsFullRead = false;
+        this._testsByFile.clear();
+        this._testFileBySpec.clear();
+
+        for (const test of collection.tests) {
+            if (!test.file) {
+                continue;
+            }
+            const testFile = path.resolve(test.file);
+            const tests = this._testsByFile.get(testFile) ?? [];
+
+            tests.push(test);
+            this._testsByFile.set(testFile, tests);
+            this._testFileBySpec.set(this._getTestSpecKey(test.browserId, test.fullName), testFile);
+        }
+    }
+
+    private _replaceTestsInCollection(affectedFiles: Set<string>, testsToAdd: TestAdapter[]): void {
+        affectedFiles.forEach(file => {
+            for (const test of this._testsByFile.get(file) ?? []) {
+                this._testFileBySpec.delete(this._getTestSpecKey(test.browserId, test.fullName));
+            }
+            this._testsByFile.delete(file);
+        });
+
+        for (const test of testsToAdd) {
+            if (!test.file) {
+                continue;
+            }
+            const testFile = path.resolve(test.file);
+            const tests = this._testsByFile.get(testFile) ?? [];
+
+            tests.push(test);
+            this._testsByFile.set(testFile, tests);
+            this._testFileBySpec.set(this._getTestSpecKey(test.browserId, test.fullName), testFile);
+        }
+
+        this._collection = {tests: [...this._testsByFile.values()].flat()};
+        this._collectionNeedsFullRead = true;
+    }
+
+    private _getTestSpecKey(browserId: string, fullName: string): string {
+        return JSON.stringify([browserId, fullName]);
     }
 
     protected _ensureReportBuilder(): GuiReportBuilder {
@@ -375,7 +608,22 @@ export class ToolRunner {
     }
 
     async run(tests: TestSpec[] = [], runParams: RunParams = {retry: true}): Promise<boolean> {
-        const testCollection = this._ensureTestCollection();
+        let testCollection = this._ensureTestCollection();
+
+        if (this._collectionNeedsFullRead) {
+            const startedAt = performance.now();
+            const selectedTestFiles = tests.length
+                ? _.uniq(tests.map(test => this._testFileBySpec.get(this._getTestSpecKey(test.browserName, test.testName))).filter((file): file is string => Boolean(file)))
+                : this._testFiles;
+            const testFiles = tests.length && !selectedTestFiles.length ? this._testFiles : selectedTestFiles;
+
+            testCollection = await this._toolAdapter.readTests(testFiles, this._globalOpts);
+            if (!tests.length) {
+                this._setCollection(testCollection);
+            }
+            logger.log(`[watch-perf][server][run] refresh executable test collection: ${(performance.now() - startedAt).toFixed(1)}ms ${JSON.stringify({files: testFiles.length, tests: testCollection.tests.length})}`);
+        }
+
         const shouldRunAllTests = _.isEmpty(tests);
 
         // if tests are not passed, then run all tests with all available retries
@@ -386,10 +634,15 @@ export class ToolRunner {
     }
 
     protected async _handleRunnableCollection(): Promise<void> {
+        await this._addTestsToTree(this._ensureTestCollection().tests);
+        await this._fillTestsTree();
+    }
+
+    private async _addTestsToTree(tests: TestAdapter[]): Promise<void> {
         const reportBuilder = this._ensureReportBuilder();
         const queue = new PQueue({concurrency: os.cpus().length});
 
-        for (const test of this._ensureTestCollection().tests) {
+        for (const test of tests) {
             if (test.disabled || test.silentlySkipped) {
                 continue;
             }
@@ -397,6 +650,12 @@ export class ToolRunner {
             // TODO: remove toString after publish major version
             const testId = formatId(test.id.toString(), test.browserId);
             this._testAdapters[testId] = test;
+            if (test.file) {
+                const testFile = path.resolve(test.file);
+                const adapterIds = this._testAdapterIdsByFile.get(testFile) ?? new Set<string>();
+                adapterIds.add(testId);
+                this._testAdapterIdsByFile.set(testFile, adapterIds);
+            }
 
             if (test.pending) {
                 queue.add(async () => reportBuilder.addTestResult(test.createTestResult({status: SKIPPED, duration: 0})));
@@ -406,7 +665,6 @@ export class ToolRunner {
         }
 
         await queue.onIdle();
-        await this._fillTestsTree();
     }
 
     protected _getTestAdapterById(updateData: TestRefUpdateData): TestAdapter {

@@ -430,6 +430,94 @@ describe('lib/gui/tool-runner/index', () => {
         });
     });
 
+    describe('refreshTestsIfChanged', () => {
+        it('should not read the full test collection after a structural change', async () => {
+            const changedFile = '/ref/cwd/changed.hermione.ts';
+            const oldTest = mkTestAdapter_(stubTest_({
+                file: changedFile,
+                browserId: 'yabro',
+                fullTitle: () => 'old test'
+            }));
+            const newTest = mkTestAdapter_(stubTest_({
+                file: changedFile,
+                browserId: 'yabro',
+                fullTitle: () => 'new test'
+            }));
+            const tree = {
+                suites: {byId: {}, byHash: {}, allIds: [], allRootIds: []},
+                browsers: {byId: {}, allIds: []},
+                results: {byId: {}, allIds: []},
+                images: {byId: {}, allIds: []}
+            };
+            toolAdapter.readTests.onFirstCall().resolves({tests: [oldTest]});
+            toolAdapter.readTests.onSecondCall().resolves({tests: [newTest]});
+            sandbox.stub(fs, 'pathExists').withArgs(changedFile).resolves(true);
+            sandbox.stub(reportBuilder, 'testsTree').get(() => tree);
+            const gui = initGuiReporter({toolAdapter});
+            const onChanged = sandbox.stub();
+            const onUpdated = sandbox.stub();
+
+            await gui.initialize();
+            await gui.refreshTestsIfChanged([changedFile], [], onChanged, onUpdated, 1);
+
+            assert.callCount(toolAdapter.readTests, 2);
+            assert.calledOnceWith(onChanged, true);
+            assert.calledOnce(onUpdated);
+            assert.calledOnceWith(reportBuilder.restoreTestHistory, [{
+                suitePath: ['new', 'test'],
+                browserId: 'yabro'
+            }]);
+        });
+
+        it('should treat a changed file with no tests as an empty partial collection', async () => {
+            const changedFile = '/ref/cwd/changed.hermione.ts';
+            const oldTest = mkTestAdapter_(stubTest_({
+                file: changedFile,
+                browserId: 'yabro',
+                fullTitle: () => 'old test'
+            }));
+            const tree = {
+                suites: {byId: {}, byHash: {}, allIds: [], allRootIds: []},
+                browsers: {byId: {}, allIds: []},
+                results: {byId: {}, allIds: []},
+                images: {byId: {}, allIds: []}
+            };
+            toolAdapter.readTests.onFirstCall().resolves({tests: [oldTest]});
+            toolAdapter.readTests.onSecondCall().rejects(new Error('There are no tests found. Try to specify options'));
+            sandbox.stub(fs, 'pathExists').withArgs(changedFile).resolves(true);
+            sandbox.stub(reportBuilder, 'testsTree').get(() => tree);
+            const gui = initGuiReporter({toolAdapter});
+            const onChanged = sandbox.stub();
+            const onUpdated = sandbox.stub();
+
+            await gui.initialize();
+            await gui.refreshTestsIfChanged([changedFile], [], onChanged, onUpdated, 1);
+
+            assert.callCount(toolAdapter.readTests, 2);
+            assert.calledOnceWith(onChanged, true);
+            assert.calledOnce(onUpdated);
+        });
+
+        it('should lazily read only the selected test file before running changed code', async () => {
+            const changedFile = '/ref/cwd/changed.hermione.ts';
+            const test = mkTestAdapter_(stubTest_({
+                file: changedFile,
+                browserId: 'yabro',
+                fullTitle: () => 'same test'
+            }));
+            toolAdapter.readTests.resolves({tests: [test]});
+            sandbox.stub(fs, 'pathExists').withArgs(changedFile).resolves(true);
+            const gui = initGuiReporter({toolAdapter});
+
+            await gui.initialize();
+            await gui.refreshTestsIfChanged([changedFile], [], sandbox.stub(), sandbox.stub(), 1);
+            await gui.run([{testName: 'same test', browserName: 'yabro'}]);
+
+            assert.callCount(toolAdapter.readTests, 3);
+            assert.deepEqual(toolAdapter.readTests.thirdCall.args[0], [changedFile]);
+        });
+    });
+
     describe('findEqualDiffs', () => {
         let compareOpts;
 

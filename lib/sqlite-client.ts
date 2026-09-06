@@ -2,6 +2,7 @@ import path from 'path';
 import type {Database, Statement} from '@gemini-testing/sql.js';
 import makeDebug from 'debug';
 import fs from 'fs-extra';
+import _ from 'lodash';
 import NestedError from 'nested-error-stacks';
 
 import {getShortMD5} from './common-utils';
@@ -27,6 +28,11 @@ interface QueryParams {
 
 interface DeleteParams {
     where?: string;
+}
+
+export interface TestHistorySpec {
+    suitePath: string[];
+    browserId: string;
 }
 
 export interface DbTestResult {
@@ -168,6 +174,28 @@ export class SqliteClient {
             }
         }
         statement.free();
+
+        return rows.sort(compareDatabaseRowsByTimestamp);
+    }
+
+    getSuitesByTests(tests: TestHistorySpec[]): RawSuitesRow[] {
+        const rows: RawSuitesRow[] = [];
+        const uniqueTests = _.uniqBy(tests, ({suitePath, browserId}) => `${JSON.stringify(suitePath)}\0${browserId}`);
+
+        for (const {suitePath, browserId} of uniqueTests) {
+            const statement = this._db.prepare(
+                `SELECT * FROM ${DB_SUITES_TABLE_NAME} WHERE suitePath = ? AND name = ?`
+            );
+            statement.bind([JSON.stringify(suitePath), browserId]);
+
+            while (statement.step()) {
+                const row = statement.get();
+                if (Array.isArray(row)) {
+                    rows.push(row as RawSuitesRow);
+                }
+            }
+            statement.free();
+        }
 
         return rows.sort(compareDatabaseRowsByTimestamp);
     }

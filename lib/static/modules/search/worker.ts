@@ -76,6 +76,7 @@ const search = (testNameFilter: string, matchCase = false): string[] => {
 type InitMessage = {
     type: 'init';
     data: Record<string, string[]>;
+    performanceId?: number;
 }
 
 type SearchMessage = {
@@ -86,10 +87,49 @@ type SearchMessage = {
     };
 }
 
-self.onmessage = (event: MessageEvent<InitMessage | SearchMessage>): void => {
+type PatchMessage = {
+    type: 'patch';
+    data: {
+        removeIds: string[];
+        idTagMap: Record<string, string[]>;
+    };
+    performanceId?: number;
+}
+
+self.onmessage = (event: MessageEvent<InitMessage | PatchMessage | SearchMessage>): void => {
     switch (event.data.type) {
         case 'init': {
+            const startedAt = performance.now();
             initSearch(event.data.data);
+            if (event.data.performanceId !== undefined) {
+                console.info(`[watch-perf][client][#${event.data.performanceId}][search worker] rebuild index: ${(performance.now() - startedAt).toFixed(1)}ms`, {
+                    items: Object.keys(event.data.data).length
+                });
+            }
+            self.postMessage(true);
+            break;
+        }
+        case 'patch': {
+            const startedAt = performance.now();
+            const removeIds = new Set(event.data.data.removeIds);
+            const preparedItems = Object.entries(event.data.data.idTagMap).map(([title, tags]) => ({
+                title,
+                tags: '@' + tags.join(' @')
+            }));
+
+            fuse.remove(item => removeIds.has(item.title));
+            fuseMatchCase.remove(item => removeIds.has(item.title));
+            preparedItems.forEach(item => {
+                fuse.add(item);
+                fuseMatchCase.add(item);
+            });
+
+            if (event.data.performanceId !== undefined) {
+                console.info(`[watch-perf][client][#${event.data.performanceId}][search worker] patch index: ${(performance.now() - startedAt).toFixed(1)}ms`, {
+                    removed: removeIds.size,
+                    upserted: preparedItems.length
+                });
+            }
             self.postMessage(true);
             break;
         }

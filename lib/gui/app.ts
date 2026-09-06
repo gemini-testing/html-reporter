@@ -5,6 +5,7 @@ import {TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../tests-tree-b
 
 import type {ServerArgs} from './index';
 import type {TestSpec} from '../adapters/tool/types';
+import type {TreePatch} from '../tests-tree-builder/tree-patch';
 
 export class App {
     private _toolRunner: ToolRunner;
@@ -58,8 +59,14 @@ export class App {
         return this._toolRunner.tree;
     }
 
-    async refreshTestsIfChanged(onChanged: () => void): Promise<boolean> {
-        return this._toolRunner.refreshTestsIfChanged(onChanged);
+    async refreshTestsIfChanged(
+        changedFiles: string[],
+        removedDirectories: string[],
+        onChanged: (changed: boolean) => void,
+        onUpdated: (patch: TreePatch) => void,
+        performanceId: number
+    ): Promise<void> {
+        return this._toolRunner.refreshTestsIfChanged(changedFiles, removedDirectories, onChanged, onUpdated, performanceId);
     }
 
     addClient(connection: Response): void {
