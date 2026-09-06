@@ -766,6 +766,47 @@ describe('lib/static/modules/reducers/tree', () => {
         });
     });
 
+    describe(`${actionNames.PATCH_TESTS_TREE} action`, () => {
+        it('should preserve unchanged nodes and add only nodes from the patch', () => {
+            const suitesById = mkSuite({id: 's1', hash: 'h1', root: true, browserIds: ['b1']});
+            const browsersById = mkBrowser({id: 'b1', name: 'yabro', parentId: 's1', resultIds: ['r1']});
+            const resultsById = mkResult({id: 'r1', parentId: 'b1'});
+            const tree = mkStateTree({suitesById, suitesAllRootIds: ['s1'], browsersById, resultsById});
+            tree.suites.byHash = {h1: suitesById.s1};
+            const state = reducer({view: mkStateView(), app: mkStatePageFilters({}), config: {}}, {
+                type: actionNames.INIT_GUI_REPORT,
+                payload: {tree}
+            });
+            const unchangedSuite = state.tree.suites.byId.s1;
+            const unchangedBrowser = state.tree.browsers.byId.b1;
+            const unchangedResult = state.tree.results.byId.r1;
+            const unchangedSuiteState = state.tree.suites.stateById.s1;
+            const addedSuite = mkSuite({id: 's2', hash: 'h2', root: true, browserIds: ['b2']}).s2;
+            const addedBrowser = mkBrowser({id: 'b2', name: 'yabro', parentId: 's2', resultIds: ['r2']}).b2;
+            const addedResult = mkResult({id: 'r2', parentId: 'b2'}).r2;
+
+            const newState = reducer(state, {
+                type: actionNames.PATCH_TESTS_TREE,
+                payload: {
+                    affectedRootIds: ['s2'],
+                    affectedSuiteIds: ['s2'],
+                    suites: {addedIds: ['s2'], removedIds: [], byId: {s2: addedSuite}, allRootIds: ['s1', 's2']},
+                    browsers: {addedIds: ['b2'], removedIds: [], byId: {b2: addedBrowser}},
+                    results: {addedIds: ['r2'], removedIds: [], byId: {r2: addedResult}},
+                    images: {addedIds: [], removedIds: [], byId: {}}
+                }
+            });
+
+            assert.strictEqual(newState.tree.suites.byId.s1, unchangedSuite);
+            assert.strictEqual(newState.tree.browsers.byId.b1, unchangedBrowser);
+            assert.strictEqual(newState.tree.results.byId.r1, unchangedResult);
+            assert.strictEqual(newState.tree.suites.stateById.s1, unchangedSuiteState);
+            assert.equal(newState.tree.suites.byId.s2, addedSuite);
+            assert.equal(newState.tree.browsers.byId.b2, addedBrowser);
+            assert.equal(newState.tree.results.byId.r2, addedResult);
+        });
+    });
+
     [actionNames.TEST_BEGIN, actionNames.TEST_RESULT, actionNames.COMMIT_ACCEPTED_IMAGES_TO_TREE].forEach((actionName) => {
         describe(`${actionName} action`, () => {
             it('should change "retryIndex" in browser state', () => {

@@ -1,8 +1,10 @@
 import _ from 'lodash';
+import path from 'node:path';
 import {BaseTestsTreeBuilder, Tree, TreeImage, TreeTestResult, TreeSuite} from './base';
 import {TestStatus, UPDATED} from '../constants';
 import {isUpdatedStatus} from '../common-utils';
 import {ImageFile, ImageInfoWithState} from '../types';
+import type {ReporterTestResult} from '../adapters/test-result';
 
 interface SuiteBranch {
     id: string;
@@ -41,6 +43,32 @@ interface TestUndoRefUpdateData {
 }
 
 export class GuiTestsTreeBuilder extends BaseTestsTreeBuilder {
+    private _browserIdsByFile = new Map<string, Set<string>>();
+
+    addTestResult(formattedResult: ReporterTestResult): void {
+        super.addTestResult(formattedResult);
+
+        const file = formattedResult.file;
+        if (typeof file !== 'string') {
+            return;
+        }
+
+        const browserId = this._buildId(this._buildId(formattedResult.testPath), formattedResult.browserId);
+        const normalizedFile = path.resolve(file);
+        const browserIds = this._browserIdsByFile.get(normalizedFile) ?? new Set<string>();
+        browserIds.add(browserId);
+        this._browserIdsByFile.set(normalizedFile, browserIds);
+    }
+
+    removeTestsByFiles(files: string[]): void {
+        const normalizedFiles = new Set(files.map(file => path.resolve(file)));
+        const browserIds = _.uniq([...normalizedFiles].flatMap(file => [...this._browserIdsByFile.get(file) ?? []]));
+
+        browserIds.forEach(browserId => this._removeBrowser(browserId));
+        normalizedFiles.forEach(file => this._browserIdsByFile.delete(file));
+        this.sortTree();
+    }
+
     getImagesInfo(testId: string): TreeImage[] {
         return this._tree.results.byId[testId].imageIds.map((imageId) => {
             return this._tree.images.byId[imageId];
@@ -150,8 +178,8 @@ export class GuiTestsTreeBuilder extends BaseTestsTreeBuilder {
         };
     }
 
-    reuseTestsTree(testsTree: Tree): void {
-        this._tree.browsers.allIds.forEach((browserId) => this._reuseBrowser(testsTree, browserId));
+    reuseTestsTree(testsTree: Tree, {replaceCurrentResults = false}: {replaceCurrentResults?: boolean} = {}): void {
+        this._tree.browsers.allIds.forEach((browserId) => this._reuseBrowser(testsTree, browserId, replaceCurrentResults));
     }
 
     updateImageInfo(imageId: string, imageInfo?: TreeImage | null): TreeImage {
@@ -189,11 +217,51 @@ export class GuiTestsTreeBuilder extends BaseTestsTreeBuilder {
         });
     }
 
-    private _reuseBrowser(testsTree: Tree, browserId: string): void {
+    private _removeBrowser(browserId: string): void {
+        const browser = this._tree.browsers.byId[browserId];
+        if (!browser) {
+            return;
+        }
+
+        browser.resultIds.filter(Boolean).forEach(resultId => this.removeTestResult(resultId));
+        const suite = this._tree.suites.byId[browser.parentId];
+        suite.browserIds = suite.browserIds?.filter(id => id !== browserId);
+        this._tree.browsers.allIds = this._tree.browsers.allIds.filter(id => id !== browserId);
+        delete this._tree.browsers.byId[browserId];
+
+        this._removeEmptySuiteOrUpdateStatus(suite);
+    }
+
+    private _removeEmptySuiteOrUpdateStatus(suite: TreeSuite): void {
+        if (suite.browserIds?.length || suite.suiteIds?.length) {
+            this._setStatusForBranch(suite.suitePath);
+            return;
+        }
+
+        const parent = suite.parentId ? this._tree.suites.byId[suite.parentId] : null;
+        if (parent) {
+            parent.suiteIds = parent.suiteIds?.filter(id => id !== suite.id);
+        }
+        this._tree.suites.allIds = this._tree.suites.allIds.filter(id => id !== suite.id);
+        this._tree.suites.allRootIds = this._tree.suites.allRootIds.filter(id => id !== suite.id);
+        delete this._tree.suites.byHash[suite.hash];
+        delete this._tree.suites.byId[suite.id];
+
+        if (parent) {
+            this._removeEmptySuiteOrUpdateStatus(parent);
+        }
+    }
+
+    private _reuseBrowser(testsTree: Tree, browserId: string, replaceCurrentResults: boolean): void {
         const reuseBrowser = testsTree.browsers.byId[browserId];
 
         if (!reuseBrowser) {
             return;
+        }
+
+        if (replaceCurrentResults) {
+            const currentBrowser = this._tree.browsers.byId[browserId];
+            currentBrowser.resultIds.filter(Boolean).forEach((resultId) => this.removeTestResult(resultId));
         }
 
         this._tree.browsers.byId[browserId] = reuseBrowser;

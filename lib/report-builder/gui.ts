@@ -10,6 +10,7 @@ import {determineStatus, isUpdatedStatus} from '../common-utils';
 import {HtmlReporterValues} from '../plugin-api';
 import {StaticTestsTreeBuilder, SkipItem} from '../tests-tree-builder/static';
 import {copyAndUpdate} from '../adapters/test-result/utils';
+import type {TestHistorySpec} from '../sqlite-client';
 
 interface UndoAcceptImageResult {
     updatedImage: TreeImage | undefined;
@@ -46,8 +47,8 @@ export class GuiReportBuilder extends StaticReportBuilder {
         return this;
     }
 
-    reuseTestsTree(tree: Tree): void {
-        this._testsTree.reuseTestsTree(tree);
+    reuseTestsTree(tree: Tree, options?: {replaceCurrentResults?: boolean}): void {
+        this._testsTree.reuseTestsTree(tree, options);
 
         // Fill test attempt manager with data from db
         for (const [, testResult] of Object.entries(tree.results.byId)) {
@@ -80,6 +81,26 @@ export class GuiReportBuilder extends StaticReportBuilder {
         this._testsTree = GuiTestsTreeBuilder.create({baseHost: this._reporterConfig.baseHost});
         this._skips = [];
         this.resetAttemps();
+    }
+
+    get testsTree(): Tree {
+        return this._testsTree.tree;
+    }
+
+    removeTestsByFiles(files: string[]): void {
+        this._testsTree.removeTestsByFiles(files);
+    }
+
+    restoreTestHistory(tests: TestHistorySpec[]): void {
+        const rows = this._dbClient.getSuitesByTests(tests);
+        if (!rows.length) {
+            return;
+        }
+
+        const testsTreeBuilder = StaticTestsTreeBuilder.create({baseHost: this._reporterConfig.baseHost});
+        const {tree} = testsTreeBuilder.build(rows);
+
+        this.reuseTestsTree(tree, {replaceCurrentResults: true});
     }
 
     buildTreeFromCurrentDb(): Tree {
