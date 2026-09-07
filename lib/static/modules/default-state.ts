@@ -99,6 +99,8 @@ export default Object.assign({config: configDefaults}, {
     app: {
         isNewUi: false,
         isInitialized: false,
+        isGuiInitializing: false,
+        queuedTestRun: null,
         availableFeatures: [],
 
         viewMode: ViewMode.ALL,

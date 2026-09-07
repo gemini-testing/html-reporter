@@ -7,6 +7,10 @@ import {LOCAL_DATABASE_NAME, ToolName} from '@/constants';
 import actionNames from '@/static/modules/action-names';
 import {StaticTestsTreeBuilder} from '@/tests-tree-builder/static';
 import type * as actionsModule from '@/static/modules/actions/lifecycle';
+import * as runTestsActions from '@/static/modules/actions/run-tests';
+import guiReducer from '@/static/modules/reducers/gui';
+import defaultState from '@/static/modules/default-state';
+import type {State} from '@/static/new-ui/types/store';
 
 const axios = axiosOriginal as unknown as SinonStubbedInstance<typeof axiosOriginal>;
 
@@ -45,7 +49,7 @@ describe('lib/static/modules/actions/lifecycle', () => {
         it('should run init action on server', async () => {
             await actions.thunkInitGuiReport()(dispatch, sinon.stub(), sinon.stub());
 
-            assert.calledOnceWith(axios.get, '/init');
+            assert.calledOnceWith(axios.get, '/init?cached=1');
         });
 
         it('should fetch database from default html page', async () => {
@@ -78,15 +82,123 @@ describe('lib/static/modules/actions/lifecycle', () => {
             await actions.thunkInitGuiReport()(dispatch, sinon.stub(), sinon.stub());
 
             assert.calledOnceWith(createNotificationError, 'initGuiReport', customGuiError);
+            assert.calledWith(dispatch, {
+                type: actionNames.UPDATE_LOADING_TITLE,
+                payload: 'Failed to initialize Testplane UI'
+            });
+            assert.calledWith(dispatch, {
+                type: actionNames.UPDATE_LOADING_IS_IN_PROGRESS,
+                payload: false
+            });
+            assert.calledWith(dispatch, {
+                type: actionNames.UPDATE_LOADING_VISIBILITY,
+                payload: true
+            });
         });
 
         it('should init plugins with the config from /init route', async () => {
             const config = {pluginsEnabled: true, plugins: []};
-            axios.get.withArgs('/init').resolves({data: {config, features: []}});
+            axios.get.withArgs('/init?cached=1').resolves({data: {config, features: []}});
 
             await actions.thunkInitGuiReport()(dispatch, sinon.stub(), sinon.stub());
 
             assert.calledOnceWith(pluginsStub.loadAll, config);
+        });
+
+        it('should show the cache without waiting for the database or plugins, then replace it with the fresh tree', async () => {
+            let finish: (value: unknown) => void = () => assert.fail('The fresh tree has not been requested yet');
+            const cached = {tree: {cached: true}, features: [], isCached: true};
+            const fresh = {tree: {fresh: true}, features: []};
+            axios.get.withArgs('/init?cached=1').resolves({data: cached});
+            axios.get.withArgs('/init').returns(new Promise(resolve => {
+                finish = resolve;
+            }) as never);
+
+            const initialization = actions.thunkInitGuiReport({isNewUi: true})(dispatch, sinon.stub(), sinon.stub());
+            await new Promise(resolve => setTimeout(resolve, 0));
+            assert.calledWith(dispatch, {
+                type: actionNames.INIT_GUI_REPORT,
+                payload: {...cached, db: null, isNewUi: true}
+            });
+            assert.notCalled(connectToDatabaseStub);
+            assert.notCalled(pluginsStub.loadAll);
+
+            finish({data: fresh});
+            await initialization;
+            assert.calledWith(dispatch, {
+                type: actionNames.INIT_GUI_REPORT,
+                payload: {...fresh, db: {}, isNewUi: true, preserveUiState: true}
+            });
+        });
+
+        it('should keep the cached tree visible when refreshing fails', async () => {
+            axios.get.withArgs('/init?cached=1').resolves({data: {features: [], isCached: true}});
+            axios.get.withArgs('/init').rejects(new Error('discovery failed'));
+            await actions.thunkInitGuiReport()(dispatch, sinon.stub(), sinon.stub());
+            assert.neverCalledWithMatch(dispatch, {type: actionNames.UPDATE_LOADING_VISIBILITY, payload: true});
+            assert.calledOnce(createNotificationError);
+        });
+
+        describe('running from the cached tree', () => {
+            let state: State;
+
+            beforeEach(() => {
+                state = {...defaultState, app: {...defaultState.app}} as State;
+                sandbox.stub(axios, 'post').resolves({data: {}});
+                dispatch.callsFake(action => {
+                    if (typeof action === 'function') {
+                        return action(dispatch, () => state, null);
+                    }
+                    if (action) {
+                        state = guiReducer(state, action);
+                    }
+                    return action;
+                });
+                axios.get.withArgs('/init?cached=1').resolves({data: {features: [], isCached: true}});
+            });
+
+            it('should wait for the database, plugins and fresh state before submitting the queued run', async () => {
+                axios.get.withArgs('/init').resolves({data: {features: []}});
+                let finishPlugins: () => void = () => assert.fail('Plugins have not started loading');
+                pluginsStub.loadAll.returns(new Promise<void>(resolve => {
+                    finishPlugins = resolve;
+                }));
+                const initialization = dispatch(actions.thunkInitGuiReport());
+                await new Promise(resolve => setTimeout(resolve, 0));
+                const tests = [{testName: 'selected', browserName: 'chrome'}];
+                await dispatch(runTestsActions.thunkRunTests({tests}));
+                assert.notCalled(axios.post);
+                assert.calledOnce(connectToDatabaseStub);
+
+                finishPlugins();
+                await initialization;
+
+                assert.calledOnceWith(axios.post, '/run', {tests, repeatCount: 1});
+                assert.isFalse(state.app.isGuiInitializing);
+                assert.isNull(state.app.queuedTestRun);
+                const freshInit = dispatch.getCalls().find(call => call.args[0]?.payload?.preserveUiState);
+                assert.isDefined(freshInit);
+                assert.isTrue(freshInit?.calledBefore(axios.post.firstCall));
+            });
+
+            it('should cancel the queued run when discovery fails', async () => {
+                let failDiscovery: (error: Error) => void = () => assert.fail('Discovery has not started');
+                axios.get.withArgs('/init').returns(new Promise((_resolve, reject) => {
+                    failDiscovery = reject;
+                }) as never);
+                const initialization = dispatch(actions.thunkInitGuiReport());
+                await new Promise(resolve => setTimeout(resolve, 0));
+                await dispatch(runTestsActions.thunkRunTests());
+
+                failDiscovery(new Error('discovery failed'));
+                await initialization;
+
+                assert.notCalled(axios.post);
+                assert.isNull(state.app.queuedTestRun);
+                assert.isFalse(state.running);
+                assert.calledWith(dispatch, {type: actionNames.PROCESS_BEGIN});
+                assert.calledWith(dispatch, {type: actionNames.SET_AVAILABLE_FEATURES, payload: {features: []}});
+            });
         });
     });
 

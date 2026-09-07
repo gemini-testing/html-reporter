@@ -71,6 +71,7 @@ function stubToolAdapter({
         handleTestResults: sinon.stub(),
         guiApi: {
             initServer: sinon.stub(),
+            serverListening: sinon.stub(),
             serverReady: sinon.stub()
         }
     };

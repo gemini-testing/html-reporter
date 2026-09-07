@@ -8,6 +8,30 @@ const {mkSuite, mkBrowser, mkResult, mkImage, mkStateTree, mkStateView, mkStateP
 const {ErrorName} = require('lib/errors');
 
 describe('lib/static/modules/reducers/tree', () => {
+    it('should preserve existing selections, add new tests and remove deleted tests when replacing the cache', () => {
+        const makeTree = ids => mkStateTree({
+            suitesById: mkSuite({id: 's1', browserIds: ids}),
+            browsersById: Object.assign({}, ...ids.map(id => mkBrowser({id, parentId: 's1', resultIds: [`r-${id}`]}))),
+            resultsById: Object.assign({}, ...ids.map(id => mkResult({id: `r-${id}`, parentId: id, status: SUCCESS})))
+        });
+        const state = reducer({app: mkStatePageFilters({}), view: mkStateView({})}, {
+            type: actionNames.INIT_GUI_REPORT, payload: {tree: makeTree(['keep', 'deleted'])}
+        });
+        state.tree.browsers.stateById.keep.checkStatus = CHECKED;
+        state.tree.suites.stateById.s1.shouldBeOpened = false;
+
+        const updated = reducer(state, {
+            type: actionNames.INIT_GUI_REPORT,
+            payload: {tree: makeTree(['keep', 'added']), preserveUiState: true}
+        });
+
+        assert.deepEqual(updated.tree.browsers.allIds, ['keep', 'added']);
+        assert.equal(updated.tree.browsers.stateById.keep.checkStatus, CHECKED);
+        assert.equal(updated.tree.browsers.stateById.added.checkStatus, UNCHECKED);
+        assert.isFalse(updated.tree.suites.stateById.s1.shouldBeOpened);
+        assert.notProperty(updated.tree.browsers.stateById, 'deleted');
+        assert.equal(updated.tree.suites.stateById.s1.checkStatus, INDETERMINATE);
+    });
     [actionNames.INIT_GUI_REPORT, actionNames.INIT_STATIC_REPORT].forEach((actionName) => {
         describe(`${actionName} action`, () => {
             it('should set status from filtered browsers to parent suites', () => {

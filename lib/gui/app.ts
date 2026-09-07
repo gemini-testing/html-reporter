@@ -4,6 +4,7 @@ import {RunParams, ToolRunner, ToolRunnerTree, UndoAcceptImagesResult} from './t
 import {TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../tests-tree-builder/gui';
 
 import type {ServerArgs} from './index';
+import type {InitializationProgressHandler} from './api';
 import type {TestSpec} from '../adapters/tool/types';
 
 export class App {
@@ -21,8 +22,8 @@ export class App {
         return this._toolRunner.tree;
     }
 
-    async initialize(): Promise<void> {
-        return await this._toolRunner.initialize();
+    async initialize(onProgress?: InitializationProgressHandler): Promise<void> {
+        return await this._toolRunner.initialize(onProgress);
     }
 
     async finalize(): Promise<void> {

@@ -20,6 +20,9 @@ export default (state: State, action: SomeAction): State => {
     switch (action.type) {
         case actionNames.INIT_STATIC_REPORT:
         case actionNames.INIT_GUI_REPORT: {
+            if ('preserveUiState' in action.payload && action.payload.preserveUiState) {
+                return state;
+            }
             const availableExpressions = DEFAULT_AVAILABLE_EXPRESSIONS;
 
             return applyStateUpdate(state, {

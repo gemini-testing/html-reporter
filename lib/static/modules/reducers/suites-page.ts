@@ -32,12 +32,28 @@ export default (state: State, action: SomeAction): State => {
             const expandedTreeNodesById: Record<string, boolean> = Object.assign({}, state.ui.suitesPage.expandedTreeNodesById);
 
             for (const nodeId of allTreeNodeIds) {
-                expandedTreeNodesById[nodeId] = true;
+                if (action.type !== actionNames.INIT_GUI_REPORT || !action.payload.preserveUiState ||
+                    expandedTreeNodesById[nodeId] === undefined) {
+                    expandedTreeNodesById[nodeId] = true;
+                }
             }
 
             let currentGroupId: string | null | undefined = null;
             let currentTreeNodeId: string | null | undefined = state.app[Page.suitesPage].currentTreeNodeId;
             let treeViewMode = state.ui.suitesPage.treeViewMode;
+            if (action.type === actionNames.INIT_GUI_REPORT && action.payload.preserveUiState) {
+                const {currentBrowserId, currentGroupId} = state.app.suitesPage;
+                const browserExists = currentBrowserId && state.tree.browsers.byId[currentBrowserId];
+                return applyStateUpdate(state, {
+                    app: {suitesPage: {
+                        currentBrowserId: browserExists ? currentBrowserId : null,
+                        currentGroupId: currentGroupId && state.tree.groups.byId[currentGroupId] ? currentGroupId : null,
+                        currentTreeNodeId: currentTreeNodeId && allTreeNodeIds.includes(currentTreeNodeId) ? currentTreeNodeId : null,
+                        currentStepId: null
+                    }},
+                    ui: {suitesPage: {expandedTreeNodesById}}
+                });
+            }
             if (action.type === actionNames.GROUP_TESTS_SET_CURRENT_EXPRESSION || action.type === actionNames.SUITES_PAGE_SET_TREE_VIEW_MODE) {
                 const {currentBrowserId} = state.app.suitesPage;
                 if (currentBrowserId) {

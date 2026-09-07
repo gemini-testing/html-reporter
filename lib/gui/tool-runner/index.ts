@@ -46,6 +46,15 @@ import type {
 import type {TestAdapter} from '../../adapters/test/index';
 import type {TestCollectionAdapter} from '../../adapters/test-collection';
 import type {ConfigAdapter} from '../../adapters/config';
+import type {InitializationProgressHandler} from '../api';
+
+export const InitializationPhases = {
+    PREPARE_DATABASE: 'prepare-database',
+    CREATE_REPORT_BUILDER: 'create-report-builder',
+    READ_TESTS: 'read-tests',
+    SAVE_STATIC_FILES: 'save-static-files',
+    BUILD_TESTS_TREE: 'build-tests-tree'
+} as const;
 
 export type ToolRunnerTree = GuiReportBuilderResult & Pick<GuiCliOptions, 'autoRun'> & {
     features: Feature[];
@@ -119,35 +128,57 @@ export class ToolRunner {
         });
     }
 
-    async initialize(): Promise<void> {
-        await mergeDatabasesForReuse(this._reportPath);
-        await prepareLocalDatabase(this._reportPath);
-
-        const dbClient = await SqliteClient.create({htmlReporter: this._toolAdapter.htmlReporter, reportPath: this._reportPath, reuse: true});
-        const imageStore = new SqliteImageStore(dbClient);
-
-        const imagesInfoSaver = new ImagesInfoSaver({
-            imageFileSaver: this._toolAdapter.htmlReporter.imagesSaver,
-            expectedPathsCache: this._expectedImagesCache,
-            imageStore,
-            reportPath: this._toolAdapter.htmlReporter.config.path
+    async initialize(onProgress?: InitializationProgressHandler): Promise<void> {
+        await this._runInitializationPhase(InitializationPhases.PREPARE_DATABASE, onProgress, async () => {
+            await mergeDatabasesForReuse(this._reportPath);
+            await prepareLocalDatabase(this._reportPath);
         });
 
-        this._reportBuilder = GuiReportBuilder.create({
-            htmlReporter: this._toolAdapter.htmlReporter,
-            reporterConfig: this._reporterConfig,
-            dbClient,
-            imagesInfoSaver
-        });
-        this._toolAdapter.handleTestResults(this._reportBuilder, this._eventSource);
+        const dbClient = await this._runInitializationPhase(InitializationPhases.CREATE_REPORT_BUILDER, onProgress, async () => {
+            const dbClient = await SqliteClient.create({htmlReporter: this._toolAdapter.htmlReporter, reportPath: this._reportPath, reuse: true});
+            const imageStore = new SqliteImageStore(dbClient);
 
-        this._collection = await this._readTests();
+            const imagesInfoSaver = new ImagesInfoSaver({
+                imageFileSaver: this._toolAdapter.htmlReporter.imagesSaver,
+                expectedPathsCache: this._expectedImagesCache,
+                imageStore,
+                reportPath: this._toolAdapter.htmlReporter.config.path
+            });
+
+            this._reportBuilder = GuiReportBuilder.create({
+                htmlReporter: this._toolAdapter.htmlReporter,
+                reporterConfig: this._reporterConfig,
+                dbClient,
+                imagesInfoSaver
+            });
+            this._toolAdapter.handleTestResults(this._reportBuilder, this._eventSource);
+
+            return dbClient;
+        });
+
+        this._collection = await this._runInitializationPhase(InitializationPhases.READ_TESTS, onProgress, () => this._readTests());
 
         this._toolAdapter.htmlReporter.emit(PluginEvents.DATABASE_CREATED, dbClient.getRawConnection());
-        await this._reportBuilder.saveStaticFiles();
+        await this._runInitializationPhase(InitializationPhases.SAVE_STATIC_FILES, onProgress, () => this._ensureReportBuilder().saveStaticFiles());
 
-        this._reportBuilder.setApiValues(this._toolAdapter.htmlReporter.values);
-        await this._handleRunnableCollection();
+        await this._runInitializationPhase(InitializationPhases.BUILD_TESTS_TREE, onProgress, async () => {
+            this._ensureReportBuilder().setApiValues(this._toolAdapter.htmlReporter.values);
+            await this._handleRunnableCollection();
+        });
+    }
+
+    private async _runInitializationPhase<T>(
+        phase: string,
+        onProgress: InitializationProgressHandler | undefined,
+        action: () => T | Promise<T>
+    ): Promise<T> {
+        const startedAt = Date.now();
+
+        try {
+            return await action();
+        } finally {
+            await onProgress?.({phase, duration: Date.now() - startedAt});
+        }
     }
 
     async _readTests(): Promise<TestCollectionAdapter> {

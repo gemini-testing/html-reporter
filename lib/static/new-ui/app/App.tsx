@@ -11,6 +11,7 @@ import {HashRouter, Navigate, Route, Routes} from 'react-router-dom';
 import {LoadingBar} from '@/static/new-ui/components/LoadingBar';
 import {GuiniToolbarOverlay} from '@/static/new-ui/components/GuiniToolbarOverlay';
 import {AutoRun} from '@/static/new-ui/components/AutoRun';
+import {QueuedTestRunNotification} from '@/static/new-ui/components/QueuedTestRunNotification';
 import {MainLayout} from '../components/MainLayout';
 import {SuitesPage} from '../features/suites/components/SuitesPage';
 import {VisualChecksPage} from '../features/visual-checks/components/VisualChecksPage';
@@ -56,6 +57,7 @@ export function App(): ReactNode {
                         <MetrikaScript/>
                         <FaviconChanger />
                         <AutoRun />
+                        <QueuedTestRunNotification />
                         <AnalyticsProvider>
                             <HashRouter>
                                 <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackAppCrash />}>

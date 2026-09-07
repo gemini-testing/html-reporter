@@ -26,9 +26,15 @@ export interface ServerArgs {
 
 export default (args: ServerArgs): void => {
     server.start(args)
-        .then(async ({url}: { url: string }) => {
+        .then(async ({url, ready}) => {
             if (args.cli.options.open) {
                 await openBrowser(url);
+            }
+
+            try {
+                await ready;
+            } catch (err: unknown) {
+                logError(err as Error);
             }
         })
         .catch((err: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any

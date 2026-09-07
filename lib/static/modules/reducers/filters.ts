@@ -26,6 +26,9 @@ export default (state: State, action: FiltersAction | InitGuiReportAction | Init
     switch (action.type) {
         case actionNames.INIT_GUI_REPORT:
         case actionNames.INIT_STATIC_REPORT: {
+            if ('preserveUiState' in action.payload && action.payload.preserveUiState) {
+                return applyStateUpdate(state, {app: {isRefreshTestsLoading: false}});
+            }
             const viewMode = localStorageWrapper.getItem('app.viewMode', ViewMode.ALL) as ViewMode;
             const visualChecksPageDiffMode = localStorageWrapper.getItem(VISUAL_CHECKS_PAGE_DIFF_MODE_KEY, DiffModes.TWO_UP_INTERACTIVE.id) as DiffModeId;
 

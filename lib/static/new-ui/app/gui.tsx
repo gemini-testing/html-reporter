@@ -28,7 +28,9 @@ function Gui(): ReactNode {
         }
 
         eventSource.addEventListener(ClientEvents.CONNECTED, (): void => {
-            store.dispatch({type: actionNames.UPDATE_LOADING_VISIBILITY, payload: false});
+            if (store.getState().app.isInitialized) {
+                store.dispatch({type: actionNames.UPDATE_LOADING_VISIBILITY, payload: false});
+            }
 
             store.dispatch(setGuiServerConnectionStatus({isConnected: true}));
         });
