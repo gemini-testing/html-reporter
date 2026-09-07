@@ -2,7 +2,6 @@ import _ from 'lodash';
 import * as fsOriginal from 'fs-extra';
 import proxyquire from 'proxyquire';
 import sinon from 'sinon';
-import tmpOriginal from 'tmp';
 
 import {TestStatus} from 'lib/constants/test-statuses';
 import {ERROR_DETAILS_PATH} from 'lib/constants/paths';
@@ -39,7 +38,6 @@ describe('TestplaneTestResultAdapter', () => {
     let utils: sinon.SinonStubbedInstance<typeof originalUtils>;
     let commonUtils: sinon.SinonStubbedInstance<typeof originalCommonUtils>;
     let fs: sinon.SinonStubbedInstance<typeof fsOriginal>;
-    let tmp: typeof tmpOriginal;
     let testAdapterUtils: sinon.SinonStubbedInstance<typeof originalTestAdapterUtils>;
 
     const mkTestplaneTestResultAdapter = (
@@ -55,7 +53,6 @@ describe('TestplaneTestResultAdapter', () => {
     }) as TestplaneTestResult;
 
     beforeEach(() => {
-        tmp = {tmpdir: 'default/dir'} as typeof tmpOriginal;
         fs = sinon.stub(_.clone(fsOriginal));
         getSuitePath = sandbox.stub();
 
@@ -73,7 +70,6 @@ describe('TestplaneTestResultAdapter', () => {
         testAdapterUtils = _.clone(originalTestAdapterUtils);
 
         TestplaneTestResultAdapter = proxyquire('lib/adapters/test-result/testplane', {
-            tmp,
             'fs-extra': fs,
             '../../../plugin-utils': {getSuitePath},
             '../../server-utils': utils,

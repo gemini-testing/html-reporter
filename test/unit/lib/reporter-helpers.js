@@ -1,9 +1,11 @@
 'use strict';
 
+const path = require('path');
 const _ = require('lodash');
 const proxyquire = require('proxyquire');
 const {UPDATED} = require('lib/constants');
 const commonUtilsOriginal = require('lib/common-utils');
+const osOriginal = require('node:os');
 
 describe('lib/reporter-helpers', () => {
     const sandbox = sinon.sandbox.create();
@@ -13,6 +15,7 @@ describe('lib/reporter-helpers', () => {
     let fs;
     let streamPipeline;
     let imageStream;
+    let os;
 
     const mkImageInfo_ = (actualImgPath) => ({
         status: UPDATED,
@@ -31,7 +34,10 @@ describe('lib/reporter-helpers', () => {
         commonUtils = _.clone(commonUtilsOriginal);
         imageStream = {};
         sandbox.stub(commonUtils, 'fetchFile').resolves({data: imageStream, status: 200});
+        sandbox.stub(commonUtils, 'getShortMD5').returns('reference-id');
         streamPipeline = sandbox.stub().resolves();
+        os = _.clone(osOriginal);
+        sandbox.stub(os, 'tmpdir').returns('/temp-dir');
 
         fs = {
             createWriteStream: sandbox.stub().returns({})
@@ -42,6 +48,7 @@ describe('lib/reporter-helpers', () => {
             getReferencePath: sandbox.stub().returns('images/plain/reference.png'),
             copyFileAsync: sandbox.stub().resolves(),
             fileExists: sandbox.stub().returns(false),
+            getImagesInfoByStateName: sandbox.stub(),
             makeDirFor: sandbox.stub().resolves()
         };
 
@@ -52,6 +59,7 @@ describe('lib/reporter-helpers', () => {
                 copyAndUpdate: sandbox.stub().callsFake((source, data) => _.assign(source, data))
             },
             'fs-extra': fs,
+            'node:os': os,
             'stream/promises': {pipeline: streamPipeline}
         });
     });
@@ -78,5 +86,31 @@ describe('lib/reporter-helpers', () => {
         assert.calledOnceWith(fs.createWriteStream, '/ref/path/plain.png');
         assert.calledOnceWith(streamPipeline, imageStream, fs.createWriteStream.firstCall.returnValue);
         assert.calledWith(utils.copyFileAsync, '/ref/path/plain.png', '/report/images/plain/reference.png');
+    });
+
+    it('should save the previous reference image in the OS temporary directory', async () => {
+        const onReferenceUpdateCb = sandbox.stub();
+        const testResult = mkTestResult_('images/plain/current.png');
+        utils.fileExists.returns(true);
+
+        await reporterHelpers.updateReferenceImages(testResult, '/report', onReferenceUpdateCb);
+
+        assert.calledWith(
+            utils.copyFileAsync.firstCall,
+            '/ref/path/plain.png',
+            path.resolve('/temp-dir', 'reference-id')
+        );
+    });
+
+    it('should restore a reference image from the OS temporary directory', async () => {
+        utils.getImagesInfoByStateName.returns({refImg: {path: '/ref/path/plain.png'}});
+
+        await reporterHelpers.revertReferenceImage({id: 'test-id'}, {imagesInfo: []}, 'plain');
+
+        assert.calledOnceWith(
+            utils.copyFileAsync,
+            path.resolve('/temp-dir', 'reference-id'),
+            '/ref/path/plain.png'
+        );
     });
 });

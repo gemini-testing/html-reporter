@@ -7,10 +7,6 @@ import {ImageDiffError, NoRefImageError} from './errors';
 import {UiMode} from './constants/local-storage';
 import {ReporterTestResult} from './adapters/test-result';
 
-declare module 'tmp' {
-    export const tmpdir: string;
-}
-
 export type {Suite as TestplaneSuite} from 'testplane';
 
 export interface HermioneTestResult extends TestResult {
