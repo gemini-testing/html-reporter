@@ -120,7 +120,12 @@ describe('PlaywrightTestResultAdapter', () => {
                 const matcher = receiver === 'Buffer' ? 'toMatchSnapshot' : 'toHaveScreenshot';
                 const suffix = receiver === 'Buffer' ? '' : ' failed';
                 const errors = [{message: `Error: expect(${receiver}).${matcher}(expected)${suffix}\n\n  Snapshot: state1.png`}];
-                const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({errors}), UNKNOWN_ATTEMPT);
+                const attachments = [
+                    createAttachment('state1-expected.png'),
+                    createAttachment('state1-diff.png'),
+                    createAttachment('state1-actual.png')
+                ];
+                const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({errors, attachments}), UNKNOWN_ATTEMPT);
 
                 assert.equal(adapter.error?.name, ErrorName.IMAGE_DIFF);
                 assert.equal(adapter.status, FAIL);
@@ -130,7 +135,12 @@ describe('PlaywrightTestResultAdapter', () => {
         ['Screenshot comparison failed', 'Error: expect(page).toHaveScreenshot(expected) failed'].forEach(message => {
             it(`should preserve other failures alongside "${message}"`, () => {
                 const errors = [{message}, {message: 'Error: expect(received).toBe(expected)'}];
-                const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({errors}), UNKNOWN_ATTEMPT);
+                const attachments = [
+                    createAttachment('state1-expected.png'),
+                    createAttachment('state1-diff.png'),
+                    createAttachment('state1-actual.png')
+                ];
+                const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({errors, attachments}), UNKNOWN_ATTEMPT);
 
                 assert.equal(adapter.error?.name, ErrorName.GENERAL_ERROR);
                 assert.equal(adapter.status, ERROR);
@@ -148,21 +158,36 @@ describe('PlaywrightTestResultAdapter', () => {
 
         it('should match diff attachments to the failing snapshot', () => {
             const errors = [{message: 'Error: expect(locator).toHaveScreenshot(expected) failed\n\n  Snapshot: state2.png'}];
-            const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({errors}), UNKNOWN_ATTEMPT);
+            const attachments = [
+                createAttachment('state1-expected.png'),
+                createAttachment('state1-diff.png'),
+                createAttachment('state1-actual.png')
+            ];
+            const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({errors, attachments}), UNKNOWN_ATTEMPT);
 
             assert.equal(adapter.error?.name, ErrorName.GENERAL_ERROR);
         });
 
         it('should recognize an unnamed modern screenshot diff', () => {
             const errors = [{message: 'Error: expect(page).toHaveScreenshot(expected) failed'}];
-            const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({errors}), UNKNOWN_ATTEMPT);
+            const attachments = [
+                createAttachment('state1-expected.png'),
+                createAttachment('state1-diff.png'),
+                createAttachment('state1-actual.png')
+            ];
+            const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({errors, attachments}), UNKNOWN_ATTEMPT);
 
             assert.equal(adapter.error?.name, ErrorName.IMAGE_DIFF);
         });
 
         it('should recognize modern screenshot diffs with ANSI formatting', () => {
             const errors = [{message: 'Error: \u001b[31mexpect(page).toHaveScreenshot(expected)\u001b[39m failed\n\n  Snapshot: state1.png'}];
-            const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({errors}), UNKNOWN_ATTEMPT);
+            const attachments = [
+                createAttachment('state1-expected.png'),
+                createAttachment('state1-diff.png'),
+                createAttachment('state1-actual.png')
+            ];
+            const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({errors, attachments}), UNKNOWN_ATTEMPT);
 
             assert.equal(adapter.error?.name, ErrorName.IMAGE_DIFF);
         });
@@ -183,7 +208,12 @@ describe('PlaywrightTestResultAdapter', () => {
                 {message: 'Error: expect(page).toHaveScreenshot(expected) failed\n\n  Snapshot: state1.png'},
                 {message: 'Error: expect(locator).toHaveScreenshot(expected) failed'}
             ];
-            const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({errors}), UNKNOWN_ATTEMPT);
+            const attachments = [
+                createAttachment('state1-expected.png'),
+                createAttachment('state1-diff.png'),
+                createAttachment('state1-actual.png')
+            ];
+            const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({errors, attachments}), UNKNOWN_ATTEMPT);
 
             assert.equal(adapter.error?.name, ErrorName.GENERAL_ERROR);
         });
