@@ -1,0 +1,65 @@
+.container {
+    position: relative;
+    padding: 12px;
+    border-radius: 10px;
+    background: var(--color-neutral-950);
+
+    &:hover {
+        .buttons {
+            opacity: 1;
+        }
+    }
+}
+
+.buttons {
+    position: absolute;
+    z-index: 1;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    gap: 8px;
+    opacity: 0;
+    transition: opacity 0.1s ease-in-out;
+}
+
+.button {
+    background: var(--g-color-base-background);
+}
+
+.config {
+    box-sizing: border-box;
+    max-height: 400px;
+    margin: 0;
+    overflow: auto;
+    color: #d8dee9;
+    background: var(--color-neutral-950);
+    font-family: monospace;
+    font-size: 12px;
+    line-height: 1.4;
+    white-space: pre;
+}
+
+.break-lines {
+    white-space: break-spaces;
+    overflow-wrap: break-word;
+}
+
+.json-key {
+    color: #82aaff;
+}
+
+.json-string {
+    color: #c3e88d;
+}
+
+.json-number {
+    color: #f78c6c;
+}
+
+.json-boolean {
+    color: #c792ea;
+}
+
+.json-null {
+    color: #ff5370;
+}

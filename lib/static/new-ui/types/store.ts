@@ -354,7 +354,9 @@ export interface State {
     repeatLeft: number;
     processing: boolean;
     gui: boolean;
-    apiValues: HtmlReporterValues;
+    apiValues: HtmlReporterValues & {
+        testplaneConfig?: Record<string, unknown>;
+    };
     config: StoreReporterConfig;
     staticImageAccepter: {
         enabled: boolean;

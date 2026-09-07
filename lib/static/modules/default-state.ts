@@ -57,6 +57,7 @@ export default Object.assign({config: configDefaults}, {
     closeIds: [],
     apiValues: {
         toolName: ToolName.Testplane,
+        testplaneConfig: undefined,
         extraItems: {},
         metaInfoExtenders: {},
         imagesSaver: {saveImg: () => ''},
