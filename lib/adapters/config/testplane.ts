@@ -1,6 +1,22 @@
+import path from 'node:path';
 import type {Config} from 'testplane';
 import type {ConfigAdapter} from './';
 import type {TestplaneTestAdapter} from '../test/testplane';
+
+export const maskTokenValues = (value: unknown): unknown => {
+    if (Array.isArray(value)) {
+        return value.map(maskTokenValues);
+    }
+
+    if (value && typeof value === 'object') {
+        return Object.fromEntries(Object.entries(value).map(([key, nestedValue]) => [
+            key,
+            key.toLowerCase().includes('token') ? 'XXXX' : maskTokenValues(nestedValue)
+        ]));
+    }
+
+    return value;
+};
 
 export class TestplaneConfigAdapter implements ConfigAdapter {
     private _config: Config;
@@ -27,6 +43,22 @@ export class TestplaneConfigAdapter implements ConfigAdapter {
 
     getBrowserConfig(browserId: string): ReturnType<Config['forBrowser']> {
         return this._config.forBrowser(browserId);
+    }
+
+    getUserConfig(): Record<string, unknown> {
+        if (!this._config.configPath) {
+            return {};
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const configModule: unknown = require(path.resolve(this._config.configPath));
+        const config = configModule && typeof configModule === 'object' && '__esModule' in configModule && configModule.__esModule && 'default' in configModule
+            ? configModule.default
+            : configModule;
+
+        return config && typeof config === 'object'
+            ? maskTokenValues(config) as Record<string, unknown>
+            : {};
     }
 
     getScreenshotPath(test: TestplaneTestAdapter, stateName: string): string {

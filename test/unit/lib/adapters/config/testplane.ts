@@ -1,6 +1,6 @@
 import type {Config, Test} from 'testplane';
 import sinon from 'sinon';
-import {TestplaneConfigAdapter} from '../../../../../lib/adapters/config/testplane';
+import {maskTokenValues, TestplaneConfigAdapter} from '../../../../../lib/adapters/config/testplane';
 import {TestplaneTestAdapter} from '../../../../../lib/adapters/test/testplane';
 import {stubConfig, mkState} from '../../../utils';
 
@@ -58,5 +58,37 @@ describe('lib/adapters/config/testplane', () => {
 
             assert.equal(configAdapter.getScreenshotPath(testAdapter, stateName), '/ref/path');
         });
+    });
+});
+
+describe('maskTokenValues', () => {
+    it('should recursively mask values whose keys contain token ignoring case', () => {
+        const config = {
+            token: 'secret-1',
+            authToken: 'secret-2',
+            nested: {
+                API_TOKEN_VALUE: 'secret-3',
+                items: [{refreshToken: 'secret-4'}]
+            },
+            browser: 'chrome'
+        };
+
+        assert.deepEqual(maskTokenValues(config), {
+            token: 'XXXX',
+            authToken: 'XXXX',
+            nested: {
+                API_TOKEN_VALUE: 'XXXX',
+                items: [{refreshToken: 'XXXX'}]
+            },
+            browser: 'chrome'
+        });
+    });
+
+    it('should not mutate original value', () => {
+        const config = {nested: {accessToken: 'secret'}};
+
+        maskTokenValues(config);
+
+        assert.deepEqual(config, {nested: {accessToken: 'secret'}});
     });
 });

@@ -106,7 +106,7 @@ describe('lib/adapters/tool/testplane/index', () => {
 
             it('should set "htmlReporter field in testplane to use from other plugins', () => {
                 const testplane = stubTool();
-                const htmlReporter = sinon.createStubInstance(HtmlReporter);
+                const htmlReporter = {} as HtmlReporter;
                 (Testplane.create as SinonStub).returns(testplane);
                 (HtmlReporter.create as SinonStub).returns(htmlReporter);
 
@@ -135,7 +135,7 @@ describe('lib/adapters/tool/testplane/index', () => {
 
             it('should set "htmlReporter field in testplane to use from other plugins', () => {
                 const testplane = stubTool();
-                const htmlReporter = sinon.createStubInstance(HtmlReporter);
+                const htmlReporter = {} as HtmlReporter;
                 (HtmlReporter.create as SinonStub).returns(htmlReporter);
 
                 TestplaneToolAdapter.create({toolName: ToolName.Testplane, tool: testplane, reporterConfig: {} as ReporterConfig});
