@@ -45,6 +45,7 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
     const app = App.create(args);
     const server = express();
 
+    server.set('query parser', 'extended');
     server.use(bodyParser.json({limit: MAX_REQUEST_SIZE}));
 
     await guiApi.initServer(server);

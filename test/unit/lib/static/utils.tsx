@@ -5,7 +5,7 @@ import _ from 'lodash';
 import configureStore, {MockStore} from 'redux-mock-store';
 import {Provider} from 'react-redux';
 import {applyMiddleware, createStore, Middleware, Store} from 'redux';
-import thunk from 'redux-thunk';
+import {thunk} from 'redux-thunk';
 
 import defaultState from '@/static/modules/default-state';
 import {TestStatus} from '@/constants';

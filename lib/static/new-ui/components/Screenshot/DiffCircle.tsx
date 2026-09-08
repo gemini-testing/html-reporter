@@ -7,7 +7,7 @@ import styles from './DiffCircle.module.css';
 
 interface DiffCircleProps {
     diffImageOriginalSize: ImageSize;
-    diffImageRef: RefObject<HTMLElement>;
+    diffImageRef: RefObject<HTMLElement | null>;
     diffCluster: CoordBounds;
 }
 

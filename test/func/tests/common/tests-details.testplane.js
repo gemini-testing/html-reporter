@@ -1,4 +1,4 @@
-const {getTestSectionByNameSelector, getElementWithTextSelector, hideHeader} = require('../utils');
+const {getTestSectionByNameSelector, getElementWithTextSelector, hideHeader, hideBottomProgressBar} = require('../utils');
 
 describe(process.env.TOOL || 'Default', () => {
     describe('Test details', function() {
@@ -26,6 +26,7 @@ describe(process.env.TOOL || 'Default', () => {
 
             await browser.$(selector).waitForDisplayed();
             await browser.waitUntil(() => browser.execute(() => document.fonts.status === 'loaded'));
+            await hideBottomProgressBar(browser);
             await browser.assertView('details summary', selector);
         });
     });

@@ -1,6 +1,6 @@
 import path from 'path';
 import {TestCase as PlaywrightTestCase, TestResult as PlaywrightTestResult} from '@playwright/test/reporter';
-import sizeOf from 'image-size';
+import {getImageSize} from '../../image-size';
 import _ from 'lodash';
 import stripAnsi from 'strip-ansi';
 
@@ -16,7 +16,6 @@ import {
     ImageFile,
     ImageInfoDiff,
     ImageInfoFull, ImageInfoNoRef, ImageInfoPageError, ImageInfoPageSuccess, ImageInfoSuccess, ImageInfoUpdated,
-    ImageSize,
     TestError, TestStepCompressed, TestStepKey
 } from '../../types';
 import type {CoordBounds} from 'looks-same';
@@ -58,6 +57,7 @@ export interface TestResultWithGuiStatus extends Omit<PlaywrightTestResult, 'sta
 }
 
 const ANY_IMAGE_ENDING_REGEXP = new RegExp(Object.values(ImageTitleEnding).map(ending => `${ending}$`).join('|'));
+const SCREENSHOT_COMPARISON_ERROR_REGEXP = /Screenshot comparison failed|expect\(.*\)\.toHaveScreenshot\(expected\) failed/;
 
 export const DEFAULT_DIFF_OPTIONS = {
     diffColor: '#ff00ff'
@@ -150,7 +150,7 @@ const getImageData = (attachment: PlaywrightAttachment | undefined): PlaywrightI
 
     return {
         path: attachment.path as string,
-        size: !attachment.size ? _.pick(sizeOf(attachment.path as string), ['height', 'width']) as ImageSize : attachment.size,
+        size: attachment.size || getImageSize(attachment.path as string),
         relativePath: attachment.relativePath || path.relative(process.cwd(), attachment.path as string)
     };
 };
@@ -212,7 +212,7 @@ export class PlaywrightTestResultAdapter implements ReporterTestResult {
 
             if (/snapshot .*doesn't exist/.test(message) && message.includes('.png')) {
                 result.name = ErrorName.NO_REF_IMAGE;
-            } else if (message.includes('Screenshot comparison failed')) {
+            } else if (SCREENSHOT_COMPARISON_ERROR_REGEXP.test(message)) {
                 result.name = ErrorName.IMAGE_DIFF;
             }
 

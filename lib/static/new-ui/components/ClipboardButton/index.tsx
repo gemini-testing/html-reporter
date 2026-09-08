@@ -20,7 +20,7 @@ export const ClipboardButton: React.FC<ClipboardButtonProps> = ({
     ...buttonProps
 }) => {
     const [status, setStatus] = useState<CopyStatus>('pending');
-    const timeoutRef = useRef<NodeJS.Timeout>();
+    const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
     const copyToClipboard = useCallback((textToCopy: string): boolean => {
         try {

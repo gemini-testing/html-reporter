@@ -2,13 +2,15 @@ import {Server, Database} from '@gravity-ui/icons';
 import {Divider} from '@gravity-ui/uikit';
 import {isEmpty} from 'lodash';
 import React, {ReactNode} from 'react';
-import {useSelector} from 'react-redux';
+import {useSelector} from '@/static/new-ui/modules/react-redux';
 
 import {AsidePanel} from '@/static/new-ui/components/AsidePanel';
 import {DataSourceItem} from '@/static/new-ui/components/InfoPanel/DataSourceItem';
 import {PanelSection} from '@/static/new-ui/components/PanelSection';
 import styles from './index.module.css';
-import {version} from '../../../../../package.json';
+import packageJson from '../../../../../package.json';
+
+const {version} = packageJson;
 
 export function InfoPanel(): ReactNode {
     const isGui = useSelector(state => state.gui);

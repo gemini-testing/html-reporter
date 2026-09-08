@@ -1,5 +1,5 @@
 import React, {forwardRef, ReactNode, Ref, useCallback, useImperativeHandle, useRef} from 'react';
-import {useSelector} from 'react-redux';
+import {useSelector} from '@/static/new-ui/modules/react-redux';
 import classNames from 'classnames';
 import styles from './index.module.css';
 import {ErrorHandler} from '@/static/new-ui/features/error-handling/components/ErrorHandling';

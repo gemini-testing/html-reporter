@@ -8,7 +8,7 @@ import {
 import {useVirtualizer} from '@tanstack/react-virtual';
 import classNames from 'classnames';
 import React, {forwardRef, ReactNode, useCallback, useImperativeHandle, useMemo} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch, useSelector} from '@/static/new-ui/modules/react-redux';
 
 import {EntityType, TreeNode, TreeViewItemData} from '@/static/new-ui/features/suites/components/SuitesPage/types';
 import {TreeViewItemTitle} from '@/static/new-ui/components/TreeViewItemTitle';

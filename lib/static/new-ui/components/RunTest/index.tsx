@@ -4,7 +4,7 @@ import styles from './index.module.css';
 import {Button, ButtonProps, Icon, Popover} from '@gravity-ui/uikit';
 import {ArrowRotateRight, ChevronDown} from '@gravity-ui/icons';
 import {thunkRunTest} from '@/static/modules/actions';
-import {useDispatch} from 'react-redux';
+import {useDispatch} from '@/static/new-ui/modules/react-redux';
 import {RunTestsFeature} from '@/constants';
 import {useAnalytics} from '../../hooks/useAnalytics';
 import type {BrowserEntity} from '@/static/new-ui/types/store';
@@ -21,7 +21,7 @@ interface RunTestProps {
     buttonText?: string | null;
     buttonProps?: ButtonProps;
     hotkey?: ReactNode;
-    className?: ReactNode;
+    className?: string;
 }
 
 export const RunTestButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, RunTestProps>(

@@ -2,7 +2,7 @@ import React from 'react';
 import {addBrowserToTree, addImageToTree, addResultToTree, addSuiteToTree, mkBrowserEntity, mkEmptyTree, mkImageEntityFail, mkRealStore, mkResultEntity, mkSuiteEntityLeaf, renderWithStore} from '../../../../utils';
 import proxyquire from 'proxyquire';
 import {getNamedImages} from '@/static/new-ui/features/visual-checks/selectors';
-import {BrowserRouter} from 'react-router-dom';
+import {BrowserRouter} from 'react-router';
 
 describe('<VisualChecksStickyHeader />', () => {
     const sandbox = sinon.sandbox.create();

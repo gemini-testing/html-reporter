@@ -1,7 +1,7 @@
 import {ChevronLeft, ChevronRight} from '@gravity-ui/icons';
 import {Button, Icon, Select, Tooltip} from '@gravity-ui/uikit';
 import React, {ReactNode, Ref, useMemo} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch, useSelector} from '@/static/new-ui/modules/react-redux';
 
 import styles from './index.module.css';
 import {getCurrentNamedImage} from '@/static/new-ui/features/visual-checks/selectors';

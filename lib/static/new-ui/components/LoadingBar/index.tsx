@@ -1,7 +1,7 @@
 import React, {ReactNode, useEffect, useRef} from 'react';
 
 import styles from './index.module.css';
-import {useSelector} from 'react-redux';
+import {useSelector} from '@/static/new-ui/modules/react-redux';
 import {getTotalLoadingProgress} from '@/static/new-ui/app/selectors';
 import classNames from 'classnames';
 

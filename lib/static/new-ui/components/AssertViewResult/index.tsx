@@ -14,7 +14,7 @@ interface AssertViewResultProps {
     style?: React.CSSProperties;
     diffMode: DiffModeId;
     labelClassName?: string;
-    magnifier?: React.RefObject<HTMLElement>
+    magnifier?: React.RefObject<HTMLElement | null>
 }
 
 export function AssertViewResult({result, diffMode, style, labelClassName, magnifier}: AssertViewResultProps): ReactNode {
