@@ -17,6 +17,7 @@ export const HIDE_TREE_VIEW_SCREENSHOTS = 'hide-tree-view-screenshots';
 export const DISABLE_TREE_SCREENSHOTS_MAGNIFIER = 'disable-tree-screenshots-magnifier';
 export const ERROR_BREAK_LINES = 'error-break-lines';
 export const TESTPLANE_CONFIG_BREAK_LINES = 'testplane-config-break-lines';
+export const TESTPLANE_CONFIG_EXPAND_ALL = 'testplane-config-expand-all';
 export const SUITES_PAGE_DIFF_MODE_KEY = 'app.suitesPage.diffMode';
 export const VISUAL_CHECKS_PAGE_DIFF_MODE_KEY = 'app.visualChecksPage.diffMode';
 export const SUITES_PAGE_EXPANDED_SECTIONS_KEY = 'app.suitesPage.expandedSectionsById';
