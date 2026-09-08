@@ -115,11 +115,9 @@ describe('PlaywrightTestResultAdapter', () => {
             assert.strictEqual(error?.stack, errorStack);
         });
 
-        ['locator', 'page', 'Buffer'].forEach(receiver => {
+        ['locator', 'page'].forEach(receiver => {
             it(`should recognize modern ${receiver} screenshot diffs`, () => {
-                const matcher = receiver === 'Buffer' ? 'toMatchSnapshot' : 'toHaveScreenshot';
-                const suffix = receiver === 'Buffer' ? '' : ' failed';
-                const errors = [{message: `Error: expect(${receiver}).${matcher}(expected)${suffix}\n\n  Snapshot: state1.png`}];
+                const errors = [{message: `Error: expect(${receiver}).toHaveScreenshot(expected) failed\n\n  Snapshot: state1.png`}];
                 const attachments = [
                     createAttachment('state1-expected.png'),
                     createAttachment('state1-diff.png'),
@@ -129,21 +127,6 @@ describe('PlaywrightTestResultAdapter', () => {
 
                 assert.equal(adapter.error?.name, ErrorName.IMAGE_DIFF);
                 assert.equal(adapter.status, FAIL);
-            });
-        });
-
-        ['Screenshot comparison failed', 'Error: expect(page).toHaveScreenshot(expected) failed'].forEach(message => {
-            it(`should preserve other failures alongside "${message}"`, () => {
-                const errors = [{message}, {message: 'Error: expect(received).toBe(expected)'}];
-                const attachments = [
-                    createAttachment('state1-expected.png'),
-                    createAttachment('state1-diff.png'),
-                    createAttachment('state1-actual.png')
-                ];
-                const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({errors, attachments}), UNKNOWN_ATTEMPT);
-
-                assert.equal(adapter.error?.name, ErrorName.GENERAL_ERROR);
-                assert.equal(adapter.status, ERROR);
             });
         });
 

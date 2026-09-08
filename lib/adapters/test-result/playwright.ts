@@ -212,7 +212,8 @@ export class PlaywrightTestResultAdapter implements ReporterTestResult {
 
             if (/snapshot .*doesn't exist/.test(message) && message.includes('.png')) {
                 result.name = ErrorName.NO_REF_IMAGE;
-            } else if (this._testResult.errors.every(error => this._isScreenshotComparisonError(error))) {
+            } else if (message.includes('Screenshot comparison failed') ||
+                this._testResult.errors.every(error => this._isScreenshotComparisonError(error))) {
                 result.name = ErrorName.IMAGE_DIFF;
             }
 
@@ -371,11 +372,7 @@ export class PlaywrightTestResultAdapter implements ReporterTestResult {
     private _isScreenshotComparisonError(error: PlaywrightTestResult['errors'][number]): boolean {
         const message = stripAnsi(error.message || '');
         const header = message.split('\n')[0];
-        if (header.includes('Screenshot comparison failed')) {
-            return true;
-        }
-
-        if (!/^(?:Error: )?expect\((?:page|locator|Buffer)\)\.(?:toHaveScreenshot|toMatchSnapshot)\(expected\)(?: failed)?$/.test(header)) {
+        if (!/^(?:Error: )?expect\((?:page|locator)\)\.toHaveScreenshot\(expected\) failed$/.test(header)) {
             return false;
         }
 
