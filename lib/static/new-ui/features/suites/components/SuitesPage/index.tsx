@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import React, {ReactNode, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
-import {useNavigate, useParams} from 'react-router-dom';
+import {useDispatch, useSelector} from '@/static/new-ui/modules/react-redux';
+import {useNavigate, useParams} from 'react-router';
 import {UiCard} from '@/static/new-ui/components/Card/UiCard';
 import {
     getAttempt,

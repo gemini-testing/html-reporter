@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import React, {ReactNode, useState, useRef, useLayoutEffect} from 'react';
-import {useSelector} from 'react-redux';
+import {useSelector} from '@/static/new-ui/modules/react-redux';
 import stripAnsi from 'strip-ansi';
 import _ from 'lodash';
 
@@ -27,13 +27,13 @@ interface TreeViewItemSubtitleProps {
     item: TreeViewItemData;
     className?: string;
     // Passed to image with magnifier to detect parent container scrolling and update magnifier position
-    scrollContainerRef: React.RefObject<HTMLElement>;
+    scrollContainerRef: React.RefObject<HTMLElement | null>;
     isSelected: boolean;
 }
 
 interface ImageEntityComponentProps {
     imageEntity: ImageEntity;
-    scrollContainerRef: React.RefObject<HTMLElement>;
+    scrollContainerRef: React.RefObject<HTMLElement | null>;
     isVisualChecksPage: boolean;
     diffMode: DiffModeId;
     initialHeight?: number;

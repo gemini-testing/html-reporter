@@ -3,7 +3,7 @@ import {FooterItem, MenuItem as GravityMenuItem} from '@gravity-ui/navigation';
 import {Hotkey, Icon} from '@gravity-ui/uikit';
 import classNames from 'classnames';
 import React, {ReactNode, useEffect, useState} from 'react';
-import {useSelector} from 'react-redux';
+import {useSelector} from '@/static/new-ui/modules/react-redux';
 
 import {UiModeHintNotification} from '@/static/new-ui/components/UiModeHintNotification';
 import styles from '@/static/new-ui/components/MainLayout/index.module.css';

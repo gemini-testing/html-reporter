@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import React, {Children, ReactNode, useLayoutEffect} from 'react';
-import {useSelector} from 'react-redux';
+import {useSelector} from '@/static/new-ui/modules/react-redux';
 import Split from 'react-split';
 
 import {KeepDraggingToHideCard} from '@/static/new-ui/components/Card/KeepDraggingToHideCard';
