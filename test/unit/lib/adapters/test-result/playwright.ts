@@ -49,7 +49,7 @@ describe('PlaywrightTestResultAdapter', () => {
         imageSizeStub = sinon.stub().returns({height: 100, width: 200});
 
         PlaywrightTestResultAdapter = proxyquire('lib/adapters/test-result/playwright', {
-            'image-size': imageSizeStub
+            '../../image-size': {getImageSize: imageSizeStub}
         }).PlaywrightTestResultAdapter;
     });
 
@@ -101,7 +101,28 @@ describe('PlaywrightTestResultAdapter', () => {
             const {error} = adapter;
 
             assert.strictEqual(error?.name, ErrorName.IMAGE_DIFF);
-            assert.strictEqual(error?.message, errorMessage);
+        });
+
+        it('should return an error with name IMAGE_DIFF for new Playwright screenshot comparison failures', () => {
+            const errorMessage = 'Error: expect(locator).toHaveScreenshot(expected) failed';
+            const errors = [{message: errorMessage}];
+            const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({errors}), UNKNOWN_ATTEMPT);
+
+            const {error} = adapter;
+
+            assert.strictEqual(error?.name, ErrorName.IMAGE_DIFF);
+        });
+
+        it('should return an error with name IMAGE_DIFF for multiple new Playwright screenshot comparison failures', () => {
+            const errors = [
+                {message: 'Error: expect(locator).toHaveScreenshot(expected) failed'},
+                {message: 'Error: expect(page).toHaveScreenshot(expected) failed'}
+            ];
+            const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({errors}), UNKNOWN_ATTEMPT);
+
+            const {error} = adapter;
+
+            assert.strictEqual(error?.name, ErrorName.IMAGE_DIFF);
         });
 
         it('should include the error stack if present', () => {

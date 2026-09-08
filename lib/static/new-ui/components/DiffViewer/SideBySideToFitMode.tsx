@@ -15,7 +15,7 @@ interface SideBySideToFitModeProps {
      * Images will try to fit the `desiredHeight`, but will only shrink no more than 2 times.
      * */
     desiredHeight: string;
-    magnifier?: React.RefObject<HTMLElement>;
+    magnifier?: React.RefObject<HTMLElement | null>;
 }
 
 export function SideBySideToFitMode(props: SideBySideToFitModeProps): ReactNode {

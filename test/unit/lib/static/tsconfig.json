@@ -9,6 +9,7 @@
         "paths": {
             "lib/*": ["../../../../lib/*"],
             "@/*": ["../../../../lib/*"],
+            "react-router": ["../../../../node_modules/react-router/dist/production/index.d.ts"],
             "@gravity-ui/uikit/unstable": ["../../../../node_modules/@gravity-ui/uikit/build/esm/unstable.d.ts"]
         }
     }

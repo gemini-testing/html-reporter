@@ -1,6 +1,9 @@
 import {get, isUndefined} from 'lodash';
 import {State} from '@/static/new-ui/types/store';
-import {DeepPartial} from 'redux';
+
+type DeepPartial<T> = {
+    [Property in keyof T]?: T[Property] extends object ? DeepPartial<T[Property]> : T[Property];
+};
 
 // simplest and faster than lodash realisation
 const isPlainObject = (value: unknown): value is Record<string, unknown> => (

@@ -6,6 +6,7 @@ export default defineConfig({
     plugins: [react()],
     server: {
         host: '0.0.0.0',
+        allowedHosts: ['host.docker.internal'],
         port: 5173,
         strictPort: true
     },
@@ -16,6 +17,10 @@ export default defineConfig({
         'module': '{ exports: {} }'
     },
     optimizeDeps: {
+        // Required for Safari 14 compatibility.
+        esbuildOptions: {
+            target: 'es2020'
+        },
         include: [
             'lib/**/*.js',
             'expect',
@@ -27,6 +32,7 @@ export default defineConfig({
             'lodash.zip',
             'minimatch',
             'rgb2hex',
+            'socket.io-client',
             'ws'
         ]
     },
