@@ -56,9 +56,14 @@ export class TestplaneConfigAdapter implements ConfigAdapter {
             ? configModule.default
             : configModule;
 
-        return config && typeof config === 'object'
-            ? maskTokenValues(config) as Record<string, unknown>
+        const userConfig = config && typeof config === 'object'
+            ? config as Record<string, unknown>
             : {};
+
+        return maskTokenValues({
+            configPath: this._config.configPath,
+            ...userConfig
+        }) as Record<string, unknown>;
     }
 
     getScreenshotPath(test: TestplaneTestAdapter, stateName: string): string {
