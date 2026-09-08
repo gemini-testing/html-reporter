@@ -34,8 +34,8 @@ if (process.env.TOOL === 'testplane') {
 
                         await visualChecksMenu.click();
 
-                        const checked = await failedStatus.$('input[aria-checked="true"]');
-                        expect(checked).toExist();
+                        const checked = await failedStatus.$('input:checked');
+                        await expect(checked).toExist();
                     });
 
                     it('check fallback Skipped status to ALL on visual checks page', async ({browser}) => {
@@ -45,8 +45,8 @@ if (process.env.TOOL === 'testplane') {
                         await visualChecksMenu.click();
 
                         const allStatus = await browser.$('[title="All"]');
-                        const checked = await allStatus.$('input[aria-checked="true"]');
-                        expect(checked).toExist();
+                        const checked = await allStatus.$('input:checked');
+                        await expect(checked).toExist();
                     });
 
                     it('check fallback Retried status to ALL on visual checks page', async ({browser}) => {
@@ -56,8 +56,8 @@ if (process.env.TOOL === 'testplane') {
                         await visualChecksMenu.click();
 
                         const allStatus = await browser.$('[title="All"]');
-                        const checked = await allStatus.$('input[aria-checked="true"]');
-                        expect(checked).toExist();
+                        const checked = await allStatus.$('input:checked');
+                        await expect(checked).toExist();
                     });
 
                     it('check same matchCase on visual checks page', async ({browser}) => {
@@ -66,7 +66,7 @@ if (process.env.TOOL === 'testplane') {
                         await visualChecksMenu.click();
 
                         const matchCaseChecked = await browser.$('[data-qa="match-case"][aria-pressed="true"]');
-                        expect(matchCaseChecked).toExist();
+                        await expect(matchCaseChecked).toExist();
                     });
 
                     it('check same regex on visual checks page', async ({browser}) => {
@@ -75,7 +75,7 @@ if (process.env.TOOL === 'testplane') {
                         await visualChecksMenu.click();
 
                         const regexButtonChecked = await browser.$('[data-qa="regex"][aria-pressed="true"]');
-                        expect(regexButtonChecked).toExist();
+                        await expect(regexButtonChecked).toExist();
                     });
                 });
             });

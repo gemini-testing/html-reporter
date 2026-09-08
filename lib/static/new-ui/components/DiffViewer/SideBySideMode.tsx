@@ -10,7 +10,7 @@ interface SideBySideToFitModeProps {
     actual: ScreenshotDisplayData;
     diff: ScreenshotDisplayData;
     expected: ScreenshotDisplayData;
-    magnifier?: React.RefObject<HTMLElement>;
+    magnifier?: React.RefObject<HTMLElement | null>;
 }
 
 export function SideBySideMode(props: SideBySideToFitModeProps): ReactNode {

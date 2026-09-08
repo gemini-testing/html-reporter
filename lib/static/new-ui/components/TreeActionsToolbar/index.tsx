@@ -17,7 +17,7 @@ import {
     SquareMinus
 } from '@gravity-ui/icons';
 import React, {ReactNode, useCallback, useMemo} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch, useSelector} from '@/static/new-ui/modules/react-redux';
 
 import styles from './index.module.css';
 import {

@@ -1,7 +1,7 @@
 import {PlanetEarth} from '@gravity-ui/icons';
 import {Button, Flex, Icon, Select, SelectRenderControlProps, SelectRenderOption, useSelectOptions} from '@gravity-ui/uikit';
 import React, {ReactNode, Ref, useEffect, useMemo, useState} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch, useSelector} from '@/static/new-ui/modules/react-redux';
 
 import {selectBrowsers} from '@/static/modules/actions';
 import {BrowserIcon} from '@/static/new-ui/components/BrowsersSelect/BrowserIcon';

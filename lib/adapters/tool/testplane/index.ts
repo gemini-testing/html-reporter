@@ -155,9 +155,11 @@ export class TestplaneToolAdapter implements ToolAdapter {
         const replMode = getReplModeOption(cliTool);
         const runner = createTestRunner(testCollectionAdapter.original, tests);
         const inspectMode = (inspect || inspectBrk) && {inspect, inspectBrk};
+        // Testplane 8 uses devtools; Testplane 9 ignores this option.
+        const runOptions = {grep, sets, tag, browsers, inspectMode, replMode, devtools, local, requireModules};
 
         return runner.run((collection) =>
-            this._tool.run(collection, {grep, sets, tag, browsers, inspectMode, devtools, replMode, local, requireModules})
+            this._tool.run(collection, runOptions)
         );
     }
 

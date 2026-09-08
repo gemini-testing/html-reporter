@@ -25,7 +25,7 @@ interface ScreenshotProps {
     onMouseEnter?: (e: React.MouseEvent<HTMLImageElement>) => void;
     onMouseLeave?: (e: React.MouseEvent<HTMLImageElement>) => void;
     onMouseMove?: (e: React.MouseEvent<HTMLImageElement>) => void;
-    magnifier?: React.RefObject<HTMLElement>
+    magnifier?: React.RefObject<HTMLElement | null>
     stopClickPropagation?: boolean
 }
 

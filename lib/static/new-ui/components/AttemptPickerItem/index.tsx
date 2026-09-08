@@ -1,7 +1,7 @@
 import {Button, ButtonProps} from '@gravity-ui/uikit';
 import React, {ReactNode} from 'react';
 import classNames from 'classnames';
-import {useSelector} from 'react-redux';
+import {useSelector} from '@/static/new-ui/modules/react-redux';
 
 import {hasUnrelatedToScreenshotsErrors, isFailStatus} from '@/common-utils';
 import {TestStatus} from '@/constants';

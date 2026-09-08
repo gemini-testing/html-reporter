@@ -3,7 +3,7 @@ import React, {ReactNode} from 'react';
 import cardStyles from './index.module.css';
 import styles from './AnimatedAppearCard.module.css';
 import classNames from 'classnames';
-import {useSelector} from 'react-redux';
+import {useSelector} from '@/static/new-ui/modules/react-redux';
 
 export function AnimatedAppearCard(): ReactNode {
     const isInitialized = useSelector(state => state.app.isInitialized);

@@ -4,7 +4,7 @@ import {Replayer} from '@rrweb/replay';
 import type {customEvent, eventWithTime as RrwebEvent} from '@rrweb/types';
 import classNames from 'classnames';
 import React, {ReactNode, useCallback, useEffect, useRef, useState} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch, useSelector} from '@/static/new-ui/modules/react-redux';
 
 import {TestStatus} from '@/constants';
 import {AttachmentType, ImageSize, SnapshotAttachment} from '@/types';

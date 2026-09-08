@@ -5,7 +5,7 @@ import {CoordBounds} from 'looks-same';
 
 interface OnlyDiffModeProps {
     diff: ImageFile & {diffClusters?: CoordBounds[]};
-    magnifier?: React.RefObject<HTMLElement>;
+    magnifier?: React.RefObject<HTMLElement | null>;
 }
 
 export function OnlyDiffMode(props: OnlyDiffModeProps): ReactNode {

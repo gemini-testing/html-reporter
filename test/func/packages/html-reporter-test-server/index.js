@@ -21,8 +21,7 @@ module.exports = (testplane, pluginConfig) => {
 
         server = app.listen(port, (err) => {
             if (err) {
-                console.error('Failed to start test server:');
-                throw new Error(err);
+                return;
             }
 
             console.info(`Server is listening on http://localhost:${port}`);

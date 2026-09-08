@@ -10,7 +10,7 @@ import {
 } from '@gravity-ui/icons';
 import {Icon, Select, SelectProps} from '@gravity-ui/uikit';
 import React, {ReactNode} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch, useSelector} from '@/static/new-ui/modules/react-redux';
 
 import {SortByExpression, SortDirection, SortType} from '@/static/new-ui/types/store';
 import {setCurrentSortByExpression, setSortByDirection} from '@/static/modules/actions/sort-tests';
