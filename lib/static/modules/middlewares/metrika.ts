@@ -14,8 +14,10 @@ import {extractPerformanceMarks} from '@/static/modules/utils/performance';
 export function getMetrikaMiddleware(analytics: YandexMetrika): Middleware<{}, State> {
     let reportFullyLoaded = false;
 
-    return store => next => (action: SomeAction) => {
-        switch (action.type) {
+    return store => next => (action: unknown) => {
+        const typedAction = action as SomeAction;
+
+        switch (typedAction.type) {
             case actionNames.INIT_GUI_REPORT:
             case actionNames.INIT_STATIC_REPORT: {
                 const startLoadTime = Date.now();
@@ -30,7 +32,7 @@ export function getMetrikaMiddleware(analytics: YandexMetrika): Middleware<{}, S
                 const testsCount = get(state, 'tree.browsers.allIds.length', 0);
 
                 analytics.setVisitParams({
-                    [action.type]: Date.now() - startLoadTime,
+                    [typedAction.type]: Date.now() - startLoadTime,
                     initView: state.view,
                     testsCount,
                     isNewUi: Boolean(state?.app?.isNewUi)
@@ -40,7 +42,7 @@ export function getMetrikaMiddleware(analytics: YandexMetrika): Middleware<{}, S
             }
 
             case actionNames.BROWSERS_SELECTED: {
-                analytics.trackFeatureUsage({featureName: action.type});
+                analytics.trackFeatureUsage({featureName: typedAction.type});
 
                 const result = next(action);
 
@@ -80,21 +82,21 @@ export function getMetrikaMiddleware(analytics: YandexMetrika): Middleware<{}, S
             case actionNames.TOGGLE_STATE_RESULT:
             case actionNames.CHANGE_TEST_RETRY:
             case actionNames.GROUP_TESTS_BY_KEY: {
-                analytics.trackFeatureUsage({featureName: action.type});
+                analytics.trackFeatureUsage({featureName: typedAction.type});
 
                 return next(action);
             }
 
             case actionNames.GROUP_TESTS_SET_CURRENT_EXPRESSION: {
-                analytics.trackFeatureUsage({featureName: action.type, groupByKey: action.payload.expressionIds[0]});
+                analytics.trackFeatureUsage({featureName: typedAction.type, groupByKey: typedAction.payload.expressionIds[0]});
 
                 return next(action);
             }
 
             case actionNames.SORT_TESTS_SET_CURRENT_EXPRESSION: {
                 analytics.trackFeatureUsage({
-                    featureName: action.type,
-                    sortByKey: action.payload.expressionIds[0],
+                    featureName: typedAction.type,
+                    sortByKey: typedAction.payload.expressionIds[0],
                     sortDirection: store.getState().app.sortTestsData.currentDirection
                 });
 
@@ -103,9 +105,9 @@ export function getMetrikaMiddleware(analytics: YandexMetrika): Middleware<{}, S
 
             case actionNames.SORT_TESTS_SET_DIRECTION: {
                 analytics.trackFeatureUsage({
-                    featureName: action.type,
+                    featureName: typedAction.type,
                     sortByKey: store.getState().app.sortTestsData.currentExpressionIds[0],
-                    sortDirection: action.payload.direction
+                    sortDirection: typedAction.payload.direction
                 });
 
                 return next(action);
@@ -113,7 +115,7 @@ export function getMetrikaMiddleware(analytics: YandexMetrika): Middleware<{}, S
 
             case actionNames.OPEN_MODAL:
             case actionNames.CLOSE_MODAL: {
-                const modalId = get(action, 'payload.id', action.type);
+                const modalId = get(typedAction, 'payload.id', typedAction.type);
                 analytics.trackFeatureUsage({featureName: modalId});
 
                 return next(action);

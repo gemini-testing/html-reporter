@@ -2,7 +2,7 @@ import React, {ReactNode} from 'react';
 import {Tag} from '@gravity-ui/icons';
 import type {TestTag} from 'testplane';
 
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch, useSelector} from '@/static/new-ui/modules/react-redux';
 import {getCurrentResult} from '@/static/new-ui/features/suites/selectors';
 import {updateNameFilter} from '@/static/modules/actions';
 import {AttachmentType, TagsAttachment} from '@/types';

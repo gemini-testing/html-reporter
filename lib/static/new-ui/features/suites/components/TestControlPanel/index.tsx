@@ -1,7 +1,7 @@
 import {Divider, Hotkey, Icon} from '@gravity-ui/uikit';
 import {CirclePlay} from '@gravity-ui/icons';
 import React, {ReactNode, useCallback} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch, useSelector} from '@/static/new-ui/modules/react-redux';
 
 import {AttemptPickerItem} from '@/static/new-ui/components/AttemptPickerItem';
 import styles from './index.module.css';
