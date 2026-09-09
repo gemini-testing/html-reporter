@@ -2,6 +2,7 @@ import ansiHtml from 'ansi-html-community';
 import classNames from 'classnames';
 import escapeHtml from 'escape-html';
 import React, {ReactNode, useMemo} from 'react';
+import stripAnsi from 'strip-ansi';
 import {ClipboardButton, Button} from '@gravity-ui/uikit';
 
 import styles from './index.module.css';
@@ -38,14 +39,14 @@ export function ErrorInfo(props: ErrorInfoProps): ReactNode {
             errorName = String(errorName);
         }
     }
-    const errorText = useMemo(() => (
-        escapeHtml(errorName + '\n' + props.stack)
-    ), [errorName, props.stack]);
+    const rawErrorText = useMemo(() => errorName + '\n' + props.stack, [errorName, props.stack]);
+    const errorText = useMemo(() => escapeHtml(rawErrorText), [rawErrorText]);
+    const clipboardText = useMemo(() => stripAnsi(rawErrorText), [rawErrorText]);
 
     return (
         <div className={classNames(styles.container, props.className)} style={props.style}>
             <div className={styles.buttons}>
-                <ClipboardButton className={styles.button} text={errorText} hasTooltip={false} />
+                <ClipboardButton className={styles.button} text={clipboardText} hasTooltip={false} />
                 <Button
                     className={styles.button}
                     view="flat"
