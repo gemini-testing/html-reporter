@@ -17,14 +17,15 @@ import {DataForStaticFile} from '@/server-utils';
 import {GetInitResponse} from '@/gui/server';
 import {Tree} from '@/tests-tree-builder/base';
 import {BrowserItem} from '@/types';
-import {createNotificationError} from '@/static/modules/actions/notifications';
+import {createNotification, createNotificationError, dismissNotification} from '@/static/modules/actions/notifications';
 import {setRefreshLoading} from '@/static/modules/actions/filters';
 import {LocalStorageKey} from '@/constants/local-storage';
 import * as localStorageWrapper from '@/static/modules/local-storage-wrapper';
 import {updateTimeTravelSettings} from '../../new-ui/utils/api';
 import {TimeTravelFeature} from '@/constants';
+import {cancelQueuedTestRun, thunkRunQueuedTests} from './run-tests';
 
-export type InitGuiReportAction = Action<typeof actionNames.INIT_GUI_REPORT, GetInitResponse & {db: Database; isNewUi?: boolean}>;
+export type InitGuiReportAction = Action<typeof actionNames.INIT_GUI_REPORT, GetInitResponse & {db: Database | null; isNewUi?: boolean; preserveUiState?: boolean}>;
 const initGuiReport = (payload: InitGuiReportAction['payload']): InitGuiReportAction =>
     ({type: actionNames.INIT_GUI_REPORT, payload});
 
@@ -35,8 +36,18 @@ interface InitGuiReportData {
 export const thunkInitGuiReport = ({isNewUi}: InitGuiReportData = {}): AppThunk => {
     return async (dispatch) => {
         performance?.mark?.(performanceMarks.JS_EXEC);
+        let showingCache = false;
         try {
-            const appState = await axios.get<GetInitResponse>('/init');
+            let appState = await axios.get<GetInitResponse>('/init?cached=1');
+
+            if (appState.data?.isCached) {
+                dispatch(initGuiReport({...appState.data, db: null, isNewUi}));
+                showingCache = true;
+                dispatch(createNotification('gui-tree-cache', 'info',
+                    'Showing cached tests. Updating the tree; Run will queue tests until initialization finishes.',
+                    {dismissAfter: 0}));
+                appState = await axios.get<GetInitResponse>('/init');
+            }
 
             if (!appState.data) {
                 throw new Error('Could not load app data. The report might be broken. Please check your project settings or try deleting results folder and relaunching UI server.');
@@ -56,7 +67,10 @@ export const thunkInitGuiReport = ({isNewUi}: InitGuiReportData = {}): AppThunk 
 
             performance?.mark?.(performanceMarks.PLUGINS_LOADED);
 
-            dispatch(initGuiReport({...appState.data, db, isNewUi}));
+            dispatch(initGuiReport({...appState.data, db, isNewUi, ...(showingCache ? {preserveUiState: true} : {})}));
+            if (showingCache) {
+                dispatch(dismissNotification('gui-tree-cache'));
+            }
 
             if (appState.data.customGuiError) {
                 const {customGuiError} = appState.data;
@@ -64,7 +78,20 @@ export const thunkInitGuiReport = ({isNewUi}: InitGuiReportData = {}): AppThunk 
                 dispatch(createNotificationError('initGuiReport', {name: 'CustomGuiError', message: customGuiError?.response.data}));
                 delete appState.data.customGuiError;
             }
+            if (showingCache) {
+                await dispatch(thunkRunQueuedTests());
+            }
         } catch (e: unknown) {
+            if (showingCache) {
+                dispatch(cancelQueuedTestRun());
+                dispatch({type: actionNames.PROCESS_BEGIN});
+                dispatch({type: actionNames.SET_AVAILABLE_FEATURES, payload: {features: []}});
+                dispatch(dismissNotification('gui-tree-cache'));
+            } else {
+                dispatch({type: actionNames.UPDATE_LOADING_TITLE, payload: 'Failed to initialize Testplane UI'});
+                dispatch({type: actionNames.UPDATE_LOADING_IS_IN_PROGRESS, payload: false});
+                dispatch({type: actionNames.UPDATE_LOADING_VISIBILITY, payload: true});
+            }
             dispatch(createNotificationError('initGuiReport', e as Error));
         }
     };

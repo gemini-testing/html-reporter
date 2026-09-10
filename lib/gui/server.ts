@@ -6,15 +6,16 @@ import {INTERNAL_SERVER_ERROR, OK} from 'http-codes';
 import type {Config} from 'testplane';
 import {listenWithFallback} from './listen-with-fallback';
 
-import {App} from './app';
+import type {App} from './app';
 import {ClientEvents, MAX_REQUEST_SIZE} from './constants';
 import {logger} from '../common-utils';
 import {initPluginsRoutes} from './routes/plugins';
 import {BrowserFeature, Feature, ToolName} from '../constants';
-import {getTimeTravelModeEnumSafe} from '../server-utils';
+import {getTimeTravelModeEnumSafe, getConfigForStaticFile} from '../server-utils';
+import {GuiTreeCache} from './tree-cache';
 import {NEW_ISSUE_LINK} from '../constants';
 import type {ServerArgs} from './index';
-import type {ServerReadyData} from './api';
+import type {ServerStartData} from './api';
 import type {TestplaneToolAdapter} from '../adapters/tool/testplane';
 import type {ToolRunnerTree} from './tool-runner';
 import type {TestplaneConfigAdapter} from '../adapters/config/testplane';
@@ -32,9 +33,9 @@ type TimeTravelConfig = Config['timeTravel'];
 
 const originalBrowserConfigs = new Map<string, {timeTravel?: TimeTravelConfig, saveHistoryMode?: Config['saveHistoryMode']}>();
 
-export type GetInitResponse = (ToolRunnerTree & {customGuiError?: CustomGuiError} & { browserFeatures: Record<string, BrowserFeature[]>, features: Feature[]}) | null;
+export type GetInitResponse = (ToolRunnerTree & {customGuiError?: CustomGuiError; isCached?: boolean} & { browserFeatures: Record<string, BrowserFeature[]>, features: Feature[]}) | null;
 
-export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
+export const start = async (args: ServerArgs): Promise<ServerStartData> => {
     const {toolAdapter} = args;
     const {reporterConfig, guiApi} = toolAdapter;
 
@@ -42,8 +43,23 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
         throw new Error('Gui API must be initialized before starting gui server');
     }
 
-    const app = App.create(args);
     const server = express();
+    const treeCache = new GuiTreeCache(args);
+    let app!: App;
+    const state: {
+        appCreated?: Promise<App>;
+        initialization?: Promise<void>;
+        cachedTree?: ReturnType<GuiTreeCache['read']>;
+        initialized?: boolean;
+    } = {};
+
+    const getApp = async (): Promise<App> => {
+        if (!state.appCreated) {
+            throw new Error('GUI initialization has not started');
+        }
+
+        return state.appCreated;
+    };
 
     server.use(bodyParser.json({limit: MAX_REQUEST_SIZE}));
 
@@ -69,18 +85,47 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
         }
     });
 
-    server.get('/events', (_req, res) => {
-        res.writeHead(OK, {'Content-Type': 'text/event-stream'});
+    server.get('/events', async (_req, res) => {
+        try {
+            const app = await getApp();
 
-        app.addClient(res);
+            res.writeHead(OK, {'Content-Type': 'text/event-stream'});
+            app.addClient(res);
+        } catch (e) {
+            res.status(INTERNAL_SERVER_ERROR).json({error: {message: (e as Error).message}});
+        }
     });
 
     server.set('json replacer', (_key: string, val: unknown) => {
         return typeof val === 'function' ? val.toString() : val;
     });
 
-    server.get('/init', async (_req, res) => {
+    server.get('/init', async (req, res) => {
         try {
+            if (!state.initialization) {
+                throw new Error('GUI initialization has not started');
+            }
+
+            if (req.query.cached === '1' && !args.cli.options.autoRun) {
+                const cachedTree = await state.cachedTree;
+                if (cachedTree && !state.initialized) {
+                    res.json({
+                        ...cachedTree,
+                        config: {...getConfigForStaticFile(reporterConfig), customGui: {}},
+                        apiValues: toolAdapter.htmlReporter.values,
+                        autoRun: false,
+                        features: [],
+                        browserFeatures: {},
+                        isCached: true
+                    } satisfies GetInitResponse);
+                    return;
+                }
+            }
+
+            await state.initialization;
+
+            const app = await getApp();
+
             if (toolAdapter.toolName === ToolName.Testplane) {
                 await (toolAdapter as TestplaneToolAdapter).initGuiHandler();
             }
@@ -88,8 +133,13 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
             res.json(app.data satisfies GetInitResponse);
         } catch (e: unknown) {
             const error = e as Error;
-            if (!app.data) {
-                throw new Error(`Failed to initialize custom GUI ${error.message}`);
+            if (!app?.data) {
+                res.status(INTERNAL_SERVER_ERROR).json({
+                    error: {
+                        message: `Failed to initialize GUI: ${error.message}`
+                    }
+                });
+                return;
             }
             res.json({
                 ...app.data,
@@ -100,6 +150,23 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
                     }
                 }
             } satisfies GetInitResponse);
+        }
+    });
+
+    server.use(async (_req, res, next) => {
+        try {
+            if (!state.initialized) {
+                res.status(503).json({error: {message: 'Test discovery is still running. Please wait for the tree to finish updating.'}});
+                return;
+            }
+            if (!state.initialization) {
+                throw new Error('GUI initialization has not started');
+            }
+
+            await state.initialization;
+            next();
+        } catch (e) {
+            res.status(INTERNAL_SERVER_ERROR).json({error: {message: (e as Error).message}});
         }
     });
 
@@ -270,13 +337,14 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
     });
 
     onExit(() => {
-        app.finalize();
+        void state.appCreated?.then(app => app.finalize()).catch(() => undefined);
         logger.log('server shutting down');
     });
 
     server.get('/refresh-tests', async (_req, res) => {
         try {
             const tree = await app.refreshTests();
+            void treeCache.write(tree);
             res.json(tree satisfies GetInitResponse);
         } catch (e: unknown) {
             res.status(INTERNAL_SERVER_ERROR).send(`Error while refreshing tests: ${(e as Error).message}`);
@@ -292,8 +360,6 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
             res.status(INTERNAL_SERVER_ERROR).send(`Error while stopping tests: ${(e as Error).message}`);
         }
     });
-
-    await app.initialize();
 
     const {port: requestedPort, hostname} = args.cli.options;
 
@@ -312,8 +378,30 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
     }
 
     const data = {url: `http://${hostnameForUrl}:${actualPort}`};
+    state.cachedTree = treeCache.read();
+    state.appCreated = new Promise<App>((resolve, reject) => {
+        setImmediate(() => {
+            import('./app')
+                .then(({App}) => {
+                    app = App.create(args);
+                    resolve(app);
+                })
+                .catch(reject);
+        });
+    });
+    state.initialization = state.appCreated.then(async app => {
+        // Read the snapshot before loading test files synchronously so it is available to the first request.
+        await state.cachedTree;
+        await app.initialize(progress => guiApi.initializationProgress(progress));
+        state.initialized = true;
+        state.cachedTree = undefined;
+        await treeCache.write(app.data);
+    });
+    state.initialization.catch(() => undefined);
 
-    await guiApi.serverReady(data);
+    await guiApi.serverListening(data);
 
-    return data;
+    const ready = state.initialization.then(() => guiApi.serverReady(data));
+
+    return {...data, ready};
 };

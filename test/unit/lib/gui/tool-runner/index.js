@@ -10,6 +10,7 @@ const {logger} = require('lib/common-utils');
 const {stubToolAdapter, stubConfig, stubReporterConfig, mkImagesInfo, mkState, mkSuite} = require('test/unit/utils');
 const {SqliteClient} = require('lib/sqlite-client');
 const {PluginEvents, TestStatus, UPDATED} = require('lib/constants');
+const {InitializationPhases} = require('lib/gui/tool-runner');
 const {Cache} = require('lib/cache');
 const {TestplaneTestAdapter} = require('lib/adapters/test/testplane');
 const {TestplaneConfigAdapter} = require('lib/adapters/config/testplane');
@@ -105,6 +106,19 @@ describe('lib/gui/tool-runner/index', () => {
     afterEach(() => sandbox.restore());
 
     describe('initialize', () => {
+        it('should report completed initialization phases', async () => {
+            const onProgress = sandbox.stub().resolves();
+            const gui = initGuiReporter({toolAdapter});
+
+            await gui.initialize(onProgress);
+
+            assert.deepEqual(
+                onProgress.args.map(([progress]) => progress.phase),
+                Object.values(InitializationPhases)
+            );
+            onProgress.args.forEach(([progress]) => assert.isAtLeast(progress.duration, 0));
+        });
+
         it('should set values added through api', () => {
             const htmlReporter = {emit: sandbox.stub(), values: {foo: 'bar'}, config: {}, imagesSaver: {}};
             toolAdapter = stubToolAdapter({htmlReporter});

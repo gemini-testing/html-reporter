@@ -42,15 +42,24 @@ export default (state: State, action: SomeAction): State => {
                 sectionId: 'error'
             } satisfies GroupByErrorExpression);
 
-            return applyStateUpdate(state, {
+            const preserveUiState = 'preserveUiState' in action.payload && action.payload.preserveUiState;
+            const selectedExpressions = preserveUiState
+                ? state.app.groupTestsData.currentExpressionIds.flatMap(id => availableExpressions.filter(expr => expr.id === id))
+                : [];
+            const nextState = applyStateUpdate(state, {
                 app: {
                     groupTestsData: {
                         availableExpressions,
-                        currentExpressionIds: [],
+                        currentExpressionIds: selectedExpressions.map(expr => expr.id),
                         availableSections
                     }
                 }
             });
+            if (selectedExpressions.length) {
+                const byId = groupTests(selectedExpressions, nextState.tree.results.byId, nextState.tree.images.byId, nextState.config.errorPatterns);
+                return {...nextState, tree: {...nextState.tree, groups: {byId, allRootIds: Object.keys(byId)}}};
+            }
+            return nextState;
         }
 
         case actionNames.GROUP_TESTS_SET_CURRENT_EXPRESSION: {

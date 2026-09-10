@@ -5,10 +5,22 @@ import actionNames from '@/static/modules/action-names';
 import {Action, AppThunk} from '@/static/modules/actions/types';
 import {TestSpec} from '@/adapters/tool/types';
 import {connectToDatabase, getMainDatabaseUrl} from '@/db-utils/client';
-import {createNotificationError} from '@/static/modules/actions/notifications';
+import {createNotification, createNotificationError, dismissNotification} from '@/static/modules/actions/notifications';
 import {TestBranch} from '@/tests-tree-builder/gui';
 import {TestStatus} from '@/constants';
-import {RunOptions} from '@/static/new-ui/types/store';
+import {RunOptions, State} from '@/static/new-ui/types/store';
+
+type QueuedTestRun = NonNullable<State['app']['queuedTestRun']>;
+type QueueTestRunAction = Action<typeof actionNames.QUEUE_TEST_RUN, QueuedTestRun>;
+type ClearQueuedTestRunAction = Action<typeof actionNames.CLEAR_QUEUED_TEST_RUN>;
+
+export const cancelQueuedTestRun = (): AppThunk => async (dispatch, getState) => {
+    if (!getState().app.queuedTestRun) {
+        return;
+    }
+    dispatch({type: actionNames.CLEAR_QUEUED_TEST_RUN});
+    dispatch(dismissNotification('queued-test-run'));
+};
 
 export type RunTestAction = Action<typeof actionNames.RETRY_TEST>;
 export const runTest = (): RunTestAction => ({type: actionNames.RETRY_TEST});
@@ -16,16 +28,27 @@ export const setRepeatCount = (repeatCount: number): Action<typeof actionNames.S
 export const setRepeatLeft = (repeatLeft: number): Action<typeof actionNames.SET_REPEAT_LEFT, {repeatLeft: number}> => ({type: actionNames.SET_REPEAT_LEFT, payload: {repeatLeft}});
 export const setRunOptions = (runOptions: RunOptions): Action<typeof actionNames.SET_RUN_OPTIONS, {runOptions: RunOptions}> => ({type: actionNames.SET_RUN_OPTIONS, payload: {runOptions}});
 
-export const thunkRunTests = ({tests = []}: {tests?: TestSpec[]} = {}): AppThunk => {
+export const thunkRunTests = ({tests = [], repeatCount: requestedRepeatCount}: {tests?: TestSpec[]; repeatCount?: number} = {}): AppThunk => {
     return async (dispatch, getState) => {
-        const {repeatCount} = getState();
+        const state = getState();
+        const repeatCount = requestedRepeatCount ?? state.repeatCount;
+
+        if (state.app?.isGuiInitializing) {
+            if (!state.app.queuedTestRun) {
+                dispatch({type: actionNames.QUEUE_TEST_RUN, payload: {tests: tests.map(test => ({...test})), repeatCount}});
+                dispatch(createNotification('queued-test-run', 'info',
+                    'Run queued. Tests will start automatically after initialization. Press Stop to cancel.',
+                    {dismissAfter: 0}));
+            }
+            return;
+        }
 
         dispatch(runTest());
         try {
             await axios.post('/run', {tests, repeatCount});
         } catch (e) {
-            // TODO: report error via notifications
-            console.error('Error while running tests:', e);
+            dispatch({type: actionNames.CLEAR_QUEUED_TEST_RUN});
+            dispatch(createNotificationError('runTests', e as Error));
         }
     };
 };
@@ -34,10 +57,24 @@ export type RunAllTestsAction = Action<typeof actionNames.RUN_ALL_TESTS>;
 export const runAllTests = (): RunAllTestsAction => ({type: actionNames.RUN_ALL_TESTS});
 
 export const thunkRunAllTests = (): AppThunk => {
-    return async (dispatch) => {
-        dispatch(runAllTests());
+    return async (dispatch, getState) => {
+        if (!getState()?.app?.isGuiInitializing) {
+            dispatch(runAllTests());
+        }
         await dispatch(thunkRunTests());
     };
+};
+
+export const thunkRunQueuedTests = (): AppThunk => async (dispatch, getState) => {
+    const {queuedTestRun, isGuiInitializing} = getState().app;
+    if (!queuedTestRun || isGuiInitializing) {
+        return;
+    }
+    dispatch(cancelQueuedTestRun());
+    if (!queuedTestRun.tests.length) {
+        dispatch(runAllTests());
+    }
+    await dispatch(thunkRunTests(queuedTestRun));
 };
 
 export type RunFailedTestsAction = Action<typeof actionNames.RUN_FAILED_TESTS>;
@@ -71,7 +108,11 @@ export type StopTestsAction = Action<typeof actionNames.STOP_TESTS>;
 export const stopTests = (): StopTestsAction => ({type: actionNames.STOP_TESTS});
 
 export const thunkStopTests = (): AppThunk => {
-    return async (dispatch) => {
+    return async (dispatch, getState) => {
+        if (getState().app?.queuedTestRun) {
+            await dispatch(cancelQueuedTestRun());
+            return;
+        }
         try {
             await axios.post('/stop');
             dispatch(stopTests());
@@ -113,6 +154,8 @@ export type TestResultAction = Action<typeof actionNames.TEST_RESULT, TestBranch
 export const testResult = (payload: TestResultAction['payload']): TestResultAction => ({type: actionNames.TEST_RESULT, payload});
 
 export type RunTestsAction =
+    | QueueTestRunAction
+    | ClearQueuedTestRunAction
     | RunAllTestsAction
     | RunFailedTestsAction
     | RunSuiteAction

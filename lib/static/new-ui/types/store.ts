@@ -17,6 +17,7 @@ import {EntityType} from '@/static/new-ui/features/suites/components/SuitesPage/
 import {DbDetails} from '@/db-utils/common';
 import {Stats, PerBrowserStats} from '@/tests-tree-builder/static';
 import type {Database} from '@gemini-testing/sql.js';
+import type {TestSpec} from '@/adapters/tool/types';
 
 export interface GroupEntity {
     id: string;
@@ -262,6 +263,8 @@ export interface State {
     app: {
         isNewUi: boolean;
         isInitialized: boolean;
+        isGuiInitializing: boolean;
+        queuedTestRun: {tests: TestSpec[]; repeatCount: number} | null;
         availableFeatures: Feature[],
         isSearchLoading?: boolean;
         isRefreshTestsLoading?: boolean;

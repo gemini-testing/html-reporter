@@ -42,4 +42,29 @@ describe('lib/gui/api', () => {
             assert.calledOnceWith(onServerReady, {url: 'http://my.server'});
         });
     });
+
+    describe('serverListening', () => {
+        it('should emit "SERVER_LISTENING" event through gui api', () => {
+            const api = GuiApi.create();
+            const onServerListening = sinon.spy().named('onServerListening');
+            api.gui.on(GuiEvents.SERVER_LISTENING, onServerListening);
+
+            api.serverListening({url: 'http://my.server'});
+
+            assert.calledOnceWith(onServerListening, {url: 'http://my.server'});
+        });
+    });
+
+    describe('initializationProgress', () => {
+        it('should emit "INITIALIZATION_PROGRESS" event through gui api', () => {
+            const api = GuiApi.create();
+            const onInitializationProgress = sinon.spy().named('onInitializationProgress');
+            api.gui.on(GuiEvents.INITIALIZATION_PROGRESS, onInitializationProgress);
+            const progress = {phase: 'read-tests', duration: 100};
+
+            api.initializationProgress(progress);
+
+            assert.calledOnceWith(onInitializationProgress, progress);
+        });
+    });
 });
