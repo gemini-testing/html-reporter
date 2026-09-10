@@ -111,6 +111,23 @@ describe('GuiResultsTreeBuilder', () => {
                 assert.deepEqual(builder.tree.results.byId['s1 b1 1'], srcBuilder.tree.results.byId['s1 b1 1']);
             });
 
+            it('should replace temporary results when explicitly requested', () => {
+                const srcBuilder = mkGuiTreeBuilder();
+                srcBuilder.addTestResult(
+                    mkFormattedResult_({status: SUCCESS, testPath: ['s1'], browserId: 'b1', attempt: 0})
+                );
+
+                builder.addTestResult(
+                    mkFormattedResult_({status: IDLE, testPath: ['s1'], browserId: 'b1', attempt: 1})
+                );
+
+                builder.reuseTestsTree(srcBuilder.tree, {replaceCurrentResults: true});
+
+                assert.deepEqual(builder.tree.browsers.byId['s1 b1'].resultIds, ['s1 b1 0']);
+                assert.deepEqual(builder.tree.results.allIds, ['s1 b1 0']);
+                assert.isUndefined(builder.tree.results.byId['s1 b1 1']);
+            });
+
             it('should register reused result ids', () => {
                 const srcBuilder = mkGuiTreeBuilder();
                 srcBuilder.addTestResult(
@@ -221,6 +238,147 @@ describe('GuiResultsTreeBuilder', () => {
             const {suites} = builder.getTestBranch('s b 0');
 
             assert.deepEqual(suites, [{id: 's', status: IDLE}]);
+        });
+    });
+
+    describe('"removeTestsByFiles" method', () => {
+        it('should remove only branches from passed files and prune empty suites', () => {
+            builder.addTestResult(mkFormattedResult_({
+                status: IDLE,
+                file: '/project/changed.ts',
+                testPath: ['root', 'changed'],
+                browserId: 'chrome'
+            }));
+            builder.addTestResult(mkFormattedResult_({
+                status: IDLE,
+                file: '/project/unchanged.ts',
+                testPath: ['root', 'unchanged'],
+                browserId: 'chrome'
+            }));
+
+            builder.removeTestsByFiles(['/project/changed.ts']);
+
+            assert.isUndefined(builder.tree.suites.byId['root changed']);
+            assert.isUndefined(builder.tree.browsers.byId['root changed chrome']);
+            assert.isUndefined(builder.tree.results.byId['root changed chrome 0']);
+            assert.exists(builder.tree.suites.byId['root unchanged']);
+            assert.exists(builder.tree.browsers.byId['root unchanged chrome']);
+            assert.exists(builder.tree.results.byId['root unchanged chrome 0']);
+        });
+
+        it('should remove an empty root suite', () => {
+            builder.addTestResult(mkFormattedResult_({
+                status: IDLE,
+                file: '/project/only.ts',
+                testPath: ['only root'],
+                browserId: 'chrome'
+            }));
+
+            builder.removeTestsByFiles(['/project/only.ts']);
+
+            assert.deepEqual(builder.tree.suites.allRootIds, []);
+            assert.deepEqual(builder.tree.suites.allIds, []);
+            assert.deepEqual(builder.tree.browsers.allIds, []);
+            assert.deepEqual(builder.tree.results.allIds, []);
+        });
+
+        it('should prune multiple sibling branches in one batch', () => {
+            builder.addTestResult(mkFormattedResult_({
+                status: IDLE,
+                file: '/project/first.ts',
+                testPath: ['root', 'group', 'first'],
+                browserId: 'chrome'
+            }));
+            builder.addTestResult(mkFormattedResult_({
+                status: IDLE,
+                file: '/project/second.ts',
+                testPath: ['root', 'group', 'second'],
+                browserId: 'chrome'
+            }));
+            builder.addTestResult(mkFormattedResult_({
+                status: SUCCESS,
+                file: '/project/remaining.ts',
+                testPath: ['root', 'remaining'],
+                browserId: 'chrome'
+            }));
+
+            builder.removeTestsByFiles(['/project/first.ts', '/project/second.ts']);
+
+            assert.notExists(builder.tree.suites.byId['root group first']);
+            assert.notExists(builder.tree.suites.byId['root group second']);
+            assert.notExists(builder.tree.suites.byId['root group']);
+            assert.exists(builder.tree.suites.byId['root remaining']);
+            assert.deepEqual(builder.tree.suites.byId.root.suiteIds, ['root remaining']);
+            assert.equal(builder.tree.suites.byId.root.status, SUCCESS);
+        });
+    });
+
+    describe('snapshot and restore', () => {
+        it('should restore both tree and file index', () => {
+            const file = '/project/test.ts';
+            builder.addTestResult(mkFormattedResult_({
+                status: IDLE,
+                file,
+                testPath: ['test'],
+                browserId: 'chrome'
+            }));
+            const snapshot = builder.snapshotState();
+
+            builder.removeTestsByFiles([file]);
+            builder.restoreState(snapshot);
+            builder.removeTestsByFiles([file]);
+
+            assert.deepEqual(builder.tree.suites.allIds, []);
+            assert.deepEqual(builder.tree.browsers.allIds, []);
+            assert.deepEqual(builder.tree.results.allIds, []);
+        });
+
+        it('should restore only scoped branches and remove newly added nodes', () => {
+            const changedFile = '/project/changed.ts';
+            const unchangedFile = '/project/unchanged.ts';
+            builder.addTestResult(mkFormattedResult_({
+                status: IDLE,
+                file: changedFile,
+                testPath: ['root', 'changed'],
+                browserId: 'chrome'
+            }));
+            builder.addTestResult(mkFormattedResult_({
+                status: SUCCESS,
+                file: unchangedFile,
+                testPath: ['root', 'unchanged'],
+                browserId: 'chrome'
+            }));
+            const scope = {
+                suites: new Set(['root', 'root changed']),
+                browsers: new Set(['root changed chrome']),
+                results: new Set(['root changed chrome 0']),
+                images: new Set()
+            };
+            const snapshot = builder.snapshotState(scope, [changedFile]);
+
+            builder.removeTestsByFiles([changedFile]);
+            builder.addTestResult(mkFormattedResult_({
+                status: IDLE,
+                file: changedFile,
+                testPath: ['root', 'replacement'],
+                browserId: 'firefox'
+            }));
+            scope.suites.add('root replacement');
+            scope.browsers.add('root replacement firefox');
+            scope.results.add('root replacement firefox 0');
+            builder.restoreState(snapshot);
+
+            assert.exists(builder.tree.suites.byId['root changed']);
+            assert.exists(builder.tree.browsers.byId['root changed chrome']);
+            assert.exists(builder.tree.results.byId['root changed chrome 0']);
+            assert.notExists(builder.tree.suites.byId['root replacement']);
+            assert.notExists(builder.tree.browsers.byId['root replacement firefox']);
+            assert.notExists(builder.tree.results.byId['root replacement firefox 0']);
+            assert.exists(builder.tree.suites.byId['root unchanged']);
+
+            builder.removeTestsByFiles([changedFile]);
+            assert.notExists(builder.tree.suites.byId['root changed']);
+            assert.exists(builder.tree.suites.byId['root unchanged']);
         });
     });
 

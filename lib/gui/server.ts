@@ -20,6 +20,7 @@ import type {ToolRunnerTree} from './tool-runner';
 import type {TestplaneConfigAdapter} from '../adapters/config/testplane';
 import type {UpdateTimeTravelSettingsRequest, UpdateTimeTravelSettingsResponse} from '../types';
 import chalk from 'chalk';
+import {TestsWatcher} from './tests-watcher';
 
 interface CustomGuiError {
     response: {
@@ -269,7 +270,10 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
         }
     });
 
+    let testsWatcher: TestsWatcher | undefined;
+
     onExit(() => {
+        testsWatcher?.close();
         app.finalize();
         logger.log('server shutting down');
     });
@@ -294,6 +298,15 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
     });
 
     await app.initialize();
+
+    if (args.cli.options.watch && toolAdapter.toolName === ToolName.Testplane) {
+        const plan = toolAdapter.getTestsWatchPlan?.(args.paths, args.cli.tool);
+
+        if (plan) {
+            testsWatcher = TestsWatcher.create({app, plan, reportPath: reporterConfig.path});
+            testsWatcher.start();
+        }
+    }
 
     const {port: requestedPort, hostname} = args.cli.options;
 
