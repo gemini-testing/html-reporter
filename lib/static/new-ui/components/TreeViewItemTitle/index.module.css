@@ -27,8 +27,8 @@
     margin: -2px 0;
     z-index: 1;
     border-radius: 6px;
-    box-shadow: 0 -10px 7px 10px var(--background-color, rgb(242 242 242));
-    background: var(--background-color, rgb(242 242 242));
+    box-shadow: 0 -10px 7px 10px var(--background-color, var(--tree-actions-hover-background));
+    background: var(--background-color, var(--tree-actions-hover-background));
 }
 
 .actions-container {

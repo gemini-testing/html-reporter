@@ -1,4 +1,4 @@
-import {Gear, PauseFill} from '@gravity-ui/icons';
+import {Gear, PauseFill, PlayFill} from '@gravity-ui/icons';
 import {Button, HelpMark, Hotkey, Icon, Select, SelectRenderControlProps, SelectOptions, Tooltip} from '@gravity-ui/uikit';
 import {Replayer} from '@rrweb/replay';
 import type {customEvent, eventWithTime as RrwebEvent} from '@rrweb/types';
@@ -19,7 +19,6 @@ import {unstable_ListTreeItemType as ListTreeItemType} from '@gravity-ui/uikit/u
 import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
 import {useHotkey} from '@/static/new-ui/hooks/useHotkey';
 import BrokenSnapshotIcon from '@/static/icons/broken-snapshot.svg';
-import {PlayIcon} from './PlayIcon';
 import {ChangedDot} from '../../../../components/ChangedDot';
 
 import '@rrweb/replay/dist/style.css';
@@ -613,7 +612,7 @@ export function SnapshotsPlayer({isSnapshotBroken = false}: {isSnapshotBroken?: 
                             <Icon data={PauseFill} size={14}/></div>
                         <div
                             className={classNames(styles.playPauseIcon, {[styles.playPauseIconVisible]: !isPlaying})}>
-                            <PlayIcon/>
+                            <Icon data={PlayFill} size={14}/>
                         </div>
                     </Button>
                 </Tooltip>
