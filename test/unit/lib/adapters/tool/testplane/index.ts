@@ -182,6 +182,31 @@ describe('lib/adapters/tool/testplane/index', () => {
             }));
         });
 
+        it('should mark collection as focused when mocha "only" is used', async () => {
+            const testplane = stubTool();
+            const originalDescribe = globalThis.describe;
+            const describe = Object.assign(sandbox.stub(), {only: sandbox.stub()});
+            const globals = globalThis as typeof globalThis & {describe: typeof describe};
+            globals.describe = describe;
+            testplane.readTests.callsFake(async () => {
+                testplane.emit('beforeFileRead');
+                globals.describe.only('focused suite', () => undefined);
+
+                return stubTestCollection();
+            });
+            const toolAdapter = TestplaneToolAdapter.create({toolName: ToolName.Testplane, tool: testplane, reporterConfig: {} as ReporterConfig});
+
+            try {
+                const collection = await toolAdapter.readTests([], {} as CommanderStatic);
+
+                assert.isTrue(collection.hasFocusedTests);
+                assert.calledOnceWith(describe.only, 'focused suite', sinon.match.func);
+                assert.equal(globals.describe.only, describe.only);
+            } finally {
+                globalThis.describe = originalDescribe;
+            }
+        });
+
         describe('"replMode" option', () => {
             it('should be disabled by default', async () => {
                 const testplane = stubTool();
@@ -242,6 +267,59 @@ describe('lib/adapters/tool/testplane/index', () => {
                     }
                 }));
             });
+        });
+    });
+
+    describe('getTestsWatchPlan', () => {
+        it('should use explicit cli paths instead of all configured set globs', () => {
+            const testplane = stubTool(stubConfig({sets: {
+                unit: {files: ['tests/unit/**/*.ts']},
+                integration: {files: ['tests/integration/**/*.ts']}
+            }}));
+            const toolAdapter = TestplaneToolAdapter.create({toolName: ToolName.Testplane, tool: testplane, reporterConfig: {} as ReporterConfig});
+
+            const plan = toolAdapter.getTestsWatchPlan(['tests/unit/example.ts'], {} as CommanderStatic);
+
+            assert.deepEqual(plan, {
+                paths: ['tests/unit/example.ts'],
+                roots: ['tests/unit']
+            });
+        });
+
+        it('should only use globs from cli-selected sets', () => {
+            const testplane = stubTool(stubConfig({sets: {
+                unit: {files: ['tests/unit/**/*.ts']},
+                integration: {files: ['tests/integration/**/*.ts']}
+            }}));
+            const toolAdapter = TestplaneToolAdapter.create({toolName: ToolName.Testplane, tool: testplane, reporterConfig: {} as ReporterConfig});
+
+            const plan = toolAdapter.getTestsWatchPlan([], {set: ['unit']} as unknown as CommanderStatic);
+
+            assert.deepEqual(plan, {
+                paths: ['tests/unit/**/*.ts'],
+                roots: ['tests/unit']
+            });
+        });
+
+        it('should use Testplane default paths when sets do not contain files', () => {
+            const testplane = stubTool(stubConfig({sets: {'': {files: []}}}));
+            const toolAdapter = TestplaneToolAdapter.create({toolName: ToolName.Testplane, tool: testplane, reporterConfig: {} as ReporterConfig});
+
+            const plan = toolAdapter.getTestsWatchPlan([], {} as CommanderStatic);
+
+            assert.deepEqual(plan, {
+                paths: ['testplane', 'hermione'],
+                roots: ['testplane', 'hermione']
+            });
+        });
+
+        it('should use a directory itself as its watch root', () => {
+            const testplane = stubTool(stubConfig({sets: {all: {files: ['tests']}}}));
+            const toolAdapter = TestplaneToolAdapter.create({toolName: ToolName.Testplane, tool: testplane, reporterConfig: {} as ReporterConfig});
+
+            const plan = toolAdapter.getTestsWatchPlan([], {} as CommanderStatic);
+
+            assert.deepEqual(plan.roots, ['tests']);
         });
     });
 

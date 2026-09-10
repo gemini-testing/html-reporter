@@ -1,4 +1,6 @@
 import _ from 'lodash';
+import fs from 'node:fs';
+import path from 'node:path';
 import type Testplane from 'testplane';
 import type {Config} from 'testplane';
 import type {CommanderStatic} from '@gemini-testing/commander';
@@ -15,7 +17,7 @@ import {GuiReportBuilder} from '../../../report-builder/gui';
 import {handleTestResults} from './test-results-handler';
 import {BrowserFeature, ToolName} from '../../../constants';
 
-import {ToolAdapter, ToolAdapterOptionsFromCli, UpdateReferenceOpts} from '../index';
+import {TestsWatchPlan, ToolAdapter, ToolAdapterOptionsFromCli, UpdateReferenceOpts} from '../index';
 import type {CustomGuiActionPayload, TestSpec} from '../types';
 import type {CustomGuiItem, ReporterConfig} from '../../../types';
 import type {ConfigAdapter} from '../../config/index';
@@ -44,6 +46,37 @@ type RunTestArgs = [TestplaneTestCollectionAdapter, TestSpec[], CommanderStatic]
 type Options = ToolAdapterOptionsFromCli | OptionsFromPlugin;
 
 const SUPPORTED_TOOLS = [ToolName.Testplane, 'hermione'];
+const DEFAULT_TEST_PATHS = ['testplane', 'hermione'];
+const MOCHA_TEST_METHODS = ['describe', 'context', 'it', 'specify', 'suite', 'test'];
+
+type MochaMethod = ((...args: unknown[]) => unknown) & {
+    only?: (...args: unknown[]) => unknown;
+};
+
+const getEnvSets = (): string[] => {
+    const value = process.env.TESTPLANE_SETS || process.env.HERMIONE_SETS;
+
+    return value ? value.split(/, */) : [];
+};
+
+const getWatchRoot = (pattern: string): string => {
+    const normalizedPattern = pattern.replaceAll('\\', '/');
+    const globStart = normalizedPattern.search(/[!*?()[\]{}]/);
+
+    if (globStart !== -1) {
+        const staticPart = normalizedPattern.slice(0, globStart);
+
+        return staticPart.endsWith('/') ? staticPart.slice(0, -1) : path.dirname(staticPart);
+    }
+
+    const normalizedPath = normalizedPattern.replace(/\/$/, '');
+
+    try {
+        return fs.statSync(normalizedPath).isDirectory() ? normalizedPath : path.dirname(normalizedPath);
+    } catch {
+        return path.extname(normalizedPath) ? path.dirname(normalizedPath) : normalizedPath;
+    }
+};
 
 export class TestplaneToolAdapter implements ToolAdapter {
     private _toolName: ToolName;
@@ -54,6 +87,7 @@ export class TestplaneToolAdapter implements ToolAdapter {
     private _guiApi?: GuiApi;
     private _browserConfigs: ReturnType<Config['forBrowser']>[];
     private _retryCache: Record<string, number>;
+    private _hasFocusedTestsInLastRead: boolean;
 
     static create<TestplaneToolAdapter>(
         this: new (options: Options) => TestplaneToolAdapter,
@@ -81,6 +115,7 @@ export class TestplaneToolAdapter implements ToolAdapter {
         this._htmlReporter = HtmlReporter.create(this._reporterConfig, {toolName: ToolName.Testplane});
 
         this._retryCache = {};
+        this._hasFocusedTestsInLastRead = false;
 
         // in order to be able to use it from other plugins as an API
         this._tool.htmlReporter = this._htmlReporter;
@@ -123,6 +158,10 @@ export class TestplaneToolAdapter implements ToolAdapter {
         return result;
     }
 
+    get hasFocusedTestsInLastRead(): boolean {
+        return this._hasFocusedTestsInLastRead;
+    }
+
     initGuiApi(): void {
         this._guiApi = GuiApi.create();
 
@@ -130,14 +169,67 @@ export class TestplaneToolAdapter implements ToolAdapter {
         this._tool.gui = this._guiApi.gui;
     }
 
+    getTestsWatchPlan(paths: string[], cliTool: CommanderStatic): TestsWatchPlan {
+        const selectedSets = ([] as string[]).concat(cliTool.set || [], getEnvSets());
+        const configuredSets = selectedSets.length
+            ? _.pick(this._tool.config.sets, selectedSets)
+            : this._tool.config.sets;
+        const configuredPaths = Object.values(configuredSets).flatMap(({files}) => files);
+        const watchPaths = _.uniq(paths.length ? paths : configuredPaths.length ? configuredPaths : DEFAULT_TEST_PATHS);
+
+        return {
+            paths: watchPaths,
+            roots: _.uniq(watchPaths.map(getWatchRoot).filter(Boolean))
+        };
+    }
+
     async readTests(paths: string[], cliTool: CommanderStatic): Promise<TestplaneTestCollectionAdapter> {
         const {TestplaneTestCollectionAdapter} = await import('../../test-collection/testplane');
         const {grep, tag, set: sets, browser: browsers} = cliTool;
         const replMode = getReplModeOption(cliTool);
+        this._hasFocusedTestsInLastRead = false;
+        const wrappedOnlyMethods: Array<{method: MochaMethod; original: MochaMethod['only']; wrapped: MochaMethod['only']}> = [];
+        const wrappedMethods = new Set<MochaMethod>();
+        const setFocusedTests = (): void => {
+            this._hasFocusedTestsInLastRead = true;
+        };
+        const markFocusedTests = (): void => {
+            const mochaGlobals = globalThis as typeof globalThis & Record<string, MochaMethod | undefined>;
 
-        const testCollection = await this._tool.readTests(paths, {grep, sets, tag, browsers, replMode});
+            for (const methodName of MOCHA_TEST_METHODS) {
+                const method = mochaGlobals[methodName];
+                const original = method?.only;
 
-        return TestplaneTestCollectionAdapter.create(testCollection, this._tool.config.saveHistoryMode);
+                if (!method || !original || wrappedMethods.has(method)) {
+                    continue;
+                }
+
+                const wrapped = function(this: unknown, ...args: unknown[]): unknown {
+                    setFocusedTests();
+
+                    return original.apply(this, args);
+                };
+
+                method.only = wrapped;
+                wrappedMethods.add(method);
+                wrappedOnlyMethods.push({method, original, wrapped});
+            }
+        };
+
+        this._tool.on('beforeFileRead', markFocusedTests);
+
+        try {
+            const testCollection = await this._tool.readTests(paths, {grep, sets, tag, browsers, replMode});
+
+            return TestplaneTestCollectionAdapter.create(testCollection, this._tool.config.saveHistoryMode, this._hasFocusedTestsInLastRead);
+        } finally {
+            this._tool.removeListener('beforeFileRead', markFocusedTests);
+            for (const {method, original, wrapped} of wrappedOnlyMethods) {
+                if (method.only === wrapped) {
+                    method.only = original;
+                }
+            }
+        }
     }
 
     async run(testCollectionAdapter: TestplaneTestCollectionAdapter, tests: TestSpec[] = [], cliTool: CommanderStatic): Promise<boolean> {

@@ -9,7 +9,7 @@ const {LOCAL_DATABASE_NAME} = require('lib/constants/database');
 const {logger} = require('lib/common-utils');
 const {stubToolAdapter, stubConfig, stubReporterConfig, mkImagesInfo, mkState, mkSuite} = require('test/unit/utils');
 const {SqliteClient} = require('lib/sqlite-client');
-const {PluginEvents, TestStatus, UPDATED} = require('lib/constants');
+const {PluginEvents, TestStatus, UPDATED, IDLE} = require('lib/constants');
 const {Cache} = require('lib/cache');
 const {TestplaneTestAdapter} = require('lib/adapters/test/testplane');
 const {TestplaneConfigAdapter} = require('lib/adapters/config/testplane');
@@ -469,6 +469,103 @@ describe('lib/gui/tool-runner/index', () => {
             }]);
         });
 
+        it('should read all files when "only" is added and remove tests from other files', async () => {
+            const focusedFile = '/ref/cwd/focused.hermione.ts';
+            const otherFile = '/ref/cwd/other.hermione.ts';
+            const focusedTest = mkTestAdapter_(stubTest_({file: focusedFile, browserId: 'yabro', fullTitle: () => 'focused test'}));
+            const otherTest = mkTestAdapter_(stubTest_({file: otherFile, browserId: 'yabro', fullTitle: () => 'other test'}));
+            const tree = {
+                suites: {byId: {}, byHash: {}, allIds: [], allRootIds: []},
+                browsers: {byId: {}, allIds: []},
+                results: {byId: {}, allIds: []},
+                images: {byId: {}, allIds: []}
+            };
+            toolAdapter.readTests.onFirstCall().resolves({tests: [focusedTest, otherTest], hasFocusedTests: false});
+            toolAdapter.readTests.onSecondCall().resolves({tests: [focusedTest], hasFocusedTests: true});
+            toolAdapter.readTests.onThirdCall().resolves({tests: [focusedTest], hasFocusedTests: true});
+            sandbox.stub(fs, 'pathExists').withArgs(focusedFile).resolves(true);
+            sandbox.stub(reportBuilder, 'testsTree').get(() => tree);
+            const gui = initGuiReporter({toolAdapter, paths: ['tests/**/*.ts']});
+            const onChanged = sandbox.stub();
+            const onUpdated = sandbox.stub();
+
+            await gui.initialize();
+            await gui.refreshTestsIfChanged([focusedFile], [], onChanged, onUpdated, 1);
+
+            assert.callCount(toolAdapter.readTests, 3);
+            assert.deepEqual(toolAdapter.readTests.secondCall.args[0], [focusedFile]);
+            assert.deepEqual(toolAdapter.readTests.thirdCall.args[0], ['tests/**/*.ts']);
+            assert.calledOnceWith(onChanged, true);
+            assert.calledOnce(reportBuilder.resetTree);
+            assert.property(onUpdated.firstCall.args[0], 'replacement');
+            assert.notCalled(reportBuilder.removeTestsByFiles);
+        });
+
+        it('should read all files when "only" is removed and restore tests from other files', async () => {
+            const focusedFile = '/ref/cwd/focused.hermione.ts';
+            const otherFile = '/ref/cwd/other.hermione.ts';
+            const focusedTest = mkTestAdapter_(stubTest_({file: focusedFile, browserId: 'yabro', fullTitle: () => 'focused test'}));
+            const otherTest = mkTestAdapter_(stubTest_({file: otherFile, browserId: 'yabro', fullTitle: () => 'other test'}));
+            const tree = {
+                suites: {byId: {}, byHash: {}, allIds: [], allRootIds: []},
+                browsers: {byId: {}, allIds: []},
+                results: {byId: {}, allIds: []},
+                images: {byId: {}, allIds: []}
+            };
+            toolAdapter.readTests.onFirstCall().resolves({tests: [focusedTest], hasFocusedTests: true});
+            toolAdapter.readTests.onSecondCall().resolves({tests: [focusedTest, otherTest], hasFocusedTests: false});
+            sandbox.stub(fs, 'pathExists').withArgs(focusedFile).resolves(true);
+            sandbox.stub(reportBuilder, 'testsTree').get(() => tree);
+            const gui = initGuiReporter({toolAdapter, paths: ['tests/**/*.ts']});
+            const onChanged = sandbox.stub();
+            const onUpdated = sandbox.stub();
+
+            await gui.initialize();
+            await gui.refreshTestsIfChanged([focusedFile], [], onChanged, onUpdated, 1);
+
+            assert.callCount(toolAdapter.readTests, 2);
+            assert.deepEqual(toolAdapter.readTests.secondCall.args[0], ['tests/**/*.ts']);
+            assert.calledOnceWith(onChanged, true);
+            assert.calledOnce(reportBuilder.resetTree);
+            assert.property(onUpdated.firstCall.args[0], 'replacement');
+            assert.notCalled(reportBuilder.removeTestsByFiles);
+        });
+
+        it('should remove all tests when an empty focused suite is added', async () => {
+            const focusedFile = '/ref/cwd/focused.hermione.ts';
+            const otherFile = '/ref/cwd/other.hermione.ts';
+            const focusedTest = mkTestAdapter_(stubTest_({file: focusedFile, browserId: 'yabro', fullTitle: () => 'focused test'}));
+            const otherTest = mkTestAdapter_(stubTest_({file: otherFile, browserId: 'yabro', fullTitle: () => 'other test'}));
+            const noTestsError = new Error('There are no tests found. Try to specify options');
+            const tree = {
+                suites: {byId: {}, byHash: {}, allIds: [], allRootIds: []},
+                browsers: {byId: {}, allIds: []},
+                results: {byId: {}, allIds: []},
+                images: {byId: {}, allIds: []}
+            };
+            toolAdapter.hasFocusedTestsInLastRead = false;
+            toolAdapter.readTests.onFirstCall().resolves({tests: [focusedTest, otherTest], hasFocusedTests: false});
+            toolAdapter.readTests.onSecondCall().callsFake(async () => {
+                toolAdapter.hasFocusedTestsInLastRead = true;
+                throw noTestsError;
+            });
+            toolAdapter.readTests.onThirdCall().rejects(noTestsError);
+            sandbox.stub(fs, 'pathExists').withArgs(focusedFile).resolves(true);
+            sandbox.stub(reportBuilder, 'testsTree').get(() => tree);
+            const gui = initGuiReporter({toolAdapter, paths: ['tests/**/*.ts']});
+            const onChanged = sandbox.stub();
+            const onUpdated = sandbox.stub();
+
+            await gui.initialize();
+            await gui.refreshTestsIfChanged([focusedFile], [], onChanged, onUpdated, 1);
+
+            assert.callCount(toolAdapter.readTests, 3);
+            assert.calledOnceWith(onChanged, true);
+            assert.calledOnce(reportBuilder.resetTree);
+            assert.property(onUpdated.firstCall.args[0], 'replacement');
+            assert.notCalled(reportBuilder.removeTestsByFiles);
+        });
+
         it('should treat a changed file with no tests as an empty partial collection', async () => {
             const changedFile = '/ref/cwd/changed.hermione.ts';
             const oldTest = mkTestAdapter_(stubTest_({
@@ -515,6 +612,107 @@ describe('lib/gui/tool-runner/index', () => {
 
             assert.callCount(toolAdapter.readTests, 3);
             assert.deepEqual(toolAdapter.readTests.thirdCall.args[0], [changedFile]);
+        });
+
+        ['pending', 'disabled', 'silentSkip'].forEach(property => {
+            it(`should refresh tree when test "${property}" state changes`, async () => {
+                const changedFile = '/ref/cwd/changed.hermione.ts';
+                const oldTest = mkTestAdapter_(stubTest_({file: changedFile, browserId: 'yabro', [property]: false}));
+                const newTest = mkTestAdapter_(stubTest_({file: changedFile, browserId: 'yabro', [property]: true}));
+                const tree = {
+                    suites: {byId: {}, byHash: {}, allIds: [], allRootIds: []},
+                    browsers: {byId: {}, allIds: []},
+                    results: {byId: {}, allIds: []},
+                    images: {byId: {}, allIds: []}
+                };
+                toolAdapter.readTests.onFirstCall().resolves({tests: [oldTest]});
+                toolAdapter.readTests.onSecondCall().resolves({tests: [newTest]});
+                sandbox.stub(fs, 'pathExists').withArgs(changedFile).resolves(true);
+                sandbox.stub(reportBuilder, 'testsTree').get(() => tree);
+                const gui = initGuiReporter({toolAdapter});
+                const onChanged = sandbox.stub();
+
+                await gui.initialize();
+                await gui.refreshTestsIfChanged([changedFile], [], onChanged, sandbox.stub(), 1);
+
+                assert.calledOnceWith(onChanged, true);
+            });
+        });
+
+        it('should keep current idle state after removing pending from a test with skipped history', async () => {
+            const changedFile = '/ref/cwd/changed.hermione.ts';
+            const skippedTest = mkTestAdapter_(stubTest_({file: changedFile, browserId: 'yabro', pending: true}));
+            const activeTest = mkTestAdapter_(stubTest_({file: changedFile, browserId: 'yabro', pending: false}));
+            const tree = {
+                suites: {byId: {}, byHash: {}, allIds: [], allRootIds: []},
+                browsers: {byId: {}, allIds: []},
+                results: {byId: {}, allIds: []},
+                images: {byId: {}, allIds: []}
+            };
+            toolAdapter.readTests.onFirstCall().resolves({tests: [skippedTest]});
+            toolAdapter.readTests.onSecondCall().resolves({tests: [activeTest]});
+            sandbox.stub(fs, 'pathExists').withArgs(changedFile).resolves(true);
+            sandbox.stub(reportBuilder, 'testsTree').get(() => tree);
+            reportBuilder.restoreTestHistory.returns(true);
+            const gui = initGuiReporter({toolAdapter});
+
+            await gui.initialize();
+            reportBuilder.addTestResult.resetHistory();
+            await gui.refreshTestsIfChanged([changedFile], [], sandbox.stub(), sandbox.stub(), 1);
+
+            assert.calledTwice(reportBuilder.addTestResult);
+            assert.equal(reportBuilder.addTestResult.firstCall.args[0].status, IDLE);
+            assert.equal(reportBuilder.addTestResult.secondCall.args[0].status, IDLE);
+        });
+
+        it('should reject a duplicate full name introduced by a partial read', async () => {
+            const existingFile = '/ref/cwd/existing.hermione.ts';
+            const changedFile = '/ref/cwd/changed.hermione.ts';
+            const existingTest = mkTestAdapter_(stubTest_({file: existingFile, browserId: 'yabro', fullTitle: () => 'duplicate'}));
+            const oldChangedTest = mkTestAdapter_(stubTest_({file: changedFile, browserId: 'yabro', fullTitle: () => 'old'}));
+            const duplicateTest = mkTestAdapter_(stubTest_({file: changedFile, browserId: 'yabro', fullTitle: () => 'duplicate'}));
+            toolAdapter.readTests.onFirstCall().resolves({tests: [existingTest, oldChangedTest]});
+            toolAdapter.readTests.onSecondCall().resolves({tests: [duplicateTest]});
+            sandbox.stub(fs, 'pathExists').withArgs(changedFile).resolves(true);
+            const gui = initGuiReporter({toolAdapter});
+
+            await gui.initialize();
+
+            await assert.isRejected(
+                gui.refreshTestsIfChanged([changedFile], [], sandbox.stub(), sandbox.stub(), 1),
+                /Tests with the same title 'duplicate'/
+            );
+            assert.notCalled(reportBuilder.removeTestsByFiles);
+        });
+
+        it('should restore report builder state when applying a patch fails', async () => {
+            const changedFile = '/ref/cwd/changed.hermione.ts';
+            const oldTest = mkTestAdapter_(stubTest_({file: changedFile, browserId: 'yabro', fullTitle: () => 'old'}));
+            const newTest = mkTestAdapter_(stubTest_({file: changedFile, browserId: 'yabro', fullTitle: () => 'new'}));
+            const tree = {
+                suites: {byId: {}, byHash: {}, allIds: [], allRootIds: []},
+                browsers: {byId: {}, allIds: []},
+                results: {byId: {}, allIds: []},
+                images: {byId: {}, allIds: []}
+            };
+            const snapshot = {treeState: {tree, browserIdsByFile: new Map()}, skips: []};
+            toolAdapter.readTests.onFirstCall().resolves({tests: [oldTest]});
+            toolAdapter.readTests.onSecondCall().resolves({tests: [newTest]});
+            sandbox.stub(fs, 'pathExists').withArgs(changedFile).resolves(true);
+            sandbox.stub(reportBuilder, 'testsTree').get(() => tree);
+            reportBuilder.snapshotTestsState.returns(snapshot);
+            reportBuilder.restoreTestHistory.throws(new Error('history failed'));
+            const gui = initGuiReporter({toolAdapter});
+
+            await gui.initialize();
+
+            await assert.isRejected(
+                gui.refreshTestsIfChanged([changedFile], [], sandbox.stub(), sandbox.stub(), 1),
+                /history failed/
+            );
+            assert.calledOnceWith(reportBuilder.restoreTestsState, snapshot);
+            assert.equal(gui._testAdapters['some-id'], oldTest);
+            assert.deepEqual([...gui._testAdapterIdsByFile.get(changedFile)], ['some-id']);
         });
     });
 

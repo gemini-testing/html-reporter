@@ -5,6 +5,7 @@ import {TestStatus, UPDATED} from '../constants';
 import {isUpdatedStatus} from '../common-utils';
 import {ImageFile, ImageInfoWithState} from '../types';
 import type {ReporterTestResult} from '../adapters/test-result';
+import type {TreePatchScope} from './tree-patch';
 
 interface SuiteBranch {
     id: string;
@@ -33,6 +34,13 @@ export interface TestRefUpdateData {
 
 export type TestEqualDiffsData = TreeImage & { browserName: string };
 
+export interface GuiTestsTreeBuilderState {
+    tree: Tree;
+    browserIdsByFile: Map<string, Set<string>>;
+    scope?: TreePatchScope;
+    files?: string[];
+}
+
 interface TestUndoRefUpdateData {
     imageId: string;
     status: TestStatus;
@@ -44,6 +52,95 @@ interface TestUndoRefUpdateData {
 
 export class GuiTestsTreeBuilder extends BaseTestsTreeBuilder {
     private _browserIdsByFile = new Map<string, Set<string>>();
+
+    snapshotState(scope?: TreePatchScope, files?: Iterable<string>): GuiTestsTreeBuilderState {
+        const getEntries = <T>(byId: Record<string, T>, ids?: Set<string>): [string, T][] => ids
+            ? [...ids].flatMap(id => byId[id] ? [[id, byId[id]] as [string, T]] : [])
+            : Object.entries(byId);
+        const suitesById = Object.fromEntries(getEntries(this._tree.suites.byId, scope?.suites).map(([id, suite]) => [id, {
+            ...suite,
+            suitePath: [...suite.suitePath],
+            suiteIds: suite.suiteIds && [...suite.suiteIds],
+            browserIds: suite.browserIds && [...suite.browserIds]
+        }]));
+        const normalizedFiles = files && [...files].map(file => path.resolve(file));
+        const browserIdsByFileEntries = normalizedFiles
+            ? normalizedFiles.flatMap(file => this._browserIdsByFile.has(file) ? [[file, this._browserIdsByFile.get(file) as Set<string>] as const] : [])
+            : [...this._browserIdsByFile];
+
+        return {
+            tree: {
+                suites: {
+                    byId: suitesById,
+                    byHash: Object.fromEntries(Object.values(suitesById).map(suite => [suite.hash, suite])),
+                    allIds: [...this._tree.suites.allIds],
+                    allRootIds: [...this._tree.suites.allRootIds]
+                },
+                browsers: {
+                    byId: Object.fromEntries(getEntries(this._tree.browsers.byId, scope?.browsers).map(([id, browser]) => [id, {
+                        ...browser,
+                        resultIds: [...browser.resultIds]
+                    }])),
+                    allIds: [...this._tree.browsers.allIds]
+                },
+                results: {
+                    byId: Object.fromEntries(getEntries(this._tree.results.byId, scope?.results)),
+                    allIds: [...this._tree.results.allIds]
+                },
+                images: {
+                    byId: Object.fromEntries(getEntries(this._tree.images.byId, scope?.images)),
+                    allIds: [...this._tree.images.allIds]
+                }
+            },
+            browserIdsByFile: new Map(browserIdsByFileEntries.map(([file, ids]) => [file, new Set(ids)])),
+            scope,
+            files: normalizedFiles
+        };
+    }
+
+    restoreState({tree, browserIdsByFile, scope, files}: GuiTestsTreeBuilderState): void {
+        if (!scope) {
+            this._tree = tree;
+            this._browserIdsByFile = browserIdsByFile;
+
+            return;
+        }
+
+        const restoreById = <T>(current: Record<string, T>, previous: Record<string, T>, ids: Set<string>): void => {
+            for (const id of ids) {
+                if (previous[id]) {
+                    current[id] = previous[id];
+                } else {
+                    delete current[id];
+                }
+            }
+        };
+
+        for (const suiteId of scope.suites) {
+            const currentSuite = this._tree.suites.byId[suiteId];
+
+            if (currentSuite) {
+                delete this._tree.suites.byHash[currentSuite.hash];
+            }
+        }
+        restoreById(this._tree.suites.byId, tree.suites.byId, scope.suites);
+        Object.assign(this._tree.suites.byHash, tree.suites.byHash);
+        restoreById(this._tree.browsers.byId, tree.browsers.byId, scope.browsers);
+        restoreById(this._tree.results.byId, tree.results.byId, scope.results);
+        restoreById(this._tree.images.byId, tree.images.byId, scope.images);
+        this._tree.suites.allIds = tree.suites.allIds;
+        this._tree.suites.allRootIds = tree.suites.allRootIds;
+        this._tree.browsers.allIds = tree.browsers.allIds;
+        this._tree.results.allIds = tree.results.allIds;
+        this._tree.images.allIds = tree.images.allIds;
+
+        for (const file of files ?? []) {
+            this._browserIdsByFile.delete(file);
+        }
+        for (const [file, ids] of browserIdsByFile) {
+            this._browserIdsByFile.set(file, ids);
+        }
+    }
 
     addTestResult(formattedResult: ReporterTestResult): void {
         super.addTestResult(formattedResult);
@@ -62,11 +159,128 @@ export class GuiTestsTreeBuilder extends BaseTestsTreeBuilder {
 
     removeTestsByFiles(files: string[]): void {
         const normalizedFiles = new Set(files.map(file => path.resolve(file)));
-        const browserIds = _.uniq([...normalizedFiles].flatMap(file => [...this._browserIdsByFile.get(file) ?? []]));
+        const browserIds = new Set([...normalizedFiles].flatMap(file => [...this._browserIdsByFile.get(file) ?? []]));
+        const resultIds = new Set<string>();
+        const imageIds = new Set<string>();
+        const affectedSuiteIds = new Set<string>();
 
-        browserIds.forEach(browserId => this._removeBrowser(browserId));
+        for (const browserId of browserIds) {
+            const browser = this._tree.browsers.byId[browserId];
+
+            if (!browser) {
+                continue;
+            }
+
+            affectedSuiteIds.add(browser.parentId);
+            for (const resultId of browser.resultIds.filter(Boolean)) {
+                resultIds.add(resultId);
+                this._tree.results.byId[resultId]?.imageIds.forEach(imageId => imageIds.add(imageId));
+            }
+            delete this._tree.browsers.byId[browserId];
+        }
+
+        for (const resultId of resultIds) {
+            delete this._tree.results.byId[resultId];
+        }
+        for (const imageId of imageIds) {
+            delete this._tree.images.byId[imageId];
+        }
+
+        this._tree.browsers.allIds = this._tree.browsers.allIds.filter(id => !browserIds.has(id));
+        this._tree.results.allIds = this._tree.results.allIds.filter(id => !resultIds.has(id));
+        this._tree.images.allIds = this._tree.images.allIds.filter(id => !imageIds.has(id));
+
+        for (const suiteId of affectedSuiteIds) {
+            const suite = this._tree.suites.byId[suiteId];
+
+            if (suite?.browserIds) {
+                suite.browserIds = suite.browserIds.filter(id => !browserIds.has(id));
+            }
+        }
+
+        this._pruneEmptySuitesOrUpdateStatuses(affectedSuiteIds);
+
         normalizedFiles.forEach(file => this._browserIdsByFile.delete(file));
-        this.sortTree();
+    }
+
+    sortBranches(suiteIds: Iterable<string>): void {
+        let shouldSortRootIds = false;
+
+        for (const suiteId of suiteIds) {
+            const suite = this._tree.suites.byId[suiteId];
+
+            if (!suite) {
+                continue;
+            }
+
+            shouldSortRootIds ||= suite.root;
+            suite.suiteIds?.sort();
+            suite.browserIds?.sort();
+        }
+
+        if (shouldSortRootIds) {
+            this._tree.suites.allRootIds.sort();
+        }
+    }
+
+    private _pruneEmptySuitesOrUpdateStatuses(affectedSuiteIds: Set<string>): void {
+        const suiteIdsToRemove = new Set<string>();
+        const candidateSuiteIds = new Set(affectedSuiteIds);
+
+        for (const affectedSuiteId of affectedSuiteIds) {
+            let parentId = this._tree.suites.byId[affectedSuiteId]?.parentId;
+
+            while (parentId) {
+                candidateSuiteIds.add(parentId);
+                parentId = this._tree.suites.byId[parentId]?.parentId;
+            }
+        }
+
+        const deepestFirst = [...candidateSuiteIds].sort((left, right) =>
+            (this._tree.suites.byId[right]?.suitePath.length ?? 0) - (this._tree.suites.byId[left]?.suitePath.length ?? 0));
+
+        for (const suiteId of deepestFirst) {
+            const suite = this._tree.suites.byId[suiteId];
+            const hasRemainingChildSuite = suite?.suiteIds?.some(childId => !suiteIdsToRemove.has(childId));
+
+            if (suite && !suite.browserIds?.length && !hasRemainingChildSuite) {
+                suiteIdsToRemove.add(suiteId);
+            }
+        }
+
+        const parentsToFilter = new Set<string>();
+        for (const suiteId of suiteIdsToRemove) {
+            const suite = this._tree.suites.byId[suiteId];
+
+            if (!suite) {
+                continue;
+            }
+            if (suite.parentId) {
+                parentsToFilter.add(suite.parentId);
+            }
+            delete this._tree.suites.byHash[suite.hash];
+            delete this._tree.suites.byId[suiteId];
+        }
+        for (const parentId of parentsToFilter) {
+            const parent = this._tree.suites.byId[parentId];
+
+            if (parent?.suiteIds) {
+                parent.suiteIds = parent.suiteIds.filter(id => !suiteIdsToRemove.has(id));
+            }
+        }
+
+        if (suiteIdsToRemove.size) {
+            this._tree.suites.allIds = this._tree.suites.allIds.filter(id => !suiteIdsToRemove.has(id));
+            this._tree.suites.allRootIds = this._tree.suites.allRootIds.filter(id => !suiteIdsToRemove.has(id));
+        }
+
+        for (const suiteId of deepestFirst) {
+            const suite = this._tree.suites.byId[suiteId];
+
+            if (suite) {
+                this._setStatusForBranch(suite.suitePath);
+            }
+        }
     }
 
     getImagesInfo(testId: string): TreeImage[] {
@@ -215,41 +429,6 @@ export class GuiTestsTreeBuilder extends BaseTestsTreeBuilder {
         imageIds.forEach(imageId => {
             delete this._tree.images.byId[imageId];
         });
-    }
-
-    private _removeBrowser(browserId: string): void {
-        const browser = this._tree.browsers.byId[browserId];
-        if (!browser) {
-            return;
-        }
-
-        browser.resultIds.filter(Boolean).forEach(resultId => this.removeTestResult(resultId));
-        const suite = this._tree.suites.byId[browser.parentId];
-        suite.browserIds = suite.browserIds?.filter(id => id !== browserId);
-        this._tree.browsers.allIds = this._tree.browsers.allIds.filter(id => id !== browserId);
-        delete this._tree.browsers.byId[browserId];
-
-        this._removeEmptySuiteOrUpdateStatus(suite);
-    }
-
-    private _removeEmptySuiteOrUpdateStatus(suite: TreeSuite): void {
-        if (suite.browserIds?.length || suite.suiteIds?.length) {
-            this._setStatusForBranch(suite.suitePath);
-            return;
-        }
-
-        const parent = suite.parentId ? this._tree.suites.byId[suite.parentId] : null;
-        if (parent) {
-            parent.suiteIds = parent.suiteIds?.filter(id => id !== suite.id);
-        }
-        this._tree.suites.allIds = this._tree.suites.allIds.filter(id => id !== suite.id);
-        this._tree.suites.allRootIds = this._tree.suites.allRootIds.filter(id => id !== suite.id);
-        delete this._tree.suites.byHash[suite.hash];
-        delete this._tree.suites.byId[suite.id];
-
-        if (parent) {
-            this._removeEmptySuiteOrUpdateStatus(parent);
-        }
     }
 
     private _reuseBrowser(testsTree: Tree, browserId: string, replaceCurrentResults: boolean): void {

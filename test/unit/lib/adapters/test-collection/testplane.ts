@@ -34,4 +34,13 @@ describe('lib/adapters/test-collection/testplane', () => {
             assert.deepEqual(testCollectionAdapter.tests, [testAdapter1, testAdapter2]);
         });
     });
+
+    describe('hasFocusedTests', () => {
+        it('should return whether mocha focused the collection with "only"', () => {
+            const testCollection = stubTestCollection() as TestCollection;
+
+            assert.isTrue(TestplaneTestCollectionAdapter.create(testCollection, undefined, true).hasFocusedTests);
+            assert.isFalse(TestplaneTestCollectionAdapter.create(testCollection).hasFocusedTests);
+        });
+    });
 });

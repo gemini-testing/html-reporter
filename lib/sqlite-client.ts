@@ -2,11 +2,10 @@ import path from 'path';
 import type {Database, Statement} from '@gemini-testing/sql.js';
 import makeDebug from 'debug';
 import fs from 'fs-extra';
-import _ from 'lodash';
 import NestedError from 'nested-error-stacks';
 
 import {getShortMD5} from './common-utils';
-import {TestStatus, DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS, LOCAL_DATABASE_NAME, DATABASE_URLS_JSON_NAME, DB_CURRENT_VERSION} from './constants';
+import {TestStatus, DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS, LOCAL_DATABASE_NAME, DATABASE_URLS_JSON_NAME, DB_CURRENT_VERSION, DB_COLUMN_INDEXES} from './constants';
 import {createTablesQuery, selectAllSuitesQuery, compareDatabaseRowsByTimestamp} from './db-utils/common';
 import {setDatabaseVersion} from './db-utils/migrations';
 import type {Attachment, ImageInfoFull, TestError, TestStepCompressed, RawSuitesRow} from './types';
@@ -179,23 +178,26 @@ export class SqliteClient {
     }
 
     getSuitesByTests(tests: TestHistorySpec[]): RawSuitesRow[] {
+        if (!tests.length) {
+            return [];
+        }
+
         const rows: RawSuitesRow[] = [];
-        const uniqueTests = _.uniqBy(tests, ({suitePath, browserId}) => `${JSON.stringify(suitePath)}\0${browserId}`);
+        const requestedTests = new Set(tests.map(test => `${JSON.stringify(test.suitePath)}\0${test.browserId}`));
+        const statement = this._db.prepare(selectAllSuitesQuery());
 
-        for (const {suitePath, browserId} of uniqueTests) {
-            const statement = this._db.prepare(
-                `SELECT * FROM ${DB_SUITES_TABLE_NAME} WHERE suitePath = ? AND name = ?`
-            );
-            statement.bind([JSON.stringify(suitePath), browserId]);
+        while (statement.step()) {
+            const row = statement.get();
 
-            while (statement.step()) {
-                const row = statement.get();
-                if (Array.isArray(row)) {
+            if (Array.isArray(row)) {
+                const key = `${row[DB_COLUMN_INDEXES.suitePath]}\0${row[DB_COLUMN_INDEXES.name]}`;
+
+                if (requestedTests.has(key)) {
                     rows.push(row as RawSuitesRow);
                 }
             }
-            statement.free();
         }
+        statement.free();
 
         return rows.sort(compareDatabaseRowsByTimestamp);
     }

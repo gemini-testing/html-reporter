@@ -281,6 +281,105 @@ describe('GuiResultsTreeBuilder', () => {
             assert.deepEqual(builder.tree.browsers.allIds, []);
             assert.deepEqual(builder.tree.results.allIds, []);
         });
+
+        it('should prune multiple sibling branches in one batch', () => {
+            builder.addTestResult(mkFormattedResult_({
+                status: IDLE,
+                file: '/project/first.ts',
+                testPath: ['root', 'group', 'first'],
+                browserId: 'chrome'
+            }));
+            builder.addTestResult(mkFormattedResult_({
+                status: IDLE,
+                file: '/project/second.ts',
+                testPath: ['root', 'group', 'second'],
+                browserId: 'chrome'
+            }));
+            builder.addTestResult(mkFormattedResult_({
+                status: SUCCESS,
+                file: '/project/remaining.ts',
+                testPath: ['root', 'remaining'],
+                browserId: 'chrome'
+            }));
+
+            builder.removeTestsByFiles(['/project/first.ts', '/project/second.ts']);
+
+            assert.notExists(builder.tree.suites.byId['root group first']);
+            assert.notExists(builder.tree.suites.byId['root group second']);
+            assert.notExists(builder.tree.suites.byId['root group']);
+            assert.exists(builder.tree.suites.byId['root remaining']);
+            assert.deepEqual(builder.tree.suites.byId.root.suiteIds, ['root remaining']);
+            assert.equal(builder.tree.suites.byId.root.status, SUCCESS);
+        });
+    });
+
+    describe('snapshot and restore', () => {
+        it('should restore both tree and file index', () => {
+            const file = '/project/test.ts';
+            builder.addTestResult(mkFormattedResult_({
+                status: IDLE,
+                file,
+                testPath: ['test'],
+                browserId: 'chrome'
+            }));
+            const snapshot = builder.snapshotState();
+
+            builder.removeTestsByFiles([file]);
+            builder.restoreState(snapshot);
+            builder.removeTestsByFiles([file]);
+
+            assert.deepEqual(builder.tree.suites.allIds, []);
+            assert.deepEqual(builder.tree.browsers.allIds, []);
+            assert.deepEqual(builder.tree.results.allIds, []);
+        });
+
+        it('should restore only scoped branches and remove newly added nodes', () => {
+            const changedFile = '/project/changed.ts';
+            const unchangedFile = '/project/unchanged.ts';
+            builder.addTestResult(mkFormattedResult_({
+                status: IDLE,
+                file: changedFile,
+                testPath: ['root', 'changed'],
+                browserId: 'chrome'
+            }));
+            builder.addTestResult(mkFormattedResult_({
+                status: SUCCESS,
+                file: unchangedFile,
+                testPath: ['root', 'unchanged'],
+                browserId: 'chrome'
+            }));
+            const scope = {
+                suites: new Set(['root', 'root changed']),
+                browsers: new Set(['root changed chrome']),
+                results: new Set(['root changed chrome 0']),
+                images: new Set()
+            };
+            const snapshot = builder.snapshotState(scope, [changedFile]);
+
+            builder.removeTestsByFiles([changedFile]);
+            builder.addTestResult(mkFormattedResult_({
+                status: IDLE,
+                file: changedFile,
+                testPath: ['root', 'replacement'],
+                browserId: 'firefox'
+            }));
+            scope.suites.add('root replacement');
+            scope.browsers.add('root replacement firefox');
+            scope.results.add('root replacement firefox 0');
+            builder.restoreState(snapshot);
+
+            assert.exists(builder.tree.suites.byId['root changed']);
+            assert.exists(builder.tree.browsers.byId['root changed chrome']);
+            assert.exists(builder.tree.results.byId['root changed chrome 0']);
+            assert.notExists(builder.tree.suites.byId['root replacement']);
+            assert.notExists(builder.tree.browsers.byId['root replacement firefox']);
+            assert.notExists(builder.tree.results.byId['root replacement firefox 0']);
+            assert.exists(builder.tree.suites.byId['root unchanged']);
+
+            builder.removeTestsByFiles([changedFile]);
+            assert.notExists(builder.tree.suites.byId['root changed']);
+            assert.exists(builder.tree.suites.byId['root unchanged']);
+        });
     });
 
     describe('"getResultDataToUnacceptImage" method', () => {

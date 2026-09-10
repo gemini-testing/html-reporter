@@ -2,10 +2,41 @@ import {setMatchCaseFilter, setSearchLoading, updateNameFilter} from '@/static/m
 import {Tree} from '@/tests-tree-builder/base';
 import type {TreePatch} from '@/tests-tree-builder/tree-patch';
 import {AttachmentType, TagsAttachment} from '@/types';
+import type {SearchWorkerRequest, SearchWorkerResponse} from './types';
 
-let worker: Worker;
+let worker: Worker | undefined;
 let searchResult: Set<string> = new Set([]);
 let searchResultPosition: Map<string, number> = new Map<string, number>([]);
+let nextRequestId = 0;
+const pendingSearches = new Map<number, (result: string[]) => void>();
+const pendingUpdates = new Map<number, () => void>();
+
+const postMessage = (message: SearchWorkerRequest): void => worker?.postMessage(message);
+
+const handleWorkerMessage = (event: MessageEvent<SearchWorkerResponse>): void => {
+    const {requestId} = event.data;
+
+    if (event.data.type === 'search-result') {
+        pendingSearches.get(requestId)?.(event.data.data);
+        pendingSearches.delete(requestId);
+    } else {
+        pendingUpdates.get(requestId)?.();
+        pendingUpdates.delete(requestId);
+    }
+};
+
+const handleWorkerError = (): void => {
+    worker = undefined;
+    pendingSearches.forEach(resolve => resolve([]));
+    pendingSearches.clear();
+    pendingUpdates.forEach(resolve => resolve());
+    pendingUpdates.clear();
+};
+
+const waitForUpdate = (message: SearchWorkerRequest & {type: 'init' | 'patch'}): Promise<void> => new Promise(resolve => {
+    pendingUpdates.set(message.requestId, resolve);
+    postMessage(message);
+});
 
 const getResultTags = (result: Tree['results']['byId'][string]): string[] => {
     const tagsAttachment = result.attachments?.find(attachment => attachment.type === AttachmentType.Tags) as TagsAttachment;
@@ -13,7 +44,7 @@ const getResultTags = (result: Tree['results']['byId'][string]): string[] => {
     return tagsAttachment ? tagsAttachment.list.map(tag => tag.title) : [];
 };
 
-export const initSearch = (tree: Tree, performanceId?: number): void => {
+export const initSearch = (tree: Tree, performanceId?: number): Promise<void> => {
     const list = tree.results.allIds;
 
     const idTagMap: Record<string, string[]> = {};
@@ -24,24 +55,33 @@ export const initSearch = (tree: Tree, performanceId?: number): void => {
     });
 
     if (typeof Worker !== 'undefined') {
-        worker?.terminate();
+        const previousWorker = worker;
+        if (previousWorker) {
+            handleWorkerError();
+            previousWorker.terminate();
+        }
         worker = new Worker(
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             /* webpackChunkName: "search-worker" */ new URL('./worker.ts', import.meta.url)
         );
-        worker.postMessage({type: 'init', data: idTagMap, performanceId});
+        worker.onmessage = handleWorkerMessage;
+        worker.onerror = handleWorkerError;
+        const requestId = ++nextRequestId;
+
+        return waitForUpdate({type: 'init', requestId, data: idTagMap, performanceId});
     }
+
+    return Promise.resolve();
 };
 
-export const patchSearch = (tree: Tree, patch: TreePatch, performanceId?: number): void => {
+export const patchSearch = (tree: Tree, patch: TreePatch, performanceId?: number): Promise<void> => {
     if (typeof Worker === 'undefined') {
-        return;
+        return Promise.resolve();
     }
 
     if (!worker) {
-        initSearch(tree, performanceId);
-        return;
+        return initSearch(tree, performanceId);
     }
 
     const affectedBrowserIds = new Set([
@@ -60,8 +100,11 @@ export const patchSearch = (tree: Tree, patch: TreePatch, performanceId?: number
         }
     });
 
-    worker.postMessage({
+    const requestId = ++nextRequestId;
+
+    return waitForUpdate({
         type: 'patch',
+        requestId,
         data: {
             removeIds: [...patch.browsers.removedIds, ...affectedBrowserIds],
             idTagMap
@@ -79,32 +122,26 @@ export const search = (
     useRegexFilter = false,
     updateMatchCase: boolean,
     dispatch: (action: unknown) => void
-): void => {
+): Promise<void> => {
     dispatch(setSearchLoading(true));
 
-    new Promise((resolve: (list: string[]) => void) => {
+    return new Promise((resolve: (list: string[]) => void) => {
         if (useRegexFilter) {
             resolve([]);
             return;
         }
 
         if (worker) {
-            worker.postMessage({
+            const requestId = ++nextRequestId;
+            pendingSearches.set(requestId, resolve);
+            postMessage({
                 type: 'search',
+                requestId,
                 data: {
                     text,
                     matchCase
                 }
             });
-
-            worker.onmessage = (event: MessageEvent<string[]>): void => {
-                resolve(event.data);
-            };
-
-            worker.onerror = (): void => {
-                console.error(`Error while searching ${text}`);
-                resolve([]);
-            };
         } else {
             resolve([]);
         }
@@ -133,4 +170,23 @@ export const search = (
 
         dispatch(setSearchLoading(false));
     });
+};
+
+interface SearchOptions {
+    text: string;
+    matchCase: boolean;
+    useRegexFilter: boolean;
+}
+
+export const refreshSearch = async (
+    tree: Tree,
+    patch: TreePatch,
+    getOptions: () => SearchOptions,
+    dispatch: (action: unknown) => void,
+    performanceId?: number
+): Promise<void> => {
+    await patchSearch(tree, patch, performanceId);
+    const {text, matchCase, useRegexFilter} = getOptions();
+
+    await search(text, matchCase, useRegexFilter, false, dispatch);
 };
