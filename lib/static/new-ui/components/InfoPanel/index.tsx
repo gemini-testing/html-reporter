@@ -14,7 +14,8 @@ import {version} from '../../../../../package.json';
 export function InfoPanel(): ReactNode {
     const isGui = useSelector(state => state.gui);
     const extraItems = Object.entries(useSelector(state => state.apiValues.extraItems));
-    const testplaneConfig = useSelector(state => state.apiValues.testplaneConfig);
+    const toolConfig = useSelector(state => state.apiValues.toolConfig);
+    const toolConfigPath = useSelector(state => state.apiValues.toolConfigPath);
 
     const sections: ReactNode[] = [];
 
@@ -31,8 +32,8 @@ export function InfoPanel(): ReactNode {
         description={<span>To get the most out of Testplane UI, try to keep it updated to the latest version. Check out fresh <a href={'https://github.com/gemini-testing/html-reporter/releases'}>releases on GitHub</a>.</span>}
     />);
 
-    if (testplaneConfig) {
-        sections.push(<ConfigSection config={testplaneConfig}/>);
+    if (toolConfig) {
+        sections.push(<ConfigSection config={toolConfig} configPath={toolConfigPath}/>);
     }
 
     const timestamp = useSelector(state => state.timestamp);

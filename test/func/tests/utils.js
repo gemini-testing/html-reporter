@@ -96,6 +96,16 @@ const waitForFsChanges = async (dirPath, condition = (output) => output.length >
 const interceptClipboard = async (browser) => {
     await browser.execute(() => {
         window.__copiedText = null;
+
+        Object.defineProperty(navigator, 'clipboard', {
+            configurable: true,
+            value: {
+                writeText: async (text) => {
+                    window.__copiedText = text;
+                }
+            }
+        });
+
         const originalExecCommand = document.execCommand.bind(document);
         document.execCommand = (command, ...args) => {
             if (command === 'copy') {

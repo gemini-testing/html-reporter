@@ -355,7 +355,8 @@ export interface State {
     processing: boolean;
     gui: boolean;
     apiValues: HtmlReporterValues & {
-        testplaneConfig?: Record<string, unknown>;
+        toolConfig?: Record<string, unknown>;
+        toolConfigPath?: string;
     };
     config: StoreReporterConfig;
     staticImageAccepter: {
