@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import {StaticReportBuilder, StaticReportBuilderOptions} from './static';
-import {GuiTestsTreeBuilder, TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../tests-tree-builder/gui';
+import {GuiTestsTreeBuilder, GuiTestsTreeBuilderState, TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../tests-tree-builder/gui';
 import {UPDATED, DB_COLUMNS, TestStatus, DEFAULT_TITLE_DELIMITER, SKIPPED, SUCCESS} from '../constants';
 import {ConfigForStaticFile, getConfigForStaticFile} from '../server-utils';
 import {ReporterTestResult} from '../adapters/test-result';
@@ -11,6 +11,8 @@ import {HtmlReporterValues} from '../plugin-api';
 import {StaticTestsTreeBuilder, SkipItem} from '../tests-tree-builder/static';
 import {copyAndUpdate} from '../adapters/test-result/utils';
 import type {TestHistorySpec} from '../sqlite-client';
+import type {TestAttemptManagerSnapshot} from '../test-attempt-manager';
+import type {TreePatchScope} from '../tests-tree-builder/tree-patch';
 
 interface UndoAcceptImageResult {
     updatedImage: TreeImage | undefined;
@@ -19,6 +21,12 @@ interface UndoAcceptImageResult {
     shouldRemoveReference: boolean;
     shouldRevertReference: boolean;
     newResult: ReporterTestResult;
+}
+
+export interface GuiReportBuilderTestsState {
+    treeState: GuiTestsTreeBuilderState;
+    skips: SkipItem[];
+    attempts?: TestAttemptManagerSnapshot;
 }
 
 export interface GuiReportBuilderResult {
@@ -87,20 +95,54 @@ export class GuiReportBuilder extends StaticReportBuilder {
         return this._testsTree.tree;
     }
 
+    snapshotTestsState(scope?: TreePatchScope, files?: Iterable<string>, tests?: Iterable<{fullName: string; browserId: string}>): GuiReportBuilderTestsState {
+        return {
+            treeState: this._testsTree.snapshotState(scope, files),
+            skips: [...this._skips],
+            attempts: tests && this._testAttemptManager.snapshot(tests)
+        };
+    }
+
+    restoreTestsState({treeState, skips, attempts}: GuiReportBuilderTestsState): void {
+        this._testsTree.restoreState(treeState);
+        this._skips = skips;
+
+        if (attempts) {
+            this._testAttemptManager.restore(attempts);
+
+            return;
+        }
+
+        this.resetAttemps();
+
+        Object.values(treeState.tree.results.byId).forEach(result => {
+            this._testAttemptManager.registerAttempt({
+                fullName: result.suitePath.join(DEFAULT_TITLE_DELIMITER),
+                browserId: result.name
+            }, result.status, result.attempt);
+        });
+    }
+
     removeTestsByFiles(files: string[]): void {
         this._testsTree.removeTestsByFiles(files);
     }
 
-    restoreTestHistory(tests: TestHistorySpec[]): void {
+    sortTestsTreeBranches(suiteIds: Iterable<string>): void {
+        this._testsTree.sortBranches(suiteIds);
+    }
+
+    restoreTestHistory(tests: TestHistorySpec[]): boolean {
         const rows = this._dbClient.getSuitesByTests(tests);
         if (!rows.length) {
-            return;
+            return false;
         }
 
         const testsTreeBuilder = StaticTestsTreeBuilder.create({baseHost: this._reporterConfig.baseHost});
         const {tree} = testsTreeBuilder.build(rows);
 
         this.reuseTestsTree(tree, {replaceCurrentResults: true});
+
+        return true;
     }
 
     buildTreeFromCurrentDb(): Tree {

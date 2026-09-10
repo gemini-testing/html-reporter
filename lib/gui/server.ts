@@ -1,5 +1,4 @@
 import path from 'path';
-import {performance} from 'node:perf_hooks';
 import express from 'express';
 import {onExit} from 'signal-exit';
 import bodyParser from 'body-parser';
@@ -20,9 +19,8 @@ import type {TestplaneToolAdapter} from '../adapters/tool/testplane';
 import type {ToolRunnerTree} from './tool-runner';
 import type {TestplaneConfigAdapter} from '../adapters/config/testplane';
 import type {UpdateTimeTravelSettingsRequest, UpdateTimeTravelSettingsResponse} from '../types';
-import type {TreePatch} from '../tests-tree-builder/tree-patch';
 import chalk from 'chalk';
-import chokidar from 'chokidar';
+import {TestsWatcher} from './tests-watcher';
 
 interface CustomGuiError {
     response: {
@@ -34,14 +32,6 @@ interface CustomGuiError {
 type TimeTravelConfig = Config['timeTravel'];
 
 const originalBrowserConfigs = new Map<string, {timeTravel?: TimeTravelConfig, saveHistoryMode?: Config['saveHistoryMode']}>();
-
-const getWatchRoot = (pattern: string): string => {
-    const normalizedPattern = pattern.replaceAll('\\', '/');
-    const globStart = normalizedPattern.search(/[!*?()[\]{}]/);
-    const staticPart = globStart === -1 ? normalizedPattern : normalizedPattern.slice(0, globStart);
-
-    return staticPart.endsWith('/') ? staticPart.slice(0, -1) : path.dirname(staticPart);
-};
 
 export type GetInitResponse = (ToolRunnerTree & {customGuiError?: CustomGuiError} & { browserFeatures: Record<string, BrowserFeature[]>, features: Feature[]}) | null;
 
@@ -280,12 +270,10 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
         }
     });
 
-    let testsWatcher: chokidar.FSWatcher | undefined;
-    let testDirectoriesWatcher: chokidar.FSWatcher | undefined;
+    let testsWatcher: TestsWatcher | undefined;
 
     onExit(() => {
         testsWatcher?.close();
-        testDirectoriesWatcher?.close();
         app.finalize();
         logger.log('server shutting down');
     });
@@ -312,115 +300,12 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
     await app.initialize();
 
     if (args.cli.options.watch && toolAdapter.toolName === ToolName.Testplane) {
-        const config = toolAdapter.config as TestplaneConfigAdapter;
-        const watchPaths = [...new Set([...config.getTestFilePatterns(), ...args.paths])];
-        const watchRoots = [...new Set(watchPaths.map(getWatchRoot).filter(Boolean))];
-        let refreshInProgress = false;
-        const queuedFiles = new Set<string>();
-        const queuedRemovedDirectories = new Set<string>();
-        const debounceFiles = new Set<string>();
-        const debounceRemovedDirectories = new Set<string>();
-        let refreshTimer: NodeJS.Timeout | undefined;
-        let refreshSequence = 0;
-        let firstDebouncedEventAt: number | undefined;
+        const plan = toolAdapter.getTestsWatchPlan?.(args.paths, args.cli.tool);
 
-        const refresh = async (changedFiles: string[], removedDirectories: string[]): Promise<void> => {
-            changedFiles.forEach(file => queuedFiles.add(path.resolve(process.cwd(), file)));
-            removedDirectories.forEach(directory => queuedRemovedDirectories.add(path.resolve(process.cwd(), directory)));
-
-            if (refreshInProgress) {
-                return;
-            }
-
-            refreshInProgress = true;
-            try {
-                while (queuedFiles.size) {
-                    const refreshId = ++refreshSequence;
-                    const serverStartedAt = Date.now();
-                    const refreshStartedAt = performance.now();
-                    const files = [...queuedFiles];
-                    const removedDirs = [...queuedRemovedDirectories];
-                    queuedFiles.clear();
-                    queuedRemovedDirectories.clear();
-                    let changed = false;
-                    let treePatch: TreePatch | undefined;
-                    logger.log(`[watch-perf][server][#${refreshId}] refresh started ${JSON.stringify({files: files.length, removedDirectories: removedDirs.length})}`);
-                    await app.refreshTestsIfChanged(files, removedDirs, (hasChanges) => {
-                        changed = hasChanges;
-                        if (hasChanges) {
-                            app.sendClientEvent(ClientEvents.TESTS_REFRESH_STARTED, {performanceId: refreshId});
-                        }
-                    }, (patch) => {
-                        treePatch = patch;
-                    }, refreshId);
-
-                    if (changed && treePatch) {
-                        treePatch.performance = {
-                            id: refreshId,
-                            serverStartedAt,
-                            serverCompletedAt: Date.now()
-                        };
-                        const sendStartedAt = performance.now();
-                        app.sendClientEvent(ClientEvents.TESTS_REFRESHED, treePatch);
-                        logger.log(`[watch-perf][server][#${refreshId}] serialize/write SSE: ${(performance.now() - sendStartedAt).toFixed(1)}ms`);
-                    }
-                    logger.log(`[watch-perf][server][#${refreshId}] refresh loop total: ${(performance.now() - refreshStartedAt).toFixed(1)}ms ${JSON.stringify({changed})}`);
-                }
-            } catch (error) {
-                app.sendClientEvent(ClientEvents.TESTS_REFRESH_FAILED, undefined);
-                logger.error(`Error while refreshing tests after file change: ${(error as Error).message}`);
-            } finally {
-                refreshInProgress = false;
-            }
-        };
-
-        testsWatcher = chokidar.watch(watchPaths, {
-            cwd: process.cwd(),
-            ignoreInitial: true,
-            ignored: [
-                /(^|[/\\])\../,
-                /(^|[/\\])node_modules([/\\]|$)/,
-                path.resolve(process.cwd(), reporterConfig.path)
-            ],
-            awaitWriteFinish: {stabilityThreshold: 200, pollInterval: 100}
-        });
-        const queueFileSystemEvent = (event: string, changedFile: string): void => {
-            logger.log(`[watch-perf][server] chokidar event ${JSON.stringify({event, path: changedFile})}`);
-            if (debounceFiles.size === 0) {
-                firstDebouncedEventAt = performance.now();
-            }
-            debounceFiles.add(changedFile);
-            if (event === 'unlinkDir') {
-                debounceRemovedDirectories.add(changedFile);
-            }
-            if (refreshTimer) {
-                clearTimeout(refreshTimer);
-            }
-            refreshTimer = setTimeout(() => {
-                refreshTimer = undefined;
-                logger.log(`[watch-perf][server] chokidar debounce: ${firstDebouncedEventAt === undefined ? 0 : (performance.now() - firstDebouncedEventAt).toFixed(1)}ms ${JSON.stringify({events: debounceFiles.size})}`);
-                firstDebouncedEventAt = undefined;
-                const changedFiles = [...debounceFiles];
-                const removedDirectories = [...debounceRemovedDirectories];
-                debounceFiles.clear();
-                debounceRemovedDirectories.clear();
-                void refresh(changedFiles, removedDirectories);
-            }, 100);
-        };
-
-        testsWatcher.on('all', queueFileSystemEvent);
-
-        // A file glob does not necessarily subscribe Chokidar to directory
-        // lifecycle events. Watch the non-glob roots separately so deleting a
-        // directory is always observable.
-        testDirectoriesWatcher = chokidar.watch(watchRoots, {
-            cwd: process.cwd(),
-            ignoreInitial: true,
-            ignored: [/(^|[/\\])\../, /(^|[/\\])node_modules([/\\]|$)/]
-        });
-        testDirectoriesWatcher.on('unlinkDir', changedDirectory => {
-            queueFileSystemEvent('unlinkDir', changedDirectory);
-        });
+        if (plan) {
+            testsWatcher = TestsWatcher.create({app, plan, reportPath: reporterConfig.path});
+            testsWatcher.start();
+        }
     }
 
     const {port: requestedPort, hostname} = args.cli.options;

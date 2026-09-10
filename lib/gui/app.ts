@@ -1,11 +1,10 @@
 import type {Response} from 'express';
 
-import {RunParams, ToolRunner, ToolRunnerTree, UndoAcceptImagesResult} from './tool-runner';
+import {RunParams, TestsTreeUpdate, ToolRunner, ToolRunnerTree, UndoAcceptImagesResult} from './tool-runner';
 import {TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../tests-tree-builder/gui';
 
 import type {ServerArgs} from './index';
 import type {TestSpec} from '../adapters/tool/types';
-import type {TreePatch} from '../tests-tree-builder/tree-patch';
 
 export class App {
     private _toolRunner: ToolRunner;
@@ -63,7 +62,7 @@ export class App {
         changedFiles: string[],
         removedDirectories: string[],
         onChanged: (changed: boolean) => void,
-        onUpdated: (patch: TreePatch) => void,
+        onUpdated: (update: TestsTreeUpdate) => void,
         performanceId: number
     ): Promise<void> {
         return this._toolRunner.refreshTestsIfChanged(changedFiles, removedDirectories, onChanged, onUpdated, performanceId);

@@ -2,6 +2,7 @@ import Fuse from 'fuse.js';
 import type {Expression} from 'fuse.js';
 
 import {keyboardLayoutConverter} from '@/static/modules/utils';
+import type {SearchWorkerRequest, SearchWorkerResponse} from './types';
 
 type Element = {title: string};
 
@@ -73,30 +74,7 @@ const search = (testNameFilter: string, matchCase = false): string[] => {
     }
 };
 
-type InitMessage = {
-    type: 'init';
-    data: Record<string, string[]>;
-    performanceId?: number;
-}
-
-type SearchMessage = {
-    type: 'search';
-    data: {
-        text: string;
-        matchCase: boolean;
-    };
-}
-
-type PatchMessage = {
-    type: 'patch';
-    data: {
-        removeIds: string[];
-        idTagMap: Record<string, string[]>;
-    };
-    performanceId?: number;
-}
-
-self.onmessage = (event: MessageEvent<InitMessage | PatchMessage | SearchMessage>): void => {
+self.onmessage = (event: MessageEvent<SearchWorkerRequest>): void => {
     switch (event.data.type) {
         case 'init': {
             const startedAt = performance.now();
@@ -106,7 +84,7 @@ self.onmessage = (event: MessageEvent<InitMessage | PatchMessage | SearchMessage
                     items: Object.keys(event.data.data).length
                 });
             }
-            self.postMessage(true);
+            self.postMessage({type: 'ready', requestId: event.data.requestId} satisfies SearchWorkerResponse);
             break;
         }
         case 'patch': {
@@ -130,12 +108,16 @@ self.onmessage = (event: MessageEvent<InitMessage | PatchMessage | SearchMessage
                     upserted: preparedItems.length
                 });
             }
-            self.postMessage(true);
+            self.postMessage({type: 'patched', requestId: event.data.requestId} satisfies SearchWorkerResponse);
             break;
         }
         case 'search': {
             const result: string[] = search(event.data.data.text, event.data.data.matchCase);
-            self.postMessage(result);
+            self.postMessage({
+                type: 'search-result',
+                requestId: event.data.requestId,
+                data: result
+            } satisfies SearchWorkerResponse);
             break;
         }
     }

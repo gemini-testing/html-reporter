@@ -21,6 +21,11 @@ export interface UpdateReferenceOpts {
     state: string;
 }
 
+export interface TestsWatchPlan {
+    paths: string[];
+    roots: string[];
+}
+
 export interface ToolAdapter {
     readonly toolName: ToolName;
     readonly config: ConfigAdapter;
@@ -28,8 +33,10 @@ export interface ToolAdapter {
     readonly htmlReporter: HtmlReporter;
     readonly guiApi?: GuiApi;
     readonly browserFeatures: Record<string, BrowserFeature[]>;
+    readonly hasFocusedTestsInLastRead?: boolean;
 
     initGuiApi(): void;
+    getTestsWatchPlan?(paths: string[], cliTool: CommanderStatic): TestsWatchPlan;
     readTests(paths: string[], cliTool: CommanderStatic): Promise<TestCollectionAdapter>;
     run(testCollection: TestCollectionAdapter, tests: TestSpec[], cliTool: CommanderStatic): Promise<boolean>;
     runWithoutRetries(testCollection: TestCollectionAdapter, tests: TestSpec[], cliTool: CommanderStatic): Promise<boolean>;

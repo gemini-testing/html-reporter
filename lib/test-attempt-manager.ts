@@ -7,6 +7,8 @@ interface AttemptData {
     statuses: TestStatus[];
 }
 
+export type TestAttemptManagerSnapshot = Map<string, AttemptData | undefined>;
+
 export class TestAttemptManager {
     private _attempts: Map<string, AttemptData>;
 
@@ -44,6 +46,31 @@ export class TestAttemptManager {
         this._attempts.set(hash, data);
 
         return Math.max(data.statuses.length - 1, 0);
+    }
+
+    snapshot(testSpecs: Iterable<TestSpec>): TestAttemptManagerSnapshot {
+        const snapshot: TestAttemptManagerSnapshot = new Map();
+
+        for (const testSpec of testSpecs) {
+            const hash = this._getHash(testSpec);
+            const data = this._attempts.get(hash);
+
+            if (!snapshot.has(hash)) {
+                snapshot.set(hash, data ? {statuses: [...data.statuses]} : undefined);
+            }
+        }
+
+        return snapshot;
+    }
+
+    restore(snapshot: TestAttemptManagerSnapshot): void {
+        for (const [hash, data] of snapshot) {
+            if (data) {
+                this._attempts.set(hash, {statuses: [...data.statuses]});
+            } else {
+                this._attempts.delete(hash);
+            }
+        }
     }
 
     private _getHash(testResult: TestSpec): string {
