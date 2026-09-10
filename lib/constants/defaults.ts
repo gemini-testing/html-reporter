@@ -8,6 +8,7 @@ export const CIRCLE_RADIUS = 150;
 export const configDefaults: StoreReporterConfig = {
     baseHost: '',
     commandsWithShortHistory: [],
+    secretConfigFilter: null,
     customGui: {},
     customScripts: [],
     defaultView: ViewMode.ALL,

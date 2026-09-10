@@ -79,7 +79,8 @@ export class TestplaneToolAdapter implements ToolAdapter {
         this._config = TestplaneConfigAdapter.create(this._tool.config);
         this._browserConfigs = _.map(this._config.browserIds, (id) => this._config.getBrowserConfig(id));
         this._htmlReporter = HtmlReporter.create(this._reporterConfig, {toolName: ToolName.Testplane});
-        this._htmlReporter.testplaneConfig = this._config.getUserConfig();
+        this._htmlReporter.toolConfig = this._config.getUserConfig(this._reporterConfig?.secretConfigFilter);
+        this._htmlReporter.toolConfigPath = this._config.configPath;
 
         this._retryCache = {};
 

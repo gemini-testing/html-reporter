@@ -2,16 +2,60 @@ import path from 'node:path';
 import type {Config} from 'testplane';
 import type {ConfigAdapter} from './';
 import type {TestplaneTestAdapter} from '../test/testplane';
+import type {SecretConfigFilter} from '../../types';
 
-export const maskTokenValues = (value: unknown): unknown => {
+const MASKED_VALUE = 'XXXX';
+const SENSITIVE_CONFIG_FIELDS = [
+    'token',
+    'secret',
+    'password',
+    'apiKey',
+    'accessKey',
+    'privateKey',
+    'clientSecret'
+].map(field => field.toLowerCase());
+
+export const defaultSecretConfigFilter: SecretConfigFilter = (configPath) => {
+    const normalizedSegments = configPath
+        .split('/')
+        .slice(1)
+        .map(segment => segment
+            .replace(/~1/g, '/')
+            .replace(/~0/g, '~')
+            .replace(/[^a-z0-9]/gi, '')
+            .toLowerCase()
+        );
+
+    return normalizedSegments.some(segment => SENSITIVE_CONFIG_FIELDS.some(field => segment.includes(field)));
+};
+
+const appendPath = (parentPath: string, segment: string): string => {
+    const escapedSegment = segment.replace(/~/g, '~0').replace(/\//g, '~1');
+
+    return `${parentPath}/${escapedSegment}`;
+};
+
+export const maskTokenValues = (
+    value: unknown,
+    secretConfigFilter: SecretConfigFilter = defaultSecretConfigFilter,
+    configPath = ''
+): unknown => {
+    if (typeof value === 'string') {
+        return secretConfigFilter(configPath) ? MASKED_VALUE : value;
+    }
+
     if (Array.isArray(value)) {
-        return value.map(maskTokenValues);
+        return value.map((nestedValue, index) => maskTokenValues(
+            nestedValue,
+            secretConfigFilter,
+            appendPath(configPath, String(index))
+        ));
     }
 
     if (value && typeof value === 'object') {
         return Object.fromEntries(Object.entries(value).map(([key, nestedValue]) => [
             key,
-            key.toLowerCase().includes('token') ? 'XXXX' : maskTokenValues(nestedValue)
+            maskTokenValues(nestedValue, secretConfigFilter, appendPath(configPath, key))
         ]));
     }
 
@@ -41,11 +85,15 @@ export class TestplaneConfigAdapter implements ConfigAdapter {
         return this._config.getBrowserIds();
     }
 
+    get configPath(): string | undefined {
+        return this._config.configPath;
+    }
+
     getBrowserConfig(browserId: string): ReturnType<Config['forBrowser']> {
         return this._config.forBrowser(browserId);
     }
 
-    getUserConfig(): Record<string, unknown> {
+    getUserConfig(secretConfigFilter: SecretConfigFilter | null = null): Record<string, unknown> {
         if (!this._config.configPath) {
             return {};
         }
@@ -60,10 +108,7 @@ export class TestplaneConfigAdapter implements ConfigAdapter {
             ? config as Record<string, unknown>
             : {};
 
-        return maskTokenValues({
-            configPath: this._config.configPath,
-            ...userConfig
-        }) as Record<string, unknown>;
+        return maskTokenValues(userConfig, secretConfigFilter ?? defaultSecretConfigFilter) as Record<string, unknown>;
     }
 
     getScreenshotPath(test: TestplaneTestAdapter, stateName: string): string {

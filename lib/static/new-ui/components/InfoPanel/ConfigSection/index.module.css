@@ -32,6 +32,31 @@
     padding: 20px;
 }
 
+:global(.config-modal .g-dialog-header__caption) {
+    font-family: Jost, sans-serif;
+    font-weight: 450;
+    font-size: 18px;
+    line-height: var(--g-text-header-1-line-height);
+}
+
+.config-path {
+    margin-bottom: 10px;
+    overflow-wrap: anywhere;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+
+    span {
+        color: var(--g-color-text-secondary);
+        font-weight: 450;
+    }
+
+    code {
+        color: var(--g-color-text-primary);
+    }
+}
+
 .light {
     --config-background: var(--g-color-base-generic);
     --config-text-color: #1f2328;

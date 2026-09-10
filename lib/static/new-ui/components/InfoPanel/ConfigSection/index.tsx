@@ -11,6 +11,7 @@ import styles from './index.module.css';
 
 export interface ConfigSectionProps {
     config: Record<string, unknown>;
+    configPath?: string;
 }
 
 const JSON_NEW_LINE_ESCAPE_REGEXP = /((?<!\\)(?:\\\\)*\\n)/g;
@@ -128,7 +129,7 @@ const JsonNode = ({name, value, depth, areAllNestedExpanded, trailingComma}: Jso
     </div>;
 };
 
-export function ConfigSection({config}: ConfigSectionProps): ReactNode {
+export function ConfigSection({config, configPath}: ConfigSectionProps): ReactNode {
     const [theme] = useLocalStorage(LocalStorageKey.Theme, Theme.Light);
     const [breakLines, setBreakLines] = useLocalStorage(TESTPLANE_CONFIG_BREAK_LINES, false);
     const [areAllNestedExpanded, setAllNestedExpanded] = useLocalStorage(TESTPLANE_CONFIG_EXPAND_ALL, false);
@@ -140,7 +141,7 @@ export function ConfigSection({config}: ConfigSectionProps): ReactNode {
             title={'Testplane config'}
             description={'Testplane configuration explicitly specified by the user.'}
         >
-            <Button className={'regular-button'} onClick={(): void => setIsOpen(true)}>
+            <Button className={'regular-button'} onClick={(): void => setIsOpen(true)} qa={'open-config-button'}>
                 <Icon data={FileText}/>Open config
             </Button>
         </PanelSection>
@@ -155,9 +156,18 @@ export function ConfigSection({config}: ConfigSectionProps): ReactNode {
         >
             <Dialog.Header caption={'Testplane config'}/>
             <Dialog.Body>
+                {configPath && <div className={styles.configPath}>
+                    <span>Config path:</span> <code>{configPath}</code>
+                    <ClipboardButton size={'xs'} text={configPath} qa={'copy-config-path'}/>
+                </div>}
                 <div className={classNames(styles.container, styles[theme])}>
                     <div className={styles.buttons}>
-                        <ClipboardButton className={styles.button} text={formattedConfig} hasTooltip={false}/>
+                        <ClipboardButton
+                            className={styles.button}
+                            text={formattedConfig}
+                            hasTooltip={false}
+                            qa={'copy-config'}
+                        />
                         <Button
                             className={styles.button}
                             view={'flat'}
@@ -181,7 +191,7 @@ export function ConfigSection({config}: ConfigSectionProps): ReactNode {
                             </Button.Icon>
                         </Button>
                     </div>
-                    <div className={classNames(styles.config, {[styles.breakLines]: breakLines})}>
+                    <div className={classNames(styles.config, {[styles.breakLines]: breakLines})} data-qa={'tool-config'}>
                         <JsonNode value={config} depth={0} areAllNestedExpanded={areAllNestedExpanded}/>
                     </div>
                 </div>

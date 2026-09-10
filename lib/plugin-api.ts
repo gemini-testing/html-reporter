@@ -7,7 +7,8 @@ import {ImageFileSaver, ReporterConfig, ReportsSaver, SnapshotsSaver} from './ty
 
 export interface HtmlReporterValues {
     toolName: ToolName;
-    testplaneConfig?: Record<string, unknown>;
+    toolConfig?: Record<string, unknown>;
+    toolConfigPath?: string;
     extraItems: Record<string, string>;
     metaInfoExtenders: Record<string, string>;
     imagesSaver: ImageFileSaver;
@@ -70,8 +71,12 @@ export class HtmlReporter extends EventsEmitter2 {
         return this._values.extraItems;
     }
 
-    set testplaneConfig(config: Record<string, unknown>) {
-        this._values.testplaneConfig = config;
+    set toolConfig(config: Record<string, unknown>) {
+        this._values.toolConfig = config;
+    }
+
+    set toolConfigPath(configPath: string | undefined) {
+        this._values.toolConfigPath = configPath;
     }
 
     addMetaInfoExtender(key: string, value: string): void {
