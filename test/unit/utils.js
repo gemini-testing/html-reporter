@@ -8,9 +8,11 @@ const {TestStepKey} = require('@/types');
 
 function stubConfig(config = {}) {
     const browsers = config.browsers || {};
+    const serializedConfig = {...config};
     const browserConfigs = {
         getBrowserIds: sinon.stub().named('getBrowserIds').returns(Object.keys(browsers)),
-        forBrowser: sinon.stub().named('forBrowser').callsFake((bro) => _.defaults(browsers[bro], config))
+        forBrowser: sinon.stub().named('forBrowser').callsFake((bro) => _.defaults(browsers[bro], config)),
+        serialize: config.serialize || sinon.stub().named('serialize').returns(serializedConfig)
     };
 
     return Object.assign(config, browserConfigs);

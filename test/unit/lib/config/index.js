@@ -416,6 +416,25 @@ describe('config', () => {
         });
     });
 
+    describe('secretConfigFilter', () => {
+        it('should have default value', () => {
+            assert.equal(parseConfig({}).secretConfigFilter, configDefaults.secretConfigFilter);
+        });
+
+        it('should validate for function type', () => {
+            assert.throws(
+                () => parseConfig({secretConfigFilter: 'foo'}),
+                /"secretConfigFilter" option must be function, but got string/
+            );
+        });
+
+        it('should set from configuration file', () => {
+            const secretConfigFilter = () => true;
+
+            assert.equal(parseConfig({secretConfigFilter}).secretConfigFilter, secretConfigFilter);
+        });
+    });
+
     describe('yandexMetrika', () => {
         afterEach(() => {
             sinon.sandbox.restore();

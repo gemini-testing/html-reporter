@@ -1,0 +1,182 @@
+.dialog {
+    --g-dialog-width: min(1200px, calc(100vw - 40px));
+}
+
+.container {
+    position: relative;
+    padding: 12px;
+    border-radius: 10px;
+    color: var(--config-text-color);
+    background: var(--config-background);
+
+    &:hover {
+        .buttons {
+            opacity: 1;
+        }
+    }
+}
+
+:global(.config-modal) {
+    --g-modal-border-radius: 10px;
+}
+
+:global(.config-modal .g-dialog-body) {
+    padding: 0;
+}
+
+:global(.config-modal .g-dialog-header) {
+    padding: 0 0 10px;
+}
+
+:global(.config-modal .g-dialog) {
+    padding: 20px;
+}
+
+:global(.config-modal .g-dialog-header__caption) {
+    font-family: Jost, sans-serif;
+    font-weight: 450;
+    font-size: 18px;
+    line-height: var(--g-text-header-1-line-height);
+}
+
+.config-path {
+    margin-bottom: 10px;
+    overflow-wrap: anywhere;
+    font-size: 15px;
+    font-weight: 450;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+
+    span {
+        color: var(--g-color-text-secondary);
+    }
+
+    code {
+        color: var(--g-color-text-primary);
+    }
+}
+
+.light {
+    --config-background: var(--g-color-base-generic);
+    --config-text-color: #1f2328;
+    --config-hover-background: rgb(31 35 40 / 10%);
+    --config-key-color: #0550ae;
+    --config-string-color: #116329;
+    --config-number-color: #953800;
+    --config-boolean-color: #8250df;
+    --config-null-color: #cf222e;
+}
+
+.dark {
+    --config-background: var(--color-neutral-950);
+    --config-text-color: #d8dee9;
+    --config-hover-background: rgb(216 222 233 / 12%);
+    --config-key-color: #82aaff;
+    --config-string-color: #c3e88d;
+    --config-number-color: #f78c6c;
+    --config-boolean-color: #c792ea;
+    --config-null-color: #ff5370;
+}
+
+.buttons {
+    position: absolute;
+    z-index: 1;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    gap: 8px;
+    opacity: 0;
+    transition: opacity 0.1s ease-in-out;
+}
+
+.button {
+    background: var(--g-color-base-background);
+}
+
+.config {
+    box-sizing: border-box;
+    width: 100%;
+    height: min(720px, calc(100vh - 160px));
+    margin: 0;
+    overflow: auto;
+    color: var(--config-text-color);
+    background: var(--config-background);
+    font-family: monospace;
+    font-size: 12px;
+    line-height: 1.4;
+    white-space: pre;
+}
+
+.break-lines {
+    white-space: break-spaces;
+    overflow-wrap: break-word;
+}
+
+.json-line {
+    position: relative;
+    min-height: 1.4em;
+    padding-left: calc(var(--json-indent) + 20px);
+}
+
+.expand-button {
+    position: absolute;
+    left: var(--json-indent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    color: inherit;
+    background: transparent;
+    font: inherit;
+    line-height: inherit;
+    cursor: pointer;
+
+    &:hover {
+        background: var(--config-hover-background);
+    }
+}
+
+.expand-icon {
+    transform: rotate(-90deg);
+    transition: transform 0.1s ease-in-out;
+}
+
+.expand-icon-expanded {
+    transform: rotate(0deg);
+}
+
+.collapsed-value {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    color: inherit;
+    background: transparent;
+    font: inherit;
+    line-height: inherit;
+    cursor: pointer;
+}
+
+.json-key {
+    color: var(--config-key-color);
+}
+
+.json-string {
+    color: var(--config-string-color);
+}
+
+.json-number {
+    color: var(--config-number-color);
+}
+
+.json-boolean {
+    color: var(--config-boolean-color);
+}
+
+.json-null {
+    color: var(--config-null-color);
+}

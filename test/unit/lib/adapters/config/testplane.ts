@@ -1,6 +1,6 @@
 import type {Config, Test} from 'testplane';
 import sinon from 'sinon';
-import {TestplaneConfigAdapter} from '../../../../../lib/adapters/config/testplane';
+import {defaultSecretConfigFilter, maskTokenValues, TestplaneConfigAdapter} from '../../../../../lib/adapters/config/testplane';
 import {TestplaneTestAdapter} from '../../../../../lib/adapters/test/testplane';
 import {stubConfig, mkState} from '../../../utils';
 
@@ -36,6 +36,84 @@ describe('lib/adapters/config/testplane', () => {
         });
     });
 
+    describe('configPath', () => {
+        it('should return config path from original config', () => {
+            const configPath = '/some/config/path';
+            const config = stubConfig({configPath}) as unknown as Config;
+            const configAdapter = TestplaneConfigAdapter.create(config);
+
+            assert.equal(configAdapter.configPath, configPath);
+        });
+    });
+
+    describe('getUserConfig', () => {
+        it('should return serialized config without config path and masked secrets', () => {
+            const serialize = sandbox.stub().returns({
+                configPath: '/some/config/path',
+                browser: 'chrome',
+                token: 'secret'
+            });
+            const config = stubConfig({serialize}) as unknown as Config;
+            const configAdapter = TestplaneConfigAdapter.create(config);
+
+            const userConfig = configAdapter.getUserConfig();
+
+            assert.deepEqual(userConfig, {
+                browser: 'chrome',
+                token: 'XXXX'
+            });
+            assert.calledOnce(serialize);
+        });
+
+        it('should remove browser options equal to top-level options', () => {
+            const serializedConfig = {
+                retry: 3,
+                meta: {environment: 'testing'},
+                browsers: {
+                    chrome: {
+                        id: 'chrome',
+                        retry: 3,
+                        meta: {environment: 'testing'},
+                        baseUrl: 'https://chrome.example.com'
+                    },
+                    firefox: {
+                        id: 'firefox',
+                        retry: 5,
+                        meta: {environment: 'production'}
+                    }
+                }
+            };
+            const config = stubConfig({
+                serialize: sandbox.stub().returns(serializedConfig)
+            }) as unknown as Config;
+            const configAdapter = TestplaneConfigAdapter.create(config);
+
+            const userConfig = configAdapter.getUserConfig();
+
+            assert.deepEqual(userConfig, {
+                retry: 3,
+                meta: {environment: 'testing'},
+                browsers: {
+                    chrome: {
+                        id: 'chrome',
+                        baseUrl: 'https://chrome.example.com'
+                    },
+                    firefox: {
+                        id: 'firefox',
+                        retry: 5,
+                        meta: {environment: 'production'}
+                    }
+                }
+            });
+            assert.deepEqual(serializedConfig.browsers.chrome, {
+                id: 'chrome',
+                retry: 3,
+                meta: {environment: 'testing'},
+                baseUrl: 'https://chrome.example.com'
+            });
+        });
+    });
+
     describe('getBrowserConfig', () => {
         it('should return browser config from original config', () => {
             const browserConfig = {foo: 'bar'} as unknown as ReturnType<Config['forBrowser']>;
@@ -58,5 +136,99 @@ describe('lib/adapters/config/testplane', () => {
 
             assert.equal(configAdapter.getScreenshotPath(testAdapter, stateName), '/ref/path');
         });
+    });
+});
+
+describe('maskTokenValues', () => {
+    it('should recursively mask values whose paths contain sensitive field names ignoring case and separators', () => {
+        const config = {
+            token: 'secret-1',
+            authToken: 'secret-2',
+            nested: {
+                API_TOKEN_VALUE: 'secret-3',
+                items: [{refreshToken: 'secret-4'}],
+                secret: 'secret-5',
+                password: 'secret-6',
+                'api_key': 'secret-7',
+                accessKey: 'secret-8',
+                'private_key': 'secret-9',
+                CLIENT_SECRET: 'secret-10'
+            },
+            browser: 'chrome'
+        };
+
+        assert.deepEqual(maskTokenValues(config), {
+            token: 'XXXX',
+            authToken: 'XXXX',
+            nested: {
+                API_TOKEN_VALUE: 'XXXX',
+                items: [{refreshToken: 'XXXX'}],
+                secret: 'XXXX',
+                password: 'XXXX',
+                'api_key': 'XXXX',
+                accessKey: 'XXXX',
+                'private_key': 'XXXX',
+                CLIENT_SECRET: 'XXXX'
+            },
+            browser: 'chrome'
+        });
+    });
+
+    it('should mask all string values nested under a sensitive path', () => {
+        const config = {credentials: {apiKey: {primary: 'secret-1', fallback: 'secret-2'}}};
+
+        assert.deepEqual(maskTokenValues(config), {
+            credentials: {apiKey: {primary: 'XXXX', fallback: 'XXXX'}}
+        });
+    });
+
+    it('should call custom filter for every string value with full JSON pointer path', () => {
+        const secretConfigFilter = sinon.spy((_value: string, configPath: string) => configPath === '/nested~1key/items/1');
+        const config = {
+            visible: 'keep-me',
+            'nested/key': {items: ['also-keep-me', 'hide-me']},
+            count: 42
+        };
+
+        assert.deepEqual(maskTokenValues(config, secretConfigFilter), {
+            visible: 'keep-me',
+            'nested/key': {items: ['also-keep-me', 'XXXX']},
+            count: 42
+        });
+        assert.deepEqual(secretConfigFilter.args, [
+            ['keep-me', '/visible'],
+            ['also-keep-me', '/nested~1key/items/0'],
+            ['hide-me', '/nested~1key/items/1']
+        ]);
+    });
+
+    it('should not use default filter when custom filter is specified', () => {
+        const config = {token: 'keep-me'};
+
+        assert.deepEqual(maskTokenValues(config, () => false), config);
+    });
+
+    describe('defaultSecretConfigFilter', () => {
+        it('should not mask values whose paths do not contain sensitive field names', () => {
+            assert.isFalse(defaultSecretConfigFilter('chrome', '/browser/id'));
+        });
+
+        it('should mask token values regardless of their config path', () => {
+            assert.isTrue(defaultSecretConfigFilter('AQADsome-token', '/browser/id'));
+            assert.isTrue(defaultSecretConfigFilter('y1_some-token', '/browser/id'));
+        });
+
+        it('should not mask values that contain a token prefix not at the start', () => {
+            assert.isFalse(defaultSecretConfigFilter('prefix-AQADsome-token', '/browser/id'));
+            assert.isFalse(defaultSecretConfigFilter('prefix-y1_some-token', '/browser/id'));
+        });
+    });
+
+    it('should not mutate original value', () => {
+        const config = {nested: {accessToken: 'secret'}};
+
+        maskTokenValues(config);
+
+        assert.deepEqual(config, {nested: {accessToken: 'secret'}});
     });
 });
