@@ -11,6 +11,7 @@ import {
     Hierarchy,
     ListUl,
     Play,
+    Stop,
     Square,
     SquareCheck,
     SquareDashed,
@@ -28,7 +29,8 @@ import {
     staticAccepterStageScreenshot,
     staticAccepterUnstageScreenshot,
     thunkRefreshGuiReport,
-    thunkRunTests
+    thunkRunTests,
+    thunkStopTests
 } from '@/static/modules/actions';
 import {ImageEntity, TreeViewMode} from '@/static/new-ui/types/store';
 import {CHECKED, INDETERMINATE} from '@/constants/checked-statuses';
@@ -163,6 +165,10 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
         }
     }, [analytics, isSelectedAtLeastOne, selectedTests, visibleBrowserIds, browsersById, dispatch]);
 
+    const handleStop = useCallback((): void => {
+        dispatch(thunkStopTests());
+    }, [thunkStopTests, dispatch]);
+
     const handleUndo = (): void => {
         const acceptableImageIds = activeImages
             .filter(image => isScreenRevertable({image, gui: isGuiMode, isLastResult: true, isStaticImageAccepterEnabled}))
@@ -197,6 +203,7 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
     };
 
     useHotkey('shift+r', handleRun, {enabled: Boolean(isRunTestsAvailable) && !isRunning && isInitialized});
+    useHotkey('shift+s', handleStop, {enabled: Boolean(isRunTestsAvailable) && isRunning && isInitialized});
     useHotkey('shift+a', handleAccept, {enabled: Boolean(isEditScreensAvailable) && !areActionsDisabled && isAtLeastOneAcceptable && !isUndoButtonVisible});
 
     const loadedPluginConfigs = plugins.getLoadedConfigs();
@@ -225,15 +232,27 @@ export function TreeActionsToolbar({onHighlightCurrentTest, className}: TreeActi
                 />
             )}
             {isRunTestsAvailable && (
-                <IconButton
-                    className={styles.iconButton}
-                    icon={<Icon data={Play} height={14}/>}
-                    tooltip={<>Run {selectedOrVisible} ⋅ <Hotkey value="shift+r" view="light" /></>}
-                    text="Run"
-                    view={'flat'}
-                    onClick={handleRun}
-                    disabled={isRunning || !isInitialized}
-                />
+                isRunning ? (
+                    <IconButton
+                        className={styles.iconButton}
+                        icon={<Icon data={Stop} height={14}/>}
+                        tooltip={<>Stop all ⋅ <Hotkey value="shift+s" view="light" /></>}
+                        text="Stop"
+                        view={'flat'}
+                        onClick={handleStop}
+                        disabled={!isInitialized}
+                    />
+                ) : (
+                    <IconButton
+                        className={styles.iconButton}
+                        icon={<Icon data={Play} height={14}/>}
+                        tooltip={<>Run {selectedOrVisible} ⋅ <Hotkey value="shift+r" view="light" /></>}
+                        text="Run"
+                        view={'flat'}
+                        onClick={handleRun}
+                        disabled={!isInitialized}
+                    />
+                )
             )}
             {isRunTestsAvailable && hasRunTestOptions && <Popover
                 content={<div className={styles.runOptionsContainer}><ExtensionPoint name={ExtensionPointName.RunTestOptions}></ExtensionPoint></div>}

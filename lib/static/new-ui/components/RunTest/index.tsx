@@ -1,9 +1,9 @@
 import React, {forwardRef, ReactNode, useCallback, useState} from 'react';
 
 import styles from './index.module.css';
-import {Button, ButtonProps, Icon, Popover} from '@gravity-ui/uikit';
-import {ArrowRotateRight, ChevronDown} from '@gravity-ui/icons';
-import {thunkRunTest} from '@/static/modules/actions';
+import {Button, ButtonProps, Icon, Popover, Hotkey} from '@gravity-ui/uikit';
+import {ArrowRotateRight, ChevronDown, Stop} from '@gravity-ui/icons';
+import {thunkRunTest, thunkStopTests} from '@/static/modules/actions';
 import {useDispatch} from 'react-redux';
 import {RunTestsFeature} from '@/constants';
 import {useAnalytics} from '../../hooks/useAnalytics';
@@ -51,6 +51,28 @@ export const RunTestButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, R
         const onRunOptionsOpenChange = useCallback((open: boolean) => {
             setIsRunOptionsOpen(open);
         }, []);
+
+        const onStopClick = useCallback((): void => {
+            dispatch(thunkStopTests());
+        }, [thunkStopTests, dispatch]);
+
+        if (isRunning) {
+            return (
+                <div className={styles.buttonsContainer}>
+                    <Button
+                        ref={ref as any} // eslint-disable-line @typescript-eslint/no-explicit-any
+                        view={'action'}
+                        className={classNames(styles.stopButton, className)}
+                        onClick={onStopClick}
+                        {...buttonProps}
+                    >
+                        <Icon data={Stop}/>
+                        Stop all
+                        <Hotkey value="shift+s" view={buttonProps?.view === 'outlined' ? 'light' : 'dark'} />
+                    </Button>
+                </div>
+            );
+        }
 
         return <div className={styles.buttonsContainer}>
             <Button
