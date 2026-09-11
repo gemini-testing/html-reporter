@@ -66,6 +66,31 @@ describe('common-utils', () => {
                 stateName: 'some-test'
             });
         });
+
+        it('should keep only first stack line for stopped-by-user error', () => {
+            const error = {
+                name: 'Error',
+                message: 'Tests were stopped by the user',
+                stack: [
+                    'Error: Tests were stopped by the user',
+                    '    at stopTests (/path/to/server.ts:1:1)',
+                    '    at processRequest (/path/to/router.ts:2:2)'
+                ].join('\n')
+            };
+
+            const result = getError(error);
+
+            assert.equal(result?.stack, 'Error: Tests were stopped by the user');
+            assert.include(error.stack, 'stopTests');
+        });
+
+        it('should keep full stack for other errors', () => {
+            const stack = 'Error: some-message\n    at some-function (/path/to/file.ts:1:1)';
+
+            const result = getError({name: 'Error', message: 'some-message', stack});
+
+            assert.equal(result?.stack, stack);
+        });
     });
 
     describe('hasDiff', () => {

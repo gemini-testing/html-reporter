@@ -148,12 +148,29 @@ export const hasUnrelatedToScreenshotsErrors = (error: TestError): boolean => {
         !isAssertViewError(error);
 };
 
+const SHORT_ERROR_STACK_MARKERS = [
+    'Tests were stopped by the user',
+    'NoRefImageError',
+    'Too many requests for session creation'
+];
+
+const formatErrorStack = (stack?: string): string | undefined => {
+    if (!stack || !SHORT_ERROR_STACK_MARKERS.some(marker => stack.includes(marker))) {
+        return stack;
+    }
+
+    return stack.split('\n')[0];
+};
+
 export const getError = (error?: TestError): undefined | Pick<TestError, 'name' | 'message' | 'stack' | 'stateName' | 'snippet'> => {
     if (!error) {
         return undefined;
     }
 
-    return pick(error, ['name', 'message', 'stack', 'stateName', 'snippet']);
+    return {
+        ...pick(error, ['name', 'message', 'stack', 'stateName', 'snippet']),
+        stack: formatErrorStack(error.stack)
+    };
 };
 
 export const hasDiff = (assertViewResults: {name?: string}[]): boolean => {

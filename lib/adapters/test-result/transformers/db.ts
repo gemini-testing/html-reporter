@@ -16,6 +16,16 @@ export class DbTestResultTransformer {
 
     transform(testResult: ReporterTestResult): DbTestResult {
         const suiteUrl = getUrlWithBase(testResult.url, this._options.baseHost);
+        const imagesInfo = (testResult.imagesInfo ?? []).map(imageInfo => {
+            if (!_.isObject(imageInfo) || !('error' in imageInfo) || !imageInfo.error) {
+                return imageInfo;
+            }
+
+            return {
+                ...imageInfo,
+                error: getError(imageInfo.error)
+            };
+        });
 
         const metaInfoFull = _.merge(_.cloneDeep(testResult.meta), {
             url: testResult.meta?.url ?? suiteUrl ?? '',
@@ -34,7 +44,7 @@ export class DbTestResultTransformer {
             description: testResult.description,
             error: getError(testResult.error),
             skipReason: testResult.skipReason,
-            imagesInfo: testResult.imagesInfo ?? [],
+            imagesInfo,
             screenshot: Boolean(testResult.screenshot),
             multipleTabs: testResult.multipleTabs,
             status: testResult.status,
