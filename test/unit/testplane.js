@@ -50,7 +50,14 @@ describe('lib/testplane', () => {
                     timeTravel: 'off'
                 }
             },
-            getBrowserIds: () => ['bro1']
+            getBrowserIds: () => ['bro1'],
+            serialize: sinon.stub().returns({
+                browsers: {
+                    bro1: {
+                        timeTravel: 'off'
+                    }
+                }
+            })
         }, events, {ImageDiffError, NoRefImageError});
     }
 

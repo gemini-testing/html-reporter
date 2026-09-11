@@ -1,5 +1,5 @@
-import path from 'node:path';
 import type {Config} from 'testplane';
+import {isEqual} from 'lodash';
 import type {ConfigAdapter} from './';
 import type {TestplaneTestAdapter} from '../test/testplane';
 import type {SecretConfigFilter} from '../../types';
@@ -15,7 +15,7 @@ const SENSITIVE_CONFIG_FIELDS = [
     'clientSecret'
 ].map(field => field.toLowerCase());
 
-export const defaultSecretConfigFilter: SecretConfigFilter = (configPath) => {
+export const defaultSecretConfigFilter: SecretConfigFilter = (value, configPath) => {
     const normalizedSegments = configPath
         .split('/')
         .slice(1)
@@ -26,7 +26,9 @@ export const defaultSecretConfigFilter: SecretConfigFilter = (configPath) => {
             .toLowerCase()
         );
 
-    return normalizedSegments.some(segment => SENSITIVE_CONFIG_FIELDS.some(field => segment.includes(field)));
+    return normalizedSegments.some(segment => SENSITIVE_CONFIG_FIELDS.some(field => segment.includes(field)))
+        || value.startsWith('AQAD')
+        || value.startsWith('y1_');
 };
 
 const appendPath = (parentPath: string, segment: string): string => {
@@ -35,13 +37,36 @@ const appendPath = (parentPath: string, segment: string): string => {
     return `${parentPath}/${escapedSegment}`;
 };
 
+const deduplicateBrowserConfigs = (config: Record<string, unknown>): Record<string, unknown> => {
+    const {browsers} = config;
+
+    if (!browsers || typeof browsers !== 'object' || Array.isArray(browsers)) {
+        return config;
+    }
+
+    return {
+        ...config,
+        browsers: Object.fromEntries(Object.entries(browsers).map(([browserId, browserConfig]) => {
+            if (!browserConfig || typeof browserConfig !== 'object' || Array.isArray(browserConfig)) {
+                return [browserId, browserConfig];
+            }
+
+            const deduplicatedConfig = Object.fromEntries(Object.entries(browserConfig).filter(([key, value]) => (
+                !Object.prototype.hasOwnProperty.call(config, key) || !isEqual(value, config[key])
+            )));
+
+            return [browserId, deduplicatedConfig];
+        }))
+    };
+};
+
 export const maskTokenValues = (
     value: unknown,
     secretConfigFilter: SecretConfigFilter = defaultSecretConfigFilter,
     configPath = ''
 ): unknown => {
     if (typeof value === 'string') {
-        return secretConfigFilter(configPath) ? MASKED_VALUE : value;
+        return secretConfigFilter(value, configPath) ? MASKED_VALUE : value;
     }
 
     if (Array.isArray(value)) {
@@ -94,19 +119,10 @@ export class TestplaneConfigAdapter implements ConfigAdapter {
     }
 
     getUserConfig(secretConfigFilter: SecretConfigFilter | null = null): Record<string, unknown> {
-        if (!this._config.configPath) {
-            return {};
-        }
+        const serializedConfig = {...this._config.serialize()} as Record<string, unknown>;
+        const userConfig = deduplicateBrowserConfigs(serializedConfig);
 
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const configModule: unknown = require(path.resolve(this._config.configPath));
-        const config = configModule && typeof configModule === 'object' && '__esModule' in configModule && configModule.__esModule && 'default' in configModule
-            ? configModule.default
-            : configModule;
-
-        const userConfig = config && typeof config === 'object'
-            ? config as Record<string, unknown>
-            : {};
+        delete userConfig.configPath;
 
         return maskTokenValues(userConfig, secretConfigFilter ?? defaultSecretConfigFilter) as Record<string, unknown>;
     }

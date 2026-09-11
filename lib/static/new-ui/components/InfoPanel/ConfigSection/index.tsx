@@ -4,9 +4,9 @@ import {ChevronsCollapseVertical, ChevronsExpandVertical, FileText, ChevronDown}
 import {Button, ClipboardButton, Dialog, Icon} from '@gravity-ui/uikit';
 
 import {LocalStorageKey, TESTPLANE_CONFIG_BREAK_LINES, TESTPLANE_CONFIG_EXPAND_ALL, Theme} from '@/constants';
+import {CodeActions} from '@/static/new-ui/components/CodeActions';
 import {PanelSection} from '@/static/new-ui/components/PanelSection';
 import useLocalStorage from '@/static/hooks/useLocalStorage';
-import WordWrapIcon from '@/static/icons/word-wrap-icon.svg';
 import styles from './index.module.css';
 
 export interface ConfigSectionProps {
@@ -161,25 +161,14 @@ export function ConfigSection({config, configPath}: ConfigSectionProps): ReactNo
                     <ClipboardButton size={'xs'} text={configPath} qa={'copy-config-path'}/>
                 </div>}
                 <div className={classNames(styles.container, styles[theme])}>
-                    <div className={styles.buttons}>
-                        <ClipboardButton
-                            className={styles.button}
-                            text={formattedConfig}
-                            hasTooltip={false}
-                            qa={'copy-config'}
-                        />
-                        <Button
-                            className={styles.button}
-                            view={'flat'}
-                            size={'m'}
-                            title={'Toggle line wrapping'}
-                            onClick={(): void => setBreakLines(!breakLines)}
-                        >
-                            <Button.Icon>
-                                <img src={WordWrapIcon} width={18} height={18} alt={''}/>
-                            </Button.Icon>
-                        </Button>
-                        <Button
+                    <CodeActions
+                        className={styles.buttons}
+                        buttonClassName={styles.button}
+                        clipboardText={formattedConfig}
+                        clipboardQa={'copy-config'}
+                        lineWrappingEnabled={breakLines}
+                        onToggleLineWrapping={(): void => setBreakLines(!breakLines)}
+                        extraButton={<Button
                             className={styles.button}
                             view={'flat'}
                             size={'m'}
@@ -189,8 +178,8 @@ export function ConfigSection({config, configPath}: ConfigSectionProps): ReactNo
                             <Button.Icon>
                                 <Icon data={areAllNestedExpanded ? ChevronsCollapseVertical : ChevronsExpandVertical}/>
                             </Button.Icon>
-                        </Button>
-                    </div>
+                        </Button>}
+                    />
                     <div className={classNames(styles.config, {[styles.breakLines]: breakLines})} data-qa={'tool-config'}>
                         <JsonNode value={config} depth={0} areAllNestedExpanded={areAllNestedExpanded}/>
                     </div>
