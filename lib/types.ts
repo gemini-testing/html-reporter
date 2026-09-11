@@ -241,7 +241,7 @@ export interface Badge {
 
 export type GenerateBadges = (suite: ReporterTestResult) => Array<Badge | null>;
 /** Return true to mask the string value at the specified JSON Pointer path. */
-export type SecretConfigFilter = (path: string) => boolean;
+export type SecretConfigFilter = (value: string, path: string) => boolean;
 
 export interface ReporterConfig {
     baseHost: string;

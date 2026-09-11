@@ -1,4 +1,3 @@
-import path from 'node:path';
 import type {Config, Test} from 'testplane';
 import sinon from 'sinon';
 import {defaultSecretConfigFilter, maskTokenValues, TestplaneConfigAdapter} from '../../../../../lib/adapters/config/testplane';
@@ -48,13 +47,70 @@ describe('lib/adapters/config/testplane', () => {
     });
 
     describe('getUserConfig', () => {
-        it('should not mix config path into user config', () => {
-            const config = stubConfig({configPath: path.resolve(process.cwd(), 'package.json')}) as unknown as Config;
+        it('should return serialized config without config path and masked secrets', () => {
+            const serialize = sandbox.stub().returns({
+                configPath: '/some/config/path',
+                browser: 'chrome',
+                token: 'secret'
+            });
+            const config = stubConfig({serialize}) as unknown as Config;
             const configAdapter = TestplaneConfigAdapter.create(config);
 
             const userConfig = configAdapter.getUserConfig();
 
-            assert.notProperty(userConfig, 'configPath');
+            assert.deepEqual(userConfig, {
+                browser: 'chrome',
+                token: 'XXXX'
+            });
+            assert.calledOnce(serialize);
+        });
+
+        it('should remove browser options equal to top-level options', () => {
+            const serializedConfig = {
+                retry: 3,
+                meta: {environment: 'testing'},
+                browsers: {
+                    chrome: {
+                        id: 'chrome',
+                        retry: 3,
+                        meta: {environment: 'testing'},
+                        baseUrl: 'https://chrome.example.com'
+                    },
+                    firefox: {
+                        id: 'firefox',
+                        retry: 5,
+                        meta: {environment: 'production'}
+                    }
+                }
+            };
+            const config = stubConfig({
+                serialize: sandbox.stub().returns(serializedConfig)
+            }) as unknown as Config;
+            const configAdapter = TestplaneConfigAdapter.create(config);
+
+            const userConfig = configAdapter.getUserConfig();
+
+            assert.deepEqual(userConfig, {
+                retry: 3,
+                meta: {environment: 'testing'},
+                browsers: {
+                    chrome: {
+                        id: 'chrome',
+                        baseUrl: 'https://chrome.example.com'
+                    },
+                    firefox: {
+                        id: 'firefox',
+                        retry: 5,
+                        meta: {environment: 'production'}
+                    }
+                }
+            });
+            assert.deepEqual(serializedConfig.browsers.chrome, {
+                id: 'chrome',
+                retry: 3,
+                meta: {environment: 'testing'},
+                baseUrl: 'https://chrome.example.com'
+            });
         });
     });
 
@@ -127,7 +183,7 @@ describe('maskTokenValues', () => {
     });
 
     it('should call custom filter for every string value with full JSON pointer path', () => {
-        const secretConfigFilter = sinon.spy((configPath: string) => configPath === '/nested~1key/items/1');
+        const secretConfigFilter = sinon.spy((_value: string, configPath: string) => configPath === '/nested~1key/items/1');
         const config = {
             visible: 'keep-me',
             'nested/key': {items: ['also-keep-me', 'hide-me']},
@@ -140,9 +196,9 @@ describe('maskTokenValues', () => {
             count: 42
         });
         assert.deepEqual(secretConfigFilter.args, [
-            ['/visible'],
-            ['/nested~1key/items/0'],
-            ['/nested~1key/items/1']
+            ['keep-me', '/visible'],
+            ['also-keep-me', '/nested~1key/items/0'],
+            ['hide-me', '/nested~1key/items/1']
         ]);
     });
 
@@ -154,7 +210,17 @@ describe('maskTokenValues', () => {
 
     describe('defaultSecretConfigFilter', () => {
         it('should not mask values whose paths do not contain sensitive field names', () => {
-            assert.isFalse(defaultSecretConfigFilter('/browser/id'));
+            assert.isFalse(defaultSecretConfigFilter('chrome', '/browser/id'));
+        });
+
+        it('should mask token values regardless of their config path', () => {
+            assert.isTrue(defaultSecretConfigFilter('AQADsome-token', '/browser/id'));
+            assert.isTrue(defaultSecretConfigFilter('y1_some-token', '/browser/id'));
+        });
+
+        it('should not mask values that contain a token prefix not at the start', () => {
+            assert.isFalse(defaultSecretConfigFilter('prefix-AQADsome-token', '/browser/id'));
+            assert.isFalse(defaultSecretConfigFilter('prefix-y1_some-token', '/browser/id'));
         });
     });
 

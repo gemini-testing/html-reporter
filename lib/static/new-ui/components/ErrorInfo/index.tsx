@@ -3,11 +3,10 @@ import classNames from 'classnames';
 import escapeHtml from 'escape-html';
 import React, {ReactNode, useMemo} from 'react';
 import stripAnsi from 'strip-ansi';
-import {ClipboardButton, Button} from '@gravity-ui/uikit';
 
 import styles from './index.module.css';
 import stringify from 'json-stringify-safe';
-import WordWrapIcon from '@/static/icons/word-wrap-icon.svg';
+import {CodeActions} from '@/static/new-ui/components/CodeActions';
 import useLocalStorage from '@/static/hooks/useLocalStorage';
 import {ERROR_BREAK_LINES} from '@/constants';
 
@@ -45,19 +44,13 @@ export function ErrorInfo(props: ErrorInfoProps): ReactNode {
 
     return (
         <div className={classNames(styles.container, props.className)} style={props.style}>
-            <div className={styles.buttons}>
-                <ClipboardButton className={styles.button} text={clipboardText} hasTooltip={false} />
-                <Button
-                    className={styles.button}
-                    view="flat"
-                    size="m"
-                    onClick={(): void => setBreakLines(!breakLines)}
-                >
-                    <Button.Icon>
-                        <img src={WordWrapIcon} width={18} height={18} alt=""/>
-                    </Button.Icon>
-                </Button>
-            </div>
+            <CodeActions
+                className={styles.buttons}
+                buttonClassName={styles.button}
+                clipboardText={clipboardText}
+                lineWrappingEnabled={breakLines}
+                onToggleLineWrapping={(): void => setBreakLines(!breakLines)}
+            />
             <div className={classNames(styles.code, {[styles.breakLines]: breakLines})} dangerouslySetInnerHTML={{__html: ansiHtml(errorText)}} />
         </div>
     );
