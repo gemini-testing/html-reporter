@@ -35,52 +35,78 @@
     --color-pink-100: #fce0ff;
     --color-pink-400: #ce93d5;
     --color-pink-600: #be00ffbf;
+    --color-pink-800: #663a6b;
 
     --color-bg-dark: var(--color-neutral-900);
     --color-bg-gray: #eee;
 }
 
 .g-root_theme_light {
+    /* Text */
     --color-link: #4f46e5;
     --color-link-hover: #818cf8;
+    --color-text-hint: var(--g-color-private-black-400);
+    --color-suite-breadcrumbs: var(--g-color-private-black-400);
+    --g-color-text-brand-contrast: var(--g-color-private-color-50-solid);
+
+    /* Backgrounds and borders */
+    --g-color-base-background: #fff;
+    --g-color-base-generic: #eee;
+    --g-divider-color: rgb(242 242 242);
+    --sidebar-vertical-divider-line-color: var(--color-neutral-500);
+    --card-border-shadow: rgb(255, 255, 255) 0 0 0 0, rgba(9, 9, 11, 0.05) 0 0 0 1px, rgba(0, 0, 0, 0.05) 0 1px 2px 0;
+    --color-devider-handle: var(--g-color-private-black-200);
+
+    /* Controls */
+    --color-filter-button: rgb(113, 113, 122);
+    --color-filter-button-selected: rgb(9, 9, 11);
+    --tree-actions-hover-background: #f2f2f2;
+
+    /* Screenshots and player */
     --player-main-color: var(--color-neutral-100);
     --tree-screenshot-border: var(--g-color-private-black-200-solid);
     --tree-screenshot-border-actual: var(--g-color-private-black-100-solid);
 
-    --color-devider-handle: var(--g-color-private-black-200);
-    --color-filter-button: rgb(113, 113, 122);
-    --color-filter-button-selected: rgb(9, 9, 11);
-    --color-suite-breadcrumbs: var(--g-color-private-black-400);
-    --tree-actions-hover-background: #f2f2f2;
-
-    --g-color-text-brand-contrast: var(--g-color-private-color-50-solid);
-    --g-divider-color: rgb(242 242 242);
-    --color-text-hint: var(--g-color-private-black-400);
-
-    --g-color-base-generic: #eee;
-    --g-color-base-background: #fff;
-    --sidebar-vertical-divider-line-color: var(--color-neutral-500);
-    --card-border-shadow: rgb(255, 255, 255) 0 0 0 0, rgba(9, 9, 11, 0.05) 0 0 0 1px, rgba(0, 0, 0, 0.05) 0 1px 2px 0;
+    /* Two-up mode */
+    --two-up-mode-background: var(--color-neutral-50);
+    --two-up-mode-border: var(--color-neutral-300);
+    --two-up-mode-container-border: var(--g-color-base-generic);
 }
 
 .g-root_theme_dark {
+    /* Text */
     --color-link: #818cf8;
     --color-link-hover: #c7d2fe;
-    --player-main-color: var(--color-neutral-300);
-    --tree-screenshot-border: var(--color-neutral-500);
-    --tree-screenshot-border-actual: var(--color-neutral-600);
-
-    --color-devider-handle: var(--color-neutral-700);
-    --color-filter-button: var(--g-color-text-hint);
-    --color-filter-button-selected: var(--g-color-text-primary);
     --color-text-hint: var(--g-color-text-secondary);
     --color-suite-breadcrumbs: var(--g-color-text-secondary);
-    --tree-actions-hover-background: #353535;
 
-    --g-color-base-generic: var(--color-neutral-950);
+    /* Backgrounds and borders */
     --g-color-base-background: var(--color-bg-dark);
+    --g-color-base-generic: var(--color-neutral-800);
     --sidebar-vertical-divider-line-color: var(--color-neutral-700);
     --card-border-shadow: var(--color-neutral-800) 0 0 0 0, var(--color-neutral-800) 0 0 0 1px, var(--color-neutral-800) 0 1px 2px 0;
+    --color-devider-handle: var(--color-neutral-700);
+    --color-tag-bg: var(--color-neutral-800);
+
+    /* Controls */
+    --color-filter-button: var(--g-color-text-hint);
+    --color-filter-button-selected: var(--g-color-text-primary);
+    --tree-actions-hover-background: #353535;
+
+    /* Screenshots and player */
+    --player-main-color: var(--color-neutral-300);
+    --tree-screenshot-border: var(--color-neutral-400);
+    --tree-screenshot-border-actual: var(--color-neutral-100);
+
+    /* Two-up mode */
+    --two-up-mode-background: var(--color-neutral-800);
+    --two-up-mode-border: var(--color-neutral-900);
+    --two-up-mode-container-border: var(--color-neutral-600);
+
+    /* Component overrides */
+    .g-popup {
+        background: var(--color-neutral-900);
+    }
 }
 
 body {

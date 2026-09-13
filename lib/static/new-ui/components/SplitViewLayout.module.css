@@ -6,11 +6,15 @@
     background-color: var(--g-color-base-generic);
 }
 
-    .split :global(.gutter) {
-        background-color: var(--g-color-base-generic);
-        background-repeat: no-repeat;
-        background-position: 50%;
-    }
+:global(.g-root_theme_dark) .split {
+    background-color: var(--color-neutral-950);
+}
+
+.split :global(.gutter) {
+    background-color: var(--g-color-base-generic);
+    background-repeat: no-repeat;
+    background-position: 50%;
+}
 
 .gutter {
     cursor: col-resize;

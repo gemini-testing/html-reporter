@@ -59,11 +59,11 @@
 
 :global(.g-root_theme_dark) {
     .attempt-picker-item--fail {
-        --g-button-background-color: var(--color-pink-400);
+        --g-button-background-color: var(--color-pink-800);
     }
 
     .attempt-picker-item--fail_error {
-        --g-button-background-color: var(--color-pink-400);
+        --g-button-background-color: var(--color-pink-800);
     }
 }
 

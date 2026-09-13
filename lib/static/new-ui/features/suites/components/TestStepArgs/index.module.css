@@ -36,7 +36,7 @@
         top: 2px;
         right: 2px;
 
-        color: var(--color-tag-title, var(--g-color-private-black-400));
+        color: var(--color-tag-title);
     }
 
     &:hover {
@@ -47,6 +47,19 @@
             opacity: 1;
             background-color: var(--background-color);
             box-shadow: 0 0 8px 5px var(--background-color);
+        }
+    }
+}
+
+.item--active {
+    .copy {
+        --background-color: #8466ff;
+    }
+
+    &:hover {
+        .copy {
+            --background-color: #8466ff;
+            background-color: #8466ff;
         }
     }
 }
