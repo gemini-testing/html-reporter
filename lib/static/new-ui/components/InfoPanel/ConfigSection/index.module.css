@@ -42,17 +42,18 @@
 .config-path {
     margin-bottom: 10px;
     overflow-wrap: anywhere;
-    font-size: 15px;
-    font-weight: 450;
+    font-weight: 400;
     display: flex;
     align-items: center;
     gap: 2px;
 
     span {
+        font-size: 15px;
         color: var(--g-color-text-secondary);
     }
 
     code {
+        font-size: 13px;
         color: var(--g-color-text-primary);
     }
 }
