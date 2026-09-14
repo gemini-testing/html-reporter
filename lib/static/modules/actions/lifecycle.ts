@@ -23,10 +23,15 @@ import {LocalStorageKey} from '@/constants/local-storage';
 import * as localStorageWrapper from '@/static/modules/local-storage-wrapper';
 import {updateTimeTravelSettings} from '../../new-ui/utils/api';
 import {TimeTravelFeature} from '@/constants';
+import type {TreePatch} from '@/tests-tree-builder/tree-patch';
 
 export type InitGuiReportAction = Action<typeof actionNames.INIT_GUI_REPORT, GetInitResponse & {db: Database; isNewUi?: boolean}>;
-const initGuiReport = (payload: InitGuiReportAction['payload']): InitGuiReportAction =>
+export const initGuiReport = (payload: InitGuiReportAction['payload']): InitGuiReportAction =>
     ({type: actionNames.INIT_GUI_REPORT, payload});
+
+export type PatchTestsTreeAction = Action<typeof actionNames.PATCH_TESTS_TREE, TreePatch>;
+export const patchTestsTree = (payload: TreePatch): PatchTestsTreeAction =>
+    ({type: actionNames.PATCH_TESTS_TREE, payload});
 
 interface InitGuiReportData {
     isNewUi?: boolean;
@@ -167,6 +172,7 @@ export const finStaticReport = (): FinStaticReportAction => ({type: actionNames.
 
 export type LifecycleAction =
     | InitGuiReportAction
+    | PatchTestsTreeAction
     | InitStaticReportAction
     | FinGuiReportAction
     | FinStaticReportAction;

@@ -1,5 +1,6 @@
 import React, {ReactNode, useEffect} from 'react';
 import {createRoot} from 'react-dom/client';
+import {flushSync} from 'react-dom';
 
 import {ClientEvents} from '@/gui/constants';
 import {App} from './App';
@@ -10,11 +11,13 @@ import {
     suiteBegin,
     testBegin,
     testResult,
-    thunkTestsEnd, setRepeatLeft
+    thunkTestsEnd, setRepeatLeft, setRefreshLoading, initGuiReport
 } from '../../modules/actions';
 import {setGuiServerConnectionStatus} from '@/static/modules/actions/gui-server-connection';
 import actionNames from '@/static/modules/action-names';
 import {EventSourceProvider, useEventSource} from '@/static/new-ui/providers/event-source';
+import {patchTestsTree} from '@/static/modules/actions/lifecycle';
+import {refreshSearch, search} from '@/static/modules/search';
 
 const rootEl = document.getElementById('app') as HTMLDivElement;
 const root = createRoot(rootEl);
@@ -65,6 +68,56 @@ function Gui(): ReactNode {
         eventSource.addEventListener(ClientEvents.REPEAT_LEFT, (e) => {
             const data = JSON.parse(e.data);
             store.dispatch(setRepeatLeft(data.repeatLeft));
+        });
+
+        eventSource.addEventListener(ClientEvents.TESTS_REFRESH_STARTED, () => {
+            flushSync(() => {
+                store.dispatch(setRefreshLoading(true));
+            });
+        });
+
+        eventSource.addEventListener(ClientEvents.TESTS_REFRESHED, async (e) => {
+            try {
+                const data = JSON.parse(e.data);
+                if (data) {
+                    if (data.replacement) {
+                        const {db} = store.getState();
+
+                        store.dispatch(initGuiReport({...data.replacement, db, isNewUi: true}));
+                    } else {
+                        store.dispatch(patchTestsTree(data));
+                    }
+
+                    const getSearchOptions = (): {text: string; matchCase: boolean; useRegexFilter: boolean} => {
+                        const {app: filters} = store.getState();
+
+                        return {
+                            text: filters.nameFilter || '',
+                            matchCase: Boolean(filters.useMatchCaseFilter),
+                            useRegexFilter: Boolean(filters.useRegexFilter)
+                        };
+                    };
+
+                    if (data.replacement) {
+                        const {text, matchCase, useRegexFilter} = getSearchOptions();
+
+                        await search(text, matchCase, useRegexFilter, false, store.dispatch);
+                    } else {
+                        await refreshSearch(
+                            store.getState().tree,
+                            data,
+                            getSearchOptions,
+                            store.dispatch
+                        );
+                    }
+                }
+            } finally {
+                store.dispatch(setRefreshLoading(false));
+            }
+        });
+
+        eventSource.addEventListener(ClientEvents.TESTS_REFRESH_FAILED, () => {
+            store.dispatch(setRefreshLoading(false));
         });
     };
 

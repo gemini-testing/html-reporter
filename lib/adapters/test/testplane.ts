@@ -51,7 +51,17 @@ export class TestplaneTestAdapter implements TestAdapter {
     }
 
     get titlePath(): string[] {
-        return this._test.fullTitle().split(DEFAULT_TITLE_DELIMITER);
+        const titles: string[] = [];
+        let current: Test | Suite | null = this._test;
+
+        while (current) {
+            if (current.title) {
+                titles.unshift(current.title);
+            }
+            current = current.parent;
+        }
+
+        return titles.length ? titles : this._test.fullTitle().split(DEFAULT_TITLE_DELIMITER);
     }
 
     createTestResult(opts: CreateTestResultOpts): ReporterTestResult {

@@ -53,6 +53,27 @@ export default (state: State, action: SomeAction): State => {
             });
         }
 
+        case actionNames.PATCH_TESTS_TREE: {
+            const expressionIds = state.app.groupTestsData.currentExpressionIds;
+
+            if (!expressionIds.length) {
+                return state;
+            }
+
+            const expressions = expressionIds
+                .map(id => state.app.groupTestsData.availableExpressions.find(expr => expr.id === id) as GroupByExpression);
+            const groupsById = groupTests(expressions, state.tree.results.byId, state.tree.images.byId, state.config.errorPatterns);
+
+            return Object.assign({}, state, {
+                tree: Object.assign({}, state.tree, {
+                    groups: {
+                        byId: groupsById,
+                        allRootIds: Object.keys(groupsById)
+                    }
+                })
+            });
+        }
+
         case actionNames.GROUP_TESTS_SET_CURRENT_EXPRESSION: {
             const newExpressionIds = action.payload.expressionIds;
 

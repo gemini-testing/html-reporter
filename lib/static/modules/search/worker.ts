@@ -2,6 +2,7 @@ import Fuse from 'fuse.js';
 import type {Expression} from 'fuse.js';
 
 import {keyboardLayoutConverter} from '@/static/modules/utils';
+import type {SearchWorkerRequest, SearchWorkerResponse} from './types';
 
 type Element = {title: string};
 
@@ -73,29 +74,37 @@ const search = (testNameFilter: string, matchCase = false): string[] => {
     }
 };
 
-type InitMessage = {
-    type: 'init';
-    data: Record<string, string[]>;
-}
-
-type SearchMessage = {
-    type: 'search';
-    data: {
-        text: string;
-        matchCase: boolean;
-    };
-}
-
-self.onmessage = (event: MessageEvent<InitMessage | SearchMessage>): void => {
+self.onmessage = (event: MessageEvent<SearchWorkerRequest>): void => {
     switch (event.data.type) {
         case 'init': {
             initSearch(event.data.data);
-            self.postMessage(true);
+            self.postMessage({type: 'ready', requestId: event.data.requestId} satisfies SearchWorkerResponse);
+            break;
+        }
+        case 'patch': {
+            const removeIds = new Set(event.data.data.removeIds);
+            const preparedItems = Object.entries(event.data.data.idTagMap).map(([title, tags]) => ({
+                title,
+                tags: '@' + tags.join(' @')
+            }));
+
+            fuse.remove(item => removeIds.has(item.title));
+            fuseMatchCase.remove(item => removeIds.has(item.title));
+            preparedItems.forEach(item => {
+                fuse.add(item);
+                fuseMatchCase.add(item);
+            });
+
+            self.postMessage({type: 'patched', requestId: event.data.requestId} satisfies SearchWorkerResponse);
             break;
         }
         case 'search': {
             const result: string[] = search(event.data.data.text, event.data.data.matchCase);
-            self.postMessage(result);
+            self.postMessage({
+                type: 'search-result',
+                requestId: event.data.requestId,
+                data: result
+            } satisfies SearchWorkerResponse);
             break;
         }
     }

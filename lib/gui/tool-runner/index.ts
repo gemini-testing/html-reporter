@@ -27,6 +27,7 @@ import {
     ToolName,
     DATABASE_URLS_JSON_NAME,
     LOCAL_DATABASE_NAME,
+    DEFAULT_TITLE_DELIMITER,
     PluginEvents,
     UNKNOWN_ATTEMPT, BrowserFeature, Feature, TimeTravelFeature
 } from '../../constants';
@@ -36,6 +37,7 @@ import type {GuiCliOptions, ServerArgs} from '../index';
 import type {TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../../tests-tree-builder/gui';
 import type {ReporterTestResult} from '../../adapters/test-result';
 import type {Tree, TreeImage} from '../../tests-tree-builder/base';
+import {createTreePatch, snapshotTree, TreePatch, TreePatchScope} from '../../tests-tree-builder/tree-patch';
 import type {TestSpec} from '../../adapters/tool/types';
 import type {
     AssertViewResult,
@@ -52,6 +54,10 @@ export type ToolRunnerTree = GuiReportBuilderResult & Pick<GuiCliOptions, 'autoR
     browserFeatures: Record<string, BrowserFeature[]>
 };
 
+export type TestsTreeUpdate = TreePatch | {
+    replacement: ToolRunnerTree;
+};
+
 export interface UndoAcceptImagesResult {
     updatedImages: TreeImage[];
     removedResults: string[];
@@ -60,6 +66,18 @@ export interface UndoAcceptImagesResult {
 export interface RunParams {
     retry?: boolean;
 }
+
+const isNoTestsFoundError = (error: unknown): boolean =>
+    error instanceof Error && error.message.startsWith('There are no tests found');
+
+const getTestStructureSignature = (test: TestAdapter): string => JSON.stringify([
+    test.browserId,
+    path.resolve(test.file),
+    test.titlePath,
+    test.disabled,
+    test.silentlySkipped,
+    test.pending
+]);
 
 export class ToolRunner {
     private _testFiles: string[];
@@ -73,6 +91,10 @@ export class ToolRunner {
     private _eventSource: EventSource;
     protected _reportBuilder: GuiReportBuilder | null;
     private _testAdapters: Record<string, TestAdapter>;
+    private _testsByFile: Map<string, TestAdapter[]>;
+    private _testFileBySpec: Map<string, string>;
+    private _testAdapterIdsByFile: Map<string, Set<string>>;
+    private _collectionNeedsFullRead: boolean;
     private _expectedImagesCache: Cache<[TestSpecByPath, string | undefined], string>;
 
     static create<T extends ToolRunner>(this: new (args: ServerArgs) => T, args: ServerArgs): T {
@@ -95,6 +117,10 @@ export class ToolRunner {
         this._reportBuilder = null;
 
         this._testAdapters = {};
+        this._testsByFile = new Map();
+        this._testFileBySpec = new Map();
+        this._testAdapterIdsByFile = new Map();
+        this._collectionNeedsFullRead = false;
 
         this._expectedImagesCache = new Cache(getExpectedCacheKey);
     }
@@ -141,7 +167,7 @@ export class ToolRunner {
         });
         this._toolAdapter.handleTestResults(this._reportBuilder, this._eventSource);
 
-        this._collection = await this._readTests();
+        this._setCollection(await this._readTests());
 
         this._toolAdapter.htmlReporter.emit(PluginEvents.DATABASE_CREATED, dbClient.getRawConnection());
         await this._reportBuilder.saveStaticFiles();
@@ -155,14 +181,334 @@ export class ToolRunner {
     }
 
     async refreshTests(): Promise<void> {
-        this._collection = await this._readTests();
+        this._setCollection(await this._readTests());
 
         const reportBuilder = this._ensureReportBuilder();
         reportBuilder.resetTree();
         this._testAdapters = {};
+        this._testAdapterIdsByFile.clear();
 
         await this._handleRunnableCollection();
         await this._fillTestsTree(reportBuilder.buildTreeFromCurrentDb());
+    }
+
+    async refreshTestsIfChanged(
+        changedFiles: string[],
+        removedDirectories: string[],
+        onChanged: (changed: boolean) => void,
+        onUpdated: (update: TestsTreeUpdate) => void
+    ): Promise<void> {
+        const normalizedFiles = new Set(changedFiles.map(file => path.resolve(file)));
+        const normalizedDirectories = removedDirectories.map(directory => path.resolve(directory));
+        const isInsideRemovedDirectory = (file: string): boolean => normalizedDirectories.some(directory => {
+            const relativePath = path.relative(directory, file);
+            return relativePath !== '' && !relativePath.startsWith(`..${path.sep}`) && relativePath !== '..' && !path.isAbsolute(relativePath);
+        });
+        const affectedFiles = new Set(normalizedFiles);
+        for (const testFile of this._testsByFile.keys()) {
+            if (isInsideRemovedDirectory(testFile)) {
+                affectedFiles.add(testFile);
+            }
+        }
+        const isChangedFile = (test: TestAdapter): boolean => affectedFiles.has(path.resolve(test.file));
+        const currentTests = [...affectedFiles].flatMap(file => this._testsByFile.get(file) ?? []);
+        const current = currentTests.map(getTestStructureSignature).sort();
+
+        const existingFiles = await Promise.all(changedFiles.map(async file => await fs.pathExists(file) ? file : null));
+        const filesToRead = existingFiles.filter((file): file is string => Boolean(file));
+        let next: string[] = [];
+        let changedCollection: TestCollectionAdapter = {tests: []};
+
+        if (this._ensureTestCollection().hasFocusedTests) {
+            await this._refreshTestsFromFullCollection(onChanged, onUpdated);
+
+            return;
+        }
+
+        if (filesToRead.length) {
+            try {
+                changedCollection = await this._toolAdapter.readTests(filesToRead, this._globalOpts);
+
+                if (changedCollection.hasFocusedTests) {
+                    await this._refreshTestsFromFullCollection(onChanged, onUpdated);
+
+                    return;
+                }
+
+                next = changedCollection.tests.filter(isChangedFile).map(getTestStructureSignature).sort();
+            } catch (error) {
+                if (this._toolAdapter.hasFocusedTestsInLastRead) {
+                    await this._refreshTestsFromFullCollection(onChanged, onUpdated);
+
+                    return;
+                }
+
+                if (isNoTestsFoundError(error)) {
+                    // Testplane throws instead of returning an empty collection
+                    // when the changed file no longer contains any tests.
+                } else {
+                    // If a partial read fails for another reason, use the full
+                    // collection to determine whether the tree has changed.
+                    const collection = await this._readTests();
+
+                    const allCurrent = this._ensureTestCollection().tests.map(getTestStructureSignature).sort();
+                    const allNext = collection.tests.map(getTestStructureSignature).sort();
+
+                    if (_.isEqual(allCurrent, allNext)) {
+                        this._collectionNeedsFullRead = true;
+                        onChanged(false);
+                        return;
+                    }
+
+                    onChanged(true);
+                    const testsToAdd = collection.tests.filter(isChangedFile);
+                    this._validateUniqueFullNames(collection.tests);
+                    onUpdated(await this._applyChangedFiles(affectedFiles, currentTests, testsToAdd));
+                    this._setCollection(collection);
+
+                    return;
+                }
+            }
+        }
+
+        if (!removedDirectories.length && _.isEqual(current, next)) {
+            this._collectionNeedsFullRead = true;
+            onChanged(false);
+            return;
+        }
+
+        onChanged(true);
+        const testsToAdd = changedCollection.tests.filter(isChangedFile);
+        const nextTests = this._getTestsAfterReplacement(affectedFiles, testsToAdd);
+        this._validateChangedTestsUnique(affectedFiles, testsToAdd);
+        onUpdated(await this._applyChangedFiles(affectedFiles, currentTests, testsToAdd));
+        this._replaceTestsInCollection(affectedFiles, testsToAdd, nextTests);
+    }
+
+    private async _refreshTestsFromFullCollection(
+        onChanged: (changed: boolean) => void,
+        onUpdated: (update: TestsTreeUpdate) => void
+    ): Promise<void> {
+        let collection: TestCollectionAdapter;
+
+        try {
+            collection = await this._readTests();
+        } catch (error) {
+            if (!isNoTestsFoundError(error)) {
+                throw error;
+            }
+
+            collection = {tests: [], hasFocusedTests: Boolean(this._toolAdapter.hasFocusedTestsInLastRead)};
+        }
+        onChanged(true);
+        await this._replaceTestsFromFullCollection(collection);
+        onUpdated({replacement: this.tree as ToolRunnerTree});
+    }
+
+    private async _replaceTestsFromFullCollection(collection: TestCollectionAdapter): Promise<void> {
+        const reportBuilder = this._ensureReportBuilder();
+
+        this._setCollection(collection);
+        reportBuilder.resetTree();
+        this._testAdapters = {};
+        this._testAdapterIdsByFile.clear();
+
+        await this._addTestsToTree(collection.tests);
+        await this._fillTestsTree(reportBuilder.buildTreeFromCurrentDb());
+    }
+
+    private async _applyChangedFiles(
+        changedFiles: Set<string>,
+        previousTests: TestAdapter[],
+        testsToAdd: TestAdapter[]
+    ): Promise<TreePatch> {
+        const reportBuilder = this._ensureReportBuilder();
+        const patchScope = this._createTreePatchScope([...previousTests, ...testsToAdd], reportBuilder.testsTree);
+        const reportBuilderState = reportBuilder.snapshotTestsState(patchScope, changedFiles, [...previousTests, ...testsToAdd]);
+        const previousTestAdapterIdsByFile = new Map<string, Set<string>>();
+        const previousTestAdapters: Record<string, TestAdapter> = {};
+
+        for (const changedFile of changedFiles) {
+            const adapterIds = this._testAdapterIdsByFile.get(changedFile);
+
+            if (!adapterIds) {
+                continue;
+            }
+
+            previousTestAdapterIdsByFile.set(changedFile, new Set(adapterIds));
+            for (const adapterId of adapterIds) {
+                previousTestAdapters[adapterId] = this._testAdapters[adapterId];
+            }
+        }
+        const previousTree = snapshotTree(reportBuilder.testsTree, patchScope);
+
+        try {
+            reportBuilder.removeTestsByFiles([...changedFiles]);
+
+            for (const changedFile of changedFiles) {
+                for (const testId of this._testAdapterIdsByFile.get(changedFile) ?? []) {
+                    delete this._testAdapters[testId];
+                }
+                this._testAdapterIdsByFile.delete(changedFile);
+            }
+
+            await this._addTestsToTree(testsToAdd);
+
+            const testHistorySpecs = testsToAdd.map(test => ({
+                suitePath: test.titlePath,
+                browserId: test.browserId
+            }));
+            reportBuilder.restoreTestHistory(testHistorySpecs, {
+                excludeSkipped: testsToAdd.filter(test => !test.pending).map(test => ({
+                    suitePath: test.titlePath,
+                    browserId: test.browserId
+                }))
+            });
+
+            reportBuilder.sortTestsTreeBranches(patchScope.suites);
+
+            this._extendTreePatchScope(patchScope, testsToAdd, reportBuilder.testsTree);
+
+            return createTreePatch(previousTree, reportBuilder.testsTree, patchScope);
+        } catch (error) {
+            reportBuilder.restoreTestsState(reportBuilderState);
+            for (const changedFile of changedFiles) {
+                for (const adapterId of this._testAdapterIdsByFile.get(changedFile) ?? []) {
+                    delete this._testAdapters[adapterId];
+                }
+                this._testAdapterIdsByFile.delete(changedFile);
+            }
+            Object.assign(this._testAdapters, previousTestAdapters);
+            for (const [changedFile, adapterIds] of previousTestAdapterIdsByFile) {
+                this._testAdapterIdsByFile.set(changedFile, adapterIds);
+            }
+            throw error;
+        }
+    }
+
+    private _createTreePatchScope(tests: TestAdapter[], tree: Tree): TreePatchScope {
+        const scope: TreePatchScope = {
+            suites: new Set(),
+            browsers: new Set(),
+            results: new Set(),
+            images: new Set()
+        };
+
+        this._extendTreePatchScope(scope, tests, tree);
+
+        return scope;
+    }
+
+    private _extendTreePatchScope(scope: TreePatchScope, tests: TestAdapter[], tree: Tree): void {
+        for (const test of tests) {
+            for (let depth = 1; depth <= test.titlePath.length; depth++) {
+                scope.suites.add(test.titlePath.slice(0, depth).join(DEFAULT_TITLE_DELIMITER));
+            }
+
+            const suiteId = test.titlePath.join(DEFAULT_TITLE_DELIMITER);
+            const browserId = [suiteId, test.browserId].join(DEFAULT_TITLE_DELIMITER);
+            const browser = tree.browsers.byId[browserId];
+            scope.browsers.add(browserId);
+
+            for (const resultId of browser?.resultIds ?? []) {
+                scope.results.add(resultId);
+                tree.results.byId[resultId]?.imageIds.forEach(imageId => scope.images.add(imageId));
+            }
+        }
+    }
+
+    private _setCollection(collection: TestCollectionAdapter): void {
+        this._collection = collection;
+        this._collectionNeedsFullRead = false;
+        this._testsByFile.clear();
+        this._testFileBySpec.clear();
+
+        for (const test of collection.tests) {
+            if (!test.file) {
+                continue;
+            }
+            const testFile = path.resolve(test.file);
+            const tests = this._testsByFile.get(testFile) ?? [];
+
+            tests.push(test);
+            this._testsByFile.set(testFile, tests);
+            this._testFileBySpec.set(this._getTestSpecKey(test.browserId, test.fullName), testFile);
+        }
+    }
+
+    private _getTestsAfterReplacement(affectedFiles: Set<string>, testsToAdd: TestAdapter[]): TestAdapter[] {
+        const testsToRemove = new Set([...affectedFiles].flatMap(file => this._testsByFile.get(file) ?? []));
+
+        return [
+            ...this._ensureTestCollection().tests.filter(test => !testsToRemove.has(test)),
+            ...testsToAdd
+        ];
+    }
+
+    private _replaceTestsInCollection(affectedFiles: Set<string>, testsToAdd: TestAdapter[], nextTests: TestAdapter[]): void {
+        for (const affectedFile of affectedFiles) {
+            for (const test of this._testsByFile.get(affectedFile) ?? []) {
+                this._testFileBySpec.delete(this._getTestSpecKey(test.browserId, test.fullName));
+            }
+            this._testsByFile.delete(affectedFile);
+        }
+
+        for (const test of testsToAdd) {
+            if (!test.file) {
+                continue;
+            }
+
+            const testFile = path.resolve(test.file);
+            const tests = this._testsByFile.get(testFile) ?? [];
+
+            tests.push(test);
+            this._testsByFile.set(testFile, tests);
+            this._testFileBySpec.set(this._getTestSpecKey(test.browserId, test.fullName), testFile);
+        }
+
+        this._collection = {tests: nextTests};
+        this._collectionNeedsFullRead = true;
+    }
+
+    private _validateChangedTestsUnique(affectedFiles: Set<string>, tests: TestAdapter[]): void {
+        const changedTestsByFullName = new Map<string, TestAdapter>();
+
+        for (const test of tests) {
+            const key = this._getTestSpecKey(test.browserId, test.fullName);
+            const duplicate = changedTestsByFullName.get(key);
+            const existingFile = this._testFileBySpec.get(key);
+
+            if (duplicate) {
+                throw this._createDuplicateTestError(test.fullName, duplicate.file, test.file);
+            }
+            if (existingFile && !affectedFiles.has(existingFile)) {
+                throw this._createDuplicateTestError(test.fullName, existingFile, test.file);
+            }
+
+            changedTestsByFullName.set(key, test);
+        }
+    }
+
+    private _validateUniqueFullNames(tests: TestAdapter[]): void {
+        const testsByFullName = new Map<string, TestAdapter>();
+
+        for (const test of tests) {
+            const key = this._getTestSpecKey(test.browserId, test.fullName);
+            const duplicate = testsByFullName.get(key);
+
+            if (duplicate) {
+                throw this._createDuplicateTestError(test.fullName, duplicate.file, test.file);
+            }
+            testsByFullName.set(key, test);
+        }
+    }
+
+    private _createDuplicateTestError(fullName: string, firstFile: string, secondFile: string): Error {
+        return new Error(`Tests with the same title '${fullName}' in files '${path.relative(process.cwd(), firstFile)}' and '${path.relative(process.cwd(), secondFile)}' can't be used`);
+    }
+
+    private _getTestSpecKey(browserId: string, fullName: string): string {
+        return JSON.stringify([browserId, fullName]);
     }
 
     protected _ensureReportBuilder(): GuiReportBuilder {
@@ -353,7 +699,20 @@ export class ToolRunner {
     }
 
     async run(tests: TestSpec[] = [], runParams: RunParams = {retry: true}): Promise<boolean> {
-        const testCollection = this._ensureTestCollection();
+        let testCollection = this._ensureTestCollection();
+
+        if (this._collectionNeedsFullRead) {
+            const selectedTestFiles = tests.length
+                ? _.uniq(tests.map(test => this._testFileBySpec.get(this._getTestSpecKey(test.browserName, test.testName))).filter((file): file is string => Boolean(file)))
+                : this._testFiles;
+            const testFiles = tests.length && !selectedTestFiles.length ? this._testFiles : selectedTestFiles;
+
+            testCollection = await this._toolAdapter.readTests(testFiles, this._globalOpts);
+            if (!tests.length) {
+                this._setCollection(testCollection);
+            }
+        }
+
         const shouldRunAllTests = _.isEmpty(tests);
 
         // if tests are not passed, then run all tests with all available retries
@@ -364,10 +723,15 @@ export class ToolRunner {
     }
 
     protected async _handleRunnableCollection(): Promise<void> {
+        await this._addTestsToTree(this._ensureTestCollection().tests);
+        await this._fillTestsTree();
+    }
+
+    private async _addTestsToTree(tests: TestAdapter[]): Promise<void> {
         const reportBuilder = this._ensureReportBuilder();
         const queue = new PQueue({concurrency: os.cpus().length});
 
-        for (const test of this._ensureTestCollection().tests) {
+        for (const test of tests) {
             if (test.disabled || test.silentlySkipped) {
                 continue;
             }
@@ -375,6 +739,12 @@ export class ToolRunner {
             // TODO: remove toString after publish major version
             const testId = formatId(test.id.toString(), test.browserId);
             this._testAdapters[testId] = test;
+            if (test.file) {
+                const testFile = path.resolve(test.file);
+                const adapterIds = this._testAdapterIdsByFile.get(testFile) ?? new Set<string>();
+                adapterIds.add(testId);
+                this._testAdapterIdsByFile.set(testFile, adapterIds);
+            }
 
             if (test.pending) {
                 queue.add(async () => reportBuilder.addTestResult(test.createTestResult({status: SKIPPED, duration: 0})));
@@ -384,7 +754,6 @@ export class ToolRunner {
         }
 
         await queue.onIdle();
-        await this._fillTestsTree();
     }
 
     protected _getTestAdapterById(updateData: TestRefUpdateData): TestAdapter {
