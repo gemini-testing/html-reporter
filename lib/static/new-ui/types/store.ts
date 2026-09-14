@@ -354,7 +354,10 @@ export interface State {
     repeatLeft: number;
     processing: boolean;
     gui: boolean;
-    apiValues: HtmlReporterValues;
+    apiValues: HtmlReporterValues & {
+        toolConfig?: Record<string, unknown>;
+        toolConfigPath?: string;
+    };
     config: StoreReporterConfig;
     staticImageAccepter: {
         enabled: boolean;
