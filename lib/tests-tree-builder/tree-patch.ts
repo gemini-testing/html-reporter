@@ -7,11 +7,6 @@ export interface TreeCollectionPatch<T> {
 }
 
 export interface TreePatch {
-    performance?: {
-        id: number;
-        serverStartedAt: number;
-        serverCompletedAt: number;
-    };
     affectedRootIds: string[];
     affectedSuiteIds: string[];
     suites: TreeCollectionPatch<TreeSuite> & {

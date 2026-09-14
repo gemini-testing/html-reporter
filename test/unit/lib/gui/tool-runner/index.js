@@ -458,7 +458,7 @@ describe('lib/gui/tool-runner/index', () => {
             const onUpdated = sandbox.stub();
 
             await gui.initialize();
-            await gui.refreshTestsIfChanged([changedFile], [], onChanged, onUpdated, 1);
+            await gui.refreshTestsIfChanged([changedFile], [], onChanged, onUpdated);
 
             assert.callCount(toolAdapter.readTests, 2);
             assert.calledOnceWith(onChanged, true);
@@ -490,7 +490,7 @@ describe('lib/gui/tool-runner/index', () => {
             const onUpdated = sandbox.stub();
 
             await gui.initialize();
-            await gui.refreshTestsIfChanged([focusedFile], [], onChanged, onUpdated, 1);
+            await gui.refreshTestsIfChanged([focusedFile], [], onChanged, onUpdated);
 
             assert.callCount(toolAdapter.readTests, 3);
             assert.deepEqual(toolAdapter.readTests.secondCall.args[0], [focusedFile]);
@@ -521,7 +521,7 @@ describe('lib/gui/tool-runner/index', () => {
             const onUpdated = sandbox.stub();
 
             await gui.initialize();
-            await gui.refreshTestsIfChanged([focusedFile], [], onChanged, onUpdated, 1);
+            await gui.refreshTestsIfChanged([focusedFile], [], onChanged, onUpdated);
 
             assert.callCount(toolAdapter.readTests, 2);
             assert.deepEqual(toolAdapter.readTests.secondCall.args[0], ['tests/**/*.ts']);
@@ -557,7 +557,7 @@ describe('lib/gui/tool-runner/index', () => {
             const onUpdated = sandbox.stub();
 
             await gui.initialize();
-            await gui.refreshTestsIfChanged([focusedFile], [], onChanged, onUpdated, 1);
+            await gui.refreshTestsIfChanged([focusedFile], [], onChanged, onUpdated);
 
             assert.callCount(toolAdapter.readTests, 3);
             assert.calledOnceWith(onChanged, true);
@@ -588,7 +588,7 @@ describe('lib/gui/tool-runner/index', () => {
             const onUpdated = sandbox.stub();
 
             await gui.initialize();
-            await gui.refreshTestsIfChanged([changedFile], [], onChanged, onUpdated, 1);
+            await gui.refreshTestsIfChanged([changedFile], [], onChanged, onUpdated);
 
             assert.callCount(toolAdapter.readTests, 2);
             assert.calledOnceWith(onChanged, true);
@@ -607,7 +607,7 @@ describe('lib/gui/tool-runner/index', () => {
             const gui = initGuiReporter({toolAdapter});
 
             await gui.initialize();
-            await gui.refreshTestsIfChanged([changedFile], [], sandbox.stub(), sandbox.stub(), 1);
+            await gui.refreshTestsIfChanged([changedFile], [], sandbox.stub(), sandbox.stub());
             await gui.run([{testName: 'same test', browserName: 'yabro'}]);
 
             assert.callCount(toolAdapter.readTests, 3);
@@ -633,13 +633,13 @@ describe('lib/gui/tool-runner/index', () => {
                 const onChanged = sandbox.stub();
 
                 await gui.initialize();
-                await gui.refreshTestsIfChanged([changedFile], [], onChanged, sandbox.stub(), 1);
+                await gui.refreshTestsIfChanged([changedFile], [], onChanged, sandbox.stub());
 
                 assert.calledOnceWith(onChanged, true);
             });
         });
 
-        it('should keep current idle state after removing pending from a test with skipped history', async () => {
+        it('should not add idle attempt after restoring history for active test', async () => {
             const changedFile = '/ref/cwd/changed.hermione.ts';
             const skippedTest = mkTestAdapter_(stubTest_({file: changedFile, browserId: 'yabro', pending: true}));
             const activeTest = mkTestAdapter_(stubTest_({file: changedFile, browserId: 'yabro', pending: false}));
@@ -653,16 +653,21 @@ describe('lib/gui/tool-runner/index', () => {
             toolAdapter.readTests.onSecondCall().resolves({tests: [activeTest]});
             sandbox.stub(fs, 'pathExists').withArgs(changedFile).resolves(true);
             sandbox.stub(reportBuilder, 'testsTree').get(() => tree);
-            reportBuilder.restoreTestHistory.returns(true);
             const gui = initGuiReporter({toolAdapter});
 
             await gui.initialize();
             reportBuilder.addTestResult.resetHistory();
-            await gui.refreshTestsIfChanged([changedFile], [], sandbox.stub(), sandbox.stub(), 1);
+            await gui.refreshTestsIfChanged([changedFile], [], sandbox.stub(), sandbox.stub());
 
-            assert.calledTwice(reportBuilder.addTestResult);
+            assert.calledOnce(reportBuilder.addTestResult);
             assert.equal(reportBuilder.addTestResult.firstCall.args[0].status, IDLE);
-            assert.equal(reportBuilder.addTestResult.secondCall.args[0].status, IDLE);
+            assert.calledOnceWith(reportBuilder.restoreTestHistory, [{
+                suitePath: activeTest.titlePath,
+                browserId: activeTest.browserId
+            }], {excludeSkipped: [{
+                suitePath: activeTest.titlePath,
+                browserId: activeTest.browserId
+            }]});
         });
 
         it('should reject a duplicate full name introduced by a partial read', async () => {
@@ -679,7 +684,7 @@ describe('lib/gui/tool-runner/index', () => {
             await gui.initialize();
 
             await assert.isRejected(
-                gui.refreshTestsIfChanged([changedFile], [], sandbox.stub(), sandbox.stub(), 1),
+                gui.refreshTestsIfChanged([changedFile], [], sandbox.stub(), sandbox.stub()),
                 /Tests with the same title 'duplicate'/
             );
             assert.notCalled(reportBuilder.removeTestsByFiles);
@@ -707,7 +712,7 @@ describe('lib/gui/tool-runner/index', () => {
             await gui.initialize();
 
             await assert.isRejected(
-                gui.refreshTestsIfChanged([changedFile], [], sandbox.stub(), sandbox.stub(), 1),
+                gui.refreshTestsIfChanged([changedFile], [], sandbox.stub(), sandbox.stub()),
                 /history failed/
             );
             assert.calledOnceWith(reportBuilder.restoreTestsState, snapshot);

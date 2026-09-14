@@ -21,7 +21,6 @@ import {refreshSearch, search} from '@/static/modules/search';
 
 const rootEl = document.getElementById('app') as HTMLDivElement;
 const root = createRoot(rootEl);
-const watchRefreshStartedAt = new Map<number, number>();
 
 function Gui(): ReactNode {
     const eventSource = useEventSource();
@@ -71,33 +70,16 @@ function Gui(): ReactNode {
             store.dispatch(setRepeatLeft(data.repeatLeft));
         });
 
-        eventSource.addEventListener(ClientEvents.TESTS_REFRESH_STARTED, (e) => {
-            const {performanceId} = JSON.parse(e.data) as {performanceId: number};
-            watchRefreshStartedAt.set(performanceId, performance.now());
-            console.info(`[watch-perf][client][#${performanceId}] refresh event started`);
+        eventSource.addEventListener(ClientEvents.TESTS_REFRESH_STARTED, () => {
             flushSync(() => {
                 store.dispatch(setRefreshLoading(true));
             });
         });
 
         eventSource.addEventListener(ClientEvents.TESTS_REFRESHED, async (e) => {
-            const handlerStartedAt = performance.now();
-            let performanceId: number | string = '?';
             try {
-                const parseStartedAt = performance.now();
                 const data = JSON.parse(e.data);
-                performanceId = data?.performance?.id ?? '?';
-                console.info(`[watch-perf][client][#${performanceId}] JSON.parse: ${(performance.now() - parseStartedAt).toFixed(1)}ms`, {
-                    payloadCharacters: e.data.length,
-                    serverToClient: data?.performance?.serverCompletedAt
-                        ? `${Date.now() - data.performance.serverCompletedAt}ms`
-                        : 'unknown',
-                    serverRefreshStartToClient: data?.performance?.serverStartedAt
-                        ? `${Date.now() - data.performance.serverStartedAt}ms`
-                        : 'unknown'
-                });
                 if (data) {
-                    const dispatchStartedAt = performance.now();
                     if (data.replacement) {
                         const {db} = store.getState();
 
@@ -105,7 +87,6 @@ function Gui(): ReactNode {
                     } else {
                         store.dispatch(patchTestsTree(data));
                     }
-                    console.info(`[watch-perf][client][#${performanceId}] Redux dispatch including selectors: ${(performance.now() - dispatchStartedAt).toFixed(1)}ms`);
 
                     const getSearchOptions = (): {text: string; matchCase: boolean; useRegexFilter: boolean} => {
                         const {app: filters} = store.getState();
@@ -126,31 +107,16 @@ function Gui(): ReactNode {
                             store.getState().tree,
                             data,
                             getSearchOptions,
-                            store.dispatch,
-                            typeof performanceId === 'number' ? performanceId : undefined
+                            store.dispatch
                         );
                     }
                 }
             } finally {
-                console.info(`[watch-perf][client][#${performanceId}] refreshed handler total: ${(performance.now() - handlerStartedAt).toFixed(1)}ms`);
-
-                if (typeof performanceId === 'number') {
-                    const clientStartedAt = watchRefreshStartedAt.get(performanceId);
-                    if (clientStartedAt !== undefined) {
-                        console.info(`[watch-perf][client][#${performanceId}] from refresh-start event to completed handler: ${(performance.now() - clientStartedAt).toFixed(1)}ms`);
-                    }
-                    watchRefreshStartedAt.delete(performanceId);
-                }
                 store.dispatch(setRefreshLoading(false));
-
-                requestAnimationFrame(() => requestAnimationFrame(() => {
-                    console.info(`[watch-perf][client][#${performanceId}] event handler + React render + next paint: ${(performance.now() - handlerStartedAt).toFixed(1)}ms`);
-                }));
             }
         });
 
         eventSource.addEventListener(ClientEvents.TESTS_REFRESH_FAILED, () => {
-            watchRefreshStartedAt.clear();
             store.dispatch(setRefreshLoading(false));
         });
     };

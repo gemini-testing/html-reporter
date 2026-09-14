@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import {StaticReportBuilder, StaticReportBuilderOptions} from './static';
 import {GuiTestsTreeBuilder, GuiTestsTreeBuilderState, TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../tests-tree-builder/gui';
-import {UPDATED, DB_COLUMNS, TestStatus, DEFAULT_TITLE_DELIMITER, SKIPPED, SUCCESS} from '../constants';
+import {UPDATED, DB_COLUMNS, DB_COLUMN_INDEXES, TestStatus, DEFAULT_TITLE_DELIMITER, SKIPPED, SUCCESS} from '../constants';
 import {ConfigForStaticFile, getConfigForStaticFile} from '../server-utils';
 import {ReporterTestResult} from '../adapters/test-result';
 import {Tree, TreeImage} from '../tests-tree-builder/base';
@@ -57,6 +57,28 @@ export class GuiReportBuilder extends StaticReportBuilder {
 
     reuseTestsTree(tree: Tree, options?: {replaceCurrentResults?: boolean}): void {
         this._testsTree.reuseTestsTree(tree, options);
+
+        if (options?.replaceCurrentResults) {
+            for (const browserId of tree.browsers.allIds) {
+                const browser = this._testsTree.tree.browsers.byId[browserId];
+
+                if (!browser) {
+                    continue;
+                }
+
+                const suitePath = this._testsTree.tree.suites.byId[browser.parentId].suitePath;
+                const statuses = browser.resultIds
+                    .filter(Boolean)
+                    .map(resultId => this._testsTree.tree.results.byId[resultId].status);
+
+                this._testAttemptManager.replaceAttempts({
+                    fullName: suitePath.join(DEFAULT_TITLE_DELIMITER),
+                    browserId: browser.name
+                }, statuses);
+            }
+
+            return;
+        }
 
         // Fill test attempt manager with data from db
         for (const [, testResult] of Object.entries(tree.results.byId)) {
@@ -131,8 +153,15 @@ export class GuiReportBuilder extends StaticReportBuilder {
         this._testsTree.sortBranches(suiteIds);
     }
 
-    restoreTestHistory(tests: TestHistorySpec[]): boolean {
-        const rows = this._dbClient.getSuitesByTests(tests);
+    restoreTestHistory(tests: TestHistorySpec[], {excludeSkipped = []}: {excludeSkipped?: TestHistorySpec[]} = {}): boolean {
+        const excludedSkippedTests = new Set(excludeSkipped.map(({suitePath, browserId}) =>
+            `${JSON.stringify(suitePath)}\0${browserId}`));
+        const rows = this._dbClient.getSuitesByTests(tests).filter(row => {
+            const key = `${row[DB_COLUMN_INDEXES.suitePath]}\0${row[DB_COLUMN_INDEXES.name]}`;
+
+            return row[DB_COLUMN_INDEXES.status] !== SKIPPED || !excludedSkippedTests.has(key);
+        });
+
         if (!rows.length) {
             return false;
         }

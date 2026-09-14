@@ -82,19 +82,6 @@ const reuseUnaffectedNodes = (newNodes: TreeNode[], previousNodes: TreeNode[], t
 export const getSuitesTreeViewData = createSelector(
     [getGroups, getSuites, getAllRootGroupIds, getBrowsers, getBrowsersState, getResults, getImages, getTreeViewMode, getSortTestsData, getBrowsersList, getLastTreePatch],
     (groups, suites, rootGroupIds, browsers, browsersState, results, images, treeViewMode, sortTestsData, browsersList, treePatch): TreeViewData => {
-        const selectorStartedAt = performance.now();
-        const shouldMeasure = Boolean(treePatch && treePatch !== previousTreePatch);
-        const performanceId = treePatch?.performance?.id ?? '?';
-        const logStage = (operation: string, startedAt: number, details?: Record<string, unknown>): void => {
-            if (!shouldMeasure) {
-                return;
-            }
-
-            console.info(
-                `[watch-perf][client][#${performanceId}][selector] ${operation}: ${(performance.now() - startedAt).toFixed(1)}ms`,
-                details ?? ''
-            );
-        };
         const currentSortDirection = sortTestsData.currentDirection;
         const currentSortExpression = sortTestsData.availableExpressions
             .find(expr => expr.id === sortTestsData.currentExpressionIds[0])
@@ -112,20 +99,15 @@ export const getSuitesTreeViewData = createSelector(
             treeViewMode === TreeViewMode.Tree &&
             currentSortExpression.type === SortType.ByName
         ) {
-            let stageStartedAt = performance.now();
             const affectedRootIds = new Set(treePatch.affectedRootIds);
             const unaffectedTreeNodes = previousTreeViewData.tree.filter(node => !affectedRootIds.has(node.data.entityId));
             const affectedBrowserIds = collectRootBrowserIds(treePatch.affectedRootIds, suites);
             const affectedBrowsers = affectedBrowserIds
                 .filter(browserId => browsersState[browserId]?.shouldBeShown)
                 .map(browserId => browsers[browserId]);
-            logStage('collect affected branch', stageStartedAt, {roots: affectedRootIds.size, browsers: affectedBrowsers.length});
 
-            stageStartedAt = performance.now();
             const affectedTreeRoot = buildTreeBottomUp(entitiesContext, affectedBrowsers);
-            logStage('build affected branch', stageStartedAt);
 
-            stageStartedAt = performance.now();
             const affectedTreeNodes = reuseUnaffectedNodes(
                 sortTreeNodes(entitiesContext, affectedTreeRoot.children ?? []),
                 previousTreeViewData.tree,
@@ -136,21 +118,16 @@ export const getSuitesTreeViewData = createSelector(
                 ...unaffectedTreeNodes,
                 ...affectedTreeNodes
             ].sort((a, b) => a.data.title.join(' ').localeCompare(b.data.title.join(' ')) * direction);
-            logStage('sort branch and reuse unchanged nodes', stageStartedAt);
 
-            stageStartedAt = performance.now();
             const {allTreeNodeIds, visibleTreeNodeIds} = collectTreeLeafIds(treeNodes);
-            logStage('collect derived tree ids', stageStartedAt, {all: allTreeNodeIds.length, visible: visibleTreeNodeIds.length});
 
             previousTreePatch = treePatch;
             previousTreeViewData = {tree: treeNodes, allTreeNodeIds, visibleTreeNodeIds};
-            logStage('incremental selector total', selectorStartedAt);
 
             return previousTreeViewData;
         }
 
         if (isGroupingEnabled) {
-            const fullBuildStartedAt = performance.now();
             const treeNodes = rootGroupIds
                 .map(rootId => {
                     const groupEntity = groups[rootId];
@@ -176,13 +153,10 @@ export const getSuitesTreeViewData = createSelector(
                 allTreeNodeIds,
                 visibleTreeNodeIds
             };
-            logStage('full grouped tree rebuild', fullBuildStartedAt, {all: allTreeNodeIds.length, visible: visibleTreeNodeIds.length});
-            logStage('selector total', selectorStartedAt);
 
             return previousTreeViewData;
         }
 
-        const fullBuildStartedAt = performance.now();
         const suitesTreeRoot = buildTreeBottomUp(entitiesContext, Object.values(browsers).filter(browser => browsersState[browser.id].shouldBeShown));
         suitesTreeRoot.children = sortTreeNodes(entitiesContext, suitesTreeRoot.children ?? []);
         const {allTreeNodeIds, visibleTreeNodeIds} = collectTreeLeafIds([suitesTreeRoot]);
@@ -193,8 +167,6 @@ export const getSuitesTreeViewData = createSelector(
             visibleTreeNodeIds,
             tree: suitesTreeRoot.children ?? []
         };
-        logStage('full tree rebuild', fullBuildStartedAt, {all: allTreeNodeIds.length, visible: visibleTreeNodeIds.length});
-        logStage('selector total', selectorStartedAt);
 
         return previousTreeViewData;
     });

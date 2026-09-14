@@ -2,7 +2,6 @@ export type SearchWorkerRequest = {
     type: 'init';
     requestId: number;
     data: Record<string, string[]>;
-    performanceId?: number;
 } | {
     type: 'patch';
     requestId: number;
@@ -10,7 +9,6 @@ export type SearchWorkerRequest = {
         removeIds: string[];
         idTagMap: Record<string, string[]>;
     };
-    performanceId?: number;
 } | {
     type: 'search';
     requestId: number;

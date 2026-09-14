@@ -62,10 +62,9 @@ export class App {
         changedFiles: string[],
         removedDirectories: string[],
         onChanged: (changed: boolean) => void,
-        onUpdated: (update: TestsTreeUpdate) => void,
-        performanceId: number
+        onUpdated: (update: TestsTreeUpdate) => void
     ): Promise<void> {
-        return this._toolRunner.refreshTestsIfChanged(changedFiles, removedDirectories, onChanged, onUpdated, performanceId);
+        return this._toolRunner.refreshTestsIfChanged(changedFiles, removedDirectories, onChanged, onUpdated);
     }
 
     addClient(connection: Response): void {

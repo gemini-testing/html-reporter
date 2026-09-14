@@ -48,6 +48,16 @@ export class TestAttemptManager {
         return Math.max(data.statuses.length - 1, 0);
     }
 
+    replaceAttempts(testResult: TestSpec, statuses: TestStatus[]): void {
+        const hash = this._getHash(testResult);
+
+        if (statuses.length) {
+            this._attempts.set(hash, {statuses: [...statuses]});
+        } else {
+            this._attempts.delete(hash);
+        }
+    }
+
     snapshot(testSpecs: Iterable<TestSpec>): TestAttemptManagerSnapshot {
         const snapshot: TestAttemptManagerSnapshot = new Map();
 

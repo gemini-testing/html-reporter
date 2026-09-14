@@ -77,18 +77,11 @@ const search = (testNameFilter: string, matchCase = false): string[] => {
 self.onmessage = (event: MessageEvent<SearchWorkerRequest>): void => {
     switch (event.data.type) {
         case 'init': {
-            const startedAt = performance.now();
             initSearch(event.data.data);
-            if (event.data.performanceId !== undefined) {
-                console.info(`[watch-perf][client][#${event.data.performanceId}][search worker] rebuild index: ${(performance.now() - startedAt).toFixed(1)}ms`, {
-                    items: Object.keys(event.data.data).length
-                });
-            }
             self.postMessage({type: 'ready', requestId: event.data.requestId} satisfies SearchWorkerResponse);
             break;
         }
         case 'patch': {
-            const startedAt = performance.now();
             const removeIds = new Set(event.data.data.removeIds);
             const preparedItems = Object.entries(event.data.data.idTagMap).map(([title, tags]) => ({
                 title,
@@ -102,12 +95,6 @@ self.onmessage = (event: MessageEvent<SearchWorkerRequest>): void => {
                 fuseMatchCase.add(item);
             });
 
-            if (event.data.performanceId !== undefined) {
-                console.info(`[watch-perf][client][#${event.data.performanceId}][search worker] patch index: ${(performance.now() - startedAt).toFixed(1)}ms`, {
-                    removed: removeIds.size,
-                    upserted: preparedItems.length
-                });
-            }
             self.postMessage({type: 'patched', requestId: event.data.requestId} satisfies SearchWorkerResponse);
             break;
         }

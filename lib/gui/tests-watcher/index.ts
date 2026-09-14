@@ -1,5 +1,4 @@
 import path from 'node:path';
-import {performance} from 'node:perf_hooks';
 
 import chokidar from 'chokidar';
 
@@ -13,8 +12,7 @@ interface RefreshTarget {
         changedFiles: string[],
         removedDirectories: string[],
         onChanged: (changed: boolean) => void,
-        onUpdated: (update: TestsTreeUpdate) => void,
-        performanceId: number
+        onUpdated: (update: TestsTreeUpdate) => void
     ): Promise<void>;
     sendClientEvent(event: string, data: unknown): void;
 }
@@ -37,8 +35,6 @@ export class TestsWatcher {
     private _debounceFiles = new Set<string>();
     private _debounceRemovedDirectories = new Set<string>();
     private _refreshTimer?: NodeJS.Timeout;
-    private _refreshSequence = 0;
-    private _firstDebouncedEventAt?: number;
 
     static create(options: TestsWatcherOptions): TestsWatcher {
         return new TestsWatcher(options);
@@ -92,10 +88,6 @@ export class TestsWatcher {
     }
 
     private _queueFileSystemEvent = (event: string, changedFile: string): void => {
-        logger.log(`[watch-perf][server] chokidar event ${JSON.stringify({event, path: changedFile})}`);
-        if (this._debounceFiles.size === 0) {
-            this._firstDebouncedEventAt = performance.now();
-        }
         this._debounceFiles.add(changedFile);
         if (event === 'unlinkDir') {
             this._debounceRemovedDirectories.add(changedFile);
@@ -105,8 +97,6 @@ export class TestsWatcher {
         }
         this._refreshTimer = setTimeout(() => {
             this._refreshTimer = undefined;
-            logger.log(`[watch-perf][server] chokidar debounce: ${this._firstDebouncedEventAt === undefined ? 0 : (performance.now() - this._firstDebouncedEventAt).toFixed(1)}ms ${JSON.stringify({events: this._debounceFiles.size})}`);
-            this._firstDebouncedEventAt = undefined;
             const changedFiles = [...this._debounceFiles];
             const removedDirectories = [...this._debounceRemovedDirectories];
             this._debounceFiles.clear();
@@ -126,36 +116,24 @@ export class TestsWatcher {
         this._refreshInProgress = true;
         try {
             while (this._queuedFiles.size) {
-                const refreshId = ++this._refreshSequence;
-                const serverStartedAt = Date.now();
-                const refreshStartedAt = performance.now();
                 const files = [...this._queuedFiles];
                 const removedDirs = [...this._queuedRemovedDirectories];
                 this._queuedFiles.clear();
                 this._queuedRemovedDirectories.clear();
                 let changed = false;
                 let treeUpdate: TestsTreeUpdate | undefined;
-                logger.log(`[watch-perf][server][#${refreshId}] refresh started ${JSON.stringify({files: files.length, removedDirectories: removedDirs.length})}`);
                 await this._app.refreshTestsIfChanged(files, removedDirs, (hasChanges) => {
                     changed = hasChanges;
                     if (hasChanges) {
-                        this._app.sendClientEvent(ClientEvents.TESTS_REFRESH_STARTED, {performanceId: refreshId});
+                        this._app.sendClientEvent(ClientEvents.TESTS_REFRESH_STARTED, undefined);
                     }
                 }, (update) => {
                     treeUpdate = update;
-                }, refreshId);
+                });
 
                 if (changed && treeUpdate) {
-                    treeUpdate.performance = {
-                        id: refreshId,
-                        serverStartedAt,
-                        serverCompletedAt: Date.now()
-                    };
-                    const sendStartedAt = performance.now();
                     this._app.sendClientEvent(ClientEvents.TESTS_REFRESHED, treeUpdate);
-                    logger.log(`[watch-perf][server][#${refreshId}] serialize/write SSE: ${(performance.now() - sendStartedAt).toFixed(1)}ms`);
                 }
-                logger.log(`[watch-perf][server][#${refreshId}] refresh loop total: ${(performance.now() - refreshStartedAt).toFixed(1)}ms ${JSON.stringify({changed})}`);
             }
         } catch (error) {
             this._app.sendClientEvent(ClientEvents.TESTS_REFRESH_FAILED, undefined);

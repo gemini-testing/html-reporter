@@ -44,7 +44,7 @@ const getResultTags = (result: Tree['results']['byId'][string]): string[] => {
     return tagsAttachment ? tagsAttachment.list.map(tag => tag.title) : [];
 };
 
-export const initSearch = (tree: Tree, performanceId?: number): Promise<void> => {
+export const initSearch = (tree: Tree): Promise<void> => {
     const list = tree.results.allIds;
 
     const idTagMap: Record<string, string[]> = {};
@@ -69,19 +69,19 @@ export const initSearch = (tree: Tree, performanceId?: number): Promise<void> =>
         worker.onerror = handleWorkerError;
         const requestId = ++nextRequestId;
 
-        return waitForUpdate({type: 'init', requestId, data: idTagMap, performanceId});
+        return waitForUpdate({type: 'init', requestId, data: idTagMap});
     }
 
     return Promise.resolve();
 };
 
-export const patchSearch = (tree: Tree, patch: TreePatch, performanceId?: number): Promise<void> => {
+export const patchSearch = (tree: Tree, patch: TreePatch): Promise<void> => {
     if (typeof Worker === 'undefined') {
         return Promise.resolve();
     }
 
     if (!worker) {
-        return initSearch(tree, performanceId);
+        return initSearch(tree);
     }
 
     const affectedBrowserIds = new Set([
@@ -108,8 +108,7 @@ export const patchSearch = (tree: Tree, patch: TreePatch, performanceId?: number
         data: {
             removeIds: [...patch.browsers.removedIds, ...affectedBrowserIds],
             idTagMap
-        },
-        performanceId
+        }
     });
 };
 
@@ -182,10 +181,9 @@ export const refreshSearch = async (
     tree: Tree,
     patch: TreePatch,
     getOptions: () => SearchOptions,
-    dispatch: (action: unknown) => void,
-    performanceId?: number
+    dispatch: (action: unknown) => void
 ): Promise<void> => {
-    await patchSearch(tree, patch, performanceId);
+    await patchSearch(tree, patch);
     const {text, matchCase, useRegexFilter} = getOptions();
 
     await search(text, matchCase, useRegexFilter, false, dispatch);
