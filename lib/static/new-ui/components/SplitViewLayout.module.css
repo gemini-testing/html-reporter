@@ -2,7 +2,7 @@
     flex-grow: 1;
     display: flex;
     flex-direction: row;
-    padding: 0 10px;
+    padding: 0 10px 0 1px;
     background-color: var(--g-color-base-generic);
 }
 
@@ -35,7 +35,7 @@
 }
 
 .gutter-handle {
-    background: var(--color-devider-handle);
+    background: var(--color-divider-handle);
     height: 40px;
     border-radius: 10px;
     width: 8px;
@@ -44,7 +44,7 @@
 @keyframes gutter-activate {
     100% {
         transform: scale(1.1);
-        background: var(--g-color-line-generic-accent);
+        background: var(--color-neutral-600);
     }
 }
 
@@ -55,14 +55,14 @@
 @keyframes gutter-deactivate {
     0% {
         transform: scale(1.1);
-        background: var(--g-color-line-generic-accent);
+        background: var(--color-neutral-600);
     }
 
     50% { transform: scale(0.9); }
 
     100% {
         transform: scale(1);
-        background: var(--g-color-line-generic-solid);
+        background: var(--color-divider-handle);
     }
 }
 

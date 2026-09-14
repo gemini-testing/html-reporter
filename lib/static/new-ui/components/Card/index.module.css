@@ -1,11 +1,11 @@
 .common-card {
-    border-radius: 10px;
+    border-radius: 14px;
     position: relative;
 }
 
 .wrapper {
     overflow: hidden;
     box-shadow: var(--card-border-shadow);
-    border-radius: 10px;
+    border-radius: 14px;
     height: 100%;
 }

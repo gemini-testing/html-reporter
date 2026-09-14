@@ -8,7 +8,6 @@ import {Hotkey} from '@gravity-ui/uikit';
 import {getIsInitialized} from '@/static/new-ui/store/selectors';
 import {SettingsPanel} from '@/static/new-ui/components/SettingsPanel';
 import {HotkeysPanel} from '@/static/new-ui/components/HotkeysPanel';
-import TestplaneIcon from '../../../icons/testplane-mono.svg';
 import {TreeFull, TreeHide, TreeShow} from './tree-icons';
 import styles from './index.module.css';
 import {Footer} from './Footer';
@@ -20,6 +19,7 @@ import {isSectionHidden} from '@/static/new-ui/features/suites/utils';
 import {setSectionSizes} from '@/static/modules/actions';
 
 import {Page, PathNames} from '@/constants';
+import {TestplaneLogo} from './logo';
 
 export enum PanelId {
     Hotkeys = 'hotkeys',
@@ -163,7 +163,7 @@ export function MainLayout(props: MainLayoutProps): ReactNode {
 
     return <AsideHeader
         className={classNames({'aside-header--initialized': isInitialized})}
-        logo={{text: 'Testplane UI', iconSrc: TestplaneIcon, iconSize: 32, onClick: () => navigate(PathNames.suites)}}
+        logo={{text: 'Testplane UI', icon: TestplaneLogo, iconSize: 32, onClick: () => navigate(PathNames.suites)}}
         compact={true}
         headerDecoration={false}
         menuItems={menuItems}
