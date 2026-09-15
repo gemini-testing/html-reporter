@@ -15,7 +15,8 @@ import {startStaticAccepter} from '@/static/modules/static-accepter-v2';
 import type {
     StaticAccepterProgress,
     StaticAccepterProgressPhase,
-    StaticAccepterResult
+    StaticAccepterResult,
+    StaticAccepterTheme
 } from '@/static/modules/static-accepter-v2';
 
 type StaticAccepterDelayScreenshotPayload = {imageId: string, stateName: string, stateNameImageId: string}[];
@@ -57,7 +58,7 @@ type StaticAccepterPayload = {id: string, stateNameImageId: string, image: strin
 type StaticAccepterCommitScreenshotOptions = Pick<
     StaticAccepterConfig,
     'repositoryUrl' | 'pullRequestUrl' | 'serviceUrl' | 'moduleUrl' | 'axiosRequestOptions' | 'meta'
-> & {message: string};
+> & {message: string; theme?: StaticAccepterTheme};
 
 export interface CommitResult {
     error?: Error;
@@ -103,6 +104,7 @@ export const staticAccepterCommitScreenshot = (
         serviceUrl,
         moduleUrl,
         message,
+        theme = 'light',
         axiosRequestOptions = {},
         meta
     }: StaticAccepterCommitScreenshotOptions
@@ -128,7 +130,7 @@ export const staticAccepterCommitScreenshot = (
                 // This must stay in the synchronous dispatch stack of the trusted click.
                 operation = startStaticAccepter(moduleUrl, imagesInfo, {
                     message,
-                    theme: 'light',
+                    theme,
                     config: {
                         repositoryUrl,
                         pullRequestUrl

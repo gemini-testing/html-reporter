@@ -128,6 +128,22 @@ describe('lib/static/modules/actions/static-accepter', () => {
         await resultPromise;
     });
 
+    it('should pass the selected dark theme to v2', async () => {
+        startStaticAccepter.resolves({status: 'cancelled'});
+
+        await actions.staticAccepterCommitScreenshot(IMAGES, {
+            ...BASE_OPTIONS,
+            theme: 'dark'
+        })(dispatch, sandbox.stub());
+
+        assert.calledWithExactly(
+            startStaticAccepter,
+            MODULE_URL,
+            IMAGES,
+            sinon.match({theme: 'dark'})
+        );
+    });
+
     for (const status of ['submitted', 'suggested'] as const) {
         it(`should mark staged images as committed for a ${status} result`, async () => {
             startStaticAccepter.resolves({status});
