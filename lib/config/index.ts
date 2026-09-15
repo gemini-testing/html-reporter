@@ -5,7 +5,7 @@ import chalk from 'chalk';
 import {logger} from '../common-utils';
 import {configDefaults, DiffModeId, DiffModes, SaveFormat, ViewMode} from '../constants';
 import {assertCustomGui} from './custom-gui-asserts';
-import {GenerateBadges, ErrorPattern, PluginDescription, ReporterConfig, ReporterOptions} from '../types';
+import {SecretConfigFilter, GenerateBadges, ErrorPattern, PluginDescription, ReporterConfig, ReporterOptions} from '../types';
 import {UiMode} from '../constants/local-storage';
 
 const ENV_PREFIX = 'html_reporter_';
@@ -184,6 +184,10 @@ const getParser = (): ReturnType<typeof root<ReporterConfig>> => {
         commandsWithShortHistory: option({
             defaultValue: configDefaults.commandsWithShortHistory,
             validate: assertArrayOf('strings', 'commandsWithShortHistory', _.isString)
+        }),
+        secretConfigFilter: option<SecretConfigFilter | null>({
+            defaultValue: configDefaults.secretConfigFilter,
+            validate: (value) => _.isNull(value) || assertFunction('secretConfigFilter')(value)
         }),
         defaultView: option<ViewMode>({
             defaultValue: configDefaults.defaultView,

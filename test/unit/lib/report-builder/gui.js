@@ -7,6 +7,7 @@ const serverUtils = require('lib/server-utils');
 const {TestplaneTestResultAdapter} = require('lib/adapters/test-result/testplane');
 const {SqliteClient} = require('lib/sqlite-client');
 const {GuiTestsTreeBuilder} = require('lib/tests-tree-builder/gui');
+const {StaticTestsTreeBuilder} = require('lib/tests-tree-builder/static');
 const {HtmlReporter} = require('lib/plugin-api');
 const {FAIL, UPDATED} = require('lib/constants/test-statuses');
 const {LOCAL_DATABASE_NAME} = require('lib/constants/database');
@@ -198,6 +199,42 @@ describe('GuiReportBuilder', () => {
             reportBuilder.setApiValues({key: 'value'});
 
             assert.deepEqual(reportBuilder.getResult().apiValues, {key: 'value'});
+        });
+    });
+
+    describe('"restoreTestHistory" method', () => {
+        const mkRow_ = status => [
+            '["suite","test"]', 'test', 'chrome', '', '{}', '[]', null, null, null, '[]', 0, 0,
+            status, 1, 0, '[]'
+        ];
+        const test = {suitePath: ['suite', 'test'], browserId: 'chrome'};
+
+        it('should exclude skipped history for an active test', async () => {
+            const reportBuilder = await mkGuiReportBuilder_();
+            const successRow = mkRow_(SUCCESS);
+            const skippedRow = mkRow_(SKIPPED);
+            const restoredTree = {browsers: {allIds: []}, results: {byId: {}}};
+            const build = sandbox.stub().returns({tree: restoredTree});
+            sandbox.stub(dbClient, 'getSuitesByTests').returns([successRow, skippedRow]);
+            sandbox.stub(StaticTestsTreeBuilder, 'create').returns({build});
+            sandbox.stub(reportBuilder, 'reuseTestsTree');
+
+            const restored = reportBuilder.restoreTestHistory([test], {excludeSkipped: [test]});
+
+            assert.isTrue(restored);
+            assert.calledOnceWith(build, [successRow]);
+            assert.calledOnceWith(reportBuilder.reuseTestsTree, restoredTree, {replaceCurrentResults: true});
+        });
+
+        it('should keep current idle result when an active test has only skipped history', async () => {
+            const reportBuilder = await mkGuiReportBuilder_();
+            sandbox.stub(dbClient, 'getSuitesByTests').returns([mkRow_(SKIPPED)]);
+            sandbox.stub(reportBuilder, 'reuseTestsTree');
+
+            const restored = reportBuilder.restoreTestHistory([test], {excludeSkipped: [test]});
+
+            assert.isFalse(restored);
+            assert.notCalled(reportBuilder.reuseTestsTree);
         });
     });
 

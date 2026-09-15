@@ -5,6 +5,7 @@
     display: flex;
     justify-content: center;
     align-items: start;
+    background: var(--two-up-mode-background);
 }
 
 .unified-container {
@@ -16,7 +17,7 @@
     pointer-events: none;
     max-height: 100%;
     max-width: 100%;
-    outline: var(--color-neutral-300) solid 1px;
+    outline: var(--two-up-mode-border) solid 1px;
 }
 
 .screenshot-overlay {

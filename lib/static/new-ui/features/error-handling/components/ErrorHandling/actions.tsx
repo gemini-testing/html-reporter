@@ -1,8 +1,8 @@
 import {ArrowsRotateLeft} from '@gravity-ui/icons';
 import {Button, ButtonProps, Icon} from '@gravity-ui/uikit';
 import React, {ReactNode} from 'react';
-import GithubIcon from '../../../../../icons/github-icon.svg';
 import {NEW_ISSUE_LINK} from '@/constants';
+import {GithubIcon} from './github-icon';
 
 type ActionProps = Omit<ButtonProps, 'view' | 'onClick'>;
 
@@ -13,7 +13,7 @@ function reportIssue(): void {
 export function FileIssue(props: ActionProps): ReactNode {
     return <Button {...(props as ButtonProps)} view="outlined" onClick={reportIssue}>
         <Button.Icon>
-            <img src={GithubIcon} alt="icon" width={17} height={17} />
+            <GithubIcon />
         </Button.Icon>
 
         File an issue

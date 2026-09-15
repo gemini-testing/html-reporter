@@ -20,6 +20,7 @@ import type {ToolRunnerTree} from './tool-runner';
 import type {TestplaneConfigAdapter} from '../adapters/config/testplane';
 import type {UpdateTimeTravelSettingsRequest, UpdateTimeTravelSettingsResponse} from '../types';
 import chalk from 'chalk';
+import {TestsWatcher} from './tests-watcher';
 
 interface CustomGuiError {
     response: {
@@ -44,6 +45,7 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
 
     const app = App.create(args);
     const server = express();
+    let stopAll = false;
 
     server.use(bodyParser.json({limit: MAX_REQUEST_SIZE}));
 
@@ -162,12 +164,19 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
 
     server.post('/run', async (req, res) => {
         try {
+            stopAll = false;
             // do not wait for completion so that response does not hang and browser does not restart it by timeout
             // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
             (async () => {
                 const {tests, repeatCount} = req.body;
 
                 for (let i = 0; i < repeatCount; i++) {
+                    if (stopAll) {
+                        stopAll = false;
+                        app.sendClientEvent(ClientEvents.REPEAT_LEFT, {repeatLeft: 0});
+                        break;
+                    }
+
                     await app.run(tests, {retry: repeatCount === 1});
 
                     app.sendClientEvent(ClientEvents.REPEAT_LEFT, {repeatLeft: repeatCount - i - 1});
@@ -269,7 +278,10 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
         }
     });
 
+    let testsWatcher: TestsWatcher | undefined;
+
     onExit(() => {
+        testsWatcher?.close();
         app.finalize();
         logger.log('server shutting down');
     });
@@ -285,6 +297,7 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
 
     server.post('/stop', (_req, res) => {
         try {
+            stopAll = true;
             // pass 0 to prevent terminating testplane process
             toolAdapter.halt(new Error('Tests were stopped by the user'), 0);
             res.sendStatus(OK);
@@ -294,6 +307,15 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
     });
 
     await app.initialize();
+
+    if (args.cli.options.watch && toolAdapter.toolName === ToolName.Testplane) {
+        const plan = toolAdapter.getTestsWatchPlan?.(args.paths, args.cli.tool);
+
+        if (plan) {
+            testsWatcher = TestsWatcher.create({app, plan, reportPath: reporterConfig.path});
+            testsWatcher.start();
+        }
+    }
 
     const {port: requestedPort, hostname} = args.cli.options;
 

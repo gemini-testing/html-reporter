@@ -17,7 +17,7 @@ export interface TreeTestResult extends BaseTreeTestResult {
     attempt: number;
 }
 
-interface TreeBrowser {
+export interface TreeBrowser {
     id: string;
     name: string;
     parentId: string;

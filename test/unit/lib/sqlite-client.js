@@ -78,6 +78,44 @@ describe('lib/sqlite-client', () => {
         });
     });
 
+    it('should read history only for selected tests', async () => {
+        const client = await makeSqliteClient_();
+        const db = client.getRawConnection();
+        const placeholders = Array(16).fill('?').join(', ');
+        const mkRow = (suitePath, browserId, timestamp) => [
+            JSON.stringify(suitePath), suitePath.at(-1), browserId, '', '{}', '[]', null, null,
+            null, '[]', 0, 0, 'success', timestamp, 0, '[]'
+        ];
+
+        db.run(`INSERT INTO suites VALUES (${placeholders})`, mkRow(['suite', 'first'], 'chrome', 2));
+        db.run(`INSERT INTO suites VALUES (${placeholders})`, mkRow(['suite', 'second'], 'chrome', 1));
+        db.run(`INSERT INTO suites VALUES (${placeholders})`, mkRow(['suite', 'first'], 'chrome', 3));
+        db.run(`INSERT INTO suites VALUES (${placeholders})`, mkRow(['suite', 'other'], 'chrome', 0));
+        const prepare = sandbox.spy(db, 'prepare');
+
+        const rows = client.getSuitesByTests([
+            {suitePath: ['suite', 'first'], browserId: 'chrome'},
+            {suitePath: ['suite', 'second'], browserId: 'chrome'}
+        ]);
+
+        assert.lengthOf(rows, 3);
+        assert.equal(rows[0][0], JSON.stringify(['suite', 'second']));
+        assert.equal(rows[0][13], 1);
+        assert.equal(rows[2][13], 3);
+        assert.calledOnceWith(prepare, 'SELECT * FROM suites');
+        client.close();
+    });
+
+    it('should not scan suites when no tests are requested', async () => {
+        const client = await makeSqliteClient_();
+        const db = client.getRawConnection();
+        const prepare = sandbox.spy(db, 'prepare');
+
+        assert.deepEqual(client.getSuitesByTests([]), []);
+        assert.notCalled(prepare);
+        client.close();
+    });
+
     describe('query', () => {
         let getAsObjectStub, prepareStub, freeStub, sqliteClient;
 

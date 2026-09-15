@@ -57,6 +57,20 @@
     --g-button-border-color: var(--color-pink-600);
 }
 
+:global(.g-root_theme_dark) {
+    .attempt-picker-item--fail {
+        --g-button-text-color: var(--color-fuchsia-500);
+        --g-button-background-color: var(--color-fuchsia-950);
+        --g-button-background-color-hover: var(--color-fuchsia-900);
+    }
+
+    .attempt-picker-item--fail_error {
+        --g-button-text-color: var(--color-fuchsia-500);
+        --g-button-background-color: var(--color-fuchsia-950);
+        --g-button-background-color-hover: var(--color-fuchsia-900);
+    }
+}
+
 .attempt-picker-item--non-matched {
     opacity: 0.5;
 }

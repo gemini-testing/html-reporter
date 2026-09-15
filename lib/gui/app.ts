@@ -1,6 +1,6 @@
 import type {Response} from 'express';
 
-import {RunParams, ToolRunner, ToolRunnerTree, UndoAcceptImagesResult} from './tool-runner';
+import {RunParams, TestsTreeUpdate, ToolRunner, ToolRunnerTree, UndoAcceptImagesResult} from './tool-runner';
 import {TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../tests-tree-builder/gui';
 
 import type {ServerArgs} from './index';
@@ -56,6 +56,15 @@ export class App {
     async refreshTests(): Promise<ToolRunnerTree | null> {
         await this._toolRunner.refreshTests();
         return this._toolRunner.tree;
+    }
+
+    async refreshTestsIfChanged(
+        changedFiles: string[],
+        removedDirectories: string[],
+        onChanged: (changed: boolean) => void,
+        onUpdated: (update: TestsTreeUpdate) => void
+    ): Promise<void> {
+        return this._toolRunner.refreshTestsIfChanged(changedFiles, removedDirectories, onChanged, onUpdated);
     }
 
     addClient(connection: Response): void {

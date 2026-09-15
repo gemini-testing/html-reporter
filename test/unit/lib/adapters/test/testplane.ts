@@ -90,6 +90,20 @@ describe('lib/adapters/test/testplane', () => {
         });
     });
 
+    describe('titlePath', () => {
+        it('should preserve suite and test titles containing spaces', () => {
+            const test = mkState({
+                title: 'test title',
+                parent: {
+                    title: 'nested suite',
+                    parent: {title: 'root suite', parent: null}
+                }
+            }) as unknown as Test;
+
+            assert.deepEqual(TestplaneTestAdapter.create(test).titlePath, ['root suite', 'nested suite', 'test title']);
+        });
+    });
+
     describe('createTestResult', () => {
         it('should return testplane test result adapter', () => {
             const testResultAdapter = {} as unknown as TestplaneTestResultAdapter;

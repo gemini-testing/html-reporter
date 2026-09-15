@@ -5,6 +5,7 @@ import React, {ReactNode} from 'react';
 import {useSelector} from 'react-redux';
 
 import {AsidePanel} from '@/static/new-ui/components/AsidePanel';
+import {ConfigSection} from '@/static/new-ui/components/InfoPanel/ConfigSection';
 import {DataSourceItem} from '@/static/new-ui/components/InfoPanel/DataSourceItem';
 import {PanelSection} from '@/static/new-ui/components/PanelSection';
 import styles from './index.module.css';
@@ -13,6 +14,8 @@ import {version} from '../../../../../package.json';
 export function InfoPanel(): ReactNode {
     const isGui = useSelector(state => state.gui);
     const extraItems = Object.entries(useSelector(state => state.apiValues.extraItems));
+    const toolConfig = useSelector(state => state.apiValues.toolConfig);
+    const toolConfigPath = useSelector(state => state.apiValues.toolConfigPath);
 
     const sections: ReactNode[] = [];
 
@@ -28,6 +31,10 @@ export function InfoPanel(): ReactNode {
         title={'Testplane UI v' + version}
         description={<span>To get the most out of Testplane UI, try to keep it updated to the latest version. Check out fresh <a href={'https://github.com/gemini-testing/html-reporter/releases'}>releases on GitHub</a>.</span>}
     />);
+
+    if (toolConfig) {
+        sections.push(<ConfigSection config={toolConfig} configPath={toolConfigPath}/>);
+    }
 
     const timestamp = useSelector(state => state.timestamp);
     const lang = isEmpty(navigator.languages) ? navigator.language : navigator.languages[0];
