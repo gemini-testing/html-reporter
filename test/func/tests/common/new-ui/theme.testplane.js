@@ -2,24 +2,6 @@ if (process.env.TOOL === 'testplane') {
     describe(process.env.TOOL || 'Default', () => {
         describe('New UI', () => {
             describe('Theme', () => {
-                afterEach(async ({browser}) => {
-                    // Reset theme to system default
-                    const settingsMenuItem = await browser.$('[data-qa="footer-item-settings"]');
-                    const panel = await browser.$('[data-qa="aside-panel-title"]');
-                    const isPanelOpen = await panel.isDisplayed().catch(() => false);
-
-                    if (!isPanelOpen) {
-                        await settingsMenuItem.click();
-                        await browser.$('[data-qa="aside-panel-title"]').waitForDisplayed();
-                    }
-
-                    const systemOption = await browser.$('[data-qa="theme-selector"] [value="system"]');
-                    await systemOption.click();
-
-                    await settingsMenuItem.click();
-                    await panel.waitForDisplayed({reverse: true});
-                });
-
                 async function openSettings(browser) {
                     const settingsMenuItem = await browser.$('[data-qa="footer-item-settings"]');
                     await settingsMenuItem.click();
