@@ -18,6 +18,7 @@
     width: 100%;
     height: 100%;
     margin: auto;
+    padding: 20px 20px 0 0; /* TODO: fix this hack, instead adding uniform padding to the card! */
     background: var(--g-color-base-background);
 }
 
@@ -33,7 +34,7 @@
     position: relative;
     width: 100vw;
     height: 1px;
-    background: rgba(0, 0, 0, 0.03);
+    background: var(--g-color-line-generic);
 }
 
 .divider:after, .divider:before {
@@ -47,17 +48,17 @@
             to right,
             transparent 0%,
             transparent 8px,
-            rgba(0, 0, 0, 0.1) 8px, 
-            rgba(0, 0, 0, 0.1) 9px,
+            var(--g-color-line-generic) 8px,
+            var(--g-color-line-generic) 9px,
             transparent 9px,
             transparent 100%
-        ), 
+        ),
         linear-gradient(
             to bottom,
             transparent 0%,
             transparent 8px,
-            rgba(0, 0, 0, 0.1) 8px, 
-            rgba(0, 0, 0, 0.1) 9px,
+            var(--g-color-line-generic) 8px,
+            var(--g-color-line-generic) 9px,
             transparent 9px,
             transparent 100%
         );

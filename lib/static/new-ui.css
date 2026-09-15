@@ -181,6 +181,7 @@ body {
 
 .gn-aside-header {
     --_--vertical-divider-line-color: transparent !important;
+    background-color: var(--color-aside-header-bg) !important;
 }
 
 .gn-aside-header__header:after {
@@ -188,8 +189,7 @@ body {
 }
 
 .gn-aside-header__aside {
-    transform: translateX(-60px);
-
+    opacity: 0;
     animation: aside-header-appear 1s;
     animation-delay: 2s;
     animation-iteration-count: 1;
@@ -197,17 +197,17 @@ body {
 }
 
 .aside-header--initialized .gn-aside-header__aside {
-    transform: none;
+    opacity: 1;
     animation: none;
 }
 
 @keyframes aside-header-appear {
     0% {
-        transform: translateX(-60px);
+        opacity: 0;
     }
 
     100% {
-        transform: translateX(0);
+        opacity: 1;
     }
 }
 
