@@ -115,6 +115,92 @@ describe('PlaywrightTestResultAdapter', () => {
             assert.strictEqual(error?.stack, errorStack);
         });
 
+        ['locator', 'page'].forEach(receiver => {
+            it(`should recognize modern ${receiver} screenshot diffs`, () => {
+                const errors = [{message: `Error: expect(${receiver}).toHaveScreenshot(expected) failed\n\n  Snapshot: state1.png`}];
+                const attachments = [
+                    createAttachment('state1-expected.png'),
+                    createAttachment('state1-diff.png'),
+                    createAttachment('state1-actual.png')
+                ];
+                const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({errors, attachments}), UNKNOWN_ATTEMPT);
+
+                assert.equal(adapter.error?.name, ErrorName.IMAGE_DIFF);
+                assert.equal(adapter.status, FAIL);
+            });
+        });
+
+        it('should not treat screenshot capture failures as acceptable diffs', () => {
+            const errors = [{message: 'Error: expect(locator).toHaveScreenshot(expected) failed\n\n  Snapshot: state1.png'}];
+            const attachments = [createAttachment('state1-actual.png'), createAttachment('state1-previous.png')];
+            const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({errors, attachments}), UNKNOWN_ATTEMPT);
+
+            assert.equal(adapter.error?.name, ErrorName.GENERAL_ERROR);
+            assert.equal(adapter.status, ERROR);
+        });
+
+        it('should match diff attachments to the failing snapshot', () => {
+            const errors = [{message: 'Error: expect(locator).toHaveScreenshot(expected) failed\n\n  Snapshot: state2.png'}];
+            const attachments = [
+                createAttachment('state1-expected.png'),
+                createAttachment('state1-diff.png'),
+                createAttachment('state1-actual.png')
+            ];
+            const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({errors, attachments}), UNKNOWN_ATTEMPT);
+
+            assert.equal(adapter.error?.name, ErrorName.GENERAL_ERROR);
+        });
+
+        it('should recognize an unnamed modern screenshot diff', () => {
+            const errors = [{message: 'Error: expect(page).toHaveScreenshot(expected) failed'}];
+            const attachments = [
+                createAttachment('state1-expected.png'),
+                createAttachment('state1-diff.png'),
+                createAttachment('state1-actual.png')
+            ];
+            const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({errors, attachments}), UNKNOWN_ATTEMPT);
+
+            assert.equal(adapter.error?.name, ErrorName.IMAGE_DIFF);
+        });
+
+        it('should recognize modern screenshot diffs with ANSI formatting', () => {
+            const errors = [{message: 'Error: \u001b[31mexpect(page).toHaveScreenshot(expected)\u001b[39m failed\n\n  Snapshot: state1.png'}];
+            const attachments = [
+                createAttachment('state1-expected.png'),
+                createAttachment('state1-diff.png'),
+                createAttachment('state1-actual.png')
+            ];
+            const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({errors, attachments}), UNKNOWN_ATTEMPT);
+
+            assert.equal(adapter.error?.name, ErrorName.IMAGE_DIFF);
+        });
+
+        it('should recognize multiple named soft screenshot diffs', () => {
+            const errors = ['state1', 'state2'].map(state => ({
+                message: `Error: expect(locator).toHaveScreenshot(expected) failed\n\n  Snapshot: ${state}.png`
+            }));
+            const attachments = ['state1', 'state2'].flatMap(state =>
+                [ImageTitleEnding.Expected, ImageTitleEnding.Actual, ImageTitleEnding.Diff].map(ending => createAttachment(state + ending)));
+            const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({errors, attachments}), UNKNOWN_ATTEMPT);
+
+            assert.equal(adapter.error?.name, ErrorName.IMAGE_DIFF);
+        });
+
+        it('should not associate an unnamed capture error with another soft assertion diff', () => {
+            const errors = [
+                {message: 'Error: expect(page).toHaveScreenshot(expected) failed\n\n  Snapshot: state1.png'},
+                {message: 'Error: expect(locator).toHaveScreenshot(expected) failed'}
+            ];
+            const attachments = [
+                createAttachment('state1-expected.png'),
+                createAttachment('state1-diff.png'),
+                createAttachment('state1-actual.png')
+            ];
+            const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({errors, attachments}), UNKNOWN_ATTEMPT);
+
+            assert.equal(adapter.error?.name, ErrorName.GENERAL_ERROR);
+        });
+
         it('should convert multiple errors to a single JSON string', () => {
             const errors = [
                 {message: 'First error', stack: 'Error: First error at some-file.ts:5:10'},
