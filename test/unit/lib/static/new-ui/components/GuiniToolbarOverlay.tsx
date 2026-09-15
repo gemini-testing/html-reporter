@@ -45,7 +45,7 @@ describe('<GuiniToolbarOverlay />', () => {
     let preloadStaticAccepter: SinonStub;
     let staticAccepterCommitScreenshot: SinonStub;
 
-    const renderOverlay = (): {component: RenderResult; store: ReturnType<typeof mkRealStore>} => {
+    const renderOverlay = (theme: 'light' | 'dark' | 'system' = 'light'): {component: RenderResult; store: ReturnType<typeof mkRealStore>} => {
         const tree = mkEmptyTree();
         const suite = mkSuiteEntityLeaf('suite');
         addSuiteToTree({tree, suite});
@@ -104,7 +104,7 @@ describe('<GuiniToolbarOverlay />', () => {
         });
         const toaster = new Toaster();
         const component = render(
-            <ThemeProvider theme='light'>
+            <ThemeProvider theme={theme}>
                 <ToasterProvider toaster={toaster}>
                     <Provider store={store}>
                         <MemoryRouter initialEntries={[PathNames.suites]}>
@@ -179,6 +179,36 @@ describe('<GuiniToolbarOverlay />', () => {
         assert.equal(
             store.getState().staticImageAccepter.acceptableImages['image-1'].commitStatus,
             TestStatus.STAGED
+        );
+    });
+
+    it('should resolve the system dark theme for Static Accepter', async () => {
+        const user = userEvent.setup();
+        sandbox.stub(window, 'matchMedia').returns({
+            matches: true,
+            media: '(prefers-color-scheme: dark)',
+            onchange: null,
+            addListener: sandbox.stub(),
+            removeListener: sandbox.stub(),
+            addEventListener: sandbox.stub(),
+            removeEventListener: sandbox.stub(),
+            dispatchEvent: sandbox.stub()
+        });
+        preloadStaticAccepter.resolves({default: sandbox.stub()});
+        staticAccepterCommitScreenshot.callsFake(() => (): Promise<CommitResult> => (
+            Promise.resolve({status: 'cancelled'})
+        ));
+        const {component} = renderOverlay('system');
+
+        await user.click(component.getByRole('button', {name: 'Commit...'}));
+        const commitButton = component.getByRole('button', {name: 'Commit'});
+        await waitFor(() => assert.isFalse((commitButton as HTMLButtonElement).disabled));
+        await user.click(commitButton);
+
+        assert.calledWith(
+            staticAccepterCommitScreenshot,
+            sinon.match.array,
+            sinon.match({theme: 'dark'})
         );
     });
 

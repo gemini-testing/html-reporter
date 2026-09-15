@@ -1,6 +1,6 @@
 import React, {ReactNode, useEffect, useState} from 'react';
 import {ToolbarOverlay} from '@/static/new-ui/components/ToolbarOverlay';
-import {Button, Icon, Modal, TextInput, useToaster} from '@gravity-ui/uikit';
+import {Button, Icon, Modal, TextInput, useThemeType, useToaster} from '@gravity-ui/uikit';
 import {CloudArrowUpIn, TriangleExclamation} from '@gravity-ui/icons';
 
 import styles from './index.module.css';
@@ -27,6 +27,7 @@ type ModulePreloadStatus = 'idle' | 'loading' | 'ready' | 'error';
 
 export function GuiniToolbarOverlay(): ReactNode {
     const dispatch = useDispatch();
+    const theme = useThemeType();
     const toaster = useToaster();
 
     const isInProgress = useSelector(state => state.processing);
@@ -161,7 +162,8 @@ export function GuiniToolbarOverlay(): ReactNode {
                     'axiosRequestOptions',
                     'meta'
                 ]),
-                message: commitMessage
+                message: commitMessage,
+                theme
             };
 
             if (!moduleUrl) {
