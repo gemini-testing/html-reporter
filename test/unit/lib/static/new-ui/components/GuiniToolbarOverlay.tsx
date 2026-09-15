@@ -45,7 +45,7 @@ describe('<GuiniToolbarOverlay />', () => {
     let preloadStaticAccepter: SinonStub;
     let staticAccepterCommitScreenshot: SinonStub;
 
-    const renderOverlay = (theme: 'light' | 'dark' = 'light'): {component: RenderResult; store: ReturnType<typeof mkRealStore>} => {
+    const renderOverlay = (theme: 'light' | 'dark' | 'system' = 'light'): {component: RenderResult; store: ReturnType<typeof mkRealStore>} => {
         const tree = mkEmptyTree();
         const suite = mkSuiteEntityLeaf('suite');
         addSuiteToTree({tree, suite});
@@ -182,13 +182,23 @@ describe('<GuiniToolbarOverlay />', () => {
         );
     });
 
-    it('should pass the effective dark theme to Static Accepter', async () => {
+    it('should resolve the system dark theme for Static Accepter', async () => {
         const user = userEvent.setup();
+        sandbox.stub(window, 'matchMedia').returns({
+            matches: true,
+            media: '(prefers-color-scheme: dark)',
+            onchange: null,
+            addListener: sandbox.stub(),
+            removeListener: sandbox.stub(),
+            addEventListener: sandbox.stub(),
+            removeEventListener: sandbox.stub(),
+            dispatchEvent: sandbox.stub()
+        });
         preloadStaticAccepter.resolves({default: sandbox.stub()});
         staticAccepterCommitScreenshot.callsFake(() => (): Promise<CommitResult> => (
             Promise.resolve({status: 'cancelled'})
         ));
-        const {component} = renderOverlay('dark');
+        const {component} = renderOverlay('system');
 
         await user.click(component.getByRole('button', {name: 'Commit...'}));
         const commitButton = component.getByRole('button', {name: 'Commit'});
