@@ -32,46 +32,134 @@
     --color-amber-900: oklch(41.4% 0.112 45.904);
     --color-amber-950: oklch(27.9% 0.077 45.635);
 
+    --color-fuchsia-50: oklch(97.7% 0.017 320.058);
+    --color-fuchsia-100: oklch(95.2% 0.037 318.852);
+    --color-fuchsia-200: oklch(90.3% 0.076 319.62);
+    --color-fuchsia-300: oklch(83.3% 0.145 321.434);
+    --color-fuchsia-400: oklch(74% 0.238 322.16);
+    --color-fuchsia-500: oklch(66.7% 0.295 322.15);
+    --color-fuchsia-600: oklch(59.1% 0.293 322.896);
+    --color-fuchsia-700: oklch(51.8% 0.253 323.949);
+    --color-fuchsia-800: oklch(45.2% 0.211 324.591);
+    --color-fuchsia-900: oklch(40.1% 0.17 325.612);
+    --color-fuchsia-950: oklch(29.3% 0.136 325.661);
+
     --color-pink-100: #fce0ff;
+    --color-pink-400: #ce93d5;
     --color-pink-600: #be00ffbf;
+    --color-pink-800: #663a6b;
 
     --color-bg-dark: var(--color-neutral-900);
     --color-bg-gray: #eee;
+
+    --gn-aside-header-item-collapsed-radius: 8px;
+
+    .gn-composite-bar-item__icon-tooltip {
+        --g-tooltip-border-radius: 8px;
+    }
+
+    .g-popup {
+        border-radius: 6px;
+    }
 }
 
 .g-root_theme_light {
+    /* Text */
     --color-link: #4f46e5;
     --color-link-hover: #818cf8;
-
-    --color-devider-handle: var(--g-color-private-black-200);
-    --color-filter-button: rgb(113, 113, 122);
-    --color-filter-button-selected: rgb(9, 9, 11);
-    --color-suite-breadcrumbs: var(--g-color-private-black-400);
-
-    --g-color-text-brand-contrast: var(--g-color-private-color-50-solid);
-    --g-divider-color: rgb(242 242 242);
     --color-text-hint: var(--g-color-private-black-400);
+    --color-suite-breadcrumbs: var(--g-color-private-black-400);
+    --g-color-text-brand-contrast: var(--g-color-private-color-50-solid);
 
-    --g-color-base-generic: #eee;
+    /* Backgrounds and borders */
     --g-color-base-background: #fff;
+    --g-color-base-generic: #eee;
+    --color-aside-header-bg: var(--g-color-base-generic);
+    --g-divider-color: rgb(242 242 242);
     --sidebar-vertical-divider-line-color: var(--color-neutral-500);
     --card-border-shadow: rgb(255, 255, 255) 0 0 0 0, rgba(9, 9, 11, 0.05) 0 0 0 1px, rgba(0, 0, 0, 0.05) 0 1px 2px 0;
+    --color-divider-handle: var(--g-color-private-black-200);
+
+    /* Aside header styles */
+    --gn-aside-header-item-current-background-color: var(--color-neutral-300);
+    --gn-aside-header-item-background-color-hover: var(--color-neutral-200);
+    --gn-aside-header-item-current-icon-color: #000;
+    --gn-aside-header-item-icon-color: var(--color-neutral-500);
+    --color-aside-divider: var(--color-neutral-300);
+
+    /* Controls */
+    --color-filter-button: rgb(113, 113, 122);
+    --color-filter-button-selected: rgb(9, 9, 11);
+    --tree-actions-hover-background: #f2f2f2;
+    --color-tree-action-button-hover-background: rgba(0, 0, 0, 0.06);
+    --color-tree-current-action-button-hover-background: rgba(255, 255, 255, 0.1);
+
+    /* Screenshots and player */
+    --player-main-color: var(--color-neutral-100);
+    --tree-screenshot-border: var(--g-color-private-black-200-solid);
+    --tree-screenshot-border-actual: var(--g-color-private-black-100-solid);
+
+    /* Two-up mode */
+    --two-up-mode-background: var(--color-neutral-50);
+    --two-up-mode-border: var(--color-neutral-300);
+    --two-up-mode-container-border: var(--g-color-base-generic);
 }
 
 .g-root_theme_dark {
+    /* Text */
     --color-link: #818cf8;
     --color-link-hover: #c7d2fe;
-
-    --color-devider-handle: var(--color-neutral-700);
-    --color-filter-button: var(--g-color-text-hint);
-    --color-filter-button-selected: var(--g-color-text-primary);
     --color-text-hint: var(--g-color-text-secondary);
     --color-suite-breadcrumbs: var(--g-color-text-secondary);
 
+    /* Backgrounds and borders */
+    --color-aside-header-bg: var(--color-neutral-950);
+    --g-color-base-background: var(--color-bg-dark);
     --g-color-base-generic: var(--color-neutral-800);
-    --g-color-base-background: var(--color-neutral-900); /* он же для сайдбара */
     --sidebar-vertical-divider-line-color: var(--color-neutral-700);
-    --card-border-shadow: var(--color-neutral-700) 0 0 0 0, var(--color-neutral-700) 0 0 0 1px, var(--color-neutral-700) 0 1px 2px 0;
+    --card-border-shadow: var(--color-neutral-800) 0 0 0 0, var(--color-neutral-800) 0 0 0 1px, var(--color-neutral-800) 0 1px 2px 0;
+    --color-divider-handle: var(--color-neutral-700);
+    --color-tag-bg: var(--color-neutral-800);
+    --g-color-base-float-heavy: var(--color-neutral-700);
+    --g-tooltip-background-color: var(--color-neutral-700);
+    /* --g-color-base-simple-hover: var(--color-neutral-800); */
+    --color-tag-bg-hover: var(--color-neutral-700);
+
+    /* Aside header styles */
+    --gn-aside-header-item-current-background-color: var(--color-neutral-800);
+    --gn-aside-header-item-background-color-hover: #353535;
+    --gn-aside-header-item-current-icon-color: #fff;
+    --gn-aside-header-item-icon-color: var(--color-neutral-400);
+    --color-aside-divider: var(--color-neutral-800);
+
+    /* Controls */
+    --color-filter-button: var(--g-color-text-hint);
+    --color-filter-button-selected: var(--g-color-text-primary);
+    --tree-actions-hover-background: #2f2f2f;
+    --color-tree-action-button-hover-background: rgba(255, 255, 255, 0.1);
+    --color-tree-current-action-button-hover-background: rgba(255, 255, 255, 0.1);
+
+    /* Screenshots and player */
+    --player-main-color: var(--color-neutral-600);
+    --tree-screenshot-border: var(--color-neutral-400);
+    --tree-screenshot-border-actual: var(--color-neutral-100);
+
+    /* Two-up mode */
+    --two-up-mode-background: var(--color-neutral-800);
+    --two-up-mode-border: var(--color-neutral-900);
+    --two-up-mode-container-border: var(--color-neutral-600);
+
+    /* Component overrides */
+    .g-popup {
+        background: var(--color-neutral-800);
+        --g-color-base-simple-hover: var(--color-neutral-700);
+        
+
+        .g-button_view_normal {
+            --g-button-background-color: var(--color-neutral-600);
+            --g-button-background-color-hover: var(--color-neutral-500);
+        }
+    }
 }
 
 body {
@@ -91,16 +179,9 @@ body {
     overflow: hidden;
 }
 
-/* Aside header styles */
-:root {
-    --gn-aside-header-item-current-background-color: #1f2937;
-    --gn-aside-header-item-background-color-hover: #1f2937;
-    --gn-aside-header-item-current-icon-color: #fff;
-    --gn-aside-header-item-icon-color: #9ca3af;
-}
-
 .gn-aside-header {
-    --_--vertical-divider-line-color: var(--sidebar-vertical-divider-line-color) !important;
+    --_--vertical-divider-line-color: transparent !important;
+    background-color: var(--color-aside-header-bg) !important;
 }
 
 .gn-aside-header__header:after {
@@ -108,8 +189,7 @@ body {
 }
 
 .gn-aside-header__aside {
-    transform: translateX(-60px);
-
+    opacity: 0;
     animation: aside-header-appear 1s;
     animation-delay: 2s;
     animation-iteration-count: 1;
@@ -117,17 +197,17 @@ body {
 }
 
 .aside-header--initialized .gn-aside-header__aside {
-    transform: none;
+    opacity: 1;
     animation: none;
 }
 
 @keyframes aside-header-appear {
     0% {
-        transform: translateX(-60px);
+        opacity: 0;
     }
 
     100% {
-        transform: translateX(0);
+        opacity: 1;
     }
 }
 

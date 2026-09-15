@@ -65,7 +65,8 @@ export function TestStepArgs(props: TestStepArgsProps): ReactNode {
     }
 
     const itemClassName = classNames([styles.item, {
-        [styles['item--failed']]: !props.isActive && props.isFailed
+        [styles['item--failed']]: !props.isActive && props.isFailed,
+        [styles['item--active']]: props.isActive
     }]);
 
     return (

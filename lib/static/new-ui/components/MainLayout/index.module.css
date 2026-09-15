@@ -3,7 +3,7 @@
 }
 
 .aside-header-bg {
-    background-color: var(--color-bg-dark);
+    background-color: var(--color-aside-header-bg);
     width: 100%;
 }
 
@@ -21,7 +21,8 @@
 }
 
 :global(.gn-composite-bar-item__menu-divider) {
-    background: linear-gradient(90deg, transparent, var(--g-color-line-generic), transparent);
+    background: var(--color-aside-divider);
     height: 1px;
-    border-top: none !important ;
+    border-top: none !important;
+    margin: 0 14px !important;
 }

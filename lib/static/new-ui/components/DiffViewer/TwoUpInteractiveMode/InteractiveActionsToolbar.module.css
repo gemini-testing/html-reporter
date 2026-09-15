@@ -8,7 +8,7 @@
     z-index: 100;
     pointer-events: auto;
     --g-button-background-color: color-mix(in srgb, var(--g-color-base-background) 80%, transparent);
-    --g-button-background-color-hover: var(--color-neutral-100);
+    --g-button-background-color-hover: color-mix(in srgb, var(--g-color-base-background) 80%, white);
     --g-button-border-color: var(--g-color-line-generic);
     --g-button-border-width: 1px;
     --g-button-text-color: var(--color-neutral-500);

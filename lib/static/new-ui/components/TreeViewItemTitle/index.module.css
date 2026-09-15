@@ -27,8 +27,8 @@
     margin: -2px 0;
     z-index: 1;
     border-radius: 6px;
-    box-shadow: 0 -10px 7px 10px var(--background-color, rgb(242 242 242));
-    background: var(--background-color, rgb(242 242 242));
+    box-shadow: 0 -10px 6px 6px var(--background-color, var(--tree-actions-hover-background));
+    background: var(--background-color, var(--tree-actions-hover-background));
 }
 
 .actions-container {
@@ -55,7 +55,7 @@
     --color-link: var(--g-color-text-primary) !important;
     --g-button-text-color: var(--g-color-text-primary);
     --g-button-text-color-hover: var(--g-color-text-primary);
-    --g-button-background-color-hover: rgba(0, 0, 0, 0.06);
+    --g-button-background-color-hover: var(--color-tree-action-button-hover-background);
 }
 
 .action-button--disabled {
@@ -65,7 +65,7 @@
 :global(.current-tree-node) .action-button {
     --g-button-text-color: white;
     --g-button-text-color-hover: white;
-    --g-button-background-color-hover: rgba(0, 0, 0, 0.06);
+    --g-button-background-color-hover: var(--color-tree-current-action-button-hover-background);
 
     svg {
         color: #fff;
@@ -80,8 +80,12 @@
     z-index: 50;
 }
 
-.checkboxWrapper:hover, :global(.current-tree-node) .checkboxWrapper:hover {
-    background-color: rgba(0, 0, 0, 0.06);
+.checkboxWrapper:hover {
+    background-color: var(--color-tree-action-button-hover-background);
+}
+
+:global(.current-tree-node) .checkboxWrapper:hover {
+    background-color: var(--color-tree-current-action-button-hover-background);
 }
 
 .checkbox {
@@ -125,7 +129,7 @@
     margin-right: 8px;
     white-space: nowrap;
     border-radius: 4px;
-    color: var(--g-color-private-black-400);
+    color: var(--g-color-text-secondary);
     background-color: var(--g-color-base-generic);
     padding: 0 4px;
 }
