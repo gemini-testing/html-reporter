@@ -3,7 +3,7 @@ import classNames from 'classnames';
 import {ChevronsCollapseVertical, ChevronsExpandVertical, FileText, ChevronDown} from '@gravity-ui/icons';
 import {Button, ClipboardButton, Dialog, Icon} from '@gravity-ui/uikit';
 
-import {LocalStorageKey, TESTPLANE_CONFIG_BREAK_LINES, TESTPLANE_CONFIG_EXPAND_ALL, Theme} from '@/constants';
+import {TESTPLANE_CONFIG_BREAK_LINES, TESTPLANE_CONFIG_EXPAND_ALL} from '@/constants';
 import {CodeActions} from '@/static/new-ui/components/CodeActions';
 import {PanelSection} from '@/static/new-ui/components/PanelSection';
 import useLocalStorage from '@/static/hooks/useLocalStorage';
@@ -130,7 +130,6 @@ const JsonNode = ({name, value, depth, areAllNestedExpanded, trailingComma}: Jso
 };
 
 export function ConfigSection({config, configPath}: ConfigSectionProps): ReactNode {
-    const [theme] = useLocalStorage(LocalStorageKey.Theme, Theme.Light);
     const [breakLines, setBreakLines] = useLocalStorage(TESTPLANE_CONFIG_BREAK_LINES, false);
     const [areAllNestedExpanded, setAllNestedExpanded] = useLocalStorage(TESTPLANE_CONFIG_EXPAND_ALL, false);
     const [isOpen, setIsOpen] = useState(false);
@@ -160,7 +159,7 @@ export function ConfigSection({config, configPath}: ConfigSectionProps): ReactNo
                     <span>Config path:</span> <code>{configPath}</code>
                     <ClipboardButton size={'xs'} text={configPath} qa={'copy-config-path'}/>
                 </div>}
-                <div className={classNames(styles.container, styles[theme])}>
+                <div className={styles.container}>
                     <CodeActions
                         className={styles.buttons}
                         buttonClassName={styles.button}

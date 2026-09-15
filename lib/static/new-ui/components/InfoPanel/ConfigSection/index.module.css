@@ -58,7 +58,7 @@
     }
 }
 
-.light {
+:global(.g-root_theme_light) {
     --config-background: var(--g-color-base-generic);
     --config-text-color: #1f2328;
     --config-hover-background: rgb(31 35 40 / 10%);
@@ -69,7 +69,7 @@
     --config-null-color: #cf222e;
 }
 
-.dark {
+:global(.g-root_theme_dark) {
     --config-background: var(--color-neutral-950);
     --config-text-color: #d8dee9;
     --config-hover-background: rgb(216 222 233 / 12%);
