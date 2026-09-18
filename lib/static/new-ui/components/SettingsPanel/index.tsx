@@ -2,7 +2,7 @@ import {ArrowUturnCcwLeft} from '@gravity-ui/icons';
 import {Button, Icon, SegmentedRadioGroup, TextInput} from '@gravity-ui/uikit';
 import classNames from 'classnames';
 import React, {ReactNode, useCallback} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch, useSelector} from '@/static/new-ui/modules/react-redux';
 
 import {TimeTravelFeature, HIDE_TREE_VIEW_SCREENSHOTS, DISABLE_TREE_SCREENSHOTS_MAGNIFIER} from '@/constants';
 import {LocalStorageKey, UiMode, Theme} from '@/constants/local-storage';

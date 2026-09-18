@@ -1,8 +1,8 @@
 import {AsideHeader, MenuItem as GravityMenuItem} from '@gravity-ui/navigation';
 import classNames from 'classnames';
 import React, {ReactNode, useCallback, useState} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
-import {matchPath, useLocation, useNavigate} from 'react-router-dom';
+import {useDispatch, useSelector} from '@/static/new-ui/modules/react-redux';
+import {matchPath, useLocation, useNavigate} from 'react-router';
 import {Hotkey} from '@gravity-ui/uikit';
 
 import {getIsInitialized} from '@/static/new-ui/store/selectors';
