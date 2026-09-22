@@ -1,0 +1,759 @@
+{
+  "tests": [
+    {
+      "suitePath": [
+        "testplane",
+        "Error grouping",
+        "should group errors"
+      ],
+      "browser": "chrome",
+      "attempts": [
+        {
+          "browser": "chrome",
+          "status": "success",
+          "error": null,
+          "images": [],
+          "attachments": [
+            {
+              "type": 0,
+              "extension": "zip"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suitePath": [
+        "testplane",
+        "Test results appearance",
+        "Passed test",
+        "should have green retry selector"
+      ],
+      "browser": "chrome",
+      "attempts": [
+        {
+          "browser": "chrome",
+          "status": "success",
+          "error": null,
+          "images": [
+            {
+              "stateName": "retry-selector",
+              "status": "success",
+              "kinds": [
+                "refImg",
+                "expectedImg"
+              ]
+            }
+          ],
+          "attachments": [
+            {
+              "type": 0,
+              "extension": "zip"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suitePath": [
+        "testplane",
+        "Test results appearance",
+        "Test with diff",
+        "should have pink retry selector"
+      ],
+      "browser": "chrome",
+      "attempts": [
+        {
+          "browser": "chrome",
+          "status": "success",
+          "error": null,
+          "images": [
+            {
+              "stateName": "retry-selector",
+              "status": "success",
+              "kinds": [
+                "refImg",
+                "expectedImg"
+              ]
+            }
+          ],
+          "attachments": [
+            {
+              "type": 0,
+              "extension": "zip"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suitePath": [
+        "testplane",
+        "Test results appearance",
+        "Test with diff",
+        "should display 3 images"
+      ],
+      "browser": "chrome",
+      "attempts": [
+        {
+          "browser": "chrome",
+          "status": "success",
+          "error": null,
+          "images": [],
+          "attachments": [
+            {
+              "type": 0,
+              "extension": "zip"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suitePath": [
+        "testplane",
+        "Test results appearance",
+        "Test with diff",
+        "should not display error info"
+      ],
+      "browser": "chrome",
+      "attempts": [
+        {
+          "browser": "chrome",
+          "status": "success",
+          "error": null,
+          "images": [],
+          "attachments": [
+            {
+              "type": 0,
+              "extension": "zip"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suitePath": [
+        "testplane",
+        "Test results appearance",
+        "Test with no reference image",
+        "should have pink retry selector"
+      ],
+      "browser": "chrome",
+      "attempts": [
+        {
+          "browser": "chrome",
+          "status": "success",
+          "error": null,
+          "images": [
+            {
+              "stateName": "retry-selector",
+              "status": "success",
+              "kinds": [
+                "refImg",
+                "expectedImg"
+              ]
+            }
+          ],
+          "attachments": [
+            {
+              "type": 0,
+              "extension": "zip"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suitePath": [
+        "testplane",
+        "Test results appearance",
+        "Test with no reference image",
+        "should display error message, name and stack"
+      ],
+      "browser": "chrome",
+      "attempts": [
+        {
+          "browser": "chrome",
+          "status": "success",
+          "error": null,
+          "images": [],
+          "attachments": [
+            {
+              "type": 0,
+              "extension": "zip"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suitePath": [
+        "testplane",
+        "Test results appearance",
+        "Test with no reference image",
+        "should display actual screenshot"
+      ],
+      "browser": "chrome",
+      "attempts": [
+        {
+          "browser": "chrome",
+          "status": "success",
+          "error": null,
+          "images": [],
+          "attachments": [
+            {
+              "type": 0,
+              "extension": "zip"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suitePath": [
+        "testplane",
+        "Test results appearance",
+        "Test with error",
+        "should have red retry selector"
+      ],
+      "browser": "chrome",
+      "attempts": [
+        {
+          "browser": "chrome",
+          "status": "success",
+          "error": null,
+          "images": [
+            {
+              "stateName": "retry-selector",
+              "status": "success",
+              "kinds": [
+                "refImg",
+                "expectedImg"
+              ]
+            }
+          ],
+          "attachments": [
+            {
+              "type": 0,
+              "extension": "zip"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suitePath": [
+        "testplane",
+        "Test results appearance",
+        "Test with error",
+        "should display error message, name and stack"
+      ],
+      "browser": "chrome",
+      "attempts": [
+        {
+          "browser": "chrome",
+          "status": "success",
+          "error": null,
+          "images": [],
+          "attachments": [
+            {
+              "type": 0,
+              "extension": "zip"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suitePath": [
+        "testplane",
+        "Test results appearance",
+        "Test with error",
+        "should show message without ansi markup"
+      ],
+      "browser": "chrome",
+      "attempts": [
+        {
+          "browser": "chrome",
+          "status": "success",
+          "error": null,
+          "images": [],
+          "attachments": [
+            {
+              "type": 0,
+              "extension": "zip"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suitePath": [
+        "testplane",
+        "Test results appearance",
+        "Test with successful assertView and error",
+        "should display error message, name and stack"
+      ],
+      "browser": "chrome",
+      "attempts": [
+        {
+          "browser": "chrome",
+          "status": "success",
+          "error": null,
+          "images": [],
+          "attachments": [
+            {
+              "type": 0,
+              "extension": "zip"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suitePath": [
+        "testplane",
+        "Test details",
+        "should show details"
+      ],
+      "browser": "chrome",
+      "attempts": [
+        {
+          "browser": "chrome",
+          "status": "success",
+          "error": null,
+          "images": [],
+          "attachments": [
+            {
+              "type": 0,
+              "extension": "zip"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suitePath": [
+        "testplane",
+        "Test details",
+        "should prevent details summary overflow"
+      ],
+      "browser": "chrome",
+      "attempts": [
+        {
+          "browser": "chrome",
+          "status": "success",
+          "error": null,
+          "images": [
+            {
+              "stateName": "details summary",
+              "status": "success",
+              "kinds": [
+                "refImg",
+                "expectedImg"
+              ]
+            }
+          ],
+          "attachments": [
+            {
+              "type": 0,
+              "extension": "zip"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suitePath": [
+        "testplane",
+        "Report header",
+        "Summary",
+        "should show tests summary"
+      ],
+      "browser": "chrome",
+      "attempts": [
+        {
+          "browser": "chrome",
+          "status": "success",
+          "error": null,
+          "images": [],
+          "attachments": [
+            {
+              "type": 0,
+              "extension": "zip"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suitePath": [
+        "testplane",
+        "Report header",
+        "Main menu",
+        "should show creation date"
+      ],
+      "browser": "chrome",
+      "attempts": [
+        {
+          "browser": "chrome",
+          "status": "success",
+          "error": null,
+          "images": [],
+          "attachments": [
+            {
+              "type": 0,
+              "extension": "zip"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suitePath": [
+        "testplane",
+        "Report header",
+        "Main menu",
+        "should show report version"
+      ],
+      "browser": "chrome",
+      "attempts": [
+        {
+          "browser": "chrome",
+          "status": "success",
+          "error": null,
+          "images": [],
+          "attachments": [
+            {
+              "type": 0,
+              "extension": "zip"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suitePath": [
+        "testplane",
+        "New UI",
+        "Suites page",
+        "section sizes should be preserved after page reload"
+      ],
+      "browser": "chrome",
+      "attempts": [
+        {
+          "browser": "chrome",
+          "status": "success",
+          "error": null,
+          "images": [],
+          "attachments": [
+            {
+              "type": 0,
+              "extension": "zip"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suitePath": [
+        "testplane",
+        "New UI",
+        "Suites page",
+        "Expand/collapse suites tree button",
+        "should offer to collapse by default"
+      ],
+      "browser": "chrome",
+      "attempts": [
+        {
+          "browser": "chrome",
+          "status": "success",
+          "error": null,
+          "images": [
+            {
+              "stateName": "button",
+              "status": "success",
+              "kinds": [
+                "refImg",
+                "expectedImg"
+              ]
+            },
+            {
+              "stateName": "tooltip",
+              "status": "success",
+              "kinds": [
+                "refImg",
+                "expectedImg"
+              ]
+            }
+          ],
+          "attachments": [
+            {
+              "type": 0,
+              "extension": "zip"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suitePath": [
+        "testplane",
+        "New UI",
+        "Suites page",
+        "Expand/collapse suites tree button",
+        "should offer to expand when collapsed using button"
+      ],
+      "browser": "chrome",
+      "attempts": [
+        {
+          "browser": "chrome",
+          "status": "fail",
+          "error": {
+            "name": "AssertViewError",
+            "message": "image comparison failed"
+          },
+          "images": [
+            {
+              "stateName": "button",
+              "status": "success",
+              "kinds": [
+                "refImg",
+                "expectedImg"
+              ]
+            },
+            {
+              "stateName": "tooltip",
+              "status": "fail",
+              "kinds": [
+                "refImg",
+                "expectedImg",
+                "actualImg",
+                "diffImg"
+              ]
+            },
+            {
+              "stateName": null,
+              "status": "error",
+              "kinds": [
+                "actualImg"
+              ]
+            }
+          ],
+          "attachments": [
+            {
+              "type": 0,
+              "extension": "zip"
+            }
+          ]
+        },
+        {
+          "browser": "chrome",
+          "status": "fail",
+          "error": {
+            "name": "AssertViewError",
+            "message": "image comparison failed"
+          },
+          "images": [
+            {
+              "stateName": "button",
+              "status": "success",
+              "kinds": [
+                "refImg",
+                "expectedImg"
+              ]
+            },
+            {
+              "stateName": "tooltip",
+              "status": "fail",
+              "kinds": [
+                "refImg",
+                "expectedImg",
+                "actualImg",
+                "diffImg"
+              ]
+            },
+            {
+              "stateName": null,
+              "status": "error",
+              "kinds": [
+                "actualImg"
+              ]
+            }
+          ],
+          "attachments": [
+            {
+              "type": 0,
+              "extension": "zip"
+            }
+          ]
+        },
+        {
+          "browser": "chrome",
+          "status": "fail",
+          "error": {
+            "name": "AssertViewError",
+            "message": "image comparison failed"
+          },
+          "images": [
+            {
+              "stateName": "button",
+              "status": "success",
+              "kinds": [
+                "refImg",
+                "expectedImg"
+              ]
+            },
+            {
+              "stateName": "tooltip",
+              "status": "fail",
+              "kinds": [
+                "refImg",
+                "expectedImg",
+                "actualImg",
+                "diffImg"
+              ]
+            },
+            {
+              "stateName": null,
+              "status": "error",
+              "kinds": [
+                "actualImg"
+              ]
+            }
+          ],
+          "attachments": [
+            {
+              "type": 0,
+              "extension": "zip"
+            }
+          ]
+        },
+        {
+          "browser": "chrome",
+          "status": "fail",
+          "error": {
+            "name": "AssertViewError",
+            "message": "image comparison failed"
+          },
+          "images": [
+            {
+              "stateName": "button",
+              "status": "success",
+              "kinds": [
+                "refImg",
+                "expectedImg"
+              ]
+            },
+            {
+              "stateName": "tooltip",
+              "status": "fail",
+              "kinds": [
+                "refImg",
+                "expectedImg",
+                "actualImg",
+                "diffImg"
+              ]
+            },
+            {
+              "stateName": null,
+              "status": "error",
+              "kinds": [
+                "actualImg"
+              ]
+            }
+          ],
+          "attachments": [
+            {
+              "type": 0,
+              "extension": "zip"
+            }
+          ]
+        },
+        {
+          "browser": "chrome",
+          "status": "fail",
+          "error": {
+            "name": "AssertViewError",
+            "message": "image comparison failed"
+          },
+          "images": [
+            {
+              "stateName": "button",
+              "status": "success",
+              "kinds": [
+                "refImg",
+                "expectedImg"
+              ]
+            },
+            {
+              "stateName": "tooltip",
+              "status": "fail",
+              "kinds": [
+                "refImg",
+                "expectedImg",
+                "actualImg",
+                "diffImg"
+              ]
+            },
+            {
+              "stateName": null,
+              "status": "error",
+              "kinds": [
+                "actualImg"
+              ]
+            }
+          ],
+          "attachments": [
+            {
+              "type": 0,
+              "extension": "zip"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "suitePath": [
+        "testplane",
+        "New UI",
+        "Suites page",
+        "Expand/collapse suites tree button",
+        "should offer to expand when collapsed manually"
+      ],
+      "browser": "chrome",
+      "attempts": [
+        {
+          "browser": "chrome",
+          "status": "success",
+          "error": null,
+          "images": [
+            {
+              "stateName": "button",
+              "status": "success",
+              "kinds": [
+                "refImg",
+                "expectedImg"
+              ]
+            },
+            {
+              "stateName": "tooltip",
+              "status": "success",
+              "kinds": [
+                "refImg",
+                "expectedImg"
+              ]
+            }
+          ],
+          "attachments": [
+            {
+              "type": 0,
+              "extension": "zip"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

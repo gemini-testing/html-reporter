@@ -2,6 +2,10 @@ module.exports = {
     GRID_URL: 'http://127.0.0.1:4444/',
     CHROME_BINARY_PATH: '/usr/bin/chromium',
     PORTS: {
+        demo: {
+            server: 8087,
+            gui: 8077
+        },
         testplane: {
             server: 8083,
             gui: 8073

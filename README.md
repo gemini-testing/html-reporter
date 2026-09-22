@@ -60,7 +60,20 @@ Benefits over regular reporters include:
 
 ## Demo
 
-One link is worth a thousand words, so [here it is](https://storage.yandexcloud.net/testplane-ui-demo/v10.16.3/new-ui.html#/suites/testplane%20New%20UI%20Suites%20page%20Expand%2Fcollapse%20suites%20tree%20button%20should%20offer%20to%20expand%20when%20collapsed%20using%20button%20chrome) — see all the features for yourself.
+One link is worth a thousand words, so [here it is](https://storage.yandexcloud.net/testplane-ui-demo/live/latest/new-ui.html#/suites/6551ff5/chrome/4/tooltip) — see all the features for yourself.
+
+The live demo is regenerated from `test/func/fixtures/demo` on every push to `master`. To generate it locally on Linux with Docker host networking, run from the repository root:
+
+```sh
+npm ci
+npm run build
+docker pull yinfra/html-reporter-browsers
+docker run -d --name demo-browsers --rm --network=host yinfra/html-reporter-browsers
+SERVER_HOST=localhost npm run --workspace=demo generate
+docker kill demo-browsers
+```
+
+A failed visual check is expected; the generator accepts it only after `scripts/demo/check-report.js` validates all 25 attempts and local assets. Publishing requires `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` with write access to the `testplane-ui-demo` bucket and public read access to published objects.
 
 ## Getting started
 

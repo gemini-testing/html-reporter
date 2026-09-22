@@ -1,0 +1,49 @@
+name: Live demo
+
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-demo-master
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm run test:demo
+      - name: Start browser container
+        run: |
+          docker pull yinfra/html-reporter-browsers
+          docker run -d --name demo-browsers --rm --network=host yinfra/html-reporter-browsers
+      - name: Generate and validate demo
+        env:
+          SERVER_HOST: localhost
+        run: npm run --workspace=demo generate
+      - name: Validate referenced report assets
+        run: node scripts/demo/check-report.js test/func/fixtures/demo/report --assets-output /tmp/demo-assets.json
+      - name: Check AWS CLI
+        run: aws --version
+      - name: Upload immutable revision
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ru-central1
+        run: node scripts/demo/publish.js stage --report test/func/fixtures/demo/report --assets /tmp/demo-assets.json
+      - name: Verify public revision and switch latest
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ru-central1
+        run: node scripts/demo/publish.js activate --report test/func/fixtures/demo/report --assets /tmp/demo-assets.json
