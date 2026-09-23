@@ -6,6 +6,7 @@ import {Button, ClipboardButton, Dialog, Icon} from '@gravity-ui/uikit';
 import {TESTPLANE_CONFIG_BREAK_LINES, TESTPLANE_CONFIG_EXPAND_ALL} from '@/constants';
 import {CodeActions} from '@/static/new-ui/components/CodeActions';
 import {PanelSection} from '@/static/new-ui/components/PanelSection';
+import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
 import useLocalStorage from '@/static/hooks/useLocalStorage';
 import styles from './index.module.css';
 
@@ -134,13 +135,17 @@ export function ConfigSection({config, configPath}: ConfigSectionProps): ReactNo
     const [areAllNestedExpanded, setAllNestedExpanded] = useLocalStorage(TESTPLANE_CONFIG_EXPAND_ALL, false);
     const [isOpen, setIsOpen] = useState(false);
     const formattedConfig = JSON.stringify(config, null, 2);
+    const analytics = useAnalytics();
 
     return <>
         <PanelSection
             title={'Testplane config'}
             description={'Testplane configuration explicitly specified by the user.'}
         >
-            <Button className={'regular-button'} onClick={(): void => setIsOpen(true)} qa={'open-config-button'}>
+            <Button className={'regular-button'} onClick={(): void => {
+                setIsOpen(true);
+                analytics?.trackFeatureUsage({featureName: 'User config'});
+            }} qa={'open-config-button'}>
                 <Icon data={FileText}/>Open config
             </Button>
         </PanelSection>
