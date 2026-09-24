@@ -50,7 +50,6 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "test": "npm run lint && npm run test-unit && npm run test-check-types",
     "test-check-types": "tsc --project test/unit/lib/static/tsconfig.json && tsc --project test/tsconfig.json",
-    "test:demo": "mocha test/unit/scripts/demo.js --config .mocharc.js",
     "test-unit:jsdom": "cross-env NODE_ENV=test mocha test/unit/lib/static --config .mocharc-jsdom.js",
     "test-unit:node": "cross-env NODE_ENV=test mocha test/unit --exclude 'test/unit/lib/static/**'",
     "test-unit": "npm run test-unit:node && npm run test-unit:jsdom",

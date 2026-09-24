@@ -60,7 +60,7 @@ Benefits over regular reporters include:
 
 ## Demo
 
-One link is worth a thousand words, so [here it is](https://storage.yandexcloud.net/testplane-ui-demo/live/latest/new-ui.html#/suites/6551ff5/chrome/4/tooltip) — see all the features for yourself.
+One link is worth a thousand words, so [here it is](https://storage.yandexcloud.net/testplane-ui-demo/live/latest/new-ui.html#/suites/6551ff5/chrome/4/button) — see all the features for yourself.
 
 The live demo is regenerated from `test/func/fixtures/demo` on every push to `master`. To generate it locally on Linux with Docker host networking, run from the repository root:
 
@@ -73,7 +73,7 @@ SERVER_HOST=localhost npm run --workspace=demo generate
 docker kill demo-browsers
 ```
 
-A failed visual check is expected; the generator accepts it only after `scripts/demo/check-report.js` validates all 25 attempts and local assets. Publishing requires `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` with write access to the `testplane-ui-demo` bucket and public read access to published objects.
+The generator first creates the Testplane fixture report, then runs 21 real browser scenarios against its UI. One expand/collapse visual check fails intentionally after five attempts so the published demo includes a visual diff. Publishing requires `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` with write access to the `testplane-ui-demo` bucket and public read access to published objects.
 
 ## Getting started
 
