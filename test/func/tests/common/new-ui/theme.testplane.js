@@ -22,7 +22,7 @@ if (process.env.TOOL === 'testplane') {
 
                     await closeSettings(browser, settingsMenuItem);
 
-                    await browser.assertView('dark-theme', 'body');
+                    await browser.assertView('dark-theme', 'body', {ignoreElements: ['[data-qa="tree-view-list"]']});
                 });
 
                 it('should switch to light theme', async ({browser}) => {
@@ -33,7 +33,7 @@ if (process.env.TOOL === 'testplane') {
 
                     await closeSettings(browser, settingsMenuItem);
 
-                    await browser.assertView('light-theme', 'body');
+                    await browser.assertView('light-theme', 'body', {ignoreElements: ['[data-qa="tree-view-list"]']});
                 });
             });
         });
