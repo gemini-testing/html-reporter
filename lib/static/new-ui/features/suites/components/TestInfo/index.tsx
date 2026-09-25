@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import React, {ReactNode} from 'react';
-import {useSelector} from 'react-redux';
+import {useSelector} from '@/static/new-ui/modules/react-redux';
 
 import {CollapsibleSection} from '@/static/new-ui/features/suites/components/CollapsibleSection';
 import {MetaInfo} from '@/static/new-ui/components/MetaInfo';

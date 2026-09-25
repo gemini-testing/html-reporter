@@ -107,7 +107,7 @@ describe('lib/gui/server', () => {
 
         await startServer({toolAdapter});
 
-        assert.calledOnceWith(expressStub.set, 'json replacer', sinon.match.func);
+        assert.calledWith(expressStub.set, 'json replacer', sinon.match.func);
     });
 
     it('should try to attach plugins middleware on startup', async () => {

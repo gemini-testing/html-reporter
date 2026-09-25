@@ -26,7 +26,12 @@ const listenOnPort = (server: Express, portToTry: number, hostname?: string): Pr
             reject(error);
         };
 
-        const onListen = (): void => {
+        const onListen = (error?: Error): void => {
+            if (error) {
+                reject(error);
+                return;
+            }
+
             resolve();
         };
 

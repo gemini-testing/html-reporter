@@ -1,5 +1,5 @@
 import {useEffect, useRef} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch, useSelector} from '@/static/new-ui/modules/react-redux';
 import {State} from '@/static/new-ui/types/store';
 import {thunkRunAllTests} from '@/static/modules/actions';
 
