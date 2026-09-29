@@ -27,6 +27,7 @@ describe('lib/testplane', () => {
     let fs, originalUtils, utils, SqliteClient, ImagesInfoSaver, TestResultAdapter, StaticReportBuilder, HtmlReporter, runHtmlReporter;
 
     let program;
+    let handleNetworkRequestsEvent;
 
     const events = {
         INIT: 'init',
@@ -151,7 +152,10 @@ describe('lib/testplane', () => {
             })
         }).HtmlReporter;
 
+        handleNetworkRequestsEvent = sandbox.stub();
+
         runHtmlReporter = proxyquire('../../testplane', {
+            './lib/adapters/event-handling/testplane/snapshots': {handleNetworkRequestsEvent},
             './lib/sqlite-client': {SqliteClient},
             './lib/server-utils': utils,
             './lib/report-builder/static': {StaticReportBuilder},
@@ -211,6 +215,17 @@ describe('lib/testplane', () => {
         await initReporter_();
 
         assert.called(program.command);
+    });
+
+    it('should forward network requests to the static report archive handler', async () => {
+        testplane.events = {...events, NETWORK_REQUESTS: 'networkRequests'};
+        const context = {testPath: ['suite', 'test'], browserId: 'bro1'};
+        const data = {requests: [{url: 'https://example.com'}]};
+        await initReporter_();
+
+        testplane.emit(testplane.events.NETWORK_REQUESTS, context, data);
+
+        assert.calledOnceWithExactly(handleNetworkRequestsEvent, context, data);
     });
 
     it('should add skipped test to result', async () => {

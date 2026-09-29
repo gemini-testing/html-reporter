@@ -3,33 +3,7 @@ import {isEqual} from 'lodash';
 import type {ConfigAdapter} from './';
 import type {TestplaneTestAdapter} from '../test/testplane';
 import type {SecretConfigFilter} from '../../types';
-
-const MASKED_VALUE = 'XXXX';
-const SENSITIVE_CONFIG_FIELDS = [
-    'token',
-    'secret',
-    'password',
-    'apiKey',
-    'accessKey',
-    'privateKey',
-    'clientSecret'
-].map(field => field.toLowerCase());
-
-export const defaultSecretConfigFilter: SecretConfigFilter = (value, configPath) => {
-    const normalizedSegments = configPath
-        .split('/')
-        .slice(1)
-        .map(segment => segment
-            .replace(/~1/g, '/')
-            .replace(/~0/g, '~')
-            .replace(/[^a-z0-9]/gi, '')
-            .toLowerCase()
-        );
-
-    return normalizedSegments.some(segment => SENSITIVE_CONFIG_FIELDS.some(field => segment.includes(field)))
-        || value.startsWith('AQAD')
-        || value.startsWith('y1_');
-};
+import {maskSecret} from '../../secret-config-filter';
 
 const appendPath = (parentPath: string, segment: string): string => {
     const escapedSegment = segment.replace(/~/g, '~0').replace(/\//g, '~1');
@@ -62,11 +36,11 @@ const deduplicateBrowserConfigs = (config: Record<string, unknown>): Record<stri
 
 export const maskTokenValues = (
     value: unknown,
-    secretConfigFilter: SecretConfigFilter = defaultSecretConfigFilter,
+    secretConfigFilter: SecretConfigFilter | null = null,
     configPath = ''
 ): unknown => {
     if (typeof value === 'string') {
-        return secretConfigFilter(value, configPath) ? MASKED_VALUE : value;
+        return maskSecret(value, configPath, secretConfigFilter);
     }
 
     if (Array.isArray(value)) {
@@ -124,7 +98,7 @@ export class TestplaneConfigAdapter implements ConfigAdapter {
 
         delete userConfig.configPath;
 
-        return maskTokenValues(userConfig, secretConfigFilter ?? defaultSecretConfigFilter) as Record<string, unknown>;
+        return maskTokenValues(userConfig, secretConfigFilter) as Record<string, unknown>;
     }
 
     getScreenshotPath(test: TestplaneTestAdapter, stateName: string): string {

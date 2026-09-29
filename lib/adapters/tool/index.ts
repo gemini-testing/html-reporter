@@ -49,11 +49,11 @@ export interface ToolAdapter {
 
 export const makeToolAdapter = async (opts: ToolAdapterOptionsFromCli): Promise<ToolAdapter> => {
     if (opts.toolName === ToolName.Testplane) {
-        const {TestplaneToolAdapter} = await import('./testplane');
+        const {TestplaneToolAdapter} = await import('./testplane/index.js');
 
         return TestplaneToolAdapter.create(opts);
     } else if (opts.toolName === ToolName.Playwright) {
-        const {PlaywrightToolAdapter} = await import('./playwright');
+        const {PlaywrightToolAdapter} = await import('./playwright/index.js');
 
         return PlaywrightToolAdapter.create(opts);
     } else {
