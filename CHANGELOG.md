@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="11.17.2"></a>
+## 11.17.2 (2026-10-01)
+
+
+### Bug Fixes
+
+* browser select ([0326b95](https://github.com/gemini-testing/html-reporter/commit/0326b95))
+
+
+
 <a name="11.17.1"></a>
 ## 11.17.1 (2026-09-15)
 
