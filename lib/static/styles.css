@@ -402,7 +402,8 @@ main.container {
     height: 16px;
     display: inline-block;
     vertical-align: middle;
-    background-image: url("data:image/svg+xml,%3Csvg width='16px' height='16px' viewBox='0 0 64 64' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M35 0 C31 0 27 2 24 5 C22 7 21 8 20 11 C18 15 18 22 19 27 C20 29 21 31 22 33 C23 34 25 36 27 37 C27 37 28 37 28 37 C28 37 26 42 23 48 C20 55 17 60 17 62 L16 64 L20 63 L24 63 L35 39 L38 39 L41 39 L41 64 L47 64 L47 0 L42 0 C38 0 35 0 35 0 ZM41 19 L41 33 L38 33 C36 33 34 33 34 33 C31 32 28 30 27 27 C25 23 26 16 27 12 C28 9 31 6 34 6 C35 6 35 5 35 5 C36 5 37 5 38 5 L41 5 ZM41 19'/%3E%3C/svg%3E%0A");
+    background-color: currentColor;
+    mask: url("data:image/svg+xml,%3Csvg width='16px' height='16px' viewBox='0 0 64 64' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M35 0 C31 0 27 2 24 5 C22 7 21 8 20 11 C18 15 18 22 19 27 C20 29 21 31 22 33 C23 34 25 36 27 37 C27 37 28 37 28 37 C28 37 26 42 23 48 C20 55 17 60 17 62 L16 64 L20 63 L24 63 L35 39 L38 39 L41 39 L41 64 L47 64 L47 0 L42 0 C38 0 35 0 35 0 ZM41 19 L41 33 L38 33 C36 33 34 33 34 33 C31 32 28 30 27 27 C25 23 26 16 27 12 C28 9 31 6 34 6 C35 6 35 5 35 5 C36 5 37 5 38 5 L41 5 ZM41 19'/%3E%3C/svg%3E%0A");
 }
 
 .tests-group__title .bullet_type-simple.tests-group__bullet:before {

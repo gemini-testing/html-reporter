@@ -18,4 +18,9 @@
 .browserlist__popup :global(.g-select-list__option) {
     gap: 8px;
     flex-direction: row-reverse;
+    white-space: nowrap;
+}
+
+.browserlist__popup :global(.g-select-list) {
+    min-width: 300px;
 }
