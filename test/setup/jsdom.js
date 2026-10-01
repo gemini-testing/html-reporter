@@ -3,6 +3,8 @@ require('jsdom-global')(``, {
     pretendToBeVisual: true
 });
 
+global.FocusEvent = global.window.FocusEvent;
+
 global.window.matchMedia = query => ({
     matches: false,
     media: query,

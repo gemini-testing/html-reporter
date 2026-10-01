@@ -2,7 +2,7 @@ import {useCallback, useEffect, useRef, useState} from 'react';
 import {unzip} from 'fflate';
 import {ResultEntity} from '@/static/new-ui/types/store';
 import {useEventSource} from '@/static/new-ui/providers/event-source';
-import {TestContext} from '@/adapters/event-handling/testplane/snapshots';
+import type {TestContext} from 'testplane/unstable';
 import {isEqual} from 'lodash';
 import {ClientEvents} from '@/gui/constants';
 import {NumberedSnapshot} from './types';
