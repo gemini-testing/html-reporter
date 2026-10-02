@@ -32,7 +32,7 @@ export default class ControlButton extends Component<ControlButtonProps> {
         dataTestId: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
     };
 
-    render(): JSX.Element {
+    render(): React.JSX.Element {
         const {
             label,
             title,

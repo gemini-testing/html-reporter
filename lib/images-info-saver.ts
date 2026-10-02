@@ -2,7 +2,7 @@ import util from 'util';
 import makeDebug from 'debug';
 import EventEmitter2 from 'eventemitter2';
 import fs from 'fs-extra';
-import sizeOf from 'image-size';
+import {getImageSize} from './image-size';
 import _ from 'lodash';
 import PQueue from 'p-queue';
 
@@ -14,7 +14,7 @@ import {
     ImageFileSaver,
     ImageInfoDiff,
     ImageInfoFull,
-    ImageSize, TestSpecByPath
+    TestSpecByPath
 } from './types';
 import {copyAndUpdate, removeBufferFromImagesInfo} from './adapters/test-result/utils';
 import {cacheDiffImages} from './image-cache';
@@ -120,7 +120,7 @@ export class ImagesInfoSaver extends EventEmitter2 {
             cacheDiffImages.set(hash, filePath);
         }
 
-        return {path: filePath, size: _.pick(sizeOf(filePath), ['height', 'width']) as ImageSize};
+        return {path: filePath, size: getImageSize(filePath)};
     }
 
     private _getReusedExpectedPath(testResult: TestSpecByPath, imagesInfo: ImageInfoFull): string | null {
@@ -205,7 +205,7 @@ export class ImagesInfoSaver extends EventEmitter2 {
         const newDiffPath = await this._saveImage(diffImg, reportDiffPath);
         logger(`Saved diff image from ${(diffImg as ImageFile).path ?? '<buffer>'} to ${newDiffPath}`);
 
-        const size = _.pick(sizeOf(isImageBufferData(diffImg) ? Buffer.from(diffImg.buffer) : diffImg.path), ['height', 'width']) as ImageSize;
+        const size = getImageSize(isImageBufferData(diffImg) ? Buffer.from(diffImg.buffer) : diffImg.path);
 
         return {path: newDiffPath, size};
     }

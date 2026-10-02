@@ -29,7 +29,7 @@ describe('<DiffCircle />', () => {
     });
 
     it('should render when pulse is called', async () => {
-        const ref: React.RefObject<DiffCircleHandle> = createRef();
+        const ref: React.RefObject<DiffCircleHandle | null> = createRef();
         diffImageRef.current = makeImageElement();
         const {container} = render(<DiffCircle ref={ref} diffImageOriginalSize={diffImageOriginalSize} diffImageRef={diffImageRef} diffCluster={diffCluster} />);
 
@@ -43,7 +43,7 @@ describe('<DiffCircle />', () => {
     });
 
     it('should render at correct coords', async () => {
-        const ref: React.RefObject<DiffCircleHandle> = createRef();
+        const ref: React.RefObject<DiffCircleHandle | null> = createRef();
         const {container} = render(<DiffCircle ref={ref} diffImageOriginalSize={diffImageOriginalSize} diffImageRef={diffImageRef} diffCluster={diffCluster} />);
         diffImageRef.current = makeImageElement();
 
