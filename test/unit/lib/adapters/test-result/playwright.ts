@@ -256,6 +256,20 @@ describe('PlaywrightTestResultAdapter', () => {
             });
         });
 
+        it('should not fail when image file is invalid', () => {
+            imageSizeStub.throws(new Error('Empty file'));
+            const attachments: TestResult['attachments'] = [
+                {name: 'header-actual.png', path: 'test-results/header-actual.png', contentType: 'image/png'},
+                {name: 'header-expected.png', path: 'project-dir/header-expected.png', contentType: 'image/png'},
+                {name: 'header-diff.png', path: 'test-results/header-diff.png', contentType: 'image/png'}
+            ];
+            const adapter = new PlaywrightTestResultAdapter(
+                mkTestCase(),
+                mkTestResult({attachments}),
+                UNKNOWN_ATTEMPT
+            );
+            assert.doesNotThrow(() => adapter.imagesInfo);
+        });
         it('should correctly format no ref result', () => {
             const errors = [{message: 'snapshot doesn\'t exist at some.png', stack: ''}];
             const attachments: TestResult['attachments'] = [
