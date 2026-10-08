@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import React, {ReactNode, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch, useSelector} from '@/static/new-ui/modules/react-redux';
 
 import {SplitViewLayout} from '@/static/new-ui/components/SplitViewLayout';
 import {UiCard} from '@/static/new-ui/components/Card/UiCard';
@@ -30,7 +30,7 @@ import {isSectionHidden} from '@/static/new-ui/features/suites/utils';
 import {MIN_SECTION_SIZE_PERCENT} from '@/static/new-ui/features/suites/constants';
 import {usePage} from '@/static/new-ui/hooks/usePage';
 import {useHotkey} from '@/static/new-ui/hooks/useHotkey';
-import {useNavigate, useParams} from 'react-router-dom';
+import {useNavigate, useParams} from 'react-router';
 import {RunTestLoading} from '@/static/new-ui/components/RunTestLoading';
 import {getUrl} from '@/static/new-ui/utils/getUrl';
 import {getCurrentBrowserId} from '@/static/new-ui/features/suites/selectors';

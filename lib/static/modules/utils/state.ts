@@ -1,6 +1,6 @@
 import {get, isUndefined} from 'lodash';
+import type {PartialDeep} from 'type-fest';
 import {State} from '@/static/new-ui/types/store';
-import {DeepPartial} from 'redux';
 
 // simplest and faster than lodash realisation
 const isPlainObject = (value: unknown): value is Record<string, unknown> => (
@@ -35,7 +35,7 @@ function copyAndMerge(state: any, diff: any): unknown {
 /**
  * Create new state from old state and diff object
  */
-export const applyStateUpdate = (state: State, diff: DeepPartial<State>): State => copyAndMerge(state, diff) as State;
+export const applyStateUpdate = (state: State, diff: PartialDeep<State>): State => copyAndMerge(state, diff) as State;
 
 /**
  * Ensure diff has an object by given path

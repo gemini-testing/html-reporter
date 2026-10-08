@@ -11,6 +11,8 @@
     "gui:local": "BROWSER_ENV=local npx testplane gui"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^5.0.2"
+    "@vitejs/plugin-react": "^5.0.2",
+    "socket.io-client": "4.7.5",
+    "vite": "^6.4.3"
   }
 }

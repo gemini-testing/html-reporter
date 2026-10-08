@@ -1,6 +1,6 @@
 import React, {MouseEventHandler, ReactNode, useCallback} from 'react';
 import classnames from 'classnames';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch, useSelector} from '@/static/new-ui/modules/react-redux';
 import {ArrowUturnCcwLeft, Check} from '@gravity-ui/icons';
 import {Icon, Hotkey, Button, ButtonView} from '@gravity-ui/uikit';
 

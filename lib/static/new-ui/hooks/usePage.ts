@@ -1,4 +1,4 @@
-import {useLocation} from 'react-router-dom';
+import {useLocation} from 'react-router';
 import {Page} from '@/constants';
 import {getPageByPathname} from '@/static/new-ui/utils/page';
 
