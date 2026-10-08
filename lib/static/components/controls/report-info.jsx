@@ -4,10 +4,12 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {Button, Icon, Label} from '@gravity-ui/uikit';
 import {isEmpty} from 'lodash';
-import {version} from '../../../../package.json';
+import packageJson from '../../../../package.json';
 import useLocalStorage from '@/static/hooks/useLocalStorage';
 import {LocalStorageKey, UiMode} from '@/constants/local-storage';
 import {useAnalytics} from '@/static/new-ui/hooks/useAnalytics';
+
+const {version} = packageJson;
 
 function ReportInfo(props) {
     const analytics = useAnalytics();

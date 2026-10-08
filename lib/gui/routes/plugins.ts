@@ -1,4 +1,5 @@
 import {Router} from 'express';
+import NestedError from 'nested-error-stacks';
 import {INTERNAL_SERVER_ERROR, BAD_REQUEST} from 'http-codes';
 
 import {
@@ -43,7 +44,7 @@ export const initPluginsRoutes = (router: Router, pluginConfig: ReporterConfig):
 
             router.use(getPluginMiddlewareRoute(pluginName), pluginRouter);
         } catch (err: unknown) {
-            logError(err as Error);
+            logError(new NestedError(`Failed to initialize middleware for plugin "${pluginName}"`, err as Error));
         }
     });
 

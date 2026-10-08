@@ -11,8 +11,8 @@ import {MIN_SCALE, MAX_SCALE, ZOOM_STEP, InteractiveFitMode} from './constants';
 interface InteractiveActionsToolbarProps {
     image: ScreenshotDisplayData;
     className?: string;
-    containerRef: React.RefObject<HTMLDivElement>;
-    imageWrapperRef: React.RefObject<HTMLDivElement>;
+    containerRef: React.RefObject<HTMLDivElement | null>;
+    imageWrapperRef: React.RefObject<HTMLDivElement | null>;
 }
 
 export function InteractiveActionsToolbar(props: InteractiveActionsToolbarProps): ReactNode {

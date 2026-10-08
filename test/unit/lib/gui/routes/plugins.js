@@ -37,6 +37,37 @@ describe('lib/gui/routes/plugins', () => {
 
     afterEach(() => sandbox.restore());
 
+    it('should identify a plugin whose Express route cannot be registered and continue with other plugins', () => {
+        const logError = sandbox.stub();
+        const register = proxyquire('lib/gui/routes/plugins', {
+            '../../server-utils': {
+                logError,
+                getPluginMiddleware: name => router => router.get(name === 'broken-plugin' ? '*' : '/color', sandbox.stub())
+            }
+        }).initPluginsRoutes;
+
+        register(routerStub, {pluginsEnabled: true, plugins: [{name: 'broken-plugin'}, {name: 'working-plugin'}]});
+
+        assert.calledOnce(logError);
+        const error = logError.firstCall.args[0];
+        assert.include(error.message, 'broken-plugin');
+        assert.include(error.stack, 'Missing parameter name');
+        assert.neverCalledWith(routerStub.use, '/plugin-routes/broken-plugin');
+        assert.calledWith(routerStub.use, '/plugin-routes/working-plugin', sinon.match.func);
+    });
+
+    it('should register an Express 5 named wildcard in a plugin', () => {
+        const register = proxyquire('lib/gui/routes/plugins', {
+            '../../server-utils': {
+                getPluginMiddleware: () => router => router.get('/{*splat}', sandbox.stub())
+            }
+        }).initPluginsRoutes;
+
+        register(routerStub, {pluginsEnabled: true, plugins: [{name: 'wildcard-plugin'}]});
+
+        assert.calledWith(routerStub.use, '/plugin-routes/wildcard-plugin', sinon.match.func);
+    });
+
     it('should not register any routes if plugins are disabled', () => {
         initPluginRoutes(routerStub, {plugins: [], pluginsEnabled: false});
 
