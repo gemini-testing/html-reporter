@@ -238,6 +238,24 @@ describe('GuiReportBuilder', () => {
         });
     });
 
+    describe('"buildTreeFromCurrentDb" method', () => {
+        it('should exclude skipped rows of specified tests', async () => {
+            const mkRow_ = status => [
+                '["suite","test"]', 'test', 'chrome', '', '{}', '[]', null, null, null, '[]', 0, 0,
+                status, 1, 0, '[]'
+            ];
+            const reportBuilder = await mkGuiReportBuilder_();
+            const successRow = mkRow_(SUCCESS);
+            const build = sandbox.stub().returns({tree: 'tree'});
+            sandbox.stub(dbClient, 'getAllSuites').returns([mkRow_(SKIPPED), successRow]);
+            sandbox.stub(StaticTestsTreeBuilder, 'create').returns({build});
+
+            reportBuilder.buildTreeFromCurrentDb({excludeSkipped: [{suitePath: ['suite', 'test'], browserId: 'chrome'}]});
+
+            assert.calledOnceWith(build, [successRow]);
+        });
+    });
+
     [
         {
             method: 'reuseTestsTree',
