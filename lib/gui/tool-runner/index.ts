@@ -19,7 +19,6 @@ import * as reporterHelper from '../../reporter-helpers';
 import {logger, getShortMD5, isUpdatedStatus} from '../../common-utils';
 import {formatId, mkFullTitle, mergeDatabasesForReuse, filterByEqualDiffSizes, prepareLocalDatabase} from './utils';
 import {getExpectedCacheKey, getTimeTravelModeEnumSafe} from '../../server-utils';
-import {getTestsTreeFromDatabase} from '../../db-utils/server';
 import {
     UPDATED,
     SKIPPED,
@@ -46,6 +45,7 @@ import type {
     ReporterConfig, TestSpecByPath, RefImageFile
 } from '../../types';
 import type {TestAdapter} from '../../adapters/test/index';
+import type {TestHistorySpec} from '../../sqlite-client';
 import type {TestCollectionAdapter} from '../../adapters/test-collection';
 import type {ConfigAdapter} from '../../adapters/config';
 
@@ -78,6 +78,10 @@ const getTestStructureSignature = (test: TestAdapter): string => JSON.stringify(
     test.silentlySkipped,
     test.pending
 ]);
+
+const getNotPendingTestSpecs = (tests: TestAdapter[]): TestHistorySpec[] => tests
+    .filter(test => !test.pending)
+    .map(test => ({suitePath: test.titlePath, browserId: test.browserId}));
 
 export class ToolRunner {
     private _testFiles: string[];
@@ -189,7 +193,7 @@ export class ToolRunner {
         this._testAdapterIdsByFile.clear();
 
         await this._handleRunnableCollection();
-        await this._fillTestsTree(reportBuilder.buildTreeFromCurrentDb());
+        await this._fillTestsTree(reportBuilder.buildTreeFromCurrentDb({excludeSkipped: getNotPendingTestSpecs(Object.values(this._testAdapters))}));
     }
 
     async refreshTestsIfChanged(
@@ -314,7 +318,7 @@ export class ToolRunner {
         this._testAdapterIdsByFile.clear();
 
         await this._addTestsToTree(collection.tests);
-        await this._fillTestsTree(reportBuilder.buildTreeFromCurrentDb());
+        await this._fillTestsTree(reportBuilder.buildTreeFromCurrentDb({excludeSkipped: getNotPendingTestSpecs(Object.values(this._testAdapters))}));
     }
 
     private async _applyChangedFiles(
@@ -805,7 +809,7 @@ export class ToolRunner {
         const dbPath = path.resolve(this._reportPath, LOCAL_DATABASE_NAME);
 
         if (await fs.pathExists(dbPath)) {
-            return getTestsTreeFromDatabase(dbPath, this._reporterConfig.baseHost);
+            return this._ensureReportBuilder().buildTreeFromCurrentDb({excludeSkipped: getNotPendingTestSpecs(Object.values(this._testAdapters))});
         }
 
         logger.warn(chalk.yellow(`Nothing to reuse in ${this._reportPath}: can not load data from ${DATABASE_URLS_JSON_NAME}`));
