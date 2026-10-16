@@ -174,9 +174,17 @@ export class GuiReportBuilder extends StaticReportBuilder {
         return true;
     }
 
-    buildTreeFromCurrentDb(): Tree {
+    buildTreeFromCurrentDb({excludeSkipped = []}: {excludeSkipped?: TestHistorySpec[]} = {}): Tree {
+        const excludedSkippedTests = new Set(excludeSkipped.map(({suitePath, browserId}) =>
+            `${JSON.stringify(suitePath)}\0${browserId}`));
+        const rows = this._dbClient.getAllSuites().filter(row => {
+            const key = `${row[DB_COLUMN_INDEXES.suitePath]}\0${row[DB_COLUMN_INDEXES.name]}`;
+
+            return row[DB_COLUMN_INDEXES.status] !== SKIPPED || !excludedSkippedTests.has(key);
+        });
+
         const testsTreeBuilder = StaticTestsTreeBuilder.create({baseHost: this._reporterConfig.baseHost});
-        const {tree} = testsTreeBuilder.build(this._dbClient.getAllSuites());
+        const {tree} = testsTreeBuilder.build(rows);
 
         return tree;
     }

@@ -130,7 +130,7 @@ export class StaticReportBuilder {
         // To prevent skips duplication on reporter startup
         const isImgSkipped = testResultWithImagePaths.status === SKIPPED;
 
-        const isPreviouslySkippedTest = isImgSkipped && getTestFromDb<DbTestResult>(this._dbClient, formattedResult);
+        const isPreviouslySkippedTest = isImgSkipped && getTestFromDb<DbTestResult>(this._dbClient, formattedResult)?.status === SKIPPED;
 
         if (!ignoredStatuses.includes(testResultWithImagePaths.status) && !isPreviouslySkippedTest) {
             if (typeof this._reporterConfig.generateBadges === 'function' && testResultWithImagePaths.attachments) {
