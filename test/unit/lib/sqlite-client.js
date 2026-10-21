@@ -102,7 +102,7 @@ describe('lib/sqlite-client', () => {
         assert.equal(rows[0][0], JSON.stringify(['suite', 'second']));
         assert.equal(rows[0][13], 1);
         assert.equal(rows[2][13], 3);
-        assert.calledOnceWith(prepare, 'SELECT * FROM suites');
+        assert.calledOnceWith(prepare, 'SELECT * FROM suites ORDER BY timestamp ASC, rowid ASC');
         client.close();
     });
 
@@ -156,6 +156,15 @@ describe('lib/sqlite-client', () => {
                 sqliteClient.query({select: 'foo', orderBy: 'baz'});
 
                 assert.calledWith(prepareStub, 'SELECT foo FROM suites ORDER BY baz ASC');
+            });
+
+            it('should apply descending order to every requested column', () => {
+                sqliteClient.query({
+                    orderBy: ['timestamp', 'rowid'],
+                    orderDescending: true
+                });
+
+                assert.calledWith(prepareStub, 'SELECT * FROM suites ORDER BY timestamp DESC, rowid DESC');
             });
         });
 

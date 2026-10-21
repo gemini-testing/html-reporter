@@ -5,7 +5,7 @@ import fs from 'fs-extra';
 import NestedError from 'nested-error-stacks';
 
 import {getShortMD5} from './common-utils';
-import {TestStatus, DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS, LOCAL_DATABASE_NAME, DATABASE_URLS_JSON_NAME, DB_CURRENT_VERSION, DB_COLUMN_INDEXES} from './constants';
+import {TestStatus, DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS, LOCAL_DATABASE_NAME, DATABASE_URLS_JSON_NAME, DB_CURRENT_VERSION, DB_COLUMNS, DB_COLUMN_INDEXES} from './constants';
 import {createTablesQuery, selectAllSuitesQuery, compareDatabaseRowsByTimestamp} from './db-utils/common';
 import {setDatabaseVersion} from './db-utils/migrations';
 import type {Attachment, ImageInfoFull, TestError, TestStepCompressed, RawSuitesRow} from './types';
@@ -19,7 +19,7 @@ const debug = makeDebug('html-reporter:sqlite-client');
 interface QueryParams {
     select?: string;
     where?: string;
-    orderBy?: string;
+    orderBy?: string | string[];
     orderDescending?: boolean;
     limit?: number;
     noCache?: boolean;
@@ -216,7 +216,23 @@ export class SqliteClient {
         this._db.run(sentence, deleteArgs);
     }
 
-    private _createSentence(params: { where?: string; orderBy?: string; orderDescending?: boolean; limit?: number }): string {
+    deleteLastTestResult(test: TestHistorySpec & {
+        status: TestStatus;
+        timestamp: number;
+    }): void {
+        const where = [
+            `${DB_COLUMNS.SUITE_PATH} = ?`,
+            `${DB_COLUMNS.NAME} = ?`,
+            `${DB_COLUMNS.STATUS} = ?`,
+            `${DB_COLUMNS.TIMESTAMP} = ?`
+        ].join(' AND ');
+
+        this.delete({
+            where: `rowid = (SELECT rowid FROM ${DB_SUITES_TABLE_NAME} WHERE ${where} ORDER BY rowid DESC LIMIT 1)`
+        }, JSON.stringify(test.suitePath), test.browserId, test.status, test.timestamp.toString());
+    }
+
+    private _createSentence(params: Pick<QueryParams, 'where' | 'orderBy' | 'orderDescending' | 'limit'>): string {
         let sentence = '';
 
         if (params.where) {
@@ -224,7 +240,10 @@ export class SqliteClient {
         }
 
         if (params.orderBy) {
-            sentence += ` ORDER BY ${params.orderBy} ${params.orderDescending ? 'DESC' : 'ASC'}`;
+            const columns = Array.isArray(params.orderBy) ? params.orderBy : [params.orderBy];
+            const order = columns.map(column => `${column} ${params.orderDescending ? 'DESC' : 'ASC'}`);
+
+            sentence += ` ORDER BY ${order.join(', ')}`;
         }
 
         if (params.limit) {

@@ -177,7 +177,7 @@ describe('lib/gui/tool-runner/index', () => {
                 });
         });
 
-        it('should add skipped test to report', () => {
+        it('should add a pending test before resolving its status', () => {
             const testAdapter = mkTestAdapter_(stubTest_({pending: true}));
             toolAdapter.readTests.resolves({tests: [testAdapter]});
 
@@ -657,6 +657,7 @@ describe('lib/gui/tool-runner/index', () => {
 
             await gui.initialize();
             reportBuilder.addTestResult.resetHistory();
+            reportBuilder.resolveSkippedTests.resetHistory();
             await gui.refreshTestsIfChanged([changedFile], [], sandbox.stub(), sandbox.stub());
 
             assert.calledOnce(reportBuilder.addTestResult);
@@ -664,10 +665,9 @@ describe('lib/gui/tool-runner/index', () => {
             assert.calledOnceWith(reportBuilder.restoreTestHistory, [{
                 suitePath: activeTest.titlePath,
                 browserId: activeTest.browserId
-            }], {excludeSkipped: [{
-                suitePath: activeTest.titlePath,
-                browserId: activeTest.browserId
-            }]});
+            }]);
+            assert.calledOnceWith(reportBuilder.resolveSkippedTests, [activeTest]);
+            assert.callOrder(reportBuilder.restoreTestHistory, reportBuilder.resolveSkippedTests);
         });
 
         it('should reject a duplicate full name introduced by a partial read', async () => {
@@ -880,17 +880,17 @@ describe('lib/gui/tool-runner/index', () => {
             sandbox.stub(fs, 'pathExists').withArgs(dbPath).resolves(false);
         });
 
-        it('should log a warning that there is no data for reuse', async () => {
-            reportBuilder.getResult.returns({});
+        it('should reuse in-memory history when no database file exists', async () => {
+            reportBuilder.buildTreeFromCurrentDb.returns('tests-tree');
 
             await gui.initialize();
 
-            assert.calledWithMatch(logger.warn, 'Nothing to reuse');
+            assert.calledOnceWith(reportBuilder.reuseTestsTree, 'tests-tree');
         });
 
         it('should not reuse tree if it is empty', async () => {
             fs.pathExists.withArgs(dbPath).resolves(true);
-            getTestsTreeFromDatabase.resolves({});
+            reportBuilder.buildTreeFromCurrentDb.returns({});
 
             await gui.initialize();
 
@@ -899,11 +899,26 @@ describe('lib/gui/tool-runner/index', () => {
 
         it('should reuse tests tree', async () => {
             fs.pathExists.withArgs(dbPath).resolves(true);
-            getTestsTreeFromDatabase.resolves('tests-tree');
+            reportBuilder.buildTreeFromCurrentDb.returns('tests-tree');
 
             await gui.initialize();
 
             assert.calledOnceWith(reportBuilder.reuseTestsTree, 'tests-tree');
+        });
+
+        it('should resolve current skip statuses after reusing the tests tree', async () => {
+            const pendingTest = mkTestAdapter_(stubTest_({id: 'pending-id', browserId: 'yabro', pending: true, fullTitle: () => 'pending test'}));
+            const activeTest = mkTestAdapter_(stubTest_({id: 'active-id', browserId: 'yabro', pending: false, fullTitle: () => 'active test'}));
+            toolRunnerUtils.formatId.callsFake((id, browserId) => `${id}/${browserId}`);
+            toolAdapter.readTests.resolves({tests: [pendingTest, activeTest]});
+            fs.pathExists.withArgs(dbPath).resolves(true);
+            reportBuilder.buildTreeFromCurrentDb.returns('tests-tree');
+
+            await gui.initialize();
+
+            assert.calledOnceWithExactly(reportBuilder.buildTreeFromCurrentDb);
+            assert.calledOnceWith(reportBuilder.resolveSkippedTests, [pendingTest, activeTest]);
+            assert.callOrder(reportBuilder.reuseTestsTree, reportBuilder.resolveSkippedTests);
         });
 
         describe('should initialize gui tree with', () => {
