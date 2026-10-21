@@ -127,10 +127,16 @@ export class StaticReportBuilder {
         // Test result data has to be saved before writing to db, because user may save data to custom location
         const testResultWithImagePaths = await this._saveTestResultData(formattedResult);
 
+        this._writeTestResult(testResultWithImagePaths);
+
+        return testResultWithImagePaths;
+    }
+
+    protected _writeTestResult(testResultWithImagePaths: ReporterTestResult): void {
         // To prevent skips duplication on reporter startup
         const isImgSkipped = testResultWithImagePaths.status === SKIPPED;
 
-        const isPreviouslySkippedTest = isImgSkipped && getTestFromDb<DbTestResult>(this._dbClient, formattedResult)?.status === SKIPPED;
+        const isPreviouslySkippedTest = isImgSkipped && getTestFromDb<DbTestResult>(this._dbClient, testResultWithImagePaths)?.status === SKIPPED;
 
         if (!ignoredStatuses.includes(testResultWithImagePaths.status) && !isPreviouslySkippedTest) {
             if (typeof this._reporterConfig.generateBadges === 'function' && testResultWithImagePaths.attachments) {
@@ -142,8 +148,6 @@ export class StaticReportBuilder {
 
             this._dbClient.write(testResultWithImagePaths);
         }
-
-        return testResultWithImagePaths;
     }
 
     protected _deleteTestResultFromDb(...args: Parameters<typeof this._dbClient.delete>): void {
