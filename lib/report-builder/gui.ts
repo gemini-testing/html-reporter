@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import {StaticReportBuilder, StaticReportBuilderOptions} from './static';
 import {GuiTestsTreeBuilder, GuiTestsTreeBuilderState, TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../tests-tree-builder/gui';
-import {UPDATED, DB_COLUMNS, DB_COLUMN_INDEXES, TestStatus, DEFAULT_TITLE_DELIMITER, SKIPPED, SUCCESS} from '../constants';
+import {UPDATED, DB_COLUMNS, TestStatus, DEFAULT_TITLE_DELIMITER, IDLE, SKIPPED, SUCCESS, UNKNOWN_ATTEMPT} from '../constants';
 import {ConfigForStaticFile, getConfigForStaticFile} from '../server-utils';
 import {ReporterTestResult} from '../adapters/test-result';
 import {Tree, TreeImage} from '../tests-tree-builder/base';
@@ -13,6 +13,7 @@ import {copyAndUpdate} from '../adapters/test-result/utils';
 import type {TestHistorySpec} from '../sqlite-client';
 import type {TestAttemptManagerSnapshot} from '../test-attempt-manager';
 import type {TreePatchScope} from '../tests-tree-builder/tree-patch';
+import type {TestAdapter} from '../adapters/test';
 
 interface UndoAcceptImageResult {
     updatedImage: TreeImage | undefined;
@@ -127,7 +128,7 @@ export class GuiReportBuilder extends StaticReportBuilder {
 
     restoreTestsState({treeState, skips, attempts}: GuiReportBuilderTestsState): void {
         this._testsTree.restoreState(treeState);
-        this._skips = skips;
+        this._skips.splice(0, this._skips.length, ...skips);
 
         if (attempts) {
             this._testAttemptManager.restore(attempts);
@@ -147,20 +148,16 @@ export class GuiReportBuilder extends StaticReportBuilder {
 
     removeTestsByFiles(files: string[]): void {
         this._testsTree.removeTestsByFiles(files);
+        _.remove(this._skips, ({suite, browser}) =>
+            !this._testsTree.tree.browsers.byId[[suite, browser].join(DEFAULT_TITLE_DELIMITER)]);
     }
 
     sortTestsTreeBranches(suiteIds: Iterable<string>): void {
         this._testsTree.sortBranches(suiteIds);
     }
 
-    restoreTestHistory(tests: TestHistorySpec[], {excludeSkipped = []}: {excludeSkipped?: TestHistorySpec[]} = {}): boolean {
-        const excludedSkippedTests = new Set(excludeSkipped.map(({suitePath, browserId}) =>
-            `${JSON.stringify(suitePath)}\0${browserId}`));
-        const rows = this._dbClient.getSuitesByTests(tests).filter(row => {
-            const key = `${row[DB_COLUMN_INDEXES.suitePath]}\0${row[DB_COLUMN_INDEXES.name]}`;
-
-            return row[DB_COLUMN_INDEXES.status] !== SKIPPED || !excludedSkippedTests.has(key);
-        });
+    restoreTestHistory(tests: TestHistorySpec[]): boolean {
+        const rows = this._dbClient.getSuitesByTests(tests);
 
         if (!rows.length) {
             return false;
@@ -174,19 +171,80 @@ export class GuiReportBuilder extends StaticReportBuilder {
         return true;
     }
 
-    buildTreeFromCurrentDb({excludeSkipped = []}: {excludeSkipped?: TestHistorySpec[]} = {}): Tree {
-        const excludedSkippedTests = new Set(excludeSkipped.map(({suitePath, browserId}) =>
-            `${JSON.stringify(suitePath)}\0${browserId}`));
-        const rows = this._dbClient.getAllSuites().filter(row => {
-            const key = `${row[DB_COLUMN_INDEXES.suitePath]}\0${row[DB_COLUMN_INDEXES.name]}`;
-
-            return row[DB_COLUMN_INDEXES.status] !== SKIPPED || !excludedSkippedTests.has(key);
-        });
-
+    buildTreeFromCurrentDb(): Tree {
         const testsTreeBuilder = StaticTestsTreeBuilder.create({baseHost: this._reporterConfig.baseHost});
-        const {tree} = testsTreeBuilder.build(rows);
+        const {tree} = testsTreeBuilder.build(this._dbClient.getAllSuites());
 
         return tree;
+    }
+
+    async resolveSkippedTests(tests: TestAdapter[]): Promise<void> {
+        const db = this._dbClient.getRawConnection();
+        db.run('SAVEPOINT resolve_skipped_tests');
+
+        try {
+            this._resolveSkippedTests(tests);
+            db.run('RELEASE SAVEPOINT resolve_skipped_tests');
+        } catch (error) {
+            db.run('ROLLBACK TO SAVEPOINT resolve_skipped_tests');
+            db.run('RELEASE SAVEPOINT resolve_skipped_tests');
+
+            throw error;
+        }
+    }
+
+    private _resolveSkippedTests(tests: TestAdapter[]): void {
+        const affectedTests = new Set(tests.map(test => `${test.fullName}\0${test.browserId}`));
+        _.remove(this._skips, ({suite, browser}) => affectedTests.has(`${suite}\0${browser}`));
+
+        for (const test of tests) {
+            const browserId = test.titlePath.concat(test.browserId).join(DEFAULT_TITLE_DELIMITER);
+            const browser = this._testsTree.tree.browsers.byId[browserId];
+
+            if (!browser) {
+                continue;
+            }
+
+            const results = browser.resultIds.filter(Boolean).map(id => this._testsTree.tree.results.byId[id]);
+            this._testAttemptManager.replaceAttempts(test, results.map(result => result.status));
+
+            if (!test.pending) {
+                while (results.length) {
+                    const result = results[results.length - 1];
+
+                    if (result.status !== SKIPPED) {
+                        break;
+                    }
+
+                    this._testsTree.removeTestResult(result.id);
+                    this._testAttemptManager.removeAttempt(test);
+                    this._dbClient.deleteLastTestResult({
+                        suitePath: test.titlePath,
+                        browserId: test.browserId,
+                        status: SKIPPED,
+                        timestamp: result.timestamp
+                    });
+                    results.pop();
+                }
+
+                if (results.length) {
+                    continue;
+                }
+            }
+
+            const lastResult = results.at(-1);
+
+            // Синтетические статусы не требуют сохранения изображений.
+            // Все изменения SQLite выполняются синхронно внутри SAVEPOINT.
+            const formattedResult = this.provideAttempt(test.createTestResult({
+                status: test.pending ? SKIPPED : IDLE,
+                attempt: lastResult?.status === SKIPPED ? lastResult.attempt : UNKNOWN_ATTEMPT,
+                duration: 0
+            }));
+
+            this._writeTestResult(formattedResult);
+            this._addTestResultToTree(formattedResult);
+        }
     }
 
     getTestBranch(id: string): TestBranch {
@@ -272,6 +330,10 @@ export class GuiReportBuilder extends StaticReportBuilder {
     ): Promise<ReporterTestResult> {
         const formattedResult = await super.addTestResult(formattedResultOriginal);
 
+        return this._addTestResultToTree(formattedResult, updates);
+    }
+
+    private _addTestResultToTree(formattedResult: ReporterTestResult, updates?: Partial<ReporterTestResult>): ReporterTestResult {
         if (formattedResult.status === SKIPPED) {
             const {
                 fullName: suite,

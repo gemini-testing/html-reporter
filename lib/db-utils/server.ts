@@ -203,7 +203,7 @@ export const getTestFromDb = <T = unknown>(dbClient: SqliteClient, testResult: R
     return dbClient.query<T>({
         select: '*',
         where: `${DB_COLUMNS.SUITE_PATH} = ? AND ${DB_COLUMNS.NAME} = ?`,
-        orderBy: DB_COLUMNS.TIMESTAMP,
+        orderBy: `${DB_COLUMNS.TIMESTAMP} DESC, rowid`,
         orderDescending: true,
         limit: 1,
         noCache: true

@@ -421,6 +421,10 @@ export class GuiTestsTreeBuilder extends BaseTestsTreeBuilder {
         this._tree.results.allIds = this._tree.results.allIds.filter(id => id !== resultId);
 
         delete this._tree.results.byId[resultId];
+
+        if (this._tree.browsers.byId[result.parentId].resultIds.length) {
+            this._setStatusForBranch(result.suitePath);
+        }
     }
 
     private _removeImagesById(imageIds: string[]): void {

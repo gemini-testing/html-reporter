@@ -5,8 +5,8 @@ import fs from 'fs-extra';
 import NestedError from 'nested-error-stacks';
 
 import {getShortMD5} from './common-utils';
-import {TestStatus, DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS, LOCAL_DATABASE_NAME, DATABASE_URLS_JSON_NAME, DB_CURRENT_VERSION, DB_COLUMN_INDEXES} from './constants';
-import {createTablesQuery, selectAllSuitesQuery, compareDatabaseRowsByTimestamp} from './db-utils/common';
+import {TestStatus, DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS, LOCAL_DATABASE_NAME, DATABASE_URLS_JSON_NAME, DB_CURRENT_VERSION, DB_COLUMNS, DB_COLUMN_INDEXES} from './constants';
+import {createTablesQuery, selectAllSuitesQuery} from './db-utils/common';
 import {setDatabaseVersion} from './db-utils/migrations';
 import type {Attachment, ImageInfoFull, TestError, TestStepCompressed, RawSuitesRow} from './types';
 import type {HtmlReporter} from './plugin-api';
@@ -163,7 +163,7 @@ export class SqliteClient {
     }
 
     getAllSuites(): RawSuitesRow[] {
-        const statement = this._db.prepare(selectAllSuitesQuery());
+        const statement = this._db.prepare(`${selectAllSuitesQuery()} ORDER BY ${DB_COLUMNS.TIMESTAMP} ASC, rowid ASC`);
         const rows: RawSuitesRow[] = [];
 
         while (statement.step()) {
@@ -174,7 +174,7 @@ export class SqliteClient {
         }
         statement.free();
 
-        return rows.sort(compareDatabaseRowsByTimestamp);
+        return rows;
     }
 
     getSuitesByTests(tests: TestHistorySpec[]): RawSuitesRow[] {
@@ -184,7 +184,7 @@ export class SqliteClient {
 
         const rows: RawSuitesRow[] = [];
         const requestedTests = new Set(tests.map(test => `${JSON.stringify(test.suitePath)}\0${test.browserId}`));
-        const statement = this._db.prepare(selectAllSuitesQuery());
+        const statement = this._db.prepare(`${selectAllSuitesQuery()} ORDER BY ${DB_COLUMNS.TIMESTAMP} ASC, rowid ASC`);
 
         while (statement.step()) {
             const row = statement.get();
@@ -199,7 +199,7 @@ export class SqliteClient {
         }
         statement.free();
 
-        return rows.sort(compareDatabaseRowsByTimestamp);
+        return rows;
     }
 
     write(testResult: ReporterTestResult): void {
@@ -214,6 +214,22 @@ export class SqliteClient {
             + this._createSentence(deleteParams);
 
         this._db.run(sentence, deleteArgs);
+    }
+
+    deleteLastTestResult(test: TestHistorySpec & {
+        status: TestStatus;
+        timestamp: number;
+    }): void {
+        const where = [
+            `${DB_COLUMNS.SUITE_PATH} = ?`,
+            `${DB_COLUMNS.NAME} = ?`,
+            `${DB_COLUMNS.STATUS} = ?`,
+            `${DB_COLUMNS.TIMESTAMP} = ?`
+        ].join(' AND ');
+
+        this.delete({
+            where: `rowid = (SELECT rowid FROM ${DB_SUITES_TABLE_NAME} WHERE ${where} ORDER BY rowid DESC LIMIT 1)`
+        }, JSON.stringify(test.suitePath), test.browserId, test.status, test.timestamp.toString());
     }
 
     private _createSentence(params: { where?: string; orderBy?: string; orderDescending?: boolean; limit?: number }): string {
