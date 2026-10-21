@@ -2,7 +2,6 @@ import path from 'node:path';
 import os from 'node:os';
 
 import {CommanderStatic} from '@gemini-testing/commander';
-import chalk from 'chalk';
 import fs from 'fs-extra';
 import _ from 'lodash';
 import looksSame, {CoordBounds} from 'looks-same';
@@ -16,16 +15,13 @@ import {Cache} from '../../cache';
 import {ImagesInfoSaver} from '../../images-info-saver';
 import {SqliteImageStore} from '../../image-store';
 import * as reporterHelper from '../../reporter-helpers';
-import {logger, getShortMD5, isUpdatedStatus} from '../../common-utils';
+import {getShortMD5, isUpdatedStatus} from '../../common-utils';
 import {formatId, mkFullTitle, mergeDatabasesForReuse, filterByEqualDiffSizes, prepareLocalDatabase} from './utils';
 import {getExpectedCacheKey, getTimeTravelModeEnumSafe} from '../../server-utils';
 import {
     UPDATED,
-    SKIPPED,
     IDLE,
     ToolName,
-    DATABASE_URLS_JSON_NAME,
-    LOCAL_DATABASE_NAME,
     DEFAULT_TITLE_DELIMITER,
     PluginEvents,
     UNKNOWN_ATTEMPT, BrowserFeature, Feature, TimeTravelFeature
@@ -45,7 +41,6 @@ import type {
     ReporterConfig, TestSpecByPath, RefImageFile
 } from '../../types';
 import type {TestAdapter} from '../../adapters/test/index';
-import type {TestHistorySpec} from '../../sqlite-client';
 import type {TestCollectionAdapter} from '../../adapters/test-collection';
 import type {ConfigAdapter} from '../../adapters/config';
 
@@ -78,10 +73,6 @@ const getTestStructureSignature = (test: TestAdapter): string => JSON.stringify(
     test.silentlySkipped,
     test.pending
 ]);
-
-const getNotPendingTestSpecs = (tests: TestAdapter[]): TestHistorySpec[] => tests
-    .filter(test => !test.pending)
-    .map(test => ({suitePath: test.titlePath, browserId: test.browserId}));
 
 export class ToolRunner {
     private _testFiles: string[];
@@ -193,7 +184,6 @@ export class ToolRunner {
         this._testAdapterIdsByFile.clear();
 
         await this._handleRunnableCollection();
-        await this._fillTestsTree(reportBuilder.buildTreeFromCurrentDb({excludeSkipped: getNotPendingTestSpecs(Object.values(this._testAdapters))}));
     }
 
     async refreshTestsIfChanged(
@@ -318,7 +308,7 @@ export class ToolRunner {
         this._testAdapterIdsByFile.clear();
 
         await this._addTestsToTree(collection.tests);
-        await this._fillTestsTree(reportBuilder.buildTreeFromCurrentDb({excludeSkipped: getNotPendingTestSpecs(Object.values(this._testAdapters))}));
+        await this._fillTestsTree(reportBuilder.buildTreeFromCurrentDb());
     }
 
     private async _applyChangedFiles(
@@ -362,12 +352,8 @@ export class ToolRunner {
                 suitePath: test.titlePath,
                 browserId: test.browserId
             }));
-            reportBuilder.restoreTestHistory(testHistorySpecs, {
-                excludeSkipped: testsToAdd.filter(test => !test.pending).map(test => ({
-                    suitePath: test.titlePath,
-                    browserId: test.browserId
-                }))
-            });
+            reportBuilder.restoreTestHistory(testHistorySpecs);
+            await reportBuilder.resolveSkippedTests(testsToAdd);
 
             reportBuilder.sortTestsTreeBranches(patchScope.suites);
 
@@ -750,11 +736,11 @@ export class ToolRunner {
                 this._testAdapterIdsByFile.set(testFile, adapterIds);
             }
 
-            if (test.pending) {
-                queue.add(async () => reportBuilder.addTestResult(test.createTestResult({status: SKIPPED, duration: 0})));
-            } else {
-                queue.add(async () => reportBuilder.addTestResult(test.createTestResult({status: IDLE, duration: 0})));
-            }
+            queue.add(async () => reportBuilder.addTestResult(test.createTestResult({
+                status: IDLE,
+                attempt: 0,
+                duration: 0
+            })));
         }
 
         await queue.onIdle();
@@ -796,25 +782,15 @@ export class ToolRunner {
         const reportBuilder = this._ensureReportBuilder();
 
         const {autoRun} = this._guiOpts;
-        const testsTree = tree ?? await this._loadDataFromDatabase();
+        const testsTree = tree ?? reportBuilder.buildTreeFromCurrentDb();
 
         if (testsTree && !_.isEmpty(testsTree)) {
             reportBuilder.reuseTestsTree(testsTree);
         }
 
+        await reportBuilder.resolveSkippedTests(Object.values(this._testAdapters));
+
         this._tree = {...reportBuilder.getResult(), autoRun, browserFeatures: {}, features: []};
-    }
-
-    protected async _loadDataFromDatabase(): Promise<Tree | null> {
-        const dbPath = path.resolve(this._reportPath, LOCAL_DATABASE_NAME);
-
-        if (await fs.pathExists(dbPath)) {
-            return this._ensureReportBuilder().buildTreeFromCurrentDb({excludeSkipped: getNotPendingTestSpecs(Object.values(this._testAdapters))});
-        }
-
-        logger.warn(chalk.yellow(`Nothing to reuse in ${this._reportPath}: can not load data from ${DATABASE_URLS_JSON_NAME}`));
-
-        return null;
     }
 
     protected _resolveImgPath(imgPath: string): string {
