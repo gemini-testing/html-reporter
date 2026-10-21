@@ -1,12 +1,12 @@
 import _ from 'lodash';
 import {logger} from '../common-utils';
-import {DB_MAX_AVAILABLE_PAGE_SIZE, DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS, DB_COLUMN_INDEXES, DB_VERSION_TABLE_NAME, VERSION_TABLE_COLUMNS} from '../constants';
+import {DB_MAX_AVAILABLE_PAGE_SIZE, DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS, DB_COLUMNS, DB_COLUMN_INDEXES, DB_VERSION_TABLE_NAME, VERSION_TABLE_COLUMNS} from '../constants';
 import type {DbUrlsJsonData, RawSuitesRow, ReporterConfig} from '../types';
 import type {Database as SqlJsDatabase, Statement} from '@gemini-testing/sql.js';
 import type {ReadonlyDeep} from 'type-fest';
 
 export const selectAllQuery = (tableName: string): string => `SELECT * FROM ${tableName}`;
-export const selectAllSuitesQuery = (): string => selectAllQuery(DB_SUITES_TABLE_NAME);
+export const selectAllSuitesQuery = (): string => `${selectAllQuery(DB_SUITES_TABLE_NAME)} ORDER BY ${DB_COLUMNS.TIMESTAMP} ASC, rowid ASC`;
 
 export const createTablesQuery = (): string[] => [
     createTableQuery(DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS),
