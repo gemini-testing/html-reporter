@@ -2,7 +2,7 @@ import React, {ReactNode, useMemo} from 'react';
 import _ from 'lodash';
 import * as icons from '@gravity-ui/icons';
 
-import {useSelector} from 'react-redux';
+import {useSelector} from '@/static/new-ui/modules/react-redux';
 import {getUrlWithBase} from '@/common-utils';
 import {ResultEntityCommon} from '@/static/new-ui/types/store';
 import {getCurrentResult} from '@/static/new-ui/features/suites/selectors';

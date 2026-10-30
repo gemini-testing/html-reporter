@@ -5,7 +5,7 @@ import {CloudArrowUpIn, TriangleExclamation} from '@gravity-ui/icons';
 
 import styles from './index.module.css';
 import classNames from 'classnames';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch, useSelector} from '@/static/new-ui/modules/react-redux';
 import {
     CommitResult,
     staticAccepterCommitScreenshot,
@@ -13,7 +13,7 @@ import {
     staticAccepterUpdateToolbarOffset
 } from '@/static/modules/actions';
 import {Point} from '@/static/new-ui/types';
-import {useLocation} from 'react-router-dom';
+import {useLocation} from 'react-router';
 import {TestStatus, PathNames} from '@/constants';
 import {formatCommitPayload} from '@/static/modules/static-image-accepter';
 import {pick} from 'lodash';

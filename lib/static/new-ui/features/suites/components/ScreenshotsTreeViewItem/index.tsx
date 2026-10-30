@@ -1,7 +1,7 @@
 import {Picture} from '@gravity-ui/icons';
 import {Button, Hotkey, Icon, Flex} from '@gravity-ui/uikit';
 import React, {ReactNode, createRef, useCallback, useEffect, useRef} from 'react';
-import {useSelector} from 'react-redux';
+import {useSelector} from '@/static/new-ui/modules/react-redux';
 
 import {AssertViewResult} from '@/static/new-ui/components/AssertViewResult';
 import {ImageEntity} from '@/static/new-ui/types/store';
@@ -12,7 +12,7 @@ import {AssertViewStatus} from '@/static/new-ui/components/AssertViewStatus';
 import styles from './index.module.css';
 import {useHotkey} from '@/static/new-ui/hooks/useHotkey';
 import {ErrorHandler} from '../../../error-handling/components/ErrorHandling';
-import {useNavigate, useParams} from 'react-router-dom';
+import {useNavigate, useParams} from 'react-router';
 import {getUrl} from '@/static/new-ui/utils/getUrl';
 import {useFocusedImage} from '@/static/new-ui/features/suites/components/TestSteps/FocusedImageContext';
 import {useIsRunning} from '@/static/new-ui/hooks/useIsRunning';

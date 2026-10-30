@@ -14,6 +14,14 @@ if (process.env.TOOL === 'testplane') {
                     await browser.$('[data-qa="aside-panel-title"]').waitForDisplayed({reverse: true});
                 }
 
+                it('should preserve settings tooltip size', async ({browser}) => {
+                    await browser.$('[data-qa="footer-item-settings"]').moveTo();
+                    const tooltip = await browser.$('.gn-composite-bar-item__icon-tooltip');
+                    await tooltip.waitForDisplayed();
+
+                    await tooltip.assertView('settings-tooltip');
+                });
+
                 it('should switch to dark theme', async ({browser}) => {
                     const settingsMenuItem = await openSettings(browser);
 

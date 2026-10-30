@@ -1,5 +1,5 @@
 import React, {ReactNode, useEffect, useRef} from 'react';
-import {useSelector} from 'react-redux';
+import {useSelector} from '@/static/new-ui/modules/react-redux';
 
 export function MetrikaScript(): ReactNode {
     const areAnalyticsEnabled = useSelector(state => state.config.yandexMetrika.enabled);

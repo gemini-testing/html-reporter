@@ -31,7 +31,7 @@ interface DiffViewerProps {
      * */
     desiredHeight?: string;
     labelClassName?: string;
-    magnifier?: React.RefObject<HTMLElement>;
+    magnifier?: React.RefObject<HTMLElement | null>;
 }
 
 export function DiffViewer(props: DiffViewerProps): ReactNode {

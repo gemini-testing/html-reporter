@@ -1,4 +1,4 @@
-import {useSelector} from 'react-redux';
+import {useSelector} from '@/static/new-ui/modules/react-redux';
 
 export const useRunOptionsString = (): string => useSelector((state) => {
     const opts: string[] = [];

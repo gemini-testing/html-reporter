@@ -1,5 +1,5 @@
 import React, {ReactNode} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch, useSelector} from '@/static/new-ui/modules/react-redux';
 import classnames from 'classnames';
 import {Icon, SegmentedRadioGroup as RadioButton, Select, Tooltip} from '@gravity-ui/uikit';
 import {ArrowRightArrowLeft} from '@gravity-ui/icons';

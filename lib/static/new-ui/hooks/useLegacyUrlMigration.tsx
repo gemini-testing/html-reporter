@@ -1,6 +1,6 @@
 import React, {useEffect, useRef} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
-import {useNavigate} from 'react-router-dom';
+import {useDispatch, useSelector} from '@/static/new-ui/modules/react-redux';
+import {useNavigate} from 'react-router';
 import {useToaster} from '@gravity-ui/uikit';
 import {TriangleExclamation} from '@gravity-ui/icons';
 

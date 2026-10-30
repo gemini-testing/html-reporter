@@ -92,7 +92,7 @@ describe('lib/static/modules/actions/static-accepter', () => {
             return operation;
         });
 
-        const resultPromise = actions.staticAccepterCommitScreenshot(IMAGES, BASE_OPTIONS)(dispatch, sandbox.stub());
+        const resultPromise = actions.staticAccepterCommitScreenshot(IMAGES, BASE_OPTIONS)(dispatch);
 
         assert.calledOnce(startStaticAccepter);
         assert.calledWithExactly(
@@ -134,7 +134,7 @@ describe('lib/static/modules/actions/static-accepter', () => {
         await actions.staticAccepterCommitScreenshot(IMAGES, {
             ...BASE_OPTIONS,
             theme: 'dark'
-        })(dispatch, sandbox.stub());
+        })(dispatch);
 
         assert.calledWithExactly(
             startStaticAccepter,
@@ -148,7 +148,7 @@ describe('lib/static/modules/actions/static-accepter', () => {
         it(`should mark staged images as committed for a ${status} result`, async () => {
             startStaticAccepter.resolves({status});
 
-            const result = await actions.staticAccepterCommitScreenshot(IMAGES, BASE_OPTIONS)(dispatch, sandbox.stub());
+            const result = await actions.staticAccepterCommitScreenshot(IMAGES, BASE_OPTIONS)(dispatch);
 
             assert.deepEqual(result, {status});
             assert.calledWith(dispatch, {
@@ -167,7 +167,7 @@ describe('lib/static/modules/actions/static-accepter', () => {
     it('should preserve staged images when v2 is cancelled', async () => {
         startStaticAccepter.resolves({status: 'cancelled'});
 
-        const result = await actions.staticAccepterCommitScreenshot(IMAGES, BASE_OPTIONS)(dispatch, sandbox.stub());
+        const result = await actions.staticAccepterCommitScreenshot(IMAGES, BASE_OPTIONS)(dispatch);
 
         assert.deepEqual(result, {status: 'cancelled'});
         assert.neverCalledWith(dispatch, sinon.match({type: actionNames.STATIC_ACCEPTER_COMMIT_SCREENSHOT}));
@@ -179,7 +179,7 @@ describe('lib/static/modules/actions/static-accepter', () => {
         sandbox.stub(console, 'error');
         startStaticAccepter.rejects(error);
 
-        const result = await actions.staticAccepterCommitScreenshot(IMAGES, BASE_OPTIONS)(dispatch, sandbox.stub());
+        const result = await actions.staticAccepterCommitScreenshot(IMAGES, BASE_OPTIONS)(dispatch);
 
         assert.strictEqual(result.error, error);
         assert.neverCalledWith(dispatch, sinon.match({type: actionNames.STATIC_ACCEPTER_COMMIT_SCREENSHOT}));
@@ -203,8 +203,8 @@ describe('lib/static/modules/actions/static-accepter', () => {
         startStaticAccepter.onFirstCall().returns(operation);
         startStaticAccepter.onSecondCall().throws(concurrentError);
 
-        const activeResult = actions.staticAccepterCommitScreenshot(IMAGES, BASE_OPTIONS)(dispatch, sandbox.stub());
-        const concurrentResult = await actions.staticAccepterCommitScreenshot(IMAGES, BASE_OPTIONS)(dispatch, sandbox.stub());
+        const activeResult = actions.staticAccepterCommitScreenshot(IMAGES, BASE_OPTIONS)(dispatch);
+        const concurrentResult = await actions.staticAccepterCommitScreenshot(IMAGES, BASE_OPTIONS)(dispatch);
 
         assert.strictEqual(concurrentResult.error, concurrentError);
         assert.neverCalledWith(dispatch, sinon.match({type: actionNames.PROCESS_END}));
@@ -222,7 +222,7 @@ describe('lib/static/modules/actions/static-accepter', () => {
         const result = await actions.staticAccepterCommitScreenshot(IMAGES, {
             ...BASE_OPTIONS,
             moduleUrl: ''
-        })(dispatch, sandbox.stub());
+        })(dispatch);
 
         assert.deepEqual(result, {});
         assert.notCalled(startStaticAccepter);
