@@ -1,4 +1,5 @@
 import path from 'node:path';
+import {pathToFileURL} from 'node:url';
 import _ from 'lodash';
 import {Command} from '@gemini-testing/commander';
 import pkg from '../../package.json';
@@ -51,7 +52,8 @@ export const run = async (): Promise<void> => {
     toolAdapter = await makeToolAdapter({toolName: toolName as ToolName, configPath});
 
     for (const commandName of _.values(cliCommands)) {
-        const registerCmd = (await import(path.resolve(__dirname, './commands', commandName))).default;
+        const commandPath = require.resolve(path.resolve(__dirname, './commands', commandName));
+        const registerCmd = (await import(pathToFileURL(commandPath).href)).default;
 
         registerCmd(program, toolAdapter);
     }

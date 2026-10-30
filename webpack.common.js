@@ -66,6 +66,7 @@ module.exports = {
             },
             {
                 test: /\.[jt]sx?$/,
+                type: 'javascript/auto',
                 use: 'babel-loader',
                 exclude: /node_modules/
             },

@@ -217,7 +217,7 @@ export const fetchFile = async <T = unknown>(url: string, options?: AxiosRequest
     const {default: axios} = await import('axios');
 
     try {
-        const {data, status} = await axios.get(url, options);
+        const {data, status} = await axios.get(url, options as Parameters<typeof axios.get>[1]);
 
         return {data, status};
     } catch (e: any) { // eslint-disable-line @typescript-eslint/no-explicit-any

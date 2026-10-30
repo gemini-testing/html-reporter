@@ -1,5 +1,6 @@
 import os from 'os';
 import path from 'path';
+import type {EventEmitter} from 'events';
 import type Testplane from 'testplane';
 import type {TestResult as TestplaneTestResult} from 'testplane';
 import _ from 'lodash';
@@ -66,9 +67,9 @@ export default (testplane: Testplane, opts: Partial<ReporterOptions>): void => {
 
     testplane.on(testplane.events.INIT, withMiddleware(async () => {
         const [{SqliteClient}, {SqliteImageStore}, {ImagesInfoSaver}] = await Promise.all([
-            import('./lib/sqlite-client'),
-            import('./lib/image-store'),
-            import('./lib/images-info-saver')
+            import('./lib/sqlite-client.js'),
+            import('./lib/image-store.js'),
+            import('./lib/images-info-saver.js')
         ]);
         const dbClient = await SqliteClient.create({htmlReporter, reportPath: config.path});
         const imageStore = new SqliteImageStore(dbClient);
@@ -130,8 +131,8 @@ async function handleTestResults(testplane: TestplaneWithHtmlReporter, reportBui
 
             testplane.on(eventName as AnyTestplaneTestEvent, (testResult: TestplaneTestResult) => {
                 promises.push(queue.add(async () => {
-                    const {getStatus} = await import('./lib/adapters/test-result/testplane');
-                    const {finalizeSnapshotsForTest} = await import('./lib/adapters/event-handling/testplane/snapshots');
+                    const {getStatus} = await import('./lib/adapters/test-result/testplane/index.js');
+                    const {finalizeSnapshotsForTest} = await import('./lib/adapters/event-handling/testplane/snapshots.js');
                     const formattedResult = formatTestResult(
                         testResult,
                         getStatus(eventName, testplane.events, testResult),
@@ -148,7 +149,8 @@ async function handleTestResults(testplane: TestplaneWithHtmlReporter, reportBui
                         timeTravelConfig: testplane.config.browsers[formattedResult.browserId].timeTravel,
                         events: testplane.events,
                         eventName,
-                        snapshotsSaver: testplane.htmlReporter.snapshotsSaver
+                        snapshotsSaver: testplane.htmlReporter.snapshotsSaver,
+                        secretConfigFilter: testplane.htmlReporter.config.secretConfigFilter
                     });
 
                     attachments.push(...snapshotAttachments);
@@ -169,5 +171,13 @@ async function handleTestResults(testplane: TestplaneWithHtmlReporter, reportBui
             const {handleDomSnapshotsEvent} = require('./lib/adapters/event-handling/testplane/snapshots');
             handleDomSnapshotsEvent(null, context, data);
         });
+
+        // Older Testplane versions do not expose network recording events.
+        const networkEvent = (testplane.events as Record<string, string>).NETWORK_REQUESTS;
+        if (networkEvent) {
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            const {handleNetworkRequestsEvent} = require('./lib/adapters/event-handling/testplane/snapshots');
+            (testplane as EventEmitter).on(networkEvent, handleNetworkRequestsEvent);
+        }
     });
 }

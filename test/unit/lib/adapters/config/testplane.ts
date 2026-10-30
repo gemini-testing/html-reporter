@@ -1,6 +1,7 @@
 import type {Config, Test} from 'testplane';
 import sinon from 'sinon';
-import {defaultSecretConfigFilter, maskTokenValues, TestplaneConfigAdapter} from '../../../../../lib/adapters/config/testplane';
+import {maskTokenValues, TestplaneConfigAdapter} from '../../../../../lib/adapters/config/testplane';
+import {defaultSecretConfigFilter} from '../../../../../lib/secret-config-filter';
 import {TestplaneTestAdapter} from '../../../../../lib/adapters/test/testplane';
 import {stubConfig, mkState} from '../../../utils';
 
@@ -202,7 +203,28 @@ describe('maskTokenValues', () => {
         ]);
     });
 
-    it('should not use default filter when custom filter is specified', () => {
+    it('should use replacement strings from a custom filter, including empty strings', () => {
+        const config = {token: 'secret-token', password: 'secret-password'};
+
+        const masked = maskTokenValues(config, (_value, configPath) => configPath === '/token' ? 'replacement' : '');
+
+        assert.deepEqual(masked, {
+            token: 'replacement',
+            password: ''
+        });
+    });
+
+    it('should complement defaults when the custom filter returns undefined', () => {
+        const config = {token: 'default-secret', account: 'custom-secret', browser: 'chrome'};
+
+        const masked = maskTokenValues(config, (_value, path) => path === '/account' ? true : undefined);
+
+        assert.deepEqual(masked, {
+            token: 'XXXX', account: 'XXXX', browser: 'chrome'
+        });
+    });
+
+    it('should preserve an explicit false from a custom filter', () => {
         const config = {token: 'keep-me'};
 
         assert.deepEqual(maskTokenValues(config, () => false), config);
