@@ -96,7 +96,7 @@ jobs:
 
     - name: Check if fixture report exists
       id: fixture-report-exists
-      run: echo "fixture_report_exists=$(test -f test/func/fixtures/testplane/report/new-ui.html && echo 'true' || echo 'false')" >> $GITHUB_ENV
+      run: echo "fixture_report_exists=$(test -f test/func/fixtures/testplane/report/new-ui.html && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
 
     - name: Update demo report on merge to master if tests succeed and fixture report exists
       if: ${{ github.ref_name == 'master' && steps.testplane.outcome == 'success' && steps.fixture-report-exists.outputs.fixture_report_exists == 'true' }}
