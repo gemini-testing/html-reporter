@@ -209,7 +209,7 @@ describe('GuiReportBuilder', () => {
         ];
         const test = {suitePath: ['suite', 'test'], browserId: 'chrome'};
 
-        it('should exclude skipped history for an active test', async () => {
+        it('should restore the complete history of specified tests', async () => {
             const reportBuilder = await mkGuiReportBuilder_();
             const successRow = mkRow_(SUCCESS);
             const skippedRow = mkRow_(SKIPPED);
@@ -219,22 +219,41 @@ describe('GuiReportBuilder', () => {
             sandbox.stub(StaticTestsTreeBuilder, 'create').returns({build});
             sandbox.stub(reportBuilder, 'reuseTestsTree');
 
-            const restored = reportBuilder.restoreTestHistory([test], {excludeSkipped: [test]});
+            const restored = reportBuilder.restoreTestHistory([test]);
 
             assert.isTrue(restored);
-            assert.calledOnceWith(build, [successRow]);
+            assert.calledOnceWith(build, [successRow, skippedRow]);
             assert.calledOnceWith(reportBuilder.reuseTestsTree, restoredTree, {replaceCurrentResults: true});
         });
 
-        it('should keep current idle result when an active test has only skipped history', async () => {
+        it('should keep the current result when no saved history exists', async () => {
             const reportBuilder = await mkGuiReportBuilder_();
-            sandbox.stub(dbClient, 'getSuitesByTests').returns([mkRow_(SKIPPED)]);
+            sandbox.stub(dbClient, 'getSuitesByTests').returns([]);
             sandbox.stub(reportBuilder, 'reuseTestsTree');
 
-            const restored = reportBuilder.restoreTestHistory([test], {excludeSkipped: [test]});
+            const restored = reportBuilder.restoreTestHistory([test]);
 
             assert.isFalse(restored);
             assert.notCalled(reportBuilder.reuseTestsTree);
+        });
+    });
+
+    describe('"buildTreeFromCurrentDb" method', () => {
+        it('should build the complete history including skipped rows', async () => {
+            const mkRow_ = status => [
+                '["suite","test"]', 'test', 'chrome', '', '{}', '[]', null, null, null, '[]', 0, 0,
+                status, 1, 0, '[]'
+            ];
+            const reportBuilder = await mkGuiReportBuilder_();
+            const successRow = mkRow_(SUCCESS);
+            const skippedRow = mkRow_(SKIPPED);
+            const build = sandbox.stub().returns({tree: 'tree'});
+            sandbox.stub(dbClient, 'getAllSuites').returns([skippedRow, successRow]);
+            sandbox.stub(StaticTestsTreeBuilder, 'create').returns({build});
+
+            reportBuilder.buildTreeFromCurrentDb();
+
+            assert.calledOnceWith(build, [skippedRow, successRow]);
         });
     });
 
