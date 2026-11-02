@@ -212,7 +212,8 @@ export class PlaywrightTestResultAdapter implements ReporterTestResult {
 
             if (/snapshot .*doesn't exist/.test(message) && message.includes('.png')) {
                 result.name = ErrorName.NO_REF_IMAGE;
-            } else if (message.includes('Screenshot comparison failed')) {
+            } else if (message.includes('Screenshot comparison failed') ||
+                this._testResult.errors.every(error => this._isScreenshotComparisonError(error))) {
                 result.name = ErrorName.IMAGE_DIFF;
             }
 
@@ -366,6 +367,23 @@ export class PlaywrightTestResultAdapter implements ReporterTestResult {
             a => a.contentType === 'image/png' && ANY_IMAGE_ENDING_REGEXP.test(a.name));
 
         return _.groupBy(imageAttachments, a => a.name.replace(ANY_IMAGE_ENDING_REGEXP, ''));
+    }
+
+    private _isScreenshotComparisonError(error: PlaywrightTestResult['errors'][number]): boolean {
+        const message = stripAnsi(error.message || '');
+        const header = message.split('\n')[0];
+        if (!/^(?:Error: )?expect\((?:page|locator)\)\.toHaveScreenshot\(expected\) failed$/.test(header)) {
+            return false;
+        }
+
+        // Modern Playwright uses the same matcher header for diffs and capture errors.
+        const snapshotName = message.match(/^\s*Snapshot: (.+)\.png\s*$/m)?.[1];
+        const states = Object.entries(this._attachmentsByState).filter(([state]) =>
+            snapshotName ? state === snapshotName : this._testResult.errors.length === 1);
+
+        return states.some(([, attachments]) =>
+            [ImageTitleEnding.Expected, ImageTitleEnding.Actual, ImageTitleEnding.Diff].every(ending =>
+                attachments.some(attachment => attachment.name.endsWith(ending))));
     }
 
     get duration(): number {
