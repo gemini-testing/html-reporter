@@ -44,7 +44,7 @@ export const TestStatusBar = (): ReactNode => {
         }
 
         return list;
-    }, [suite.metaInfo?.url, suite?.suiteUrl, baseHost]);
+    }, [suite.attachments, suite.metaInfo?.url, suite?.suiteUrl, baseHost]);
 
     if (suite.status === TestStatus.RUNNING) {
         return null;
