@@ -890,7 +890,7 @@ describe('lib/gui/tool-runner/index', () => {
 
         it('should not reuse tree if it is empty', async () => {
             fs.pathExists.withArgs(dbPath).resolves(true);
-            getTestsTreeFromDatabase.resolves({});
+            reportBuilder.buildTreeFromCurrentDb.returns({});
 
             await gui.initialize();
 
@@ -899,11 +899,23 @@ describe('lib/gui/tool-runner/index', () => {
 
         it('should reuse tests tree', async () => {
             fs.pathExists.withArgs(dbPath).resolves(true);
-            getTestsTreeFromDatabase.resolves('tests-tree');
+            reportBuilder.buildTreeFromCurrentDb.returns('tests-tree');
 
             await gui.initialize();
 
             assert.calledOnceWith(reportBuilder.reuseTestsTree, 'tests-tree');
+        });
+
+        it('should exclude skipped results of not pending tests from reused tests tree', async () => {
+            const pendingTest = mkTestAdapter_(stubTest_({id: 'pending-id', browserId: 'yabro', pending: true, fullTitle: () => 'pending test'}));
+            const activeTest = mkTestAdapter_(stubTest_({id: 'active-id', browserId: 'yabro', pending: false, fullTitle: () => 'active test'}));
+            toolRunnerUtils.formatId.callsFake((id, browserId) => `${id}/${browserId}`);
+            toolAdapter.readTests.resolves({tests: [pendingTest, activeTest]});
+            fs.pathExists.withArgs(dbPath).resolves(true);
+
+            await gui.initialize();
+
+            assert.calledOnceWith(reportBuilder.buildTreeFromCurrentDb, {excludeSkipped: [{suitePath: ['active', 'test'], browserId: 'yabro'}]});
         });
 
         describe('should initialize gui tree with', () => {
