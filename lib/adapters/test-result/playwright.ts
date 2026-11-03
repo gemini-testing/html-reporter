@@ -148,9 +148,19 @@ const getImageData = (attachment: PlaywrightAttachment | undefined): PlaywrightI
         return null;
     }
 
+    let size: ImageSize | undefined = attachment.size;
+
+    if (!size) {
+        try {
+            size = _.pick(sizeOf(attachment.path as string), ['height', 'width']) as ImageSize;
+        } catch {
+            return null;
+        }
+    }
+
     return {
         path: attachment.path as string,
-        size: !attachment.size ? _.pick(sizeOf(attachment.path as string), ['height', 'width']) as ImageSize : attachment.size,
+        size,
         relativePath: attachment.relativePath || path.relative(process.cwd(), attachment.path as string)
     };
 };
