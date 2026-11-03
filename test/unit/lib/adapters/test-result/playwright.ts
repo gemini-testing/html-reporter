@@ -49,7 +49,7 @@ describe('PlaywrightTestResultAdapter', () => {
         imageSizeStub = sinon.stub().returns({height: 100, width: 200});
 
         PlaywrightTestResultAdapter = proxyquire('lib/adapters/test-result/playwright', {
-            'image-size': imageSizeStub
+            '../../image-size': {getImageSize: imageSizeStub}
         }).PlaywrightTestResultAdapter;
     });
 
@@ -102,6 +102,79 @@ describe('PlaywrightTestResultAdapter', () => {
 
             assert.strictEqual(error?.name, ErrorName.IMAGE_DIFF);
             assert.strictEqual(error?.message, errorMessage);
+        });
+
+        it('should return an error with name IMAGE_DIFF for new Playwright screenshot comparison failures', () => {
+            const errorMessage = [
+                'Error: expect(locator).toHaveScreenshot(expected) failed',
+                '',
+                '  100 pixels (ratio 0.01 of all image pixels) are different.',
+                '',
+                'Call log:',
+                '  - Expect "toHaveScreenshot(expected)" with timeout 5000ms'
+            ].join('\n');
+            const errors = [{message: errorMessage}];
+            const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({errors, attachments: []}), UNKNOWN_ATTEMPT);
+
+            const {error} = adapter;
+
+            assert.strictEqual(error?.name, ErrorName.IMAGE_DIFF);
+        });
+
+        it('should return an error with name IMAGE_DIFF for multiple new Playwright screenshot comparison failures', () => {
+            const errors = [
+                {message: 'Error: expect(locator).toHaveScreenshot(expected) failed\n  100 pixels (ratio 0.01 of all image pixels) are different.'},
+                {message: 'Error: expect(page).toHaveScreenshot(expected) failed\n  Expected an image 100px by 200px, received 200px by 200px.'}
+            ];
+            const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({errors}), UNKNOWN_ATTEMPT);
+
+            const {error} = adapter;
+
+            assert.strictEqual(error?.name, ErrorName.IMAGE_DIFF);
+        });
+
+        it('should keep screenshot capture timeouts as general errors', () => {
+            const message = 'Error: expect(page).toHaveScreenshot(expected) failed';
+            const stack = `${message}\nTimeout: 200ms\nTimeout 200ms exceeded.`;
+            const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({
+                errors: [{message, stack}],
+                attachments: [createAttachment('state1' + ImageTitleEnding.Expected)]
+            }), UNKNOWN_ATTEMPT);
+
+            assert.strictEqual(adapter.error?.name, ErrorName.GENERAL_ERROR);
+            assert.strictEqual(adapter.error?.stack, stack);
+            assert.strictEqual(adapter.status, TestStatus.ERROR);
+            assert.deepEqual(adapter.imagesInfo, []);
+        });
+
+        it('should not treat unrelated diff attachments as screenshot comparisons', () => {
+            const message = [
+                'Error: expect(page).toHaveScreenshot(expected) failed',
+                'Timeout 200ms exceeded.',
+                'Call log:',
+                '  - 100 pixels (ratio 0.01 of all image pixels) are different.'
+            ].join('\n');
+            const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({
+                errors: [{message, stack: message}],
+                attachments: [createAttachment('diagnostic-diff.png')]
+            }), UNKNOWN_ATTEMPT);
+
+            assert.strictEqual(adapter.error?.name, ErrorName.GENERAL_ERROR);
+            assert.strictEqual(adapter.status, TestStatus.ERROR);
+            assert.deepEqual(adapter.imagesInfo, []);
+        });
+
+        it('should keep capture errors visible alongside screenshot differences', () => {
+            const errors = [
+                {message: 'Error: expect(page).toHaveScreenshot(expected) failed\n  100 pixels (ratio 0.01 of all image pixels) are different.'},
+                {message: 'Error: expect(page).toHaveScreenshot(expected) failed\nTimeout 200ms exceeded.', stack: 'capture timeout stack'}
+            ];
+            const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({errors}), UNKNOWN_ATTEMPT);
+
+            assert.strictEqual(adapter.error?.name, ErrorName.GENERAL_ERROR);
+            assert.include(adapter.error?.stack, 'capture timeout stack');
+            assert.strictEqual(adapter.status, TestStatus.ERROR);
+            assert.strictEqual(adapter.imagesInfo[0].status, FAIL);
         });
 
         it('should include the error stack if present', () => {
