@@ -1,4 +1,5 @@
 import os from 'os';
+
 import path from 'path';
 import type Testplane from 'testplane';
 import type {TestResult as TestplaneTestResult} from 'testplane';
