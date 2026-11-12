@@ -13,6 +13,7 @@ import {ErrorName} from 'lib/errors';
 import {ERROR, FAIL, TestStatus, UNKNOWN_ATTEMPT} from 'lib/constants';
 import {ImageInfoDiff, ImageInfoNoRef, TestStepKey} from 'lib/types';
 import {mkTestStepCompressed} from '../../../utils';
+import playwrightErrors from './fixtures/playwright-errors.json';
 
 describe('PlaywrightTestResultAdapter', () => {
     let sandbox: sinon.SinonSandbox;
@@ -39,7 +40,7 @@ describe('PlaywrightTestResultAdapter', () => {
             createAttachment('state1' + ImageTitleEnding.Diff),
             createAttachment('state1' + ImageTitleEnding.Actual)
         ],
-        errors: [{name: ErrorName.IMAGE_DIFF, message: 'Screenshot comparison failed', stack: ''}],
+        errors: playwrightErrors['1.44.1'].pixelDiff,
         steps: []
     } as any);
 
@@ -49,7 +50,7 @@ describe('PlaywrightTestResultAdapter', () => {
         imageSizeStub = sinon.stub().returns({height: 100, width: 200});
 
         PlaywrightTestResultAdapter = proxyquire('lib/adapters/test-result/playwright', {
-            'image-size': imageSizeStub
+            '../../image-size': {getImageSize: imageSizeStub}
         }).PlaywrightTestResultAdapter;
     });
 
@@ -82,27 +83,61 @@ describe('PlaywrightTestResultAdapter', () => {
             assert.isUndefined(error);
         });
 
-        it('should return an error with name NO_REF_IMAGE for snapshot missing errors', () => {
-            const errorMessage = 'A snapshot doesn\'t exist: image-name.png.';
-            const errors = [{message: errorMessage}];
-            const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({errors}), UNKNOWN_ATTEMPT);
+        // Captured in local Chrome with Playwright 1.44.1 and 1.65.0.
+        // Fixtures preserve messages; only ANSI escapes and machine-specific paths are normalized.
+        for (const [version, errors] of Object.entries(playwrightErrors)) {
+            describe(`Playwright ${version}`, () => {
+                it('should recognize a missing screenshot baseline', () => {
+                    const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({
+                        errors: errors.missingBaseline
+                    }), UNKNOWN_ATTEMPT);
 
-            const {error} = adapter;
+                    assert.strictEqual(adapter.error?.name, ErrorName.NO_REF_IMAGE);
+                });
 
-            assert.strictEqual(error?.name, ErrorName.NO_REF_IMAGE);
-            assert.strictEqual(error?.message, errorMessage);
-        });
+                it('should recognize pixel and dimension differences', () => {
+                    const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({
+                        errors: [...errors.pixelDiff, ...errors.dimensionDiff],
+                        attachments: []
+                    }), UNKNOWN_ATTEMPT);
 
-        it('should return an error with name IMAGE_DIFF for screenshot comparison failures', () => {
-            const errorMessage = 'Screenshot comparison failed';
-            const errors = [{message: errorMessage}];
-            const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({errors}), UNKNOWN_ATTEMPT);
+                    assert.strictEqual(adapter.error?.name, ErrorName.IMAGE_DIFF);
+                    assert.strictEqual(adapter.status, TestStatus.FAIL);
+                });
 
-            const {error} = adapter;
+                it('should keep screenshot capture timeouts as general errors', () => {
+                    const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({
+                        errors: errors.captureTimeout,
+                        attachments: [createAttachment('timeout' + ImageTitleEnding.Expected)]
+                    }), UNKNOWN_ATTEMPT);
 
-            assert.strictEqual(error?.name, ErrorName.IMAGE_DIFF);
-            assert.strictEqual(error?.message, errorMessage);
-        });
+                    assert.strictEqual(adapter.error?.name, ErrorName.GENERAL_ERROR);
+                    assert.strictEqual(adapter.error?.stack, errors.captureTimeout[0].stack);
+                    assert.strictEqual(adapter.status, TestStatus.ERROR);
+                    assert.deepEqual(adapter.imagesInfo, []);
+                });
+
+                it('should not classify an unstable screenshot by differences in its call log', () => {
+                    const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({
+                        errors: errors.unstableScreenshot
+                    }), UNKNOWN_ATTEMPT);
+
+                    assert.strictEqual(adapter.error?.name, ErrorName.GENERAL_ERROR);
+                    assert.strictEqual(adapter.status, TestStatus.ERROR);
+                });
+
+                it('should keep capture errors visible alongside screenshot differences', () => {
+                    const adapter = new PlaywrightTestResultAdapter(mkTestCase(), mkTestResult({
+                        errors: errors.mixedDiffTimeout
+                    }), UNKNOWN_ATTEMPT);
+
+                    assert.strictEqual(adapter.error?.name, ErrorName.GENERAL_ERROR);
+                    assert.strictEqual(adapter.error?.stack, JSON.stringify(errors.mixedDiffTimeout.map(error => error.stack)));
+                    assert.strictEqual(adapter.status, TestStatus.ERROR);
+                    assert.strictEqual(adapter.imagesInfo[0].status, FAIL);
+                });
+            });
+        }
 
         it('should include the error stack if present', () => {
             const errorMessage = 'Some error occurred';

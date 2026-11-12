@@ -34,7 +34,7 @@ describe('images-info-saver', () => {
         const {ImagesInfoSaver} = proxyquire('lib/images-info-saver', {
             'fs-extra': fs,
             './server-utils': utils,
-            'image-size': sinon.stub()
+            './image-size': {getImageSize: sinon.stub()}
         });
 
         let imagesInfoSaver: ImagesInfoSaverOriginal;

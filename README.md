@@ -60,7 +60,7 @@ Benefits over regular reporters include:
 
 ## Demo
 
-One link is worth a thousand words, so [here it is](https://storage.yandexcloud.net/testplane-ui-demo/v10.16.3/new-ui.html#/suites/testplane%20New%20UI%20Suites%20page%20Expand%2Fcollapse%20suites%20tree%20button%20should%20offer%20to%20expand%20when%20collapsed%20using%20button%20chrome) — see all the features for yourself.
+One link is worth a thousand words, so [here it is](https://storage.yandexcloud.net/testplane-gh-ci/html-reporter/demo-report/new-ui.html) — see all the features for yourself.
 
 ## Getting started
 
