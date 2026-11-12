@@ -17,10 +17,10 @@ const uiModeRedirectScript = fs.readFileSync(path.resolve(__dirname, 'lib', 'sta
 
 module.exports = {
     entry: {
-        report: ['./index.jsx', './variables.css', './styles.css'],
-        gui: ['./gui.jsx', './variables.css', './styles.css', './gui.css'],
-        newReport: ['./new-ui/app/report.tsx', './variables.css', './styles.css'],
-        newGui: ['./new-ui/app/gui.tsx', './variables.css', './styles.css', './gui.css']
+        report: ['./new-ui/app/report.tsx', './variables.css', './styles.css'],
+        gui: ['./new-ui/app/gui.tsx', './variables.css', './styles.css', './gui.css'],
+        oldReport: ['./index.jsx', './variables.css', './styles.css'],
+        oldGui: ['./gui.jsx', './variables.css', './styles.css', './gui.css']
     },
     resolve: {
         alias: {
@@ -116,7 +116,7 @@ module.exports = {
             append: false
         }),
         new HtmlWebpackPlugin({
-            title: 'Gui report',
+            title: 'GUI report',
             filename: 'gui.html',
             template: 'template.html',
             chunks: ['gui'],
@@ -130,10 +130,38 @@ module.exports = {
             append: false
         }),
         new HtmlWebpackPlugin({
+            title: 'HTML report (Old UI)',
+            filename: 'old-ui-report.html',
+            template: 'template-old-ui.html',
+            chunks: ['oldReport'],
+            templateParameters: {
+                uiModeScript: uiModeRedirectScript
+            }
+        }),
+        new HtmlWebpackTagsPlugin({
+            files: ['old-ui-report.html'],
+            scripts: ['data.js', 'sql-wasm.js'],
+            append: false
+        }),
+        new HtmlWebpackPlugin({
+            title: 'GUI report (Old UI)',
+            filename: 'old-ui-gui.html',
+            template: 'template-old-ui.html',
+            chunks: ['oldGui'],
+            templateParameters: {
+                uiModeScript: uiModeRedirectScript
+            }
+        }),
+        new HtmlWebpackTagsPlugin({
+            files: ['old-ui-gui.html'],
+            scripts: ['sql-wasm.js'],
+            append: false
+        }),
+        new HtmlWebpackPlugin({
             title: 'HTML report (New UI)',
             filename: 'new-ui-report.html',
-            template: 'template-new-ui.html',
-            chunks: ['newReport'],
+            template: 'template.html',
+            chunks: ['report'],
             templateParameters: {
                 uiModeScript: uiModeRedirectScript
             }
@@ -146,8 +174,8 @@ module.exports = {
         new HtmlWebpackPlugin({
             title: 'GUI report (New UI)',
             filename: 'new-ui-gui.html',
-            template: 'template-new-ui.html',
-            chunks: ['newGui'],
+            template: 'template.html',
+            chunks: ['gui'],
             templateParameters: {
                 uiModeScript: uiModeRedirectScript
             }

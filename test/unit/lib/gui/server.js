@@ -1,6 +1,7 @@
 'use strict';
 
 const _ = require('lodash');
+const path = require('path');
 const proxyquire = require('proxyquire');
 const {App} = require('lib/gui/app');
 const {stubToolAdapter} = require('../../utils');
@@ -89,6 +90,23 @@ describe('lib/gui/server', () => {
         await startServer({toolAdapter});
 
         assert.callOrder(guiApi.initServer, staticMiddleware, guiApi.serverReady);
+    });
+
+    [
+        {url: '/', page: 'gui.html'},
+        {url: '/new-ui', page: 'new-ui-gui.html'},
+        {url: '/old-ui', page: 'old-ui-gui.html'}
+    ].forEach(({url, page}) => {
+        it(`should serve ${page} at ${url}`, async () => {
+            await startServer();
+            const route = expressStub.get.getCalls().find(call => call.args[0] === url);
+            const response = {sendFile: sandbox.stub()};
+
+            assert.exists(route);
+            route.args[1]({}, response);
+
+            assert.calledOnceWith(response.sendFile, path.resolve('lib/static', page));
+        });
     });
 
     it('should properly complete app working', async () => {

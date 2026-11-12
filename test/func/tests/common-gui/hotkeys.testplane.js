@@ -33,7 +33,7 @@ describe('GUI mode', () => {
 
             guiProcess = await runGui(projectDir);
 
-            await browser.url(guiUrl + '/new-ui');
+            await browser.url(guiUrl);
 
             await browser.waitUntil(async () => {
                 const title = await browser.getTitle();

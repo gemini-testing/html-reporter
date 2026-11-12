@@ -75,14 +75,15 @@ if (isRunningAnalyticsTests) {
 
 if (!isRunningGuiTests && !isRunningAnalyticsTests) {
     _.set(config.plugins, ['hermione-global-hook', 'beforeEach'], async function({browser}) {
-        if (/Legacy URL migration/i.test(browser.executionContext.ctx.currentTest.titlePath().join(' '))) {
+        const titlePath = browser.executionContext.ctx.currentTest.titlePath().join(' ');
+        if (/Legacy URL migration|Test server-backed redux plugin/i.test(titlePath)) {
             return;
         }
 
-        if (/new ui/i.test(browser.executionContext.ctx.currentTest.titlePath().join(' '))) {
-            await browser.url(this.browser.options.baseUrl + 'new-ui.html');
-        } else {
+        if (/new ui/i.test(titlePath)) {
             await browser.url(this.browser.options.baseUrl);
+        } else {
+            await browser.url(this.browser.options.baseUrl + 'old-ui.html');
         }
 
         await browser.execute(() => {

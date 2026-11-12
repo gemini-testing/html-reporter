@@ -2,6 +2,7 @@ import {DiffModes} from './diff-modes';
 import {ViewMode} from './view-modes';
 import {StoreReporterConfig} from '../types';
 import {SaveFormat} from './save-formats';
+import {UiMode} from './local-storage';
 
 export const CIRCLE_RADIUS = 150;
 
@@ -13,7 +14,7 @@ export const configDefaults: StoreReporterConfig = {
     customScripts: [],
     defaultView: ViewMode.ALL,
     diffMode: DiffModes.THREE_UP.id,
-    uiMode: null,
+    uiMode: UiMode.New,
     enabled: false,
     errorPatterns: [],
     lazyLoadOffset: null,

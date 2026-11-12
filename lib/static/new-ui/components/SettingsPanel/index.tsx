@@ -42,7 +42,7 @@ export function SettingsPanel(): ReactNode {
         analytics?.trackFeatureUsage({featureName: 'Switch to old UI'});
         setUiMode(UiMode.Old);
 
-        window.location.pathname = window.location.pathname.replace(/\/new-ui(\.html)?$/, (_match, ending) => ending ? '/index.html' : '/');
+        window.location.pathname = window.location.pathname.replace(/\/(?:index\.html|new-ui(?:\.html)?)?$/, match => match.endsWith('.html') ? '/old-ui.html' : '/old-ui');
     };
 
     const onTimeTravelRecommendedSettingsToggle = useCallback(async (enabled: boolean): Promise<void> => {

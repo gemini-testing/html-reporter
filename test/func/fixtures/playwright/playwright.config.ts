@@ -20,6 +20,7 @@ export default defineConfig({
             path: path.resolve(__dirname, 'report'),
             saveFormat: 'sqlite',
             defaultView: 'all',
+            uiMode: null,
             saveErrorDetails: true
         }]
     ],
