@@ -37,7 +37,7 @@ if (process.env.TOOL === 'testplane') {
                     };
 
                     it('should migrate from old UI link to new UI with correct test, browser and attempt', async ({browser}) => {
-                        await browser.url(browser.options.baseUrl);
+                        await browser.url(browser.options.baseUrl + 'old-ui.html');
 
                         await interceptClipboard(browser);
 
@@ -50,7 +50,7 @@ if (process.env.TOOL === 'testplane') {
                         expect(copiedUrl).toBeTruthy();
 
                         const newUiUrl = new URL(copiedUrl);
-                        newUiUrl.pathname += 'new-ui.html';
+                        newUiUrl.pathname = newUiUrl.pathname.replace(/old-ui\.html$/, 'index.html');
                         await browser.url(newUiUrl.toString());
 
                         const titleElement = await browser.$('[data-qa="suite-title"]');

@@ -43,7 +43,7 @@ describe('GUI mode', () => {
 
                 guiProcess = await runGui(projectDir, {autoRun: true, grep: 'successful test'});
 
-                await browser.url(guiUrl + '/new-ui');
+                await browser.url(guiUrl);
             });
 
             it('should automatically run tests when started with -a option', async ({browser}) => {
