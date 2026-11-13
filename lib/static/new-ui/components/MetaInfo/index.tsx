@@ -111,10 +111,13 @@ function MetaInfoInternal(props: MetaInfoInternalProps): ReactNode {
 
     const hasUrlMetaInfoItem = metaInfoItemsWithResolvedUrls.some(item => item.label === 'url');
     if (!hasUrlMetaInfoItem && result.suiteUrl) {
+        const suiteUrl = getUrlWithBase(result.suiteUrl, baseHost);
+
         metaInfoItemsWithResolvedUrls.push({
             label: 'url',
             content: getRelativeUrl(result.suiteUrl),
-            url: getUrlWithBase(result.suiteUrl, baseHost)
+            url: suiteUrl,
+            copyText: suiteUrl
         });
     }
 
