@@ -9,7 +9,7 @@ import NestedError from 'nested-error-stacks';
 import {StaticTestsTreeBuilder} from '../tests-tree-builder/static';
 import * as commonSqliteUtils from './common';
 import {isUrl, fetchFile, normalizeUrls, logger} from '../common-utils';
-import {DATABASE_URLS_JSON_NAME, DB_COLUMNS, LOCAL_DATABASE_NAME, TestStatus} from '../constants';
+import {DATABASE_URLS_JSON_NAME, DB_COLUMNS, LOCAL_DATABASE_NAME} from '../constants';
 import {DbLoadResult} from './common';
 import {DbUrlsJsonData, RawSuitesRow, ReporterConfig} from '../types';
 import {Tree} from '../tests-tree-builder/base';
@@ -202,9 +202,10 @@ async function rewriteDatabaseUrls(dbPaths: string[], mainDatabaseUrls: string, 
 export const getTestFromDb = <T = unknown>(dbClient: SqliteClient, testResult: ReporterTestResult): T | undefined => {
     return dbClient.query<T>({
         select: '*',
-        where: `${DB_COLUMNS.SUITE_PATH} = ? AND ${DB_COLUMNS.NAME} = ? AND ${DB_COLUMNS.STATUS} = ?`,
-        orderBy: DB_COLUMNS.TIMESTAMP,
+        where: `${DB_COLUMNS.SUITE_PATH} = ? AND ${DB_COLUMNS.NAME} = ?`,
+        orderBy: `${DB_COLUMNS.TIMESTAMP} DESC, rowid`,
         orderDescending: true,
-        limit: 1
-    }, JSON.stringify(testResult.testPath), testResult.browserId, TestStatus.SKIPPED);
+        limit: 1,
+        noCache: true
+    }, JSON.stringify(testResult.testPath), testResult.browserId);
 };

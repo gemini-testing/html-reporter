@@ -5,7 +5,7 @@ const _ = require('lodash');
 const proxyquire = require('proxyquire');
 const sinon = require('sinon');
 const {HtmlReporter} = require('lib/plugin-api');
-const {ERROR} = require('lib/constants/test-statuses');
+const {ERROR, SKIPPED} = require('lib/constants/test-statuses');
 const {LOCAL_DATABASE_NAME} = require('lib/constants/database');
 const {SqliteClient} = require('lib/sqlite-client');
 const {makeSqlDatabaseFromFile} = require('lib/db-utils/server');
@@ -133,6 +133,22 @@ describe('StaticReportBuilder', () => {
             db.close();
 
             assert.isNumber(result.timestamp);
+        });
+
+        it('should write skipped result if the latest result of the test is not skipped', async () => {
+            const mkTestResult_ = (opts) => stubTest_(_.defaults(opts, {testPath: ['suite', 'test'], browserId: 'chrome', status: SKIPPED}));
+
+            await reportBuilder.addTestResult(mkTestResult_({timestamp: 1}));
+            await reportBuilder.addTestResult(mkTestResult_({timestamp: 2, status: ERROR}));
+            await reportBuilder.addTestResult(mkTestResult_({timestamp: 3}));
+
+            dbClient.close();
+
+            const db = await makeSqlDatabaseFromFile(TEST_DB_PATH);
+            const [result] = db.exec('SELECT status FROM suites ORDER BY timestamp');
+            db.close();
+
+            assert.deepEqual(result.values.map(([status]) => status), [SKIPPED, ERROR, SKIPPED]);
         });
     });
 
