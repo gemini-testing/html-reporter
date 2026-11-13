@@ -33,7 +33,7 @@ describe('Tinder mode', () => {
 
         guiProcess = await runGui(projectDir);
 
-        await browser.url(guiUrl);
+        await browser.url(guiUrl + '/old-ui');
         await browser.$('//*[contains(@class, "expand-dropdown")]//button').click();
         await browser.$('//*[contains(@class, "expand-popup")]//span[contains(normalize-space(), "All")]').click();
 

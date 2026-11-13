@@ -127,6 +127,30 @@ describe('server-utils', () => {
         });
     });
 
+    describe('saveStaticFilesToReportDir', () => {
+        beforeEach(() => {
+            sandbox.stub(fs, 'ensureDir').resolves();
+            sandbox.stub(fs, 'writeFile').resolves();
+            sandbox.stub(fs, 'readdir').resolves([]);
+            sandbox.stub(fs, 'copy').resolves();
+        });
+
+        [
+            {source: 'index.html', destination: 'index.html'},
+            {source: 'old-ui-report.html', destination: 'old-ui.html'},
+            {source: 'new-ui-report.html', destination: 'new-ui.html'}
+        ].forEach(({source, destination}) => {
+            it(`should publish ${source} as ${destination}`, async () => {
+                const destPath = '/report';
+
+                await utils.saveStaticFilesToReportDir({values: {}}, {}, destPath);
+
+                assert.calledWith(fs.copy,
+                    path.resolve('lib/static', source), path.resolve(destPath, destination));
+            });
+        });
+    });
+
     describe('copyFileAsync', () => {
         beforeEach(() => {
             sandbox.stub(fs, 'copy').resolves();

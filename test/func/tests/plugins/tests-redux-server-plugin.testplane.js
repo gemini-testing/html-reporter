@@ -10,7 +10,7 @@ describe('Test server-backed redux plugin', () => {
 
     beforeEach(async ({browser}) => {
         guiProcess = await runGui(path.resolve(__dirname, '../../fixtures/plugins'));
-        await browser.url(`http://${serverHost}:8002`);
+        await browser.url(`http://${serverHost}:8002/old-ui`);
         await browser.$('//*[contains(@class, "expand-dropdown")]//button').click();
         await browser.$('//*[contains(@class, "expand-popup")]//span[contains(normalize-space(), "All")]').click();
     });

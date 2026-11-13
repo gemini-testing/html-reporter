@@ -143,7 +143,7 @@ const assertUiMode = (uiMode: unknown): asserts uiMode is UiMode | null => {
     }
 
     if (!_.isString(uiMode) || !Object.values(UiMode).includes(uiMode as UiMode)) {
-        throw new Error(`"uiMode" must be one of "${Object.values(UiMode).join('", "')}", but got "${uiMode}"`);
+        throw new Error(`"uiMode" must be one of "${Object.values(UiMode).join('", "')}", null, but got "${uiMode}"`);
     }
 };
 

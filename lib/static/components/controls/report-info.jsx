@@ -23,7 +23,7 @@ function ReportInfo(props) {
 
         const targetUrl = new URL(window.location.href);
 
-        targetUrl.pathname = targetUrl.pathname.replace(/\/(index\.html)?$/, (match, ending) => ending ? '/new-ui.html' : '/new-ui');
+        targetUrl.pathname = targetUrl.pathname.replace(/\/old-ui(\.html)?$/, (_match, ending) => ending ? '/index.html' : '/');
         targetUrl.searchParams.set('switched-from-old-ui', '1');
 
         window.location.href = targetUrl.href;

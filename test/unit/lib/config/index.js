@@ -26,6 +26,7 @@ describe('config', () => {
         delete process.env['html_reporter_enabled'];
         delete process.env['html_reporter_path'];
         delete process.env['html_reporter_default_view'];
+        delete process.env['html_reporter_ui_mode'];
         delete process.env['html_reporter_base_host'];
         delete process.env['html_reporter_scale_images'];
         delete process.env['html_reporter_lazy_load_offset'];
@@ -184,6 +185,37 @@ describe('config', () => {
             process.argv = process.argv.concat('--html-reporter-diff-mode', DiffModes.ONION_SKIN.id);
 
             assert.equal(parseConfig({}).diffMode, DiffModes.ONION_SKIN.id);
+        });
+    });
+
+    describe('"uiMode" option', () => {
+        it('should use the new UI by default', () => {
+            assert.equal(parseConfig({}).uiMode, 'new');
+        });
+
+        ['old', 'new', null].forEach(uiMode => {
+            it(`should use ${JSON.stringify(uiMode)} from configuration file`, () => {
+                assert.strictEqual(parseConfig({uiMode}).uiMode, uiMode);
+            });
+        });
+
+        it('should set from environment variable', () => {
+            process.env['html_reporter_ui_mode'] = 'old';
+
+            assert.equal(parseConfig({}).uiMode, 'old');
+        });
+
+        it('should set from cli', () => {
+            process.argv = process.argv.concat('--html-reporter-ui-mode', 'old');
+
+            assert.equal(parseConfig({}).uiMode, 'old');
+        });
+
+        it('should reject an unsupported UI mode', () => {
+            assert.throws(
+                () => parseConfig({uiMode: 'unsupported'}),
+                '"uiMode" must be one of "old", "new", null'
+            );
         });
     });
 

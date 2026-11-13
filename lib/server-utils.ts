@@ -139,6 +139,7 @@ export async function saveStaticFilesToReportDir(htmlReporter: HtmlReporter, plu
         copyFilesToReportDir(destPath, '.js', staticFolder),
         copyFilesToReportDir(destPath, '.css', staticFolder),
         fs.copy(path.resolve(staticFolder, 'index.html'), path.resolve(destPath, 'index.html')),
+        fs.copy(path.resolve(staticFolder, 'old-ui-report.html'), path.resolve(destPath, 'old-ui.html')),
         fs.copy(path.resolve(staticFolder, 'new-ui-report.html'), path.resolve(destPath, 'new-ui.html')),
         fs.copy(path.resolve(staticFolder, 'icons'), path.resolve(destPath, 'icons')),
         fs.copy(require.resolve('@gemini-testing/sql.js/dist/sql-wasm.js'), path.resolve(destPath, 'sql-wasm.js')),

@@ -59,6 +59,7 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
 
     server.get('/', (_req, res) => res.sendFile(path.join(__dirname, '../static', 'gui.html')));
     server.get('/new-ui', (_req, res) => res.sendFile(path.join(__dirname, '../static', 'new-ui-gui.html')));
+    server.get('/old-ui', (_req, res) => res.sendFile(path.join(__dirname, '../static', 'old-ui-gui.html')));
 
     server.get('/ui-mode', (_req, res) => {
         try {
