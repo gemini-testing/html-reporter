@@ -186,7 +186,7 @@ export class TestplaneToolAdapter implements ToolAdapter {
     }
 
     async readTests(paths: string[], cliTool: CommanderStatic): Promise<TestplaneTestCollectionAdapter> {
-        const {TestplaneTestCollectionAdapter} = await import('../../test-collection/testplane');
+        const {TestplaneTestCollectionAdapter} = await import('../../test-collection/testplane.js');
         const {grep, tag, set: sets, browser: browsers} = cliTool;
         const replMode = getReplModeOption(cliTool);
         this._hasFocusedTestsInLastRead = false;
