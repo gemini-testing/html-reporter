@@ -162,4 +162,18 @@ describe('lib/adapters/event-handling/testplane/snapshots', () => {
         assert.isEmpty(attachments);
         assert.calledOnce(warn);
     });
+
+    it('should archive network-only response metadata and structured failure details', async () => {
+        const req = {
+            ...request(), failure: 'net::ERR_FAILED',
+            failureDetails: {corsError: 'MissingAllowOriginHeader', failedParameter: ''},
+            response: {status: 418, networkStatus: 418, statusText: '', headers: [{name: 'X-Proof', value: 'cors'}]}
+        };
+        handleNetworkRequestsEvent(context, {requests: [req]});
+
+        const [attachment] = await finalize();
+        const entries = await files(attachment.path);
+
+        assert.deepEqual(JSON.parse(strFromU8(entries['network.json'])).requests, [req]);
+    });
 });
