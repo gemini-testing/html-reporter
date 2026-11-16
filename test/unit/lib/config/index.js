@@ -164,8 +164,8 @@ describe('config', () => {
     });
 
     describe('"diffMode" option', () => {
-        it('should show images in column by default', () => {
-            assert.equal(parseConfig({}).diffMode, DiffModes.THREE_UP.id);
+        it('should show images side by side scaled to fit by default', () => {
+            assert.equal(parseConfig({}).diffMode, DiffModes.THREE_UP_SCALED_TO_FIT.id);
         });
 
         it('should set from configuration file', () => {
