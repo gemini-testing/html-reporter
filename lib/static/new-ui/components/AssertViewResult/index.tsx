@@ -2,7 +2,7 @@ import React, {ReactNode} from 'react';
 import classNames from 'classnames';
 
 import {ImageEntity} from '@/static/new-ui/types/store';
-import {DiffModeId, TestStatus} from '@/constants';
+import {DiffModeId, DiffModes, TestStatus} from '@/constants';
 import {DiffViewer} from '../DiffViewer';
 import {Screenshot} from '@/static/new-ui/components/Screenshot';
 import {ImageLabel} from '@/static/new-ui/components/ImageLabel';
@@ -30,15 +30,18 @@ export function AssertViewResult({result, diffMode, style, labelClassName, magni
     }
 
     if (result.status === TestStatus.ERROR) {
+        const sbsFitStyle = diffMode === DiffModes.THREE_UP_SCALED_TO_FIT.id ? {'--desired-height': 'calc(100vh - 350px)'} : {};
+
         return (
-            <div className={styles.screenshotContainer}>
+            <div className={styles.screenshotContainer} style={style as React.CSSProperties}>
                 <ImageLabel className={labelClassName} title={'Actual'} subtitle={getImageDisplayedSize(result.actualImg)} />
                 <Screenshot
                     stopClickPropagation={false}
                     magnifier={magnifier}
-                    containerStyle={style}
+                    containerStyle={{...sbsFitStyle, ...style}}
                     containerClassName={classNames(styles.screenshot, 'image-outline')}
                     image={result.actualImg}
+                    {...result}
                 />
             </div>
         );

@@ -63,6 +63,8 @@ const getMaxWidth = (imageEntity: ImageEntity, diffMode: DiffModeId): string | n
     return 'unset';
 };
 
+const MIN_SUBTITLE_WIDTH = 250;
+
 const ImageEntityComponent = ({imageEntity, isVisualChecksPage, scrollContainerRef, diffMode, initialHeight, onInitialHeightCapture}: ImageEntityComponentProps): ReactNode => {
     const [isHideScreenshots] = useLocalStorage(HIDE_TREE_VIEW_SCREENSHOTS, false);
     const [isTreeMagnifierDisabled] = useLocalStorage(DISABLE_TREE_SCREENSHOTS_MAGNIFIER, false);
@@ -87,7 +89,7 @@ const ImageEntityComponent = ({imageEntity, isVisualChecksPage, scrollContainerR
             className={classNames(styles.imageContainer, !isVisualChecksPage ? styles.suites : null)}
             onMouseEnter={(): void => setFocused(true)}
             onMouseLeave={(): void => setFocused(false)}
-            style={{maxWidth}}
+            style={{maxWidth: Math.max(typeof maxWidth === 'string' ? parseInt(maxWidth) : maxWidth, MIN_SUBTITLE_WIDTH)}}
         >
             <span className={styles.imageStatus}>
                 {!isVisualChecksPage && <Icon data={Camera} width={16} height={16}/>} {imageEntity.stateName} ⋅ {getAssertViewStatusMessage(imageEntity)}

@@ -69,7 +69,7 @@ export function DiffViewer(props: DiffViewerProps): ReactNode {
             return <SideBySideMode expected={expectedImg} actual={actualImg} diff={diffImg} magnifier={magnifier} />;
 
         case DiffModes.THREE_UP_SCALED_TO_FIT.id: {
-            const desiredHeight = props.desiredHeight ?? 'calc(100vh - 180px)';
+            const desiredHeight = props.desiredHeight ?? 'calc(100vh - 350px)';
 
             return <SideBySideToFitMode desiredHeight={desiredHeight} expected={expectedImg} actual={actualImg} diff={diffImg} magnifier={magnifier} />;
         }
