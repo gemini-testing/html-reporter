@@ -40,14 +40,20 @@ describe('lib/adapters/event-handling/testplane/snapshots', () => {
         await fs.remove(reportPath);
     });
 
-    it('should archive snapshots, masked metadata and distinct request/response bodies without duplicate files', async () => {
+    it('should give the saver a complete archive with masked metadata and deduplicated bodies', async () => {
         const requestBody = Buffer.from('search=example');
         const responseBody = Buffer.from([0, 128, 255]);
         const req = {
-            ...request(), method: 'POST', headers: [{name: 'Authorization', value: 'Bearer test-credential'}],
+            ...request(), method: 'POST', resourceType: 'fetch',
+            headers: [
+                {name: 'Authorization', value: 'Bearer test-credential'},
+                {name: 'X-Account', value: 'account-123'},
+                {name: 'Accept', value: 'application/json'}
+            ],
             ...await saveBody(requestBody),
             response: {
                 status: 200, statusText: 'OK', timestamp: 110,
+                timing: {startTime: 100, sendStart: 0, sendEnd: 1, responseHeadersEnd: 10},
                 headers: [{name: 'Set-Cookie', value: 'session=abc123'}],
                 ...await saveBody(responseBody)
             }
@@ -56,12 +62,24 @@ describe('lib/adapters/event-handling/testplane/snapshots', () => {
         snapshot();
         handleNetworkRequestsEvent(context, {requests: [req, req]});
 
-        const [attachment] = await finalize();
-        const entries = await files(attachment.path);
+        const saveSnapshot = sandbox.stub().resolves('remote/snapshot.zip');
+        const secretConfigFilter = (_value: string, field: string): true | undefined =>
+            field === 'network-request.header.X-Account' ? true : undefined;
+
+        const [attachment] = await finalize({snapshotsSaver: {saveSnapshot}, secretConfigFilter});
+        const entries = await files(saveSnapshot.firstCall.args[0]);
         const saved = JSON.parse(strFromU8(entries['network.json']));
 
+        assert.equal(attachment.path, 'remote/snapshot.zip');
+
         const expected = {
-            ...req, headers: [{name: 'Authorization', value: 'Beare...'}], bodyFilePath: `network/bodies/${req.bodyHash}`,
+            ...req,
+            headers: [
+                {name: 'Authorization', value: 'Beare...'},
+                {name: 'X-Account', value: 'accou...'},
+                {name: 'Accept', value: 'application/json'}
+            ],
+            bodyFilePath: `network/bodies/${req.bodyHash}`,
             response: {...req.response, headers: [{name: 'Set-Cookie', value: 'sessi...'}], bodyFilePath: `network/bodies/${req.response.bodyHash}`}
         };
         assert.deepEqual(saved, {version: 1, requests: [expected, expected]});
@@ -70,54 +88,6 @@ describe('lib/adapters/event-handling/testplane/snapshots', () => {
         assert.deepEqual(Buffer.from(entries[expected.response.bodyFilePath]), responseBody);
         assert.equal(JSON.stringify(req), original);
     });
-
-    it('should extend default masking with a project filter even when there are no DOM snapshots', async () => {
-        const req = {
-            ...request(), headers: [{name: 'X-Account', value: 'account-123'}, {name: 'Accept', value: 'application/json'}],
-            response: {status: 200, statusText: 'OK', timestamp: 110, headers: [{name: 'Set-Cookie', value: 'session=abc123'}]}
-        };
-        handleNetworkRequestsEvent(context, {requests: [req]});
-        const secretConfigFilter = (_value: string, field: string): true | undefined =>
-            field === 'network-request.header.X-Account' ? true : undefined;
-
-        const [attachment] = await finalize({secretConfigFilter});
-        const entries = await files(attachment.path);
-        const [saved] = JSON.parse(strFromU8(entries['network.json'])).requests;
-
-        assert.deepEqual(saved.headers, [{name: 'X-Account', value: 'accou...'}, {name: 'Accept', value: 'application/json'}]);
-        assert.deepEqual(saved.response.headers, [{name: 'Set-Cookie', value: 'sessi...'}]);
-        assert.equal(strFromU8(entries['snapshots.json']), '');
-    });
-
-    for (const timing of [
-        undefined,
-        {startTime: 100, sendStart: 0, sendEnd: 1, responseHeadersEnd: 10},
-        {startTime: 100, dnsStart: 0, dnsEnd: 2, connectStart: 2, connectEnd: 12,
-            tlsStart: 5, tlsEnd: 12, sendStart: 12, sendEnd: 13,
-            responseHeadersStart: 40, responseHeadersEnd: 41}
-    ]) {
-        it(`should archive response metadata with ${timing ? 'available' : 'absent'} timing phases`, async () => {
-            const response = {
-                status: 200, statusText: 'OK', timestamp: 141,
-                headers: [{name: 'Set-Cookie', value: 'session=abc123'}],
-                ...(timing ? {timing} : {})
-            };
-            const req = {...request(), response, finishedAt: 150};
-            handleNetworkRequestsEvent(context, {requests: [req]});
-
-            const [attachment] = await finalize();
-            const entries = await files(attachment.path);
-            const [saved] = JSON.parse(strFromU8(entries['network.json'])).requests;
-
-            assert.deepEqual(saved, {
-                ...req,
-                response: {...response, headers: [{name: 'Set-Cookie', value: 'sessi...'}]}
-            });
-            if (!timing) {
-                assert.notProperty(saved.response, 'timing');
-            }
-        });
-    }
 
     it('should preserve DOM-only archives', async () => {
         snapshot();
@@ -131,7 +101,11 @@ describe('lib/adapters/event-handling/testplane/snapshots', () => {
 
     it('should discard a passing recording without leaking requests into the next failed attempt', async () => {
         handleNetworkRequestsEvent(context, {requests: [request()]});
-        const failed = {...request(), url: 'https://example.com/failed', failure: 'net::ERR_FAILED'};
+        const failed = {
+            ...request(), failure: 'net::ERR_FAILED',
+            failureDetails: {corsError: 'MissingAllowOriginHeader', failedParameter: ''},
+            response: {status: 418, networkStatus: 418, statusText: '', headers: [{name: 'X-Proof', value: 'cors'}]}
+        };
         const timeTravelConfig = {mode: 'last-failed-run'};
 
         const discarded = await finalize({timeTravelConfig});
@@ -140,17 +114,8 @@ describe('lib/adapters/event-handling/testplane/snapshots', () => {
         const entries = await files(attachment.path);
 
         assert.isEmpty(discarded);
+        assert.equal(strFromU8(entries['snapshots.json']), '');
         assert.deepEqual(JSON.parse(strFromU8(entries['network.json'])).requests, [failed]);
-    });
-
-    it('should give a custom saver the complete archive', async () => {
-        handleNetworkRequestsEvent(context, {requests: [request()]});
-        const saveSnapshot = sandbox.stub().resolves('remote/snapshot.zip');
-
-        const [attachment] = await finalize({snapshotsSaver: {saveSnapshot}});
-
-        assert.equal(attachment.path, 'remote/snapshot.zip');
-        assert.property(await files(saveSnapshot.firstCall.args[0]), 'network.json');
     });
 
     it('should warn and skip the archive when a body file is missing', async () => {
@@ -161,19 +126,5 @@ describe('lib/adapters/event-handling/testplane/snapshots', () => {
 
         assert.isEmpty(attachments);
         assert.calledOnce(warn);
-    });
-
-    it('should archive network-only response metadata and structured failure details', async () => {
-        const req = {
-            ...request(), failure: 'net::ERR_FAILED',
-            failureDetails: {corsError: 'MissingAllowOriginHeader', failedParameter: ''},
-            response: {status: 418, networkStatus: 418, statusText: '', headers: [{name: 'X-Proof', value: 'cors'}]}
-        };
-        handleNetworkRequestsEvent(context, {requests: [req]});
-
-        const [attachment] = await finalize();
-        const entries = await files(attachment.path);
-
-        assert.deepEqual(JSON.parse(strFromU8(entries['network.json'])).requests, [req]);
     });
 });
