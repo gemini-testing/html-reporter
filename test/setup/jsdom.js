@@ -11,6 +11,8 @@ require('jsdom-global')(``, {
 global.atob = nodeAtob;
 global.btoa = nodeBtoa;
 
+global.FocusEvent = global.window.FocusEvent;
+
 global.window.matchMedia ||= query => ({
     matches: false,
     media: query,

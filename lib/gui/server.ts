@@ -137,7 +137,7 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
                         });
                     }
 
-                    browserConfig.timeTravel = {mode: TimeTravelMode.On};
+                    browserConfig.timeTravel = {...browserConfig.timeTravel, mode: TimeTravelMode.On};
                     browserConfig.saveHistoryMode = 'all';
                 }
             } else {
@@ -248,7 +248,7 @@ export const start = async (args: ServerArgs): Promise<ServerReadyData> => {
 
         try {
             const {testPath, browserId} = req.query;
-            const {getSnapshotHashWithoutAttempt, snapshotsInProgress} = await import('../adapters/event-handling/testplane/snapshots');
+            const {getSnapshotHashWithoutAttempt, snapshotsInProgress} = await import('../adapters/event-handling/testplane/snapshots.js');
 
             if (!testPath || !browserId) {
                 res.status(400).json({error: `Missing one of the required GET parameters: testPath or browserId. Received testPath: ${testPath}, browserId: ${browserId}`});

@@ -240,8 +240,8 @@ export interface Badge {
 }
 
 export type GenerateBadges = (suite: ReporterTestResult) => Array<Badge | null>;
-/** Return true to mask the string value at the specified JSON Pointer path. */
-export type SecretConfigFilter = (value: string, path: string) => boolean;
+/** Return true to mask, a string to replace, false to keep, or undefined to apply the default filter. */
+export type SecretConfigFilter = (value: string, path: string) => boolean | string | undefined;
 
 export interface ReporterConfig {
     baseHost: string;

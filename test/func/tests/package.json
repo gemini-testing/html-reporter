@@ -19,6 +19,7 @@
     "testplane:testplane-tinder": "TOOL=testplane PROJECT_UNDER_TEST=testplane-tinder SERVER_PORT=8086 npx testplane --set common-tinder",
     "testplane:analytics": "TOOL=testplane PROJECT_UNDER_TEST=analytics SERVER_PORT=8085 npx testplane --set analytics",
     "testplane:db-migrations": "TOOL=testplane PROJECT_UNDER_TEST=db-migrations SERVER_PORT=8086 npx testplane --set db-migrations",
+    "testplane:network": "node --test network/network.test.js",
     "test": "run-s testplane:*"
   },
   "devDependencies": {
