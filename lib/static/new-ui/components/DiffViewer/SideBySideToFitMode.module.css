@@ -21,5 +21,8 @@
 
 .image-container {
     aspect-ratio: var(--natural-width) / var(--natural-height);
-    max-height: max(var(--desired-height), calc(var(--natural-height) * 1px / 2));
+    max-height: min(
+            max(var(--desired-height), calc(var(--natural-height) * 1px / 2)),
+            calc(var(--natural-height) * 1px)
+    );
 }
