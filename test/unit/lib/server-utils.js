@@ -138,7 +138,7 @@ describe('server-utils', () => {
         [
             {source: 'index.html', destination: 'index.html'},
             {source: 'old-ui-report.html', destination: 'old-ui.html'},
-            {source: 'new-ui-report.html', destination: 'new-ui.html'}
+            {source: 'index.html', destination: 'new-ui.html'}
         ].forEach(({source, destination}) => {
             it(`should publish ${source} as ${destination}`, async () => {
                 const destPath = '/report';

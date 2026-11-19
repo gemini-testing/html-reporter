@@ -27,6 +27,7 @@ export function SettingsPanel(): ReactNode {
     const [isTreeMagnifierDisabled, setTreeMagnifierDisabled] = useLocalStorage(DISABLE_TREE_SCREENSHOTS_MAGNIFIER, false);
     const [theme, setTheme] = useLocalStorage(LocalStorageKey.Theme, Theme.Light);
 
+    const isGui = useSelector(state => state.gui);
     const baseHost = useSelector(state => state.view.baseHost);
 
     const isTimeTravelAvailable = useSelector(state => state.app.availableFeatures.some(f => f.name === TimeTravelFeature.name));
@@ -42,7 +43,7 @@ export function SettingsPanel(): ReactNode {
         analytics?.trackFeatureUsage({featureName: 'Switch to old UI'});
         setUiMode(UiMode.Old);
 
-        window.location.pathname = window.location.pathname.replace(/\/(?:index\.html|new-ui(?:\.html)?)?$/, match => match.endsWith('.html') ? '/old-ui.html' : '/old-ui');
+        window.location.pathname = new URL(isGui ? 'old-ui' : 'old-ui.html', window.location.href).pathname;
     };
 
     const onTimeTravelRecommendedSettingsToggle = useCallback(async (enabled: boolean): Promise<void> => {

@@ -156,34 +156,6 @@ module.exports = {
             files: ['old-ui-gui.html'],
             scripts: ['sql-wasm.js'],
             append: false
-        }),
-        new HtmlWebpackPlugin({
-            title: 'HTML report (New UI)',
-            filename: 'new-ui-report.html',
-            template: 'template.html',
-            chunks: ['report'],
-            templateParameters: {
-                uiModeScript: uiModeRedirectScript
-            }
-        }),
-        new HtmlWebpackTagsPlugin({
-            files: ['new-ui-report.html'],
-            scripts: ['data.js', 'sql-wasm.js'],
-            append: false
-        }),
-        new HtmlWebpackPlugin({
-            title: 'GUI report (New UI)',
-            filename: 'new-ui-gui.html',
-            template: 'template.html',
-            chunks: ['gui'],
-            templateParameters: {
-                uiModeScript: uiModeRedirectScript
-            }
-        }),
-        new HtmlWebpackTagsPlugin({
-            files: ['new-ui-gui.html'],
-            scripts: ['sql-wasm.js'],
-            append: false
         })
     ],
     optimization: {

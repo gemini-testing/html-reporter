@@ -94,12 +94,12 @@ describe('lib/gui/server', () => {
 
     [
         {url: '/', page: 'gui.html'},
-        {url: '/new-ui', page: 'new-ui-gui.html'},
+        {url: '/new-ui', page: 'gui.html'},
         {url: '/old-ui', page: 'old-ui-gui.html'}
     ].forEach(({url, page}) => {
         it(`should serve ${page} at ${url}`, async () => {
             await startServer();
-            const route = expressStub.get.getCalls().find(call => call.args[0] === url);
+            const route = expressStub.get.getCalls().find(call => _.castArray(call.args[0]).includes(url));
             const response = {sendFile: sandbox.stub()};
 
             assert.exists(route);
