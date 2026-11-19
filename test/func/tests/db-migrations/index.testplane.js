@@ -18,7 +18,7 @@ describe('Backwards compatibility with old sqlite formats', () => {
     beforeEach(async ({browser}) => {
         guiProcess = await runGui(projectDir);
 
-        await browser.url(guiUrl);
+        await browser.url(guiUrl + '/old-ui');
     });
 
     afterEach(async () => {

@@ -30,6 +30,7 @@ module.exports.getFixturesConfig = (projectDir, projectName) => {
             'html-reporter-tester': {
                 enabled: true,
                 path: fixturesPath,
+                uiMode: null,
                 baseHost: 'https://example.com:123',
                 generateBadges: () => [
                     {
