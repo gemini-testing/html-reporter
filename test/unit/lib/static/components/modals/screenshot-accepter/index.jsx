@@ -10,7 +10,7 @@ import {
     addImageToTree,
     addResultToTree,
     addSuiteToTree, mkBrowserEntity,
-    mkEmptyTree, mkImageEntityFail, mkRealStore, mkResultEntity, mkSuiteEntityLeaf, renderWithStore
+    mkEmptyTree, mkImageEntityFail, mkImageEntitySuccess, mkRealStore, mkResultEntity, mkSuiteEntityLeaf, renderWithStore
 } from '../../../utils';
 
 const handlers = [
@@ -193,6 +193,12 @@ describe('<ScreenshotAccepter/>', () => {
     });
 
     describe('exiting from screenshot accepter', () => {
+        let onClose;
+
+        beforeEach(() => {
+            onClose = sandbox.stub();
+        });
+
         const mkDispatchInterceptorMiddleware = (interceptor) => {
             return () => {
                 return function wrapDispatch(next) {
@@ -221,11 +227,12 @@ describe('<ScreenshotAccepter/>', () => {
             const store = mkRealStore({initialState: {tree, view: {expand: EXPAND_ALL}}, middlewares: [middleware]});
             const currentImageId = image1.id;
 
-            const component = renderWithStore(<ScreenshotAccepter image={tree.images.byId[currentImageId]}/>, store);
+            const component = renderWithStore(<ScreenshotAccepter image={tree.images.byId[currentImageId]} onClose={onClose}/>, store);
 
             await user.click(component.getByTitle('Close mode with fast screenshot accepting', {exact: false}));
 
-            assert.neverCalledWith(reduxAction, sinon.match({type: 'APPLY_DELAYED_TEST_RESULTS'}));
+            assert.neverCalledWith(reduxAction, sinon.match({type: 'COMMIT_ACCEPTED_IMAGES_TO_TREE'}));
+            assert.calledOnce(onClose);
         });
 
         it('should apply delayed test result, if some screens were accepted', async () => {
@@ -240,17 +247,23 @@ describe('<ScreenshotAccepter/>', () => {
             addResultToTree({tree, result});
             const image1 = mkImageEntityFail('state-1', {parentId: result.id});
             addImageToTree({tree, image: image1});
+            server.use(http.post('/update-reference', () => HttpResponse.json([{
+                result,
+                images: [mkImageEntitySuccess(image1.id, {parentId: result.id})],
+                suites: [suite]
+            }])));
 
             const middleware = mkDispatchInterceptorMiddleware(reduxAction);
             const store = mkRealStore({initialState: {tree, view: {expand: EXPAND_ALL}}, middlewares: [middleware]});
             const currentImageId = image1.id;
 
-            const component = renderWithStore(<ScreenshotAccepter image={tree.images.byId[currentImageId]}/>, store);
+            const component = renderWithStore(<ScreenshotAccepter image={tree.images.byId[currentImageId]} onClose={onClose}/>, store);
 
             await user.click(component.getByText('Accept', {selector: 'button > *'}));
             await user.click(component.getByTitle('Close mode with fast screenshot accepting', {exact: false}));
 
             assert.calledWith(reduxAction, sinon.match({type: 'COMMIT_ACCEPTED_IMAGES_TO_TREE'}));
+            assert.calledOnce(onClose);
         });
 
         it('should not apply delayed test result, if it is cancelled by "Undo"', async () => {
@@ -270,13 +283,14 @@ describe('<ScreenshotAccepter/>', () => {
             const store = mkRealStore({initialState: {tree, view: {expand: EXPAND_ALL}}, middlewares: [middleware]});
             const currentImageId = image1.id;
 
-            const component = renderWithStore(<ScreenshotAccepter image={tree.images.byId[currentImageId]}/>, store);
+            const component = renderWithStore(<ScreenshotAccepter image={tree.images.byId[currentImageId]} onClose={onClose}/>, store);
 
             await user.click(component.getByText('Accept', {selector: 'button > *'}));
             await user.click(component.getByText('Undo', {selector: 'button > *'}));
             await user.click(component.getByTitle('Close mode with fast screenshot accepting', {exact: false}));
 
-            assert.neverCalledWith(reduxAction, sinon.match({type: 'APPLY_DELAYED_TEST_RESULTS'}));
+            assert.neverCalledWith(reduxAction, sinon.match({type: 'COMMIT_ACCEPTED_IMAGES_TO_TREE'}));
+            assert.calledOnce(onClose);
         });
     });
 

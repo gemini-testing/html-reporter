@@ -57,7 +57,8 @@ export function App(): ReactNode {
                         <FaviconChanger />
                         <AutoRun />
                         <AnalyticsProvider>
-                            <HashRouter>
+                            {/* Preserve v6 navigation timing while URL selection is synchronized through Redux. */}
+                            <HashRouter useTransitions={false}>
                                 <ErrorHandler.Boundary fallback={<ErrorHandler.FallbackAppCrash />}>
                                     <MainLayout pages={pages}>
                                         <LoadingBar/>

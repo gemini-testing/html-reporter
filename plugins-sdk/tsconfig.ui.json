@@ -12,7 +12,7 @@
         "jsx": "react-jsx",
         "module": "esnext",
         "target": "es2015",
-        "moduleResolution": "node",
+        "moduleResolution": "bundler",
         "esModuleInterop": true,
         "skipLibCheck": true,
         "noUnusedLocals": false,

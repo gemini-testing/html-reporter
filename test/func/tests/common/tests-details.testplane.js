@@ -26,6 +26,8 @@ describe(process.env.TOOL || 'Default', () => {
 
             await browser.$(selector).waitForDisplayed();
             await browser.waitUntil(() => browser.execute(() => document.fonts.status === 'loaded'));
+            // Keep the fixed bottom progress bar outside the screenshot.
+            await browser.$(selector).scrollIntoView({block: 'center'});
             await browser.assertView('details summary', selector);
         });
     });

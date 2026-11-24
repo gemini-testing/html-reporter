@@ -186,7 +186,7 @@ export class TestplaneToolAdapter implements ToolAdapter {
     }
 
     async readTests(paths: string[], cliTool: CommanderStatic): Promise<TestplaneTestCollectionAdapter> {
-        const {TestplaneTestCollectionAdapter} = await import('../../test-collection/testplane');
+        const {TestplaneTestCollectionAdapter} = await import('../../test-collection/testplane.js');
         const {grep, tag, set: sets, browser: browsers} = cliTool;
         const replMode = getReplModeOption(cliTool);
         this._hasFocusedTestsInLastRead = false;
@@ -249,9 +249,11 @@ export class TestplaneToolAdapter implements ToolAdapter {
         const replMode = getReplModeOption(cliTool);
         const runner = createTestRunner(testCollectionAdapter.original, tests);
         const inspectMode = (inspect || inspectBrk) && {inspect, inspectBrk};
+        // Testplane 8 uses devtools; Testplane 9 ignores this option.
+        const runOptions = {grep, sets, tag, browsers, inspectMode, replMode, devtools, local, requireModules};
 
         return runner.run((collection) =>
-            this._tool.run(collection, {grep, sets, tag, browsers, inspectMode, devtools, replMode, local, requireModules})
+            this._tool.run(collection, runOptions)
         );
     }
 

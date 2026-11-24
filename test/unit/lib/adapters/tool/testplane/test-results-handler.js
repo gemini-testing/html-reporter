@@ -9,6 +9,7 @@ const {ClientEvents} = require('lib/gui/constants');
 const {stubTool, stubConfig} = require('test/unit/utils');
 const {TestplaneTestResultAdapter} = require('lib/adapters/test-result/testplane');
 const {UNKNOWN_ATTEMPT} = require('lib/constants');
+const proxyquire = require('proxyquire');
 
 describe('lib/adapters/tool/testplane/test-results-handler', () => {
     const sandbox = sinon.createSandbox();
@@ -51,6 +52,31 @@ describe('lib/adapters/tool/testplane/test-results-handler', () => {
     });
 
     afterEach(() => sandbox.restore());
+
+    it('should handle network requests and DOM snapshots through separate events', () => {
+        const testplane = mkTestplane_();
+        testplane.events = {...testplane.events, NETWORK_REQUESTS: 'networkRequests', DOM_SNAPSHOTS: 'domSnapshots'};
+        const networkHandler = sandbox.stub();
+        const snapshotHandler = sandbox.stub();
+        const {handleTestResults: handleResults} = proxyquire('lib/adapters/tool/testplane/test-results-handler', {
+            '../../event-handling/testplane/snapshots': {
+                handleNetworkRequestsEvent: networkHandler,
+                handleDomSnapshotsEvent: snapshotHandler
+            }
+        });
+        const context = {testPath: ['test'], browserId: 'some-browser'};
+        const network = {requests: [{url: 'https://example.com'}]};
+        const snapshots = {rrwebSnapshots: []};
+
+        handleResults(testplane, reportBuilder, client);
+        testplane.emit(testplane.events.NETWORK_REQUESTS, context, network);
+
+        testplane.emit(testplane.events.DOM_SNAPSHOTS, context, snapshots);
+
+        assert.calledOnceWithExactly(networkHandler, context, network);
+        assert.calledOnceWithExactly(snapshotHandler, client, context, snapshots);
+        assert.notCalled(client.emit);
+    });
 
     describe('RUNNER_END', () => {
         it('should emit "END" event for client', () => {

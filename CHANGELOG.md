@@ -1,6 +1,13 @@
-# Change Log
+# Changelog
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+## 11.18.0 (2026-11-23)
+
+
+### Features
+
+* implement time travel network requests events ([#816](https://github.com/gemini-testing/html-reporter/issues/816)) ([da73c55](https://github.com/gemini-testing/html-reporter/commit/da73c55d615c56163c3f2d92d17bcebf58aa5975))
 
 <a name="11.17.2"></a>
 ## 11.17.2 (2026-10-01)

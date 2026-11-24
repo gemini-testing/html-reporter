@@ -1,4 +1,5 @@
 import os from 'os';
+import type {EventEmitter} from 'events';
 import PQueue from 'p-queue';
 import type {Test as TestplaneTest} from 'testplane';
 import {ClientEvents} from '../../../gui/constants';
@@ -41,8 +42,8 @@ export const handleTestResults = (testplane: TestplaneWithHtmlReporter, reportBu
 
         testplane.on(eventName as AnyTestplaneTestEvent, (data: TestplaneTest | TestplaneTestResult) => {
             queue.add(async () => {
-                const {getStatus} = await import('../../test-result/testplane');
-                const {finalizeSnapshotsForTest} = await import('../../event-handling/testplane/snapshots');
+                const {getStatus} = await import('../../test-result/testplane/index.js');
+                const {finalizeSnapshotsForTest} = await import('../../event-handling/testplane/snapshots.js');
                 const status = getStatus(eventName, testplane.events, data as TestplaneTestResult);
                 const formattedResultWithoutAttempt = formatTestResult(
                     data,
@@ -63,7 +64,8 @@ export const handleTestResults = (testplane: TestplaneWithHtmlReporter, reportBu
                         events: testplane.events,
                         eventName,
                         timeTravelConfig: testplane.config.browsers[formattedResultWithoutAttempt.browserId].timeTravel,
-                        snapshotsSaver: testplane.htmlReporter.snapshotsSaver
+                        snapshotsSaver: testplane.htmlReporter.snapshotsSaver,
+                        secretConfigFilter: testplane.htmlReporter.config.secretConfigFilter
                     });
 
                     attachments.push(...snapshotAttachments);
@@ -93,4 +95,12 @@ export const handleTestResults = (testplane: TestplaneWithHtmlReporter, reportBu
         const {handleDomSnapshotsEvent} = require('../../event-handling/testplane/snapshots');
         handleDomSnapshotsEvent(client, context, data);
     });
+
+    // Older Testplane versions do not expose network recording events.
+    const networkEvent = (testplane.events as Record<string, string>).NETWORK_REQUESTS;
+    if (networkEvent) {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const {handleNetworkRequestsEvent} = require('../../event-handling/testplane/snapshots');
+        (testplane as EventEmitter).on(networkEvent, handleNetworkRequestsEvent);
+    }
 };
