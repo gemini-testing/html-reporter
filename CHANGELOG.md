@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 12.0.1 (2026-11-26)
+
+
+### Bug Fixes
+
+* **gui:** show actual skip status of tests after gui restart, reconcile skip status after restoring history ([#820](https://github.com/gemini-testing/html-reporter/issues/820)) ([e280579](https://github.com/gemini-testing/html-reporter/commit/e280579393907c071ab6951dc86bdb834890ea7d))
+
 ## 12.0.0 (2026-11-24)
 
 ## 11.18.0 (2026-11-23)
