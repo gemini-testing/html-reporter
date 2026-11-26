@@ -1,18 +1,19 @@
 import _ from 'lodash';
 import {StaticReportBuilder, StaticReportBuilderOptions} from './static';
 import {GuiTestsTreeBuilder, GuiTestsTreeBuilderState, TestBranch, TestEqualDiffsData, TestRefUpdateData} from '../tests-tree-builder/gui';
-import {UPDATED, DB_COLUMNS, DB_COLUMN_INDEXES, TestStatus, DEFAULT_TITLE_DELIMITER, SKIPPED, SUCCESS} from '../constants';
+import {UPDATED, DB_COLUMNS, TestStatus, DEFAULT_TITLE_DELIMITER, IDLE, SKIPPED, SUCCESS, UNKNOWN_ATTEMPT} from '../constants';
 import {ConfigForStaticFile, getConfigForStaticFile} from '../server-utils';
 import {ReporterTestResult} from '../adapters/test-result';
 import {Tree, TreeImage} from '../tests-tree-builder/base';
 import {ImageInfoFull, ImageInfoWithState, ReporterConfig} from '../types';
 import {determineStatus, isUpdatedStatus} from '../common-utils';
 import {HtmlReporterValues} from '../plugin-api';
-import {StaticTestsTreeBuilder, SkipItem} from '../tests-tree-builder/static';
+import {StaticTestsTreeBuilder} from '../tests-tree-builder/static';
 import {copyAndUpdate} from '../adapters/test-result/utils';
 import type {TestHistorySpec} from '../sqlite-client';
 import type {TestAttemptManagerSnapshot} from '../test-attempt-manager';
 import type {TreePatchScope} from '../tests-tree-builder/tree-patch';
+import type {TestAdapter} from '../adapters/test';
 
 interface UndoAcceptImageResult {
     updatedImage: TreeImage | undefined;
@@ -25,13 +26,11 @@ interface UndoAcceptImageResult {
 
 export interface GuiReportBuilderTestsState {
     treeState: GuiTestsTreeBuilderState;
-    skips: SkipItem[];
     attempts?: TestAttemptManagerSnapshot;
 }
 
 export interface GuiReportBuilderResult {
     tree: Tree;
-    skips: SkipItem[];
     config: ConfigForStaticFile & {customGui: ReporterConfig['customGui']};
     timestamp: number;
     apiValues?: HtmlReporterValues;
@@ -40,14 +39,12 @@ export interface GuiReportBuilderResult {
 
 export class GuiReportBuilder extends StaticReportBuilder {
     private _testsTree: GuiTestsTreeBuilder;
-    private _skips: SkipItem[];
     private _apiValues?: HtmlReporterValues;
 
     constructor(options: StaticReportBuilderOptions) {
         super(options);
 
         this._testsTree = GuiTestsTreeBuilder.create({baseHost: this._reporterConfig.baseHost});
-        this._skips = [];
     }
 
     setApiValues(values: HtmlReporterValues): this {
@@ -98,7 +95,6 @@ export class GuiReportBuilder extends StaticReportBuilder {
 
         return {
             tree: this._testsTree.tree,
-            skips: this._skips,
             config,
             apiValues: this._apiValues,
             timestamp,
@@ -109,7 +105,6 @@ export class GuiReportBuilder extends StaticReportBuilder {
 
     resetTree(): void {
         this._testsTree = GuiTestsTreeBuilder.create({baseHost: this._reporterConfig.baseHost});
-        this._skips = [];
         this.resetAttemps();
     }
 
@@ -120,14 +115,12 @@ export class GuiReportBuilder extends StaticReportBuilder {
     snapshotTestsState(scope?: TreePatchScope, files?: Iterable<string>, tests?: Iterable<{fullName: string; browserId: string}>): GuiReportBuilderTestsState {
         return {
             treeState: this._testsTree.snapshotState(scope, files),
-            skips: [...this._skips],
             attempts: tests && this._testAttemptManager.snapshot(tests)
         };
     }
 
-    restoreTestsState({treeState, skips, attempts}: GuiReportBuilderTestsState): void {
+    restoreTestsState({treeState, attempts}: GuiReportBuilderTestsState): void {
         this._testsTree.restoreState(treeState);
-        this._skips = skips;
 
         if (attempts) {
             this._testAttemptManager.restore(attempts);
@@ -153,14 +146,8 @@ export class GuiReportBuilder extends StaticReportBuilder {
         this._testsTree.sortBranches(suiteIds);
     }
 
-    restoreTestHistory(tests: TestHistorySpec[], {excludeSkipped = []}: {excludeSkipped?: TestHistorySpec[]} = {}): boolean {
-        const excludedSkippedTests = new Set(excludeSkipped.map(({suitePath, browserId}) =>
-            `${JSON.stringify(suitePath)}\0${browserId}`));
-        const rows = this._dbClient.getSuitesByTests(tests).filter(row => {
-            const key = `${row[DB_COLUMN_INDEXES.suitePath]}\0${row[DB_COLUMN_INDEXES.name]}`;
-
-            return row[DB_COLUMN_INDEXES.status] !== SKIPPED || !excludedSkippedTests.has(key);
-        });
+    restoreTestHistory(tests: TestHistorySpec[]): boolean {
+        const rows = this._dbClient.getSuitesByTests(tests);
 
         if (!rows.length) {
             return false;
@@ -179,6 +166,72 @@ export class GuiReportBuilder extends StaticReportBuilder {
         const {tree} = testsTreeBuilder.build(this._dbClient.getAllSuites());
 
         return tree;
+    }
+
+    async resolveSkippedTests(tests: TestAdapter[]): Promise<void> {
+        const db = this._dbClient.getRawConnection();
+        db.run('SAVEPOINT resolve_skipped_tests');
+
+        try {
+            for (const test of tests) {
+                this._resolveSkippedTest(test);
+            }
+            db.run('RELEASE SAVEPOINT resolve_skipped_tests');
+        } catch (error) {
+            db.run('ROLLBACK TO SAVEPOINT resolve_skipped_tests');
+            db.run('RELEASE SAVEPOINT resolve_skipped_tests');
+
+            throw error;
+        }
+    }
+
+    private _resolveSkippedTest(test: TestAdapter): void {
+        const browserId = test.titlePath.concat(test.browserId).join(DEFAULT_TITLE_DELIMITER);
+        const browser = this._testsTree.tree.browsers.byId[browserId];
+
+        if (!browser) {
+            return;
+        }
+
+        const results = browser.resultIds.filter(Boolean).map(id => this._testsTree.tree.results.byId[id]);
+        this._testAttemptManager.replaceAttempts(test, results.map(result => result.status));
+
+        let lastResult = results.pop();
+
+        while (lastResult?.status === SKIPPED) {
+            // A muted execution keeps its original attempt even if the test is now declared pending.
+            if (lastResult.duration > 0 || lastResult.error) {
+                return;
+            }
+            if (test.pending) {
+                break;
+            }
+
+            this._testsTree.removeTestResult(lastResult.id);
+            this._testAttemptManager.removeAttempt(test);
+            this._dbClient.deleteLastTestResult({
+                suitePath: test.titlePath,
+                browserId: test.browserId,
+                status: SKIPPED,
+                timestamp: lastResult.timestamp
+            });
+            lastResult = results.pop();
+        }
+
+        if (!test.pending && lastResult) {
+            return;
+        }
+
+        // Синтетические статусы не требуют сохранения изображений.
+        // Все изменения SQLite выполняются синхронно внутри SAVEPOINT.
+        const formattedResult = this.provideAttempt(test.createTestResult({
+            status: test.pending ? SKIPPED : IDLE,
+            attempt: lastResult?.status === SKIPPED ? lastResult.attempt : UNKNOWN_ATTEMPT,
+            duration: 0
+        }));
+
+        this._writeTestResult(formattedResult);
+        this._addTestResultToTree(formattedResult);
     }
 
     getTestBranch(id: string): TestBranch {
@@ -264,16 +317,10 @@ export class GuiReportBuilder extends StaticReportBuilder {
     ): Promise<ReporterTestResult> {
         const formattedResult = await super.addTestResult(formattedResultOriginal);
 
-        if (formattedResult.status === SKIPPED) {
-            const {
-                fullName: suite,
-                skipReason: comment,
-                browserId: browser
-            } = formattedResult;
+        return this._addTestResultToTree(formattedResult, updates);
+    }
 
-            this._skips.push({suite, browser, comment});
-        }
-
+    private _addTestResultToTree(formattedResult: ReporterTestResult, updates?: Partial<ReporterTestResult>): ReporterTestResult {
         const formattedResultWithImages = this._loadImagesFromPreviousAttempt(formattedResult);
         const resultOverrided = updates
             ? copyAndUpdate(formattedResultWithImages, updates)

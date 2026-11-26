@@ -88,31 +88,37 @@ describe('lib/sqlite-client', () => {
         ];
 
         db.run(`INSERT INTO suites VALUES (${placeholders})`, mkRow(['suite', 'first'], 'chrome', 2));
-        db.run(`INSERT INTO suites VALUES (${placeholders})`, mkRow(['suite', 'second'], 'chrome', 1));
+        db.run(`INSERT INTO suites VALUES (${placeholders})`, mkRow(['suite', 'second'], 'firefox', 1));
+        db.run(`INSERT INTO suites VALUES (${placeholders})`, mkRow(['suite', 'second'], 'firefox', 2));
         db.run(`INSERT INTO suites VALUES (${placeholders})`, mkRow(['suite', 'first'], 'chrome', 3));
-        db.run(`INSERT INTO suites VALUES (${placeholders})`, mkRow(['suite', 'other'], 'chrome', 0));
-        const prepare = sandbox.spy(db, 'prepare');
+        db.run(`INSERT INTO suites VALUES (${placeholders})`, mkRow(['suite', 'second'], 'chrome', 0));
+        db.run(`INSERT INTO suites VALUES (${placeholders})`, mkRow(['suite', 'first'], 'firefox', 0));
+        const exec = sandbox.spy(db, 'exec');
 
         const rows = client.getSuitesByTests([
             {suitePath: ['suite', 'first'], browserId: 'chrome'},
-            {suitePath: ['suite', 'second'], browserId: 'chrome'}
+            {suitePath: ['suite', 'second'], browserId: 'firefox'},
+            {suitePath: ['suite', 'first'], browserId: 'chrome'}
         ]);
 
-        assert.lengthOf(rows, 3);
-        assert.equal(rows[0][0], JSON.stringify(['suite', 'second']));
-        assert.equal(rows[0][13], 1);
-        assert.equal(rows[2][13], 3);
-        assert.calledOnceWith(prepare, 'SELECT * FROM suites');
+        assert.deepEqual(rows.map(row => [row[1], row[2], row[13]]), [
+            ['second', 'firefox', 1],
+            ['first', 'chrome', 2],
+            ['second', 'firefox', 2],
+            ['first', 'chrome', 3]
+        ]);
+        assert.calledOnce(exec);
+        assert.lengthOf(exec.firstCall.returnValue[0].values, 4);
         client.close();
     });
 
     it('should not scan suites when no tests are requested', async () => {
         const client = await makeSqliteClient_();
         const db = client.getRawConnection();
-        const prepare = sandbox.spy(db, 'prepare');
+        const exec = sandbox.spy(db, 'exec');
 
         assert.deepEqual(client.getSuitesByTests([]), []);
-        assert.notCalled(prepare);
+        assert.notCalled(exec);
         client.close();
     });
 
@@ -156,6 +162,15 @@ describe('lib/sqlite-client', () => {
                 sqliteClient.query({select: 'foo', orderBy: 'baz'});
 
                 assert.calledWith(prepareStub, 'SELECT foo FROM suites ORDER BY baz ASC');
+            });
+
+            it('should support a compound ordering expression', () => {
+                sqliteClient.query({
+                    orderBy: 'timestamp DESC, rowid',
+                    orderDescending: true
+                });
+
+                assert.calledWith(prepareStub, 'SELECT * FROM suites ORDER BY timestamp DESC, rowid DESC');
             });
         });
 

@@ -13,7 +13,6 @@ export default Object.assign({config: configDefaults}, {
     processing: false,
     stopping: false,
     autoRun: false,
-    skips: [],
     browsers: [],
     groupedTests: {
         result: {

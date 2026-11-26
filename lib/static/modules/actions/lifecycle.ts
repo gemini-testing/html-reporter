@@ -11,7 +11,7 @@ import {
 } from '@/db-utils/client';
 import * as plugins from '@/static/modules/plugins';
 import actionNames from '@/static/modules/action-names';
-import {FinalStats, SkipItem, StaticTestsTreeBuilder} from '@/tests-tree-builder/static';
+import {FinalStats, StaticTestsTreeBuilder} from '@/tests-tree-builder/static';
 import {Action, AppThunk} from '@/static/modules/actions/types';
 import {DataForStaticFile} from '@/server-utils';
 import {GetInitResponse} from '@/gui/server';
@@ -81,7 +81,6 @@ export type InitStaticReportAction = Action<typeof actionNames.INIT_STATIC_REPOR
     fetchDbDetails: DbDetails[],
     tree: Tree;
     stats: FinalStats | null;
-    skips: SkipItem[];
     browsers: BrowserItem[];
     isNewUi?: boolean;
 }>;
@@ -130,7 +129,7 @@ export const thunkInitStaticReport = ({isNewUi}: InitStaticReportData = {}): App
         const testsTreeBuilder = StaticTestsTreeBuilder.create();
 
         if (!db || isEmpty(fetchDbDetails)) {
-            dispatch(initStaticReport({...dataFromStaticFile, db, fetchDbDetails, tree: testsTreeBuilder.build([]).tree, stats: null, skips: [], browsers: [], isNewUi}));
+            dispatch(initStaticReport({...dataFromStaticFile, db, fetchDbDetails, tree: testsTreeBuilder.build([]).tree, stats: null, browsers: [], isNewUi}));
 
             return;
         }
@@ -139,9 +138,9 @@ export const thunkInitStaticReport = ({isNewUi}: InitStaticReportData = {}): App
 
         performance?.mark?.(performanceMarks.DB_EXTRACTED_ROWS);
 
-        const {tree, stats, skips, browsers} = testsTreeBuilder.build(suitesRows);
+        const {tree, stats, browsers} = testsTreeBuilder.build(suitesRows);
 
-        dispatch(initStaticReport({...dataFromStaticFile, db, fetchDbDetails, tree, stats, skips, browsers, isNewUi}));
+        dispatch(initStaticReport({...dataFromStaticFile, db, fetchDbDetails, tree, stats, browsers, isNewUi}));
     };
 };
 
