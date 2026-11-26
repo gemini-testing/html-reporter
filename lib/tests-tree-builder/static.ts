@@ -21,16 +21,9 @@ export interface PerBrowserStats {
 
 export type FinalStats = Stats & {perBrowser: PerBrowserStats}
 
-export interface SkipItem {
-    browser: string;
-    suite: string;
-    comment?: string;
-}
-
 export interface StaticTreeBuildResult {
     tree: Tree;
     stats: FinalStats;
-    skips: SkipItem[];
     browsers: BrowserItem[]
 }
 
@@ -39,7 +32,6 @@ export interface StaticTestsTreeBuilderOptions extends BaseTestsTreeBuilderOptio
 
 export class StaticTestsTreeBuilder extends BaseTestsTreeBuilder {
     protected _stats: FinalStats;
-    protected _skips: SkipItem[];
     protected _failedTestIds: { [key: string]: boolean };
     protected _passedTestIds: { [key: string]: boolean };
     protected _skippedTestIds: { [key: string]: boolean };
@@ -51,7 +43,6 @@ export class StaticTestsTreeBuilder extends BaseTestsTreeBuilder {
             ...initStats(),
             perBrowser: {}
         };
-        this._skips = [];
         this._failedTestIds = {};
         this._passedTestIds = {};
         this._skippedTestIds = {};
@@ -84,7 +75,6 @@ export class StaticTestsTreeBuilder extends BaseTestsTreeBuilder {
         return {
             tree: this.tree,
             stats: this._stats,
-            skips: this._skips,
             browsers: _.map(browsers, (versions, id) => ({id, versions: Array.from(versions)}))
         };
     }
@@ -217,12 +207,6 @@ export class StaticTestsTreeBuilder extends BaseTestsTreeBuilder {
                     this._stats.perBrowser[browserName][version].skipped++;
                     this._stats.perBrowser[browserName][version].retries++;
 
-                    this._skips.push({
-                        browser: browserName,
-                        suite: testId,
-                        comment: testResult.skipReason
-                    });
-
                     return;
                 }
 
@@ -238,12 +222,6 @@ export class StaticTestsTreeBuilder extends BaseTestsTreeBuilder {
                     this._stats.perBrowser[browserName][version].skipped++;
                     this._stats.perBrowser[browserName][version].retries++;
 
-                    this._skips.push({
-                        browser: browserName,
-                        suite: testId,
-                        comment: testResult.skipReason
-                    });
-
                     return;
                 }
 
@@ -254,12 +232,6 @@ export class StaticTestsTreeBuilder extends BaseTestsTreeBuilder {
                 }
 
                 this._skippedTestIds[testIdWithBrowser] = true;
-
-                this._skips.push({
-                    browser: browserName,
-                    suite: testId,
-                    comment: testResult.skipReason
-                });
 
                 this._stats.skipped++;
                 this._stats.perBrowser[browserName][version].skipped++;

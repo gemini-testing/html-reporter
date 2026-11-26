@@ -8,7 +8,7 @@ import {Tree, TreeImage} from '../tests-tree-builder/base';
 import {ImageInfoFull, ImageInfoWithState, ReporterConfig} from '../types';
 import {determineStatus, isUpdatedStatus} from '../common-utils';
 import {HtmlReporterValues} from '../plugin-api';
-import {StaticTestsTreeBuilder, SkipItem} from '../tests-tree-builder/static';
+import {StaticTestsTreeBuilder} from '../tests-tree-builder/static';
 import {copyAndUpdate} from '../adapters/test-result/utils';
 import type {TestHistorySpec} from '../sqlite-client';
 import type {TestAttemptManagerSnapshot} from '../test-attempt-manager';
@@ -26,13 +26,11 @@ interface UndoAcceptImageResult {
 
 export interface GuiReportBuilderTestsState {
     treeState: GuiTestsTreeBuilderState;
-    skips: SkipItem[];
     attempts?: TestAttemptManagerSnapshot;
 }
 
 export interface GuiReportBuilderResult {
     tree: Tree;
-    skips: SkipItem[];
     config: ConfigForStaticFile & {customGui: ReporterConfig['customGui']};
     timestamp: number;
     apiValues?: HtmlReporterValues;
@@ -41,14 +39,12 @@ export interface GuiReportBuilderResult {
 
 export class GuiReportBuilder extends StaticReportBuilder {
     private _testsTree: GuiTestsTreeBuilder;
-    private _skips: SkipItem[];
     private _apiValues?: HtmlReporterValues;
 
     constructor(options: StaticReportBuilderOptions) {
         super(options);
 
         this._testsTree = GuiTestsTreeBuilder.create({baseHost: this._reporterConfig.baseHost});
-        this._skips = [];
     }
 
     setApiValues(values: HtmlReporterValues): this {
@@ -99,7 +95,6 @@ export class GuiReportBuilder extends StaticReportBuilder {
 
         return {
             tree: this._testsTree.tree,
-            skips: this._skips,
             config,
             apiValues: this._apiValues,
             timestamp,
@@ -110,7 +105,6 @@ export class GuiReportBuilder extends StaticReportBuilder {
 
     resetTree(): void {
         this._testsTree = GuiTestsTreeBuilder.create({baseHost: this._reporterConfig.baseHost});
-        this._skips = [];
         this.resetAttemps();
     }
 
@@ -121,14 +115,12 @@ export class GuiReportBuilder extends StaticReportBuilder {
     snapshotTestsState(scope?: TreePatchScope, files?: Iterable<string>, tests?: Iterable<{fullName: string; browserId: string}>): GuiReportBuilderTestsState {
         return {
             treeState: this._testsTree.snapshotState(scope, files),
-            skips: [...this._skips],
             attempts: tests && this._testAttemptManager.snapshot(tests)
         };
     }
 
-    restoreTestsState({treeState, skips, attempts}: GuiReportBuilderTestsState): void {
+    restoreTestsState({treeState, attempts}: GuiReportBuilderTestsState): void {
         this._testsTree.restoreState(treeState);
-        this._skips.splice(0, this._skips.length, ...skips);
 
         if (attempts) {
             this._testAttemptManager.restore(attempts);
@@ -148,8 +140,6 @@ export class GuiReportBuilder extends StaticReportBuilder {
 
     removeTestsByFiles(files: string[]): void {
         this._testsTree.removeTestsByFiles(files);
-        _.remove(this._skips, ({suite, browser}) =>
-            !this._testsTree.tree.browsers.byId[[suite, browser].join(DEFAULT_TITLE_DELIMITER)]);
     }
 
     sortTestsTreeBranches(suiteIds: Iterable<string>): void {
@@ -194,9 +184,6 @@ export class GuiReportBuilder extends StaticReportBuilder {
     }
 
     private _resolveSkippedTests(tests: TestAdapter[]): void {
-        const affectedTests = new Set(tests.map(test => `${test.fullName}\0${test.browserId}`));
-        _.remove(this._skips, ({suite, browser}) => affectedTests.has(`${suite}\0${browser}`));
-
         for (const test of tests) {
             const browserId = test.titlePath.concat(test.browserId).join(DEFAULT_TITLE_DELIMITER);
             const browser = this._testsTree.tree.browsers.byId[browserId];
@@ -334,16 +321,6 @@ export class GuiReportBuilder extends StaticReportBuilder {
     }
 
     private _addTestResultToTree(formattedResult: ReporterTestResult, updates?: Partial<ReporterTestResult>): ReporterTestResult {
-        if (formattedResult.status === SKIPPED) {
-            const {
-                fullName: suite,
-                skipReason: comment,
-                browserId: browser
-            } = formattedResult;
-
-            this._skips.push({suite, browser, comment});
-        }
-
         const formattedResultWithImages = this._loadImagesFromPreviousAttempt(formattedResult);
         const resultOverrided = updates
             ? copyAndUpdate(formattedResultWithImages, updates)

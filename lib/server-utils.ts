@@ -244,7 +244,6 @@ export function getConfigForStaticFile(pluginConfig: ReporterConfig): ConfigForS
 }
 
 export interface DataForStaticFile {
-    skips: object[];
     config: ConfigForStaticFile;
     apiValues: HtmlReporter['values'];
     timestamp: number;
@@ -255,7 +254,6 @@ export function getDataForStaticFile(htmlReporter: HtmlReporter, pluginConfig: R
     const timestamp = Date.now();
 
     return {
-        skips: [],
         config: getConfigForStaticFile(pluginConfig),
         apiValues: htmlReporter.values,
         timestamp,
