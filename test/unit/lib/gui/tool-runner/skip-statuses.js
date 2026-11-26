@@ -42,7 +42,7 @@ describe('GUI skip status restoration', () => {
         return TestplaneTestAdapter.create(test);
     };
 
-    const seedHistory = async (statuses, browserId = 'chrome', {reuse = false, imagesInfo = [], timestamp} = {}) => {
+    const seedHistory = async (statuses, browserId = 'chrome', {reuse = false, imagesInfo = [], timestamp, skipDuration = 0, skipError} = {}) => {
         const dbClient = await SqliteClient.create({
             htmlReporter,
             reportPath,
@@ -52,7 +52,8 @@ describe('GUI skip status restoration', () => {
 
         statuses.forEach((status, attempt) => dbClient.write(copyAndUpdate(test.createTestResult({
             status,
-            duration: 1
+            duration: status === SKIPPED ? skipDuration : 1,
+            error: status === SKIPPED ? skipError : undefined
         }), {
             timestamp: timestamp ?? attempt + 1,
             imagesInfo: status === SUCCESS ? imagesInfo : [],
@@ -149,7 +150,6 @@ describe('GUI skip status restoration', () => {
                     status: IDLE,
                     attempt: 0
                 }]);
-                assert.deepEqual(runner.tree.skips, []);
 
                 await runner._reportBuilder.addTestResult(tests[0].createTestResult({
                     status: SUCCESS,
@@ -226,12 +226,44 @@ describe('GUI skip status restoration', () => {
                         attempt: 1
                     }
                 ]);
-                assert.deepEqual(runner.tree.skips, [{
-                    suite: 'suite with spaces test with spaces',
-                    browser: 'chrome',
-                    comment: 'current reason'
-                }]);
+                assert.equal(runner.tree.tree.results.byId['suite with spaces test with spaces chrome 1'].skipReason, 'current reason');
             });
+        });
+    });
+
+    [
+        {duration: 0, error: new Error('muted failure')},
+        {duration: 42, error: new Error('muted failure')},
+        {duration: 42, error: undefined}
+    ].forEach(({duration, error}) => {
+        it(`should preserve a ${duration} ms skipped attempt ${error ? 'with' : 'without'} an error across skip changes`, async () => {
+            await seedHistory([FAIL, SKIPPED], 'chrome', {skipDuration: duration, skipError: error});
+            await seedHistory([SKIPPED], 'chrome', {reuse: true, timestamp: 3});
+            await start();
+
+            const assertSavedAttempt = () => {
+                assert.deepEqual(getResults(), [{status: FAIL, attempt: 0}, {status: SKIPPED, attempt: 1}]);
+                const result = runner.tree.tree.results.byId['suite with spaces test with spaces chrome 1'];
+                assert.equal(result.duration, duration);
+                assert.equal(result.error?.message, error?.message);
+                assert.equal(result.timestamp, 2);
+                assert.equal(result.metaInfo.marker, 'saved metadata');
+
+                const rows = runner._reportBuilder._dbClient.getAllSuites();
+                assert.lengthOf(rows, 2);
+                assert.equal(rows[1][DB_COLUMN_INDEXES.duration], duration);
+                assert.equal(JSON.parse(rows[1][DB_COLUMN_INDEXES.error])?.message, error?.message);
+            };
+
+            assertSavedAttempt();
+            tests = [mkTest({pending: true, skipReason: 'new skip reason'})];
+            await refresh('watch');
+            assertSavedAttempt();
+            await refresh('restart');
+            assertSavedAttempt();
+            tests = [mkTest()];
+            await refresh('refresh');
+            assertSavedAttempt();
         });
     });
 
@@ -242,7 +274,7 @@ describe('GUI skip status restoration', () => {
         tests = [];
         await refresh('watch');
 
-        assert.deepEqual(runner.tree.skips, []);
+        assert.deepEqual(runner.tree.tree.results.allIds, []);
         assert.deepEqual(runner.tree.tree.browsers.allIds, []);
     });
 
@@ -338,7 +370,6 @@ describe('GUI skip status restoration', () => {
             status: SUCCESS,
             attempt: 0
         }]);
-        assert.deepEqual(runner.tree.skips, []);
     });
 
     it('should restore skip statuses and saved history if a watched update fails', async () => {
@@ -373,11 +404,7 @@ describe('GUI skip status restoration', () => {
             status: SUCCESS,
             attempt: 0
         }]);
-        assert.deepEqual(runner.tree.skips, [{
-            suite: 'suite with spaces test with spaces',
-            browser: 'chrome',
-            comment: 'current reason'
-        }]);
+        assert.equal(runner.tree.tree.results.byId['suite with spaces test with spaces chrome 0'].skipReason, 'current reason');
 
         const rows = runner._reportBuilder._dbClient.getAllSuites();
 

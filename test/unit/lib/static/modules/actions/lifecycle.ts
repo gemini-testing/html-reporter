@@ -193,7 +193,7 @@ describe('lib/static/modules/actions/lifecycle', () => {
             fetchDataFromDatabasesStub.resolves([{url: 'stub url2', status: 200, data: 'stub'}]);
             // TODO: properly test this case. This PR only fixed default state, which is now correct, but
             //       this test never worked correctly
-            const treeBuilderResult = {tree: undefined, stats: {}, skips: [], browsers: []};
+            const treeBuilderResult = {tree: undefined, stats: {}, browsers: []};
 
             mergeDatabasesStub.resolves(db);
             getSuitesTableRows.withArgs(db).returns(suitesFromDb);

@@ -700,7 +700,7 @@ describe('lib/gui/tool-runner/index', () => {
                 results: {byId: {}, allIds: []},
                 images: {byId: {}, allIds: []}
             };
-            const snapshot = {treeState: {tree, browserIdsByFile: new Map()}, skips: []};
+            const snapshot = {treeState: {tree, browserIdsByFile: new Map()}};
             toolAdapter.readTests.onFirstCall().resolves({tests: [oldTest]});
             toolAdapter.readTests.onSecondCall().resolves({tests: [newTest]});
             sandbox.stub(fs, 'pathExists').withArgs(changedFile).resolves(true);

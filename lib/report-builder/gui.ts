@@ -173,7 +173,9 @@ export class GuiReportBuilder extends StaticReportBuilder {
         db.run('SAVEPOINT resolve_skipped_tests');
 
         try {
-            this._resolveSkippedTests(tests);
+            for (const test of tests) {
+                this._resolveSkippedTest(test);
+            }
             db.run('RELEASE SAVEPOINT resolve_skipped_tests');
         } catch (error) {
             db.run('ROLLBACK TO SAVEPOINT resolve_skipped_tests');
@@ -183,55 +185,53 @@ export class GuiReportBuilder extends StaticReportBuilder {
         }
     }
 
-    private _resolveSkippedTests(tests: TestAdapter[]): void {
-        for (const test of tests) {
-            const browserId = test.titlePath.concat(test.browserId).join(DEFAULT_TITLE_DELIMITER);
-            const browser = this._testsTree.tree.browsers.byId[browserId];
+    private _resolveSkippedTest(test: TestAdapter): void {
+        const browserId = test.titlePath.concat(test.browserId).join(DEFAULT_TITLE_DELIMITER);
+        const browser = this._testsTree.tree.browsers.byId[browserId];
 
-            if (!browser) {
-                continue;
-            }
-
-            const results = browser.resultIds.filter(Boolean).map(id => this._testsTree.tree.results.byId[id]);
-            this._testAttemptManager.replaceAttempts(test, results.map(result => result.status));
-
-            if (!test.pending) {
-                while (results.length) {
-                    const result = results[results.length - 1];
-
-                    if (result.status !== SKIPPED) {
-                        break;
-                    }
-
-                    this._testsTree.removeTestResult(result.id);
-                    this._testAttemptManager.removeAttempt(test);
-                    this._dbClient.deleteLastTestResult({
-                        suitePath: test.titlePath,
-                        browserId: test.browserId,
-                        status: SKIPPED,
-                        timestamp: result.timestamp
-                    });
-                    results.pop();
-                }
-
-                if (results.length) {
-                    continue;
-                }
-            }
-
-            const lastResult = results.at(-1);
-
-            // Синтетические статусы не требуют сохранения изображений.
-            // Все изменения SQLite выполняются синхронно внутри SAVEPOINT.
-            const formattedResult = this.provideAttempt(test.createTestResult({
-                status: test.pending ? SKIPPED : IDLE,
-                attempt: lastResult?.status === SKIPPED ? lastResult.attempt : UNKNOWN_ATTEMPT,
-                duration: 0
-            }));
-
-            this._writeTestResult(formattedResult);
-            this._addTestResultToTree(formattedResult);
+        if (!browser) {
+            return;
         }
+
+        const results = browser.resultIds.filter(Boolean).map(id => this._testsTree.tree.results.byId[id]);
+        this._testAttemptManager.replaceAttempts(test, results.map(result => result.status));
+
+        let lastResult = results.pop();
+
+        while (lastResult?.status === SKIPPED) {
+            // A muted execution keeps its original attempt even if the test is now declared pending.
+            if (lastResult.duration > 0 || lastResult.error) {
+                return;
+            }
+            if (test.pending) {
+                break;
+            }
+
+            this._testsTree.removeTestResult(lastResult.id);
+            this._testAttemptManager.removeAttempt(test);
+            this._dbClient.deleteLastTestResult({
+                suitePath: test.titlePath,
+                browserId: test.browserId,
+                status: SKIPPED,
+                timestamp: lastResult.timestamp
+            });
+            lastResult = results.pop();
+        }
+
+        if (!test.pending && lastResult) {
+            return;
+        }
+
+        // Синтетические статусы не требуют сохранения изображений.
+        // Все изменения SQLite выполняются синхронно внутри SAVEPOINT.
+        const formattedResult = this.provideAttempt(test.createTestResult({
+            status: test.pending ? SKIPPED : IDLE,
+            attempt: lastResult?.status === SKIPPED ? lastResult.attempt : UNKNOWN_ATTEMPT,
+            duration: 0
+        }));
+
+        this._writeTestResult(formattedResult);
+        this._addTestResultToTree(formattedResult);
     }
 
     getTestBranch(id: string): TestBranch {

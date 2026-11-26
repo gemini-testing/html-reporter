@@ -5,7 +5,7 @@ import fs from 'fs-extra';
 import NestedError from 'nested-error-stacks';
 
 import {getShortMD5} from './common-utils';
-import {TestStatus, DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS, LOCAL_DATABASE_NAME, DATABASE_URLS_JSON_NAME, DB_CURRENT_VERSION, DB_COLUMNS, DB_COLUMN_INDEXES} from './constants';
+import {TestStatus, DB_SUITES_TABLE_NAME, SUITES_TABLE_COLUMNS, LOCAL_DATABASE_NAME, DATABASE_URLS_JSON_NAME, DB_CURRENT_VERSION, DB_COLUMNS} from './constants';
 import {createTablesQuery, selectAllSuitesQuery} from './db-utils/common';
 import {setDatabaseVersion} from './db-utils/migrations';
 import type {Attachment, ImageInfoFull, TestError, TestStepCompressed, RawSuitesRow} from './types';
@@ -182,24 +182,16 @@ export class SqliteClient {
             return [];
         }
 
-        const rows: RawSuitesRow[] = [];
-        const requestedTests = new Set(tests.map(test => `${JSON.stringify(test.suitePath)}\0${test.browserId}`));
-        const statement = this._db.prepare(`${selectAllSuitesQuery()} ORDER BY ${DB_COLUMNS.TIMESTAMP} ASC, rowid ASC`);
+        const [result] = this._db.exec(`
+            ${selectAllSuitesQuery()}
+            WHERE (${DB_COLUMNS.SUITE_PATH}, ${DB_COLUMNS.NAME}) IN (
+                SELECT json_extract(value, '$.suitePath'), json_extract(value, '$.browserId')
+                FROM json_each(?)
+            )
+            ORDER BY ${DB_COLUMNS.TIMESTAMP} ASC, rowid ASC
+        `, [JSON.stringify(tests)]);
 
-        while (statement.step()) {
-            const row = statement.get();
-
-            if (Array.isArray(row)) {
-                const key = `${row[DB_COLUMN_INDEXES.suitePath]}\0${row[DB_COLUMN_INDEXES.name]}`;
-
-                if (requestedTests.has(key)) {
-                    rows.push(row as RawSuitesRow);
-                }
-            }
-        }
-        statement.free();
-
-        return rows;
+        return (result?.values ?? []) as RawSuitesRow[];
     }
 
     write(testResult: ReporterTestResult): void {

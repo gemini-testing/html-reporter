@@ -123,7 +123,7 @@ describe('GuiReportBuilder', () => {
     });
 
     describe('"addTestResult" method', () => {
-        it('should add skipped test results to skips', async () => {
+        it('should add the skip reason to the test result in the tree', async () => {
             const reportBuilder = await mkGuiReportBuilder_();
 
             await reportBuilder.addTestResult(stubTest_({
@@ -147,9 +147,7 @@ describe('GuiReportBuilder', () => {
                 attachments: []
             }));
 
-            const result = reportBuilder.getResult();
-
-            assert.deepEqual(result.skips[0], {suite: 'some-name', comment: 'some-reason', browser: 'some-browser'});
+            assert.include(getTestResult_(), {status: SKIPPED, skipReason: 'some-reason', browserId: 'some-browser'});
         });
 
         it('should load images info from previous attempt', async () => {
