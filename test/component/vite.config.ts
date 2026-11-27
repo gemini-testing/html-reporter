@@ -17,6 +17,7 @@ export default defineConfig({
         'module': '{ exports: {} }'
     },
     optimizeDeps: {
+        entries: ['tests/**/*.testplane.tsx'],
         // Required for Safari 14 compatibility.
         esbuildOptions: {
             target: 'es2020'

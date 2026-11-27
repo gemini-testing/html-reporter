@@ -41,22 +41,20 @@ interface ImageEntityComponentProps {
 }
 
 const getMaxWidth = (imageEntity: ImageEntity, diffMode: DiffModeId): string | number => {
-    const padding = 28;
-
     if (
         diffMode !== DiffModes.THREE_UP_SCALED.id &&
         diffMode !== DiffModes.THREE_UP_SCALED_TO_FIT.id
     ) {
         if (imageEntity.status === TestStatus.FAIL) {
-            return imageEntity?.diffImg?.size?.width + padding;
+            return imageEntity?.diffImg?.size?.width;
         }
 
         if (imageEntity.status === TestStatus.ERROR) {
-            return imageEntity?.actualImg?.size?.width + padding;
+            return imageEntity?.actualImg?.size?.width;
         }
 
         if (imageEntity.status === TestStatus.SUCCESS) {
-            return imageEntity?.expectedImg?.size?.width + padding;
+            return imageEntity?.expectedImg?.size?.width;
         }
     }
 
@@ -77,7 +75,7 @@ const ImageEntityComponent = ({imageEntity, isVisualChecksPage, scrollContainerR
         }
     }, [imageEntity.status]);
 
-    const imageDiffStyle = initialHeight && imageEntity.status !== TestStatus.FAIL
+    const retainedHeightStyle = initialHeight
         ? {'--img-max-height': `${initialHeight}px`} as React.CSSProperties
         : undefined;
 
@@ -87,13 +85,12 @@ const ImageEntityComponent = ({imageEntity, isVisualChecksPage, scrollContainerR
             className={classNames(styles.imageContainer, !isVisualChecksPage ? styles.suites : null)}
             onMouseEnter={(): void => setFocused(true)}
             onMouseLeave={(): void => setFocused(false)}
-            style={{maxWidth}}
         >
             <span className={styles.imageStatus}>
                 {!isVisualChecksPage && <Icon data={Camera} width={16} height={16}/>} {imageEntity.stateName} ⋅ {getAssertViewStatusMessage(imageEntity)}
             </span>
             {(!isHideScreenshots || isVisualChecksPage) && (
-                <div className={styles.imageDiff} ref={imageDiffRef} style={imageDiffStyle}>
+                <div className={styles.imageDiff} ref={imageDiffRef} style={imageEntity.status === TestStatus.FAIL ? {maxWidth} : retainedHeightStyle}>
                     <AssertViewResult
                         labelClassName={styles.imageLabel}
                         result={imageEntity}
@@ -102,7 +99,7 @@ const ImageEntityComponent = ({imageEntity, isVisualChecksPage, scrollContainerR
                     />
                 </div>
             )}
-            <div className={styles.acceptButtonContainer}>
+            <div className={styles.acceptButtonContainer} style={{maxWidth}}>
                 <AcceptButton
                     isFocused={isFocused}
                     className={styles.acceptButton}
