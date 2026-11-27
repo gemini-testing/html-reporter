@@ -6,7 +6,7 @@ import type {ImageFile} from '../../../../lib/types';
 import {ThemeProvider} from '@gravity-ui/uikit';
 import {Key} from 'testplane';
 
-import '../../styles.css';
+import '../../setup';
 
 async function waitForFonts(browser: WebdriverIO.Browser): Promise<void> {
     await browser.waitUntil(
