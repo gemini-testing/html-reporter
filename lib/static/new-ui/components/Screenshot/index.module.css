@@ -1,6 +1,11 @@
 .container {
     position: relative;
     display: inline-flex;
+
+    max-height: min(
+            max(var(--desired-height), calc(var(--natural-height) * 1px / 2)),
+            calc(var(--natural-height) * 1px)
+    );
 }
 
 .container--clickable {
@@ -11,4 +16,9 @@
     aspect-ratio: var(--natural-width) / var(--natural-height);
     max-width: calc(min(var(--natural-width) * 1px, 100%));
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+
+    max-height: min(
+            max(var(--desired-height), calc(var(--natural-height) * 1px / 2)),
+            calc(var(--natural-height) * 1px)
+    );
 }
